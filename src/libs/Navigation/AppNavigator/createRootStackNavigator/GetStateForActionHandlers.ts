@@ -14,6 +14,7 @@ import type {CommonActions, NavigationState, PartialState, RouterConfigOptions, 
 import type {ParamListBase, Router} from '@react-navigation/routers';
 
 import {StackActions} from '@react-navigation/native';
+import {Platform} from 'react-native';
 
 import type {
     PushActionType,
@@ -407,6 +408,24 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
  * @see removePreInsertedFullscreenIfNeeded in Navigation.ts — the caller that cleans up
  *      the pre-insertion when the user cancels.
  */
+
+/**
+ * The buffer route only guards against a native swipe-back gesture popping the RHP before JS
+ * cleanup runs. Web has no such gesture, so there's nothing for the buffer to protect against there.
+ *
+ * Only insert when the caller asks for it (`shouldInsertPreMountBuffer`): `preInsertFullscreenUnderRHP`
+ * has real dwell time for a swipe to race, so it opts in. `revealRouteBeforeDismissingModal` dismisses
+ * in the very next frame, programmatically, with no gesture involved, and never captures/clears the
+ * buffer afterward - inserting one there would strand it on top after the dismiss instead of the
+ * revealed destination.
+ */
+function buildPreMountBufferRoute(rhpRouteKey: string, shouldInsertPreMountBuffer: boolean | undefined): StackNavigationState<ParamListBase>['routes'][number] | undefined {
+    if (Platform.OS === 'web' || !shouldInsertPreMountBuffer) {
+        return undefined;
+    }
+    return {name: SCREENS.PRE_MOUNT_BUFFER, key: `pre-mount-buffer-${rhpRouteKey}`};
+}
+
 function handleReplaceFullscreenUnderRHP(
     state: StackNavigationState<ParamListBase>,
     action: ReplaceFullscreenUnderRHPActionType,
@@ -458,7 +477,17 @@ function handleReplaceFullscreenUnderRHP(
         preInsertedOriginalTabRoute = existingTabState?.routes?.length
             ? existingTabRoute
             : ({...existingTabRoute, state: buildTabNavigatorNestedState({name: TAB_SCREENS[0]})} as StackNavigationState<ParamListBase>['routes'][number]);
-        const newRoutes = [...routesWithoutRHP.slice(0, tabNavIndex), updatedTabRoute, ...routesWithoutRHP.slice(tabNavIndex + 1), rhpRoute];
+        // Build Buffer into this same dispatch. A separate follow-up dispatch races the stale-state
+        // rehydration this action just computed and can freeze a pre-rehydration snapshot, so
+        // Buffer must land atomically.
+        const bufferRouteForTab = buildPreMountBufferRoute(rhpRoute.key, action.payload.shouldInsertPreMountBuffer);
+        const newRoutes = [
+            ...routesWithoutRHP.slice(0, tabNavIndex),
+            updatedTabRoute,
+            ...routesWithoutRHP.slice(tabNavIndex + 1),
+            ...(bufferRouteForTab ? [bufferRouteForTab] : []),
+            rhpRoute,
+        ];
         return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
     }
 
@@ -485,10 +514,12 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     const rehydratedStateAfterPush = stackRouter.getRehydratedState(stateAfterPush, configOptions);
+    // Build Buffer into this same dispatch (same reasoning as the tab branch above).
+    const bufferRouteForPush = buildPreMountBufferRoute(rhpRoute.key, action.payload.shouldInsertPreMountBuffer);
     return {
         ...rehydratedStateAfterPush,
-        routes: [...rehydratedStateAfterPush.routes, rhpRoute],
-        index: rehydratedStateAfterPush.routes.length,
+        routes: [...rehydratedStateAfterPush.routes, ...(bufferRouteForPush ? [bufferRouteForPush] : []), rhpRoute],
+        index: rehydratedStateAfterPush.routes.length + (bufferRouteForPush ? 1 : 0),
     };
 }
 
@@ -514,7 +545,7 @@ function handleRemoveFullscreenUnderRHP(
         return null;
     }
 
-    const routesWithoutRHP = state.routes.slice(0, -1);
+    const routesWithoutRHP = state.routes.slice(0, -1).filter((r) => r.name !== SCREENS.PRE_MOUNT_BUFFER);
 
     // Tab-switch path: restore the original TAB_NAVIGATOR route saved during pre-insertion.
     if (preInsertedOriginalTabRoute) {

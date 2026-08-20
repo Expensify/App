@@ -39,6 +39,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
+import {clearPromotedDraftReportForPreMount, clearPromotedDraftReportPreMountMarker, promoteDraftReportForPreMount} from '@libs/actions/Report';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -46,6 +47,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
+    getReusableP2PReportID,
     getSelectedWorkspacePolicyID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
@@ -63,7 +65,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getChatByParticipants, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import {
     getRequestType,
@@ -100,7 +102,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -579,6 +581,8 @@ function IOURequestStepConfirmation({
     // excluded too. Pre-inserting the Search route would leave a stale entry in the navigation stack.
     const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && !isSelfDMDestination;
 
+    const promotedDraftReportIDRef = useRef<string | undefined>(undefined);
+
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
         transactions,
@@ -607,6 +611,14 @@ function IOURequestStepConfirmation({
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
+        onExpenseWriteWillStart: () => {
+            const promotedReportID = promotedDraftReportIDRef.current;
+            if (!promotedReportID) {
+                return;
+            }
+            promotedDraftReportIDRef.current = undefined;
+            clearPromotedDraftReportPreMountMarker(promotedReportID);
+        },
     });
 
     // handleSearchDismiss doesn't pre-insert - it just dismisses the modal when search is
@@ -622,7 +634,21 @@ function IOURequestStepConfirmation({
     const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
     const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
     const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
-    const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+
+    // Resolve the selected P2P participant independently of the page-level report, which can still belong to the
+    // previously selected participant. Existing chats win; only a genuinely new chat reuses the transaction's stable
+    // optimistic reportID committed by useParticipantSubmission.
+    const firstParticipant = participants.at(0);
+    // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
+    const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat;
+    const reusableP2PReportID = isP2PDestination ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
+    const existingP2PDestinationReportID = isP2PDestination
+        ? getChatByParticipants([firstParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID])?.reportID
+        : undefined;
+    const optimisticP2PDestinationReportID = !existingP2PDestinationReportID && reusableP2PReportID ? reusableP2PReportID : undefined;
+    const preMountDestinationReportID = optimisticP2PDestinationReportID ?? existingP2PDestinationReportID ?? destinationReportID;
+    const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${preMountDestinationReportID}`);
+    const destinationReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${preMountDestinationReportID}`];
 
     // All reactive inputs are in the deps; the builder's own live Navigation reads aren't reactive values so they don't belong
     // here. A recompute driven by a non-route-determining dep yields the same string route - a no-op for usePreMountDestination's
@@ -633,19 +659,22 @@ function IOURequestStepConfirmation({
         () =>
             getSubmitExpensePreMountDestinationRoute({
                 isTransactionReady,
-                destinationReportID,
-                destinationReport,
+                destinationReportID: preMountDestinationReportID,
+                destinationReport: destinationReport ?? destinationReportDraft,
                 isFromGlobalCreate,
                 canPreInsertSearch,
                 iouType,
                 isCreatingTrackExpense,
                 isSelfDMDestination,
+                isOptimisticNewChatDestination: !!optimisticP2PDestinationReportID,
                 isMovingTransactionFromTrackExpense,
             }),
         [
             isTransactionReady,
-            destinationReportID,
+            preMountDestinationReportID,
+            optimisticP2PDestinationReportID,
             destinationReport,
+            destinationReportDraft,
             isFromGlobalCreate,
             canPreInsertSearch,
             iouType,
@@ -655,9 +684,52 @@ function IOURequestStepConfirmation({
         ],
     );
 
+    // Draft promotion only applies to the employer-flow report (never the optimistic P2P case, which never has a
+    // draft to promote). Checking that explicitly - rather than relying solely on the route string matching a
+    // param-free report route - keeps this from silently breaking if the employer-flow route ever gains a query param.
+    const preMountDestinationReportRoute = preMountDestinationReportID ? ROUTES.REPORT_WITH_ID.getRoute(preMountDestinationReportID) : undefined;
+    const shouldPromoteDestinationDraft = !optimisticP2PDestinationReportID && !!preMountDestinationReportRoute && preMountDestinationRoute === preMountDestinationReportRoute;
+
+    // The zero-workspace "Submit to my employer" flow creates the draft policy expense chat report (with the
+    // reportID the real backend commit will eventually use) before this screen mounts - see DraftWorkspaceOpener /
+    // createDraftWorkspace. Copy it into COLLECTION.REPORT only when this report is the eligible pre-mount target.
+    // The backend success handler overwrites the same key with confirmed data once submit completes.
+    useEffect(() => {
+        if (!shouldPromoteDestinationDraft || !preMountDestinationReportID || destinationReport || !destinationReportDraft) {
+            return;
+        }
+
+        promotedDraftReportIDRef.current = preMountDestinationReportID;
+        promoteDraftReportForPreMount(preMountDestinationReportID, destinationReportDraft);
+    }, [shouldPromoteDestinationDraft, preMountDestinationReportID, destinationReport, destinationReportDraft]);
+
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
         shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
     });
+
+    // Register this after usePreMountDestination so its route cleanup removes the pre-mounted screen first. Only
+    // then is it safe to remove the speculative report row that screen may have been reading.
+    useEffect(() => {
+        return () => {
+            const promotedReportID = promotedDraftReportIDRef.current;
+            // Read the latest submission state at cleanup time because submission can start or finish after this effect runs.
+            const hasSubmitIntent = !!getPendingSubmitFollowUpAction();
+            if (!promotedReportID || promotedReportID !== preMountDestinationReportID || Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+                return;
+            }
+
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            if (hasSubmitIntent || formHasBeenSubmitted.current) {
+                // onExpenseWriteWillStart (passed to useExpenseSubmission) owns clearing the marker once the real
+                // write runs - it may race this cleanup, so leave both the ref and the marker alone here. Clearing
+                // early would leave the speculative row unmarked if the app dies before that write actually happens.
+                return;
+            }
+
+            promotedDraftReportIDRef.current = undefined;
+            clearPromotedDraftReportForPreMount(promotedReportID);
+        };
+    }, [preMountDestinationReportID, formHasBeenSubmitted]);
 
     // Cancel the telemetry span when confirmation unmounts without a completed submission.
     // If getPendingSubmitFollowUpAction() is set, the orchestrator (or sendMoney flow) has
@@ -688,8 +760,10 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            const resolvedReportIDs = resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
-            const payDestinationReportID = destinationReportID ?? resolvedReportIDs.chatReportID;
+            const resolvedReportIDs = optimisticP2PDestinationReportID
+                ? {optimisticChatReportID: optimisticP2PDestinationReportID, chatReportID: optimisticP2PDestinationReportID}
+                : resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+            const payDestinationReportID = optimisticP2PDestinationReportID ?? destinationReportID ?? resolvedReportIDs.chatReportID;
             if (!payDestinationReportID || Navigation.getTopmostReportId() === payDestinationReportID) {
                 sendMoney(paymentMethod, {resolvedReportIDs});
                 return;
@@ -714,7 +788,7 @@ function IOURequestStepConfirmation({
                 },
             });
         },
-        [currentUserPersonalDetails.accountID, destinationReportID, isConfirmed, setIsConfirmed, participants, report, sendMoney, transaction?.receipt],
+        [currentUserPersonalDetails.accountID, destinationReportID, isConfirmed, optimisticP2PDestinationReportID, setIsConfirmed, participants, report, sendMoney, transaction?.receipt],
     );
 
     const navigateBack = useCallback(() => {
@@ -992,7 +1066,7 @@ function IOURequestStepConfirmation({
                         </DragAndDropConsumer>
                         <SubmitExpenseOrchestrator
                             createTransaction={createTransaction}
-                            destinationReportID={destinationReportID}
+                            destinationReportID={preMountDestinationReportID}
                             isFromGlobalCreate={isFromGlobalCreate}
                             iouType={iouType}
                             isSelfDMDestination={isSelfDMDestination}

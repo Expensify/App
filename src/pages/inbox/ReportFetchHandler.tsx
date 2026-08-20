@@ -92,6 +92,7 @@ function ReportFetchHandler() {
 
     // Only the main report route carries a Submit-via-PDF secure access key.
     const secureKeyFromRoute = route.name === SCREENS.REPORT ? route.params?.secureKey : undefined;
+    const isPendingCreationFromRoute = route.name === SCREENS.REPORT ? route.params?.isPendingCreation === 'true' : false;
     const shouldReplaceWithExpenseReportRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
 
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -111,6 +112,7 @@ function ReportFetchHandler() {
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
+    const [isPromotedForPreMount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -172,6 +174,15 @@ function ReportFetchHandler() {
             return;
         }
 
+        // reportIDFromRoute is a client-generated optimistic ID for a chat that doesn't exist on the server yet (see
+        // getSubmitExpensePreMountDestinationRoute.ts, which pre-mounts this screen behind the confirmation RHP for a
+        // brand-new 1:1 recipient before submit). Calling openReport for it would 403 and latch the not-found page.
+        // Once the real submit writes the report into COLLECTION.REPORT under this same ID, reportOnyx?.reportID
+        // becomes truthy and normal fetching resumes.
+        if (isPendingCreationFromRoute && !reportOnyx?.reportID) {
+            return;
+        }
+
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
             // openReport is intentionally never called for an optimistic chat report, so nothing else can settle its
             // initial-load state. The stamp written at creation lives in a RAM-only key and is lost on an app restart,
@@ -189,6 +200,14 @@ function ReportFetchHandler() {
         // 403 "Report not found" and merge an errorFields.notFound stub into REPORT, shadowing the draft. It's persisted
         // later by the confirmation's AddTrackedExpenseToPolicy request, so never openReport it here.
         if (!reportOnyx?.reportID && !!reportDraftOnyx?.reportID) {
+            return;
+        }
+
+        // promoteDraftReportForPreMount (see Report/index.ts) copies that same draft into COLLECTION.REPORT so the
+        // pre-mounted screen can render immediately, which makes the guard above stop protecting it - reportOnyx?.reportID
+        // is now truthy even though the row is still speculative. The promotion marker stays set until the real submit
+        // confirms or the caller backs out, so gate on it here too.
+        if (isPromotedForPreMount) {
             return;
         }
 
@@ -317,6 +336,15 @@ function ReportFetchHandler() {
         }
         navigation.setParams({secureKey: undefined});
     }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
+
+    // isPendingCreation only protects the client-generated ID before submission. Remove it once the optimistic
+    // report exists locally so copied or restored links use the normal openReport path on other clients.
+    useEffect(() => {
+        if (!isPendingCreationFromRoute || !reportOnyx?.reportID) {
+            return;
+        }
+        navigation.setParams({isPendingCreation: undefined});
+    }, [isPendingCreationFromRoute, reportOnyx?.reportID, navigation]);
 
     useEffect(() => {
         if (!isAnonymousUser) {

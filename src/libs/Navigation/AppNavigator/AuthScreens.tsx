@@ -84,6 +84,7 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
+const loadPreMountBufferPage = () => require<ReactComponentModule>('../../../pages/PreMountBufferPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
@@ -226,6 +227,13 @@ function AuthScreens() {
                             name={SCREENS.SUBMIT_EXPENSE}
                             options={defaultScreenOptions}
                             getComponent={loadSubmitExpensePage}
+                        />
+                        {/* No linking path, not deep-linkable. animation: none - it's a fake screen,
+                            insert/remove must be instant, not slide. */}
+                        <RootStack.Screen
+                            name={SCREENS.PRE_MOUNT_BUFFER}
+                            options={{...defaultScreenOptions, animation: 'none'}}
+                            getComponent={loadPreMountBufferPage}
                         />
                         <RootStack.Screen
                             name={SCREENS.REPORT_ATTACHMENTS}

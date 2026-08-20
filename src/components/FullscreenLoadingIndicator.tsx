@@ -27,6 +27,9 @@ type FullScreenLoadingIndicatorProps = {
     /** Whether the "Go Back" button appears after a timeout. */
     shouldUseGoBackButton?: boolean;
 
+    /** Action used by the delayed "Go Back" button. */
+    onGoBack?: () => void;
+
     /** The ID of the test to be used for testing */
     testID?: string;
 
@@ -38,6 +41,7 @@ function FullScreenLoadingIndicator({
     style,
     iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
     shouldUseGoBackButton = false,
+    onGoBack = Navigation.goBack,
     testID = '',
     extraLoadingContext,
 }: FullScreenLoadingIndicatorProps) {
@@ -71,7 +75,7 @@ function FullScreenLoadingIndicator({
                         </View>
                         <Button
                             text={translate('common.goBack')}
-                            onPress={() => Navigation.goBack()}
+                            onPress={() => onGoBack()}
                         />
                     </View>
                 )}

@@ -16,6 +16,7 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -916,6 +917,21 @@ describe('getExistingTransactionID', () => {
             expect(result1.chatReportID).toBeDefined();
             expect(result2.chatReportID).toBeDefined();
         });
+
+        it('should use the preferred optimistic ID when no existing report is found', () => {
+            const result = IOUUtils.resolveOptimisticChatReportID([100001, 100002], undefined, 'preferred-123');
+
+            expect(result.chatReportID).toBe('preferred-123');
+            expect(result.optimisticChatReportID).toBe('preferred-123');
+        });
+
+        it('should prefer an existing report over the preferred optimistic ID', () => {
+            const existingReport = {reportID: 'existing-123'} as Report;
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2], existingReport, 'preferred-123');
+
+            expect(result.chatReportID).toBe('existing-123');
+            expect(result.optimisticChatReportID).toBeUndefined();
+        });
     });
 
     describe('resolveReportForMoneyRequest', () => {
@@ -1228,6 +1244,24 @@ describe('isParticipantP2P', () => {
         };
 
         expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+});
+
+describe('getReusableP2PReportID', () => {
+    it('returns the transaction report ID for a brand-new P2P recipient', () => {
+        expect(IOUUtils.getReusableP2PReportID({} as Participant, '123')).toBe('123');
+    });
+
+    it('does not return the transaction report ID for an existing P2P chat', () => {
+        expect(IOUUtils.getReusableP2PReportID({reportID: '456'} as Participant, '123')).toBeUndefined();
+    });
+
+    it('does not return the transaction report ID for a workspace chat', () => {
+        expect(IOUUtils.getReusableP2PReportID({isPolicyExpenseChat: true} as Participant, '123')).toBeUndefined();
+    });
+
+    it('does not return the unreported report ID', () => {
+        expect(IOUUtils.getReusableP2PReportID({} as Participant, CONST.REPORT.UNREPORTED_REPORT_ID)).toBeUndefined();
     });
 });
 

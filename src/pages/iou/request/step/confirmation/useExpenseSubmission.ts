@@ -20,7 +20,7 @@ import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import {getExistingTransactionID, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
+import {getExistingTransactionID, getReusableP2PReportID, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
@@ -148,6 +148,14 @@ type UseExpenseSubmissionParams = {
 
     // Navigation
     backToReport?: string;
+
+    /**
+     * Called once trackExpense/requestMoney have passed all their upfront validation and a real optimistic write is
+     * guaranteed to run. A caller holding a pre-mount promotion marker (see promoteDraftReportForPreMount) must only
+     * clear it here - clearing any earlier risks leaving an orphaned promoted report row if validation then bails
+     * with no write, since nothing else is left to reconcile that marker afterward.
+     */
+    onExpenseWriteWillStart?: () => void;
 };
 
 type SendMoneyReportIDs = {
@@ -196,6 +204,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
+        onExpenseWriteWillStart,
     } = params;
 
     // Localization
@@ -407,8 +416,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+        onExpenseWriteWillStart?.();
 
-        const optimisticChatReportID = generateReportID();
+        // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
+        // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
+        // report at that same ID so the report the screen subscribes to is the one that actually gets created.
+        // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
+        // Keyed off the selected participant's own chat linkage, not the page-level `report` - that prop can stay
+        // bound to a previously-selected participant's chat when the user swaps recipients without remounting.
+        const transactionReportID = transaction?.reportID;
+        const reusableP2PReportID = getReusableP2PReportID(participant, transactionReportID);
+        const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
+        const {chatReportID: optimisticChatReportID} = resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID);
         const optimisticCreatedReportActionID = rand64();
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
@@ -629,10 +648,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
                 existingChatReport = getReportOrDraftReport(participant.reportID);
             }
-            const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
-                [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
-                existingChatReport,
-            );
+            // Keep the pre-mounted report ID aligned with the report created for a brand-new P2P recipient.
+            // existingChatReport can belong to the previously selected recipient.
+            // Confirmation commits this ID for new recipients.
+            const transactionReportID = transaction.reportID;
+            // Reuse it so the pre-mounted screen subscribes to the report created on submission.
+            const reusableP2PReportID = !isExpenseReport ? getReusableP2PReportID(participant, transactionReportID) : undefined;
+            const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
+            const reportIDs =
+                !isExpenseReport && !participant.isPolicyExpenseChat
+                    ? resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID)
+                    : resolveOptimisticChatReportID(participantAccountIDs, existingChatReport);
+            const {optimisticChatReportID, chatReportID} = reportIDs;
             const activeReportID = isExpenseReport ? report?.reportID : chatReportID;
 
             const perDiemParticipantParams = {
@@ -712,6 +739,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+        onExpenseWriteWillStart?.();
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
         // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
@@ -1208,9 +1236,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const {optimisticChatReportID, chatReportID} =
             resolvedReportIDs ?? resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+        // An explicit optimistic ID means the selected recipient has no chat yet. Do not let a stale page-level
+        // report override that ID in getSendMoneyParams when the recipient changed without remounting this screen.
+        const sendMoneyReport = optimisticChatReportID ? undefined : report;
         const sendMoneyParams = {
             getCurrencyDecimals,
-            report,
+            report: sendMoneyReport,
             quickAction,
             amount: transaction.amount,
             currency,

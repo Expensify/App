@@ -1,5 +1,5 @@
-import {handleReplaceFullscreenUnderRHP} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
-import type {ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
+import {handleRemoveFullscreenUnderRHP, handleReplaceFullscreenUnderRHP} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import type {RemoveFullscreenUnderRHPActionType, ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import type {NavigationPartialRoute, NavigationStateRoute} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
@@ -8,6 +8,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {CommonActions, NavigationState, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+
+import {StackRouter} from '@react-navigation/native';
 
 import createMock from '../../../utils/createMock';
 
@@ -96,11 +98,22 @@ function makeExistingState(workspaceNavNestedRoutes: PartialState<NavigationStat
     return makeStackState([tabNavRoute, makeRHPRoute()]);
 }
 
-function makeAction(): ReplaceFullscreenUnderRHPActionType {
+function makeAction(shouldInsertPreMountBuffer?: boolean): ReplaceFullscreenUnderRHPActionType {
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-        payload: {route: ROUTES.WORKSPACE_INITIAL.getRoute('NEW')},
+        payload: {route: ROUTES.WORKSPACE_INITIAL.getRoute('NEW'), shouldInsertPreMountBuffer},
     };
+}
+
+function makeRemoveAction(expectedRouteName: string): RemoveFullscreenUnderRHPActionType {
+    return {
+        type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
+        payload: {expectedRouteName},
+    };
+}
+
+function getBufferRoute(result: StackNavigationState<ParamListBase> | null) {
+    return result?.routes.find((r) => r.name === SCREENS.PRE_MOUNT_BUFFER);
 }
 
 function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> | null) {
@@ -210,5 +223,75 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
         const result = handleReplaceFullscreenUnderRHP(tabOnly, makeAction(), CONFIG_OPTIONS, stackRouter);
 
         expect(result).toBeNull();
+    });
+});
+
+describe('handleReplaceFullscreenUnderRHP / handleRemoveFullscreenUnderRHP — shouldInsertPreMountBuffer', () => {
+    it('inserts the buffer route directly under the RHP on the tab-switch path when shouldInsertPreMountBuffer is true', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const result = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(true), CONFIG_OPTIONS, stackRouter);
+
+        expect(getBufferRoute(result)?.key).toBe(`pre-mount-buffer-${makeRHPRoute().key}`);
+        expect(result?.routes.at(-2)?.name).toBe(SCREENS.PRE_MOUNT_BUFFER);
+        expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    });
+
+    it('does not insert a buffer route on the tab-switch path when shouldInsertPreMountBuffer is false/undefined', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const result = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(false), CONFIG_OPTIONS, stackRouter);
+
+        expect(getBufferRoute(result)).toBeUndefined();
+        expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    });
+
+    it('inserts the buffer route directly under the RHP on the push path when shouldInsertPreMountBuffer is true', () => {
+        const routeNames = [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
+        const realStackRouter = StackRouter({});
+        const configOptions: RouterConfigOptions = {routeNames, routeParamList: {}, routeGetIdList: {}};
+        mockStubbedParsedState = {routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}]};
+        const existing = makeStackState([
+            makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'search-key'),
+            makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, undefined, undefined, 'rhp-key'),
+        ]);
+
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(true), configOptions, realStackRouter);
+
+        expect(getBufferRoute(result)?.key).toBe('pre-mount-buffer-rhp-key');
+        expect(result?.routes.at(-2)?.name).toBe(SCREENS.PRE_MOUNT_BUFFER);
+        expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    });
+
+    it('does not insert a buffer route on the push path when shouldInsertPreMountBuffer is false/undefined', () => {
+        const routeNames = [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
+        const realStackRouter = StackRouter({});
+        const configOptions: RouterConfigOptions = {routeNames, routeParamList: {}, routeGetIdList: {}};
+        mockStubbedParsedState = {routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}]};
+        const existing = makeStackState([
+            makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'search-key'),
+            makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, undefined, undefined, 'rhp-key'),
+        ]);
+
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(false), configOptions, realStackRouter);
+
+        expect(getBufferRoute(result)).toBeUndefined();
+        expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    });
+
+    it('cancel (tab restore) drops any buffer route left between the restored tab and the RHP', () => {
+        // Models the (already-guarded-against) case where a buffer route was somehow still in state at cancel
+        // time: Navigation.ts's removePreInsertedFullscreenIfNeeded always strips it via removeBufferRouteOnly
+        // before dispatching REMOVE_FULLSCREEN_UNDER_RHP, but the router itself must not silently keep it if that
+        // ever changes.
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const insertResult = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(true), CONFIG_OPTIONS, stackRouter);
+        expect(getBufferRoute(insertResult)).not.toBeUndefined();
+        if (!insertResult) {
+            throw new Error('Expected handleReplaceFullscreenUnderRHP to return a state.');
+        }
+
+        const removeResult = handleRemoveFullscreenUnderRHP(insertResult, makeRemoveAction(NAVIGATORS.WORKSPACE_NAVIGATOR), CONFIG_OPTIONS, stackRouter);
+
+        expect(getBufferRoute(removeResult)).toBeUndefined();
+        expect(removeResult?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
 });

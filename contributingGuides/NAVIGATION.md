@@ -11,6 +11,8 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Going back](#going-back)
     - [Dismissing modals](#dismissing-modals)
     - [Dismissing modals with opening a report](#dismissing-modals-with-opening-a-report)
+    - [Pre-mounting a destination behind an RHP](#pre-mounting-a-destination-behind-an-rhp)
+      - [What pre-inserting actually costs](#what-pre-inserting-actually-costs)
     - [Summary](#summary)
   - [Adding new screens](#adding-new-screens)
   - [Multi-step flows with URL synchronization](#multi-step-flows-with-url-synchronization)
@@ -248,6 +250,60 @@ Navigation.dismissModalWithReport({
 > 1. On a narrow screen, we do not want to perform two operations: closing the modal and opening the report. This would cause two actions to be displayed on the screen, which could be confusing for users. Instead of two operations, we perform a replace on the modal, thanks to which there is a smooth transition to the report with simultaneous closing of the modal.
 > 2. On a wide screen, we need to be sure that the modal has been closed before we want to navigate to the report. For this purpose, `navigate` is passed as the `afterTransition` callback to `dismissModal`, so it only runs once the dismiss transition has completed (tracked via `TransitionTracker`).
 
+### Pre-mounting a destination behind an RHP
+
+When dismissing an RHP reveals a **different** fullscreen destination (not the screen already behind it - see [Dismissing modals with opening a report](#dismissing-modals-with-opening-a-report) for that case), the destination needs to be mounted before the dismissal reveals it. Otherwise there's a visible gap on narrow layout, or a flash of the previous page on wide layout, while React mounts the destination tree.
+
+`usePreMountDestination` (`src/hooks/usePreMountDestination`) centralizes this lifecycle. It has two layout-specific strategies:
+
+-   **Narrow layout (default, `narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT`):** on mount, waits for the RHP's open transition, then pre-inserts the destination route underneath the RHP at idle priority (`preInsertFullscreenUnderRHP`). By the time the user dismisses, the destination is already mounted, so dismissal just reveals it.
+-   **Narrow layout with `narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.REVEAL`, or wide layout (always), or narrow layout where the pre-insert hasn't finished yet:** `reveal()` calls `Navigation.revealRouteBeforeDismissingModal` instead - it swaps in the destination and dismisses in one step, at reveal time rather than eagerly. Correctness is the same either way; only the narrow pre-insert path has the mount-ahead-of-time perf win.
+
+```tsx
+const destinationRoute = buildDestinationRoute(itemID);
+const {reveal, cleanupPreMount} = usePreMountDestination(destinationRoute);
+
+const handleSubmit = () => {
+    saveDataRequiredByDestination(); // synchronous work happens before reveal()
+    reveal();
+};
+
+const handleBackOut = () => {
+    cleanupPreMount(); // safe to call unconditionally - no-ops if nothing was pre-inserted
+    Navigation.goBack();
+};
+```
+
+See `IOURequestStepConfirmation.tsx` for the real reference implementation (submit-expense confirmation dismissing to the created report).
+
+-   `reveal(afterTransition?)`: dismisses the RHP over the pre-inserted destination if the hook owns one, otherwise falls back to `revealRouteBeforeDismissingModal` (see above).
+-   `cleanupPreMount()`: removes the owned pre-insert, if any. Call it unconditionally on every back-out path (header back, hardware back) that closes the RHP without calling `reveal()` - it's a no-op when this instance never actually pre-inserted anything.
+-   `shouldPreservePreInsertedRouteOnUnmount`: pass when the component unmounts before `reveal()` runs but the pre-insert should survive (e.g. the caller dismisses separately after a submit).
+
+> [!NOTE]
+> Only one component may own a pre-inserted route at a time (a single-pre-inserter invariant enforced by a module-level flag in `Navigation.ts`). `reveal()` logs a warning if it runs while a *different* flow's pre-insert flag is still set - that's a sign the previous owner didn't clean up.
+
+> [!NOTE]
+> For a **report** destination, pre-insert pushes it as a route between the origin and the RHP (`[origin, RHP] -> [origin, destination, RHP]`). For a **tab** target (e.g. Search), it's a tab switch instead (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. Which one happens is determined by the destination route, not by anything the caller configures.
+
+> [!NOTE]
+> See [PERF-18](../.claude/skills/coding-standards/rules/perf-18-use-pre-mount-destination.md) for the AI-review checklist covering this hook.
+
+#### What pre-inserting actually costs
+
+Pre-inserting is not a lightweight placeholder swap - it's a real second screen mounted in the stack, with its own Onyx connections, effects, and any API calls it fires on mount, running concurrently with the RHP that's still open. That mount happens whether or not the user ever reveals it: if they back out, `cleanupPreMount()` removes the *route*, but any data fetch the destination's mount already triggered already ran. For a screen with meaningful data-fetching behind it, that's wasted work on every back-out, not a free perf win.
+
+This is why the hook's own preconditions matter and aren't just checkboxes: the destination has to be knowable at mount time (otherwise there's nothing correct to pre-insert), and the user needs genuine dwell time on the RHP before dismissing (otherwise the pre-insert's own scheduling - it waits for the RHP's open transition, then schedules at idle priority - never gets a chance to finish, and you paid the mount cost for nothing).
+
+The hook's interaction with native navigation gestures has also turned out to be genuinely subtle, not incidental complexity: native swipe-back can pop the RHP at the native layer before any JS cleanup runs, briefly flashing the pre-inserted destination. This is a known limitation without a deterministic fix yet.
+
+**Concrete cases where the gap/flash cost is worth paying instead of reaching for this hook:**
+
+- **The destination is heavy and rarely reached from this dismiss path.** If most users dismiss via header-back rather than actually submitting, pre-inserting on every RHP open pays the concurrent-mount cost far more often than it pays off. Profile the actual dismiss-to-reveal ratio before assuming pre-insert wins.
+- **The RHP is a fast, single-step flow with no real dwell time.** A near-instant confirm-and-dismiss never gives idle scheduling a window to land the pre-insert before the user dismisses - you get the mount cost without the perf win, and (per `usePreMountDestinationTest.ts`'s scheduling tests) you're relying on timing that's inherently racy for that case.
+- **The flow already has a working, simpler dismiss helper** (e.g. `dismissModalWithReport`, or a flow-specific strategy in `submitDismissStrategies.ts`). Don't replace something that already handles the gap/flash tradeoff correctly just to use the "standard" hook - `usePreMountDestination` is one tool for this class of problem, not the only one.
+- **You're tempted to use `shouldPreservePreInsertedRouteOnUnmount` as a default escape hatch.** During review of the hook's introduction, a reviewer pushed back hard on this exact option: "I'm confused why we would ever want to this ... it seems like this flag being set would defeat the purpose of the hook." It exists for a narrow case - a *different* caller finishes the dismiss after this component unmounts - not as a way to sidestep cleanup ordering you haven't worked through.
+
 ### Summary
 
 -   `Navigation.navigate` is used to navigate between screens. Remember that it calls the `linkTo` method implemented by us. It accepts the route as a parameter not a screen name.
@@ -255,6 +311,7 @@ Navigation.dismissModalWithReport({
 -   If you want to go back to the screen regardless of its parameter values, pass `{compareParams: false}` to `Navigation.goBack`.
 -   If you want to close the entire modal window, regardless of how many pages you have opened, use `Navigation.dismissModal` to do that.
 -   If you want to open a report from RHP to prevent navigation back to this modal window, use `Navigation.dismissModalWithReport`.
+-   If dismissing an RHP reveals a different fullscreen destination, use `usePreMountDestination` to mount it ahead of time instead of orchestrating pre-insert/reveal by hand - but only when the destination is known at mount time and the user has real dwell time on the RHP; it's a real concurrent mount, not a free perf win, so profile before reaching for it on a heavy or rarely-reached destination.
 
 ## Adding new screens
 

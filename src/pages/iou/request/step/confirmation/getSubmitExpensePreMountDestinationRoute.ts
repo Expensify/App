@@ -23,6 +23,7 @@ type GetSubmitExpensePreMountDestinationRouteParams = {
     iouType: IOUType;
     isCreatingTrackExpense: boolean;
     isSelfDMDestination: boolean;
+    isOptimisticNewChatDestination: boolean;
     /** Whether the flow relocates an already-tracked expense (SUBMIT/SHARE/CATEGORIZE) rather than creating one in place. */
     isMovingTransactionFromTrackExpense: boolean;
 };
@@ -40,6 +41,7 @@ function getSubmitExpensePreMountDestinationRoute({
     iouType,
     isCreatingTrackExpense,
     isSelfDMDestination,
+    isOptimisticNewChatDestination,
     isMovingTransactionFromTrackExpense,
 }: GetSubmitExpensePreMountDestinationRouteParams): Route | undefined {
     // Unlike getSkipConfirmationPreMountDestinationRoute (which lets usePreMountDestination own the narrow gate), this builder
@@ -80,12 +82,11 @@ function getSubmitExpensePreMountDestinationRoute({
     // screen opens, so the destination is a report the user has never been on. Skipping it costs only the pre-mount.
     const isReplacingVisibleReport =
         !hasPreInsertedFullscreen && isMovingTransactionFromTrackExpense && isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() !== destinationReportID;
-    // The report must be in the REPORT collection so the pre-inserted screen can render immediately. A draft-only report
-    // (e.g. the expense chat of a freshly created draft workspace in the zero-workspace "Submit to my employer" flow) can't
-    // render - the report screen only reads COLLECTION.REPORT - so pre-inserting one would strand the user on an infinite
-    // skeleton if they back out before submitting. Passing an empty draft to getReportOrDraftReport skips its REPORT_DRAFT
-    // fallback while keeping the module-cache fallback for real reports that useOnyx hasn't hydrated yet.
-    const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
+    // Only pre-insert loaded reports because drafts can show an infinite skeleton after backing out. Employer-flow drafts
+    // are promoted by the caller. Optimistic new chats are safe because submit reuses their reportID and no report row
+    // exists yet. Passing an empty draft skips REPORT_DRAFT while preserving the module-cache fallback.
+    const isDestinationReportLoaded =
+        isOptimisticNewChatDestination || (!!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID);
     const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded && !isReplacingVisibleReport;
 
     if (!shouldPreInsertSearch && !shouldPreInsertReport) {
@@ -98,7 +99,11 @@ function getSubmitExpensePreMountDestinationRoute({
         });
     }
 
-    return ROUTES.REPORT_WITH_ID.getRoute(destinationReportID);
+    // isPendingCreation tells ReportFetchHandler to skip openReport for this ID until the real report exists locally
+    // (see the isOptimisticNewChatDestination comment above) - openReport would 403 against a client-only ID and
+    // latch the not-found page instead of leaving the pre-inserted screen in its normal loading state.
+    // positional args reportActionID/referrer/backTo/secureKey are unused here; only isPendingCreation (last) matters
+    return ROUTES.REPORT_WITH_ID.getRoute(destinationReportID, undefined, undefined, undefined, undefined, isOptimisticNewChatDestination);
 }
 
 export default getSubmitExpensePreMountDestinationRoute;
