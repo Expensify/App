@@ -77,9 +77,7 @@ function useBulkPayOptions({
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [liveIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
-    // SearchBulkActionsButton is rendered outside SearchScopeProvider, so the useOnyx read above doesn't
-    // redirect to the Search snapshot. Fall back to the snapshot report so bulk pay isn't misclassified
-    // (e.g. an expense report read as an IOU report) while the live Onyx report hasn't loaded yet.
+    // SearchBulkActionsButton is rendered outside SearchScopeProvider, so the useOnyx read above doesn't fall back to the Search snapshot.
     const iouReport = liveIouReport ?? selectedReport;
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
