@@ -395,9 +395,8 @@ function resetCreateDomainForm() {
 }
 
 /**
- * Surfaces an inline error on the create-domain form when the domain already exists AND the current user already has
- * access to it. We also clear the transient domainAccountID
- * returned by the BE so the navigation effect on the add domain page does not re-fire. No server call is performed.
+ * Surfaces an inline error on the create-domain form when the domain already exists AND the current user already has access to it.
+ * Clearing the accountID also stops the navigation effect on the add domain page from re-firing. No server call is performed.
  */
 function setCreateDomainAlreadyHaveAccessError() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {
@@ -406,10 +405,12 @@ function setCreateDomainAlreadyHaveAccessError() {
     });
 }
 
-/**
- * Removes the minimal domain entry the BE sends along with the "domain already exists" failure. It only carries that flow, so we
- * drop it to keep a domain the user has no access to out of the domains list. No server call is performed.
- */
+/** Unhides the BE error on the add domain form, which stays hidden while we hold onto the accountID. No server call is performed. */
+function clearCreateDomainAccountID() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null});
+}
+
+/** Drops the domain entry that came with the failure, keeping a domain the user has no access to out of the domains list. No server call is performed. */
 function clearDomainFromFailedCreation(domainAccountID: number) {
     Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, null);
 }
@@ -2404,6 +2405,7 @@ export {
     createDomain,
     resetCreateDomainForm,
     setCreateDomainAlreadyHaveAccessError,
+    clearCreateDomainAccountID,
     clearDomainFromFailedCreation,
     setPrimaryContact,
     clearSetPrimaryContactError,

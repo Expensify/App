@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
-import {clearDomainFromFailedCreation, createDomain, resetCreateDomainForm, setCreateDomainAlreadyHaveAccessError} from '@libs/actions/Domain';
+import {clearCreateDomainAccountID, clearDomainFromFailedCreation, createDomain, resetCreateDomainForm, setCreateDomainAlreadyHaveAccessError} from '@libs/actions/Domain';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
@@ -21,6 +21,7 @@ import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
@@ -31,7 +32,7 @@ function AddDomainPage() {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [allDomains, allDomainsResult] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
@@ -53,8 +54,8 @@ function AddDomainPage() {
     const submittedDomainName = useRef<string | undefined>(undefined);
 
     // Domains we had before submitting. The BE returns the same generic failure whether or not we already have access to the
-    // existing domain, so this is what tells the two apart. Stays undefined until we submit, so a response that arrives for an
-    // earlier mount (e.g. a queued offline request) is ignored instead of being judged against an empty set.
+    // existing domain, so this is what tells the two apart. Stays undefined until we submit with loaded domain data, so we never
+    // judge the response against an incomplete set.
     const domainKeysBeforeCreation = useRef<Set<string> | undefined>(undefined);
 
     // The domain name only lives in form state, which the verify account page can't reach, so we resume the submit here instead of forwarding from that page.
@@ -78,7 +79,12 @@ function AddDomainPage() {
     // Must be a layout effect - a passive one runs after the paint, so the generic BE error flashes on the form before we redirect.
     useLayoutEffect(() => {
         const domainAccountID = form?.domainAccountID;
-        if (!domainAccountID || !domainKeysBeforeCreation.current) {
+        if (!domainAccountID) {
+            return;
+        }
+
+        if (!domainKeysBeforeCreation.current) {
+            clearCreateDomainAccountID();
             return;
         }
 
@@ -121,7 +127,7 @@ function AddDomainPage() {
                     onSubmit={({domainName}) => {
                         const submitDomain = () => {
                             submittedDomainName.current = domainName;
-                            domainKeysBeforeCreation.current = new Set(Object.keys(allDomains ?? {}));
+                            domainKeysBeforeCreation.current = isLoadingOnyxValue(allDomainsResult) ? undefined : new Set(Object.keys(allDomains ?? {}));
                             createDomain(domainName);
                         };
 
