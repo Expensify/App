@@ -24,12 +24,13 @@ function patchPackage() {
   TEMP_PATCH_DIR=$(mktemp --directory ./tmp-patches-XXX)
   trap 'rm -rf "$TEMP_PATCH_DIR"' RETURN
 
-  find ./patches -type f -name '*.patch' -exec cp {} "$TEMP_PATCH_DIR" \;
+  PATCH_DIRS=(./patches)
   if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
-    find ./Mobile-Expensify/patches -type f -name '*.patch' -exec cp {} "$TEMP_PATCH_DIR" \;
+    PATCH_DIRS+=(./Mobile-Expensify/patches)
   fi
+  node "$SCRIPT_DIR/copyPatchFiles.js" "$TEMP_PATCH_DIR" "${PATCH_DIRS[@]}"
 
-  if ! npx patch-package --patch-dir "$TEMP_PATCH_DIR" --error-on-fail --color=always; then
+  if ! ./node_modules/.bin/patch-package --patch-dir "$TEMP_PATCH_DIR" --error-on-fail --color=always; then
     return 1
   fi
 }

@@ -23,7 +23,7 @@ fi
 
 # Setup Skia WASM
 echo -e "\n${GREEN}Setting up Skia WASM!${NC}"
-npx setup-skia-web
+./node_modules/.bin/setup-skia-web
 
 # Clean up web/static created by setup-skia-web
 rm -rf "$ROOT_DIR/web/static"
