@@ -460,7 +460,7 @@ describe('DateUtils', () => {
     });
 
     describe('formatInUTCTo*', () => {
-        // Local-midnight Date + UTC-zone formatter shifts a day for UTC+ viewers; `toUTCDate` anchors at UTC midnight.
+        // A local-midnight Date under a UTC-zone formatter shifts a day for UTC+ viewers, so `toUTCDate` anchors at UTC midnight.
         it.each(['en', 'es'] as const)('formatInUTCToMedium renders the input calendar day in %s regardless of viewer timezone', (locale) => {
             const result = DateUtils.formatInUTCToMedium('2025-08-19', locale);
             const expected = new Intl.DateTimeFormat(locale, {dateStyle: 'medium', timeZone: 'UTC'}).format(new Date('2025-08-19T00:00:00Z'));
@@ -482,7 +482,7 @@ describe('DateUtils', () => {
         });
 
         it('parses DB wire timestamps (yyyy-MM-dd HH:mm:ss) as UTC, not local — UTC+ viewers must not see day-shift', () => {
-            // `new Date('2026-01-01 00:30:00')` parses as LOCAL in V8/Hermes; in UTC+5:30 that becomes 2025-12-31 19:00Z.
+            // `new Date('2026-01-01 00:30:00')` parses as LOCAL in V8 and Hermes, so in UTC+5:30 it becomes 2025-12-31 19:00Z.
             expect(DateUtils.formatInUTCToMedium('2026-01-01 00:30:00', 'en')).toMatch(/Jan\s*1\D.*2026/);
         });
     });
@@ -980,7 +980,7 @@ describe('DateUtils', () => {
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
             const es = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', CONST.LOCALES.ES);
-            // Spanish convention is day-before-month + 24h clock — a date-fns pattern would keep the English order and 12h "3:00 PM".
+            // Spanish convention is day before month on a 24h clock, where a date-fns pattern would keep the English order and 12h "3:00 PM".
             expect(es).not.toMatch(/AM|PM/);
             expect(es).toContain('15:00');
             expect(es).toContain('GMT+7');

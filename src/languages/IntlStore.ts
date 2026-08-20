@@ -57,7 +57,7 @@ class IntlStore {
 
     private static listeners = new Set<() => void>();
 
-    /** No eager EN pre-seed — the splash gate covers cold-start flash and pre-seeding would drag ~150 KB gzip into every bundle. */
+    /** No eager EN pre-seed. The splash gate covers cold-start flash, and pre-seeding would drag ~150 KB gzip into every bundle. */
     private static cache = new Map<Locale, FlatTranslationsObject>();
 
     /**
@@ -201,8 +201,8 @@ class IntlStore {
     };
 
     /**
-     * `useSyncExternalStore` calls these detached from the class. `this: void` enforces the contract in
-     * types; bodies reference `IntlStore.x` (not `this.x`) to enforce it at runtime.
+     * `useSyncExternalStore` calls these detached from the class. `this: void` enforces the contract in the
+     * types, and bodies reference `IntlStore.x` rather than `this.x` to enforce it at runtime.
      */
     public static subscribe(this: void, listener: () => void): () => void {
         IntlStore.listeners.add(listener);
@@ -254,9 +254,9 @@ class IntlStore {
 
     public static load(locale: Locale) {
         if (IntlStore.currentLocale === locale && IntlStore.cache.has(locale)) {
-            // Bump the token so any in-flight earlier load() is invalidated; otherwise its `.then` would commit a stale locale.
+            // Bump the token so an in-flight earlier load() is invalidated, otherwise its `.then` commits a stale locale.
             IntlStore.loadToken++;
-            // Reset the flag here — the discarded load's `.then` will bail on the token check before reaching its own reset.
+            // Reset here, because the discarded load's `.then` bails on the token check before reaching its own reset.
             setAreTranslationsLoading(false);
             return Promise.resolve();
         }

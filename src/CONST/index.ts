@@ -635,8 +635,7 @@ const CONST = {
             WEEKDAY_LONG_MONTH_DAY_YEAR: {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'},
             MONTH_DAY_SHORT_TIME: {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'},
         },
-        // ICU 72+ emits U+202F (NNBSP) before AM/PM; some Android builds render it as a tofu box.
-        // Strip NNBSP/NBSP only before AM/PM markers \u2014 preserves French/Slavic typography that uses NNBSP around `:` and `%`.
+        // ICU 72+ emits U+202F before AM/PM and some Android builds draw it as a tofu box. Scoped to AM/PM so French and Slavic typography keeps its NNBSP around `:` and `%`.
         INTL_NBSP_PATTERN: /[\u202f\u00a0](?=[AaPp][Mm])/g,
     },
     SMS: {

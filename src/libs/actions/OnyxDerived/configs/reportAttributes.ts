@@ -277,7 +277,7 @@ export default createOnyxDerivedValueConfig({
         }
 
         // Report names are locale-dependent, so a locale change needs a full recompute, but only once the new chunk has
-        // landed. Comparing against the stored locale skips the no-op first load; `hasLocale` skips the NVP write and the
+        // landed. Comparing against the stored locale skips the no-op first load, and `hasLocale` skips the NVP write and the
         // loading-flag tick, which would both recompute every name in the language the user just left.
         const needsFullRecompute =
             ((hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) || hasKeyTriggeredCompute(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, triggeredKeys)) &&

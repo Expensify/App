@@ -7,7 +7,7 @@
  */
 import type {Locale} from '@src/CONST/LOCALES';
 
-/** `Intl.DateTimeFormat` holds 10-50 KB of ICU state per entry, so this one is bounded; the relative-time key space is the shipped locales. */
+/** `Intl.DateTimeFormat` holds 10-50 KB of ICU state per entry, so this one is bounded. The relative-time key space is the shipped locales. */
 const INTL_FORMAT_CACHE_MAX_SIZE = 256;
 
 const intlDateTimeFormatCache = new Map<string, Intl.DateTimeFormat | null>();

@@ -111,7 +111,7 @@ describe('IntlStore', () => {
             await waitForBatchedUpdates();
 
             expect(IntlStore.getCurrentLocale()).toBe(CONST.LOCALES.EN);
-            // Discarded load's `.then` bails before resetting the flag — early-return must reset it, else OnyxDerived stays gated.
+            // The discarded load's `.then` bails before resetting the flag, so the early return must reset it or OnyxDerived stays gated.
             const flag = await new Promise<boolean | undefined>((resolve) => {
                 const id = Onyx.connect({
                     key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,

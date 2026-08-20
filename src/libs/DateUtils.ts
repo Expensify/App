@@ -189,9 +189,9 @@ function getWeekEndsOn(locale: Locale): WeekDay {
 }
 
 /**
- * Returns a zoned Date for the given datetime. Unzoned `string` values are the DB wire format and read as UTC;
- * `Date`/`number` passes through; `undefined` reads `Date.now()` — only safe outside render.
- * `locale` is unused; kept on the signature for compat with LocaleContextProvider's wrapper.
+ * Returns a zoned Date for the given datetime. Unzoned `string` values are the DB wire format and read as UTC.
+ * A `Date` or `number` passes through. `undefined` reads `Date.now()`, which is only safe outside render.
+ * `locale` is unused, kept on the signature for compat with LocaleContextProvider's wrapper.
  */
 function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: string, datetime?: string | Date | number): Date {
     // `''` counts as absent, as it did before the signature widened: callers pass `?? ''` for a missing field. A `0`
@@ -431,7 +431,7 @@ function formatToDayOfWeek(datetime: Date, locale: Locale): string {
     return formatIntl(locale, 'LONG_WEEKDAY', datetime);
 }
 
-/** Locale-aware short time — 12h with AM/PM in en, 24h in es/de. @returns 2:30 PM (en) / 14:30 (es) */
+/** Locale-aware short time, 12h with AM/PM in en and 24h in es/de. @returns 2:30 PM (en) / 14:30 (es) */
 function formatToLocalTime(datetime: string | Date, locale: Locale): string {
     return formatIntl(locale, 'SHORT_TIME', toLocalDate(datetime));
 }
@@ -1128,7 +1128,7 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale, now
     if (!isoDateString) {
         return '';
     }
-    // Gate on a `:` from a time component — otherwise `'2026-04-19'` matches trailing `-19` as a spurious GMT-19 offset.
+    // Gate on a `:` from a time component, otherwise `'2026-04-19'` matches trailing `-19` as a spurious GMT-19 offset.
     const offsetMatch = isoDateString.includes(':') ? isoDateString.match(CANCELLATION_OFFSET_PATTERN) : null;
     const [, sign = '+', hours = '00', minutes = '00'] = offsetMatch ?? [];
     const offsetMinutes = offsetMatch ? (sign === '-' ? -1 : 1) * (Number(hours) * 60 + Number(minutes)) : 0;
@@ -1226,7 +1226,7 @@ function isValidDateString(dateString: string) {
     return !Number.isNaN(date.getTime());
 }
 
-/** Persists to backend as `merchant`; pinned to enUS so the wire string is byte-stable across engines. */
+/** Persists to backend as `merchant`, so it is pinned to enUS to keep the wire string byte-stable across engines. */
 function getStablePerDiemMerchantDateRange(date1: Date, date2: Date): string {
     // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- wire format, not a user-visible render.
     return `${format(date1, 'MMM d, yyyy', {locale: enUS})} - ${format(date2, 'MMM d, yyyy', {locale: enUS})}`;
@@ -1249,7 +1249,7 @@ function getFormattedSplitDateRange(translateParam: LocaleContextProps['translat
 }
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-/** DB wire timestamp: `yyyy-MM-dd HH:mm:ss[.SSS]` — no timezone, so JS `new Date()` parses it as local wall-clock. */
+/** DB wire timestamp `yyyy-MM-dd HH:mm:ss[.SSS]`, which carries no timezone, so JS `new Date()` reads it as local wall-clock. */
 const DB_WIRE_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
 /** T-separated ISO without a Z or `±HH:MM` offset. ECMA-262 parses it as local wall-clock, the same trap as the DB wire timestamp above. */
 const ISO_LOCAL_DATETIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
@@ -1291,7 +1291,7 @@ function toUTCDate(date: Date | string): Date {
     if (ISO_DATE_PATTERN.test(date)) {
         return new Date(`${date}T00:00:00Z`);
     }
-    // DB timestamps (`yyyy-MM-dd HH:mm:ss[.SSS]`) must parse as UTC; local parsing shifts the calendar day backward for UTC+ viewers.
+    // DB timestamps (`yyyy-MM-dd HH:mm:ss[.SSS]`) must parse as UTC, because local parsing shifts the calendar day backward for UTC+ viewers.
     return toDate(date, {timeZone: 'UTC'});
 }
 
@@ -1321,8 +1321,8 @@ function formatToMediumDate(date: Date | string, locale: Locale): string {
 }
 
 /**
- * Padded short-date matching `getLocalizedDatePlaceholder` field order + separator; UTC-anchored.
- * @returns en → "01/05/2026"; de → "05.01.2026"; ja → "2026/01/05".
+ * Padded short-date matching `getLocalizedDatePlaceholder` field order and separator, UTC-anchored.
+ * @returns en "01/05/2026", de "05.01.2026", ja "2026/01/05".
  */
 function formatToLocalizedShortDate(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'SHORT_DATE_PADDED', toUTCDate(date), 'UTC');
@@ -1363,7 +1363,7 @@ function formatInUTCToLong(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'LONG_DATE', toUTCDate(date), 'UTC');
 }
 
-/** Transaction-list convention: MEDIUM ("Jul 9, 2023") for past years, SHORT ("Jul 9") for current. UTC-anchored — use for calendar dates (transaction date, posted) so the day never shifts by viewer timezone. */
+/** Transaction-list convention: MEDIUM ("Jul 9, 2023") for past years, SHORT ("Jul 9") for current. UTC-anchored, so use it for calendar dates like transaction date and posted, where the day must not shift by viewer timezone. */
 function formatTransactionListDate(date: string, locale: Locale): string {
     if (!date) {
         return '';
@@ -1371,12 +1371,12 @@ function formatTransactionListDate(date: string, locale: Locale): string {
     return doesDateBelongToAPastYear(date) ? formatInUTCToMedium(date, locale) : formatInUTCToShort(date, locale);
 }
 
-/** @returns Jul 9 (en) / 9 jul (es) — locale-aware month-day, no year. */
+/** Locale-aware month and day, no year. @returns Jul 9 (en) / 9 jul (es) */
 function formatToShortMonthDay(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'MONTH_DAY', toLocalDate(date));
 }
 
-/** Full ISO timestamp only. Date-only `'yyyy-MM-dd'` would silently day-shift on timezone application — use `formatToReadableString` or `formatInUTCToLong` instead. */
+/** Full ISO timestamp only. A date-only `'yyyy-MM-dd'` would silently day-shift on timezone application, so use `formatToReadableString` or `formatInUTCToLong` for those. */
 function formatInTimeZoneToLong(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
     if (!date) {
         return '';
@@ -1425,8 +1425,8 @@ function formatInTimeZoneToWeekday(date: Date | string, timeZone: SelectedTimezo
 }
 
 /**
- * Retries with the backward-mapped IANA on platforms rejecting newer zone IDs (older iOS/macOS);
- * falls back to UTC + warn rather than throwing — render-path callers have no error boundaries.
+ * Retries with the backward-mapped IANA on platforms rejecting newer zone IDs (older iOS/macOS).
+ * Falls back to UTC and a warn rather than throwing, because render-path callers have no error boundaries.
  */
 function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: string, formatStr: string, options?: Parameters<typeof formatInTimeZone>[3]): string {
     // Validation only, via `formatInTimeZone`'s own parser, since `new Date` rejects the wire shape on Hermes. The

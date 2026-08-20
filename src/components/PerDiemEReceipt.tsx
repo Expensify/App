@@ -44,7 +44,7 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
 
 /**
  * Strips the trailing date range that `computePerDiemExpenseMerchant` appended, leaving the location. Rebuilding the
- * range from the structured dates identifies it exactly; the positional split is only for rows stored before the range
+ * range from the structured dates identifies it exactly. The positional split is only for rows stored before the range
  * was pinned to enUS, whose comma count depends on the locale that wrote them.
  */
 function getPerDiemDestination(transaction: OnyxEntry<Transaction>, merchant: string) {
