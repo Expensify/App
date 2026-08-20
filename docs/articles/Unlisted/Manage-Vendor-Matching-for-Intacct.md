@@ -39,11 +39,7 @@ Workspace Admins can manually select a vendor from the searchable **Vendor** fie
 
 The default vendor is used only when an expense doesn't already have a vendor assigned. If no default vendor is configured, expenses export to **Credit Card Misc**.
 
-<!-- SCREENSHOT:
-Suggestion: Capture the Sage Intacct Export settings with "Export company card expenses as" set to Credit Card Charges and the Default vendor dropdown visible.
-Location: Immediately after the numbered steps for setting a default vendor.
-Purpose: Confirms admins are on the correct Sage Intacct export screen and shows where the Default vendor dropdown appears, which is easy to miss among the other export settings.
--->
+![Sage Intacct Export settings with "Export company card expenses as" set to Credit Card Charges and the Default vendor dropdown visible]({{site.url}}/assets/images/2_Awesome_Co_Control_Intacct_-_Accounting.png){:width="100%"}
 
 ## How vendors export to Sage Intacct
 
