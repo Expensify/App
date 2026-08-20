@@ -635,7 +635,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                   icon: icons.Plus,
                   buttonText: translate('workspace.categories.addCategory'),
                   buttonAction: navigateToCreateCategoryPage,
-                  success: true,
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
               },
           ]
         : undefined;

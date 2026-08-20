@@ -822,7 +822,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                           buttonAction: navigateToImportSpreadsheet,
                       },
                       {
-                          success: true,
+                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                           buttonAction: navigateToCreateTagPage,
                           icon: expensifyIcons.Plus,
                           buttonText: translate('workspace.tags.addTag'),
