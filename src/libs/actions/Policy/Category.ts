@@ -1438,9 +1438,14 @@ function deleteWorkspaceCategories(
 
 function enablePolicyCategories(policyData: PolicyData, enabled: boolean, shouldGoBack = true) {
     const policyID = policyData.policy?.id;
+    // Enabling re-enables every category the workspace has, so there is nothing to require when it has none. Requiring
+    // one anyway can't be satisfied and, unlike missingTag, missingCategory isn't gated on a category existing, so it
+    // would flag every expense. Leave requiresCategory untouched in that case.
+    const willHaveEnabledCategories = Object.values(policyData.categories ?? {}).some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const shouldUpdateRequiresCategory = !enabled || willHaveEnabledCategories;
     const policyUpdate: Partial<Policy> = {
         areCategoriesEnabled: enabled,
-        requiresCategory: enabled,
+        ...(shouldUpdateRequiresCategory ? {requiresCategory: enabled} : {}),
         pendingFields: {
             areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         },
@@ -1494,7 +1499,7 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    requiresCategory: !enabled,
+                    ...(shouldUpdateRequiresCategory ? {requiresCategory: !enabled} : {}),
                     areCategoriesEnabled: !enabled,
                     pendingFields: {
                         areCategoriesEnabled: null,
