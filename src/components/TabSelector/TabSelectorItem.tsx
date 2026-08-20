@@ -26,6 +26,7 @@ type TabSelectorItemProps = BaseTabSelectorItemProps;
 
 function TabSelectorItem({
     tabKey,
+    tabRef,
     icon,
     title = '',
     onPress = () => {},
@@ -63,6 +64,7 @@ function TabSelectorItem({
 
     const children = (
         <AnimatedPressableWithSecondaryInteraction
+            ref={tabRef}
             accessibilityLabel={title}
             accessibilityState={accessibilityState}
             accessibilityRole={CONST.ROLE.TAB}

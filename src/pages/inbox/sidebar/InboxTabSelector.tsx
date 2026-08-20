@@ -34,7 +34,8 @@ function InboxTabSelector() {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {showConfirmModal} = useConfirmModal();
 
-    const anchorRef = useRef<View>(null);
+    // Anchor the popover to the Unread tab itself (not the whole tab row) so it opens at that tab's left edge.
+    const unreadTabRef = useRef<View | HTMLDivElement>(null);
     const {calculatePopoverPosition} = usePopoverPosition();
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -46,7 +47,7 @@ function InboxTabSelector() {
         if (key !== CONST.INBOX_TAB.UNREAD) {
             return;
         }
-        calculatePopoverPosition(anchorRef, anchorAlignment).then((position) => {
+        calculatePopoverPosition(unreadTabRef, anchorAlignment).then((position) => {
             setPopoverPosition(position);
             setIsMenuVisible(true);
         });
@@ -87,6 +88,7 @@ function InboxTabSelector() {
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
+            tabRef: unreadTabRef,
         },
         {
             key: CONST.INBOX_TAB.TODO,
@@ -98,7 +100,7 @@ function InboxTabSelector() {
     ];
 
     return (
-        <View ref={anchorRef}>
+        <View>
             <TabSelectorContextProvider activeTabKey={activeTab}>
                 <TabSelectorBase
                     tabs={tabs}
@@ -117,7 +119,7 @@ function InboxTabSelector() {
                 onClose={() => setIsMenuVisible(false)}
                 onItemSelected={() => setIsMenuVisible(false)}
                 menuItems={menuItems}
-                anchorRef={anchorRef}
+                anchorRef={unreadTabRef}
                 anchorPosition={popoverPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 // Safari ignores shouldCallAfterModalHide by default, which would show the confirmation modal while the

@@ -5,8 +5,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
+import type {Ref} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {Animated, StyleProp, ViewStyle} from 'react-native';
+import type {Animated, StyleProp, View, ViewStyle} from 'react-native';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */
@@ -55,6 +56,9 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
 
     /** Pending action for the tab. */
     pendingAction?: PendingAction;
+
+    /** Optional ref forwarded to this tab's pressable element, e.g. to anchor a popover to this specific tab. */
+    tabRef?: Ref<View | HTMLDivElement>;
 };
 
 type TabSelectorBaseProps<K extends string = string> = {
@@ -140,6 +144,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Pending action for the tab. */
     pendingAction?: PendingAction;
+
+    /** Optional ref forwarded to the tab's pressable element. */
+    tabRef?: Ref<View | HTMLDivElement>;
 };
 
 type AnimationConfigBase = {

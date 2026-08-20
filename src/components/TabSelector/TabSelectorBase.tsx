@@ -120,6 +120,7 @@ function TabSelectorBase<K extends string = string>({
                     <TabSelectorItem
                         tabKey={tab.key}
                         key={tab.key}
+                        tabRef={tab.tabRef}
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
