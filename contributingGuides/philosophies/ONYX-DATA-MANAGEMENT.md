@@ -106,6 +106,8 @@ function ReportRow({getTotal}: Props) {
 ### - Every caller of a function that reads with `Onyx.get()` MUST also be off the render path
 A read written correctly in a library function becomes a render-time read the moment a component or hook calls that function, and neither file shows the problem on its own. Adding the call is enough to break it, so a diff containing no Onyx code at all can be the diff that introduces the defect. Either take the value as a parameter, or keep every caller off the render path and check that again whenever a caller is added.
 
+A widely called function usually cannot host the read at all, and the count of callers that would benefit says nothing about it: one render call site anywhere in `src/` decides it. Sweep every call site before moving a read down into a shared function.
+
 ```typescript
 // src/libs/ReportUtils.ts, correct in isolation
 function getOwnerAccountID(reportID: string) {
@@ -157,6 +159,23 @@ function initializeApp() {
 
 ### - Each synchronous stretch MUST do its own reads
 One read block per synchronous stretch, not per function. Code after an `await`, a `runAfterTransitions` or any other deferral runs in a later tick and is meant to see the writes the earlier stretch made, so hoisting a read above the deferral hands it a value that is one tick stale. The ordering rule above is satisfied here, so nothing flags it; cover it with a test that asserts the post-write value.
+
+### - A subscription with a `selector` MUST have that selector reapplied at the read site
+`useOnyx(key, {selector})` hands the component a projection of the stored value. `Onyx.get()` returns the stored value itself. Copying the key across and dropping the selector changes the shape silently: it compiles, and the difference only surfaces where the value is used. Call the same selector on the result, or keep the subscription.
+
+```typescript
+// BAD ❌ a boolean becomes the whole NVP object
+const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+const isSelfTourViewed = Onyx.get(ONYXKEYS.NVP_ONBOARDING);
+
+// GOOD ✅
+const isSelfTourViewed = hasSeenTourSelector(Onyx.get(ONYXKEYS.NVP_ONBOARDING));
+```
+
+### - A subscription that Search redirects to a snapshot MUST stay on `useOnyx`
+`@hooks/useOnyx` is not the library hook. Inside a `SearchScopeProvider` subtree it rewrites the key: for the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` it subscribes to `snapshot_<hash>` and extracts the requested key out of that blob. `Onyx.get()` always reads the global key.
+
+Before converting one of those keys, establish which subtree the read renders in. Grep for `SearchScopeProvider` to find the current mounts and walk upwards from the reading component. A component behind `<SearchScopeProvider isOnSearch={false}>` was already reading the global collection and converts like any other, but check which side of that boundary the read is on: a provider in the JSX return governs the children, not the hooks above it in the same body. Everything else reachable from a default-scoped provider keeps its subscription. 
 
 ### - A subscription that exists to trigger work MUST NOT be replaced with `Onyx.get()`
 Ask what each subscription is for. A **source** supplies a value the code reads. A **trigger** schedules work when the key changes, and the value it carries is incidental. Converting a trigger makes the dependency stable and the effect stops re-running. No position check catches it, because nothing renders the value and nothing reads it during render. What does catch the two plainest shapes is the diff itself: a `useOnyx` deleted while a read of the same key appears inside an effect body, and a `useOnyx` deleted along with the variable's name in a dependency array. Anything longer than one hop stays manual. The chain hides easily: a value feeding a `useCallback` that feeds another `useCallback` that reaches an effect's dependency array is still a trigger, and a wrapper such as `useDebounce(useCallback(fn, deps))` swallows a link.
