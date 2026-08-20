@@ -4,6 +4,7 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
@@ -11,6 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import useAllTransactions from '@hooks/useAllTransactions';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -45,7 +47,17 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, getTaxName, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+import {
+    getDistanceInMeters,
+    getRateID,
+    getTag,
+    getTagForDisplay,
+    getTaxName,
+    isDistanceRequest,
+    isManagedCardTransaction,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,6 +95,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
 
@@ -190,12 +203,29 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
-    const shouldShowTax = (isPolicyExpenseChat || isExpenseUnreported) && isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), false, false);
+    const isTaxEnabled = (isPolicyExpenseChat || isExpenseUnreported) && isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), false, false);
+    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!splitExpenseDraftTransaction?.taxCode;
+    const shouldShowTax = isTaxEnabled || shouldShowTaxDisabledAlert;
     const taxRatesDescription = effectivePolicy?.taxRates?.name;
     const taxRateTitle = getTaxName(effectivePolicy, splitExpenseDraftTransaction);
 
+    const showTaxDisabledAlert = () => {
+        showConfirmModal({
+            title: translate('iou.taxDisabledAlert.title'),
+            prompt: translate('iou.taxDisabledAlert.prompt'),
+            confirmText: translate('iou.taxDisabledAlert.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            updateSplitExpenseDraftField({taxCode: '', taxValue: '', taxAmount: 0});
+        });
+    };
+
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!splitExpenseDraftTransactionDetails?.billable || isBillableEnabledOnPolicy(effectivePolicy));
-    const shouldShowReimbursable = (isPolicyExpenseChat || (isExpenseUnreported && !!effectivePolicy)) && effectivePolicy?.disabledFields?.reimbursable !== true;
+    const shouldShowReimbursable =
+        (isPolicyExpenseChat || (isExpenseUnreported && !!effectivePolicy)) && effectivePolicy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction);
 
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
@@ -480,6 +510,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 title={taxRateTitle}
                                 numberOfLinesTitle={2}
                                 onPress={() => {
+                                    if (shouldShowTaxDisabledAlert) {
+                                        showTaxDisabledAlert();
+                                        return;
+                                    }
                                     Navigation.navigate(
                                         createDynamicRoute(
                                             DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
