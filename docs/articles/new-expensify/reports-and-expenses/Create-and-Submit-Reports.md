@@ -29,6 +29,8 @@ After submitting, the report status updates and a **”submitted”** entry appe
 
 **Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**. 
 
+**Note:** If some expenses on the report are on hold when you submit, the held expenses move to a new report in the **Draft** state, while the unheld expenses stay on the submitted report. Learn how to hold an expense in [Approve, hold, reject, and unapprove expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Approve-Expenses).
+
 ---
 
 ## How to edit or retract a submitted expense report 
@@ -182,6 +184,14 @@ The **Submit** button only appears once your report includes at least one valid 
 ## Why can’t I submit a report with pending Expensify Card transactions?
 
 If all transactions on your report are pending Expensify Card transactions, the report can't be submitted yet. The **Submit** button won't appear, and the report isn't counted in your **Submit** to-do. Pending transactions may take a few days to post. After at least one transaction has posted, the **Submit** button appears again and you can submit the report.
+
+## What happens to held expenses when I submit a report?
+
+When you submit a report that has a mix of held and unheld expenses, the held expenses move to a new report in the **Draft** state, and only the unheld expenses stay on the submitted report. You can submit the held expenses later once you take them off hold.
+
+## Why can’t I submit a report when all expenses are on hold?
+
+If every expense on the report is on hold, you’ll see the message **“Unable to submit report”** with the text **“You can’t submit this report because all expenses are on hold. Remove the hold to submit.”** Take at least one expense off hold, then submit the report again.
 
 ## Can I remove an expense after submitting?
 
