@@ -1,5 +1,6 @@
 import resolveWriteBarrier, {IMMEDIATE} from '@libs/actions/IOU/resolveWriteBarrier';
 import type {WriteReadyBarrier} from '@libs/API';
+import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
 import {flushPendingSearchWrite, getSearchWriteWatchKey, hasPendingSearchWrite, markPendingSearchWrite, resetForTesting} from '@libs/pendingSearchWrite';
 import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 
@@ -93,6 +94,58 @@ describe('resolveWriteBarrier', () => {
 
         // Then Search's signal comes down too, now that this write is actually going out
         expect(hasPendingSearchWrite()).toBe(false);
+    });
+
+    it("consumes the pending Search signal when the caller's barrier is aborted instead of settling", () => {
+        // Given Search's signal is up and the caller's barrier never settles on its own - matching the
+        // default TransitionTracker barrier, which leaves its promise permanently pending once aborted
+        markPendingSearchWrite();
+        const writeBarrier: WriteReadyBarrier = () => new Promise<void>(() => {});
+        const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+        const controller = new AbortController();
+        barrier(controller.signal);
+
+        // When writeWhenReady releases the write early by aborting the signal (its own safety timeout
+        // or an app-background flush), rather than the barrier ever settling
+        controller.abort();
+
+        // When Search then flushes the signal
+        flushPendingSearchWrite();
+
+        // Then the signal still clears right away - the write already went out via the abort path, so
+        // it must still count as the consumer Search was waiting for
+        expect(hasPendingSearchWrite()).toBe(false);
+    });
+
+    it("does not consume a newer submission's Search signal if this write's explicit barrier settles late", async () => {
+        jest.useFakeTimers();
+        try {
+            // Given a write bound to a first submission's Search signal, via a slow explicit barrier
+            markPendingSearchWrite();
+            let releaseWriteBarrier: () => void = () => {};
+            const writeBarrier: WriteReadyBarrier = () =>
+                new Promise<void>((resolve) => {
+                    releaseWriteBarrier = resolve;
+                });
+            const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+            const barrierSettled = Promise.resolve(barrier(new AbortController().signal));
+
+            // When the first signal times out on its own, and a second, unrelated submission raises a
+            // brand new one
+            jest.advanceTimersByTime(SAFETY_TIMEOUT_MS);
+            markPendingSearchWrite();
+
+            // When the first write's explicit barrier only settles after that
+            releaseWriteBarrier();
+            await barrierSettled;
+
+            // Then the second submission's signal is untouched by the stale write - flushing it still
+            // holds up for its own consumer instead of clearing as if that write had already consumed it
+            flushPendingSearchWrite();
+            expect(hasPendingSearchWrite()).toBe(true);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it("waits on Search's signal when no barrier was handed down", async () => {

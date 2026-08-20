@@ -117,6 +117,16 @@ function hasPendingSearchWrite(): boolean {
 }
 
 /**
+ * The generation of the currently pending signal, if any. For a caller that has to consume the signal
+ * later - after an await, in a callback, on an abort listener - rather than right away: capturing the
+ * generation up front and consuming through `consumePendingSearchWriteForGeneration` avoids accidentally
+ * acting on a different (later) submission's signal if one replaces this one before that later point.
+ */
+function getPendingSearchWriteGeneration(): number | undefined {
+    return pending?.generation;
+}
+
+/**
  * The barrier a write should wait on.
  *
  * With nothing marked it returns an already-resolved barrier, so the write goes out immediately. That
@@ -157,6 +167,17 @@ function consumePendingSearchWrite(): WriteReadyBarrier {
     }
 
     return barrier;
+}
+
+/**
+ * Same as `consumePendingSearchWrite`, but only if the pending signal is still the one identified by
+ * `generation` - a no-op otherwise. See `getPendingSearchWriteGeneration`.
+ */
+function consumePendingSearchWriteForGeneration(generation: number) {
+    if (pending?.generation !== generation) {
+        return;
+    }
+    consumePendingSearchWrite();
 }
 
 /**
@@ -217,8 +238,10 @@ function resetForTesting() {
 export {
     markPendingSearchWrite,
     hasPendingSearchWrite,
+    getPendingSearchWriteGeneration,
     acquireSearchWriteBarrier,
     consumePendingSearchWrite,
+    consumePendingSearchWriteForGeneration,
     flushPendingSearchWrite,
     setSearchWriteWatchKey,
     getSearchWriteWatchKey,

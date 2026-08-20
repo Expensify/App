@@ -1,5 +1,5 @@
 import type {WriteReadyBarrier} from '@libs/API';
-import {acquireSearchWriteBarrier, consumePendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {acquireSearchWriteBarrier, consumePendingSearchWrite, consumePendingSearchWriteForGeneration, getPendingSearchWriteGeneration, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
@@ -44,7 +44,8 @@ function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}
     if (writeBarrier) {
         addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE);
 
-        if (!hasPendingSearchWrite()) {
+        const searchGeneration = getPendingSearchWriteGeneration();
+        if (searchGeneration === undefined) {
             return writeBarrier;
         }
 
@@ -53,18 +54,31 @@ function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}
         // keeps the signal pending for a consumer that will never arrive, and Search sits on its
         // skeleton until its own safety timeout instead of releasing immediately.
         //
-        // Consumption is tied to `writeBarrier` actually settling, not to this call - counting it too
-        // early would let a flush that arrives while `writeBarrier` is still pending clear Search's
-        // signal (and skeleton) before this write's optimistic data has actually landed. Not
-        // `acquireSearchWriteBarrier`: this write isn't waiting on Search's layout, so its watch key
-        // must not be published either.
+        // Captured by generation rather than re-checking `hasPendingSearchWrite()` at consume time: by
+        // the time this settles or aborts, a different submission could have raised its own signal, and
+        // consuming that one instead would clear a skeleton that has nothing to do with this write.
+        //
+        // Consumed on abort too, not only when the returned promise settles: writeWhenReady's own
+        // release paths (safety timeout, app background) abort `signal`, and the default
+        // TransitionTracker barrier responds to that by leaving its own promise permanently pending -
+        // so on that path the write goes out via the abort, and this promise never settles to run a
+        // `finally`. Guarded so the two paths can't double-consume. Not `acquireSearchWriteBarrier`:
+        // this write isn't waiting on Search's layout, so its watch key must not be published either.
         return async (signal) => {
+            let hasConsumed = false;
+            const consumeOnce = () => {
+                if (hasConsumed) {
+                    return;
+                }
+                hasConsumed = true;
+                consumePendingSearchWriteForGeneration(searchGeneration);
+            };
+
+            signal.addEventListener('abort', consumeOnce);
             try {
                 return await writeBarrier(signal);
             } finally {
-                if (hasPendingSearchWrite()) {
-                    consumePendingSearchWrite();
-                }
+                consumeOnce();
             }
         };
     }
