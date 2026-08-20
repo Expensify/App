@@ -109,7 +109,6 @@ function useReportPreviewCarousel({
         return sorted;
     }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, ownerLogin, policy, localeCompare]);
 
-    // The carousel only renders the first few cards, but the expense view's arrows must still reach every expense.
     const carouselTransactions = useMemo(() => sortedTransactions.slice(0, MAX_PREVIEWS_NUMBER + 1), [sortedTransactions]);
     const prevCarouselTransactionLength = useRef(0);
 

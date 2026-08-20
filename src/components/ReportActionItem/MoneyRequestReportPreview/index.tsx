@@ -48,10 +48,8 @@ import type {MoneyRequestReportPreviewProps} from './types';
 
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 
-// How many actions the IOU report has loaded. Only the count matters. A deferred press retries when it changes.
 const reportActionCountSelector = (reportActions: OnyxEntry<ReportActions>) => Object.keys(reportActions ?? {}).length;
 
-// Lets the report settle first so the two open as a cascade rather than at once.
 const PRESSED_EXPENSE_CASCADE_DELAY = 180;
 
 function MoneyRequestReportPreview({
@@ -90,17 +88,13 @@ function MoneyRequestReportPreview({
     const handleOrderedTransactionsChange = useCallback((orderedTransactions: Transaction[]) => {
         orderedTransactionsRef.current = orderedTransactions;
     }, []);
-    // Rendered order, not collection order, or the arrows walk a sequence that is not on screen. Deleted rows have no thread.
     const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: reportActionCountSelector,
     });
-    // When this flips back to false it re-runs the drain effect, so a press settles even when the fetch returns nothing new.
     const [isLoadingInitialIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
-    // Replayed once the report's actions load. The route it was made on is how we know it is still wanted.
     const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string} | null>(null);
-    // Carries its own release: the timer is otherwise the only thing that hands the staged globals back.
     const cascadeTimerRef = useRef<{timer: ReturnType<typeof setTimeout>; release: () => void} | null>(null);
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
@@ -155,8 +149,6 @@ function MoneyRequestReportPreview({
         return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
-    // An explicit choice supersedes anything an earlier press staged. Also reachable from the "View" button, which
-    // opens the same report route, so the cascade's own "did the user navigate away" guard would not catch it.
     const cancelPendingPress = useCallback(() => {
         pendingExpenseTransactionRef.current = null;
         if (!cascadeTimerRef.current) {
@@ -194,7 +186,6 @@ function MoneyRequestReportPreview({
     });
     const isFocused = useIsFocused();
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
-    // Don't surface the highlight while the preview is covered. it'd animate the one-shot off-screen and be missed.
     const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
@@ -205,7 +196,6 @@ function MoneyRequestReportPreview({
             const transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
             if (childReportID) {
-                // The thread exists but may not be cached, so seed a shell or it renders as not-found.
                 setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
             } else if (transactionIOUAction?.reportActionID) {
                 const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
@@ -233,18 +223,14 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            // Read once per press: the abort compares this exact array by reference.
             const openableTransactionIDs = (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
                 .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
                 .map((pressedTransaction) => pressedTransaction.transactionID);
 
             if (isSmallScreenWidth && iouReportID) {
-                // Report first, expense on top, so back returns to the report and then the chat. The expense must stay
-                // in the RHP: removeScreenByKey only filters the root navigator, so a nested thread could never be removed.
                 const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute());
                 Navigation.navigate(reportRoute);
                 setActiveTransactionIDs(openableTransactionIDs).then(() => {
-                    // Clearing is global, so only drop the IDs if they are still the ones this press wrote.
                     const release = () => {
                         if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
                             return;
@@ -276,8 +262,6 @@ function MoneyRequestReportPreview({
                 Navigation.navigate(reportRoute);
                 setActiveTransactionIDs(openableTransactionIDs).then(() => {
                     markReportRHPWidth(childReportID, 'wide');
-                    // Drop the staged width hint, or the thread would open wide from an unrelated entry point.
-                    // Clearing the IDs is global, so only drop them if they are still the ones this press wrote.
                     const release = () => {
                         unmarkReportRHPWidth(childReportID);
                         if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
@@ -312,7 +296,6 @@ function MoneyRequestReportPreview({
                 return;
             }
 
-            // A new press supersedes what an earlier one staged, or the older press hijacks this navigation.
             pendingExpenseTransactionRef.current = null;
             if (cascadeTimerRef.current) {
                 clearTimeout(cascadeTimerRef.current.timer);
@@ -320,13 +303,11 @@ function MoneyRequestReportPreview({
                 cascadeTimerRef.current = null;
             }
 
-            // A single-expense report opens the report itself, not the lone expense.
             if (transactions.length <= 1) {
                 openReportFromPreview();
                 return;
             }
 
-            // An offline-deleted expense stays in the carousel but its thread is gone, so it would land on "It's not here".
             if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 openReportFromPreview();
                 return;
@@ -336,8 +317,6 @@ function MoneyRequestReportPreview({
             const childReportID = resolveChildReportID(transaction);
             if (childReportID) {
                 if (!isIOUActionLoaded && iouReportID) {
-                    // The report's actions are absent. Offline the shell has no parent action to render; online, fetch them
-                    // or the arrows mint dead threads.
                     if (isOffline) {
                         openReportFromPreview();
                         return;
@@ -348,7 +327,6 @@ function MoneyRequestReportPreview({
                 return;
             }
 
-            // Fetch and open once it settles. Offline the fetch never lands, so fall through to the cached parent report.
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: Navigation.getActiveRoute()};
                 openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!iouReportActionCount});
@@ -365,7 +343,6 @@ function MoneyRequestReportPreview({
         if (!pendingPress || isLoadingInitialIOUReportActions) {
             return;
         }
-        // The user chose something else while the fetch was in flight, so replaying would yank them out of it.
         if (!isFocused || Navigation.getActiveRoute() !== pendingPress.originRoute) {
             pendingExpenseTransactionRef.current = null;
             return;
@@ -377,12 +354,10 @@ function MoneyRequestReportPreview({
             navigateToExpense(childReportID);
             return;
         }
-        // Settled with no thread, so open the parent. Must not depend on the action count, or an empty result leaves the tap dead.
         pendingExpenseTransactionRef.current = null;
         openReportFromPreview();
     }, [iouReportActionCount, isFocused, isLoadingInitialIOUReportActions, navigateToExpense, openReportFromPreview, resolveChildReportID]);
 
-    // A pending cascade must not navigate after unmount, and its staged globals must be handed back.
     useEffect(
         () => () => {
             if (!cascadeTimerRef.current) {

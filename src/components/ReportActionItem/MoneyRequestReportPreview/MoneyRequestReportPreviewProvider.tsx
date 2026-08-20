@@ -213,7 +213,6 @@ function MoneyRequestReportPreviewProvider({
         if (!iouReportID) {
             return;
         }
-        // A carousel press may still have a delayed expense navigation staged, and it opens over this same report.
         onCancelPendingPress?.();
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
             name: 'MoneyRequestReportPreviewContent',
