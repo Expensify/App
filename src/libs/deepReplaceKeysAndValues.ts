@@ -1,5 +1,19 @@
 type ReplaceableValue = Record<string, unknown> | unknown[] | string | number | boolean | undefined | null;
 
+type DeepReplaceResult<T> = unknown extends T
+    ? unknown
+    : T extends string
+      ? string
+      : T extends unknown[]
+        ? Array<DeepReplaceResult<T[number]>>
+        : T extends (...args: never[]) => unknown
+          ? T
+          : T extends abstract new (...args: never[]) => unknown
+            ? T
+            : T extends number | boolean | bigint | symbol | null | undefined | void
+              ? T
+              : Record<string, unknown>;
+
 /**
  * Recursively replaces keys and values while preserving the broad type of recursive values.
  */
@@ -58,15 +72,7 @@ function transformReplaceableValue(target: unknown, oldVal: string, newVal: stri
  * @param oldVal the value to search for
  * @param newVal the replacement value
  */
-function deepReplaceKeysAndValues(target: string, oldVal: string, newVal: string): string;
-function deepReplaceKeysAndValues(target: unknown[], oldVal: string, newVal: string): unknown[];
-function deepReplaceKeysAndValues(target: Record<string, unknown>, oldVal: string, newVal: string): Record<string, unknown>;
-function deepReplaceKeysAndValues(target: number, oldVal: string, newVal: string): number;
-function deepReplaceKeysAndValues(target: boolean, oldVal: string, newVal: string): boolean;
-function deepReplaceKeysAndValues(target: null, oldVal: string, newVal: string): null;
-function deepReplaceKeysAndValues(target: undefined, oldVal: string, newVal: string): undefined;
-function deepReplaceKeysAndValues(target: Record<string, unknown> | undefined, oldVal: string, newVal: string): Record<string, unknown> | undefined;
-function deepReplaceKeysAndValues(target: ReplaceableValue, oldVal: string, newVal: string): ReplaceableValue;
+function deepReplaceKeysAndValues<T extends ReplaceableValue>(target: T, oldVal: string, newVal: string): DeepReplaceResult<T>;
 function deepReplaceKeysAndValues(target: ReplaceableValue, oldVal: string, newVal: string): ReplaceableValue {
     return transformReplaceableValue(target, oldVal, newVal);
 }
