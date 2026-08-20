@@ -3,9 +3,9 @@ import type {EmitterSubscription, ScaledSize} from 'react-native';
 import {Dimensions} from 'react-native';
 
 // This module tracks whether the window width is changing, on both platforms. ScreenActivityWrapper reads the flag
-// through useSyncExternalStore to keep a covered screen painted for the duration of a resize, and its isKeptVisible
-// comment explains why a hidden screen needs that. The existing useIsResizing does not fit here, because it is web
-// only and also counts the height changes the soft keyboard causes.
+// through useSyncExternalStore to run a covered screen as visible for the duration of a resize, and its
+// isKeptVisible comment explains why a hidden screen cannot follow the change. The existing useIsResizing does not
+// fit here, because it is web only and also counts the height changes the soft keyboard causes.
 //
 // Every screen of every stack reads this flag, so one shared listener and one timer serve them all and the
 // subscribers are notified only when the flag actually flips. A per-instance version would run the whole handler

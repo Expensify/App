@@ -58,12 +58,15 @@ function ScreenActivityWrapper({isScreenBlurred, children}: NonTopScreenWrapperP
     // first frame of a covered screen therefore renders visible, which runs the mount lifecycle at mount time, so the
     // fetched data reaches the Onyx cache while the screen is hidden and the reveal re-runs the effects against warm
     // data. Pre-mounted destinations (usePreMountDestination) and deep-linked stacks depend on this prewarming.
-    // A hidden Activity may also not update its layout when the window size changes, so the screen is painted again
-    // for the duration of the resize and lays itself out for the new size before it is revealed.
+    // A hidden Activity also cannot follow a window size change, because the effects that would listen to it are
+    // unmounted and its updates run at background priority, so the screen switches to visible for the duration of
+    // the resize and lays itself out for the new size before it is revealed.
     const isKeptVisible = !hasCompletedFirstRender || isWindowSizeChanging;
 
-    // An uncovered screen must never be hidden again. When one of the cases above paints a screen that is already
-    // uncovered, this latch keeps it visible until the deferred reveal takes over.
+    // An uncovered screen must never be hidden again, because hiding would clean up its effects and demote its
+    // updates to background priority while the user can already interact with it. When one of the cases above
+    // renders a screen as visible while it is already uncovered, this latch holds that mode until the deferred
+    // reveal takes over.
     if (isScreenCovered && isRevealLatched) {
         setIsRevealLatched(false);
     } else if (!isScreenCovered && isKeptVisible && !isShownAfterTransition && !isRevealLatched) {
