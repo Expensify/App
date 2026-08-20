@@ -33,6 +33,7 @@ import type {
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
+    TaxRates,
     Tenant,
     Vendor,
 } from '@src/types/onyx/Policy';
@@ -64,6 +65,12 @@ import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
+
+type PolicyWithTaxRates = {
+    taxRates?: {
+        taxes?: TaxRates;
+    };
+};
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
 type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
@@ -2003,14 +2010,30 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+    // An empty tag list arrives without the `tags` key, despite the type.
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
     if (!policy?.hasMultipleTagLists || hasDependentTags(policy, policyTagList)) {
         return false;
     }
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).length > 0);
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).length > 0);
+}
+
+/**
+ * Whether Required lives on each tag list rather than on the policy-wide requiresTag flag.
+ *
+ * Deliberately not hasIndependentTags: this gates on the tag list count instead of the hasMultipleTagLists flag, and it
+ * must stay true for a multi-level workspace whose lists are still empty, otherwise the per-level rows would disappear.
+ */
+function hasPerTagListRequired(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
+    return isMultiLevelTags(policyTagList) && !hasDependentTags(policy, policyTagList);
+}
+
+/** Admins name their tag lists, so prefer that name and fall back to the caller's generic label. */
+function getTagListLabel(tagListName: string | undefined, fallbackLabel: string) {
+    return (tagListName ? getCleanedTagName(tagListName) : '') || fallbackLabel;
 }
 
 /** Get the Xero organizations connected to the policy */
@@ -2648,8 +2671,33 @@ function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
-function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
-    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].optimisticPreviousTaxCode === taxID || taxIDKey === taxID);
+function getCurrentTaxID(policy: OnyxEntry<PolicyWithTaxRates>, taxID: string): string | undefined {
+    const taxes = policy?.taxRates?.taxes;
+
+    // A rate that currently owns the code always wins. This is what keeps a code that was renamed away and later
+    // reused by a brand new rate resolving to that new rate instead of to the rate it was renamed into.
+    if (taxes?.[taxID]) {
+        return taxID;
+    }
+
+    return Object.keys(taxes ?? {}).find((taxIDKey) => {
+        const taxRate = taxes?.[taxIDKey];
+        return (
+            // Set only while a rename is in flight, so renamed codes still resolve offline before the API responds.
+            taxRate?.optimisticPreviousTaxCode === taxID ||
+            // The rename history the back-end persists. previousTaxCode holds only the most recent old code, so it is
+            // checked as well to cover rates renamed before the back-end started returning the full chain.
+            taxRate?.previousTaxCode === taxID ||
+            !!taxRate?.previousTaxCodes?.includes(taxID)
+        );
+    });
+}
+
+/**
+ * Resolves a renamed tax code to the current policy tax key.
+ */
+function resolveCurrentTaxCode(policy: OnyxEntry<PolicyWithTaxRates>, taxCode: string): string {
+    return getCurrentTaxID(policy, taxCode) ?? taxCode;
 }
 
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
@@ -2900,6 +2948,11 @@ function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSetting
     return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
 }
 
+/** Whether travel is enabled on a workspace, meaning it can be used to book a trip. */
+function hasAcceptedTravelTerms(policy: OnyxEntry<Policy>, accountTravelSettings: TravelSettings | undefined): boolean {
+    return !!(policy?.travelSettings?.hasAcceptedTerms ?? (accountTravelSettings?.hasAcceptedTerms && isWorkspaceProvisionedForTravel(policy?.travelSettings)));
+}
+
 function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.outputCurrency && policy.outputCurrency !== CONST.CURRENCY.USD;
 }
@@ -3018,6 +3071,7 @@ export {
     getActivePoliciesWithExpenseChat,
     getAdminEmployees,
     getCleanedTagName,
+    getTagListLabel,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
     getConnectionExporters,
@@ -3196,6 +3250,7 @@ export {
     getActiveEmployeeWorkspaces,
     getPolicyRole,
     hasIndependentTags,
+    hasPerTagListRequired,
     getLengthOfTag,
     getTagGLCode,
     getGLCodeFromPolicyTag,
@@ -3205,6 +3260,7 @@ export {
     isPerDiemEnabled,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
+    hasAcceptedTravelTerms,
     isNonUSDPolicy,
     isDefaultTagName,
     isTimeTrackingEnabled,
@@ -3212,6 +3268,7 @@ export {
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,
     sortPoliciesByName,
+    resolveCurrentTaxCode,
     isPolicyApprover,
     getPolicyApproverLogins,
     tryNavigateToSubmitWorkspaceUpgrade,

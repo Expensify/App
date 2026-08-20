@@ -10,9 +10,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
 
@@ -21,6 +23,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data (GL code flags are trimmed from the snapshot).
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
@@ -32,6 +36,9 @@ type CategoryPickerProps = {
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
+    shouldAutoFocusSearchInput?: boolean;
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -48,12 +55,15 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false, shouldAutoFocusSearchInput = false}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
+    const [shouldShowGLCode] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
+        selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes,
+    });
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getNonEmptyStringOnyxID(policyID)}`);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const {isOffline} = useNetwork();
 
     const {translate, localeCompare} = useLocalize();
@@ -71,6 +81,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
         localeCompare,
         recentlyUsedCategories: validPolicyRecentlyUsedCategories,
         translate,
+        shouldShowGLCode,
     });
 
     const noneOption: OptionTree[] = shouldShowNoneOption
@@ -104,7 +115,8 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue),
         hint: offlineMessage,
-        disableAutoFocus: true,
+        // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
+        disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
@@ -125,3 +137,4 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
 }
 
 export default CategoryPicker;
+export type {CategoryPickerProps};

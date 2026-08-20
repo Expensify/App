@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CollapsibleSection from '@components/CollapsibleSection';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -121,7 +121,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
-    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'DualEntrySquare']);
+    const accountingIcons = useMemoizedLazyExpensifyIcons([
+        'IntacctSquare',
+        'IntuitSquare',
+        'QBOSquare',
+        'XeroSquare',
+        'NetSuiteSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+    ]);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
@@ -526,11 +536,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     }
                                     startIntegrationFlow({name: integration, isIntuitEnterpriseSuite});
                                 }}
-                                text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
                                 innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                 hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 isDisabled={isOffline}
                                 ref={(ref) => {
                                     if (!popoverAnchorRefs?.current) {
@@ -540,7 +549,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     popoverAnchorRefs.current[integrationKey].current = ref;
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
+                            </Button>
                         ),
                     };
                 })
@@ -772,11 +783,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     shouldDisconnectIntegrationBeforeConnecting: true,
                                 });
                             }}
-                            text={translate('workspace.accounting.setup')}
                             style={styles.justifyContentCenter}
                             innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                             hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                            small
+                            size={CONST.BUTTON_SIZE.SMALL}
                             isDisabled={isOffline}
                             ref={(r) => {
                                 if (!popoverAnchorRefs?.current) {
@@ -786,7 +796,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 popoverAnchorRefs.current[integrationKey].current = r;
                             }}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
-                        />
+                        >
+                            <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
+                        </Button>
                     ),
                     interactive: false,
                     // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
