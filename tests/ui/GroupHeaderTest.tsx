@@ -94,6 +94,9 @@ const baseActions = {
     setSortedReportIDs: jest.fn(),
 } satisfies SearchActionsContextValue;
 
+/** Wide enough that the sub-header's column widths never exceed it, so no horizontal scroller is involved here. */
+const WINDOW_WIDTH = 1500;
+
 function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn()) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
@@ -113,6 +116,7 @@ function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedT
                         onCheckboxPress={onCheckboxPress}
                         isFirstItem
                         isLastItem={false}
+                        windowWidth={WINDOW_WIDTH}
                     />
                 </MockSearchContextProvider>
             </ScreenWrapperStatusContext>

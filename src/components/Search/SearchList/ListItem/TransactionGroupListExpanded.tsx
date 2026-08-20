@@ -4,7 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import useSyncedHorizontalScroll from '@components/Search/primitives/useSyncedHorizontalScroll';
+import useSyncedHorizontalScroll from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -179,7 +179,9 @@ function TransactionGroupListExpandedImpl({
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
     // When the group's column header is rendered outside these rows (split groups on wide web), both scroll as one.
-    const {scrollViewRef: horizontalScrollViewRef, onScroll: onHorizontalScroll, initialOffset: initialHorizontalOffset} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
+    // Without a sync key — every other layout, where the header sits inside this same scroller — this is inert and
+    // `syncProps` is empty, so the ScrollView below keeps exactly the props it had before.
+    const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
 
     const {markReportRHPWidth} = useWideRHPActions();
     const selectRow = onSelectRow as (item: ListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
@@ -426,9 +428,7 @@ function TransactionGroupListExpandedImpl({
             showsHorizontalScrollIndicator
             style={styles.flex1}
             contentContainerStyle={{width: minTableWidth}}
-            contentOffset={{x: initialHorizontalOffset, y: 0}}
-            onScroll={onHorizontalScroll}
-            scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+            {...horizontalSyncProps}
         >
             {content}
         </ScrollView>

@@ -3,7 +3,7 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import useSyncedHorizontalScroll from '@components/Search/primitives/useSyncedHorizontalScroll';
+import useSyncedHorizontalScroll from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -18,7 +18,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -72,6 +71,9 @@ type GroupHeaderProps = SearchListActionProps & {
     isFirstItem: boolean;
     isLastItem: boolean;
     visibleColumns?: SearchCustomColumnIds[];
+
+    /** Window width, passed down so a recycled group header doesn't subscribe to window dimensions of its own. */
+    windowWidth: number;
 };
 
 function GroupHeader({
@@ -95,12 +97,12 @@ function GroupHeader({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     visibleColumns,
+    windowWidth,
 }: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {windowWidth} = useWindowDimensions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -177,11 +179,7 @@ function GroupHeader({
     const shouldSubHeaderScrollHorizontally = isLargeScreenWidth && subHeaderMinTableWidth > windowWidth;
 
     // The rows this header labels are a sibling list row with their own scroller, so both share one offset.
-    const {
-        scrollViewRef: subHeaderScrollViewRef,
-        onScroll: onSubHeaderScroll,
-        initialOffset: initialSubHeaderOffset,
-    } = useSyncedHorizontalScroll(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
+    const {scrollViewRef: subHeaderScrollViewRef, syncProps: subHeaderSyncProps} = useSyncedHorizontalScroll(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
 
     const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
 
@@ -466,9 +464,7 @@ function GroupHeader({
                                                 // The rows below already show one, a second bar under the header would only add noise.
                                                 showsHorizontalScrollIndicator={false}
                                                 contentContainerStyle={{width: subHeaderMinTableWidth}}
-                                                contentOffset={{x: initialSubHeaderOffset, y: 0}}
-                                                onScroll={onSubHeaderScroll}
-                                                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                                                {...subHeaderSyncProps}
                                             >
                                                 {subHeaderContent}
                                             </ScrollView>
