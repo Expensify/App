@@ -174,11 +174,12 @@ function DynamicIOURequestStepDistanceManual({
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
 
+    const committedDistance = distance?.toString() ?? '';
+    // Mirrors the input so dirtiness compares the current value against the baseline instead of reading a ref
+    const [typedDistance, setTypedDistance] = useState(committedDistance);
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => {
-            const typedDistance = numberFormRef.current?.getNumber() ?? '';
-            return getStringFieldHasUnsavedChanges(typedDistance, distance?.toString() ?? '', isCreatingNewRequest);
-        },
+        getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(typedDistance, committedDistance, isCreatingNewRequest),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
@@ -200,11 +201,16 @@ function DynamicIOURequestStepDistanceManual({
     // whenever it or the selected tab changes. This is syncing with an external
     // (imperative) widget, which is a legitimate effect use case.
     useEffect(() => {
-        if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
+        // The transaction can hydrate after this screen mounts, so the mount-time mirror above can be
+        // empty while the input already shows the committed distance. Re-seed it here or an untouched
+        // screen reads as dirty and prompts on back.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setTypedDistance(committedDistance);
+        if (numberFormRef.current && numberFormRef.current?.getNumber() === committedDistance) {
             return;
         }
-        numberFormRef.current?.updateNumber(distance?.toString() ?? '');
-    }, [distance, selectedTab]);
+        numberFormRef.current?.updateNumber(committedDistance);
+    }, [committedDistance, selectedTab]);
 
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -381,7 +387,8 @@ function DynamicIOURequestStepDistanceManual({
                 numberFormRef={numberFormRef}
                 value={distance?.toString()}
                 shouldUseDynamicFontSize
-                onInputChange={() => {
+                onInputChange={(newDistance) => {
+                    setTypedDistance(newDistance);
                     if (!formError) {
                         return;
                     }
