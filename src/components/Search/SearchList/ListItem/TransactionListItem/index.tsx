@@ -18,14 +18,13 @@ import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldShowMarkAsDone from '@hooks/useShouldShowMarkAsDone';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
     isDeletedTransaction as isDeletedTransactionUtil,
     isViolationDismissed,
@@ -178,7 +177,11 @@ function TransactionListItemInner<TItem extends ListItem>({
     const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
     const reportForViolations = parentReport ?? snapshotReport;
     // Same inputs as the row's action cell, so the block modals match the button copy.
-    const shouldUseMarkAsDoneCopy = useShouldShowMarkAsDone(liveTransactionItem.report, rowPolicy ?? liveTransactionItem.policy);
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy: rowPolicy ?? liveTransactionItem.policy,
+        report: liveTransactionItem.report,
+        isTrackIntentUser,
+    });
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>

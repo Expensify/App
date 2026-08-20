@@ -1,12 +1,12 @@
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
-import useShouldShowMarkAsDone from '@hooks/useShouldShowMarkAsDone';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isExpenseReport, isSettled} from '@libs/ReportUtils';
+import {isExpenseReport, isSettled, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
     getAmount,
     getDescription,
@@ -20,9 +20,11 @@ import {
 } from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 import type {TransactionItemRowProps} from './types';
@@ -94,7 +96,12 @@ function TransactionItemRow({
     shouldSkipDeferRBR = false,
 }: TransactionItemRowProps) {
     const shouldDeferRBR = !shouldSkipDeferRBR;
-    const shouldUseMarkAsDoneCopy = useShouldShowMarkAsDone(report, policy);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report,
+        isTrackIntentUser,
+    });
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const createdAt = getTransactionCreated(transactionItem);

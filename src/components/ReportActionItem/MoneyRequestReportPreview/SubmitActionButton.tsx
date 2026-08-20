@@ -8,10 +8,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useShouldShowMarkAsDone from '@hooks/useShouldShowMarkAsDone';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasOnlyHeldExpenses, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {hasOnlyHeldExpenses, hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
     hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
     hasOnlyPendingCardTransactions,
@@ -99,7 +98,11 @@ function SubmitActionButtonContent() {
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
-    const shouldUseMarkAsDoneCopy = useShouldShowMarkAsDone(iouReport, policy);
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy,
+    });
 
     const handleSubmit = () => {
         if (hasOnlyPendingCardTransactions(transactions)) {

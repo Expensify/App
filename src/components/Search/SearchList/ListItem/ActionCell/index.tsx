@@ -30,7 +30,7 @@ type ActionCellProps = {
     amount?: number;
     shouldDisablePointerEvents?: boolean;
     chatReport?: OnyxEntry<Report>;
-    /** Whether a SUBMIT action should render the "Mark as done" copy instead of "Submit" (see useShouldShowMarkAsDone) */
+    /** Whether a SUBMIT action should render the "Mark as done" copy instead of "Submit" (see shouldShowMarkAsDone) */
     isMarkAsDone?: boolean;
 };
 
