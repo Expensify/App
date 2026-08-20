@@ -1,4 +1,8 @@
 #!/usr/bin/env bun
+
+/*
+ * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
+ */
 import GitHubUtils from '@github/libs/GithubUtils';
 
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
@@ -12,9 +16,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {TemplateExpression} from '@typescript/typescript6';
 
 import ts from '@typescript/typescript6';
-/*
- * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
- */
 import {execFileSync} from 'child_process';
 import * as dotenv from 'dotenv';
 import {Str} from 'expensify-common';

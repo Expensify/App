@@ -46,7 +46,7 @@
     "test:verbose": "TZ=utc NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=4096\" JEST_VERBOSE=true jest",
     "test:debug": "TZ=utc NODE_OPTIONS='--inspect-brk --experimental-vm-modules' jest --runInBand",
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
-    "typecheck": "node node_modules/typescript7/bin/tsc --noEmit --incremental --tsBuildInfoFile tsconfig.ts7.tsbuildinfo && node node_modules/typescript7/bin/tsc --noEmit --incremental -p tests/tooling/tsconfig.json --tsBuildInfoFile tests/tooling/tsconfig.ts7.tsbuildinfo && node node_modules/typescript7/bin/tsc --noEmit --incremental -p server/tsconfig.json --tsBuildInfoFile server/tsconfig.ts7.tsbuildinfo && node node_modules/typescript7/bin/tsc --noEmit --incremental -p server/victory-chart-renderer/tsconfig.json --tsBuildInfoFile server/victory-chart-renderer/tsconfig.ts7.tsbuildinfo && node node_modules/typescript7/bin/tsc --noEmit --incremental -p scripts/tsconfig.json --tsBuildInfoFile scripts/tsconfig.ts7.tsbuildinfo",
+    "typecheck": "bun scripts/typecheck.ts",
     "lint": "bun scripts/lint.ts",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- bun scripts/lint.ts {{changed}}",

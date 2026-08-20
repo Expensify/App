@@ -112,8 +112,7 @@ tests/e2e/results/
 .metro-health-check*
 
 # Typescript
-tsconfig.tsbuildinfo
-tsconfig.ts7.tsbuildinfo
+*.tsbuildinfo
 
 # Mock-github
 /repo/
