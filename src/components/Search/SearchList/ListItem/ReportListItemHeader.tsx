@@ -291,7 +291,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
-        report: parentReport ?? snapshotReport,
+        report: parentReport,
         isTrackIntentUser,
     });
 
