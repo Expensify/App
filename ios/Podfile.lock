@@ -469,7 +469,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - NWWebSocket (0.5.7)
+  - NWWebSocket (0.5.10)
   - Onfido (32.6.2)
   - onfido-react-native-sdk (15.1.0):
     - Onfido (~> 32.6.0)
@@ -2775,7 +2775,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-pager-view (8.0.0):
+  - react-native-pager-view (9.0.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -4476,6 +4476,7 @@ DEPENDENCIES:
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - NitroFetch (from `../node_modules/react-native-nitro-fetch`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
+  - NWWebSocket (~> 0.5.10)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
   - QuickCrypto (from `../node_modules/react-native-quick-crypto`)
@@ -4964,7 +4965,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
+  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: fa5647482320b7bde855057f8b86580456d4b9f0
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
@@ -5005,7 +5006,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: f15f13e549bf4b81c82b3b6aafc2386eb1e8f513
+  hermes-engine: 8992dac2fb037a77b783469d993f59f96167417e
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -5017,7 +5018,7 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NitroFetch: 4941ca1e41fc72ebdad33c50c85fee59a3dd6871
   NitroModules: 1961fff19baf1f4a5221dd2fea7d4de95941f9e4
-  NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
+  NWWebSocket: 873eb4b18acd0317da70cdba388d792a3187ce00
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
   OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
@@ -5074,7 +5075,7 @@ SPEC CHECKSUMS:
   react-native-key-command: 7538df85ed26502b2a929c0584235459b26c7a91
   react-native-keyboard-controller: f2b654475ffee6ba61b159d33a26465a94a441a0
   react-native-netinfo: f94b3a0fc305e812f3f615989d99299d7110c2ae
-  react-native-pager-view: c62ab82db28e2d11e7809c59085e2984a45979c5
+  react-native-pager-view: 56add76df8db5c08b9f21e1d04d98edc9d5b7668
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
   react-native-plaid-link-sdk: 425c0a3a923310fcd8489142209ff1508372a7bf
   react-native-quick-base64: eca82f83cc5fd9e8615d50e789788877ff3f8401
@@ -5154,6 +5155,6 @@ SPEC CHECKSUMS:
   VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe
   Yoga: a9f26333e684a192cbb5d698ed7eab3053929519
 
-PODFILE CHECKSUM: b14033bdc31e26edfbbc81b22b06ad2c642bfc5f
+PODFILE CHECKSUM: 17fe7fe9f7b6bd46e93d7d63cb6b7c3c2c0ad7cf
 
 COCOAPODS: 1.16.2
