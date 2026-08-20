@@ -21,15 +21,23 @@ type ScreenActivityState = {
 
 /**
  * Returns the Activity mode of a screen and whether it is covered. The two are separate because the accessibility
- * state must follow the navigation state with no delay, while the mode deliberately lags behind on the reveal. A
+ * state must follow the navigation state with no delay, while the mode deliberately lags behind it. A
  * screen is covered when another screen of its own navigator is on top of it (isScreenBlurred) or when the whole
  * navigator lost focus to a route higher in the tree (useIsFocused).
  *
- * A covered screen still renders visible on its first render, because React never mounts the effects of a hidden
- * Activity, so a screen that mounts while covered would never fetch its data. It also stays visible while the
- * window size is changing, so it lays itself out against the new size before it is revealed. The reveal itself
- * waits for the navigation transition to end, because revealing in the same commit as the navigation update
- * blocked the main thread for hundreds of milliseconds on a pop.
+ * The mode does not simply mirror the covered state, because a covered screen sometimes has to render as visible.
+ * Each of the cases below compensates for a specific property of a hidden Activity:
+ *
+ * - React never mounts the effects of a hidden Activity, so a screen that mounts while covered would start its
+ *   mount work, such as its openReport fetch, only in the reveal commit, and the reveal would show a loading
+ *   screen. The first frame of a covered screen therefore renders visible, which runs the mount lifecycle at
+ *   mount time, so the fetched data reaches the Onyx cache while the screen is hidden and the reveal re-runs
+ *   the effects against warm data. Pre-mounted destinations (usePreMountDestination) and deep-linked stacks
+ *   depend on this prewarming.
+ * - A hidden Activity may not update its layout when the window size changes, so the mode switches to visible
+ *   for the duration of the resize, which lets the screen render its new layout before it is revealed.
+ * - A reveal applies in a single commit, so it is deferred until the navigation transition ends. Revealing
+ *   together with the navigation update used to block the main thread for hundreds of milliseconds during a pop.
  */
 function useScreenActivityState(isScreenBlurred: boolean): ScreenActivityState {
     const isFocused = useIsFocused();
