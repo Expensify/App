@@ -236,6 +236,7 @@ function IOURequestStartPage({
         manualContent = (
             <IOURequestStepAmountWithTransactionOnly
                 shouldKeepUserInput
+                shouldHideHeader
                 route={route}
                 navigation={navigation}
                 report={report}
