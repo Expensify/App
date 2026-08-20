@@ -41,6 +41,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
         no: 'Όχι',
+        dontChange: 'Να μην αλλάξει',
         ok: 'OK',
         notNow: 'Όχι τώρα',
         noThanks: 'Όχι, ευχαριστώ',
@@ -1033,7 +1034,6 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Πρόσφατες συναλλαγές • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Δείτε ακόμα ${count}`,
-        announcements: 'Ανακοινώσεις',
         discoverSection: {
             title: 'Ανακαλύψτε',
             menuItemTitleNonAdmin: 'Μάθετε πώς να δημιουργείτε δαπάνες και να υποβάλλετε αναφορές.',
@@ -1476,7 +1476,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} ενέκρινε:`,
         managerApprovedAmount: (manager: string, amount: number | string) => `Ο/Η ${manager} ενέκρινε ${amount}`,
         payerSettled: (amount: number | string) => `πληρώθηκαν ${amount}`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `πληρώθηκαν ${amount}. Προσθέστε έναν τραπεζικό λογαριασμό για να λάβετε την πληρωμή σας.`,
         automaticallyApproved: `εγκρίθηκε μέσω των <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">κανόνων χώρου εργασίας</a>`,
         approvedAmount: (amount: number | string) => `εγκρίθηκε ${amount}`,
         approvedMessage: `εγκεκριμένο`,
@@ -1562,8 +1561,14 @@ const translations: TranslationDeepObject<typeof en> = {
             odometerReadingTooLarge: (formattedMax: string) => `Οι μετρήσεις χιλιομετρητή δεν μπορούν να υπερβαίνουν τα ${formattedMax}.`,
             stitchOdometerImagesFailed: 'Αποτυχία συνδυασμού των εικόνων οδομέτρου. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             unableToSubmitReport: 'Δεν είναι δυνατή η υποβολή της αναφοράς',
+            unableToMarkAsDone: 'Δεν είναι δυνατή η σήμανση ως ολοκληρωμένο',
             allTransactionsPendingDescription:
                 'Δεν μπορείτε να υποβάλετε αυτήν την αναφορά, επειδή όλες οι συναλλαγές είναι σε εκκρεμότητα. Μπορεί να χρειαστούν λίγες ημέρες για να καταχωριστούν.',
+            allTransactionsPendingMarkAsDoneDescription:
+                'Δεν μπορείτε να επισημάνετε αυτήν την αναφορά ως ολοκληρωμένη, επειδή όλες οι συναλλαγές είναι σε εκκρεμότητα. Μπορεί να χρειαστούν λίγες ημέρες για να καταχωριστούν.',
+            allExpensesOnHoldDescription: 'Δεν μπορείτε να υποβάλετε αυτήν την αναφορά, επειδή όλες οι δαπάνες είναι σε αναμονή. Αφαιρέστε την αναμονή για να την υποβάλετε.',
+            allExpensesOnHoldMarkAsDoneDescription:
+                'Δεν μπορείτε να επισημάνετε αυτήν την αναφορά ως ολοκληρωμένη, επειδή όλες οι δαπάνες είναι σε αναμονή. Αφαιρέστε την αναμονή για να συνεχίσετε.',
             failedToSaveOdometerDraft: 'Δεν ήταν δυνατή η αποθήκευση του πρόχειρου χιλιομετρητή σας. Παρακαλούμε δοκιμάστε ξανά.',
             invalidIntegerAmount: 'Παρακαλούμε εισαγάγετε ένα ακέραιο ποσό σε δολάρια πριν συνεχίσετε',
             invalidTaxAmount: (amount: string) => `Το μέγιστο ποσό φόρου είναι ${amount}`,
@@ -1605,6 +1610,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ξεκίνησε τη διαδικασία τακτοποίησης. Η πληρωμή έχει τεθεί σε αναμονή μέχρι ο/η ${submitterDisplayName} να ενεργοποιήσει το πορτοφόλι του/της.`,
         enableWallet: 'Ενεργοποίηση πορτοφολιού',
         hold: 'Σε αναμονή',
+        sendToSomeone: 'Αποστολή σε κάποιον',
         unhold: 'Αφαίρεση κράτησης',
         holdExpense: () => ({
             one: 'Αναστολή δαπάνης',
@@ -3264,6 +3270,7 @@ ${amount} για ${merchant} - ${date}`,
         accounting: {
             title: 'Χρησιμοποιείτε κάποιο λογιστικό λογισμικό;',
             none: 'Κανένα',
+            otherAccountingSoftware: 'Το λογιστικό σας λογισμικό',
         },
         interestedFeatures: {
             title: 'Σε ποιες δυνατότητες ενδιαφέρεστε;',
@@ -4581,6 +4588,11 @@ ${amount} για ${merchant} - ${date}`,
             railCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
+            message:
+                'Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σε κάποιον όπου τα ταξίδια είναι ενεργοποιημένα.',
+        },
     },
     proactiveAppReview: {
         title: 'Σας αρέσει το νέο Expensify;',
@@ -5841,9 +5853,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Λογαριασμός διακανονισμού κάρτας Expensify',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.',
             },
-            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
+            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών συγκεντρωτικής χρέωσης ταξιδιών',
             travelInvoicingSettlementAccount: {
-                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
+                label: 'λογαριασμός διακανονισμού ενοποιημένης χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.',
             },
             exportToMultipleAccounts: 'Ρυθμίστε την εξαγωγή σε πολλούς λογαριασμούς',
@@ -5885,11 +5897,62 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο DualEntry από την οποία θέλετε να εισαγάγετε δεδομένα.',
             noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
+            noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
             accountTypesDescription: 'Οι λογαριασμοί DualEntry θα εισαχθούν ως κατηγορίες.',
             enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί DualEntry θα είναι διαθέσιμοι ως κατηγορίες.',
             classificationsImport: 'Όλες οι κατηγοριοποιήσεις DualEntry εισάγονται ως ετικέτες',
             importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το DualEntry.',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο DualEntry.',
+            exportReimbursable: {
+                label: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Τιμολόγια προμηθευτών',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Ημερομηνία τελευταίας δαπάνης',
+                        description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Ημερομηνία εξαγωγής',
+                        description: 'Ημερομηνία εξαγωγής της αναφοράς στο DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Ημερομηνία υποβολής',
+                        description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Εξαγωγή εξόδων εταιρικής κάρτας ως',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Άμεσα έξοδα',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Προεπιλεγμένος προμηθευτής για όλες τις εταιρικές κάρτες',
+                description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή DualEntry για έξοδα που δεν αντιστοιχίζονται αυτόματα.',
+            },
+            companyCardAccount: {
+                label: 'Λογαριασμός εταιρικής κάρτας',
+                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
+            },
+            expensifyCardAccount: {
+                label: 'Λογαριασμός Expensify Card',
+                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές της Expensify Card.',
+            },
         },
         type: {
             free: 'Δωρεάν',
@@ -7540,6 +7603,30 @@ ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',
             cancelText: 'Άκυρο',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Προσοχή!',
+            description: (connectionName) =>
+                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν μπορούν να εξαχθούν μαζί. Επιλέξτε αναφορές που είναι συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
+            confirmText: 'Το κατάλαβα',
+        },
+        exportPartialModal: {
+            title: (exportableCount, selectedCount, integration) => `Εξαγωγή ${exportableCount}/${selectedCount} αναφορών στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]};`,
+            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι συνδεδεμένες στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι επιλέξιμες για εξαγωγή.`);
+                }
+                return `${reasons.join('\n\n')}\n\nΘα εξαχθούν οι παρακάτω αναφορές:`;
+            },
+            confirmText: () => ({
+                one: `Εξαγωγή 1 αναφοράς`,
+                other: (count: number) => `Εξαγωγή ${count} αναφορών`,
+            }),
+            cancelText: 'Άκυρο',
+        },
         upgrade: {
             reportFields: {
                 title: 'Πεδία αναφοράς',
@@ -7944,8 +8031,7 @@ ${reportName}`,
                 alwaysNonReimbursable: 'Πάντα μη αποζημιώσιμες',
                 alwaysNonReimbursableDescription: 'Τα έξοδα δεν αποζημιώνονται ποτέ στους υπαλλήλους',
                 billableDefault: 'Προεπιλογή χρεώσιμων',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Επιλέξτε αν οι δαπάνες με μετρητά και με πιστωτική κάρτα θα είναι χρεώσιμες από προεπιλογή. Οι χρεώσιμες δαπάνες ενεργοποιούνται ή απενεργοποιούνται στις <a href="${tagsPageLink}">ετικέτες</a>.</muted-text>`,
+                billableDefaultDescription: 'Επιλέξτε αν οι δαπάνες με μετρητά και με πιστωτική κάρτα θα είναι χρεώσιμες από προεπιλογή.',
                 billable: 'Χρεώσιμη',
                 billableDescription: 'Οι δαπάνες συνήθως τιμολογούνται ξανά στους πελάτες',
                 nonBillable: 'Μη χρεώσιμο',
@@ -8322,6 +8408,7 @@ ${reportName}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Δημόσιες συγκοινωνίες και υπηρεσίες κοινής μετακίνησης',
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Ταξιδιωτικά πρακτορεία',
                 },
+                defaultRulesCannotBeDeleted: 'Οι προεπιλεγμένοι κανόνες δεν μπορούν να διαγραφούν',
             },
             agentRules: {
                 title: 'Κανόνες αντιπροσώπου',
@@ -8643,6 +8730,9 @@ ${reportName}`,
                 title ? `ενημέρωσε τον κανόνα πράκτορα «${title}» σε: ${prompt}` : `ενημέρωσε έναν κανόνα πράκτορα σε: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `αφαίρεσε τον κανόνα πράκτορα «${title}»` : 'αφαίρεσε έναν κανόνα πράκτορα'),
         },
+        addedRule: 'πρόσθεσε έναν κανόνα',
+        updatedRule: 'ενημέρωσε έναν κανόνα',
+        removedRule: 'αφαίρεσε έναν κανόνα',
         expensifyCardRule: {
             actionVerb: {
                 block: 'μπλοκαρισμένο',
@@ -8909,6 +8999,7 @@ ${reportName}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} η απαίτηση για αγορές με εταιρική κάρτα`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} η απαίτηση κατηγοριοποίησης δαπανών`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} στην απαίτηση κατηγοριοποίησης δαπανών`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `ενημέρωσε τη ρύθμιση προμήθειας μετατροπής νομίσματος σε «${preferenceLabel}»`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} εγκεκριμένες αναφορές αυτόματης πληρωμής`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `ορίστε το όριο για αυτόματη πληρωμή των εγκεκριμένων αναφορών σε «${newLimit}»`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
@@ -9324,7 +9415,7 @@ ${reportName}`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Κάρτα Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Επιστροφή χρημάτων',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Ενοποιημένη τιμολόγηση ταξιδιών',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Ενοποιημένη τιμολόγηση ταξιδιών',
             },
             is: 'Είναι',
             action: {
@@ -10263,6 +10354,14 @@ ${reportName}`,
                 onboardingChatTitle: (discountType: number) => `Προσφορά περιορισμένου χρόνου: ${discountType}% έκπτωση για τον πρώτο σας χρόνο!`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `Διεκδικήστε μέσα σε ${days > 0 ? `${days}η :` : ''}${hours}ώ : ${minutes}λ : ${seconds}δ`,
             },
+            travelInvoiceOverdue: {
+                title: 'Το τιμολόγιο του ταξιδιού σας είναι ληξιπρόθεσμο',
+                subtitle: (date: string) => `Πληρώστε το τιμολόγιο ταξιδιού σας έως ${date} για να συνεχίσετε να κλείνετε ταξίδια.`,
+            },
+            travelInvoiceOverdueLocked: {
+                title: 'Η κράτηση ταξιδιών έχει τεθεί σε παύση',
+                subtitle: 'Το τιμολόγιο ταξιδιού σας έχει λήξει. Πληρώστε το για να μπορείτε να κλείνετε ξανά ταξίδια.',
+            },
         },
         cardSection: {
             title: 'Πληρωμή',
@@ -10924,8 +11023,13 @@ ${reportName}`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Νέοι τύποι ρόλων για διαχειριστές',
-                body: 'Δώστε στην ομάδα σας πιο λεπτομερή δικαιώματα με νέους ρόλους διαχειριστή καρτών, ατόμων και πληρωμών.',
+                heading: 'Βελτιωμένη αντιστοίχιση προμηθευτών',
+                body: 'Δημιουργήστε προμηθευτές και προσαρμοσμένους κανόνες για εύκολη αντιστοίχιση με τα κύρια λογιστικά πακέτα.',
+                cta: 'Δοκιμάστε το',
+            },
+            member: {
+                heading: 'Προκατασκευασμένοι πράκτορες για εσάς',
+                body: 'Χρησιμοποιήστε προκατασκευασμένους ή προσαρμοσμένους agents για να κωδικοποιείτε, να χωρίζετε και να υποβάλλετε αυτόματα τις δαπάνες εκ μέρους σας.',
                 cta: 'Δοκιμάστε το',
             },
         },
