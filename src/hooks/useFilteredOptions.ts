@@ -140,11 +140,11 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             isSearching,
             deferContactsUntilSearch,
             preferredLocale,
+            formatPhoneNumber,
             isTrackIntentUser,
             sortedActions,
             currentUserAccountID,
             dateFnsLocale,
-            formatPhoneNumber,
         ],
     );
 

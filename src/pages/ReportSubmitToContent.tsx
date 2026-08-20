@@ -226,7 +226,7 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale]);
+    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale, formatPhoneNumber]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {
