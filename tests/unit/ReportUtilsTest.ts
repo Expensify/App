@@ -114,7 +114,6 @@ import {
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    getMovedTransactionReportID,
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getOriginalReportID,
@@ -152,7 +151,6 @@ import {
     getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
-    getUnreportedTransactionReportID,
     getUserDetailTooltipText,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
@@ -21327,7 +21325,8 @@ describe('ReportUtils', () => {
                 },
             });
 
-            const result = getMovedTransactionMessage(translateLocal, action);
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            const result = getMovedTransactionMessage({translate: translateLocal, fromReportID, toReportID});
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -21345,7 +21344,8 @@ describe('ReportUtils', () => {
                 },
             });
 
-            const result = getMovedTransactionMessage(translateLocal, action);
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            const result = getMovedTransactionMessage({translate: translateLocal, fromReportID, toReportID});
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -21407,8 +21407,8 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getMovedTransactionReportID', () => {
-        it('should return fromReportID when both IDs are present', () => {
+    describe('parseMovedTransactionReportIDs - moved transaction', () => {
+        it('should return both fromReportID and toReportID when present', () => {
             const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
@@ -21418,10 +21418,12 @@ describe('ReportUtils', () => {
                 },
             });
 
-            expect(getMovedTransactionReportID(action)).toBe('111');
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            expect(fromReportID).toBe('111');
+            expect(toReportID).toBe('222');
         });
 
-        it('should fall back to toReportID when fromReportID is undefined', () => {
+        it('should return only toReportID when fromReportID is undefined', () => {
             const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
@@ -21430,21 +21432,25 @@ describe('ReportUtils', () => {
                 },
             });
 
-            expect(getMovedTransactionReportID(action)).toBe('222');
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            expect(fromReportID).toBeUndefined();
+            expect(toReportID).toBe('222');
         });
 
-        it('should return undefined when both IDs are missing', () => {
+        it('should return undefined for both when IDs are missing', () => {
             const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 originalMessage: {},
             });
 
-            expect(getMovedTransactionReportID(action)).toBeUndefined();
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            expect(fromReportID).toBeUndefined();
+            expect(toReportID).toBeUndefined();
         });
     });
 
-    describe('getUnreportedTransactionReportID', () => {
+    describe('parseMovedTransactionReportIDs - unreported transaction', () => {
         it('should return fromReportID', () => {
             const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
@@ -21454,7 +21460,7 @@ describe('ReportUtils', () => {
                 },
             });
 
-            expect(getUnreportedTransactionReportID(action)).toBe('333');
+            expect(parseMovedTransactionReportIDs(action).fromReportID).toBe('333');
         });
 
         it('should return undefined when fromReportID is missing', () => {
@@ -21464,10 +21470,10 @@ describe('ReportUtils', () => {
                 originalMessage: {},
             });
 
-            expect(getUnreportedTransactionReportID(action)).toBeUndefined();
+            expect(parseMovedTransactionReportIDs(action).fromReportID).toBeUndefined();
         });
 
-        it('should ignore toReportID and only return fromReportID', () => {
+        it('should return both fromReportID and toReportID independently', () => {
             const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
@@ -21477,7 +21483,9 @@ describe('ReportUtils', () => {
                 },
             });
 
-            expect(getUnreportedTransactionReportID(action)).toBe('333');
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            expect(fromReportID).toBe('333');
+            expect(toReportID).toBe('444');
         });
     });
 

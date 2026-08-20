@@ -7363,24 +7363,33 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
     return message;
 }
 
-function parseMovedTransactionReportIDs(action: ReportAction): {fromReportID: string | undefined; toReportID: string | undefined} {
+function parseMovedTransactionReportIDs(action: ReportAction): {fromReportID: string | undefined; toReportID: string | undefined; displayReportID: string | undefined} {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    return {toReportID, fromReportID};
+    return {toReportID, fromReportID, displayReportID: fromReportID ?? toReportID};
 }
 
-function getMovedTransactionReportID(action: ReportAction): string | undefined {
-    const {toReportID, fromReportID} = parseMovedTransactionReportIDs(action);
-    return fromReportID ?? toReportID;
-}
+function getMovedTransactionMessage({
+    translate,
+    movedReport,
+    toReportID,
+    fromReportID,
+    derivedReportName,
+}: {
+    translate: LocalizedTranslate;
+    movedReport?: Report;
+    toReportID?: string;
+    fromReportID?: string;
+    derivedReportName?: string;
+}) {
+    let report = movedReport;
 
-function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, derivedReportName?: string | undefined) {
-    const {toReportID, fromReportID} = parseMovedTransactionReportIDs(action);
+    if (!report) {
+        const toReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
+        const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const toReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-    const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
-
-    const report = fromReport ?? toReport;
+        report = fromReport ?? toReport;
+    }
 
     const reportName = Parser.htmlToText(getReportName(report, derivedReportName));
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
@@ -7390,13 +7399,8 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     return reportName ? translate('iou.movedTransactionFrom', reportUrl, reportName) : translate('iou.movedTransactionFromAnotherReport');
 }
 
-function getUnreportedTransactionReportID(action: ReportAction): string | undefined {
-    const {fromReportID} = parseMovedTransactionReportIDs(action);
-    return fromReportID;
-}
-
 function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, derivedReportName?: string | undefined) {
-    const fromReportID = getUnreportedTransactionReportID(action);
+    const {fromReportID} = parseMovedTransactionReportIDs(action);
 
     const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 

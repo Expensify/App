@@ -7,7 +7,7 @@ import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Parser from '@libs/Parser';
 import {hasReasoning} from '@libs/ReportActionsUtils';
-import {getUnreportedTransactionMessage, getUnreportedTransactionReportID} from '@libs/ReportUtils';
+import {getUnreportedTransactionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
@@ -29,7 +29,7 @@ type UnreportedTransactionActionProps = {
 };
 
 function UnreportedTransactionAction({action, originalReport}: UnreportedTransactionActionProps) {
-    const fromReportID = getUnreportedTransactionReportID(action);
+    const {fromReportID} = parseMovedTransactionReportIDs(action);
 
     const {translate} = useLocalize();
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);

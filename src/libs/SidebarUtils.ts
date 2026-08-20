@@ -169,7 +169,7 @@ import {
     getDisplayNamesWithTooltips,
     getIcons,
     getMovedTransactionMessage,
-    getMovedTransactionReportID,
+    parseMovedTransactionReportIDs,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeLogCopyMessage,
     getPolicyName,
@@ -180,7 +180,6 @@ import {
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
     getUnreportedTransactionMessage,
-    getUnreportedTransactionReportID,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceNameUpdatedMessage,
     hasReportErrorsOtherThanFailedReceipt,
@@ -1245,7 +1244,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            const unreportedFromReportID = getUnreportedTransactionReportID(lastAction);
+            const {fromReportID: unreportedFromReportID} = parseMovedTransactionReportIDs(lastAction);
             result.alternateText = Parser.htmlToText(
                 getUnreportedTransactionMessage(translate, lastAction, unreportedFromReportID ? reportAttributesDerived?.[unreportedFromReportID]?.reportName : undefined),
             );
@@ -1332,9 +1331,14 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            const movedTransactionReportID = getMovedTransactionReportID(lastAction);
+            const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastAction);
             result.alternateText = Parser.htmlToText(
-                getMovedTransactionMessage(translate, lastAction, movedTransactionReportID ? reportAttributesDerived?.[movedTransactionReportID]?.reportName : undefined),
+                getMovedTransactionMessage({
+                    translate,
+                    fromReportID,
+                    toReportID,
+                    derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
+                }),
             );
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));

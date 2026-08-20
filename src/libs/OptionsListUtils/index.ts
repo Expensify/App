@@ -131,7 +131,7 @@ import {
     getIcons,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    getMovedTransactionReportID,
+    parseMovedTransactionReportIDs,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
@@ -145,7 +145,6 @@ import {
     getReportSubtitlePrefix,
     getReportTransactions,
     getUnreportedTransactionMessage,
-    getUnreportedTransactionReportID,
     getViolatingReportIDForRBRInLHN,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
@@ -833,9 +832,14 @@ function getLastMessageTextForReport({
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        const movedTransactionReportID = getMovedTransactionReportID(lastReportAction);
+        const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastReportAction);
         lastMessageTextFromReport = Parser.htmlToText(
-            getMovedTransactionMessage(translate, lastReportAction, movedTransactionReportID ? reportAttributesDerived?.[movedTransactionReportID]?.reportName : undefined),
+            getMovedTransactionMessage({
+                translate,
+                fromReportID,
+                toReportID,
+                derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
+            }),
         );
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
@@ -942,7 +946,7 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        const unreportedFromReportID = getUnreportedTransactionReportID(lastReportAction);
+        const {fromReportID: unreportedFromReportID} = parseMovedTransactionReportIDs(lastReportAction);
         lastMessageTextFromReport = Parser.htmlToText(
             getUnreportedTransactionMessage(translate, lastReportAction, unreportedFromReportID ? reportAttributesDerived?.[unreportedFromReportID]?.reportName : undefined),
         );
