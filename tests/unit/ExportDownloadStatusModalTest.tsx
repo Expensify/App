@@ -221,7 +221,7 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.close')).toBeTruthy();
     });
 
-    it('retains last state when Onyx key becomes null', async () => {
+    it('renders nothing when the Onyx record is cleared from another tab', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
 
         renderModal();
@@ -232,7 +232,7 @@ describe('ExportDownloadStatusModal', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, null);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
+        expect(screen.queryByText('exportDownload.readyTitle')).toBeNull();
     });
 
     it('"Go to Concierge" closes the modal and then opens the Concierge side panel', async () => {

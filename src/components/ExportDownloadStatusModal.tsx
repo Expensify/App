@@ -56,6 +56,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
+    const wasRecordCleared = !exportDownload && !!displayedExport;
 
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
@@ -98,6 +99,10 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
     };
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+
+    if (wasRecordCleared) {
+        return null;
+    }
 
     const handleGoToConcierge = () => {
         close(() => openConciergeAnywhere({forceConcierge: true}));
