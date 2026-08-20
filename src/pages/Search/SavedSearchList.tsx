@@ -50,7 +50,7 @@ type SavedSearchMenuItemBuilderParams = {
     icon: IconAsset;
 };
 
-function buildSavedSearchMenuItem({item, key, index, hash, title, getOverflowMenu, itemStyle, isCopied, icon}: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
+function buildSavedSearchMenuItem({item, key, index, hash, title, getOverflowMenu, itemStyle, isCopied, icon}: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem & {icon: IconAsset} {
     const isItemFocused = Number(key) === hash;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
@@ -147,9 +147,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
             <SearchTypeMenuItem
                 key={item.key}
                 title={item.title ?? ''}
-                // Resolve the per-type icon from the query. `item.icon` holds the same value but is typed as the
-                // wider `MenuItem['icon']`, so re-resolving here keeps the prop strongly typed as `IconAsset`.
-                icon={expensifyIcons[getSavedSearchIconName(item.query)]}
+                icon={item.icon}
                 focused={item.focused}
                 onPress={(event) => {
                     if (item.disabled || !item.onPress || !event) {

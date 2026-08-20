@@ -694,6 +694,16 @@ function getBuildSearchQueryJSONCacheKey(query: SearchQueryString, rawQuery?: Se
     return rawQuery ? `${query}${BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR}${rawQuery}` : query;
 }
 
+function evictOldestCacheEntryIfNeeded() {
+    if (buildSearchQueryJSONCache.size < BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE) {
+        return;
+    }
+    const firstKey = buildSearchQueryJSONCache.keys().next().value;
+    if (firstKey !== undefined) {
+        buildSearchQueryJSONCache.delete(firstKey);
+    }
+}
+
 function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
     const cacheKey = getBuildSearchQueryJSONCacheKey(query, rawQuery);
     if (buildSearchQueryJSONCache.has(cacheKey)) {
@@ -726,18 +736,18 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
             result.rawFilterList = rawFilterList;
         }
 
-        if (buildSearchQueryJSONCache.size >= BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE) {
-            const firstKey = buildSearchQueryJSONCache.keys().next().value;
-            if (firstKey !== undefined) {
-                buildSearchQueryJSONCache.delete(firstKey);
-            }
-        }
+        evictOldestCacheEntryIfNeeded();
         const frozen = Object.freeze(result);
         buildSearchQueryJSONCache.set(cacheKey, frozen);
 
         return frozen;
     } catch (e) {
         console.error(`Error when parsing SearchQuery: "${query}"`, e);
+        // Cache the failure too. Parsing is deterministic, so an unparseable query would fail again on every
+        // call - this keeps a broken saved search from re-running the full PEG parser and re-logging on each
+        // render (e.g. from the saved-search sidebar). `.has()` above short-circuits future calls to `undefined`.
+        evictOldestCacheEntryIfNeeded();
+        buildSearchQueryJSONCache.set(cacheKey, undefined);
     }
 }
 
