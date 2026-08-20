@@ -14,6 +14,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
@@ -72,8 +73,8 @@ function IOURequestStepAmount({
     transaction,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
-    const {translate} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -131,10 +132,14 @@ function IOURequestStepAmount({
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
     const isAmountCreateEntry = !backTo && !isEditing;
+    // Mirrors the amount input, signed the same way the form composes it. `undefined` until the form reports
+    // a change, so the baseline below stands in and a prefilled amount starts clean.
+    const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+    const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
-                typedAmount: amountFormRef.current?.getNumber() ?? '',
+                typedAmount: typedAmount ?? baselineAmount,
                 committedAmount: transactionAmount,
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
@@ -202,17 +207,10 @@ function IOURequestStepAmount({
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(
-                  participant,
-                  privateIsArchived,
-                  policy,
-                  personalDetails,
-                  conciergeReportID,
-                  reportAttributesDerived,
-                  reportDraft,
-                  currentUserPersonalDetails.accountID,
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
-              );
+                  dateFnsLocale,
+              });
     });
     const participant = participants.at(0);
     const policyTags = useMoneyRequestPolicyTags({
@@ -231,7 +229,10 @@ function IOURequestStepAmount({
         }
         suppressDiscardPrompt();
         submitAmount({
+            getCurrencyDecimals,
+            getCurrencySymbol,
             translate,
+            dateFnsLocale,
             report,
             transaction,
             splitDraftTransaction,
@@ -251,6 +252,7 @@ function IOURequestStepAmount({
             navigateBack: saveAndNavigateBack,
             amount,
             paymentMethod,
+            formatPhoneNumber,
             isTrackIntentUser,
             policyTags,
             reportPolicyTags,
@@ -313,6 +315,7 @@ function IOURequestStepAmount({
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
+                onAmountChange={setTypedAmount}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
