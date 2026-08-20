@@ -19,6 +19,7 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
     getDefaultTimeTrackingRate,
@@ -75,7 +76,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
-import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig} from '@src/types/onyx/Policy';
+import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -2494,6 +2495,64 @@ describe('PolicyUtils', () => {
             };
             const result = getAllTaxRatesNamesAndValues(policies);
             expect(result.DUP_TAX).toEqual({name: 'First', value: '1'});
+        });
+    });
+
+    describe('getCurrentTaxID', () => {
+        function buildPolicyWithTaxes(taxes: TaxRates): Policy {
+            return {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                taxRates: {
+                    taxes,
+                    name: '',
+                    defaultExternalID: '',
+                    defaultValue: '',
+                    foreignTaxDefault: '',
+                },
+            };
+        }
+
+        it('returns the tax code itself when a rate still owns it', () => {
+            const policy = buildPolicyWithTaxes({id_A: {name: 'VAT', value: '20%'}});
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_A');
+        });
+
+        it('prefers the rate that currently owns the code over a rate that was renamed away from it', () => {
+            const policy = buildPolicyWithTaxes({
+                id_B: {name: 'Renamed tax', value: '5%', previousTaxCode: 'id_A', previousTaxCodes: ['id_A']},
+                id_A: {name: 'Reused tax code', value: '10%'},
+            });
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_A');
+        });
+
+        it('resolves every code in the rename chain to the current key', () => {
+            const policy = buildPolicyWithTaxes({
+                id_D: {name: 'VAT', value: '20%', previousTaxCode: 'id_C', previousTaxCodes: ['id_A', 'id_B', 'id_C']},
+            });
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_D');
+            expect(getCurrentTaxID(policy, 'id_B')).toBe('id_D');
+            expect(getCurrentTaxID(policy, 'id_C')).toBe('id_D');
+        });
+
+        it('resolves from previousTaxCode for rates renamed before the back-end returned the full chain', () => {
+            const policy = buildPolicyWithTaxes({id_B: {name: 'VAT', value: '20%', previousTaxCode: 'id_A'}});
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_B');
+        });
+
+        it('resolves from optimisticPreviousTaxCode while a rename is still in flight', () => {
+            const policy = buildPolicyWithTaxes({id_B: {name: 'VAT', value: '20%', optimisticPreviousTaxCode: 'id_A'}});
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_B');
+        });
+
+        it('returns undefined for a code that was never used by any rate', () => {
+            const policy = buildPolicyWithTaxes({id_A: {name: 'VAT', value: '20%'}});
+
+            expect(getCurrentTaxID(policy, 'id_UNKNOWN')).toBeUndefined();
         });
     });
 

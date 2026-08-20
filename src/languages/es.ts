@@ -982,7 +982,6 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Reembolsado últimos 30 días',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transacciones recientes • ${lastFour}`,
         },
-        announcements: 'Anuncios',
         discoverSection: {
             title: 'Descubrir',
             menuItemTitleNonAdmin: 'Aprende a crear gastos y enviar informes.',
@@ -4417,6 +4416,10 @@ ${amount} para ${merchant} - ${date}`,
             railCard:
                 '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Los viajes no están habilitados',
+            message: 'Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
+        },
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',
@@ -5658,11 +5661,62 @@ ${amount} para ${merchant} - ${date}`,
             subsidiarySelectDescription: 'Elige la filial en DualEntry de la que te gustaría importar datos.',
             noCompaniesFound: 'No se han encontrado empresas',
             noCompaniesFoundDescription: 'Por favor, añade una empresa en DualEntry y sincroniza la conexión de nuevo',
+            noVendorsFound: 'No se han encontrado proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en DualEntry y sincroniza la conexión de nuevo',
+            noAccountsFound: 'No se han encontrado cuentas',
+            noAccountsFoundDescription: 'Por favor, añade cuentas en DualEntry y sincroniza la conexión de nuevo',
             accountTypesDescription: 'Tus cuentas de DualEntry se importarán como categorías.',
             enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
             enableNewAccountsDescription: 'Las nuevas cuentas DualEntry estarán disponibles como categorías.',
             classificationsImport: 'Todas las clasificaciones de DualEntry se importan como etiquetas',
             importDescription: 'Elige qué configuraciones de codificación importar desde DualEntry.',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a DualEntry.',
+            exportReimbursable: {
+                label: 'Exportar gastos reembolsables como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Facturas de proveedor',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Fecha de factura del proveedor',
+                description: 'Usa esta fecha al exportar informes a DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en que se exportó el informe a DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en que se envió el informe para su aprobación.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Exportar gastos de tarjetas de empresa como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Gastos directos',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Proveedor predeterminado para todas las tarjetas de empresa',
+                description: 'Elige un proveedor DualEntry predeterminado para los gastos que no se asignen automáticamente.',
+            },
+            companyCardAccount: {
+                label: 'Cuenta de tarjeta de empresa',
+                description: 'Elige dónde exportar las transacciones de las tarjetas de la empresa.',
+            },
+            expensifyCardAccount: {
+                label: 'Cuenta de la Tarjeta Expensify',
+                description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
+            },
         },
         type: {
             free: 'Gratis',
@@ -8302,6 +8356,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `actualizó la regla de agente «${title}» a: ${prompt}` : `actualizó una regla de agente a: ${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `eliminó la regla de agente «${title}»` : 'eliminó una regla de agente'),
         },
+        addedRule: 'añadió una regla',
+        updatedRule: 'actualizó una regla',
+        removedRule: 'eliminó una regla',
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'más de', under: 'debajo'},
@@ -10598,8 +10655,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nuevos tipos de roles para admins',
-                body: 'Ofrece a tu equipo permisos más granulares con los nuevos roles de administrador de tarjetas, personas y pagos.',
+                heading: 'Asignación de proveedores mejorada',
+                body: 'Crea proveedores y reglas personalizadas para facilitar la asignación a los principales paquetes de contabilidad.',
+                cta: 'Pruébalo',
+            },
+            member: {
+                heading: 'Agentes preconfigurados para ti',
+                body: 'Usa agentes prediseñados o personalizados para clasificar, dividir y enviar gastos automáticamente en tu nombre.',
                 cta: 'Pruébalo',
             },
         },

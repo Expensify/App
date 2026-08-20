@@ -955,7 +955,6 @@ const translations: TranslationDeepObject<typeof en> = {
             addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '詳細を追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
         },
-        announcements: 'お知らせ',
         discoverSection: {
             title: '発見',
             menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
@@ -4453,6 +4452,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             railCard:
                 'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: '出張機能は有効になっていません',
+            message: '予約するには、デフォルトのワークスペースで出張機能を有効にするか、出張機能が有効になっているワークスペースをデフォルトとして設定してください。',
+        },
     },
     workspace: {
         common: {
@@ -5678,11 +5681,62 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             subsidiarySelectDescription: 'DualEntry でデータを取り込みたい子会社を選択してください。',
             noCompaniesFound: '会社が見つかりません',
             noCompaniesFoundDescription: 'DualEntry に会社を追加して、もう一度同期してください',
+            noVendorsFound: 'ベンダーが見つかりません',
+            noVendorsFoundDescription: 'DualEntry にベンダーを追加して、もう一度接続を同期してください',
+            noAccountsFound: 'アカウントが見つかりません',
+            noAccountsFoundDescription: 'DualEntry にアカウントを追加して、もう一度接続を同期してください',
             accountTypesDescription: 'DualEntry アカウントはカテゴリとしてインポートされます。',
             enableNewAccountsTitle: '新しくインポートした口座を有効にする',
             enableNewAccountsDescription: '新しい DualEntry アカウントは、カテゴリとして利用できるようになります。',
             classificationsImport: 'すべての DualEntry 分類はタグとしてインポートされます',
             importDescription: 'DualEntry からインポートするコーディング設定を選択してください。',
+            exportDescription: 'Expensify のデータを DualEntry へエクスポートする方法を設定します。',
+            exportReimbursable: {
+                label: '返金対象経費の書き出し形式',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: '仕入先請求書',
+                    },
+                },
+            },
+            exportDate: {
+                label: '仕入先の請求書日',
+                description: 'レポートを DualEntry にエクスポートするときは、この日付を使用します。',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最終支出日',
+                        description: 'レポートに記載されている最新の支出日。',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'エクスポート日',
+                        description: 'レポートがDualEntryにエクスポートされた日付。',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提出日',
+                        description: 'レポートが承認のために提出された日付。',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: '会社カード経費のエクスポート形式',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: '直接経費',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'すべての会社カードのデフォルトベンダー',
+                description: '自動的に一致しない経費に使用する既定の DualEntry ベンダーを選択してください。',
+            },
+            companyCardAccount: {
+                label: '会社カード口座',
+                description: '会社カード取引のエクスポート先を選択してください。',
+            },
+            expensifyCardAccount: {
+                label: 'Expensify カード口座',
+                description: 'Expensify カード取引のエクスポート先を選択してください。',
+            },
         },
         type: {
             free: '無料',
@@ -8632,6 +8686,9 @@ ${reportName}`,
                 title ? `エージェントルール「${title}」を次の内容に更新しました：${prompt}` : `エージェントルールを次の内容に更新しました：${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `エージェントルール「${title}」を削除しました` : 'エージェントルールを削除しました'),
         },
+        addedRule: 'ルールを追加しました',
+        updatedRule: 'ルールを更新しました',
+        removedRule: 'ルールを削除しました',
         expensifyCardRule: {
             actionVerb: {block: 'ブロック済み', allow: '許可済み'},
             amountOperator: {
@@ -10236,8 +10293,13 @@ ${reportName}`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: '管理者向けの新しいロールタイプ',
-                body: '新しいカード、メンバー、支払いの各管理者ロールで、チームにより細かな権限を付与できます。',
+                heading: '拡張されたベンダー対応付け',
+                body: '主要な会計ソフトへのスムーズなマッピングのために、取引先とカスタムルールを作成できます。',
+                cta: '試してみる',
+            },
+            member: {
+                heading: 'あらかじめ作成されたエージェントをご用意しました',
+                body: 'あらかじめ用意されたエージェントやカスタムエージェントを使って、経費を自動的にコード化・分割・提出できます。',
                 cta: '試してみる',
             },
         },

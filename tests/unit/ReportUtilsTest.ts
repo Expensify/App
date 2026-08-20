@@ -98,12 +98,14 @@ import {
     getChatListItemReportName,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
+    getDefaultGroupAvatar,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getEffectiveReportErrors,
     getHarvestOriginalReportID,
+    getIcons,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
     getInvoiceReceiverPersonalDetail,
@@ -7576,6 +7578,56 @@ describe('ReportUtils', () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
+        });
+    });
+
+    describe('getIcons for a group chat', () => {
+        afterEach(() => Onyx.clear());
+
+        const groupChatReport: Report = {
+            reportID: '1',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            reportName: '',
+            avatarUrl: '',
+            participants: {
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+
+        it('should exclude the pending delete members passed by the caller from the icon name', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, ['4']);
+
+            expect(icons.at(0)?.name).toEqual('One, Three, Two');
+        });
+
+        // TODO: Remove this test once https://github.com/Expensify/App/issues/66421 is done and the fallback is gone
+        it('should fall back to the report metadata in Onyx when the caller does not pass the pending delete members', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${groupChatReport.reportID}`, {
+                pendingChatMembers: [{accountID: '4', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+            });
+
+            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails);
+
+            expect(icons.at(0)?.name).toEqual('One, Three, Two');
+        });
+
+        it('should use the default group avatar when the report has no avatar URL', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, []);
+
+            expect(icons.at(0)?.source).toEqual(getDefaultGroupAvatar(groupChatReport.reportID));
+            expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
         });
     });
 

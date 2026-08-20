@@ -971,7 +971,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
         },
-        announcements: 'Ankündigungen',
         discoverSection: {
             title: 'Entdecken',
             menuItemTitleNonAdmin: 'Erfahren Sie, wie Sie Ausgaben erstellen und Berichte einreichen.',
@@ -4513,6 +4512,10 @@ ${amount} für ${merchant} – ${date}`,
             railCard:
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Reisen ist nicht aktiviert',
+            message: 'Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standard-Arbeitsbereich oder wechseln Sie Ihren Standard-Arbeitsbereich zu einem, in dem Reisen aktiviert ist.',
+        },
     },
     workspace: {
         common: {
@@ -5770,11 +5773,62 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in DualEntry aus, aus der Sie Daten importieren möchten.',
             noCompaniesFound: 'Keine Unternehmen gefunden',
             noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in DualEntry hinzu und synchronisieren Sie die Verbindung erneut',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in DualEntry hinzu und synchronisieren Sie die Verbindung erneut',
+            noAccountsFound: 'Keine Konten gefunden',
+            noAccountsFoundDescription: 'Bitte fügen Sie Konten in DualEntry hinzu und synchronisieren Sie die Verbindung erneut',
             accountTypesDescription: 'Ihre DualEntry-Konten werden als Kategorien importiert.',
             enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
             enableNewAccountsDescription: 'Neue DualEntry-Konten werden als Kategorien verfügbar sein.',
             classificationsImport: 'Alle DualEntry-Klassifizierungen werden als Tags importiert',
             importDescription: 'Wählen Sie aus, welche Buchungskonfigurationen aus DualEntry importiert werden sollen.',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach DualEntry exportiert werden.',
+            exportReimbursable: {
+                label: 'Erstattungsfähige Ausgaben exportieren als',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Lieferantenrechnungen',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Rechnungsdatum des Lieferanten',
+                description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Datum der letzten Ausgabe',
+                        description: 'Datum der letzten im Bericht erfassten Ausgabe.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Exportdatum',
+                        description: 'Datum, an dem der Bericht nach DualEntry exportiert wurde.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Einreichungsdatum',
+                        description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Firmenkartenausgaben exportieren als',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Direkte Ausgaben',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Standardanbieter für Firmenkarten',
+                description: 'Wählen Sie einen standardmäßigen DualEntry-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
+            },
+            companyCardAccount: {
+                label: 'Firmenkartenkonto',
+                description: 'Wählen Sie aus, wohin die Firmenkartentransaktionen exportiert werden sollen.',
+            },
+            expensifyCardAccount: {
+                label: 'Expensify Card-Konto',
+                description: 'Wählen Sie aus, wohin die Expensify Card-Transaktionen exportiert werden sollen.',
+            },
         },
         type: {
             free: 'Kostenlos',
@@ -8777,6 +8831,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title ? `hat die Agentenregel „${title}“ aktualisiert zu: ${prompt}` : `hat eine Agentenregel aktualisiert zu: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `hat die Agentenregel „${title}“ entfernt` : 'hat eine Agentenregel entfernt'),
         },
+        addedRule: 'hat eine Regel hinzugefügt',
+        updatedRule: 'eine Regel aktualisiert',
+        removedRule: 'hat eine Regel entfernt',
         expensifyCardRule: {
             actionVerb: {block: 'blockiert', allow: 'erlaubt'},
             amountOperator: {over: 'über', under: 'unter'},
@@ -10405,8 +10462,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Neue Rollentypen für Admins',
-                body: 'Geben Sie Ihrem Team detailliertere Berechtigungen mit neuen Administratorrollen für Karten, Personen und Zahlungen.',
+                heading: 'Erweiterte Lieferanten-Zuordnung',
+                body: 'Erstellen Sie Lieferanten und benutzerdefinierte Regeln für eine einfache Zuordnung zu den wichtigsten Buchhaltungspaketen.',
+                cta: 'Probieren Sie es aus',
+            },
+            member: {
+                heading: 'Vorgefertigte Agents für Sie',
+                body: 'Verwenden Sie vorgefertigte oder benutzerdefinierte Agenten, um Ausgaben automatisch in Ihrem Namen zu kodieren, aufzuteilen und einzureichen.',
                 cta: 'Ausprobieren',
             },
         },
