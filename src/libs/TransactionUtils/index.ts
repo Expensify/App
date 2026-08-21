@@ -779,12 +779,12 @@ function getUpdatedTransaction({
         // at most 0.005. A gap larger than this rounding tolerance means the user manually edited the
         // distance, so we must convert their quantity instead of snapping back to the exact route.
         const ROUNDING_TOLERANCE = 0.01;
-        const hasManualDistanceOverride =
+        const isDistanceManuallyEdited =
             typeof routeDistanceMeters === 'number' &&
             typeof quantity === 'number' &&
             !!existingDistanceUnit &&
             Math.abs(quantity - DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, existingDistanceUnit)) > ROUNDING_TOLERANCE;
-        const shouldUseExactRouteDistance = typeof routeDistanceMeters === 'number' && !hasManualDistanceOverride;
+        const shouldUseExactRouteDistance = typeof routeDistanceMeters === 'number' && !isDistanceManuallyEdited;
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
