@@ -9,6 +9,7 @@ import MenuItemTitle from '@components/MenuItem/leaves/text/MenuItemTitle';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
@@ -56,7 +57,7 @@ function MenuItemEntity({title, description, accountID, avatarSource, onPress, i
             <MenuItemRow>
                 <MenuItemLeading>
                     <UserAvatar
-                        source={avatarSource}
+                        source={avatarSource ?? getDefaultAvatarURL({accountID})}
                         accountID={accountID}
                     />
                 </MenuItemLeading>
