@@ -12778,9 +12778,6 @@ function parseDeployList(input) {
     }
     return input.map((item) => Number.parseInt(String(item), 10));
 }
-function isNotFoundError(error) {
-    return typeof error === 'object' && error !== null && 'status' in error && error.status === 404;
-}
 async function commentPR(PR, message, repo = github_1.context.repo.repo) {
     try {
         await GithubUtils_1.default.createComment(repo, PR, message);
@@ -12832,7 +12829,7 @@ async function commentOnDeployChecklistPRs(prList, repoName, recentTags, getDepl
             await commentPR(prNumber, deployMessage, repoName);
         }
         catch (error) {
-            if (isNotFoundError(error)) {
+            if (typeof error === 'object' && error !== null && 'status' in error && error.status === 404) {
                 console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
             }
             else if (repoName === CONST_1.default.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}`) {
@@ -12848,7 +12845,7 @@ async function commentOnDeployChecklistPRs(prList, repoName, recentTags, getDepl
 async function run() {
     const prList = parseDeployList(ActionUtils.getJSONInput('PR_LIST', { required: true }));
     const mobileExpensifyPRListInput = ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', { required: false });
-    const mobileExpensifyPRList = mobileExpensifyPRListInput === undefined ? [] : parseDeployList(mobileExpensifyPRListInput);
+    const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? parseDeployList(mobileExpensifyPRListInput) : [];
     const isProd = !!ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {
         required: true,
     });

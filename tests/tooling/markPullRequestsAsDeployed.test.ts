@@ -156,6 +156,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
+    mockGetInput.mockImplementation(mockGetInputDefaultImplementation);
     mockGetPullRequest.mockImplementation(({pull_number}: PullRequestParams): PullRequestData => (pull_number in PRList ? {data: PRList[pull_number]} : {}));
     mockListTags.mockResolvedValue({
         data: defaultTags,
@@ -167,6 +168,7 @@ afterEach(() => {
     mockGetInput.mockClear();
     mockCreateComment.mockClear();
     mockGetPullRequest.mockClear();
+    mockListTags.mockClear();
 });
 
 afterAll(() => {
@@ -305,21 +307,55 @@ platform | result
         }
     });
 
-    it('logs and skips a 404 from the Octokit dependency used by GitHub Actions while processing the remaining pull requests', async () => {
-        const notFoundError = new NestedRequestError('Not Found', 404, {
+    it.each([
+        ['continues processing App pull requests when the optional Mobile-Expensify input is omitted', '', []],
+        ['continues processing App pull requests when the optional Mobile-Expensify input is JSON null', 'null', []],
+        ['continues processing App pull requests when the optional Mobile-Expensify input is a JSON object', '{"unexpected":true}', []],
+        ['continues processing App pull requests when the optional Mobile-Expensify input is a JSON boolean', 'true', []],
+        ['continues processing App pull requests when the optional Mobile-Expensify input is a JSON string', '"1"', []],
+        ['continues processing App pull requests when the optional Mobile-Expensify input is a JSON number', '1', []],
+        ['normalizes mixed string and number Mobile-Expensify pull requests in input order', '["2",1]', [2, 1]],
+        ['rejects a Mobile-Expensify array containing an element other than a string or number', '["1",false]', undefined],
+    ])('%s', async (_scenario, input, mobilePullRequests) => {
+        mockGetInput.mockImplementation((key: string) => (key === 'MOBILE_EXPENSIFY_PR_LIST' ? input : mockGetInputDefaultImplementation(key)));
+        if (!mobilePullRequests) {
+            await expect(run()).rejects.toThrow('Deploy pull request list must be an array of strings or numbers');
+            expect(mockListTags).not.toHaveBeenCalled();
+            expect(mockCreateComment).not.toHaveBeenCalled();
+            return;
+        }
+        await run();
+        expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length + mobilePullRequests.length);
+        expect(mockListTags).toHaveBeenCalledTimes(mobilePullRequests.length > 0 ? 2 : 1);
+        expect(mockListTags).toHaveBeenCalledWith(expect.objectContaining({repo: CONST.APP_REPO}));
+        if (mobilePullRequests.length === 0) {
+            expect(mockCreateComment).not.toHaveBeenCalledWith(expect.objectContaining({repo: CONST.MOBILE_EXPENSIFY_REPO}));
+        }
+        for (const [index, pullRequest] of mobilePullRequests.entries()) {
+            expect(mockCreateComment).toHaveBeenNthCalledWith(index + 3, expect.objectContaining({issue_number: pullRequest, repo: CONST.MOBILE_EXPENSIFY_REPO}));
+        }
+    });
+
+    it.each([
+        ['logs and skips a 404 from the Octokit dependency used by GitHub Actions while processing the remaining pull requests', 404],
+        ['rethrows a non-404 from the Octokit dependency used by GitHub Actions without changing its identity', 503],
+    ])('%s', async (_scenario, status) => {
+        const requestError = new NestedRequestError(status === 404 ? 'Not Found' : 'Service Unavailable', status, {
             request: {method: 'GET', url: 'https://api.github.com/repos/Expensify/App/pulls/1', headers: {}},
         });
         mockGetPullRequest.mockImplementation(({pull_number}: PullRequestParams): PullRequestData => {
             if (pull_number === 1) {
-                throw notFoundError;
+                throw requestError;
             }
             return {data: PRList[pull_number]};
         });
+        if (status !== 404) {
+            await expect(run()).rejects.toBe(requestError);
+            return;
+        }
         const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-
         try {
             await run();
-
             expect(consoleLogSpy).toHaveBeenCalledWith(`Unable to comment on ${CONST.APP_REPO} PR #1. GitHub responded with 404.`);
             expect(mockGetPullRequest).toHaveBeenCalledTimes(Object.keys(PRList).length);
             expect(mockCreateComment).toHaveBeenCalledTimes(1);
@@ -327,14 +363,5 @@ platform | result
         } finally {
             consoleLogSpy.mockRestore();
         }
-    });
-
-    it('rethrows a non-404 from the Octokit dependency used by GitHub Actions without changing its identity', async () => {
-        const serviceUnavailableError = new NestedRequestError('Service Unavailable', 503, {
-            request: {method: 'GET', url: 'https://api.github.com/repos/Expensify/App/pulls/1', headers: {}},
-        });
-        mockGetPullRequest.mockRejectedValue(serviceUnavailableError);
-
-        await expect(run()).rejects.toBe(serviceUnavailableError);
     });
 });
