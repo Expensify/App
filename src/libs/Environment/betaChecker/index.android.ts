@@ -26,15 +26,15 @@ Onyx.connectWithoutView({
 });
 
 /**
- * Whether something other than the Play Store put this build on the device, i.e. a tester installed it from a
- * GitHub release.
+ * Whether the Play Store put this build on the device. Anything else means a tester installed it from a GitHub
+ * release.
  */
-function isSideloadedBuild(): boolean {
+function isPlayStoreInstall(): boolean {
     try {
-        return DeviceInfo.getInstallerPackageNameSync() !== CONST.PLAY_STORE_INSTALLER_PACKAGE_NAME;
+        return DeviceInfo.getInstallerPackageNameSync() === CONST.PLAY_STORE_INSTALLER_PACKAGE_NAME;
     } catch {
         // A throwing native call tells us nothing about the install, so let the version comparison decide.
-        return false;
+        return true;
     }
 }
 
@@ -47,7 +47,7 @@ function isSideloadedBuild(): boolean {
  */
 function isBetaBuild(): IsBetaBuild {
     return new Promise((resolve) => {
-        if (isSideloadedBuild()) {
+        if (!isPlayStoreInstall()) {
             AppUpdate.setIsAppInBeta(true);
             resolve(true);
             return;
