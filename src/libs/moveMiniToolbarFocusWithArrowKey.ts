@@ -8,12 +8,21 @@ import CONST from '@src/CONST';
 import DomUtils from './DomUtils';
 import getHadTabNavigation from './hadTabNavigation';
 
-type ToolbarKeyDownEvent = {
+type ToolbarKeyModifiers = {
+    altKey?: boolean;
+    ctrlKey?: boolean;
+    metaKey?: boolean;
+    shiftKey?: boolean;
+};
+
+type ToolbarKeyDownEvent = ToolbarKeyModifiers & {
     key?: string;
-    nativeEvent?: {key?: string};
+    nativeEvent?: ToolbarKeyModifiers & {key?: string};
     currentTarget?: EventTarget | null;
     preventDefault: () => void;
 };
+
+const TOOLBAR_BUTTON_SELECTOR = `[role="${CONST.ROLE.BUTTON}"]`;
 
 function getPressedKey(event: ToolbarKeyDownEvent): string {
     if (typeof event.key === 'string') {
@@ -51,8 +60,16 @@ function getAdjacentHorizontalIndex(currentIndex: number, key: string, lastIndex
     return currentIndex;
 }
 
-function canQueryToolbarButtons(node: EventTarget | null | undefined): node is ParentNode {
+function canQueryToolbarButtons(node: EventTarget | null | undefined): node is Node & ParentNode {
     return !!node && 'querySelectorAll' in node && typeof node.querySelectorAll === 'function';
+}
+
+function hasModifierKey(event: ToolbarKeyDownEvent): boolean {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+        return true;
+    }
+    const nativeEvent = event.nativeEvent;
+    return !!nativeEvent && !!(nativeEvent.altKey || nativeEvent.ctrlKey || nativeEvent.metaKey || nativeEvent.shiftKey);
 }
 
 function isActiveToolbarButton(button: Element, activeElement: Element | null): boolean {
@@ -66,14 +83,14 @@ function isHorizontalArrowKey(key: string): boolean {
     return key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey;
 }
 
-function getReactionRow(root: EventTarget | null | undefined, activeElement: Element): ParentNode | null {
+function getReactionRow(root: EventTarget | null | undefined, activeElement: Element): (Node & ParentNode) | null {
     if (!canQueryToolbarButtons(root) || !root.contains(activeElement)) {
         return null;
     }
 
     let node: Element | null = activeElement.parentElement;
     while (node && node !== root) {
-        if (node.querySelectorAll(`[role="${CONST.ROLE.BUTTON}"]`).length > 1) {
+        if (node.querySelectorAll(TOOLBAR_BUTTON_SELECTOR).length > 1) {
             return node;
         }
         node = node.parentElement;
@@ -89,7 +106,8 @@ function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: Event
     }
 
     const key = getPressedKey(event);
-    if (!isArrowKey(key)) {
+    // Arrow shortcuts have empty modifier lists. Alt+Arrow is browser history, so do not steal it.
+    if (!isArrowKey(key) || hasModifierKey(event)) {
         return;
     }
 
@@ -97,7 +115,7 @@ function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: Event
         return;
     }
 
-    const buttons = toolbar.querySelectorAll(`[role="${CONST.ROLE.BUTTON}"]`);
+    const buttons = toolbar.querySelectorAll(TOOLBAR_BUTTON_SELECTOR);
     const lastIndex = buttons.length - 1;
     if (lastIndex < 0) {
         return;
@@ -147,5 +165,4 @@ function moveFullContextMenuFocusWithArrowKey(event: ToolbarKeyDownEvent): void 
 }
 
 export default moveMiniToolbarFocusWithArrowKey;
-export {getAdjacentHorizontalIndex, moveFullContextMenuFocusWithArrowKey};
-export type {ToolbarKeyDownEvent};
+export {getAdjacentHorizontalIndex, moveFullContextMenuFocusWithArrowKey, TOOLBAR_BUTTON_SELECTOR};
