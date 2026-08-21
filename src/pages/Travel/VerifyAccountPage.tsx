@@ -3,7 +3,6 @@ import usePermissions from '@hooks/usePermissions';
 
 import {requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
@@ -14,7 +13,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {StackScreenProps} from '@react-navigation/stack';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
 
@@ -35,20 +34,11 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const defaultForwardRoute = policyID ? getTravelAcceptTermsRoute(policyID) : undefined;
     const navigateForwardTo = isTravelVerifiedBetaEnabled ? (travelProvisioning?.nextStepRoute ?? defaultForwardRoute) : undefined;
 
-    const handleValidationSuccess = useCallback(() => {
-        requestTravelAccess();
-    }, []);
-
-    const handleClose = useCallback(() => {
-        Navigation.goBack(backTo);
-    }, [backTo]);
-
     return (
         <VerifyAccountPageBase
             navigateBackTo={backTo}
             navigateForwardTo={navigateForwardTo}
-            handleClose={!isTravelVerifiedBetaEnabled ? handleClose : undefined}
-            onValidationSuccess={!isTravelVerifiedBetaEnabled ? handleValidationSuccess : undefined}
+            onValidationSuccess={!isTravelVerifiedBetaEnabled ? requestTravelAccess : undefined}
         />
     );
 }
