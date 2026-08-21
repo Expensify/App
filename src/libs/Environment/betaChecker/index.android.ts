@@ -70,7 +70,6 @@ function isBetaBuild(): IsBetaBuild {
                 resolve(isBeta);
             })
             .catch(() => {
-                // Use isLastSavedBeta in case we fail to fetch the new one, e.g. when we are offline
                 resolve(isLastSavedBeta);
             });
     });
