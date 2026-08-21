@@ -386,7 +386,7 @@ function formatRelative(locale: Locale, date: Date, now: Date): string {
     }
     const abs = Math.abs(diffSecs);
     const sign = diffSecs > 0 ? 1 : -1;
-    // Seconds would need `numeric: 'auto'`, which also turns day-level output into "yesterday".
+    // Intl has no "less than a minute ago" phrasing, so sub-minute rounds up to keep date-fns's single bucket.
     if (abs < 60) {
         return rtf.format(sign, 'minute');
     }
@@ -1216,15 +1216,6 @@ function getDifferenceInDaysFromNow(date: Date) {
     return differenceInDays(new Date(), date);
 }
 
-/**
- * Returns a boolean value indicating whether the provided date string can be parsed as a valid date.
- * @param dateString string
- * @returns True if the date string is valid, otherwise false.
- */
-function isValidDateString(dateString: string) {
-    return isValid(toLocalDate(dateString));
-}
-
 /** Persists to backend as `merchant`, so it is pinned to enUS to keep the wire string byte-stable across engines. */
 function getStablePerDiemMerchantDateRange(date1: Date, date2: Date): string {
     // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- wire format, not a user-visible render.
@@ -1232,19 +1223,20 @@ function getStablePerDiemMerchantDateRange(date1: Date, date2: Date): string {
 }
 
 /** @returns Jan 10, 2024 to Jan 15, 2024 (6 days) (en) / 10 ene 2024 al 15 ene 2024 (6 días) (es) */
-function getFormattedSplitDateRange(translateParam: LocaleContextProps['translate'], startDate: string | undefined, endDate: string | undefined, locale: Locale): string {
+function getFormattedSplitDateRange(startDate: string | undefined, endDate: string | undefined, locale: Locale): string {
     if (!startDate || !endDate) {
         return '';
     }
 
     const start = toLocalDate(startDate);
     const end = toLocalDate(endDate);
-    if (!isValid(start) || !isValid(end)) {
+    const startPart = formatToMediumDate(start, locale);
+    const endPart = formatToMediumDate(end, locale);
+    // Both halves required, else a formatter failure leaves the bare conjunction and day count on their own.
+    if (!startPart || !endPart) {
         return '';
     }
-    const daysCount = differenceInDays(end, start) + 1;
-
-    return translateParam('iou.splitDateRange', formatToMediumDate(start, locale), formatToMediumDate(end, locale), daysCount);
+    return translateLocalize(locale, 'iou.splitDateRange', startPart, endPart, differenceInDays(end, start) + 1);
 }
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -1597,8 +1589,7 @@ function getYearDateRange(year: number): {start: string; end: string} {
 function getQuarterDateBounds(year: number, quarter: number): {start: Date; end: Date} {
     const startMonth = (quarter - 1) * 3 + 1;
     const endMonth = quarter * 3;
-    // Use set() to create dates in local timezone explicitly — `new Date(year, month, day)` already
-    // builds local-time, but composing via set() keeps the intent obvious for the day=0 (last-of-prev-month) trick.
+    // The end bound overshoots to the following month and uses date 0, which rolls back to the last day of the quarter.
     return {
         start: set(new Date(), {year, month: startMonth - 1, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0}),
         end: set(new Date(), {year, month: endMonth, date: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0}),
@@ -1720,7 +1711,6 @@ const DateUtils = {
     doesDateBelongToAPastYear,
     isCardExpired,
     getDifferenceInDaysFromNow,
-    isValidDateString,
     getFormattedDurationBetweenDates,
     getFormattedDuration,
     formatCountdownTimer,

@@ -246,7 +246,7 @@ function create(context) {
                 return;
             }
 
-            // Relative-time helpers (formatDistance et al) are always locale-sensitive; flag on presence.
+            // Relative-time helpers like formatDistance are always locale-sensitive, so flag on presence.
             if (formatArgIndex === undefined) {
                 context.report({node, messageId: 'preferIntl', data: {tokens: `\`${calleeName}\` output`}});
                 return;

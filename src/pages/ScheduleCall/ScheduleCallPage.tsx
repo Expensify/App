@@ -122,7 +122,7 @@ function ScheduleCallPage() {
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         for (const timeSlot of allTimeSlots) {
-            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(DateUtils.toUTCDate(timeSlot.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
             // Empty means the slot had no usable start time. Bucketing it would put an unsortable '' among the selectable days.
             if (!timeSlotDate) {
                 continue;
@@ -135,7 +135,7 @@ function ScheduleCallPage() {
 
         // Sort time slots within each date array to have in chronological order
         for (const slots of Object.values(timeSlotMap)) {
-            slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+            slots.sort((a, b) => compareAsc(DateUtils.toUTCDate(a.startTime), DateUtils.toUTCDate(b.startTime)));
         }
 
         return timeSlotMap;

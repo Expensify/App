@@ -3,7 +3,6 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import useOnyx from '@hooks/useOnyx';
 import type {AfterTransition} from '@hooks/usePreMountDestination';
 
-import DateUtils from '@libs/DateUtils';
 import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
@@ -27,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
@@ -442,10 +442,7 @@ function SubmitExpenseOrchestrator({
         setIsConfirming(true);
 
         if (gpsRequired) {
-            const shouldStartPermissionFlow =
-                !lastLocationPermissionPrompt ||
-                (DateUtils.isValidDateString(lastLocationPermissionPrompt) &&
-                    DateUtils.getDifferenceInDaysFromNow(DateUtils.toLocalDate(lastLocationPermissionPrompt)) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
+            const shouldStartPermissionFlow = shouldStartLocationPermissionFlowSelector(lastLocationPermissionPrompt);
 
             if (shouldStartPermissionFlow) {
                 setStartLocationPermissionFlow(true);
