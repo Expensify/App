@@ -5,40 +5,26 @@
  * dependencies into a single executable node.js script per action.
  */
 import {build} from 'esbuild';
-import {readFile, writeFile} from 'fs/promises';
+import {readdir, readFile, writeFile} from 'fs/promises';
 import path from 'path';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const ACTIONS_DIR = path.join(REPO_ROOT, '.github', 'actions', 'javascript');
 const TSCONFIG = path.join(REPO_ROOT, '.github', 'tsconfig.json');
 
-// List of paths to all JS files that implement our GH Actions
-const GITHUB_ACTIONS = [
-    'authorChecklist/authorChecklist.ts',
-    'awaitStagingDeploys/awaitStagingDeploys.ts',
-    'bumpVersion/bumpVersion.ts',
-    'checkAndroidStatus/checkAndroidStatus.ts',
-    'checkDeployBlockers/checkDeployBlockers.ts',
-    'checkSVGCompression/checkSVGCompression.ts',
-    'failureNotifier/failureNotifier.ts',
-    'formatCodeCovComment/formatCodeCovComment.ts',
-    'generateHelpPreviewComment/generateHelpPreviewComment.ts',
-    'getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts',
-    'getArtifactInfo/getArtifactInfo.ts',
-    'getDeployPullRequestList/getDeployPullRequestList.ts',
-    'getPreviousVersion/getPreviousVersion.ts',
-    'getPullRequestDetails/getPullRequestDetails.ts',
-    'getPullRequestIncrementalChanges/getPullRequestIncrementalChanges.ts',
-    'isAuthorizedContributor/isAuthorizedContributor.ts',
-    'isDeployChecklistLocked/isDeployChecklistLocked.ts',
-    'markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts',
-    'postOrReplaceComment/postOrReplaceComment.ts',
-    'proposalPoliceComment/proposalPoliceComment.ts',
-    'reopenIssueWithComment/reopenIssueWithComment.ts',
-    'reviewerChecklist/reviewerChecklist.ts',
-    'validateReassureOutput/validateReassureOutput.ts',
-    'verifySignedCommits/verifySignedCommits.ts',
-].map((relativePath) => path.join(ACTIONS_DIR, relativePath));
+async function discoverActionEntries(): Promise<string[]> {
+    const entries = await readdir(ACTIONS_DIR, {withFileTypes: true});
+    const actionPaths = entries
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => path.join(ACTIONS_DIR, entry.name, `${entry.name}.ts`))
+        .sort();
+
+    if (actionPaths.length === 0) {
+        throw new Error(`No action sources found under ${ACTIONS_DIR}`);
+    }
+
+    return actionPaths;
+}
 
 // This will be prepended to the top of all compiled files as a warning to devs.
 const COMPILED_FILE_BANNER = `/**
@@ -53,8 +39,8 @@ const COMPILED_FILE_BANNER = `/**
 const REQUIRE_SHIM_BANNER = "import {createRequire as __createRequire} from 'module'; const require = __createRequire(import.meta.url);";
 
 // Some dependencies must be left external (i.e. resolved from node_modules at runtime) instead of bundled.
-// Keyed by the action's entry point path (relative to ACTIONS_DIR, matching GITHUB_ACTIONS below). A Map (rather
-// than an object literal) sidesteps the naming-convention lint rule, since these keys are file paths, not identifiers.
+// Keyed by the action's entry point path relative to ACTIONS_DIR. A Map (rather than an object literal)
+// sidesteps the naming-convention lint rule, since these keys are file paths, not identifiers.
 const EXTRA_EXTERNALS = new Map<string, string[]>([['checkSVGCompression/checkSVGCompression.ts', ['svgo']]]);
 
 async function buildAction(actionPath: string): Promise<boolean> {
@@ -88,7 +74,8 @@ async function buildAction(actionPath: string): Promise<boolean> {
 }
 
 async function main() {
-    const results = await Promise.all(GITHUB_ACTIONS.map(buildAction));
+    const actionPaths = await discoverActionEntries();
+    const results = await Promise.all(actionPaths.map(buildAction));
 
     if (results.includes(false)) {
         process.exit(1);
