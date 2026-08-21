@@ -671,7 +671,7 @@ function getOneWeekFromNow(): string {
  * param {string} dateTimeString
  * returns {string} example: 2023-05-16
  */
-function extractDate(dateTimeString: string): string {
+function extractDate(dateTimeString: Date | string): string {
     if (!dateTimeString || dateTimeString === 'never') {
         return '';
     }

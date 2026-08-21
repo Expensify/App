@@ -748,11 +748,10 @@ describe('DateUtils', () => {
             expect(result).toContain('12 days');
         });
 
-        it('should localize the dates rather than emitting the wire shape', () => {
+        it('should localize the dates rather than emitting the wire shape', async () => {
+            await IntlStore.load(CONST.LOCALES.ES);
             const result = DateUtils.getFormattedSplitDateRange('2024-01-10', '2024-01-15', CONST.LOCALES.ES);
-            expect(result).toContain('10 ene 2024');
-            expect(result).toContain('15 ene 2024');
-            expect(result).not.toContain('2024-01-10');
+            expect(result).toBe('10 ene 2024 al 15 ene 2024 (6 días)');
         });
     });
 

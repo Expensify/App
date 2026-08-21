@@ -32,7 +32,7 @@ type TypeSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList
 
 function getDefaultInitialValueForReportFieldType(type: PolicyReportFieldType): string {
     if (type === CONST.REPORT_FIELD_TYPES.DATE) {
-        return DateUtils.extractDate(new Date().toString());
+        return DateUtils.extractDate(new Date());
     }
     if (type === CONST.REPORT_FIELD_TYPES.FORMULA) {
         return '{report:id}';

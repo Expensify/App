@@ -122,7 +122,7 @@ function ScheduleCallPage() {
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         for (const timeSlot of allTimeSlots) {
-            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(DateUtils.toUTCDate(timeSlot.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            const timeSlotDate = DateUtils.formatUTCDateTimeToDateInTimezone(timeSlot.startTime, userTimezone);
             // Empty means the slot had no usable start time. Bucketing it would put an unsortable '' among the selectable days.
             if (!timeSlotDate) {
                 continue;

@@ -14,7 +14,8 @@ function shouldStartLocationPermissionFlowSelector(lastLocationPermissionPrompt:
     if (!lastLocationPermissionPrompt) {
         return true;
     }
-    const promptedAt = DateUtils.toLocalDate(lastLocationPermissionPrompt);
+    // The NVP is written as an instant via `toISOString`, so an unzoned echo from the backend is UTC, not local wall-clock.
+    const promptedAt = DateUtils.toUTCDate(lastLocationPermissionPrompt);
     return isValid(promptedAt) && DateUtils.getDifferenceInDaysFromNow(promptedAt) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS;
 }
 
