@@ -118,6 +118,7 @@ import {
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDistanceTypeRequest,
+    isExpensifyCardTransaction,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
@@ -591,7 +592,20 @@ function MoneyRequestView({
     const shouldShowTaxDisabledAlert = !isTaxEnabled && !!transaction?.taxCode && !isTimeRequest && !isPerDiemRequest;
     const shouldShowTax = isFromMergeTransaction ? !!transaction?.taxName : isTaxEnabled || shouldShowTaxDisabledAlert;
 
-    let amountDescription = `${translate('iou.amount')} ${CONST.DOT_SEPARATOR} ${translate(getExpenseTypeTranslationKey(transactionType))}`;
+    // A generic "Card" is ambiguous about who issued it, so split it into Expensify Card, Company card, or
+    // Personal card the same way the search table's Type column tooltip does.
+    let amountTypeTranslationKey: TranslationPaths = getExpenseTypeTranslationKey(transactionType);
+    if (transactionType === CONST.SEARCH.TRANSACTION_TYPE.CARD) {
+        if (isExpensifyCardTransaction(transaction)) {
+            amountTypeTranslationKey = 'cardTransactions.expensifyCard';
+        } else if (isManagedCardTransactionTransactionUtils(transaction)) {
+            amountTypeTranslationKey = 'cardTransactions.companyCard';
+        } else {
+            amountTypeTranslationKey = 'cardTransactions.personalCard';
+        }
+    }
+
+    let amountDescription = `${translate('iou.amount')} ${CONST.DOT_SEPARATOR} ${translate(amountTypeTranslationKey)}`;
     let dateDescription = `${translate('common.date')}`;
 
     const {
