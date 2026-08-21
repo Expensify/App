@@ -1,24 +1,8 @@
 type ReplaceableValue = Record<string, unknown> | unknown[] | string | number | boolean | undefined | null;
 
-type DeepReplaceResult<T> = unknown extends T
-    ? unknown
-    : T extends string
-      ? string
-      : T extends unknown[]
-        ? Array<DeepReplaceResult<T[number]>>
-        : T extends (...args: never[]) => unknown
-          ? T
-          : T extends abstract new (...args: never[]) => unknown
-            ? T
-            : T extends number | boolean | bigint | symbol | null | undefined | void
-              ? T
-              : Record<string, unknown>;
-
 /**
- * Recursively replaces keys and values while preserving the broad type of recursive values.
+ * Recursively replaces keys and values in one erased nested value.
  */
-function transformReplaceableValue(target: ReplaceableValue, oldVal: string, newVal: string): ReplaceableValue;
-function transformReplaceableValue(target: unknown, oldVal: string, newVal: string): unknown;
 function transformReplaceableValue(target: unknown, oldVal: string, newVal: string): unknown {
     if (!target) {
         return target;
@@ -38,6 +22,7 @@ function transformReplaceableValue(target: unknown, oldVal: string, newVal: stri
 
     const newObj: Record<string, unknown> = {};
     for (const [key, entryValue] of Object.entries(target)) {
+        // Object.entries infers entryValue as any, so keep it from propagating into recursion and assignments.
         const val: unknown = entryValue;
         const newKey = key.replace(oldVal, newVal);
 
@@ -68,13 +53,41 @@ function transformReplaceableValue(target: unknown, oldVal: string, newVal: stri
 }
 
 /**
- * @param target the object or value to transform
- * @param oldVal the value to search for
- * @param newVal the replacement value
+ * Recursively replaces keys and values in an optional request-data record.
  */
-function deepReplaceKeysAndValues<T extends ReplaceableValue>(target: T, oldVal: string, newVal: string): DeepReplaceResult<T>;
-function deepReplaceKeysAndValues(target: ReplaceableValue, oldVal: string, newVal: string): ReplaceableValue {
-    return transformReplaceableValue(target, oldVal, newVal);
+function deepReplaceKeysAndValues(target: Record<string, unknown> | undefined, oldVal: string, newVal: string): Record<string, unknown> | undefined {
+    if (!target) {
+        return target;
+    }
+
+    const newObj: Record<string, unknown> = {};
+    for (const [key, entryValue] of Object.entries(target)) {
+        const newKey = key.replace(oldVal, newVal);
+
+        if (entryValue instanceof File || entryValue instanceof Blob) {
+            newObj[newKey] = entryValue;
+            continue;
+        }
+
+        if (typeof entryValue === 'object') {
+            newObj[newKey] = transformReplaceableValue(entryValue, oldVal, newVal);
+            continue;
+        }
+
+        if (entryValue === oldVal) {
+            newObj[newKey] = newVal;
+            continue;
+        }
+
+        if (typeof entryValue === 'string') {
+            newObj[newKey] = entryValue.replace(oldVal, newVal);
+            continue;
+        }
+
+        newObj[newKey] = entryValue;
+    }
+
+    return newObj;
 }
 
 export default deepReplaceKeysAndValues;

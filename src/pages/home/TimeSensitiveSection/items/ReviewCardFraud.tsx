@@ -59,7 +59,7 @@ function ReviewCardFraud({possibleFraud}: ReviewCardFraudProps) {
             subtitle={translate('homePage.timeSensitiveSection.reviewCardFraud.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.reviewCardFraud.cta')}
             onCtaPress={handleReviewPress}
-            buttonProps={{danger: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

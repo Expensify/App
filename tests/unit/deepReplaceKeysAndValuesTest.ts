@@ -123,7 +123,11 @@ describe('deepReplaceKeysAndValues', () => {
                 someOtherKey: 2,
             },
         ],
-    ])('deepReplaceKeysAndValues(%s)', (input: ReplaceableValue, expected: ReplaceableValue) => {
-        expect(deepReplaceKeysAndValues(input, 'oldVal', 'newVal')).toStrictEqual(expected);
+    ])('transforms scenario value %s through the request-data record boundary', (input: ReplaceableValue, expected: ReplaceableValue) => {
+        expect(
+            input === undefined || (typeof input === 'object' && input !== null && !Array.isArray(input))
+                ? deepReplaceKeysAndValues(input, 'oldVal', 'newVal')
+                : deepReplaceKeysAndValues({value: input}, 'oldVal', 'newVal'),
+        ).toStrictEqual(expected === undefined || (typeof expected === 'object' && expected !== null && !Array.isArray(expected)) ? expected : {value: expected});
     });
 });
