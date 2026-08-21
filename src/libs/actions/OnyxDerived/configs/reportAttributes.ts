@@ -1,6 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -17,16 +17,19 @@ import {
     isPolicyAdmin,
     isPolicyExpenseChat,
     isProcessingReport,
+    getPendingDeleteMemberAccountIDs,
     isValidReport,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import {buildTransactionsByReportID} from '@libs/TodosUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -36,6 +39,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 let previousPolicies: OnyxCollection<Policy>;
+let previousReportsTransactions: Record<string, Transaction[]> | undefined;
 
 const RECOMPUTE_ALL = 'all' as const;
 
@@ -159,14 +163,20 @@ const reportReferencesAccountIDs = (report: Report, accountIDs: Set<number>): bo
 
 // Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
 // (oldest by preview-action creation time), or undefined when none match.
-const getOldestPreviewActionID = (chatReportID: string, reportIDs: string[] | undefined, reports: OnyxCollection<Report>, predicate?: (childReport: OnyxEntry<Report>) => boolean) => {
+const getOldestPreviewActionID = (
+    chatReportID: string,
+    reportIDs: string[] | undefined,
+    reports: OnyxCollection<Report>,
+    chatReportActions: OnyxEntry<ReportActions>,
+    predicate?: (childReport: OnyxEntry<Report>) => boolean,
+) => {
     let oldestCreated: string | undefined;
     let targetReportActionID: string | undefined;
     for (const childReportID of reportIDs ?? []) {
         if (predicate && !predicate(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
             continue;
         }
-        const reportPreviewAction = getReportPreviewAction(chatReportID, childReportID);
+        const reportPreviewAction = getReportPreviewReportAction(chatReportID, childReportID, chatReportActions);
         if (!reportPreviewAction) {
             continue;
         }
@@ -232,11 +242,13 @@ export default createOnyxDerivedValueConfig({
             policyTags,
             conciergeReportID,
             introSelected,
+            reportMetadata,
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
+        const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
@@ -510,6 +522,15 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
+        // Only regroup transactions by reportID when the TRANSACTION collection itself changed - this rebuild
+        // otherwise re-runs over every transaction on every recompute (e.g. a REPORT_ACTIONS-only update),
+        // even though the grouping it produces couldn't have changed. `!sourceValues` also forces a rebuild:
+        // it signals a full recompute (e.g. Onyx.clear() on logout), and without it this cache would keep
+        // serving the previous session's stale transaction groupings until a TRANSACTION update happened to fire.
+        if (!previousReportsTransactions || !sourceValues || hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, triggeredKeys)) {
+            previousReportsTransactions = buildTransactionsByReportID(transactions);
+        }
+        const reportsTransactions = previousReportsTransactions;
 
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>(
             (acc, key) => {
@@ -555,19 +576,19 @@ export default createOnyxDerivedValueConfig({
                 let actionBadge;
                 let actionTargetReportActionID;
                 let needsParentChatErrorPropagation = false;
-                const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report,
                     chatReport,
-                    reportActionsList,
-                    hasAnyViolations || hasFieldViolations,
+                    reportActions: reportActionsList,
+                    hasViolations: hasAnyViolations || hasFieldViolations,
                     reportErrors,
                     transactions,
                     isOffline,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     transactionViolations,
-                    !!isReportArchived,
+                    isReportArchived: !!isReportArchived,
                     reports,
-                );
+                });
 
                 // When the report is ready to submit, always show the green Submit badge
                 // regardless of violations — the user can submit without fix.
@@ -597,6 +618,8 @@ export default createOnyxDerivedValueConfig({
                     actionTargetReportActionID = actionGreenTargetReportActionID;
                 }
 
+                const reportReportMetadata = reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
+                const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(reportReportMetadata?.pendingChatMembers);
                 // Skip computeReportName when the name can't have changed (see nameSkipKeys).
                 const cachedName = currentValue?.reports?.[report.reportID]?.reportName;
                 const canReuseCachedName = cachedName !== undefined && nameSkipKeys.has(key);
@@ -615,10 +638,13 @@ export default createOnyxDerivedValueConfig({
                               currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                               currentUserLogin: session?.email ?? '',
                               translate,
+                              dateFnsLocale,
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
+                              reportTransactions: reportsTransactions ?? {},
                               isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                              pendingDeleteMemberAccountIDs,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
                     brickRoadStatus,
@@ -680,10 +706,11 @@ export default createOnyxDerivedValueConfig({
 
             const chatAttributes = reportAttributes[chatReportID];
             let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
+            const chatReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`];
 
             actionTargetReportActionID =
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
-                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, chatReportActions, isActionable) ??
+                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, chatReportActions, (childReport) =>
                     needsViolationFix(
                         childReport,
                         getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
@@ -693,7 +720,7 @@ export default createOnyxDerivedValueConfig({
                         currentUserEmail,
                     ),
                 ) ??
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, chatReportActions) ??
                 actionTargetReportActionID;
 
             // Clone the entry before mutating — it may be a reference carried over from
@@ -721,4 +748,4 @@ export default createOnyxDerivedValueConfig({
     },
 });
 
-export {hasPolicyRelevantFieldChanged};
+export {hasPolicyRelevantFieldChanged, getOldestPreviewActionID};

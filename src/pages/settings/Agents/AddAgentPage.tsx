@@ -1,7 +1,8 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues, FormRef} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -37,6 +38,8 @@ import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {TextInputKeyPressEvent} from 'react-native';
+
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -63,6 +66,18 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
     const hasSubmittedRef = useRef(false);
+    const formRef = useRef<FormRef>(null);
+
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in event)) {
+            return;
+        }
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
+            formRef.current?.submit();
+        }
+    };
 
     const uploadedAvatar = avatarDraft?.uploadedAvatar;
     const selectedPresetID = avatarDraft?.customExpensifyAvatarID && AGENT_AVATARS.isAvatarID(avatarDraft.customExpensifyAvatarID) ? avatarDraft.customExpensifyAvatarID : undefined;
@@ -138,6 +153,14 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
     };
 
+    const agentAvatar = avatarSource ? (
+        <UserAvatar
+            source={avatarSource}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            accountID={CONST.DEFAULT_NUMBER_ID}
+        />
+    ) : null;
+
     return (
         <ScreenWrapper
             testID={AddAgentPage.displayName}
@@ -150,6 +173,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}
             />
             <FormProvider
+                ref={formRef}
                 formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
                 onSubmit={handleSubmit}
                 validate={validate}
@@ -166,10 +190,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                     <View style={[styles.alignItemsCenter]}>
                         <AvatarButtonWithIcon
                             text={translate('addAgentPage.editAvatar')}
-                            source={avatarSource}
+                            avatar={agentAvatar}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR)}
-                            size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                            avatarStyle={styles.alignSelfCenter}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
@@ -192,6 +214,9 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             label={translate('addAgentPage.instructions')}
                             accessibilityLabel={translate('addAgentPage.instructions')}
                             role={CONST.ROLE.PRESENTATION}
+                            type="markdown"
+                            excludedMarkdownStyles={['mentionReport']}
+                            onKeyPress={submitFormOnModEnter}
                             defaultValue={defaultPrompt}
                             multiline
                             containerStyles={[styles.flex1]}
@@ -211,12 +236,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
 
     if (isLoadingOnyxValue(templateMetadata)) {
-        return (
-            <FullScreenLoadingIndicator
-                shouldUseGoBackButton
-                reasonAttributes={{context: 'AddAgentPage'}}
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

@@ -29,8 +29,8 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION
-            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION
-            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION
             | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN
         >
     > = [
@@ -60,12 +60,12 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
             value: null,
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
             value: null,
         },
     ];
@@ -154,6 +154,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         }
         case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_RILLET, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.RILLET_SYNC_CONNECTION};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_DUALENTRY, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DUALENTRY_SYNC_CONNECTION};
         }
         default:
             return undefined;
@@ -366,6 +369,9 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.RILLET:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.RILLET_SYNC_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DUALENTRY_SYNC_CONNECTION;
             break;
         default:
             stageInProgress = null;

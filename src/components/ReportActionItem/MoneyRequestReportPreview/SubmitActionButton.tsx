@@ -3,6 +3,7 @@ import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@compon
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,11 +11,18 @@ import usePermissions from '@hooks/usePermissions';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {
+    hasOnlyHeldExpenses,
+    hasViolations as hasViolationsReportUtils,
+    shouldBlockSubmitDueToPreventSelfApproval,
+    shouldBlockSubmitDueToStrictPolicyRules,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
 import {
     getTransactionViolations,
     hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
     hasOnlyPendingCardTransactions,
+    showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 
@@ -52,6 +60,7 @@ function SubmitActionButton() {
 
 function SubmitActionButtonContent() {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
@@ -64,9 +73,19 @@ function SubmitActionButtonContent() {
     const {isSubmittingAnimationRunning} = useReportPreviewAnimationState();
     const {stopAnimation, startSubmittingAnimation} = useReportPreviewActions();
 
-    const {iouReport, policy, ownerLogin: submitterLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} = useReportPreviewActionButtonData(iouReportID);
+    const {
+        iouReport,
+        policy,
+        ownerLogin: submitterLogin,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        delegateEmail,
+        delegateAccountID,
+    } = useReportPreviewActionButtonData(iouReportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 
@@ -113,6 +132,12 @@ function SubmitActionButtonContent() {
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy,
+    });
+
     const handleSubmit = () => {
         // A domain that strictly enforces workspace rules, or a workspace that prevents self-approval, makes the backend
         // reject this submission, which the user only ever sees as a generic "Unexpected error". Bail out before any API
@@ -123,7 +148,12 @@ function SubmitActionButtonContent() {
         }
 
         if (hasOnlyPendingCardTransactions(transactions)) {
-            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
+            return;
+        }
+
+        if (hasOnlyHeldExpenses(transactions)) {
+            showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 
@@ -134,34 +164,31 @@ function SubmitActionButtonContent() {
             }
 
             submitReport({
+                getCurrencyDecimals,
                 expenseReport: iouReport,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                delegateAccountID,
                 submitterLogin,
                 isTrackIntentUser,
             });
         });
     };
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        isTrackIntentUser,
-        report: iouReport,
-        policy,
-    });
-
     return (
         <AnimatedSubmitButton
-            success
-            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
-            isMarkAsDone={shouldUseMarkAsDoneCopy}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            text={shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             onPress={handleSubmit}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}

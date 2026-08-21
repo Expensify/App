@@ -5,8 +5,14 @@ import SubmitActionButton from '@components/ReportActionItem/MoneyRequestReportP
 import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasViolations, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
-import {getTransactionViolations, hasAnyPendingRTERViolation, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {hasOnlyHeldExpenses, hasViolations, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
+import {
+    getTransactionViolations,
+    hasAnyPendingRTERViolation,
+    hasOnlyPendingCardTransactions,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
@@ -92,13 +98,14 @@ jest.mock('@libs/PolicyUtils', () => {
 });
 
 // Fully mocked (no requireActual): loading the real TransactionUtils barrel pulls in platform-specific modules that
-// are unavailable in the jest environment, and the component only uses these three functions.
+// are unavailable in the jest environment, and the component only uses the functions listed here.
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
     getTransactionViolations: jest.fn(),
     hasOnlyPendingCardTransactions: jest.fn(() => false),
     hasAnyPendingRTERViolation: jest.fn(() => false),
     showPendingCardTransactionsBlockModal: jest.fn(),
+    showHeldExpensesBlockModal: jest.fn(),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -110,8 +117,9 @@ jest.mock('@libs/ReportUtils', () => {
         __esModule: true,
         hasViolations: jest.fn(() => false),
         shouldShowMarkAsDone: jest.fn(() => false),
+        hasOnlyHeldExpenses: jest.fn(() => false),
         // These two reach into TransactionUtils (hasViolation / hasNoticeTypeViolation / hasWarningTypeViolation), which
-        // is fully mocked below with only the three exports this component needs, so the real implementations would blow
+        // is fully mocked below with only the exports this component needs, so the real implementations would blow
         // up as soon as a test supplies transactions. The violation math itself is covered by ReportUtilsTest; what
         // matters here is that the button wires the predicates up to its disabled state and its press handler.
         shouldBlockSubmitDueToStrictPolicyRules: jest.fn(() => false),
@@ -149,6 +157,8 @@ const mockedSubmitReport = jest.mocked(submitReport);
 const mockedIsSubmitPolicy = jest.mocked(isSubmitPolicy);
 const mockedHasOnlyPendingCardTransactions = jest.mocked(hasOnlyPendingCardTransactions);
 const mockedShowPendingCardTransactionsBlockModal = jest.mocked(showPendingCardTransactionsBlockModal);
+const mockedHasOnlyHeldExpenses = jest.mocked(hasOnlyHeldExpenses);
+const mockedShowHeldExpensesBlockModal = jest.mocked(showHeldExpensesBlockModal);
 const mockedHasViolations = jest.mocked(hasViolations);
 const mockedHasAnyPendingRTERViolation = jest.mocked(hasAnyPendingRTERViolation);
 const mockedGetTransactionViolations = jest.mocked(getTransactionViolations);
@@ -164,6 +174,7 @@ describe('SubmitActionButton', () => {
         mockAreStrictPolicyRulesEnabled = false;
         mockedIsSubmitPolicy.mockReturnValue(false);
         mockedHasOnlyPendingCardTransactions.mockReturnValue(false);
+        mockedHasOnlyHeldExpenses.mockReturnValue(false);
         mockedHasViolations.mockReturnValue(false);
         // jest.clearAllMocks() only clears recorded calls, so a mockReturnValue set by one test would otherwise leak
         // into every test that runs after it.
@@ -216,6 +227,18 @@ describe('SubmitActionButton', () => {
         });
 
         expect(mockedShowPendingCardTransactionsBlockModal).toHaveBeenCalled();
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('shows the held expenses block modal instead of submitting', () => {
+        mockedHasOnlyHeldExpenses.mockReturnValue(true);
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        expect(mockedShowHeldExpensesBlockModal).toHaveBeenCalled();
         expect(mockedSubmitReport).not.toHaveBeenCalled();
     });
 

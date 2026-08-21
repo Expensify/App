@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 
@@ -131,38 +131,38 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
             {isTripStopped ? (
                 <View style={[styles.gap2, styles.flexRow]}>
                     <Button
-                        onPress={resumeGpsTrip}
-                        allowBubble
-                        pressOnEnter
-                        large
+                        onPress={checkSettingsAndPermissions}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.flex1]}
-                        text={translate('gps.resume')}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
-                    />
+                    >
+                        <Button.KeyboardShortcut allowBubble />
+                        <Button.Text>{translate('gps.resume')}</Button.Text>
+                    </Button>
                     <Button
                         onPress={saveGpsTrip}
-                        success
-                        allowBubble
-                        pressOnEnter
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.flex1]}
-                        text={translate('gps.save')}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
-                    />
+                    >
+                        <Button.KeyboardShortcut allowBubble />
+                        <Button.Text>{translate('gps.save')}</Button.Text>
+                    </Button>
                 </View>
             ) : (
                 <GPSTooltip>
                     <View>
                         <Button
                             onPress={gpsDraftDetails?.isTracking ? stopGpsTrip : checkSettingsAndPermissions}
-                            success={!gpsDraftDetails?.isTracking}
-                            allowBubble
-                            pressOnEnter
-                            large
+                            variant={gpsDraftDetails?.isTracking ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             style={[styles.w100, styles.flexShrink0]}
-                            text={gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}
                             sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
-                        />
+                        >
+                            <Button.KeyboardShortcut allowBubble />
+                            <Button.Text>{gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}</Button.Text>
+                        </Button>
                     </View>
                 </GPSTooltip>
             )}
@@ -172,7 +172,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 startPermissionsFlow={startPermissionsFlow}
                 setStartPermissionsFlow={setStartPermissionsFlow}
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                onGrant={startGpsTrip}
+                onGrant={isTripStopped ? resumeGpsTrip : startGpsTrip}
                 onDeny={() => setShowLocationRequiredModal(true)}
             />
 

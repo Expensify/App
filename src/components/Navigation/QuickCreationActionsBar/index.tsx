@@ -1,7 +1,9 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +20,7 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, hasAcceptedTravelTerms, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -58,13 +60,14 @@ function QuickCreationActionsBar() {
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, email),
+        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, email),
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -87,10 +90,8 @@ function QuickCreationActionsBar() {
             return false;
         }
 
-        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(travelEnabledPolicy?.travelSettings);
-
-        return travelEnabledPolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
-    }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
+        return hasAcceptedTravelTerms(travelEnabledPolicy, travelSettings);
+    }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings]);
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -105,6 +106,7 @@ function QuickCreationActionsBar() {
                 defaultChatEnabledPolicy,
                 allBetas,
                 isTrackIntentUser,
+                getCurrencyDecimals,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -115,7 +117,7 @@ function QuickCreationActionsBar() {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser, getCurrencyDecimals],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
@@ -202,49 +204,52 @@ function QuickCreationActionsBar() {
         () =>
             interceptAnonymousUser(() => {
                 if (isTravelReady) {
+                    if (blockIfDefaultWorkspaceLacksTravel()) {
+                        return;
+                    }
                     openTravelDotLink(travelEnabledPolicy?.id);
                     return;
                 }
                 Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
             }),
-        [travelEnabledPolicy?.id, isTravelReady],
+        [travelEnabledPolicy?.id, isTravelReady, blockIfDefaultWorkspaceLacksTravel],
     );
 
     return (
         <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
             <Button
-                small
-                icon={icons.ReceiptPlus}
-                text={translate('common.expense')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleExpense}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
-            />
+            >
+                <Button.Icon src={icons.ReceiptPlus} />
+                <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.expense')}</Button.Text>
+            </Button>
             <Button
-                small
-                icon={icons.DocumentPlus}
-                text={translate('common.report')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleReport}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
-            />
+            >
+                <Button.Icon src={icons.DocumentPlus} />
+                <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.report')}</Button.Text>
+            </Button>
             <Button
-                small
-                icon={icons.LocationAdd}
-                text={translate('common.distance')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleDistance}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
-            />
+            >
+                <Button.Icon src={icons.LocationAdd} />
+                <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.distance')}</Button.Text>
+            </Button>
             {shouldShowBookTravel && (
                 <Button
-                    small
-                    icon={icons.LuggageWithLinesPlus}
-                    text={translate('workspace.common.travel')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
-                    textStyles={styles.quickCreationActionsBarButtonText}
-                />
+                >
+                    <Button.Icon src={icons.LuggageWithLinesPlus} />
+                    <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('workspace.common.travel')}</Button.Text>
+                </Button>
             )}
         </View>
     );
