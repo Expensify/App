@@ -77,7 +77,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
     const currentPolicyTag = policyTags?.[currentTagListName];
-    const {canWrite: canWriteTags, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
+    const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path);
     const fetchTags = useCallback(() => {
