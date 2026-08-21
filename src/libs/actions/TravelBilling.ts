@@ -565,7 +565,7 @@ function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: numb
  * Optimistically sets the manual billing flag to true (payment queued state).
  * The backend will send updates for private_expensifyCardManualBilling_ to clear it when billing runs.
  */
-function payTravelBillingSpend(workspaceAccountID: number, travelSpend: number) {
+function payTravelBillingSpend(policyID: string, workspaceAccountID: number, travelSpend: number) {
     const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -593,7 +593,7 @@ function payTravelBillingSpend(workspaceAccountID: number, travelSpend: number) 
     ];
 
     const params: PayTravelBillingSpendParams = {
-        domainAccountID: workspaceAccountID,
+        policyID,
     };
 
     return API.write(WRITE_COMMANDS.PAY_TRAVEL_BILLING_SPEND, params, {optimisticData, failureData});
