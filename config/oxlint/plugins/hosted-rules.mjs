@@ -27,6 +27,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import {withEslintDirectiveIds, withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
 import {withFullGating} from '../reactCompilerGate.mjs';
 
 const require = createRequire(import.meta.url);
@@ -90,6 +91,15 @@ function withStubbedParserServices(rule) {
     };
 }
 
+/**
+ * Picks `names` out of a plugin's rule map and wraps each so the ESLint id it already answers to in
+ * disable comments works here too. The `hosted/` alias is ours, so without this a
+ * `// eslint-disable-next-line react/jsx-no-bind` would need an `oxlint-disable` twin next to it.
+ */
+function hostRules(rules, eslintPrefix, names) {
+    return withEslintDirectiveIdsFor(Object.fromEntries(names.map((name) => [name, rules[name]])), (name) => `${eslintPrefix}/${name}`);
+}
+
 // Grouped rather than listed one per line: within each group every rule is here for the same
 // reason, and the alias is the only thing that changes about them.
 const IMPORT_PATHS = ['no-import-module-exports', 'no-relative-packages', 'no-useless-path-segments'];
@@ -127,17 +137,14 @@ const plugin = {
         version: '0.0.1',
     },
     rules: {
-        'jsx-no-bind': react['jsx-no-bind'],
-        'function-component-definition': react['function-component-definition'],
+        ...hostRules(react, 'react', ['jsx-no-bind', 'function-component-definition', ...REACT_LEGACY]),
+        ...hostRules(importPlugin, 'import', ['prefer-default-export', 'order', ...IMPORT_PATHS]),
+        ...hostRules(jsdoc, 'jsdoc', ['no-types']),
+        ...hostRules({'naming-convention': withStubbedParserServices(typescriptEslint['naming-convention'])}, '@typescript-eslint', ['naming-convention']),
         // ESLint's processor drops every message from this rule in a dual-memoized file, so the
-        // gate is what keeps oxlint at parity. Without it: 69 findings ESLint never shows.
-        'jsx-no-constructed-context-values': withFullGating(react['jsx-no-constructed-context-values']),
-        'prefer-default-export': importPlugin['prefer-default-export'],
-        order: importPlugin.order,
-        'no-types': jsdoc['no-types'],
-        'naming-convention': withStubbedParserServices(typescriptEslint['naming-convention']),
-        ...Object.fromEntries(IMPORT_PATHS.map((name) => [name, importPlugin[name]])),
-        ...Object.fromEntries(REACT_LEGACY.map((name) => [name, react[name]])),
+        // gate is what keeps oxlint at parity. Without it: 69 findings ESLint never shows. The
+        // directive wrapper sits inside the gate so the cheap check runs first.
+        'jsx-no-constructed-context-values': withFullGating(withEslintDirectiveIds(react['jsx-no-constructed-context-values'], 'react/jsx-no-constructed-context-values')),
     },
 };
 

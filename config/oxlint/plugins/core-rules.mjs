@@ -23,6 +23,8 @@
 // the code-path analyzer this rule needs. See obstacle #8 in the investigation.
 import {builtinRules} from 'eslint/use-at-your-own-risk';
 
+import {withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
+
 const NAMES = [
     'no-restricted-syntax',
     'no-unreachable-loop',
@@ -45,7 +47,9 @@ const plugin = {
         name: 'core',
         version: '0.0.1',
     },
-    rules: Object.fromEntries(NAMES.map((name) => [name, builtinRules.get(name)])),
+    // A core rule's ESLint id is its bare name, so an existing `// eslint-disable-next-line
+    // no-restricted-syntax` suppresses this copy too and needs no `core/` twin.
+    rules: withEslintDirectiveIdsFor(Object.fromEntries(NAMES.map((name) => [name, builtinRules.get(name)])), (name) => name),
 };
 
 export default plugin;

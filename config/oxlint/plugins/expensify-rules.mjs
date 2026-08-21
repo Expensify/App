@@ -7,6 +7,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import {withBypassReporting} from '../onyxConnectBypass.mjs';
 import {create as preferLocaleCompareCreate, meta as preferLocaleCompareMeta} from '../preferLocaleCompareFromContext.mjs';
 import {withFullGating} from '../reactCompilerGate.mjs';
 
@@ -43,6 +44,11 @@ const plugin = {
         // jsPlugin. Replaced by a type-free rewrite -- see the module for why dropping the type
         // query is exact rather than approximate, and for the one shape where it is not.
         'prefer-locale-compare-from-context': {create: preferLocaleCompareCreate, meta: preferLocaleCompareMeta},
+        // The ban a second time, reporting only what a disable comment hid, which is what
+        // scripts/checkOnyxConnectBypass.ts uses a second ESLint boot to find. Registered but
+        // deliberately NOT yet enabled in .oxlintrc.json: enabling it is the one line to add when
+        // that script is deleted. Proven by `npm run oxlint-onyx-bypass`.
+        'no-onyx-connect-bypass': withBypassReporting(rules['no-onyx-connect']),
     },
 };
 

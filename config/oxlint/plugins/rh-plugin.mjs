@@ -15,6 +15,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import {withEslintDirectiveIds, withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
 import {withMessageGating} from '../reactCompilerGate.mjs';
 
 const require = createRequire(import.meta.url);
@@ -31,9 +32,12 @@ const plugin = {
         name: 'rh',
         version: reactHooks.meta?.version ?? '0.0.0',
     },
+    // Every rule's ESLint id is `react-hooks/<name>`, so an existing `// eslint-disable-next-line
+    // react-hooks/refs` suppresses this copy too and needs no `rh/` twin. The directive wrapper goes
+    // inside the compiler gate on purpose: see withEslintDirectiveIdsFor for why.
     rules: {
-        ...reactHooks.rules,
-        'exhaustive-deps': withMessageGating(reactHooks.rules['exhaustive-deps'], GATED_MESSAGE_PATTERN),
+        ...withEslintDirectiveIdsFor(reactHooks.rules, (name) => `react-hooks/${name}`),
+        'exhaustive-deps': withMessageGating(withEslintDirectiveIds(reactHooks.rules['exhaustive-deps'], 'react-hooks/exhaustive-deps'), GATED_MESSAGE_PATTERN),
     },
 };
 

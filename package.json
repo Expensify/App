@@ -58,6 +58,7 @@
     "oxlint-locale-compare-port": "python3 oxlint-migration/checkLocaleComparePort.py",
     "oxlint-rule-tester": "python3 oxlint-migration/rule-tester/compareRuleTester.py",
     "oxlint-jsx-uses-port": "python3 oxlint-migration/checkJsxUsesPort.py",
+    "oxlint-onyx-bypass": "node oxlint-migration/checkOnyxBypassPort.mjs",
     "oxlint-sidecar-coverage": "python3 oxlint-migration/checkSidecarCoverage.py",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- bun scripts/lint.ts {{changed}}",

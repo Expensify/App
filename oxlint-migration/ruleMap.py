@@ -101,7 +101,7 @@ PORT_PLAN = {
         'notes': 'wait for typed jsPlugins',
     },
     '@typescript-eslint/no-unnecessary-type-assertion': {
-        'mechanism': 'implemented in tsgolint, but tsgo (TS7) inference diverges from TS 6.0.2',
+        'mechanism': 'implemented in tsgolint, but tsgo (TS7) inference diverges from TS 6.0.2: measured 685 findings vs ESLint 0',
         'effort': 'blocked', 'proven': False,
         'notes': 'revisit when the repo moves to TS 7',
     },
