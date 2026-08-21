@@ -103,11 +103,53 @@ When pins change, update **all** of them. Each domain pins:
 Both production and staging hosts are pinned in every release build, because beta/TestFlight builds
 resolve their runtime environment to STAGING and hit `staging.*` APIs while still being non-debug.
 
+## Cloudflare-fronted hosts: multi-CA root + intermediate pinning
+
+The `expensify.com` edge certificates for `www`, `secure`, `staging`, `staging-secure`, `new` and
+`staging.new` are issued by **Cloudflare**, which can pick — and rotate between — any of the CAs it
+uses (**Let's Encrypt**, **Google Trust Services**, **SSL.com**) without notice. An unannounced
+Let's Encrypt → Google Trust Services rotation on 2026-07-07 is what broke pinning; `www` has since
+reverted to Let's Encrypt. Cloudflare explicitly documents that you should **not** pin a single CA's
+chain ([SSL/TLS docs](https://developers.cloudflare.com/ssl/reference/certificate-pinning/)).
+
+To keep the app working across leaf rotation, intermediate rotation, **and** a switch between those
+three CAs — without shipping an emergency release each time — these six hosts (Groups A & B) share
+one pin set that pins the **SPKI of the ROOT** of all three CAs plus each CA's **live issuing
+intermediate**. Pinning the roots is what survives an intermediate rotation (the failure mode that
+hit us). Any one of these appearing in the served chain satisfies the pin:
+
+| CA | Pin (base64 SHA-256 of SPKI) | Certificate |
+|----|------------------------------|-------------|
+| Let's Encrypt | `C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=` | ISRG Root X1 (RSA 4096) |
+| Let's Encrypt | `diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=` | ISRG Root X2 (ECDSA P-384) |
+| Let's Encrypt | `brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=` | Let's Encrypt YE1 (live ECDSA intermediate) |
+| Google Trust Services | `hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=` | GTS Root R1 (RSA 4096) |
+| Google Trust Services | `Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=` | GTS Root R2 (RSA 4096) |
+| Google Trust Services | `QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=` | GTS Root R3 (ECDSA P-384) |
+| Google Trust Services | `mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=` | GTS Root R4 (ECDSA P-384) |
+| Google Trust Services | `kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=` | GTS WE1 (live ECDSA intermediate) |
+| SSL.com | `G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=` | SSL.com TLS ECC Root CA 2022 (ECDSA P-384) |
+| SSL.com | `K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=` | SSL.com TLS RSA Root CA 2022 (RSA 4096) |
+
+These root/intermediate pins are broad by design (they trust each CA's whole hierarchy), which is the
+tightest safe posture for a host whose CA is controlled by Cloudflare. The other groups
+(`integrations`, `travel`, CloudFront) are single-CA and keep the tighter leaf + issuing-intermediate
+pinning. Trade-off accepted per the incident: resilience over a narrower trust set for the Cloudflare
+hosts.
+
+**Before flipping these hosts to enforce mode**, re-run `scripts/generateCertificatePins.sh
+--ca-pins` on a networked machine to confirm each root/intermediate SPKI still matches (roots are
+stable for years, but confirm) and that the live `www`/`new` chains still terminate in one of the
+pinned CAs.
+
 ## Regenerating pins
 
 ```bash
 ./scripts/generateCertificatePins.sh            # prints leaf + intermediate hashes per domain
 ./scripts/generateCertificatePins.sh --android  # also prints the network_security_config <pin-set>
+./scripts/generateCertificatePins.sh --ca-pins  # prints the multi-CA root+intermediate pins for the
+                                                # Cloudflare-fronted expensify.com hosts (Groups A & B),
+                                                # computed from each CA's official published certificate
 ```
 
 ## Rotation runbook

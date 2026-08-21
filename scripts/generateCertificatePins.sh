@@ -67,6 +67,65 @@ collect_pins() {
   rm -rf "$tmpdir"
 }
 
+# --ca-pins: print & self-verify the multi-CA root + live-intermediate pins used by the
+# Cloudflare-fronted expensify.com hosts (Groups A & B in pins.json). Cloudflare can issue those
+# hosts from Let's Encrypt, Google Trust Services or SSL.com and rotate between them without notice,
+# so we pin the SPKI of each CA's ROOT plus its live issuing intermediate. Each pin is recomputed
+# from the CA's published certificate and compared against the value committed to pins.json.
+spki_from_url() {
+  # $1 = URL to a PEM or DER certificate. Prints base64(SHA-256(SPKI)) or "FETCH-FAILED".
+  local url="$1" tmp pin
+  tmp="$(mktemp)"
+  if ! curl -fsSL "$url" -o "$tmp" 2>/dev/null; then rm -f "$tmp"; echo "FETCH-FAILED"; return; fi
+  pin="$(openssl x509 -in "$tmp" -inform pem -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform der 2>/dev/null | openssl dgst -sha256 -binary | openssl enc -base64)"
+  if [ -z "$pin" ]; then
+    pin="$(openssl x509 -in "$tmp" -inform der -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform der 2>/dev/null | openssl dgst -sha256 -binary | openssl enc -base64)"
+  fi
+  rm -f "$tmp"
+  echo "${pin:-PARSE-FAILED}"
+}
+
+ca_pins() {
+  # name | published-cert URL | expected pin committed to pins.json
+  local entries=(
+    "Let's Encrypt ISRG Root X1|https://letsencrypt.org/certs/isrgrootx1.pem|C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M="
+    "Let's Encrypt ISRG Root X2|https://letsencrypt.org/certs/isrg-root-x2.pem|diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI="
+    "Let's Encrypt YE1 (live int)|https://letsencrypt.org/certs/gen-y/int-ye1.pem|brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="
+    "GTS Root R1|https://pki.goog/repo/certs/gtsr1.pem|hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc="
+    "GTS Root R2|https://pki.goog/repo/certs/gtsr2.pem|Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78="
+    "GTS Root R3|https://pki.goog/repo/certs/gtsr3.pem|QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g="
+    "GTS Root R4|https://pki.goog/repo/certs/gtsr4.pem|mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c="
+    "GTS WE1 (live int)|https://pki.goog/repo/certs/we1.pem|kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="
+    # SSL.com publishes these under https://www.ssl.com/repository/ - adjust the URL if SSL.com moves it.
+    "SSL.com TLS ECC Root CA 2022|https://ssl.com/repository/SSLcom-TLS-ECC-Root-2022.pem|G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE="
+    "SSL.com TLS RSA Root CA 2022|https://ssl.com/repository/SSLcom-TLS-RSA-Root-2022.pem|K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ="
+  )
+  echo "Cloudflare-fronted expensify.com multi-CA pins (Groups A & B) - recomputed from published certs:"
+  echo
+  local rc=0 name url expected got
+  for e in "${entries[@]}"; do
+    IFS='|' read -r name url expected <<< "$e"
+    got="$(spki_from_url "$url")"
+    if [ "$got" = "$expected" ]; then
+      printf '  [ OK ]  %-32s sha256/%s\n' "$name" "$expected"
+    elif [ "$got" = "FETCH-FAILED" ] || [ "$got" = "PARSE-FAILED" ]; then
+      printf '  [WARN]  %-32s could not fetch/parse (%s); committed: sha256/%s\n' "$name" "$got" "$expected"
+      rc=1
+    else
+      printf '  [FAIL]  %-32s committed sha256/%s but published cert is sha256/%s\n' "$name" "$expected" "$got"
+      rc=1
+    fi
+  done
+  echo
+  [ $rc -eq 0 ] && echo "All committed CA pins match the published certificates." || echo "One or more CA pins need attention (see above)."
+  return $rc
+}
+
+if [ "${1:-}" = "--ca-pins" ]; then
+  ca_pins
+  exit $?
+fi
+
 echo "Certificate pins (generated $(date +%Y-%m-%d)):"
 echo
 
