@@ -10,6 +10,7 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,12 +23,13 @@ import {resetSplitExpensesByDateRange} from '@libs/actions/IOU/SplitExpenseItems
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SplitExpenseEditDateForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -36,15 +38,16 @@ import {differenceInDays} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
-type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE>;
+type DynamicSplitExpenseCreateDateRangePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE>;
 
-function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
+function DynamicSplitExpenseCreateDateRangePage({route}: DynamicSplitExpenseCreateDateRangePageProps) {
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentSearchResults} = useSearchResultsContext();
 
-    const {reportID, transactionID, backTo} = route.params;
+    const {splitReportID: reportID, transactionID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path);
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactions = useAllTransactions();
@@ -77,7 +80,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
             getCurrencyDecimals,
             policies: allPolicies,
         });
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const {isProduction} = useEnvironment();
@@ -110,7 +113,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     };
 
     const handleBackPress = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     return (
@@ -151,4 +154,4 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     );
 }
 
-export default SplitExpenseCreateDateRagePage;
+export default DynamicSplitExpenseCreateDateRangePage;

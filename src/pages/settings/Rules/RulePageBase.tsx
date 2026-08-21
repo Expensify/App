@@ -214,13 +214,13 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 {
                     key: 'reimbursable',
                     description: translate('common.reimbursable'),
-                    title: form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : '',
+                    title: form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : translate('common.dontChange'),
                     onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.REIMBURSABLE, hash),
                 },
                 {
                     key: 'billable',
                     description: translate('common.billable'),
-                    title: form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : '',
+                    title: form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : translate('common.dontChange'),
                     onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.BILLABLE, hash),
                 },
                 {
