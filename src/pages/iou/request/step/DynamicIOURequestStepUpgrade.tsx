@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 
@@ -36,6 +36,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
@@ -49,6 +50,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -96,8 +98,9 @@ function DynamicIOURequestStepUpgrade({
     const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -150,6 +153,13 @@ function DynamicIOURequestStepUpgrade({
                 [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
             };
 
+            // The all-matching query has to travel through the upgrade flow too, or only the loaded page moves
+            // Unchecked rows can't be expressed in the query, so exclusions keep the explicit list
+            const allMatchingQueryParams =
+                areAllMatchingItemsSelected && isEmptyObject(excludedTransactions ?? {}) && currentSearchQueryJSON
+                    ? {jsonQuery: serializeQueryJSONForBackend(currentSearchQueryJSON), hash: currentSearchQueryJSON.hash}
+                    : {};
+
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
                 transactionIDs: selectedTransactionsKeys,
@@ -169,6 +179,7 @@ function DynamicIOURequestStepUpgrade({
                 personalPolicyOutputCurrency: undefined,
                 delegateAccountID,
                 getCurrencyDecimals,
+                ...allMatchingQueryParams,
             });
 
             clearSelectedTransactions();
@@ -279,6 +290,9 @@ function DynamicIOURequestStepUpgrade({
         isTrackIntentUser,
         delegateAccountID,
         getCurrencyDecimals,
+        areAllMatchingItemsSelected,
+        currentSearchQueryJSON,
+        excludedTransactions,
     ]);
 
     const participant = transaction?.participants?.[0];

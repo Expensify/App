@@ -26,23 +26,40 @@ type SearchQueryProviderProps = {
     children: React.ReactNode;
 };
 
-function selectSearchQueryParam(state: NavigationState | undefined) {
+/** Joins `q` and `rawQuery` so they can't drift apart: restoring only `q` would drop `rawFilterList` from the
+ *  query JSON while keeping the same hash. */
+function selectSearchQueryParams(state: NavigationState | undefined) {
     const focused = getDeepestFocusedScreen(state);
-    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.q as string | undefined) : undefined;
+    if (focused?.name !== SCREENS.SEARCH.ROOT) {
+        return undefined;
+    }
+    const query = focused.params?.q;
+    if (typeof query !== 'string') {
+        return undefined;
+    }
+    const rawQuery = focused.params?.rawQuery;
+    return `${query}${CONST.SEARCH.QUERY_PARAMS_SEPARATOR}${typeof rawQuery === 'string' ? rawQuery : ''}`;
 }
 
-function selectSearchRawQueryParam(state: NavigationState | undefined) {
-    const focused = getDeepestFocusedScreen(state);
-    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.rawQuery as string | undefined) : undefined;
+function splitSearchQueryParams(queryParams: string | undefined) {
+    if (queryParams === undefined) {
+        return {query: undefined, rawQuery: undefined};
+    }
+    const separatorIndex = queryParams.indexOf(CONST.SEARCH.QUERY_PARAMS_SEPARATOR);
+    if (separatorIndex === -1) {
+        return {query: queryParams, rawQuery: undefined};
+    }
+    const rawQuery = queryParams.slice(separatorIndex + CONST.SEARCH.QUERY_PARAMS_SEPARATOR.length);
+    return {query: queryParams.slice(0, separatorIndex), rawQuery: rawQuery || undefined};
 }
 
 function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const navigation = useNavigation();
     // Extract only the primitive values we need from the focused screen to avoid
     // re-renders from new object references returned by getDeepestFocusedScreen.
-    const queryParam = useRootNavigationState((state) => selectSearchQueryParam(state ?? navigation.getState()));
-    const rawQueryParam = useRootNavigationState((state) => selectSearchRawQueryParam(state ?? navigation.getState()));
-    const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
+    const queryParams = useRootNavigationState((state) => selectSearchQueryParams(state ?? navigation.getState()));
+    const {query: queryParam, rawQuery: rawQueryParam} = splitSearchQueryParams(usePreviousDefined(queryParams));
+    const definedQueryParam = queryParam ?? buildSearchQueryString();
     const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
     const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
