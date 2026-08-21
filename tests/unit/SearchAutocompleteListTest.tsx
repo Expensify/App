@@ -901,7 +901,6 @@ describe('SearchAutocompleteList', () => {
             });
             await flushAllUpdates();
 
-            // With a server order present, the cap lifts to the full pool so a low-recency top report isn't culled before sorting.
             expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: mockedOptions.reports.length}));
         });
 
