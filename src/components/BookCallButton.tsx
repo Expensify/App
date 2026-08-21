@@ -1,6 +1,5 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
@@ -9,11 +8,8 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React from 'react';
-import {View} from 'react-native';
-
 import UserAvatar from './Avatar/UserAvatar';
-import Button from './Button';
+import Button from './ButtonComposed';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import Text from './Text';
 
@@ -33,7 +29,6 @@ type BookCallButtonProps = {
 
 function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}: BookCallButtonProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Phone']);
     const personalDetails = usePersonalDetails();
     const avatarDetails = avatarAccountID ? personalDetails?.[avatarAccountID] : undefined;
@@ -49,31 +44,27 @@ function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}
         sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON,
         accessibilityLabel: label,
         isNested,
-        medium: true as const,
         style,
     };
 
     if (!avatarAccountID) {
         return (
-            <Button
-                text={label}
-                icon={icons.Phone}
-                {...commonProps}
-            />
+            <Button {...commonProps}>
+                <Button.Icon src={icons.Phone} />
+                <Button.Text>{label}</Button.Text>
+            </Button>
         );
     }
 
     return (
         <Button {...commonProps}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2]}>
-                <UserAvatar
-                    accountID={avatarAccountID}
-                    source={avatarDetails?.avatar}
-                    fallbackIcon={avatarDetails?.fallbackIcon}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
-                />
-                <Text style={[styles.buttonText, styles.buttonMediumText]}>{label}</Text>
-            </View>
+            <UserAvatar
+                accountID={avatarAccountID}
+                source={avatarDetails?.avatar}
+                fallbackIcon={avatarDetails?.fallbackIcon}
+                size={CONST.AVATAR_SIZE.XXX_SMALL}
+            />
+            <Button.Text>{label}</Button.Text>
         </Button>
     );
 }
