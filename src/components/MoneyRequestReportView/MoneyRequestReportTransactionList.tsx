@@ -78,7 +78,7 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StylePr
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 

@@ -14,7 +14,7 @@ import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import isObject from 'lodash/isObject';
+import {isObject} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 type SubsidiaryParam = {

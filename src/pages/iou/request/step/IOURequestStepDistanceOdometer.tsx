@@ -63,7 +63,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import lodashIsEmpty from 'lodash/isEmpty';
+import {isEmpty as lodashIsEmpty} from 'es-toolkit/compat';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 

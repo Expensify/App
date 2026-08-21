@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React from 'react';
 import {View} from 'react-native';
 

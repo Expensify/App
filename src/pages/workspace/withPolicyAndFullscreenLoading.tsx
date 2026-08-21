@@ -8,7 +8,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React from 'react';
 
 import type {WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';

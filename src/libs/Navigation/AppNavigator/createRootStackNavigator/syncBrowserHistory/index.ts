@@ -1,4 +1,4 @@
-import noop from 'lodash/noop';
+import {noop} from 'es-toolkit/compat';
 
 const syncBrowserHistory = noop;
 

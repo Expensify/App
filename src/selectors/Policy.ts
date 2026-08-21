@@ -20,7 +20,7 @@ import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import escapeRegExp from 'lodash/escapeRegExp';
+import {escapeRegExp} from 'es-toolkit/compat';
 
 type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE

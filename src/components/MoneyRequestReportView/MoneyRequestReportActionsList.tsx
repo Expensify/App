@@ -69,7 +69,7 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 
 /* eslint-disable rulesdir/prefer-early-return */
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, View} from 'react-native';
 

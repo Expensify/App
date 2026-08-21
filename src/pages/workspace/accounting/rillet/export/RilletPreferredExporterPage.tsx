@@ -17,7 +17,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React from 'react';
 import {View} from 'react-native';
 

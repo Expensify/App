@@ -15,8 +15,8 @@ import type {StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {parseExpensiMark} from '@expensify/react-native-live-markdown';
+import {sortBy as lodashSortBy} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 
 import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';

@@ -11,7 +11,7 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Entries, ValueOf} from 'type-fest';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';

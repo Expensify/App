@@ -21,7 +21,7 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 
-import lodashDebounce from 'lodash/debounce';
+import {debounce as lodashDebounce} from 'es-toolkit/compat';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {AccessibilityInfo, View} from 'react-native';
 

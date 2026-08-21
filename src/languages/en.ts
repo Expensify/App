@@ -12,8 +12,8 @@ import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
 
+import {startCase} from 'es-toolkit/compat';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import startCase from 'lodash/startCase';
 
 import type {TranslationDeepObject} from './types';
 

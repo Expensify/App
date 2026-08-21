@@ -2,7 +2,7 @@ import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 
-import noop from 'lodash/noop';
+import {noop} from 'es-toolkit/compat';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 
 const ModalActions = {

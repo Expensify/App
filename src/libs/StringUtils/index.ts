@@ -4,8 +4,8 @@ import CONST from '@src/CONST';
 
 import type {KebabCase} from 'type-fest';
 
+import {deburr} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import deburr from 'lodash/deburr';
 
 import decodeUnicode from './decodeUnicode';
 import hash from './hash';

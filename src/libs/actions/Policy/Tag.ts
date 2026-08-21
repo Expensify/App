@@ -44,7 +44,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
-import lodashCloneDeep from 'lodash/cloneDeep';
+import {cloneDeep as lodashCloneDeep} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 type CreatePolicyTagParams = {

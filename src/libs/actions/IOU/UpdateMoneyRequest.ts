@@ -55,8 +55,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
-// eslint-disable-next-line you-dont-need-lodash-underscore/union-by
-import lodashUnionBy from 'lodash/unionBy';
+import {unionBy as lodashUnionBy} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getRecentAttendees} from '.';

@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
 
 import * as Sentry from '@sentry/react-native';
-import isObject from 'lodash/isObject';
+import {isObject} from 'es-toolkit/compat';
 import Pusher from 'pusher-js/with-encryption';
 import Onyx from 'react-native-onyx';
 

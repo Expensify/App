@@ -4,7 +4,7 @@ import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 
 import type {ComponentType} from 'react';
 
-import isBoolean from 'lodash/isBoolean';
+import {isBoolean} from 'es-toolkit/compat';
 
 import type {WithPolicyProps} from './withPolicy';
 

@@ -26,7 +26,7 @@ import type {Accountant} from '@src/types/onyx/IOU';
 
 import type {GestureResponderEvent} from 'react-native';
 
-import lodashPick from 'lodash/pick';
+import {pick as lodashPick} from 'es-toolkit/compat';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestAccountantSelector.getValidOptions'});

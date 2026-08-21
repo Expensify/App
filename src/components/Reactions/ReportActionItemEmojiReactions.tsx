@@ -21,7 +21,7 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import sortBy from 'lodash/sortBy';
+import {sortBy} from 'es-toolkit/compat';
 import React from 'react';
 import {View} from 'react-native';
 

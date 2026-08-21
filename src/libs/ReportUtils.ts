@@ -84,14 +84,9 @@ import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
+import {escape as lodashEscape, intersection as lodashIntersection, isEmpty, isNumber, mapValues, maxBy as lodashMaxBy} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import lodashEscape from 'lodash/escape';
-import lodashIntersection from 'lodash/intersection';
-import isEmpty from 'lodash/isEmpty';
-import isNumber from 'lodash/isNumber';
-import mapValues from 'lodash/mapValues';
-import lodashMaxBy from 'lodash/maxBy';
 import Onyx from 'react-native-onyx';
 
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';

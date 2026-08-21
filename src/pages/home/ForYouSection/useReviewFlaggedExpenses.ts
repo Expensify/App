@@ -16,7 +16,7 @@ import type TransactionViolations from '@src/types/onyx/TransactionViolation';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import noop from 'lodash/noop';
+import {noop} from 'es-toolkit/compat';
 import {useState} from 'react';
 
 type ReviewFlaggedExpenses = {

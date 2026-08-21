@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React, {useContext, useMemo} from 'react';
 import {View} from 'react-native';
 

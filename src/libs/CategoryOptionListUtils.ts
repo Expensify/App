@@ -7,9 +7,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 
-// eslint-disable-next-line you-dont-need-lodash-underscore/get
-import lodashGet from 'lodash/get';
-import lodashSet from 'lodash/set';
+import {get as lodashGet, set as lodashSet} from 'es-toolkit/compat';
 
 import type {OptionTree} from './OptionsListUtils';
 

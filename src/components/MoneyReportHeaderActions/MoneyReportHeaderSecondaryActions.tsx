@@ -77,7 +77,7 @@ import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import truncate from 'lodash/truncate';
+import {truncate} from 'es-toolkit/compat';
 import React, {useContext, useEffect} from 'react';
 import {View} from 'react-native';
 

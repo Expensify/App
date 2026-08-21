@@ -27,9 +27,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {mapValues as lodashMapValues, sortBy as lodashSortBy} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import lodashMapValues from 'lodash/mapValues';
-import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import type {SuggestionProps} from './Suggestions';

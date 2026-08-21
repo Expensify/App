@@ -47,7 +47,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyTypeSelector} from '@selectors/Policy';
-import lodashIsEmpty from 'lodash/isEmpty';
+import {isEmpty as lodashIsEmpty} from 'es-toolkit/compat';
 import React, {useState} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';

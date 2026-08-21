@@ -1,5 +1,4 @@
-// eslint-disable-next-line lodash/import-scope
-import type {DebouncedFunc} from 'lodash';
+import type {DebouncedFunc} from 'es-toolkit/compat';
 
 /**
  * Simulates a while loop where the condition is determined by the result of a Promise.

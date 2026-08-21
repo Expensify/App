@@ -10,7 +10,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import truncate from 'lodash/truncate';
+import {truncate} from 'es-toolkit/compat';
 
 import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
 

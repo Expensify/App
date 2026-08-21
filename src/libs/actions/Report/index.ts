@@ -263,10 +263,9 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 
+import {cloneDeep, isEmpty} from 'es-toolkit/compat';
 /* eslint-disable max-lines */
 import {Str} from 'expensify-common';
-import cloneDeep from 'lodash/cloneDeep';
-import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 

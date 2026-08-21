@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
-import isObject from 'lodash/isObject';
+import {isObject} from 'es-toolkit/compat';
 import React, {useMemo, useState} from 'react';
 
 import type {DebugForms} from './const';

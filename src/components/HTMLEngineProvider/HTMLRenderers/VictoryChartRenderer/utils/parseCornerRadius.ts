@@ -1,6 +1,6 @@
 import type {RoundedCorners} from 'victory-native';
 
-import lodashIsObject from 'lodash/isObject';
+import {isObject as lodashIsObject} from 'es-toolkit/compat';
 
 import parseAttribute from './parseAttribute';
 

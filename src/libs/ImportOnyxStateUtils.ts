@@ -6,7 +6,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import type {UnknownRecord} from 'type-fest';
 
-import cloneDeep from 'lodash/cloneDeep';
+import {cloneDeep} from 'es-toolkit/compat';
 
 import {clearOnyxStateBeforeImport, importOnyxCollectionState, importOnyxRegularState} from './actions/ImportOnyxState';
 import {isRecord} from './ObjectUtils';

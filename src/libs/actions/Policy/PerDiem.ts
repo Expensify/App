@@ -22,7 +22,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep} from 'react-native-onyx';
 
-import lodashDeepClone from 'lodash/cloneDeep';
+import {cloneDeep as lodashDeepClone} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 type SubRateData = {

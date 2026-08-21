@@ -165,7 +165,6 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
         },
         resolve: {
             alias: {
-                lodash: 'lodash-es',
                 'react-native-config': 'react-web-config',
                 'react-native$': 'react-native-web',
                 // Use victory-native source files instead of pre-compiled dist (which uses CommonJS exports)

@@ -39,8 +39,8 @@ import type {Note} from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {debounce as lodashDebounce} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 

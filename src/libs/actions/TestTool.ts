@@ -7,7 +7,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import throttle from 'lodash/throttle';
+import {throttle} from 'es-toolkit/compat';
 
 import {close} from './Modal';
 

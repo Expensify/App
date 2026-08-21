@@ -65,7 +65,7 @@ import type {ValueOf} from 'type-fest';
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
 import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
-import lodashSortBy from 'lodash/sortBy';
+import {sortBy as lodashSortBy} from 'es-toolkit/compat';
 import React from 'react';
 import {View} from 'react-native';
 

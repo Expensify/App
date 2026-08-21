@@ -205,9 +205,8 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 
+import {deburr, orderBy as lodashOrderBy} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import deburr from 'lodash/deburr';
-import lodashOrderBy from 'lodash/orderBy';
 import Onyx from 'react-native-onyx';
 
 import type {

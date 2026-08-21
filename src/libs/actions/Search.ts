@@ -100,8 +100,8 @@ import type Nullable from '@src/types/utils/Nullable';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
+import {isEmpty} from 'es-toolkit/compat';
 import {SafeString} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';

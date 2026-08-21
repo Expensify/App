@@ -68,9 +68,9 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {TupleToUnion} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
+import {pick as lodashPick} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import lodashPick from 'lodash/pick';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 

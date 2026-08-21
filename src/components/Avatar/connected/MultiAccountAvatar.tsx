@@ -12,7 +12,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
-import lodashSortBy from 'lodash/sortBy';
+import {sortBy as lodashSortBy} from 'es-toolkit/compat';
 import React from 'react';
 
 import useAccountIcons from './useAccountIcons';

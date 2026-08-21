@@ -8,7 +8,7 @@ import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 
-import mapValues from 'lodash/mapValues';
+import {mapValues} from 'es-toolkit/compat';
 
 import DateUtils from './DateUtils';
 import {translate, translateLocal} from './Localize';

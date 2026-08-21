@@ -11,7 +11,7 @@ import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFrag
 
 import CONST from '@src/CONST';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React, {useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 

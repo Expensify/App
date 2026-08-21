@@ -23,8 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import lodashIntersection from 'lodash/intersection';
-import lodashPick from 'lodash/pick';
+import {intersection as lodashIntersection, pick as lodashPick} from 'es-toolkit/compat';
 import React, {useEffect, useState} from 'react';
 
 function SearchAddApproverPage() {

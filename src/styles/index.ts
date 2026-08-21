@@ -20,7 +20,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 
-import lodashClamp from 'lodash/clamp';
+import {clamp as lodashClamp} from 'es-toolkit/compat';
 import {Platform, StyleSheet} from 'react-native';
 import {interpolate} from 'react-native-reanimated';
 

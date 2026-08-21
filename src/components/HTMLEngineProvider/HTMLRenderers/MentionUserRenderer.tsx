@@ -22,9 +22,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
+import {cloneDeep, isEmpty} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import cloneDeep from 'lodash/cloneDeep';
-import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';

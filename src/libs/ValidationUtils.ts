@@ -10,9 +10,8 @@ import type {Report, TaxRates} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
+import {isEmpty, isObject} from 'es-toolkit/compat';
 import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
-import isObject from 'lodash/isObject';
 
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';

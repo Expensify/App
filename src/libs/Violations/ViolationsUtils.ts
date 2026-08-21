@@ -40,9 +40,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
-import isEmpty from 'lodash/isEmpty';
-import keyBy from 'lodash/keyBy';
-import reject from 'lodash/reject';
+import {isEmpty, keyBy, reject} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 import type ViolationFixParams from './types';

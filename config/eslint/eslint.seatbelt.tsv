@@ -10,7 +10,6 @@
 "../../.github/actions/javascript/getPullRequestDetails/getPullRequestDetails.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"	"no-restricted-imports"	1
 "../../.github/actions/javascript/postOrReplaceComment/postOrReplaceComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/reviewerChecklist/reviewerChecklist.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

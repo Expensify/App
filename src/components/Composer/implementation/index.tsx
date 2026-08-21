@@ -23,7 +23,7 @@ import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
-import lodashDebounce from 'lodash/debounce';
+import {debounce as lodashDebounce} from 'es-toolkit/compat';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
 

@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import type {TextInputKeyPressEvent} from 'react-native';
 
 import {format, setYear} from 'date-fns';
-import debounce from 'lodash/debounce';
+import {debounce} from 'es-toolkit/compat';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 

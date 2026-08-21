@@ -47,7 +47,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {RefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
-import debounce from 'lodash/debounce';
+import {debounce} from 'es-toolkit/compat';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {Dimensions, View} from 'react-native';
 

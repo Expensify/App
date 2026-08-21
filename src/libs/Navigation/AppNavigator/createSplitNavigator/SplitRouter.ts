@@ -10,7 +10,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 
 import {StackActions, StackRouter} from '@react-navigation/native';
-import pick from 'lodash/pick';
+import {pick} from 'es-toolkit/compat';
 
 import type SplitNavigatorRouterOptions from './types';
 

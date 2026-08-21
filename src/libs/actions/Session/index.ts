@@ -76,8 +76,8 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {isSupportalSessionSelector} from '@selectors/Session';
+import {throttle} from 'es-toolkit/compat';
 import {openAuthSessionAsync} from 'expo-web-browser';
-import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 
 import pkg from '../../../../package.json';

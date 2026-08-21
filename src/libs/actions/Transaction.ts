@@ -92,7 +92,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from '
 
 import {originalTransactionIDSelector} from '@selectors/Transaction';
 import {getUnixTime} from 'date-fns';
-import lodashClone from 'lodash/clone';
+import {clone as lodashClone} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 import {getAllTransactions} from './IOU';

@@ -16,7 +16,7 @@
  * 3. Otherwise (either compiler skips memoization, or a file fails to compile) preserves
  *    all lint messages as-is
  */
-import _ from 'lodash';
+import {filter} from 'es-toolkit/compat';
 
 import {didBothCompilersMemoizeFile} from '../../reactCompiler/checkBoth.mjs';
 
@@ -57,7 +57,7 @@ const processor = {
         compilationResults.delete(filename);
 
         if (bothMemoized) {
-            return _.filter(messages[0], (msg) => {
+            return filter(messages[0], (msg) => {
                 if (RULES_SUPPRESSED_BY_REACT_COMPILER.has(msg.ruleId)) {
                     return false;
                 }

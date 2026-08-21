@@ -26,9 +26,8 @@ import type {Writable} from 'type-fest';
 
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import {CommonActions, StackActions, TabActions} from '@react-navigation/native';
+import {omit} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-// eslint-disable-next-line you-dont-need-lodash-underscore/omit
-import omit from 'lodash/omit';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import Onyx from 'react-native-onyx';
 

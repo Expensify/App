@@ -9,7 +9,7 @@ import type {RequestError} from '@octokit/types';
 
 import * as core from '@actions/core';
 import {context} from '@actions/github';
-import memoize from 'lodash/memoize';
+import {memoize} from 'es-toolkit/compat';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 

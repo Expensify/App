@@ -45,7 +45,7 @@ import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import lodashIsEmpty from 'lodash/isEmpty';
+import {isEmpty as lodashIsEmpty} from 'es-toolkit/compat';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 

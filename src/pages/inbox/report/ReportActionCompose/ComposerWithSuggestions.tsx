@@ -65,7 +65,7 @@ import type {
 } from 'react-native';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
-import lodashDebounce from 'lodash/debounce';
+import {debounce as lodashDebounce} from 'es-toolkit/compat';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';

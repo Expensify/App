@@ -26,7 +26,7 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 
-import throttle from 'lodash/throttle';
+import {throttle} from 'es-toolkit/compat';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 

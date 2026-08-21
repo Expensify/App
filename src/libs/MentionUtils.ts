@@ -6,7 +6,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TPhrasing, TText} from 'react-native-render-html';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 
 import {isChatRoom} from './ReportUtils';
 

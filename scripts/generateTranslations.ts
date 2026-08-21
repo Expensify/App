@@ -16,11 +16,10 @@ import type {TemplateExpression} from 'typescript';
  */
 import {execFileSync} from 'child_process';
 import * as dotenv from 'dotenv';
+import {get} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
 import CLI from 'expensify-common/CLI';
 import fs from 'fs';
-// eslint-disable-next-line you-dont-need-lodash-underscore/get
-import get from 'lodash/get';
 import path from 'path';
 import ts from 'typescript';
 

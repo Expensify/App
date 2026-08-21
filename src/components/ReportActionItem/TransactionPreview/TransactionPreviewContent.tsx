@@ -45,7 +45,7 @@ import ROUTES from '@src/ROUTES';
 import {cardByIdSelector} from '@src/selectors/Card';
 import {getStableReportSelector} from '@src/selectors/Report';
 
-import truncate from 'lodash/truncate';
+import {truncate} from 'es-toolkit/compat';
 import React, {useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';

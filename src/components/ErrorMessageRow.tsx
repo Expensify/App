@@ -4,7 +4,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import mapValues from 'lodash/mapValues';
+import {mapValues} from 'es-toolkit/compat';
 import React from 'react';
 
 import MessagesRow from './MessagesRow';

@@ -92,10 +92,9 @@ import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {format, isValid, parse} from 'date-fns';
+import {cloneDeep as lodashDeepClone, set as lodashSet} from 'es-toolkit/compat';
 import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import lodashDeepClone from 'lodash/cloneDeep';
-import lodashSet from 'lodash/set';
 import Onyx from 'react-native-onyx';
 
 import getDistanceInMeters from './getDistanceInMeters';

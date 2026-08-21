@@ -2,7 +2,7 @@ import {getCommentLength} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 
-import lodashDebounce from 'lodash/debounce';
+import {debounce as lodashDebounce} from 'es-toolkit/compat';
 import {useState} from 'react';
 
 type UseDebouncedCommentValidationProps = {

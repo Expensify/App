@@ -23,7 +23,7 @@ import type {Screen} from '@src/SCREENS';
 
 import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
 
-import pick from 'lodash/pick';
+import {pick} from 'es-toolkit/compat';
 
 import buildTabNavigatorNestedState from './buildTabNavigatorNestedState';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';

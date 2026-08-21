@@ -37,7 +37,7 @@ import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
-import lodashIsEmpty from 'lodash/isEmpty';
+import {isEmpty as lodashIsEmpty} from 'es-toolkit/compat';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 

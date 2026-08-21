@@ -63,8 +63,8 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isEmpty} from 'es-toolkit/compat';
 import {deepEqual} from 'fast-equals';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';

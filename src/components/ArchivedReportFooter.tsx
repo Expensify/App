@@ -13,7 +13,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {getLastClosedReportAction} from '@selectors/ReportAction';
-import lodashEscape from 'lodash/escape';
+import {escape as lodashEscape} from 'es-toolkit/compat';
 import React from 'react';
 
 import Banner from './Banner';

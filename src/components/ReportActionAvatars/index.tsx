@@ -25,7 +25,7 @@ import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import lodashSortBy from 'lodash/sortBy';
+import {sortBy as lodashSortBy} from 'es-toolkit/compat';
 import React from 'react';
 
 import useReportActionAvatars from './useReportActionAvatars';

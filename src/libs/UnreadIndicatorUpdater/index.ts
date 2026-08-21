@@ -12,7 +12,7 @@ import type {Report, ReportActions, ReportNameValuePairs, Session} from '@src/ty
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import debounce from 'lodash/debounce';
+import {debounce} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 import updateUnread from './updateUnread';

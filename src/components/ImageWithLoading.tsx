@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
-import delay from 'lodash/delay';
+import {delay} from 'es-toolkit/compat';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 

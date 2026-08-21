@@ -39,7 +39,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 
-import cloneDeep from 'lodash/cloneDeep';
+import {cloneDeep} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';

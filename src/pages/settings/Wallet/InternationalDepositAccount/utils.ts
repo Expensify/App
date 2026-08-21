@@ -14,7 +14,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import lodashSortBy from 'lodash/sortBy';
+import {sortBy as lodashSortBy} from 'es-toolkit/compat';
 
 function getFieldsMap(corpayFields: OnyxEntry<CorpayFields>): Record<ValueOf<typeof CONST.CORPAY_FIELDS.PAGE_NAME>, CorpayFieldsMap> {
     return (corpayFields?.formFields ?? []).reduce(

@@ -4,7 +4,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import escapeRegExp from 'lodash/escapeRegExp';
+import {escapeRegExp} from 'es-toolkit/compat';
 
 import newComponentCategory from './categories/newComponentCategory';
 

@@ -63,8 +63,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import debounce from 'lodash/debounce';
-import isEmpty from 'lodash/isEmpty';
+import {debounce, isEmpty} from 'es-toolkit/compat';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 

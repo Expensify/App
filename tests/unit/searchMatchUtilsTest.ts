@@ -1,7 +1,7 @@
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 
 // cspell:ignore René Résumé
-import deburr from 'lodash/deburr';
+import {deburr} from 'es-toolkit/compat';
 
 const CURRENT_USER_ACCOUNT_ID = 2;
 const OTHER_USER_ACCOUNT_ID = 99;

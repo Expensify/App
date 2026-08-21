@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import debounce from 'lodash/debounce';
+import {debounce} from 'es-toolkit/compat';
 import {useCallback, useEffect, useRef, useState} from 'react';
 
 /**

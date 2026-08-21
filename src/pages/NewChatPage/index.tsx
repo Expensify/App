@@ -41,7 +41,7 @@ import type {Ref} from 'react';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import reject from 'lodash/reject';
+import {reject} from 'es-toolkit/compat';
 import React, {startTransition, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 

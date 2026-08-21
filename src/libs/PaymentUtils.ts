@@ -23,7 +23,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 
 import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';

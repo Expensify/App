@@ -104,8 +104,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 
 import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
+import {sortBy as lodashSortBy} from 'es-toolkit/compat';
 import * as fs from 'fs';
-import lodashSortBy from 'lodash/sortBy';
 import * as path from 'path';
 
 import createRandomCard from '../utils/collections/card';

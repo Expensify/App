@@ -62,7 +62,7 @@ import type {TupleToUnion} from 'type-fest';
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
-import truncate from 'lodash/truncate';
+import {truncate} from 'es-toolkit/compat';
 import React, {useContext} from 'react';
 import {View} from 'react-native';
 

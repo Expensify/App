@@ -2,7 +2,7 @@ import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 
-import debounce from 'lodash/debounce';
+import {debounce} from 'es-toolkit/compat';
 import {useEffect, useState} from 'react';
 
 const ELLIPSIS = '...';

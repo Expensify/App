@@ -51,7 +51,7 @@ import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subMonths} from 'date-fns';
-import cloneDeep from 'lodash/cloneDeep';
+import {cloneDeep} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';

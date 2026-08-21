@@ -14,7 +14,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
-import lodashDropRightWhile from 'lodash/dropRightWhile';
+import {dropRightWhile as lodashDropRightWhile} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 import {completeTask} from './Task';

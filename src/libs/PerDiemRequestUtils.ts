@@ -9,7 +9,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
-import lodashSortBy from 'lodash/sortBy';
+import {sortBy as lodashSortBy} from 'es-toolkit/compat';
 
 import type {OptionTree} from './OptionsListUtils';
 

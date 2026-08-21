@@ -16,7 +16,7 @@ import type {ReactElement, ReactNode, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 
-import lodashDefer from 'lodash/defer';
+import {defer as lodashDefer} from 'es-toolkit/compat';
 import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';

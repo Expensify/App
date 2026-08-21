@@ -49,7 +49,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
-import lodashPick from 'lodash/pick';
+import {pick as lodashPick} from 'es-toolkit/compat';
 import React, {useContext, useEffect} from 'react';
 import {RESULTS} from 'react-native-permissions';
 

@@ -46,9 +46,8 @@ import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 import {format} from 'date-fns';
+import {clone, isEmpty} from 'es-toolkit/compat';
 import {fastMerge, Str} from 'expensify-common';
-import clone from 'lodash/clone';
-import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 
 import type {MessageElementBase, MessageTextElement} from './MessageElement';

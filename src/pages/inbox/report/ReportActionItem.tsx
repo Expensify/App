@@ -82,8 +82,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useNavigation} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
+import {mapValues} from 'es-toolkit/compat';
 import {deepEqual} from 'fast-equals';
-import mapValues from 'lodash/mapValues';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 

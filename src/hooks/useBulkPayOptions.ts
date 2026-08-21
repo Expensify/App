@@ -24,7 +24,7 @@ import type {AccountData} from '@src/types/onyx';
 import type {TupleToUnion} from 'type-fest';
 
 import {areInvoicesEnabledSelector} from '@selectors/Policy';
-import truncate from 'lodash/truncate';
+import {truncate} from 'es-toolkit/compat';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';

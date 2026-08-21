@@ -6,7 +6,7 @@ import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValu
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import lodashFindLast from 'lodash/findLast';
+import {findLast as lodashFindLast} from 'es-toolkit/compat';
 
 type NewestReportAction = Pick<ReportAction, 'reportActionID' | 'actorAccountID' | 'actionName'>;
 

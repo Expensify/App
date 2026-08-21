@@ -1,11 +1,12 @@
-// eslint-disable-next-line lodash/import-scope
-import type {DebouncedFunc, DebounceSettings} from 'lodash';
+import type {DebouncedFunc} from 'es-toolkit/compat';
 
-import lodashDebounce from 'lodash/debounce';
+import {debounce as lodashDebounce} from 'es-toolkit/compat';
 import {useEffect, useRef} from 'react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type GenericFunction = (...args: any[]) => void;
+
+type DebounceSettings = NonNullable<Parameters<typeof lodashDebounce>[2]>;
 
 type UseDebounceOptions = DebounceSettings & {
     /**

@@ -5,7 +5,7 @@ import resolvePadding from '@components/HTMLEngineProvider/HTMLRenderers/Victory
 import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
 
-import lodashMerge from 'lodash/merge';
+import {merge as lodashMerge} from 'es-toolkit/compat';
 
 import PARSER_REGISTRY from './parserRegistry';
 

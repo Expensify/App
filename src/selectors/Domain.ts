@@ -8,8 +8,8 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isObject} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import isObject from 'lodash/isObject';
 
 type DomainSecurityGroupWithID = {
     id: string;

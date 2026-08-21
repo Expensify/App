@@ -7,12 +7,10 @@ import scriptsConfig from 'eslint-config-expensify/scripts';
 import tsExpensifyConfig from 'eslint-config-expensify/typescript';
 import fileProgress from 'eslint-plugin-file-progress';
 import jsdoc from 'eslint-plugin-jsdoc';
-import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
 import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
 import rulesdir from 'eslint-plugin-rulesdir';
 import testingLibrary from 'eslint-plugin-testing-library';
-import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
 import seatbelt from 'eslint-seatbelt';
 import {defineConfig, globalIgnores} from 'eslint/config';
 import globals from 'globals';
@@ -284,7 +282,6 @@ const config = defineConfig([
             'react-native-a11y': reactNativeA11Y,
             react,
             'testing-library': testingLibrary,
-            lodash,
         },
 
         settings: {
@@ -454,7 +451,6 @@ const config = defineConfig([
 
             // Other rules
             curly: 'error',
-            'lodash/import-scope': ['error', 'method'],
             'prefer-regex-literals': 'off',
             'jsdoc/require-param': 'off',
             'jsdoc/require-param-type': 'off',
@@ -506,11 +502,6 @@ const config = defineConfig([
             'react/jsx-filename-extension': 'off',
             'rulesdir/no-default-props': 'off',
             'prefer-arrow-callback': 'off',
-
-            // Prefer Lodash helpers (and `import _ from 'lodash'`) in non-TS
-            // files — they defensively handle nullish/non-array inputs that
-            // TypeScript would otherwise catch at compile time.
-            'lodash/import-scope': 'off',
         },
     },
 
@@ -547,23 +538,6 @@ const config = defineConfig([
         files: ['**/en.ts', '**/es.ts'],
         rules: {
             'rulesdir/use-periods-for-error-messages': 'error',
-        },
-    },
-
-    // `eslint-plugin-you-dont-need-lodash-underscore` steers code toward native
-    // JS equivalents of Lodash helpers. In TypeScript we want that guidance
-    // because TS catches the nullish/non-array edge cases Lodash papers over;
-    // in plain JS we prefer the Lodash helpers, so this plugin is TS/TSX-only.
-    {
-        files: ['**/*.ts', '**/*.tsx'],
-        extends: new FlatCompat({baseDirectory: projectRoot}).extends('plugin:you-dont-need-lodash-underscore/all'),
-        plugins: {
-            'you-dont-need-lodash-underscore': youDontNeedLodashUnderscore,
-        },
-        rules: {
-            'you-dont-need-lodash-underscore/throttle': 'off',
-            // The suggested alternative (structuredClone) is not supported in Hermes:https://github.com/facebook/hermes/issues/684
-            'you-dont-need-lodash-underscore/clone-deep': 'off',
         },
     },
 

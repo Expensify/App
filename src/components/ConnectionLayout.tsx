@@ -13,7 +13,7 @@ import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React from 'react';
 import {View} from 'react-native';
 

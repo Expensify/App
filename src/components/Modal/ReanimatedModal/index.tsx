@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
 
-import noop from 'lodash/noop';
+import {noop} from 'es-toolkit/compat';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {BackHandler, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';

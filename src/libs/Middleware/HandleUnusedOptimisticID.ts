@@ -13,7 +13,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import clone from 'lodash/clone';
+import {clone} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 /**

@@ -21,9 +21,9 @@ import CONST from '@src/CONST';
 import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
 import type {RefObject} from 'react';
 
+import {debounce} from 'es-toolkit/compat';
 import {useEvent, useEventListener} from 'expo';
 import {useVideoPlayer, VideoView} from 'expo-video';
-import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';

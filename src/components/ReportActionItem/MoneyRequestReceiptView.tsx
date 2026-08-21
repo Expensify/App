@@ -85,7 +85,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import mapValues from 'lodash/mapValues';
+import {mapValues} from 'es-toolkit/compat';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 

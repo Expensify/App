@@ -6,8 +6,8 @@ import type {ReceiptError, ReceiptSource} from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {findLast} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import findLast from 'lodash/findLast';
 
 import {isLocalFile as isLocalFileUtils, splitExtensionFromFileName} from './fileDownload/FileUtils';
 import ReceiptStorage from './ReceiptStorage';

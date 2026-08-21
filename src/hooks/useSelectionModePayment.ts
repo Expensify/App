@@ -26,7 +26,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
-import truncate from 'lodash/truncate';
+import {truncate} from 'es-toolkit/compat';
 import {useContext, useEffect, useRef} from 'react';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';

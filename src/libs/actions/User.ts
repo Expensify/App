@@ -64,7 +64,7 @@ import type {ValueOf} from 'type-fest';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {isBefore} from 'date-fns';
-import debounce from 'lodash/debounce';
+import {debounce} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 import {reconnectApp} from './App';

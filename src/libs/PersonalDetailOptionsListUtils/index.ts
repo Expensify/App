@@ -17,8 +17,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {deburr} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import deburr from 'lodash/deburr';
 
 import type {GetContactConfig, GetOptionsConfig, GetUserToInviteConfig, OptionData, Options, PreviewConfig, PrivateIsArchivedMap} from './types';
 

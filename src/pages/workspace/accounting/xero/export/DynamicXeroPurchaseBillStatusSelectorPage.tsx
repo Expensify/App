@@ -23,7 +23,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 

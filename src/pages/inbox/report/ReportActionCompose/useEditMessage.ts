@@ -14,8 +14,7 @@ import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessa
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-// eslint-disable-next-line lodash/import-scope
-import type {DebouncedFuncLeading} from 'lodash';
+import type {DebouncedFunc} from 'es-toolkit/compat';
 import type React from 'react';
 
 type UseEditMessageProps = {
@@ -28,7 +27,7 @@ type UseEditMessageProps = {
     /** Whether to scroll to the last message */
     shouldScrollToLastMessage?: boolean;
     /** The debounced comment max length validation */
-    debouncedCommentMaxLengthValidation: DebouncedFuncLeading<(value: string) => boolean>;
+    debouncedCommentMaxLengthValidation: DebouncedFunc<(value: string) => boolean>;
     /** The ref to the composer */
     composerRef: React.RefObject<ComposerRef | null>;
 };

@@ -1,7 +1,7 @@
 import {LEFT_AXIS_LABEL_PADDING} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
-import lodashIsObject from 'lodash/isObject';
+import {isObject as lodashIsObject} from 'es-toolkit/compat';
 
 /**
  * Shrinks `padding.left` down to the left axis's measured label width (plus a small edge buffer)

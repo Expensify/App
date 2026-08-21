@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import 'react-native-url-polyfill/auto';
 import type {Route} from '@src/ROUTES';
 
-import escapeRegExp from 'lodash/escapeRegExp';
+import {escapeRegExp} from 'es-toolkit/compat';
 
 function addLeadingForwardSlash(url: string): string {
     if (!url.startsWith('/')) {

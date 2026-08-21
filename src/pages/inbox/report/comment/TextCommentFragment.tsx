@@ -23,8 +23,8 @@ import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
+import {isEmpty} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
 import {useEffect} from 'react';
 import {View} from 'react-native';
 

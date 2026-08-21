@@ -22,8 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
+import {pick as lodashPick} from 'es-toolkit/compat';
 import {Str} from 'expensify-common';
-import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
 
 import AddressBusiness from './subSteps/AddressBusiness';

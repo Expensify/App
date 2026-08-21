@@ -11,7 +11,7 @@ import type {ValueOf} from 'type-fest';
 
 import {Pusher} from '@pusher/pusher-websocket-react-native';
 import * as Sentry from '@sentry/react-native';
-import isObject from 'lodash/isObject';
+import {isObject} from 'es-toolkit/compat';
 import Onyx from 'react-native-onyx';
 
 import type {Args, ChunkedDataEvents, EventCallbackError, EventData, PusherEventName, PusherSubscription, SocketEventCallback, SocketEventName, States} from './types';

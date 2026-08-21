@@ -51,8 +51,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {format, fromUnixTime, isBefore, parse} from 'date-fns';
-import groupBy from 'lodash/groupBy';
-import lodashSortBy from 'lodash/sortBy';
+import {groupBy, sortBy as lodashSortBy} from 'es-toolkit/compat';
 
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';

@@ -13,7 +13,7 @@ import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'es-toolkit/compat';
 import React from 'react';
 
 import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/SingleSelectWithAvatarListItem';

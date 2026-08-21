@@ -43,7 +43,7 @@ import {
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {enGB} from 'date-fns/locale/en-GB';
-import throttle from 'lodash/throttle';
+import {throttle} from 'es-toolkit/compat';
 
 import {setCurrentDate} from './actions/CurrentDate';
 import {translate as translateLocalize} from './Localize';
