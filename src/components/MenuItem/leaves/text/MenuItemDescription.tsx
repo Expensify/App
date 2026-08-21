@@ -6,7 +6,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import type {StyleProp, TextStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
@@ -20,8 +19,6 @@ const MENU_ITEM_DESCRIPTION_VARIANT = {
 } as const;
 
 type MenuItemDescriptionVariant = ValueOf<typeof MENU_ITEM_DESCRIPTION_VARIANT>;
-
-type MenuItemDescriptionVariantStyles = Record<MenuItemDescriptionVariant, StyleProp<TextStyle>>;
 
 type MenuItemDescriptionProps = {
     /** Text to render as the description */
@@ -45,7 +42,7 @@ function MenuItemDescription({children, numberOfLines = 2, variant = MENU_ITEM_D
     useMenuItemAccessibilityLabel('description', String(children));
 
     /** Typography applied on top of the shared supporting-label base, keyed by variant */
-    const variantStyles: MenuItemDescriptionVariantStyles = {
+    const variantStyles = {
         [MENU_ITEM_DESCRIPTION_VARIANT.SUPPORTING]: styles.textLineHeightNormal,
         [MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER]: [StyleUtils.getFontSizeStyle(variables.fontSizeNormal), StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight)],
     };
