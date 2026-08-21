@@ -176,6 +176,7 @@ function DynamicIOURequestStepDistance({
     const isCreatingNewRequest = !backTo && !isEditing;
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
+    const shouldShowMapManualTabs = isEditing || iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
     const customUnitRateID = getRateID(currentTransaction);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
@@ -427,18 +428,15 @@ function DynamicIOURequestStepDistance({
             if (isEditingSplit) {
                 iouWaypointType = CONST.IOU.TYPE.SPLIT_EXPENSE;
             }
-            // In the edit flow this page is wrapped in an OnyxTabNavigator, so Navigation.getActiveRoute()
-            // returns a URL with the tab suffix (e.g. "/distance-map") that doesn't match the stack entry
-            // — Navigation.goBack() then REPLACEs instead of POPs and crashes. Build the backTo URL
-            // explicitly there. The create flow has no tab navigator, so the production getActiveRoute()
-            // path is correct (GH #90037).
+            // In the tabbed flow getActiveRoute() returns a URL with the tab suffix (e.g. "/distance-map") that
+            // doesn't match the stack entry, so goBack() REPLACEs instead of POPs and crashes (GH #90037).
             const waypointBackTo =
-                isEditing && backTo
+                shouldShowMapManualTabs && backTo
                     ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID), backTo)
                     : Navigation.getActiveRoute();
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID, index.toString(), waypointBackTo));
         },
-        [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditingSplit, isEditing],
+        [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditingSplit, shouldShowMapManualTabs],
     );
 
     const navigateToNextStep = useDistanceNavigation({
@@ -469,6 +467,8 @@ function DynamicIOURequestStepDistance({
         betas,
         recentWaypoints,
         introSelected,
+        unit: distanceUnit,
+        personalOutputCurrency: personalPolicy?.outputCurrency,
     });
 
     const getError = useCallback(() => {
@@ -679,6 +679,16 @@ function DynamicIOURequestStepDistance({
 
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(value));
 
+        if (!isEditing) {
+            // Without this the backup cleanup restores the original route distance over the manual value
+            // when this step was opened from confirmation.
+            transactionWasSaved.current = true;
+            setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
+            suppressDiscardPrompt();
+            navigateToNextStep(distanceAsFloat);
+            return;
+        }
+
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
             setDraftSplitTransaction(
@@ -756,6 +766,7 @@ function DynamicIOURequestStepDistance({
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
         distanceRate,
+        isEditing,
         isEditingSplit,
         transaction,
         currentTransaction,
@@ -785,6 +796,8 @@ function DynamicIOURequestStepDistance({
         splitDraftTransaction,
         getCurrencyDecimals,
         getCurrencySymbol,
+        suppressDiscardPrompt,
+        navigateToNextStep,
     ]);
 
     const renderItem = useCallback(
@@ -882,17 +895,17 @@ function DynamicIOURequestStepDistance({
         [currentDistance, distanceUnit, submitManualDistance, manualFormError, handleManualInputChange],
     );
 
-    if (isEditing) {
+    if (shouldShowMapManualTabs) {
         return (
             <StepScreenWrapper
                 headerTitle={translate('common.distance')}
-                onBackButtonPress={navigateBackFromEditFlow}
+                onBackButtonPress={isEditing ? navigateBackFromEditFlow : navigateBack}
                 testID="DynamicIOURequestStepDistance"
                 shouldShowNotFoundPage={!currentTransaction?.comment?.waypoints || shouldShowNotFoundPage}
-                shouldShowWrapper
+                shouldShowWrapper={isEditing || !isCreatingNewRequest}
             >
                 <OnyxTabNavigator
-                    id={CONST.TAB.DISTANCE_EDIT_TYPE}
+                    id={isEditing ? CONST.TAB.DISTANCE_EDIT_TYPE : CONST.TAB.DISTANCE_CREATE_TYPE}
                     defaultSelectedTab={CONST.TAB_REQUEST.DISTANCE_MAP}
                     tabBar={TabSelector}
                 >

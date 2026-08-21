@@ -82,6 +82,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepDistanceNavigation: jest.fn(),
     getMoneyRequestParticipantsFromReport: jest.fn(() => []),
     getMoneyRequestParticipantOptions: jest.fn(() => []),
+    setMoneyRequestDistance: jest.fn(),
 }));
 
 jest.mock('@libs/actions/MapboxToken', () => ({
@@ -122,7 +123,6 @@ jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
 });
 jest.mock('@hooks/useShowNotFoundPageInIOUStep', () => () => false);
 jest.mock('@src/hooks/useResponsiveLayout');
-// The Map/Manual tab navigator only renders outside production (`isEditing && !isProduction`); force a non-production env so the edit-flow tabs render in tests.
 jest.mock('@hooks/useEnvironment', () => () => ({environment: 'development', environmentURL: '', isProduction: false, isDevelopment: true}));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -359,6 +359,92 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         await waitForBatchedUpdates();
     });
 
+    it('should render both Map and Manual tabs when creating a map distance expense', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const transaction = createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP});
+        const report = createTestReport();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
+        expect(screen.getAllByLabelText(/common\.distance/).some((element) => 'value' in element.props)).toBe(true);
+    });
+
+    it('should not render the Manual tab when the draft is not a map distance expense', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL}));
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
+        expect(screen.queryAllByLabelText(/common\.distance/).some((element) => 'value' in element.props)).toBe(false);
+    });
+
+    it('should keep a manually entered distance when returning to confirmation', async () => {
+        const {restoreOriginalTransactionFromBackup, removeBackupTransaction} = jest.requireMock<{
+            restoreOriginalTransactionFromBackup: jest.Mock;
+            removeBackupTransaction: jest.Mock;
+        }>('@libs/actions/TransactionEdit');
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}));
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        const {unmount} = render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const distanceInput = screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!;
+        fireEvent.changeText(distanceInput, '29');
+        fireEvent.press(screen.getAllByText('common.save').at(-1)!);
+        unmount();
+
+        expect(restoreOriginalTransactionFromBackup).not.toHaveBeenCalled();
+        expect(removeBackupTransaction).toHaveBeenCalledWith(TRANSACTION_ID);
+    });
+
     it('should show validation error for empty distance input', async () => {
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         const transaction = createDistanceTransaction();
@@ -538,6 +624,42 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID, '0', activeRoute),
+        );
+    });
+
+    it('uses the explicit step-distance route as backTo in the tabbed map-create flow', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}));
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const startWaypoint = screen.getByAccessibilityHint(/123 Main St/);
+        fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(
+                CONST.IOU.ACTION.CREATE,
+                CONST.IOU.TYPE.SUBMIT,
+                TRANSACTION_ID,
+                REPORT_ID,
+                '0',
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID), 'r/1' as Route),
+            ),
         );
     });
 });

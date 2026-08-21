@@ -223,7 +223,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
-    const distanceRequestType = getDistanceRequestType(transaction);
+    const distanceRequestType = isManualDistance ? CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL : getDistanceRequestType(transaction);
     // Derived here (rather than read from Onyx) from the onboarding choice the calling component/hook already passes in.
     const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
     // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
