@@ -96,7 +96,9 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const linkedReportActionID = linkedReportAction?.reportActionID;
 
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
+    // Use original Onyx here because the useOnyx wrapper can read the partial Search snapshot report actions, which may miss
+    // the workflow (submitted/forwarded) actions that canEditMoneyRequest needs to evaluate editability for the submitter.
+    const [parentReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
     const resolvedParentReportAction = linkedReportActionID
         ? parentReportActions?.[linkedReportActionID]
         : getIOUActionForTransactionID(Object.values(parentReportActions ?? {}), transactionID);
