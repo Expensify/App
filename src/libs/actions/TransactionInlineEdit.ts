@@ -232,7 +232,7 @@ function getIouParamsForTransaction({
     getCurrencyDecimals,
     getCurrencySymbol,
 }: GetIouParamsInput) {
-    const transaction = transactionFromView ?? allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? transactionFromView;
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const isUnreportedExpense = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 

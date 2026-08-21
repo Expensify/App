@@ -69,10 +69,23 @@ function buildParams(transaction: TransactionInlineEditParams['transaction']): T
     };
 }
 
-function getLastWrittenParams(): Record<string, unknown> {
+function getLastWrittenParams() {
     const call = mockWrite.mock.calls.at(-1);
-    expect(call?.at(0)).toBe(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY);
-    return (call?.at(1) ?? {}) as Record<string, unknown>;
+    expect(call?.[0]).toBe(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY);
+    return call?.[1];
+}
+
+/** Reads the live TRANSACTION entry, disconnecting so the subscription does not outlive the test. */
+function readLiveTransaction() {
+    return new Promise((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
+            callback: (value) => {
+                Onyx.disconnect(connection);
+                resolve(value);
+            },
+        });
+    });
 }
 
 describe('editTransactionCategoryInline', () => {
@@ -90,7 +103,7 @@ describe('editTransactionCategoryInline', () => {
     it('sends the selected category when the transaction is only in the search snapshot', async () => {
         // Search stores its results under snapshot_<hash> only, so right after a fresh sign-in the
         // live TRANSACTION collection has no entry for a row the user can already see and edit.
-        expect(await new Promise((resolve) => Onyx.connectWithoutView({key: `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, callback: resolve}))).toBeUndefined();
+        expect(await readLiveTransaction()).toBeUndefined();
 
         editTransactionCategoryInline(buildParams(snapshotTransaction), 'Benefits');
         await waitForBatchedUpdates();

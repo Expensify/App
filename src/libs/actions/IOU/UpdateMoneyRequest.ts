@@ -1539,8 +1539,6 @@ function updateMoneyRequestAmountAndCurrency({
 
 type GetUpdateMoneyRequestParamsType = {
     transactionID: string | undefined;
-
-    /** The transaction being edited, when the caller holds it. Search rows live in the snapshot, not the TRANSACTION collection the cache lookup below reads. */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     transactionChanges: TransactionChanges;
@@ -1652,7 +1650,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     > = [];
 
     // Step 1: Get the transaction being updated
-    const transaction = transactionFromCaller ?? getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? transactionFromCaller;
 
     // The manual-distance submit path always sends waypoints to keep the BE in sync, even when the user
     // only edited the distance number. Detect whether the addresses actually changed so we can skip the

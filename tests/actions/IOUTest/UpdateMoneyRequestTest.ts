@@ -2779,6 +2779,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 {
                     hash: undefined,
                     transactionID,
+                    transaction: fakeTransaction,
                     parentReport,
                     parentReportAction: undefined,
                     transactionThreadReport,
