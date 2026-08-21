@@ -9016,6 +9016,7 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `（重复 ${count} 次。）`,
                 exportFailed: ({count, workspaceAccountingLink}: {count: number; workspaceAccountingLink: string}) =>
                     `${count} 份报告导出失败。请在<a href="${workspaceAccountingLink}">工作区设置</a>中修复此问题。`,
+                reExportFailedReports: '重新导出失败的报告',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} 连接已中断。要恢复银行卡导入，请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

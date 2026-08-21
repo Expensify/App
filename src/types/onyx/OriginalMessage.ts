@@ -1518,6 +1518,9 @@ type OriginalMessageExportFailed = {
 
     /** How many of the workspace's reports are currently failing to export */
     failedReportCount: number;
+
+    /** The reports to re-export, capped server-side, so the batch does not depend on what the client has loaded */
+    failedReportIDs?: number[];
 };
 
 /**

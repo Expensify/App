@@ -21,7 +21,6 @@ import {
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getDelegateSubmitMessage,
-    getExportFailedMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -69,6 +68,7 @@ import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
 import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
+import ExportFailedContent from './ExportFailedContent';
 import FraudAlertContent from './FraudAlertContent';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
 import JoinRequestContent from './JoinRequestContent';
@@ -473,9 +473,11 @@ function ActionContentRouter({
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORT_FAILED)) {
         return (
-            <ReportActionItemBasicMessage message="">
-                <RenderHTML html={`<comment><muted-text>${getExportFailedMessage(translate, action, policyID)}</muted-text></comment>`} />
-            </ReportActionItemBasicMessage>
+            <ExportFailedContent
+                action={action}
+                policyID={policyID}
+                reportID={reportID}
+            />
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {

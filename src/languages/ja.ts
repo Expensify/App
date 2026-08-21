@@ -9256,6 +9256,7 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `（${count} 回繰り返し）`,
                 exportFailed: ({count, workspaceAccountingLink}: {count: number; workspaceAccountingLink: string}) =>
                     `${count} 件のレポートのエクスポートに失敗しました。<a href="${workspaceAccountingLink}">ワークスペース設定</a>で問題を解決してください。`,
+                reExportFailedReports: '失敗したレポートを再エクスポート',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

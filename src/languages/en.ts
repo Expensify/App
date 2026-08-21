@@ -9545,6 +9545,7 @@ const translations = {
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Repeated ${count} times.)`,
                 exportFailed: ({count, workspaceAccountingLink}: {count: number; workspaceAccountingLink: string}) =>
                     `${count === 1 ? '1 report' : `${count} reports`} failed to export. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
+                reExportFailedReports: 'Re-export failed reports',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

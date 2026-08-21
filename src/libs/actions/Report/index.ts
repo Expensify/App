@@ -6431,6 +6431,92 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData});
 }
 
+/**
+ * Re-export every report a workspace is currently failing to export, from the aggregated EXPORTFAILED action in its
+ * #admins room. The report IDs come from that action, because the client cannot tell which reports are failing from
+ * whatever it happens to have loaded.
+ *
+ * adminsRoomReportID is where the button lives, so that is what the loading state is keyed on -- the batch spans many
+ * reports, most of which the client is not showing.
+ */
+function reExportFailedReports(reportIDs: string[], connectionName: ConnectionName, adminsRoomReportID: string | undefined) {
+    if (!reportIDs.length) {
+        return;
+    }
+
+    const optimisticReportActions: Record<string, string> = {};
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [];
+
+    if (adminsRoomReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${adminsRoomReportID}`,
+            value: {isActionLoading: true},
+        });
+        finallyData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${adminsRoomReportID}`,
+            value: {isActionLoading: false},
+        });
+    }
+
+    for (const reportID of reportIDs) {
+        const action = buildOptimisticExportIntegrationAction(connectionName);
+        const optimisticReportActionID = action.reportActionID;
+        optimisticReportActions[reportID] = optimisticReportActionID;
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {
+                    [optimisticReportActionID]: action,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    pendingFields: {
+                        export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        );
+
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {
+                    [optimisticReportActionID]: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    pendingFields: {
+                        export: null,
+                    },
+                },
+            },
+        );
+    }
+
+    const params = {
+        reportIDList: reportIDs,
+        connectionName,
+        type: 'MANUAL',
+        optimisticReportActions: JSON.stringify(optimisticReportActions),
+    } satisfies ReportExportParams;
+
+    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData, finallyData});
+}
+
 function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionName) {
     const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 
@@ -8654,6 +8740,7 @@ export {
     exportReportToCSV,
     exportReportToPDF,
     exportToIntegration,
+    reExportFailedReports,
     joinReportViaSecureLink,
     flagComment,
     getMostRecentReportID,
