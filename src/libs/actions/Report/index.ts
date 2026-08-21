@@ -2775,11 +2775,21 @@ function navigateToAndOpenChildReport(
     isSelfTourViewed: boolean | undefined,
 ) {
     const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails);
+    const backTo = Navigation.getActiveRoute();
 
+    // A money-request/expense child report must open in the wide/super-wide RHP (SEARCH_MONEY_REQUEST_REPORT in the
+    // Search context, EXPENSE_REPORT_RHP in the inbox), mirroring how report links are routed in Link.ts and
+    // ParentNavigationSubtitle. Other child reports keep the standard SEARCH_REPORT / REPORT_WITH_ID navigation.
     if (isSearchTopmostFullScreenRoute()) {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
+        if (isMoneyRequestReport(report)) {
+            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID, backTo}));
+        } else {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo}));
+        }
+    } else if (isMoneyRequestReport(report)) {
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: report.reportID, backTo}));
     } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
     }
 }
 
