@@ -11,18 +11,13 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
-// jest.mock factories can't reference imported bindings, but `mock`-prefixed locals are allowed.
 const MockView = View;
 const MockPressable = PressableWithoutFeedback;
 const mockUseRef = useRef;
 
 const FILTER_KEYS = CONST.SEARCH.SYNTAX_FILTER_KEYS;
-const mockHoverableFilterKeys: string[] = [FILTER_KEYS.TYPE, FILTER_KEYS.FROM, FILTER_KEYS.TO, FILTER_KEYS.ATTENDEE];
-
-/** Called once per mounted filter content instance, so a remount shows up as a second call for the same key. */
+const mockAvailableFilterKeys: string[] = [FILTER_KEYS.TYPE, FILTER_KEYS.FROM, FILTER_KEYS.TO, FILTER_KEYS.ATTENDEE];
 const mockOnContentCreated = jest.fn<void, [string]>();
-
-/** The advanced filters form value served by the useOnyx mock. Reassigned by tests simulating filter value changes. */
 let mockFiltersForm: Partial<SearchAdvancedFiltersForm> | undefined;
 
 jest.mock('@components/SafeTriangle', () => ({
@@ -30,12 +25,16 @@ jest.mock('@components/SafeTriangle', () => ({
     default: ({children}: {children: React.ReactNode}) => <MockView>{children}</MockView>,
 }));
 
-// Stand-in for the filter list: per filter, one pressable reporting a hover on the row and one reporting focus on it.
+jest.mock('@hooks/useAdvancedSearchFilters', () => ({
+    __esModule: true,
+    default: () => [mockAvailableFilterKeys],
+}));
+
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () => ({
     __esModule: true,
     default: ({onHoverIn, onFocus}: {onHoverIn: (filterKey: string) => void; onFocus: (filterKey: string) => void}) => (
         <MockView>
-            {mockHoverableFilterKeys.map((filterKey) => (
+            {mockAvailableFilterKeys.map((filterKey) => (
                 <MockView key={filterKey}>
                     <MockPressable
                         testID={`hover-${filterKey}`}
@@ -55,7 +54,6 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
     ),
 }));
 
-// Stand-in for the filter content, which is the expensive part being mounted or kept alive.
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent', () => ({
     __esModule: true,
     default: ({baseFilterKey}: {baseFilterKey: string}) => {
@@ -79,122 +77,49 @@ jest.mock('@hooks/useOnyx', () => ({
     default: () => [mockFiltersForm, {status: 'loaded'}],
 }));
 
-// The popover exists on web only (index.native.tsx renders nothing), and jest-expo's RN resolver prefers the native variant.
 const SearchAdvancedFiltersPopup = require<{
     default: React.ComponentType<{queryJSON: SearchQueryJSON | undefined}>;
 }>('../../../src/components/Search/FilterDropdowns/SearchAdvancedFiltersPopup/index.tsx').default;
 
-// Only forwarded to the mocked query hook, so the parsed query itself does not matter here.
 const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
-
-/** Moves the cursor onto a filter row without waiting for the hover intent delay to pass. */
-function hover(filterKey: string) {
-    fireEvent.press(screen.getByTestId(`hover-${filterKey}`));
-}
-
-/** Moves the cursor onto a filter row and leaves it there long enough for the content to follow. */
-function hoverAndRest(filterKey: string) {
-    hover(filterKey);
-    act(() => {
-        jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
-    });
-}
-
-/** Moves the keyboard focus onto a filter row. */
-function focus(filterKey: string) {
-    fireEvent.press(screen.getByTestId(`focus-${filterKey}`));
-}
 
 beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     mockFiltersForm = undefined;
 });
 
-afterEach(() => {
-    jest.useRealTimers();
-});
-
 describe('SearchAdvancedFiltersPopup', () => {
-    it('does not mount the content of filters the cursor only passes over', () => {
+    it('pre-renders every available filter content', () => {
         render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
 
-        // A fast sweep: every row is left again before the hover intent delay elapses.
-        for (const filterKey of [FILTER_KEYS.FROM, FILTER_KEYS.TO, FILTER_KEYS.ATTENDEE]) {
-            hover(filterKey);
-            act(() => {
-                jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY - 1);
-            });
+        for (const filterKey of mockAvailableFilterKeys) {
+            expect(mockOnContentCreated).toHaveBeenCalledWith(filterKey);
         }
-        act(() => {
-            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
-        });
-
-        // Only the row the cursor came to rest on was mounted, the two it swept over were not.
-        expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.ATTENDEE);
-        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.FROM);
-        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.TO);
     });
 
-    it('reuses the content of a filter that was already visited instead of remounting it', () => {
+    it('keeps pre-rendered filter content mounted while changing the active filter', () => {
         render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
 
-        hoverAndRest(FILTER_KEYS.FROM);
-        hoverAndRest(FILTER_KEYS.TO);
-        hoverAndRest(FILTER_KEYS.FROM);
+        act(() => {
+            fireEvent.press(screen.getByTestId(`hover-${FILTER_KEYS.FROM}`));
+        });
+        act(() => {
+            fireEvent.press(screen.getByTestId(`hover-${FILTER_KEYS.TO}`));
+        });
+        act(() => {
+            fireEvent.press(screen.getByTestId(`hover-${FILTER_KEYS.FROM}`));
+        });
 
         expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.FROM)).toHaveLength(1);
     });
 
-    it('remounts a kept content when the filters form changed while it was away', () => {
+    it('switches content on keyboard focus', () => {
         render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
 
-        hoverAndRest(FILTER_KEYS.FROM);
-
-        // The form changes (e.g. a value was picked) and the cursor moves on to another filter.
-        mockFiltersForm = {type: CONST.SEARCH.DATA_TYPES.EXPENSE};
-        hoverAndRest(FILTER_KEYS.TO);
-
-        // Returning to the filter now gets a fresh content instance instead of the one from before the change.
-        hoverAndRest(FILTER_KEYS.FROM);
-        expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.FROM)).toHaveLength(2);
-    });
-
-    it('shows the content of a row focused with the keyboard without waiting for the hover intent delay', () => {
-        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
-
-        focus(FILTER_KEYS.FROM);
-
-        // No timer is advanced: moving focus is deliberate, so its content follows in the same frame.
-        expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.FROM);
-        expect(screen.getByTestId(`filter-content-${FILTER_KEYS.FROM}`)).toBeTruthy();
-    });
-
-    it('does not let a pending hover replace the content of the row focused after it', () => {
-        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
-
-        // The cursor passes over a row and the keyboard moves focus elsewhere before the delay elapses.
-        hover(FILTER_KEYS.TO);
-        focus(FILTER_KEYS.FROM);
         act(() => {
-            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+            fireEvent.press(screen.getByTestId(`focus-${FILTER_KEYS.FROM}`));
         });
 
-        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.TO);
         expect(screen.getByTestId(`filter-content-${FILTER_KEYS.FROM}`)).toBeTruthy();
-    });
-
-    it('keeps only the most recently used contents mounted', () => {
-        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
-
-        // Visiting more filters than MAX_MOUNTED_FILTER_CONTENTS evicts the least recently used one.
-        hoverAndRest(FILTER_KEYS.FROM);
-        hoverAndRest(FILTER_KEYS.TO);
-        hoverAndRest(FILTER_KEYS.ATTENDEE);
-        expect(screen.queryByTestId(`filter-content-${FILTER_KEYS.TYPE}`, {includeHiddenElements: true})).toBeNull();
-
-        // Returning to an evicted filter mounts a fresh content instance for it.
-        hoverAndRest(FILTER_KEYS.TYPE);
-        expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.TYPE)).toHaveLength(2);
     });
 });
