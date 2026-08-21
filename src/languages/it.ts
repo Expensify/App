@@ -7695,7 +7695,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 publicReceiptVisibilityHintDisabled: 'Le ricevute possono essere visualizzate solo dai membri di Expensify che hanno accesso al report che contiene la ricevuta.',
                 enableTagsToUnlockTitle: 'Abilitare i tag?',
                 enableTagsToUnlockPrompt: 'Attiva i Tag (in Altre funzionalità) per sbloccare.',
-                enableTagsAndRequirePrompt: 'Sei sicuro di voler abilitare le etichette e renderle obbligatorie per tutte le spese?',
                 enableCategoriesToUnlockTitle: 'Abilitare le categorie?',
                 enableCategoriesToUnlockPrompt: 'Attiva Categorie (in Altre funzionalità) per sbloccare.',
                 enableCategoriesAndRequirePrompt: 'Sei sicuro di voler abilitare le categorie e renderle obbligatorie per tutte le spese?',

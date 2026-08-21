@@ -159,7 +159,6 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 pendingAction: tag.pendingAction,
                 isLocked: !canWriteTags || isDisablingLastEnabledTag,
                 showEnabledSwitch: !hasDependentTags,
-                showRequiredSwitch: false,
                 action: () => navigateToTagSettings(tag),
                 onToggleEnabled: (enabled: boolean) => {
                     if (isDisablingLastEnabledTag) {

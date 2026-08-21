@@ -83,7 +83,6 @@ function RulesBillableDefaultPage({
 
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
     // Track-billable is controlled on this page (not Tags), so show defaults whenever tracking is on.
-    const shouldShowBillableModeList = isBillableTrackingEnabled;
 
     const handleBillableModeSelect = (value: boolean) => {
         if (isCollect && value && navigateToBillableUpgrade()) {
@@ -120,7 +119,7 @@ function RulesBillableDefaultPage({
                     pendingAction={getBillableExpensesPendingAction(policy)}
                     onToggle={() => toggleBillableExpenses(policy)}
                 />
-                {shouldShowBillableModeList && (
+                {isBillableTrackingEnabled && (
                     <SelectionList
                         data={billableModes}
                         ListItem={SingleSelectListItem}

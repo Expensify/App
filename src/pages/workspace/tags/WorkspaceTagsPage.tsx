@@ -265,15 +265,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         });
     }, [showConfirmModal, translate]);
 
-    const showAllTagsOptionalWarning = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
-            prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
-
     const handleTagEnabledToggle = useCallback(
         (enabled: boolean, tag: PolicyTag) => {
             if (!canWriteTags) {
@@ -289,23 +280,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             updateWorkspaceTagEnabled(enabled, tag.name);
         },
         [canWriteTags, policyTagLists, showAllTagsDisabledWarning, showReadOnlyModal, updateWorkspaceTagEnabled],
-    );
-
-    const handleTagListRequiredToggle = useCallback(
-        (required: boolean, policyTagList: PolicyTagList) => {
-            if (!canWriteTags) {
-                showReadOnlyModal();
-                return;
-            }
-
-            if (!required && isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
-                showAllTagsOptionalWarning();
-                return;
-            }
-
-            updateWorkspaceRequiresTag(required, policyTagList.orderWeight);
-        },
-        [canWriteTags, policy, policyTags, showAllTagsOptionalWarning, showReadOnlyModal, updateWorkspaceRequiresTag],
     );
 
     const navigateToTagSettings = useCallback(
@@ -366,10 +340,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
                     showEnabledSwitch: false,
-                    // Required is configured from Rules.
-                    showRequiredSwitch: false,
                     action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
-                    onToggleRequired: (required: boolean) => handleTagListRequiredToggle(required, policyTagList),
                     onClose: () => {},
                 });
 
@@ -408,7 +379,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 pendingAction: tag.pendingAction,
                 isLocked: !canWriteTags || isLastEnabledTagAndEnabled,
                 showEnabledSwitch: true,
-                showRequiredSwitch: false,
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
                 onClose: () => clearPolicyTagErrors({policyID, tagName: tag.name, tagListIndex: 0, policyTags}),
@@ -419,7 +389,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [
         canWriteTags,
         handleTagEnabledToggle,
-        handleTagListRequiredToggle,
         isMultiLevelTags,
         isOffline,
         navigateToTagSettings,

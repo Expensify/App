@@ -38,10 +38,8 @@ type WorkspaceTagTableRowData = TableData & {
     isLocked: boolean;
     isSwitchDisabled?: boolean;
     showEnabledSwitch: boolean;
-    showRequiredSwitch: boolean;
     action: () => void;
     onToggleEnabled?: (enabled: boolean) => void;
-    onToggleRequired?: (required: boolean) => void;
     onClose: () => void;
 };
 
