@@ -266,7 +266,7 @@ function SearchAutocompleteList({
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
-            // This cuts the list down before the server's order is applied below, so an old report the server ranked highly would be dropped before it could sort up.
+            // Don't cap before the server order arrives, or a highly-ranked older report gets dropped before it can sort up.
             maxResults: searchResultReportIDs && searchResultReportIDs.length > 0 ? listOptions.reports.length : CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
             includeUserToInvite: true,
             includeRecentReports: true,
@@ -448,13 +448,11 @@ function SearchAutocompleteList({
             reportOptions.push(searchOptions.userToInvite);
         }
 
-        // When the results are ordered by the server, display them in that order instead of the client-side
-        // kind/recency order. Reports absent from the list sort to the end.
+        // Apply the server's order when present; reports absent from it sort to the end.
         if (searchResultReportIDs && searchResultReportIDs.length > 0) {
             const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
             const rankOf = (option: OptionData) => {
-                // The selfDM always sorts first when it matches — it's always in Onyx, so it ranks ahead of the server order
-                // (and need not be included in it).
+                // selfDM sorts first; it's always in Onyx and need not appear in the server order.
                 if (option.isSelfDM) {
                     return -1;
                 }
@@ -572,8 +570,7 @@ function SearchAutocompleteList({
                 });
             }
         } else if (searchResultReportIDs && searchResultReportIDs.length > 0) {
-            // The order is already applied to recentReportsOptions, so render one list instead of splitting into
-            // local/server sections, which would group local matches separately and break it.
+            // The order is already applied, so render one list; splitting into local/server sections would break it.
             if (nextStyledRecentReports.length > 0 || !isLoadingOptions) {
                 pushSection({title: translate('search.serverResults'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
             } else {
