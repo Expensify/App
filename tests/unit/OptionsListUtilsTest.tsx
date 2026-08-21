@@ -9700,6 +9700,10 @@ describe('OptionsListUtils', () => {
             },
         };
 
+        // Stands in for the resolver a caller builds from its own reports subscription (see useFilteredOptions).
+        const formatReportsByID: Record<string, Report> = {};
+        const getFormatReportByID = (reportID: string | undefined) => (reportID ? formatReportsByID[reportID] : undefined);
+
         beforeEach(async () => {
             const report1: Report = {
                 reportID: formatReportID1,
@@ -9728,6 +9732,9 @@ describe('OptionsListUtils', () => {
                     },
                 },
             };
+
+            formatReportsByID[formatReportID1] = report1;
+            formatReportsByID[formatReportID2] = report2;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID1}`, report1);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID2}`, report2);
@@ -9765,6 +9772,9 @@ describe('OptionsListUtils', () => {
                 undefined,
                 formatPersonalDetails,
                 true,
+                undefined,
+                undefined,
+                getFormatReportByID,
             );
 
             expect(result.section.data).toHaveLength(1);
@@ -9850,6 +9860,9 @@ describe('OptionsListUtils', () => {
                 undefined,
                 formatPersonalDetails,
                 true,
+                undefined,
+                undefined,
+                getFormatReportByID,
             );
 
             expect(result.section.data).toHaveLength(2);
@@ -9933,6 +9946,9 @@ describe('OptionsListUtils', () => {
                 undefined,
                 formatPersonalDetails,
                 true,
+                undefined,
+                undefined,
+                getFormatReportByID,
             );
 
             expect(result.section.data).toHaveLength(1);
@@ -10071,6 +10087,129 @@ describe('OptionsListUtils', () => {
             });
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');
+        });
+    });
+
+    describe('getReportByID resolver', () => {
+        // The reports below are intentionally NOT merged into Onyx, so they are only reachable through the resolver.
+        // If the option builders still read the module-level Onyx.connect() cache, these lookups return undefined
+        // and the assertions below fail.
+        const RESOLVER_IOU_REPORT_ID = 'resolverIOUReport';
+        const RESOLVER_CHAT_REPORT_ID = 'resolverChatReport';
+        const RESOLVER_THREAD_REPORT_ID = 'resolverThreadReport';
+        const OTHER_ACTOR_ACCOUNT_ID = 987;
+
+        /** A DM chat report, which is what `getSendMoneyFlowAction` requires to treat the IOU report as a one-transaction report. */
+        const resolverChatReport: Report = {
+            reportID: RESOLVER_CHAT_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+
+        /** The transaction thread carries the newest activity, so the IOU report only reads as unread when it is resolved. */
+        const resolverThreadReport: Report = {
+            reportID: RESOLVER_THREAD_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastVisibleActionCreated: '2025-06-15 12:00:00.000',
+            lastActorAccountID: OTHER_ACTOR_ACCOUNT_ID,
+            lastMessageText: 'Newer thread message',
+        };
+
+        const resolverIOUReport: Report = {
+            reportID: RESOLVER_IOU_REPORT_ID,
+            reportName: 'Resolver IOU report',
+            type: CONST.REPORT.TYPE.IOU,
+            chatReportID: RESOLVER_CHAT_REPORT_ID,
+            // Older than lastReadTime, so the report on its own is read.
+            lastVisibleActionCreated: '2025-06-15 09:00:00.000',
+            lastReadTime: '2025-06-15 10:00:00.000',
+            lastActorAccountID: OTHER_ACTOR_ACCOUNT_ID,
+            lastMessageText: 'Older message',
+            participants: {
+                [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [OTHER_ACTOR_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+
+        const resolverIOUOption: SearchOption<Report> = {
+            item: resolverIOUReport,
+            reportID: RESOLVER_IOU_REPORT_ID,
+            text: 'Resolver IOU report',
+            isUnread: false,
+            isMoneyRequestReport: true,
+            participantsList: [],
+            keyForList: RESOLVER_IOU_REPORT_ID,
+            policyID: '123',
+            lastMessageText: 'Older message',
+            lastVisibleActionCreated: resolverIOUReport.lastVisibleActionCreated,
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            accountID: 0,
+            login: '',
+            alternateText: '',
+            subtitle: '',
+            firstName: '',
+            lastName: '',
+            icons: [],
+            isSelected: false,
+            isDisabled: false,
+            brickRoadIndicator: null,
+            isBold: false,
+        };
+
+        // A single 'pay' IOU action makes this a send-money flow, which is only detected when the DM chat report is resolved.
+        const payAction: ReportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: RESOLVER_THREAD_REPORT_ID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: 'resolverTransaction'},
+        } as ReportAction;
+
+        const getResolverOptions = (getReportByID: (reportID: string | undefined) => OnyxEntry<Report>) =>
+            getValidOptions(
+                {reports: [{...resolverIOUOption}], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMoneyRequests: true,
+                    includeMultipleParticipantReports: true,
+                    shouldUnreadBeBold: true,
+                    sortedActions: {[RESOLVER_IOU_REPORT_ID]: [payAction]},
+                    isOffline: false,
+                    getReportByID,
+                },
+                translateLocal,
+            ).options;
+
+        it('should resolve the chat report and its one-transaction thread through the resolver when computing unread state', () => {
+            const results = getResolverOptions((reportID) => {
+                if (reportID === RESOLVER_CHAT_REPORT_ID) {
+                    return resolverChatReport;
+                }
+                return reportID === RESOLVER_THREAD_REPORT_ID ? resolverThreadReport : undefined;
+            });
+
+            // The thread's newer activity is only visible through the resolver, so the option reads as unread.
+            expect(results.recentReports.at(0)?.isUnread).toBe(true);
+        });
+
+        it('should fall back to the report on its own when the resolver cannot find the chat report', () => {
+            const results = getResolverOptions(() => undefined);
+
+            // Without the DM chat report there is no one-transaction thread, so only the (already read) IOU report counts.
+            expect(results.recentReports.at(0)?.isUnread).toBe(false);
+        });
+
+        it('should ask the resolver for the option chat report while filtering reports', () => {
+            const getReportByID = jest.fn(() => undefined);
+
+            getResolverOptions(getReportByID);
+
+            expect(getReportByID).toHaveBeenCalledWith(RESOLVER_CHAT_REPORT_ID);
         });
     });
 

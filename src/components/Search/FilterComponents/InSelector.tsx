@@ -51,7 +51,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const {translate, dateFnsLocale} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {options, isLoading} = useFilteredOptions({
+    const {options, isLoading, getReportByID} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
         // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
@@ -134,6 +134,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   conciergeReportID,
                   isTrackIntentUser,
                   translate,
+                  getReportByID,
               }).options;
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
