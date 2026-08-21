@@ -617,7 +617,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const onlyShowPayElsewhere = useMemo(() => {
-        const selectedCurrencies = [...selectedReports.map((report) => report.currency), ...Object.values(selectedTransactions).map((transaction) => transaction.currency)].filter(Boolean);
+        const selectedCurrencies =
+            selectedReports.length > 0
+                ? selectedReports.map((report) => report.currency).filter(Boolean)
+                : Object.values(selectedTransactions)
+                      .map((transaction) => transaction.currency)
+                      .filter(Boolean);
         if (new Set(selectedCurrencies).size > 1) {
             return true;
         }
@@ -1048,6 +1053,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         for (const reportID of uniqueReportIDs) {
             const expenseReport = getReportFromSearchSnapshot(reportID, searchData, allReports);
             if (!expenseReport) {
+                Log.info('[BulkApprove] Skipping report: expense report not found in the search snapshot or Onyx', false, {reportID});
                 continue;
             }
 
@@ -2260,12 +2266,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               .filter((t): t is NonNullable<typeof t> => !!t);
 
                     if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
-                        showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+                        showPendingCardTransactionsBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
                         return;
                     }
 
                     if (hasOnlyHeldExpenses(allSelectedTransactionsList)) {
-                        showHeldExpensesBlockModal(showConfirmModal, translate);
+                        showHeldExpensesBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
                         return;
                     }
 
@@ -2312,6 +2318,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
                             submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals);
+                        } else {
+                            Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
                         }
                     }
                     // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
@@ -2493,6 +2501,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     for (const transactionID of selectedTransactionsKeys) {
                         if (!selectedTransactions[transactionID].reportAction?.childReportID) {
+                            Log.info('[BulkUnhold] Skipping transaction: report action has no childReportID', false, {transactionID});
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
