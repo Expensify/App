@@ -4725,7 +4725,7 @@ describe('OptionsListUtils', () => {
             // Given a DM whose last action is a plain comment containing markup typed by the user
             const report = buildDMReport({lastMessageText: '<b>test</b>'});
             await setReport(report);
-            const option = {reportID: DM_REPORT_ID, lastMessageText: '<b>test</b>'} as OptionData;
+            const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
 
@@ -4737,7 +4737,7 @@ describe('OptionsListUtils', () => {
             // Given a DM whose last action is not a comment, so the last message is server-built HTML
             const report = buildDMReport({lastMessageText: '<b>test</b>', lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED});
             await setReport(report);
-            const option = {reportID: DM_REPORT_ID, lastMessageText: '<b>test</b>'} as OptionData;
+            const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
 
@@ -4747,7 +4747,7 @@ describe('OptionsListUtils', () => {
         it('should prefix the room preview with the last actor display name', async () => {
             await setReport(buildRoomReport());
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'hello', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
 
@@ -4757,7 +4757,7 @@ describe('OptionsListUtils', () => {
         it('should use "You" as the prefix when the current user sent the last message', async () => {
             await setReport(buildRoomReport({lastActorAccountID: CURRENT_USER_ACCOUNT_ID}));
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CURRENT_USER_ACCOUNT_ID);
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'hello', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
 
@@ -4767,7 +4767,7 @@ describe('OptionsListUtils', () => {
         it('should omit the actor prefix when the report is archived', async () => {
             await setReport(buildRoomReport());
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'hello', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {isReportArchived: true}));
 
@@ -4777,7 +4777,7 @@ describe('OptionsListUtils', () => {
         it('should omit the actor prefix when currentUserAccountID is undefined', async () => {
             await setReport(buildRoomReport());
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'hello', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {currentUserAccountID: undefined}));
 
@@ -4787,7 +4787,7 @@ describe('OptionsListUtils', () => {
         it('should omit the actor prefix when the last action is a report preview', async () => {
             await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, lastMessageText: 'owes $10'}));
             const preview = buildAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, 3);
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'owes $10', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'owes $10', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(preview));
 
@@ -4798,7 +4798,7 @@ describe('OptionsListUtils', () => {
             await setReport(buildRoomReport({lastActorAccountID: 999}));
             // The fake action carries person: [{text: 'Email One'}] and account 999 is not in PERSONAL_DETAILS
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 999);
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'hello', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
 
@@ -4808,7 +4808,7 @@ describe('OptionsListUtils', () => {
         it('should replace the preview with the rename message for a RENAMED last action', async () => {
             await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED, lastMessageText: 'renamed this room'}));
             const renamed = buildAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, 3, {oldName: 'Old Room', newName: 'New Room'});
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'renamed this room', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'renamed this room', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(renamed));
 
@@ -4818,7 +4818,7 @@ describe('OptionsListUtils', () => {
         it('should replace the preview with the leave message for a room LEAVE_ROOM last action', async () => {
             await setReport(buildRoomReport({lastMessageText: 'left the chat'}));
             const leave = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM, 3);
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'left the chat', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'left the chat', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(leave));
 
@@ -4829,7 +4829,7 @@ describe('OptionsListUtils', () => {
             await setReport(buildRoomReport({lastMessageText: 'left the workspace'}));
             // The fake action's message text is 'hey'
             const leave = buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM, 3);
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'left the workspace', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'left the workspace', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(leave));
 
@@ -4839,7 +4839,7 @@ describe('OptionsListUtils', () => {
         it('should build the invite message with member count and room name', async () => {
             await setReport(buildRoomReport({lastMessageText: 'invited'}));
             const invite = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: [4, 5], roomName: '#galaxy'});
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'invited', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'invited', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(invite));
 
@@ -4849,7 +4849,7 @@ describe('OptionsListUtils', () => {
         it('should build the remove message with a singular member and room name', async () => {
             await setReport(buildRoomReport({lastMessageText: 'removed'}));
             const remove = buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM, 3, {targetAccountIDs: [4], roomName: '#galaxy'});
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'removed', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'removed', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(remove));
 
@@ -4864,7 +4864,7 @@ describe('OptionsListUtils', () => {
                 }),
             );
             const invite = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: []});
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'invited', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'invited', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(invite));
 
@@ -4876,7 +4876,7 @@ describe('OptionsListUtils', () => {
             async (actionName) => {
                 await setReport(buildRoomReport({lastActionType: actionName, lastMessageText: 'issued a new card'}));
                 const action = buildAction(actionName, 3);
-                const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'issued a new card', isChatRoom: true} as OptionData;
+                const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'issued a new card', isChatRoom: true};
 
                 const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
 
@@ -4892,7 +4892,7 @@ describe('OptionsListUtils', () => {
                 message: [{type: 'COMMENT', html: 'psst', text: 'psst', isEdited: false, whisperedTo: [999], isDeletedParentAction: false}],
             } as ReportAction;
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'hello', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, ROOM_REPORT_ID, {sortedActions: {[ROOM_REPORT_ID]: [whisper, comment]}}));
 
@@ -4907,7 +4907,7 @@ describe('OptionsListUtils', () => {
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onyxRoomReportID}`, {[comment.reportActionID]: comment});
             await waitForBatchedUpdates();
-            const option = {reportID: onyxRoomReportID, lastMessageText: 'hello', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: onyxRoomReportID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const withSortedActions = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, onyxRoomReportID));
             const fromOnyx = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, onyxRoomReportID));
@@ -4918,8 +4918,8 @@ describe('OptionsListUtils', () => {
 
         it('should fall back to type subtitles when showChatPreviewLine is false', async () => {
             await setReport(buildRoomReport());
-            const roomOption = {reportID: ROOM_REPORT_ID, lastMessageText: 'hello', isChatRoom: true, subtitle: 'Custom subtitle'} as OptionData;
-            const threadOption = {isThread: true} as OptionData;
+            const roomOption: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true, subtitle: 'Custom subtitle'};
+            const threadOption: OptionData = {reportID: '', keyForList: '', isThread: true};
 
             expect(getAlternateText(roomOption, {showChatPreviewLine: false}, buildConfig())).toBe('Custom subtitle');
             expect(getAlternateText(threadOption, {showChatPreviewLine: false}, buildConfig())).toBe(translateLocal('threads.thread'));
@@ -4993,7 +4993,7 @@ describe('OptionsListUtils', () => {
                 formatPhoneNumber,
             });
 
-            const option = {reportID: ROOM_REPORT_ID, lastMessageText: 'hello', isChatRoom: true} as OptionData;
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
             const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
 
             expect(lhnOption?.alternateText).toBe('Spider-Man: hello');
