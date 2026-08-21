@@ -99,6 +99,8 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     };
 
     const [currentSearchKey, setCurrentSearchKey] = useState(getInitialCurrentSearchKey);
+    // Search key can be undefined when the query is not bound to any search key (e.g., query with type of chat).
+    // `null` means there is no pending current search key.
     const [pendingCurrentSearchKey, setPendingCurrentSearchKey] = useState<SearchKey | undefined | null>(null);
 
     const currentDefaultSearchQueryString = currentSearchKey ? suggestedSearches[currentSearchKey]?.searchQuery : undefined;
