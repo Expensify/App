@@ -9182,6 +9182,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             approved: 'Genehmigt',
             firstApprover: 'Erste:r Genehmiger:in',
             firstApproved: 'Zuerst genehmigt',
+            paidBy: 'Bezahlt von',
             paid: 'Bezahlt',
             exported: 'Exportiert',
             posted: 'Gebucht',

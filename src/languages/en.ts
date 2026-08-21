@@ -9324,6 +9324,7 @@ const translations = {
             approved: 'Approved',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
+            paidBy: 'Paid by',
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',

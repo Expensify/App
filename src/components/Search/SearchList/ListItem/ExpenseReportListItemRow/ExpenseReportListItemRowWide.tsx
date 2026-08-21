@@ -120,6 +120,18 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_BY)]}>
+                {!!item.paidByAccountID && (
+                    <UserInfoCell
+                        accountID={item.paidByAccountID}
+                        avatar={item.paidByAvatar}
+                        displayName={item.formattedPaidBy ?? ''}
+                        isLargeScreenWidth
+                    />
+                )}
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
                 <DateCell
