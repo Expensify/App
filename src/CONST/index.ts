@@ -1569,6 +1569,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
             SEND_TO_SOMEONE: 'sendToSomeone',
+            SEND_TO_EMPLOYER: 'sendToEmployer',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',

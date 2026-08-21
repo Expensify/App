@@ -1551,6 +1551,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Wallet aktivieren',
         hold: 'Warteschleife',
         sendToSomeone: 'An jemanden senden',
+        sendToEmployer: 'An meinen Arbeitgeber senden',
         unhold: 'Zurückhalten aufheben',
         holdExpense: () => ({
             one: 'Ausgabe zurückhalten',
