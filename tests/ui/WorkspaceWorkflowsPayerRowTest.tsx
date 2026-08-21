@@ -15,7 +15,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 
 import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
-import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+import WorkspaceWorkflowsPageRevamp from '@pages/workspace/workflows/WorkspaceWorkflowsPageRevamp';
 import WorkspaceWorkflowsPayerPage from '@pages/workspace/workflows/WorkspaceWorkflowsPayerPage';
 
 import CONST from '@src/CONST';
@@ -78,7 +78,7 @@ const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WOR
                         <Stack.Navigator initialRouteName={initialRouteName}>
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
-                                component={WorkspaceWorkflowsPage}
+                                component={WorkspaceWorkflowsPageRevamp}
                                 // The payer row lives on the Payments tab, so deep-link straight to it.
                                 initialParams={{policyID: POLICY_ID, tab: CONST.TAB.WORKFLOWS.PAYMENTS}}
                             />
@@ -94,7 +94,7 @@ const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WOR
         </ComposeProviders>,
     );
 
-describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
+describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });

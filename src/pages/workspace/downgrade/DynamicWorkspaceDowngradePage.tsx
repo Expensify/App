@@ -11,7 +11,6 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCompanyFeeds} from '@libs/CardUtils';
@@ -22,7 +21,6 @@ import {arePolicyRulesEnabled, canModifyPlan, isCollectPolicy} from '@libs/Polic
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
-import CONST from '@src/CONST';
 import {downgradeToTeam} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -56,8 +54,6 @@ function DynamicWorkspaceDowngradePage({route}: DynamicWorkspaceDowngradePagePro
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const canPerformDowngrade = () => canModifyPlan(ownerPolicies, policy);
     const isDowngraded = isCollectPolicy(policy);
@@ -102,7 +98,7 @@ function DynamicWorkspaceDowngradePage({route}: DynamicWorkspaceDowngradePagePro
             Navigation.dismissModal();
             return;
         }
-        downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled, isRulesRevampEnabled && arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled));
+        downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled, arePolicyRulesEnabled(policy, policyCategories));
     };
 
     if (!canPerformDowngrade()) {

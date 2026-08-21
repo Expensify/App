@@ -56,7 +56,6 @@ type WorkspaceMenuIconMap = Record<
     | 'Tag'
     | 'Coins'
     | 'Workflows'
-    | 'Feed'
     | 'Car'
     | 'LuggageWithLines'
     | 'ExpensifyCard'
@@ -103,8 +102,6 @@ type GetWorkspaceMenuItemsParams = {
     shouldShowEnterCredentialsError?: boolean;
     /** Whether the company cards row should show an error indicator. */
     shouldShowRBR?: boolean;
-    /** Whether the Rules revamp beta is enabled. */
-    isRulesRevampBetaEnabled?: boolean;
     /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
@@ -121,7 +118,6 @@ function getWorkspaceMenuItems({
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
     shouldShowRBR = false,
-    isRulesRevampBetaEnabled = false,
     isVendorMatchingBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
@@ -172,7 +168,7 @@ function getWorkspaceMenuItems({
         [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: (policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories, isRulesRevampBetaEnabled),
+        [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories),
         [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: isPerDiemEnabled(policy) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: policy?.receiptPartners?.enabled ?? false,
@@ -314,7 +310,7 @@ function getWorkspaceMenuItems({
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.RULES)) {
             items.push({
                 translationKey: 'workspace.common.rules',
-                icon: isRulesRevampBetaEnabled ? icons.Bolt : icons.Feed,
+                icon: icons.Bolt,
                 getRoute: () => ROUTES.WORKSPACE_RULES.getRoute(policyID),
                 brickRoadIndicator: hasPolicyRulesError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.RULES,

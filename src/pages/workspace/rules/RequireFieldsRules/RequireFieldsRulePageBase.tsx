@@ -11,7 +11,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -68,8 +67,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const policyData = usePolicyData(policyID);
     const {policy} = policyData;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const isEditing = !!categoryName;
@@ -369,7 +366,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
         // case going back one step would land on the New rule hub instead of the category we came from.
-        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
+        if (!isEditing || !!initialCategoryName) {
             const savedCategoryName = savedCategory ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
                 Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
@@ -424,7 +421,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 testID={testID}

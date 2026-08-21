@@ -89,7 +89,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {isBetaEnabled} = usePermissions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isVendorMatchingEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
@@ -97,7 +96,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'CompanyCard',
         'Workflows',
         'InvoiceBlue',
-        'Rules',
         'Flash',
         'Tag',
         'PerDiem',
@@ -511,10 +509,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             }}
                         />
                         <MoreFeatureToggle
-                            icon={isRulesRevampEnabled ? illustrations.Flash : illustrations.Rules}
+                            icon={illustrations.Flash}
                             title={translate('workspace.moreFeatures.rules.title')}
                             subtitle={translate('workspace.moreFeatures.rules.subtitle')}
-                            isActive={arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled)}
+                            isActive={arePolicyRulesEnabled(policy, policyCategories)}
                             pendingAction={policy?.pendingFields?.areRulesEnabled}
                             disabled={!canWriteMoreFeatures}
                             disabledAction={withReadOnlyFallback()}
@@ -522,11 +520,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                // Only Control always has Rules, and Collect gains them with the revamp beta. Anything
-                                // else (Submit) can't hold Rules at all — arePolicyRulesEnabled would keep reading
-                                // false — so it has to keep going to the upgrade page rather than writing a flag that
+                                // Submit workspaces can't hold Rules at all — arePolicyRulesEnabled would keep reading
+                                // false — so they have to keep going to the upgrade page rather than writing a flag that
                                 // never takes effect.
-                                if (isEnabled && !canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, isRulesRevampEnabled)) {
+                                if (isEnabled && !canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED)) {
                                     Navigation.navigate(
                                         ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
                                     );

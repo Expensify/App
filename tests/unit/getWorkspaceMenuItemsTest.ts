@@ -338,20 +338,6 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.hr')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
-    it('uses the existing Rules icon when the Rules revamp beta is disabled', () => {
-        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areRulesEnabled: true});
-
-        const items = getWorkspaceMenuItems({
-            policy,
-            policyID: policy.id,
-            currentUserLogin,
-            icons,
-            convertToDisplayString: () => '',
-        });
-
-        expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.icon).toBe(icons.Feed);
-    });
-
     it('preserves the complete enabled Workspace menu order and presentation data', () => {
         const policy = createMock<Policy>({
             ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
@@ -385,7 +371,6 @@ describe('getWorkspaceMenuItems', () => {
             policyID: policy.id,
             currentUserLogin,
             icons,
-            isRulesRevampBetaEnabled: true,
             isVendorMatchingBetaEnabled: true,
             convertToDisplayString,
         });

@@ -2,8 +2,6 @@ import {mapFormFieldsToRuleForAPI, mapFormFieldsToRuleForOnyx} from '@libs/actio
 import {getMerchantCodingRulesTableData} from '@libs/MerchantTypeRulesUtils';
 import {hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 
-import {getRuleDescription} from '@pages/workspace/rules/MerchantRulesSection';
-
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {MerchantRuleForm} from '@src/types/form/MerchantRuleForm';
@@ -179,56 +177,6 @@ describe('Vendor matching on merchant rules', () => {
 
             const missing = withCodingRules(buildXeroPolicy({}), {rule1: buildVendorRule('xc1')});
             expect(buildTableData(missing).at(0)?.ruleDescription).toContain('Update supplier to "Supplier unavailable"');
-        });
-    });
-
-    describe('legacy MerchantRulesSection.getRuleDescription vendor summary', () => {
-        beforeEach(() => {
-            IntlStore.load(CONST.LOCALES.EN);
-            return waitForBatchedUpdates();
-        });
-
-        const buildLabels = (policy: Policy) => ({
-            category: translateLocal('common.category').toLowerCase(),
-            tag: translateLocal('common.tag').toLowerCase(),
-            description: translateLocal('common.description').toLowerCase(),
-            tax: translateLocal('common.tax').toLowerCase(),
-            vendor: translateLocal(isXeroActiveMatchingSource(policy) ? 'common.supplier' : 'common.vendor').toLowerCase(),
-        });
-
-        const describeRule = (policy: Policy, vendorID: string) => getRuleDescription(buildVendorRule(vendorID), translateLocal, buildLabels(policy), policy);
-
-        it('resolves the vendor name when the vendor is in the loaded list', () => {
-            const policy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
-            expect(describeRule(policy, 'v-1')).toContain('Update vendor to "Acme Co"');
-        });
-
-        it('shows "Vendor unavailable" when the list is loaded but the vendor is missing', () => {
-            expect(describeRule(buildQBOPolicy([]), 'v-1')).toContain('Update vendor to "Vendor unavailable"');
-        });
-
-        it('falls back to the raw external ID while the list is not yet loaded and no other connection knows the vendor', () => {
-            expect(describeRule(buildQBOPolicy(undefined), 'v-1')).toContain('Update vendor to "v-1"');
-        });
-
-        it('resolves the historical vendor name when the workspace has switched its export mode away from vendor-matching mode', () => {
-            const policy = buildQBOWithVendorBillExportPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
-            expect(describeRule(policy, 'v-1')).toContain('Update vendor to "Acme Co"');
-        });
-
-        it('shows "Vendor unavailable" when the vendorID only resolves against a stale/inactive connection', () => {
-            const policy = buildQBOWithStaleXeroPolicy([], {xeroVendor: {id: 'xeroVendor', name: 'Stale Xero Vendor', email: 'stale@example.com'}});
-            const description = describeRule(policy, 'xeroVendor');
-            expect(description).toContain('Update vendor to "Vendor unavailable"');
-            expect(description).not.toContain('Stale Xero Vendor');
-        });
-
-        it('uses "supplier" wording and "Supplier unavailable" on Xero workspaces', () => {
-            const resolved = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-            expect(describeRule(resolved, 'xc1')).toContain('Update supplier to "Acme Xero"');
-
-            const missing = buildXeroPolicy({});
-            expect(describeRule(missing, 'xc1')).toContain('Update supplier to "Supplier unavailable"');
         });
     });
 

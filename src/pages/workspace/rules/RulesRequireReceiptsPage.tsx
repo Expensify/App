@@ -8,7 +8,6 @@ import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -45,8 +44,6 @@ function RulesRequireReceiptsPage({
     const policy = usePolicy(policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {getCurrencyDecimals} = useCurrencyListActions();
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const decimals = getCurrencyDecimals(policyCurrency);
@@ -182,7 +179,6 @@ function RulesRequireReceiptsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

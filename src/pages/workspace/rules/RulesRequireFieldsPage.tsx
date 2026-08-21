@@ -8,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,11 +46,9 @@ function RulesRequireFieldsPage({
     const {policy} = policyData;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     // The self-heal below writes to the server, so it needs the same Tags write check the Tags table uses.
     const {canWrite: canWriteTags} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     // Per WorkspaceMoreFeaturesPage: only accounting connections own these features, not the HR ones in policy.connections.
@@ -96,8 +93,8 @@ function RulesRequireFieldsPage({
     }, [policyID, policyTags]);
 
     useEffect(() => {
-        // Same self-heal as the Tags table: a required level with no enabled tags can never be satisfied, and it still
-        // fires a violation, so clear it. Pending edits are skipped so this can't fight a toggle the admin just flipped.
+        // Same self-heal as the Tags table: a required level with no enabled tags is a rule the workspace can't meet, so
+        // clear it rather than leave it set. Pending edits are skipped so this can't fight a toggle the admin just flipped.
         if (!canWriteTags || !hasPerLevelTagRequired) {
             return;
         }
@@ -179,7 +176,8 @@ function RulesRequireFieldsPage({
         setTagRequiredByLevel((previous) => ({...previous, [tagList.orderWeight]: required}));
     };
 
-    // Lock only when the feature is off (or categories are accounting-controlled). No enabled items just disables, no lock/modal.
+    // Only the feature being off (or categories being accounting-controlled) gets a tap-to-unlock modal. Switch draws its lock
+    // icon for anything disabled, so a row disabled purely for having nothing to require still needs its own tooltip.
     const shouldShowCategoryLock = isCategoryFeatureDisabled || isConnectedToAccounting;
     const shouldShowTagLock = isTagFeatureDisabled;
 
@@ -190,7 +188,8 @@ function RulesRequireFieldsPage({
 
     const categoryDisabledText = (() => {
         if (!shouldShowCategoryLock) {
-            return undefined;
+            // Feature is on, so the only thing left that disables this row is having no categories to require.
+            return translate('workspace.rules.individualExpenseRules.noCategoriesToRequirePrompt');
         }
         if (isConnectedToAccounting) {
             return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
@@ -226,6 +225,7 @@ function RulesRequireFieldsPage({
         if (action !== ModalActions.CONFIRM) {
             return;
         }
+
         enablePolicyCategories(policyData, true, false);
         setWorkspaceRequiresCategory(policyData, true);
         setCategoryRequired(true);
@@ -233,7 +233,8 @@ function RulesRequireFieldsPage({
 
     const tagDisabledText = (() => {
         if (!shouldShowTagLock) {
-            return undefined;
+            // Feature is on, so the only thing left that disables this row is having no tags to require.
+            return translate('workspace.rules.individualExpenseRules.noTagsToRequirePrompt');
         }
         if (isConnectedToAccounting) {
             return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
@@ -241,8 +242,7 @@ function RulesRequireFieldsPage({
         return translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt');
     })();
 
-    /** Pass orderWeight from a per-level row so only that level is required; omit it for the policy-wide row. */
-    const promptEnableTagsForRequireTag = async (orderWeight?: number) => {
+    const promptEnableTags = async () => {
         if (!isTagFeatureDisabled) {
             return;
         }
@@ -264,23 +264,17 @@ function RulesRequireFieldsPage({
 
         const {action} = await showConfirmModal({
             title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
-            prompt: translate('workspace.rules.individualExpenseRules.enableTagsAndRequirePrompt'),
+            prompt: translate('workspace.rules.individualExpenseRules.enableTagsPrompt'),
             confirmText: translate('common.ok'),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {
             return;
         }
+
+        // Only turn the feature on. Enabling Tags seeds an empty tag list, so requiring a tag here would set a rule the
+        // workspace can't meet yet; the admin flips Required themselves once a tag exists.
         enablePolicyTags(policyData, true);
-
-        if (orderWeight !== undefined) {
-            // setPolicyRequiresTag would require every list, not just this level.
-            setPolicyTagsRequired(policyData, true, orderWeight);
-            return;
-        }
-
-        setPolicyRequiresTag(policyData, true);
-        setTagRequired(true);
     };
 
     return (
@@ -290,7 +284,6 @@ function RulesRequireFieldsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -339,7 +332,7 @@ function RulesRequireFieldsPage({
                                     disabled={isLevelToggleDisabled}
                                     showLockIcon={shouldShowTagLock || isLastRequiredLevel(tagList)}
                                     disabledText={tagDisabledText}
-                                    disabledAction={shouldShowTagLock ? () => promptEnableTagsForRequireTag(tagList.orderWeight) : undefined}
+                                    disabledAction={shouldShowTagLock ? promptEnableTags : undefined}
                                     pendingAction={tagList.pendingFields?.required}
                                     errors={tagList.errorFields?.required ?? undefined}
                                     onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex, errorField: 'required', policyTags})}
@@ -357,7 +350,7 @@ function RulesRequireFieldsPage({
                             disabled={isTagToggleDisabled}
                             showLockIcon={shouldShowTagLock}
                             disabledText={tagDisabledText}
-                            disabledAction={shouldShowTagLock ? promptEnableTagsForRequireTag : undefined}
+                            disabledAction={shouldShowTagLock ? promptEnableTags : undefined}
                             pendingAction={policy?.pendingFields?.requiresTag}
                             errors={policy?.errorFields?.requiresTag ?? undefined}
                             onCloseError={() => clearPolicyErrorField(policyID, 'requiresTag')}

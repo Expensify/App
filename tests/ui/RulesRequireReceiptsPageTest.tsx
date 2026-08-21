@@ -73,11 +73,11 @@ const getItemizedToggleLabel = () => TestHelper.translateLocal('workspace.rules.
 const getAmountLabel = () => TestHelper.translateLocal('workspace.rules.requireReceipts.requireAboveAmount');
 const getSaveLabel = () => TestHelper.translateLocal('workspace.rules.requireReceipts.saveRule');
 
-/** The page is gated behind the rulesRevamp beta, and its wrapper needs an admin on a Control workspace with Rules on. */
+/** The page wrapper needs an admin on a Control workspace with Rules on. */
 const setupPolicy = async (policyOverrides: Partial<Policy>) => {
     await TestHelper.signInWithTestUser();
     await act(async () => {
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.RULES_REVAMP]);
+        await Onyx.set(ONYXKEYS.BETAS, []);
     });
     const policy = {
         ...LHNTestUtils.getFakePolicy(),
