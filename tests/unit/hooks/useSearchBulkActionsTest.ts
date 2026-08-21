@@ -278,7 +278,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
         expect(exportOption).toBeDefined();
 
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -444,7 +444,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
 
         await act(async () => {
             onSelected?.();
