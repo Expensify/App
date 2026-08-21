@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -26,7 +27,7 @@ import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
 type Currency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
@@ -36,19 +37,11 @@ const REQUIRED_FIELDS = [INPUT_IDS.SECURITY_CODE];
 function ChangeBillingCurrency() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT);
     const [formData] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
 
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-    const initialCurrency = defaultCard?.accountData?.currency;
-    const currency = (formDraft?.[INPUT_IDS.CURRENCY] ?? initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD) as Currency;
-
-    // Keep the latest card currency available to the unmount cleanup below without re-running it on every change.
-    const initialCurrencyRef = useRef(initialCurrency);
-    useEffect(() => {
-        initialCurrencyRef.current = initialCurrency;
-    }, [initialCurrency]);
+    const preferredCurrency = usePreferredCurrency();
+    const currency = (formDraft?.[INPUT_IDS.CURRENCY] ?? preferredCurrency) as Currency;
 
     const formDataComplete = formData?.isLoading === false && !formData.errors;
     const prevIsLoading = usePrevious(formData?.isLoading);
@@ -63,13 +56,10 @@ function ChangeBillingCurrency() {
 
     useEffect(() => {
         // Clear any stale submission error (e.g. an incorrect security code from a previous attempt) so reopening the page starts clean,
-        // and drop the currency draft when leaving the flow.
+        // and drop the currency draft when leaving the flow so reopening reflects the card's actual currency.
         clearErrors(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
         return () => {
             clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
-            // The currency selector mirrors the picked currency into ADD_PAYMENT_CARD_FORM; reset it on exit so reopening
-            // the flow doesn't show a stale selection that no longer matches the card's actual currency.
-            PaymentMethods.setPaymentMethodCurrency((initialCurrencyRef.current ?? CONST.PAYMENT_CARD_CURRENCY.USD) as Currency);
         };
     }, []);
 

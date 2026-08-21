@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -13,6 +14,7 @@ import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrevious from '@hooks/usePrevious';
@@ -26,8 +28,6 @@ import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 
-import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
-
 import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
@@ -36,8 +36,8 @@ import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 function AddPaymentCard() {
     const route = useRoute();
@@ -47,11 +47,14 @@ function AddPaymentCard() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [isVerifyingSetupIntent] = useOnyx(ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING);
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
+    // Keep the valid add-card flow visible when the new billing card reaches Onyx before this screen navigates back.
+    const [hasSubmittedPaymentCard, setHasSubmittedPaymentCard] = useState(false);
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
@@ -78,6 +81,8 @@ function AddPaymentCard() {
                   convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
               );
 
+    useNavigateToCardAuthenticationOnLink();
+
     useEffect(() => {
         clearPaymentCardFormErrorAndSubmit();
 
@@ -97,9 +102,10 @@ function AddPaymentCard() {
                 addressZip: values.addressZipCode,
                 currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
             };
-            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList);
+            setHasSubmittedPaymentCard(true);
+            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList, route.name);
         },
-        [accountID, fundList],
+        [accountID, fundList, route.name],
     );
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
@@ -116,12 +122,17 @@ function AddPaymentCard() {
     return (
         <ScreenWrapper testID="AddPaymentCard">
             <FullPageNotFoundView
-                shouldShow={shouldShowBlockingView}
+                shouldShow={shouldShowBlockingView && !hasSubmittedPaymentCard}
                 onBackButtonPress={Navigation.goBack}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                     <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
                     <View style={styles.containerWithSpaceBetween}>
+                        {!!isVerifyingSetupIntent && (
+                            <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                            </View>
+                        )}
                         <PaymentCardForm
                             shouldShowPaymentCardForm
                             addPaymentCard={addPaymentCard}
@@ -153,7 +164,6 @@ function AddPaymentCard() {
                             }
                         />
                     </View>
-                    <CardAuthenticationModal headerTitle={translate('subscription.authenticatePaymentCard')} />
                 </DelegateNoAccessWrapper>
             </FullPageNotFoundView>
         </ScreenWrapper>

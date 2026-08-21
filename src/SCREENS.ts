@@ -18,6 +18,7 @@ const SCREENS = {
     ...PROTECTED_SCREENS,
     REPORT: 'Report',
     DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
+    DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     WORKSPACE_DOCUMENT: 'WorkspaceDocument',
     REPORT_AVATAR: 'ReportAvatar',

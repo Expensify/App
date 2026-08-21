@@ -161,6 +161,15 @@ const DYNAMIC_ROUTES = {
         getRoute: (shouldSkipPurposeSelection?: boolean) => `add-bank-account/verify-account${shouldSkipPurposeSelection ? '?shouldSkipPurposeSelection=true' : ''}` as const,
         queryParams: ['shouldSkipPurposeSelection'],
     },
+    CARD_AUTHENTICATION: {
+        path: 'card-authentication',
+        entryScreens: [
+            SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+            SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD,
+            SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD,
+            SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
+        ],
+    },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
         entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
@@ -207,7 +216,12 @@ const DYNAMIC_ROUTES = {
     },
     PAYMENT_CARD_CURRENCY_SELECTOR: {
         path: 'payment-card-currency',
-        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+        entryScreens: [
+            SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY,
+            SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD,
+            SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD,
+            SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
+        ],
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
