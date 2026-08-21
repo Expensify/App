@@ -1314,15 +1314,6 @@ function isReportTotalPending(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
- * Check if a report is a draft report
- */
-function isDraftReport(reportID: string | undefined): boolean {
-    const draftReport = deprecatedAllReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
-
-    return !!draftReport;
-}
-
-/**
  * @private
  */
 function isSearchReportArray(object: Report[] | OnyxCollection<Report>): object is Report[] {
@@ -14497,7 +14488,6 @@ export {
     getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     isCurrentUserInvoiceReceiver,
-    isDraftReport,
     changeMoneyRequestHoldStatus,
     rejectMoneyRequestReason,
     isAdminOwnerApproverOrReportOwner,
