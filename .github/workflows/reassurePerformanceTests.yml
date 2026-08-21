@@ -19,7 +19,9 @@ jobs:
         run: |
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          git fetch origin "$BASELINE_BRANCH" --no-tags
+          # Reassure only needs the baseline commit's source tree, not its history.
+          # A depth-1 fetch cuts ~174s off this job on blacksmith (2.45 GiB -> 96 MiB transferred).
+          git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git checkout --force --detach "origin/$BASELINE_BRANCH" --no-recurse-submodules
 
       - name: Setup NodeJS
