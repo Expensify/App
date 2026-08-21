@@ -28,7 +28,7 @@ import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import {accountIDSelector} from '@selectors/Session';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import useSavedSearchIcons from './hooks/useSavedSearchIcons';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';

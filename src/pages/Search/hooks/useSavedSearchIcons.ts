@@ -1,5 +1,7 @@
 import {getSavedSearchIconName} from '@libs/SearchUIUtils';
+
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+
 import {useMemo} from 'react';
 
 type SavedSearchCollection = Record<string, SaveSearchItem>;

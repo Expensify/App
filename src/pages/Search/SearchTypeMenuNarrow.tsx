@@ -32,7 +32,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useSavedSearchIcons from './hooks/useSavedSearchIcons';
