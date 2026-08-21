@@ -1,53 +1,25 @@
 #!/usr/bin/env bun
 
 /**
- * Answers "how much work is wave 1" for the `Onyx.get()` proposal, and answers it with a list rather
- * than a number: every `useOnyx()` binding in `src/` that could be deleted in favour of an event-time
- * read, each with a verdict saying whether the mechanical conditions clear it outright or a human has
- * to look.
+ * Lists every `useOnyx()` binding in `src/` that an event-time `Onyx.get()` could replace, with a verdict per
+ * binding. Source of the counts in ONYX-GET-PROPOSAL-V2.md and of the task list in ONYX-GET-MIGRATION-PLAN.md.
  *
- * Superset of the convertible cases: a binding can be off the render path and still be the wrong
- * thing to convert. The three shapes that matter, none of which the non-render classification
- * separates out:
+ * A `CERTAIN` verdict claims only that the mechanical conditions hold: the value never reaches rendered output,
+ * every reference sits in event-position code, no reference is an effect trigger, the consuming function
+ * performs no Onyx write the read could land behind, the binding reads no `selector` the read site would have to
+ * reproduce, the file does not render inside a Search scope where `@hooks/useOnyx` redirects the key to
+ * `snapshot_<hash>`, and no file calls the callee it forwards to during render. It does not claim the conversion
+ * is correct: mixing a source key with a key derived from it stays invisible here.
  *
- *   - the subscription is the trigger, not the data source. A value referenced only inside a
- *     `useEffect` callback or a dependency array is there so the effect re-runs when the key changes.
- *     Delete the subscription and the effect stops firing. This is the proposal's sixth condition,
- *     event-time freshness, and it is the one condition that is a judgment call rather than a rule.
- *   - the binding is never referenced at all. Dead, so it should be deleted rather than converted, and
- *     counting it as conversion work overstates the wave.
- *   - the handler that consumes the value writes to Onyx. Moving the read inside it can put the read
- *     after the write, where `merge` and `update` have not applied yet. That is the proposal's third
- *     condition.
- *   - the file renders inside a Search scope, where `@hooks/useOnyx` redirects the snapshot keys to
- *     `snapshot_<hash>`. The binding and the read then have different sources, and the read's is usually
- *     empty rather than stale, because a search returns entities this client never loaded.
- *
- * What a `CERTAIN` verdict does and does not claim. It claims the mechanical conditions hold: the value
- * never reaches rendered output, every reference sits in event-position code, no reference is an effect
- * trigger, the consuming function performs no Onyx write the read could land behind, the binding reads no
- * `selector` the read site would have to reproduce, and no file calls the callee it forwards to during
- * render. That last one is a cross-file sweep, so it only runs over the whole list: `--file` reports the
- * in-file verdict alone, and `--callees` prints what the sweep found. It still cannot speak to the
- * proposal's fourth condition, mixing a source key with a key derived from it, because that depends on
- * which keys the converted function ends up reading.
- *
- * The analysis is syntactic, one file at a time, with no type-checker, so references resolve by name
- * inside the declaring function. A shadowed name is over-counted, which pushes a binding towards
- * `render` and out of the candidate set. Every inaccuracy therefore shrinks the list, which is the
- * safe direction: this is a lower bound on the work, not an upper one.
+ * Syntactic, one file at a time, no type-checker, so references resolve by name inside the declaring function.
+ * A shadowed name is over-counted, which pushes a binding towards `render` and out of the candidate set. Every
+ * inaccuracy therefore shrinks the list, which is the safe direction: a lower bound on the work, not an upper one.
  *
  * Usage:
- *   bun scripts/trackOnyxGetMigration.ts --status        # where the migration stands, counts and % of all bindings
- *   bun scripts/trackOnyxGetMigration.ts                 # summary, then the whole-file candidates
- *   bun scripts/trackOnyxGetMigration.ts --certain       # just the CERTAIN bindings, one per line
- *   bun scripts/trackOnyxGetMigration.ts --verdicts      # every non-render binding and why
- *   bun scripts/trackOnyxGetMigration.ts --callees       # each callee a CERTAIN binding feeds, and its caller set
- *   bun scripts/trackOnyxGetMigration.ts --callee-names  # every callee to run the caller sweep on
- *   bun scripts/trackOnyxGetMigration.ts --scope         # bindings held out because a Search scope redirects the key
- *   bun scripts/trackOnyxGetMigration.ts --tasks         # wave 1 split into callee tasks and file-local tasks
- *   bun scripts/trackOnyxGetMigration.ts --file <path>   # one file, per-binding verdict
- *   bun scripts/trackOnyxGetMigration.ts --json
+ *   bun scripts/trackOnyxGetMigration.ts [--status]     # counts, why REVIEW, and the entirely-CERTAIN files
+ *   bun scripts/trackOnyxGetMigration.ts --certain      # just the CERTAIN bindings, one per line
+ *   bun scripts/trackOnyxGetMigration.ts --tasks        # wave 1 split into callee tasks and file-local tasks
+ *   bun scripts/trackOnyxGetMigration.ts --file <path>  # one file, per-binding verdict
  */
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
@@ -63,9 +35,8 @@ function argValue(flag: string): string | undefined {
 }
 
 /**
- * Hooks whose callback runs during render, so crossing into one does not defer the read. Kept in step
- * with `RENDER_TIME_HOOK_NAMES` in `eslint-plugin-local-rules/no-unsafe-onyx-read.js`, which decides
- * the same question for the read side.
+ * Hooks whose callback runs during render, so crossing into one does not defer the read. Kept in step with
+ * `RENDER_TIME_HOOK_NAMES` in `eslint-plugin-local-rules/no-unsafe-onyx-read.js`.
  */
 const RENDER_TIME_HOOKS = new Set(['useMemo']);
 
@@ -75,10 +46,7 @@ const MEMO_HOOKS = new Set(['useCallback', 'useMemo']);
 /** Hooks taking a dependency array as their last argument. */
 const HOOKS_WITH_DEPS = new Set(['useMemo', 'useCallback', 'useEffect', 'useLayoutEffect', 'useFocusEffect', 'useImperativeHandle']);
 
-/**
- * Hooks whose callback re-runs because a dependency changed. A value referenced inside one of these,
- * or in its dependency array, is a subscription used as a trigger.
- */
+/** Hooks whose callback re-runs because a dependency changed, so a value inside one is a trigger. */
 const EFFECT_HOOKS = new Set(['useEffect', 'useLayoutEffect', 'useFocusEffect', 'useInsertionEffect']);
 
 /** Array methods that invoke their callback in place, so they defer nothing. */
@@ -100,10 +68,8 @@ const SYNCHRONOUS_CALLBACK_METHODS = new Set([
 ]);
 
 /**
- * Calls that end a synchronous stretch. The `Onyx.get()` rule is one read block per stretch, not per
- * function: code after a deferral runs in a later tick and is meant to see the writes the earlier stretch
- * made, so it has to do its own reads. Nothing catches a read hoisted across one of these, which is why a
- * consuming function containing one needs a placement decision rather than a mechanical conversion.
+ * Calls that end a synchronous stretch. The `Onyx.get()` rule is one read block per stretch, not per function,
+ * so a consuming function containing one needs a placement decision rather than a mechanical conversion.
  */
 const DEFERRAL_CALLS = new Set(['runAfterTransitions', 'setTimeout', 'setInterval', 'requestAnimationFrame', 'runAfterInteractions', 'then', 'finally', 'queueMicrotask', 'setImmediate']);
 
@@ -111,23 +77,11 @@ const DEFERRAL_CALLS = new Set(['runAfterTransitions', 'setTimeout', 'setInterva
 const ONYX_WRITE_METHODS = new Set(['set', 'multiSet', 'merge', 'mergeCollection', 'setCollection', 'update', 'clear']);
 
 /**
- * Whether a node is itself an Onyx write. Three shapes, and the third is the one that matters: the action
- * layer almost never calls `Onyx.merge` directly, it builds `optimisticData` descriptors carrying
- * `onyxMethod: Onyx.METHOD.MERGE` and hands them to `API.write`. Detecting only the direct call finds
- * nothing, which is why `openReport` looked write-free on the first pass.
- *
- * Any call on `API` counts, not just `write`: every entry point on it (`write`, the
- * `writeWithNoDuplicates*` family, `makeRequestWithSideEffects`, `read`, `paginate`) takes an `onyxData`
- * argument that can carry optimistic data.
+ * Whether a node is itself an Onyx write. The action layer rarely calls `Onyx.merge` directly, it builds
+ * `optimisticData` descriptors carrying `onyxMethod: Onyx.METHOD.MERGE` and hands them to `API.write`, so both
+ * shapes count. Any call on `API` counts, not just `write`: every entry point takes an `onyxData` argument.
  */
-/** Import sources that resolve to the Onyx library. Kept in step with the `no-unsafe-onyx-read` rule. */
-const ONYX_MODULE_PREFIX = 'react-native-onyx';
-
-/** Synchronous read APIs on the Onyx surface. None of them subscribe, so each one is a converted read. */
-const SYNC_READ_METHODS = new Set(['get', 'multiGet', 'tupleGet', 'getAllKeys']);
-
 function isOnyxWrite(node: ts.Node): boolean {
-    // `optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, ...})` — building a write descriptor.
     if (ts.isPropertyAccessExpression(node) && node.name.text === 'METHOD' && node.expression.getText() === 'Onyx') {
         return true;
     }
@@ -145,9 +99,8 @@ function isOnyxWrite(node: ts.Node): boolean {
 }
 
 /**
- * Files that can run before Onyx has hydrated, where a synchronous read returns `undefined` for a key
- * that is still only on disk. The proposal's fifth condition. Deliberately a short list of the app's
- * own boot path rather than a guess at what a handler might be called from at startup.
+ * Files that can run before Onyx has hydrated, where a synchronous read returns `undefined` for a key that is
+ * still only on disk. Deliberately the app's own boot path rather than a guess at what a handler is called from.
  */
 const STARTUP_PATH_HINTS = [/^src\/setup\//, /^src\/App\.tsx$/, /^src\/Expensify\.tsx$/, /^src\/HybridAppHandler\.tsx$/, /^src\/libs\/actions\/App\.ts$/, /^src\/libs\/E2E\//];
 
@@ -158,16 +111,9 @@ type ReferenceKind =
     | 'effectDeps'
     /** In the dependency array of a `useMemo` or `useCallback`, which schedules nothing. */
     | 'memoDeps'
-    /**
-     * Inside a memoized function whose own identity feeds an effect's dependency array. The value does not
-     * reach the effect, but changing it churns the callback, which re-runs the effect, so the subscription
-     * is a trigger one hop removed.
-     */
+    /** Inside a memoized function whose own identity feeds an effect's dependency array, so a trigger one hop out. */
     | 'indirectEffect'
-    /**
-     * Inside a function that the scope returns to its caller. Whether that caller invokes it during render
-     * is a cross-file question, so it cannot be cleared here.
-     */
+    /** Inside a function the scope returns to its caller, whose render position is a cross-file question. */
     | 'escapes'
     /** Inside an effect callback, so the subscription is what makes the effect fire. */
     | 'effect'
@@ -189,26 +135,16 @@ type Binding = {
     line: number;
     name: string;
     key: string;
-    referenceCount: number;
-    kinds: ReferenceKind[];
-    /** Every reference indexes straight into the value, so a member-key read is exactly equivalent. */
-    readsSingleMemberOnly: boolean;
     /** Functions the value is handed to, as `name` or `object.name`. Where the read would move. */
     calleeNames: string[];
-    /** The file each callee is declared in, when the import resolves. Empty when it does not. */
+    /** The file each callee is declared in. The binding's own file when the callee is not imported. */
     calleeOwners: Record<string, string>;
     /** Which argument position the value is forwarded as, per callee, so the parameter can be named. */
     forwardedAt: Record<string, number>;
-    /** The name each callee is exported under, which is what to look for in its own file when the import is aliased. */
+    /** The name each callee is exported under, which is what to look up when the import is aliased. */
     calleeExportedNames: Record<string, string>;
     /** Functions in this file that consume the value, which is where a file-local read lands. */
     consumerNames: string[];
-    /** The binding reads through a `selector`, so the read site has to reproduce it rather than copy the key. */
-    hasSelector: boolean;
-    /** Onyx write methods called inside a consuming function, ahead of the reference. */
-    writesAhead: string[];
-    /** Deferral points inside the consuming function, which split it into several synchronous stretches. */
-    deferrals: string[];
     verdict: Verdict;
     /** Why the verdict is not `CERTAIN`. Empty when it is. */
     reasons: string[];
@@ -251,11 +187,7 @@ function calleeName(node: ts.CallExpression): string {
     return ts.isIdentifier(node.expression) ? node.expression.text : node.expression.getText();
 }
 
-/**
- * The bare name a call is made through, so `React.useEffect` matches `useEffect`. Matching the full
- * text instead leaves a member-expression hook call unrecognized, and an unrecognized hook makes a
- * dependency-array reference look like a render read.
- */
+/** The bare name a call is made through, so `React.useEffect` matches `useEffect` rather than going unrecognized. */
 function hookName(node: ts.CallExpression): string {
     if (ts.isIdentifier(node.expression)) {
         return node.expression.text;
@@ -263,11 +195,7 @@ function hookName(node: ts.CallExpression): string {
     return ts.isPropertyAccessExpression(node.expression) ? node.expression.name.text : node.expression.getText();
 }
 
-/**
- * True when a function expression runs where it is written rather than later: an IIFE, or the callback
- * of a synchronous array method. Neither is a boundary, and treating them as one is what mis-labelled
- * 99 bindings in an early version of the subscription classifier.
- */
+/** True when a function expression runs where it is written: an IIFE, or a synchronous array-method callback. */
 function runsImmediately(fn: ts.Node): boolean {
     let outer: ts.Node = fn;
     while (outer.parent && ts.isParenthesizedExpression(outer.parent)) {
@@ -287,12 +215,8 @@ function runsImmediately(fn: ts.Node): boolean {
 }
 
 /**
- * The hook a call belongs to, seeing through the `useFocusEffect(useCallback(fn, deps))` idiom.
- *
- * React Navigation's `useFocusEffect` requires its callback to be memoized, so the effect's real
- * dependency array is written on the inner `useCallback`. Read literally, that array belongs to a memo
- * hook and looks harmless, which is how `selectionMode` in `useSearchBackPress/index.android.ts` cleared
- * every gate while genuinely driving a focus effect.
+ * The hook a call belongs to, seeing through the `useFocusEffect(useCallback(fn, deps))` idiom: the effect's real
+ * dependency array is written on the inner `useCallback`, which read literally looks harmless.
  */
 function effectiveHookName(call: ts.CallExpression): string {
     const name = hookName(call);
@@ -312,7 +236,7 @@ function effectiveHookName(call: ts.CallExpression): string {
     return name;
 }
 
-/** The hook call a function expression is an argument to, if any: `useEffect(() => ...)` gives `useEffect`. */
+/** The hook call a function expression is an argument to: `useEffect(() => ...)` gives `useEffect`. */
 function enclosingHookCall(fn: ts.Node): string | undefined {
     const parent = fn.parent;
     if (!parent || !ts.isCallExpression(parent)) {
@@ -322,12 +246,8 @@ function enclosingHookCall(fn: ts.Node): string | undefined {
 }
 
 /**
- * True for a function React itself calls while rendering to produce an initial value: the lazy initializer
- * of `useState`, or the third argument of `useReducer`. Both run on the first render, so a read inside one
- * is a render read. `reportNameValuePairs` in `ReportsSplitNavigator.tsx` sits in a `useState(() => ...)`
- * and looked deferred until this was added.
- *
- * `useReducer`'s first argument is excluded on purpose: a reducer runs on dispatch, which is an event.
+ * True for a function React runs while rendering to produce an initial value: the lazy initializer of `useState`,
+ * or the third argument of `useReducer`. `useReducer`'s first argument is excluded, since a reducer runs on dispatch.
  */
 function isRenderTimeInitializer(fn: ts.Node): boolean {
     const parent = fn.parent;
@@ -344,29 +264,30 @@ function isRenderTimeInitializer(fn: ts.Node): boolean {
     return name === 'useReducer' && index === 2;
 }
 
-/**
- * True for a function passed as the `selector` of a `useOnyx` call. Onyx runs a selector while the
- * subscription is being evaluated, so a read inside one happens during render and the boundary is
- * transparent, exactly like a `useMemo` callback.
- */
+/** True for a `useOnyx` `selector`, which Onyx runs during render, so the boundary is transparent like a `useMemo`. */
 function isSelectorCallback(fn: ts.Node): boolean {
     const parent = fn.parent;
     return !!parent && ts.isPropertyAssignment(parent) && ts.isIdentifier(parent.name) && parent.name.text === 'selector';
 }
 
+/** True when crossing into this function defers nothing, because React or Onyx runs it during the render pass. */
+function isTransparentBoundary(fn: ts.Node): boolean {
+    const hook = enclosingHookCall(fn);
+    return (!!hook && RENDER_TIME_HOOKS.has(hook)) || isSelectorCallback(fn) || isRenderTimeInitializer(fn);
+}
+
+/** True when a function boundary defers the code inside it, which is what a converted read has to sit behind. */
+function isDeferringBoundary(fn: ts.Node, renderInvoked: Set<ts.Node>): boolean {
+    return isFunctionLike(fn) && !runsImmediately(fn) && !renderInvoked.has(fn) && !isTransparentBoundary(fn);
+}
+
 /**
- * Local functions in `scope` that are called while the scope itself is rendering, so their bodies are
- * render positions rather than deferred ones.
+ * Local functions in `scope` that are called while the scope itself is rendering, so their bodies are render
+ * positions. A plain `const getStatusBarProps = () => {...}` called a few lines down is neither an IIFE nor an
+ * array callback nor a `useMemo`, so every transparency test misses it and the read looks deferred.
  *
- * This is the shape that produced a false `CERTAIN` for `cardList` in `MoneyRequestHeader.tsx`: a plain
- * `const getStatusBarProps = () => {...}` read the value, and the component called it a few lines later
- * and rendered the result. It is neither an IIFE nor an array callback nor a `useMemo`, so every
- * transparency test missed it and the read looked deferred.
- *
- * Resolved to a fixed point, because a render-invoked function's own body is a render position too, so
- * anything it calls is render-invoked as well. Names resolve syntactically, so a shadowed local name
- * over-matches, which marks a function render-invoked when it might not be. That direction removes
- * candidates rather than adding them.
+ * Resolved to a fixed point, because a render-invoked function's body is a render position too. Names resolve
+ * syntactically, so a shadowed local over-matches, which removes candidates rather than adding them.
  */
 function renderInvokedFunctions(scope: ts.Node): Set<ts.Node> {
     /** Local name to the function it is bound to, for both `const f = () => {}` and `function f() {}`. */
@@ -388,10 +309,8 @@ function renderInvokedFunctions(scope: ts.Node): Set<ts.Node> {
     /** Call sites of each local function, by name. */
     const callSites = new Map<string, ts.CallExpression[]>();
     /**
-     * Local functions React itself runs during render because they were handed over by name rather than
-     * called: `useState(getCountry)` and `useOnyx(key, {selector: mySelector})`. There is no call
-     * expression to find, so the call-site scan alone misses them, which is how `countryByIp` in
-     * `SelectCountryStep.tsx` cleared every gate while being read on the first render.
+     * Local functions React runs during render because they were handed over by name rather than called:
+     * `useState(getCountry)` and `useOnyx(key, {selector: mySelector})`. There is no call expression to find.
      */
     const invokedByReact = new Set<ts.Node>();
 
@@ -414,7 +333,6 @@ function renderInvokedFunctions(scope: ts.Node): Set<ts.Node> {
             }
         }
 
-        // `{selector: mySelector}` — Onyx runs it while evaluating the subscription.
         if (parent && ts.isPropertyAssignment(parent) && parent.initializer === node && ts.isIdentifier(parent.name) && parent.name.text === 'selector') {
             invokedByReact.add(fn);
         }
@@ -436,11 +354,8 @@ function renderInvokedFunctions(scope: ts.Node): Set<ts.Node> {
     const isAtRenderPosition = (from: ts.Node): boolean => {
         let node: ts.Node | undefined = from.parent;
         while (node && node !== scope) {
-            if (isFunctionLike(node) && !runsImmediately(node) && !renderInvoked.has(node)) {
-                const hook = enclosingHookCall(node);
-                if ((!hook || !RENDER_TIME_HOOKS.has(hook)) && !isSelectorCallback(node) && !isRenderTimeInitializer(node)) {
-                    return false;
-                }
+            if (isDeferringBoundary(node, renderInvoked)) {
+                return false;
             }
             node = node.parent;
         }
@@ -465,21 +380,16 @@ function renderInvokedFunctions(scope: ts.Node): Set<ts.Node> {
 }
 
 /**
- * The callback bodies of memoized declarations whose own name appears in an effect's dependency array.
- *
- * This is the shape that made `preferredLocale` in `GoogleSignIn/index.tsx` a false `CERTAIN`: the value
- * is read inside a `useCallback`, and that callback is what a `useEffect` depends on. The value never
- * touches the effect, so a direct effect check clears it, yet deleting the subscription stops the effect
- * re-running. Same hazard as a direct effect dependency, one hop further out.
+ * The callback bodies of memoized declarations whose own name appears in an effect's dependency array. The value
+ * never touches the effect, so a direct effect check clears it, yet deleting the subscription stops the effect
+ * re-running: the same hazard as a direct effect dependency, one hop further out.
  */
 function indirectEffectCallbacks(scope: ts.Node): Set<ts.Node> {
     /** Local name to the memoized callback it is bound to. */
     const memoized = new Map<string, ts.Node>();
     /**
-     * Local name to the names its own identity depends on. `debouncedCalculateMentionSuggestion` depends on
-     * `calculateMentionSuggestion`, which depends on `getUserMentionOptions`, which depends on the Onyx
-     * value. Collected from every dependency array nested anywhere in the declaration's initializer, so
-     * wrappers such as `useDebounce(useCallback(fn, deps), wait)` are followed too.
+     * Local name to the names its own identity depends on, collected from every dependency array nested anywhere
+     * in the declaration's initializer, so wrappers such as `useDebounce(useCallback(fn, deps), wait)` are followed.
      */
     const identityDependsOn = new Map<string, Set<string>>();
     /** Names appearing directly in an effect's dependency array. */
@@ -532,9 +442,8 @@ function indirectEffectCallbacks(scope: ts.Node): Set<ts.Node> {
         }
     });
 
-    // Walk the identity chain to a fixed point. A name whose identity feeds something that feeds an effect
-    // schedules that effect just as surely as a direct dependency does, and the chain in
-    // `SuggestionMention.tsx` is three links long.
+    // Walk the identity chain to a fixed point: a name whose identity feeds something that feeds an effect
+    // schedules that effect just as surely as a direct dependency does.
     let changed = true;
     while (changed) {
         changed = false;
@@ -561,11 +470,9 @@ function indirectEffectCallbacks(scope: ts.Node): Set<ts.Node> {
 }
 
 /**
- * Local functions the scope hands back to its caller, as `return {onPress}` or `return [handler]`.
- *
- * A hook that returns a function has given it to an unknown consumer, and whether that consumer calls it
- * during render cannot be answered from this file. A function passed down as a JSX prop is deliberately
- * not included: that is the ordinary handler shape, and the child invoking it is an event, not a render.
+ * Local functions the scope hands back to its caller, as `return {onPress}` or `return [handler]`, where whether
+ * the consumer calls them during render cannot be answered from this file. A function passed down as a JSX prop is
+ * deliberately excluded: that is the ordinary handler shape, and the child invoking it is an event.
  */
 function escapingFunctions(scope: ts.Node): Set<ts.Node> {
     /** Local name to the function it is bound to. */
@@ -606,8 +513,8 @@ function escapingFunctions(scope: ts.Node): Set<ts.Node> {
             return;
         }
 
-        // `return ( <View /> )` is a parenthesized expression, so the JSX test has to look through it.
-        // Without the unwrap every `onPress={handler}` in a component's own JSX counted as an escape.
+        // `return ( <View /> )` is a parenthesized expression, so the JSX test has to look through it, or every
+        // `onPress={handler}` in a component's own JSX counts as an escape.
         let returned: ts.Expression = node.expression;
         while (ts.isParenthesizedExpression(returned)) {
             returned = returned.expression;
@@ -617,9 +524,8 @@ function escapingFunctions(scope: ts.Node): Set<ts.Node> {
         }
 
         forEachDescendant(returned, (child) => {
-            // `return () => {...}` and `return {getter: () => ...}` hand back a function that was never
-            // given a name, so resolving identifiers alone misses them. `useChangeBankAccount` and
-            // `useSelectedExpenseReports` are both this shape.
+            // `return () => {...}` and `return {getter: () => ...}` hand back a function that was never named,
+            // so resolving identifiers alone misses them.
             if (isFunctionLike(child)) {
                 escaping.add(child);
                 return;
@@ -628,7 +534,6 @@ function escapingFunctions(scope: ts.Node): Set<ts.Node> {
             if (!ts.isIdentifier(child)) {
                 return;
             }
-            // A name handed to a child as a prop is the ordinary handler shape, not an escape.
             if (findAncestor(child, ts.isJsxAttribute)) {
                 return;
             }
@@ -643,9 +548,9 @@ function escapingFunctions(scope: ts.Node): Set<ts.Node> {
 }
 
 /**
- * Walks from a reference up to the declaring function, deciding when the value is read. `effect` wins
- * over `deferred` because an effect callback is deferred too, and the distinction is the whole point:
- * one consumes the value, the other is woken by it.
+ * Walks from a reference up to the declaring function, deciding when the value is read. `effect` wins over
+ * `deferred` because an effect callback is deferred too, and the distinction is the whole point: one consumes the
+ * value, the other is woken by it.
  */
 function classifyReference(reference: ts.Node, scope: ts.Node, renderInvoked: Set<ts.Node>, indirectEffects: Set<ts.Node>, escaping: Set<ts.Node>): ReferenceKind {
     let node: ts.Node | undefined = reference.parent;
@@ -660,15 +565,11 @@ function classifyReference(reference: ts.Node, scope: ts.Node, renderInvoked: Se
             return 'render';
         }
 
-        if (isFunctionLike(node) && !runsImmediately(node) && !renderInvoked.has(node)) {
+        if (isDeferringBoundary(node, renderInvoked)) {
+            crossedFunctionBoundary = true;
             const hook = enclosingHookCall(node);
-            if ((hook && RENDER_TIME_HOOKS.has(hook)) || isSelectorCallback(node) || isRenderTimeInitializer(node)) {
-                // A `useMemo` callback and a `useOnyx` selector both run during render, so neither is a boundary.
-            } else {
-                crossedFunctionBoundary = true;
-                if (hook && EFFECT_HOOKS.has(hook)) {
-                    inEffect = true;
-                }
+            if (hook && EFFECT_HOOKS.has(hook)) {
+                inEffect = true;
             }
         }
 
@@ -698,14 +599,14 @@ function classifyReference(reference: ts.Node, scope: ts.Node, renderInvoked: Se
     if (inEffect) {
         return 'effect';
     }
-    // A dependency array of an effect is a trigger even when the body never reads the value, so it
-    // outranks `deferred`. A `useMemo` or `useCallback` dependency array is not: it only decides when an
-    // identity is recomputed, and the conversion deletes the dependency along with the subscription.
+    // An effect's dependency array is a trigger even when the body never reads the value, so it outranks
+    // `deferred`. A `useMemo` or `useCallback` dependency array is not: the conversion deletes the dependency
+    // along with the subscription.
     if (inDepsArray === 'effectDeps') {
         return 'effectDeps';
     }
-    // Both of these only qualify a read that is otherwise deferred. A `useMemo` callback runs during
-    // render whether or not its result escapes, so the render verdict has to win.
+    // Both of these only qualify a read that is otherwise deferred, since a `useMemo` callback runs during render
+    // whether or not its result escapes.
     if (crossedFunctionBoundary) {
         if (inIndirectEffect) {
             return 'indirectEffect';
@@ -721,18 +622,12 @@ function classifyReference(reference: ts.Node, scope: ts.Node, renderInvoked: Se
     return 'render';
 }
 
-/**
- * The nearest function around a reference that actually defers it, which is the body the read would
- * move into. Transparent boundaries are skipped for the same reason `classifyReference` skips them.
- */
+/** The nearest function around a reference that actually defers it, which is the body the read would move into. */
 function consumingFunction(reference: ts.Node, scope: ts.Node, renderInvoked: Set<ts.Node>): ts.Node | undefined {
     let node: ts.Node | undefined = reference.parent;
     while (node && node !== scope) {
-        if (isFunctionLike(node) && !runsImmediately(node) && !renderInvoked.has(node)) {
-            const hook = enclosingHookCall(node);
-            if ((!hook || !RENDER_TIME_HOOKS.has(hook)) && !isSelectorCallback(node) && !isRenderTimeInitializer(node)) {
-                return node;
-            }
+        if (isDeferringBoundary(node, renderInvoked)) {
+            return node;
         }
         node = node.parent;
     }
@@ -740,10 +635,8 @@ function consumingFunction(reference: ts.Node, scope: ts.Node, renderInvoked: Se
 }
 
 /**
- * The name a function is known by, which is what a task has to point at alongside its file: its own
- * identifier, the variable or property it is assigned to, or the JSX attribute it is passed as. An anonymous
- * callback inside another function takes that function's name, so the pointer lands somewhere a reader can
- * open rather than nowhere.
+ * The name a function is known by, which is what a task points at alongside its file. An anonymous callback takes
+ * its enclosing function's name, so the pointer lands somewhere a reader can open.
  */
 function functionName(node: ts.Node, sourceFile: ts.SourceFile): string | undefined {
     if ((ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isMethodDeclaration(node)) && node.name) {
@@ -770,38 +663,20 @@ function functionName(node: ts.Node, sourceFile: ts.SourceFile): string | undefi
     return undefined;
 }
 
-/**
- * Local name to the name the module exports it under, so an aliased import resolves in the owner file:
- * `import {flagComment as flagCommentUtil}` has to be looked up as `flagComment`. A default or namespace
- * import maps to `default`, which the parameter lookup resolves through the file's default export.
- */
-function collectImportedNames(sourceFile: ts.SourceFile): Map<string, string> {
-    const names = new Map<string, string>();
+type FileImports = {
+    /** Local name to module specifier, so a callee can be traced to the file it came from. */
+    specifiers: Map<string, string>;
+    /**
+     * Local name to the name the module exports it under, so an aliased import resolves in the owner file:
+     * `import {flagComment as flagCommentUtil}` has to be looked up as `flagComment`. A default or namespace import
+     * maps to `default`, which the parameter lookup resolves through the file's default export.
+     */
+    exportedNames: Map<string, string>;
+};
 
-    for (const statement of sourceFile.statements) {
-        if (!ts.isImportDeclaration(statement) || !statement.importClause) {
-            continue;
-        }
-        const {name, namedBindings} = statement.importClause;
-        if (name) {
-            names.set(name.text, 'default');
-        }
-        if (namedBindings && ts.isNamespaceImport(namedBindings)) {
-            names.set(namedBindings.name.text, 'default');
-        }
-        if (namedBindings && ts.isNamedImports(namedBindings)) {
-            for (const element of namedBindings.elements) {
-                names.set(element.name.text, (element.propertyName ?? element.name).text);
-            }
-        }
-    }
-
-    return names;
-}
-
-/** Local name to module specifier for every import in a file, so a callee can be traced to where it came from. */
-function collectImports(sourceFile: ts.SourceFile): Map<string, string> {
-    const imports = new Map<string, string>();
+function collectImports(sourceFile: ts.SourceFile): FileImports {
+    const specifiers = new Map<string, string>();
+    const exportedNames = new Map<string, string>();
 
     for (const statement of sourceFile.statements) {
         if (!ts.isImportDeclaration(statement) || !statement.importClause || !ts.isStringLiteral(statement.moduleSpecifier)) {
@@ -810,19 +685,22 @@ function collectImports(sourceFile: ts.SourceFile): Map<string, string> {
         const specifier = statement.moduleSpecifier.text;
         const {name, namedBindings} = statement.importClause;
         if (name) {
-            imports.set(name.text, specifier);
+            specifiers.set(name.text, specifier);
+            exportedNames.set(name.text, 'default');
         }
         if (namedBindings && ts.isNamespaceImport(namedBindings)) {
-            imports.set(namedBindings.name.text, specifier);
+            specifiers.set(namedBindings.name.text, specifier);
+            exportedNames.set(namedBindings.name.text, 'default');
         }
         if (namedBindings && ts.isNamedImports(namedBindings)) {
             for (const element of namedBindings.elements) {
-                imports.set(element.name.text, specifier);
+                specifiers.set(element.name.text, specifier);
+                exportedNames.set(element.name.text, (element.propertyName ?? element.name).text);
             }
         }
     }
 
-    return imports;
+    return {specifiers, exportedNames};
 }
 
 /** The root identifier a call goes through: `IOU.requestMoney()` gives `IOU`, `save()` gives `save`. */
@@ -880,18 +758,15 @@ function resolveModule(specifier: string, importingFile: string): string | undef
     return undefined;
 }
 
-/**
- * The keys `@hooks/useOnyx` redirects to the Search snapshot, read out of `CONST.SEARCH.SNAPSHOT_ONYX_KEYS`
- * rather than copied here, so the list cannot drift from the hook's behaviour. Inside a `SearchScopeProvider`
- * subtree the hook subscribes to `snapshot_<hash>` and extracts the requested key out of that blob, while
- * `Onyx.get` always reads the global key. Converting such a binding therefore changes the data source, and
- * usually to an absent value rather than a stale one, because a search returns reports and transactions this
- * client never loaded.
- */
 const SNAPSHOT_KEYS_FILE = 'src/CONST/index.ts';
 
 let snapshotKeyPathsCache: Set<string> | undefined;
 
+/**
+ * The keys `@hooks/useOnyx` redirects to the Search snapshot, read out of `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` rather
+ * than copied here so the list cannot drift. Inside a `SearchScopeProvider` subtree the hook subscribes to
+ * `snapshot_<hash>` and extracts the key from that blob, while `Onyx.get` always reads the global key.
+ */
 function snapshotKeyPaths(): Set<string> {
     if (snapshotKeyPathsCache) {
         return snapshotKeyPathsCache;
@@ -915,9 +790,7 @@ function snapshotKeyPaths(): Set<string> {
 
 /**
  * The `ONYXKEYS` path a key expression names, or the key text unchanged when there is nothing to strip. A
- * collection member reads as its collection, since that is the granularity `SNAPSHOT_ONYX_KEYS` is written at:
- * `` `${ONYXKEYS.COLLECTION.REPORT}${reportID}` `` gives `ONYXKEYS.COLLECTION.REPORT`. Only a template that
- * opens with its prefix counts, matching the same rule in `no-unsafe-onyx-read.js`.
+ * collection member reads as its collection, the granularity `SNAPSHOT_ONYX_KEYS` is written at.
  */
 function onyxKeyPath(keyText: string): string {
     if (!keyText.startsWith('`')) {
@@ -975,7 +848,7 @@ function enclosingProvider(node: ts.Node, sourceFile: ts.SourceFile): 'scoped' |
     return undefined;
 }
 
-/** The local name a JSX element is stored under, so `const content = <Foo />` and `content = <Foo />` both give `content`. */
+/** The local name a JSX element is stored under, so `const content = <Foo />` gives `content`. */
 function holdingVariableName(node: ts.Node): string | undefined {
     let current: ts.Node | undefined = node.parent;
 
@@ -1001,30 +874,22 @@ type EdgeScope =
     /** Under no provider, so the target inherits whatever the rendering file has. */
     | 'inherit';
 
-/**
- * Files whose components can render inside a Search scope, so a `useOnyx` on a snapshot key in one of them
- * is reading `snapshot_<hash>` rather than the global key.
- *
- * A renders-graph over every `.tsx`: each JSX tag resolves through its file's own imports to the file that
- * declares it, and each edge is labelled by the nearest `SearchScopeProvider` it sits inside. Edges under a
- * default-scoped provider seed the walk, edges under no provider carry the rendering file's own status, and
- * edges under `isOnSearch={false}` carry nothing. A file therefore leaves the set when the opt-out is its only
- * way in, and joins it as soon as any other path reaches it. A provider mount does not put its own file in the
- * set, because a provider in a JSX return governs the children, not the hooks above it in the same body. That
- * is the distinction `PayActionCell` turns on: the `isOnSearch={false}` covers `SettlementButton` downward,
- * while its own subscriptions sat in the body, inside the scope its parents put it in.
- *
- * Provider children usually arrive through a variable rather than lexically, as `searchListContent` does in
- * `src/components/Search/index.tsx`, so an element assigned to a name counts as scoped when that name is
- * referenced inside a provider subtree. Edges this cannot place stay `inherit`, which keeps a mount file's
- * unplaceable JSX out of the set rather than guessing it in.
- *
- * The remaining gap is one-directional: a component reached through `React.lazy`, a component map, or a prop
- * whose JSX is built somewhere this does not look is an edge the graph misses. That is why `useIsOnSearch` in a
- * file counts on its own, since such a file already knows it renders in a Search scope.
- */
 let searchScopedFilesCache: Set<string> | undefined;
 
+/**
+ * Files whose components can render inside a Search scope, so a `useOnyx` on a snapshot key in one of them reads
+ * `snapshot_<hash>` rather than the global key.
+ *
+ * A renders-graph over every `.tsx`: each JSX tag resolves through its file's imports to the file that declares it,
+ * and each edge is labelled by the nearest `SearchScopeProvider` it sits inside. A file leaves the set when the
+ * opt-out is its only way in, and joins it as soon as any other path reaches it. A provider mount does not put its
+ * own file in the set, because a provider in a JSX return governs the children, not the hooks above it in the same
+ * body. Provider children often arrive through a variable rather than lexically, so an element assigned to a name
+ * counts as scoped when that name is referenced inside a provider subtree; edges this cannot place stay `inherit`.
+ *
+ * The remaining gap is one-directional: a component reached through `React.lazy`, a component map, or a prop whose
+ * JSX is built elsewhere is an edge the graph misses. Hence `useIsOnSearch` in a file counts on its own.
+ */
 function searchScopedFiles(): Set<string> {
     if (searchScopedFilesCache) {
         return searchScopedFilesCache;
@@ -1047,11 +912,11 @@ function searchScopedFiles(): Set<string> {
             continue;
         }
 
-        // Only a file that mounts the provider can hold a labelled edge, and walking every identifier's
-        // ancestors is the expensive part of this pass, so the rest skip straight to their plain edges.
+        // Only a file that mounts the provider can hold a labelled edge, and walking every identifier's ancestors
+        // is the expensive part of this pass, so the rest skip straight to their plain edges.
         const mountsProvider = text.includes(SEARCH_SCOPE_PROVIDER);
         const sourceFile = parse(file);
-        const imports = collectImports(sourceFile);
+        const imports = collectImports(sourceFile).specifiers;
         const fileEdges = new Map<string, EdgeScope>();
         /** Targets whose scope depends on where the name holding them is rendered, keyed by that name. */
         const heldTargets = new Map<string, Set<string>>();
@@ -1136,16 +1001,13 @@ function searchScopedFiles(): Set<string> {
     return scoped;
 }
 
-/**
- * Names in a module whose body writes Onyx, found by scanning each top-level function for a literal
- * `Onyx.<write>` call and then propagating across same-file calls until nothing new is found. Cached,
- * because the action layer is imported from everywhere.
- *
- * One module deep, deliberately. A write reached only by calling out to a third module is invisible
- * here, which is why an unresolved or unknown callee stays a hazard rather than being cleared.
- */
 const writerCache = new Map<string, Set<string>>();
 
+/**
+ * Names in a module whose body writes Onyx, found by scanning each top-level function for a literal `Onyx.<write>`
+ * call and then propagating across same-file calls until nothing new is found. One module deep, deliberately: a
+ * write reached only through a third module is invisible here, which is why an unresolved callee stays a hazard.
+ */
 function writersIn(file: string): Set<string> {
     const cached = writerCache.get(file);
     if (cached) {
@@ -1169,7 +1031,7 @@ function writersIn(file: string): Set<string> {
     const starReExports: string[] = [];
     /** `export {a, b}` and `export {a} from './x'`, as local name to the module it actually came from. */
     const namedReExports = new Map<string, string>();
-    const moduleImports = collectImports(sourceFile);
+    const moduleImports = collectImports(sourceFile).specifiers;
 
     for (const statement of sourceFile.statements) {
         if (ts.isExportDeclaration(statement)) {
@@ -1187,8 +1049,8 @@ function writersIn(file: string): Set<string> {
                 for (const element of exportClause.elements) {
                     // `export {inner as outer}` re-exports `inner`, so that is the name to look up.
                     const original = (element.propertyName ?? element.name).text;
-                    // A bare `export {x}` block re-exports whatever `x` was imported as, which is the shape
-                    // the action barrels use. Without this, every function in a barrel looks write-free.
+                    // A bare `export {x}` block re-exports whatever `x` was imported as, the shape the action
+                    // barrels use. Without this, every function in a barrel looks write-free.
                     const specifier = from ?? moduleImports.get(original);
                     const resolved = specifier ? resolveModule(specifier, file) : undefined;
                     if (resolved && resolved !== file) {
@@ -1228,8 +1090,8 @@ function writersIn(file: string): Set<string> {
         }
     }
 
-    // A function that calls a writer is a writer. Iterate to a fixed point rather than recursing, so a
-    // mutual recursion in the action layer cannot run away.
+    // A function that calls a writer is a writer. Iterate to a fixed point rather than recursing, so a mutual
+    // recursion in the action layer cannot run away.
     let changed = true;
     while (changed) {
         changed = false;
@@ -1261,19 +1123,14 @@ function writersIn(file: string): Set<string> {
 }
 
 /**
- * Writes inside `fn` that start before `reference` does, which is the read-after-write hazard: move the
- * read into this function and it can land behind a `merge` or an `update` that has not applied yet.
- * Position, not control flow: a write in a branch the reference never runs under still counts, because
- * deciding otherwise is the judgment this script is refusing to make.
+ * Writes inside `fn` that start before `reference` does, which is the read-after-write hazard: move the read into
+ * this function and it can land behind a `merge` or an `update` that has not applied yet. Position, not control
+ * flow: a write in a branch the reference never runs under still counts, because deciding otherwise is the
+ * judgment this script refuses to make.
  *
- * A literal `Onyx.merge` in a component handler is rare, because components write through the action
- * layer, so a call whose target writes counts as a write too. The target is resolved: an early version
- * counted every call into `src/libs/actions` and flagged 828 bindings, all of them on that rule alone
- * and including read-only helpers like `isAnonymousUser()`, which is a gate that says nothing.
- *
- * The resolution is one module deep and alias-based, with no type-checker, so a callee it cannot resolve
- * is reported as unknown rather than cleared: the reason a read is unsafe is exactly the call whose
- * target could not be read.
+ * Components write through the action layer rather than calling `Onyx.merge`, so a call whose target writes counts
+ * as a write too. Resolution is one module deep and alias-based, so a callee it cannot resolve is skipped rather
+ * than guessed at.
  */
 function writesAhead(fn: ts.Node, reference: ts.Node, imports: Map<string, string>, importingFile: string): string[] {
     const found: string[] = [];
@@ -1295,8 +1152,8 @@ function writesAhead(fn: ts.Node, reference: ts.Node, imports: Map<string, strin
         const root = callRootName(node);
         const specifier = root ? imports.get(root) : undefined;
         if (!specifier) {
-            // A local function, or something from a module this file does not import. Local functions are
-            // covered by the same scan when the read moves, so they are not a hazard on their own.
+            // A local function, or something from a module this file does not import. Local functions are covered
+            // by the same scan when the read moves, so they are not a hazard on their own.
             return;
         }
 
@@ -1315,9 +1172,8 @@ function writesAhead(fn: ts.Node, reference: ts.Node, imports: Map<string, strin
 }
 
 /**
- * Deferral points inside `fn`, meaning the conversion has more than one synchronous stretch to choose
- * between when placing the read. An `await` counts, and so does any call that takes a callback to run
- * later.
+ * Deferral points inside `fn`, meaning the conversion has more than one synchronous stretch to choose between when
+ * placing the read. An `await` counts, and so does any call that takes a callback to run later.
  */
 function deferralsIn(fn: ts.Node): string[] {
     const found: string[] = [];
@@ -1363,14 +1219,12 @@ function argumentIndex(reference: ts.Node): number | undefined {
     return index === -1 ? undefined : index;
 }
 
-/**
- * The name of the parameter a callee takes at a given position, which is what a conversion deletes. Looks for
- * the declaration by its own name, so a member call such as `AccountUtils.hasValidateCodeExtendedAccess`
- * resolves on the last segment. Returns undefined when the declaration is not one of the two plain shapes,
- * which keeps a guess out of the task list.
- */
 const parameterNameCache = new Map<string, ts.SourceFile>();
 
+/**
+ * The name of the parameter a callee takes at a given position, which is what a conversion deletes. Returns
+ * undefined when the declaration is not one of the two plain shapes, which keeps a guess out of the task list.
+ */
 function parameterName(ownerFile: string, callee: string, index: number): string | undefined {
     if (!fs.existsSync(path.join(projectRoot, ownerFile))) {
         return undefined;
@@ -1379,8 +1233,8 @@ function parameterName(ownerFile: string, callee: string, index: number): string
     const sourceFile = parameterNameCache.get(ownerFile) ?? parse(ownerFile);
     parameterNameCache.set(ownerFile, sourceFile);
 
-    // `default` means the caller imported it without a name, so the declaration is whatever the file exports
-    // by default, which is either the function itself or an identifier pointing at one.
+    // `default` means the caller imported it without a name, so the declaration is whatever the file exports by
+    // default, which is either the function itself or an identifier pointing at one.
     let wanted = callee;
     if (wanted === 'default') {
         for (const statement of sourceFile.statements) {
@@ -1430,10 +1284,7 @@ function getValueBinding(declaration: ts.VariableDeclaration): ts.Identifier | u
     return undefined;
 }
 
-/**
- * True for an identifier that names something rather than reading it: a property name, a declaration,
- * a shorthand property's key half. Counting these as reads inflates the reference count.
- */
+/** True for an identifier that names something rather than reading it, which would inflate the reference count. */
 function isNamePositionOnly(id: ts.Identifier): boolean {
     const parent = id.parent;
     if (!parent) {
@@ -1456,8 +1307,6 @@ type CalleeSweep = {
     callSites: number;
     /** `file:line` of every call that runs during a component or hook render. */
     renderCallSites: string[];
-    /** Files holding a call site, so a callee's caller set can be compared with its `CERTAIN` set. */
-    files: Set<string>;
 };
 
 /** True for a function whose body runs during render: a component or a hook. Nothing else does. */
@@ -1480,22 +1329,17 @@ function isRenderScope(fn: ts.Node): boolean {
 /**
  * True when this call runs during a render pass, so a read moved inside the callee would run there too.
  *
- * Deliberately not `classifyReference`: that returns `render` for anything under a JSX expression, which
- * is the safe direction for a value reference but wrong for a call, since `onPress={() => f()}` is an
- * event. Here a function boundary wins over JSX position, and the walk only reports render once it
- * reaches a component or hook, so a call at statement level in `src/libs/` is not mistaken for one.
+ * Deliberately not `classifyReference`: that returns `render` for anything under a JSX expression, which is right
+ * for a value reference but wrong for a call, since `onPress={() => f()}` is an event. Here a function boundary
+ * wins over JSX position, and the walk only reports render once it reaches a component or hook.
  */
 function callRunsDuringRender(call: ts.CallExpression, renderInvoked: Set<ts.Node>): boolean {
     let node: ts.Node | undefined = call.parent;
 
     while (node) {
-        if (isFunctionLike(node) && !runsImmediately(node) && !renderInvoked.has(node)) {
-            const hook = enclosingHookCall(node);
-            const transparent = (!!hook && RENDER_TIME_HOOKS.has(hook)) || isSelectorCallback(node) || isRenderTimeInitializer(node);
-            if (!transparent) {
-                // A handler, an effect callback, a deferred callback: the call does not run at render time.
-                return isRenderScope(node);
-            }
+        if (isDeferringBoundary(node, renderInvoked)) {
+            // A component or hook body runs at render time; a handler, effect or deferred callback does not.
+            return isRenderScope(node);
         }
         node = node.parent;
     }
@@ -1504,17 +1348,16 @@ function callRunsDuringRender(call: ts.CallExpression, renderInvoked: Set<ts.Nod
 }
 
 /**
- * The forward sweep the per-file analysis cannot do. A `CERTAIN` verdict clears keeping the read in the
- * file it is already in; moving it down into a shared callee is a different question, because that
- * callee's own callers decide whether the read would then run during render. Matching is by bare callee
- * name with no type resolution, so a same-named local function in another file also matches: that
- * over-counts render call sites, which pushes bindings out of the candidate set rather than into it.
+ * The forward sweep the per-file analysis cannot do. A `CERTAIN` verdict clears keeping the read in the file it is
+ * already in; moving it into a shared callee is a different question, because that callee's own callers decide
+ * whether the read would then run during render. Matching is by bare callee name, so a same-named local function
+ * elsewhere also matches: that over-counts render call sites, which pushes bindings out of the candidate set.
  */
 function sweepCallees(files: string[], names: Set<string>): Map<string, CalleeSweep> {
     const sweeps = new Map<string, CalleeSweep>();
     const shortNames = new Map<string, string>();
     for (const name of names) {
-        sweeps.set(name, {callSites: 0, renderCallSites: [], files: new Set()});
+        sweeps.set(name, {callSites: 0, renderCallSites: []});
         shortNames.set(name, name.split('.').at(-1) ?? name);
     }
 
@@ -1526,8 +1369,8 @@ function sweepCallees(files: string[], names: Set<string>): Map<string, CalleeSw
         }
 
         const sourceFile = parse(file);
-        // Whole file at once: the walk leaves the nearest scope, so a set built per scope would leave an
-        // outer render-invoked function looking like a real boundary, which is the permissive direction.
+        // Whole file at once: the walk leaves the nearest scope, so a set built per scope would leave an outer
+        // render-invoked function looking like a real boundary, which is the permissive direction.
         const renderInvoked = renderInvokedFunctions(sourceFile);
 
         forEachDescendant(sourceFile, (node) => {
@@ -1540,7 +1383,6 @@ function sweepCallees(files: string[], names: Set<string>): Map<string, CalleeSw
             }
 
             sweep.callSites += 1;
-            sweep.files.add(file);
             if (callRunsDuringRender(node, renderInvoked)) {
                 sweep.renderCallSites.push(`${file}:${sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1}`);
             }
@@ -1555,8 +1397,7 @@ function analyzeFile(file: string): Binding[] {
     const bindings: Binding[] = [];
     const isStartupPath = STARTUP_PATH_HINTS.some((hint) => hint.test(file));
     const isSearchScoped = searchScopedFiles().has(file);
-    const imports = collectImports(sourceFile);
-    const importedNames = collectImportedNames(sourceFile);
+    const {specifiers: imports, exportedNames: importedNames} = collectImports(sourceFile);
     /** One analysis per scope, since several bindings usually share a component body. */
     const renderInvokedScopes = new Map<ts.Node, Set<ts.Node>>();
     const indirectEffectScopes = new Map<ts.Node, Set<ts.Node>>();
@@ -1594,7 +1435,6 @@ function analyzeFile(file: string): Binding[] {
         const priorWrites = new Set<string>();
         const deferrals = new Set<string>();
         let referenceCount = 0;
-        let indexedReferenceCount = 0;
 
         forEachDescendant(scope, (candidate) => {
             if (!ts.isIdentifier(candidate) || candidate.text !== valueBinding.text || candidate === valueBinding || isNamePositionOnly(candidate)) {
@@ -1602,12 +1442,7 @@ function analyzeFile(file: string): Binding[] {
             }
 
             referenceCount += 1;
-            const kind = classifyReference(candidate, scope, renderInvoked, indirectEffects, escaping);
-            kinds.add(kind);
-
-            if (ts.isElementAccessExpression(candidate.parent) && candidate.parent.expression === candidate) {
-                indexedReferenceCount += 1;
-            }
+            kinds.add(classifyReference(candidate, scope, renderInvoked, indirectEffects, escaping));
 
             const callee = argumentCallee(candidate);
             if (callee) {
@@ -1686,16 +1521,13 @@ function analyzeFile(file: string): Binding[] {
             line: sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1,
             name: valueBinding.text,
             key,
-            referenceCount,
-            kinds: [...kinds],
-            readsSingleMemberOnly: referenceCount > 0 && referenceCount === indexedReferenceCount,
             calleeNames: [...calleeNames],
             calleeOwners: Object.fromEntries(
                 [...calleeNames].flatMap((callee) => {
                     const root = callee.split('.').at(0) ?? callee;
                     const specifier = imports.get(root);
-                    // Not imported means declared here, whether at top level or inside the component, so the
-                    // conversion never leaves the file and the task is file-local rather than a callee task.
+                    // Not imported means declared here, so the conversion never leaves the file and the task is
+                    // file-local rather than a callee task.
                     const owner = specifier ? resolveModule(specifier, file) : file;
                     return owner ? [[callee, owner] as const] : [];
                 }),
@@ -1710,9 +1542,6 @@ function analyzeFile(file: string): Binding[] {
                 }),
             ),
             consumerNames: [...consumerNames],
-            hasSelector,
-            writesAhead: [...priorWrites],
-            deferrals: [...deferrals],
             verdict,
             reasons,
         });
@@ -1721,47 +1550,28 @@ function analyzeFile(file: string): Binding[] {
     return bindings;
 }
 
-/**
- * Counts the synchronous Onyx reads already in `src/`, which is the migration's numerator: every one of
- * them is a subscription that no longer exists. Only files that name the Onyx module are parsed, and a
- * call counts only when its object is the Onyx import, so a local `get()` is not mistaken for one.
- */
-function countSyncReads(files: string[]): {reads: number; files: number} {
-    let reads = 0;
-    let touched = 0;
-
-    for (const file of files) {
-        const absolute = path.isAbsolute(file) ? file : path.join(projectRoot, file);
-        if (!fs.readFileSync(absolute, 'utf8').includes(ONYX_MODULE_PREFIX)) {
-            continue;
-        }
-        const sourceFile = parse(file);
-        const onyxNames = new Set([...collectImports(sourceFile).entries()].filter(([, specifier]) => specifier.startsWith(ONYX_MODULE_PREFIX)).map(([localName]) => localName));
-        if (onyxNames.size === 0) {
-            continue;
-        }
-
-        let inFile = 0;
-        forEachDescendant(sourceFile, (node) => {
-            if (!ts.isCallExpression(node) || !ts.isPropertyAccessExpression(node.expression) || !ts.isIdentifier(node.expression.expression)) {
-                return;
-            }
-            if (onyxNames.has(node.expression.expression.text) && SYNC_READ_METHODS.has(node.expression.name.text)) {
-                inFile += 1;
-            }
-        });
-
-        reads += inFile;
-        if (inFile > 0) {
-            touched += 1;
-        }
-    }
-
-    return {reads, files: touched};
-}
-
 function percent(part: number, total: number): string {
     return total === 0 ? '0%' : `${((part / total) * 100).toFixed(1)}%`;
+}
+
+/**
+ * A reason with its specifics stripped, so the counts aggregate per condition rather than per callee or per key.
+ * These four are the numbers the proposal quotes for the checks that reach past one file.
+ */
+function reasonLabel(reason: string): string {
+    if (reason.includes('runs during render at')) {
+        return 'callee runs during render, so the read cannot move into it';
+    }
+    if (reason.includes('keep its parameter')) {
+        return 'callee would keep its parameter and need a fallback read';
+    }
+    if (reason.includes('Search scope')) {
+        return 'file renders inside a Search scope, where useOnyx reads snapshot_<hash>';
+    }
+    if (reason.includes('more than one synchronous stretch')) {
+        return 'consuming function spans more than one synchronous stretch, so the read needs placing by hand';
+    }
+    return reason.replace(/ \(.*\)$/, '');
 }
 
 function main(): void {
@@ -1769,13 +1579,9 @@ function main(): void {
     const files = singleFile ? [singleFile] : listSourceFiles();
     const bindings = files.flatMap(analyzeFile);
 
-    // Second pass: a binding can clear every in-file condition and still forward its value to a function
-    // that some other file calls during render, where a read moved inside it would run at render time.
-    // Only reachable with the whole file list, so `--file` reports the in-file verdict on its own.
+    // Second pass: a binding can clear every in-file condition and still forward its value to a function that
+    // some other file calls during render, where a read moved inside it would run at render time.
     const sweepFiles = singleFile ? listSourceFiles() : files;
-    // Swept for every off-render binding, not only the `CERTAIN` ones, so `--callees` also answers the
-    // question for a callee a later wave wants: can a read live inside it at all. Only `CERTAIN` verdicts
-    // are changed by the result.
     const sweepNames = new Set(bindings.filter((binding) => binding.verdict !== 'NOT_CANDIDATE').flatMap((binding) => binding.calleeNames));
     const sweeps = sweepCallees(sweepFiles, sweepNames);
 
@@ -1784,8 +1590,7 @@ function main(): void {
             continue;
         }
         for (const callee of binding.calleeNames) {
-            const sweep = sweeps.get(callee);
-            const renderCallSite = sweep?.renderCallSites.at(0);
+            const renderCallSite = sweeps.get(callee)?.renderCallSites.at(0);
             if (!renderCallSite) {
                 continue;
             }
@@ -1794,12 +1599,10 @@ function main(): void {
         }
     }
 
-    // Third pass: a callee whose callers outside this set still forward a value cannot lose its parameter, so
-    // the conversion would leave it reading Onyx *and* taking the parameter, one source for the converted
-    // callers and another for the rest. That is a design decision about the callee's signature, not a
-    // mechanical move, so the bindings feeding it are not clear. Repeated to a fixpoint, because demoting one
-    // binding lowers the feeding count of every callee it fed, which can hold back a callee that had just
-    // enough feeders a moment ago.
+    // Third pass: a callee whose callers outside this set still forward a value cannot lose its parameter, so the
+    // conversion would leave it reading Onyx *and* taking the parameter, one source for the converted callers and
+    // another for the rest. That is a design decision about the signature, not a mechanical move. Repeated to a
+    // fixpoint, because demoting one binding lowers the feeding count of every callee it fed.
     for (let settled = false; !settled; ) {
         settled = true;
         const feeding = new Map<string, number>();
@@ -1831,40 +1634,12 @@ function main(): void {
     const certain = bindings.filter((binding) => binding.verdict === 'CERTAIN');
     const review = bindings.filter((binding) => binding.verdict === 'REVIEW');
 
-    if (argv.includes('--json')) {
-        console.log(JSON.stringify({bindings}, null, 2));
-        return;
-    }
-
-    if (argv.includes('--status')) {
-        // One place the migration is measured from, so two runs never disagree about its size.
-        const byFileAll = new Map<string, Binding[]>();
+    if (singleFile) {
         for (const binding of bindings) {
-            byFileAll.set(binding.file, [...(byFileAll.get(binding.file) ?? []), binding]);
+            console.log(
+                `${binding.verdict.padEnd(13)} :${String(binding.line).padStart(4)}  ${binding.name} <- ${binding.key}${binding.reasons.length > 0 ? `  (${binding.reasons.join('; ')})` : ''}`,
+            );
         }
-        const wholeCertain = [...byFileAll.values()].filter((fileBindings) => fileBindings.every((binding) => binding.verdict === 'CERTAIN'));
-        const converted = countSyncReads(files);
-        const row = (label: string, count: number) => `${label.padEnd(44)}: ${String(count).padStart(5)}  (${percent(count, bindings.length).padStart(6)})`;
-
-        console.log('=== Onyx read migration, current state ===');
-        console.log(row('useOnyx bindings in src/', bindings.length));
-        console.log(row('  render-reachable, must stay on useOnyx', bindings.length - nonRender.length));
-        console.log(row('  off the render path', nonRender.length));
-        console.log(row('      CERTAIN, mechanically clear', certain.length));
-        console.log(row('      REVIEW, a condition needs a person', review.length));
-        console.log(row('  of REVIEW: callee runs during render', review.filter((binding) => binding.reasons.some((reason) => reason.includes('runs during render at'))).length));
-        console.log(row('  of REVIEW: binding reads through a selector', review.filter((binding) => binding.hasSelector).length));
-        console.log(row('  of REVIEW: Search scope redirects the key', review.filter((binding) => binding.reasons.some((reason) => reason.includes('Search scope'))).length));
-        console.log(row('  of REVIEW: callee would keep its parameter', review.filter((binding) => binding.reasons.some((reason) => reason.includes('keep its parameter'))).length));
-        console.log('');
-        console.log(`synchronous Onyx reads present today        : ${String(converted.reads).padStart(5)} in ${converted.files} file(s)`);
-        console.log(
-            `cheapest next PRs, files entirely CERTAIN   : ${String(wholeCertain.length).padStart(5)} files, ${wholeCertain.reduce((sum, fileBindings) => sum + fileBindings.length, 0)} bindings`,
-        );
-        console.log('');
-        console.log('Percentages are of every useOnyx binding in src/. CERTAIN means no mechanical condition objects,');
-        console.log('not that a conversion is correct, so it is a review shortlist rather than a work-list. REVIEW is not');
-        console.log('a backlog either: an effect trigger, or a value the user saw, should keep its subscription.');
         return;
     }
 
@@ -1875,35 +1650,11 @@ function main(): void {
         return;
     }
 
-    if (argv.includes('--callees')) {
-        // Every callee a CERTAIN binding forwards to, with what the forward sweep found. A callee whose
-        // caller set is wider than its CERTAIN set keeps its parameters, since the rest keep subscribing.
-        const forwardingByCallee = new Map<string, {bindings: number; certain: number; files: Set<string>}>();
-        for (const binding of nonRender) {
-            for (const callee of binding.calleeNames) {
-                const entry = forwardingByCallee.get(callee) ?? {bindings: 0, certain: 0, files: new Set<string>()};
-                entry.bindings += 1;
-                entry.certain += binding.verdict === 'CERTAIN' ? 1 : 0;
-                entry.files.add(binding.file);
-                forwardingByCallee.set(callee, entry);
-            }
-        }
-        for (const [callee, entry] of [...forwardingByCallee.entries()].sort((a, b) => b[1].bindings - a[1].bindings)) {
-            const sweep = sweeps.get(callee);
-            const renderCallSite = sweep?.renderCallSites.at(0);
-            const blocked = renderCallSite ? `  BLOCKED, runs during render at ${renderCallSite}` : '';
-            console.log(
-                `${String(entry.bindings).padStart(4)} bindings (${String(entry.certain)} CERTAIN) in ${String(entry.files.size)} file(s) feed ${callee}, called from ${String(sweep?.callSites ?? 0)} site(s)${blocked}`,
-            );
-        }
-        return;
-    }
-
     if (argv.includes('--tasks')) {
-        // Wave 1 as issues rather than as a list of bindings. Two kinds, because they have different revert
-        // units: a callee task changes one function and every file that calls it, so it cannot be split by
-        // file, while a file-local task is bounded by its own file. Callee tasks print first because a callee
-        // PR's diff is a superset of what a file-local PR in the same file would touch.
+        // Wave 1 as issues rather than as a list of bindings. Two kinds, because they have different revert units:
+        // a callee task changes one function and every file that calls it, so it cannot be split by file, while a
+        // file-local task is bounded by its own file. Callee tasks print first because a callee PR's diff is a
+        // superset of what a file-local PR in the same file would touch.
         const calleeTasks = new Map<string, {owner: string; bindings: Binding[]}>();
         const fileTasks = new Map<string, Binding[]>();
 
@@ -1923,13 +1674,11 @@ function main(): void {
         }
 
         console.log(`=== Wave 1 tasks, ${certain.length} CERTAIN bindings ===`);
-        // Every callee reaching this point loses its parameter with the read: a callee that would keep one has
-        // already taken its feeding bindings out of `CERTAIN`, so there is nothing left here to filter.
         console.log('');
         console.log(`--- A. Callee tasks, ${calleeTasks.size}. The read moves into the function and its parameter goes with it ---`);
         for (const [callee, entry] of [...calleeTasks.entries()].sort((a, b) => b[1].bindings.length - a[1].bindings.length)) {
-            // The parameters the conversion deletes, named at the callee rather than at the call sites: every
-            // caller is in this wave, which is what put the callee here, so the signature loses them outright.
+            // Every caller of a callee reaching this point is in this wave, which is what put it here, so the
+            // signature loses these parameters outright.
             const parameters = [
                 ...new Set(
                     entry.bindings.flatMap((binding) => {
@@ -1960,91 +1709,47 @@ function main(): void {
         return;
     }
 
-    if (argv.includes('--scope')) {
-        // Bindings held out because the file renders inside a Search scope. Each one is a subscription to
-        // `snapshot_<hash>` that a conversion would silently point at the global key instead.
-        const scoped = bindings.filter((binding) => binding.reasons.some((reason) => reason.includes('Search scope')));
-        for (const binding of scoped) {
-            console.log(`${binding.file}:${binding.line}  ${binding.name} <- ${binding.key}`);
-        }
-        console.log('');
-        console.log(
-            `${scoped.length} binding(s) in ${new Set(scoped.map((binding) => binding.file)).size} file(s), out of ${searchScopedFiles().size} file(s) reachable from a Search scope.`,
-        );
-        return;
-    }
-
-    if (argv.includes('--callee-names')) {
-        // Every function a CERTAIN binding hands its value to, so the read can be pushed past this file.
-        // Run the forward caller sweep on these before moving a read into one.
-        for (const callee of [...new Set(certain.flatMap((binding) => binding.calleeNames))].sort()) {
-            console.log(callee);
-        }
-        return;
-    }
-
-    if (singleFile) {
-        for (const binding of bindings) {
-            console.log(
-                `${binding.verdict.padEnd(13)} :${String(binding.line).padStart(4)}  ${binding.name} <- ${binding.key}${binding.reasons.length > 0 ? `  (${binding.reasons.join('; ')})` : ''}`,
-            );
-        }
-        return;
-    }
-
-    console.log('=== useOnyx bindings in src/ ===');
-    console.log(`files scanned                  : ${files.length}`);
-    console.log(`bindings                       : ${bindings.length}`);
-    console.log(`reach rendered output          : ${bindings.length - nonRender.length} (${percent(bindings.length - nonRender.length, bindings.length)})`);
-    console.log(`off the render path            : ${nonRender.length} (${percent(nonRender.length, bindings.length)})`);
-    console.log('');
-    console.log('--- of those, split by what the mechanical conditions say ---');
-    console.log(`CERTAIN  convert                : ${certain.length} in ${new Set(certain.map((binding) => binding.file)).size} files`);
-    console.log(`REVIEW   a condition needs eyes : ${review.length} in ${new Set(review.map((binding) => binding.file)).size} files`);
-
-    const reasonCounts = new Map<string, number>();
-    for (const binding of review) {
-        for (const reason of binding.reasons) {
-            const label = reason.replace(/ \(.*\)$/, '');
-            reasonCounts.set(label, (reasonCounts.get(label) ?? 0) + 1);
-        }
-    }
-    console.log('\n--- why REVIEW, by reason (a binding can have more than one) ---');
-    for (const [reason, count] of [...reasonCounts.entries()].sort((a, b) => b[1] - a[1])) {
-        console.log(`${String(count).padStart(4)}  ${reason}`);
-    }
-
-    // A file where every binding is CERTAIN loses all its subscriptions in one commit, which is the
-    // cheapest thing to review: nothing is left half-converted for a reader to reason about.
+    // Default, also reachable as `--status`: one place the migration is measured from, so two runs never disagree
+    // about its size.
     const byFile = new Map<string, Binding[]>();
     for (const binding of bindings) {
         byFile.set(binding.file, [...(byFile.get(binding.file) ?? []), binding]);
     }
-    const wholeFile = [...byFile.entries()].filter(([, fileBindings]) => fileBindings.every((binding) => binding.verdict === 'CERTAIN'));
-    const partial = [...byFile.entries()].filter(
-        ([, fileBindings]) => fileBindings.some((binding) => binding.verdict === 'CERTAIN') && fileBindings.some((binding) => binding.verdict !== 'CERTAIN'),
-    );
+    // A file where every binding is CERTAIN loses all its subscriptions in one commit, which is the cheapest thing
+    // to review: nothing is left half-converted for a reader to reason about.
+    const wholeCertain = [...byFile.entries()].filter(([, fileBindings]) => fileBindings.every((binding) => binding.verdict === 'CERTAIN'));
+    const row = (label: string, count: number) => `${label.padEnd(44)}: ${String(count).padStart(5)}  (${percent(count, bindings.length).padStart(6)})`;
 
-    console.log('\n=== the wave-1 work-list ===');
-    console.log(`whole-file conversions (every binding CERTAIN) : ${wholeFile.length} files, ${wholeFile.reduce((sum, [, fileBindings]) => sum + fileBindings.length, 0)} bindings`);
-    console.log(
-        `partial conversions (some bindings stay)       : ${partial.length} files, ${partial.reduce((sum, [, fileBindings]) => sum + fileBindings.filter((binding) => binding.verdict === 'CERTAIN').length, 0)} bindings`,
-    );
-
-    console.log('\n--- whole-file conversions, most bindings first ---');
-    for (const [file, fileBindings] of wholeFile.sort((a, b) => b[1].length - a[1].length)) {
-        const single = fileBindings.filter((binding) => binding.readsSingleMemberOnly).length;
-        console.log(`${String(fileBindings.length).padStart(3)}  ${single > 0 ? `member-only=${single}  ` : ''}${file}`);
-    }
-
-    if (argv.includes('--verdicts')) {
-        console.log('\n--- every binding off the render path ---');
-        for (const binding of nonRender.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)) {
-            console.log(
-                `${binding.verdict.padEnd(13)} ${binding.file}:${binding.line}  ${binding.name} <- ${binding.key}${binding.reasons.length > 0 ? `  (${binding.reasons.join('; ')})` : ''}`,
-            );
+    console.log('=== Onyx read migration, current state ===');
+    console.log(row('useOnyx bindings in src/', bindings.length));
+    console.log(row('  render-reachable, must stay on useOnyx', bindings.length - nonRender.length));
+    console.log(row('  off the render path', nonRender.length));
+    console.log(row('      CERTAIN, mechanically clear', certain.length));
+    console.log(row('      REVIEW, a condition needs a person', review.length));
+    console.log('');
+    console.log('--- why REVIEW, by reason (a binding can have more than one) ---');
+    const reasonCounts = new Map<string, number>();
+    for (const binding of review) {
+        for (const reason of binding.reasons) {
+            reasonCounts.set(reasonLabel(reason), (reasonCounts.get(reasonLabel(reason)) ?? 0) + 1);
         }
     }
+    for (const [reason, count] of [...reasonCounts.entries()].sort((a, b) => b[1] - a[1])) {
+        console.log(`${String(count).padStart(4)}  ${reason}`);
+    }
+
+    console.log('');
+    console.log(
+        `--- cheapest next PRs: ${wholeCertain.length} file(s) where every binding is CERTAIN, ${wholeCertain.reduce((sum, [, fileBindings]) => sum + fileBindings.length, 0)} bindings ---`,
+    );
+    for (const [file, fileBindings] of wholeCertain.sort((a, b) => b[1].length - a[1].length)) {
+        console.log(`${String(fileBindings.length).padStart(3)}  ${file}`);
+    }
+
+    console.log('');
+    console.log('Percentages are of every useOnyx binding in src/. CERTAIN means no mechanical condition objects,');
+    console.log('not that a conversion is correct, so it is a review shortlist rather than a work-list. REVIEW is not');
+    console.log('a backlog either: an effect trigger, or a value the user saw, should keep its subscription.');
 }
 
 main();
