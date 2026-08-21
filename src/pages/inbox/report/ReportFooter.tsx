@@ -2,7 +2,7 @@ import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
-import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
+import MerchantRuleSuggestionTooltip from '@components/MerchantRuleSuggestionTooltip';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
 
@@ -107,23 +107,27 @@ function ReportFooter() {
                 <ReportActionCompose reportID={reportIDFromRoute} />
             </SwipeableView>
         );
+        // On narrow layouts the expense detail view anchors this tooltip under its own header instead, per design
+        const composerWithMerchantRuleTooltip =
+            shouldUseNarrowLayout || isComposerFullSize ? (
+                composer
+            ) : (
+                <MerchantRuleSuggestionTooltip
+                    reportID={reportIDFromRoute}
+                    policyID={report.policyID}
+                >
+                    {composer}
+                </MerchantRuleSuggestionTooltip>
+            );
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                {/* On narrow layouts the expense detail view renders this callout under its own header instead, per design */}
-                {!shouldUseNarrowLayout && !isComposerFullSize && (
-                    <MerchantRuleSuggestionBanner
-                        reportID={reportIDFromRoute}
-                        policyID={report.policyID}
-                        containerStyles={styles.mb2}
-                    />
-                )}
                 {shouldShowEnableNotificationsBanner ? (
                     <>
                         <EnableNotificationsBanner />
-                        <View style={[composerOverlapStyle, isComposerFullSize && styles.flex1]}>{composer}</View>
+                        <View style={[composerOverlapStyle, isComposerFullSize && styles.flex1]}>{composerWithMerchantRuleTooltip}</View>
                     </>
                 ) : (
-                    composer
+                    composerWithMerchantRuleTooltip
                 )}
             </View>
         );

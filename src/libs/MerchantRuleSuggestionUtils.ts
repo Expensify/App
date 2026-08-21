@@ -1,13 +1,13 @@
-import Parser from '@libs/Parser';
-import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {getCategory, getDescription, getMerchant, getTag, isMerchantMissing} from '@libs/TransactionUtils';
-
 import CONST from '@src/CONST';
 import type {MerchantRuleForm} from '@src/types/form';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import Parser from './Parser';
+import {resolveCurrentTaxCode} from './PolicyUtils';
+import {getCategory, getDescription, getMerchant, getTag, isMerchantMissing} from './TransactionUtils';
 
 /**
  * Builds the merchant-rule draft that pre-seeds the rule creation flow when an admin turns an expense edit into a

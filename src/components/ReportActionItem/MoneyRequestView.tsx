@@ -3,7 +3,7 @@ import HighlightableMenuItemWithTopDescription from '@components/HighlightableMe
 import Icon from '@components/Icon';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
+import MerchantRuleSuggestionTooltip from '@components/MerchantRuleSuggestionTooltip';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
@@ -1165,6 +1165,10 @@ function MoneyRequestView({
     // the RHP) must keep their inline receipt, so the check is scoped to this view's own route key.
     const isInWideRHP = wideRHPRouteKeys.includes(route.key);
 
+    // A "Create a rule" offer only makes sense on a live expense the admin just edited, not in a review or merge flow.
+    // On wide layouts the report footer anchors the tooltip above the composer instead.
+    const shouldOfferMerchantRule = shouldUseNarrowLayout && !readonly && !isFromReviewDuplicates && !isFromMergeTransaction;
+
     // If the view is readonly, we don't need the transactionThread dependency
     if ((!readonly && !transactionThreadReport?.reportID) || !transaction?.transactionID) {
         return <ReportActionsSkeletonView />;
@@ -1174,21 +1178,20 @@ function MoneyRequestView({
         <View style={[styles.moneyRequestView]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
-                {/* On wide layouts this callout renders above the composer in the report footer instead, per design */}
-                {shouldUseNarrowLayout && !readonly && !isFromReviewDuplicates && !isFromMergeTransaction && (
-                    <MerchantRuleSuggestionBanner
-                        reportID={transactionThreadReport?.reportID ?? parentReport?.reportID}
-                        policyID={policyID}
-                        containerStyles={[styles.mh4, styles.mb3]}
-                    />
-                )}
                 {(!isInWideRHP || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
-                    <MoneyRequestReceiptView
-                        report={transactionThreadReport ?? parentReport}
-                        readonly={readonly}
-                        updatedTransaction={updatedTransaction}
-                        mergeTransactionID={mergeTransactionID}
-                    />
+                    // The "Create a rule" tooltip anchors above the receipt on narrow layouts; on wide layouts the
+                    // report footer anchors it above the composer instead, per design.
+                    <MerchantRuleSuggestionTooltip
+                        reportID={shouldOfferMerchantRule ? (transactionThreadReport?.reportID ?? parentReport?.reportID) : undefined}
+                        policyID={policyID}
+                    >
+                        <MoneyRequestReceiptView
+                            report={transactionThreadReport ?? parentReport}
+                            readonly={readonly}
+                            updatedTransaction={updatedTransaction}
+                            mergeTransactionID={mergeTransactionID}
+                        />
+                    </MerchantRuleSuggestionTooltip>
                 )}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>

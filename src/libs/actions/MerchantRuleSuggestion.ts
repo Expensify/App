@@ -4,28 +4,32 @@ import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSugg
 import Onyx from 'react-native-onyx';
 
 /**
- * Records that a merchant-rule-governed field was edited on an expense, so the expense detail view can offer to
- * turn the edit into a merchant rule. The record is RAM-only, so it never outlives the session, and it is written
- * for every user: whether the callout actually renders is decided by `useMerchantRuleSuggestion`, which requires
- * workspace admin rights.
+ * Records that a merchant-rule-governed field was edited on an expense, so the expense detail view can offer to turn
+ * the edit into a merchant rule. Only the most recent edit is kept: the product training context shows one tooltip at
+ * a time, and the offer is always about the edit the user just made.
+ *
+ * The record is RAM-only, so it never outlives the session. This deliberately does not use `dismissProductTraining`
+ * like the other product training elements: that NVP dismisses an element account-wide and permanently, while this
+ * callout is scoped to one expense and is meant to surface again on a later edit.
+ *
+ * Written for every user; whether the tooltip renders is decided by `useMerchantRuleSuggestion` and the tooltip's
+ * `shouldShow`, which require workspace admin rights.
  */
 function trackMerchantRuleSuggestion(transactionID: string | undefined, field: MerchantRuleSuggestionField, reportIDs: Array<string | undefined>) {
     if (!transactionID) {
         return;
     }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_MERCHANT_RULE_SUGGESTION}${transactionID}`, {
+    Onyx.set(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
         transactionID,
         reportIDs: reportIDs.filter((reportID): reportID is string => !!reportID),
         field,
-        // A fresh edit re-opens the callout even if an earlier edit on this expense was dismissed
-        isDismissed: false,
     });
 }
 
-/** Dismisses the "Create a rule" callout for a single expense. */
-function dismissMerchantRuleSuggestion(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_MERCHANT_RULE_SUGGESTION}${transactionID}`, {isDismissed: true});
+/** Dismisses the "Create a rule" tooltip for the expense currently offering it. */
+function dismissMerchantRuleSuggestion() {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isDismissed: true});
 }
 
 export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion};
