@@ -30,7 +30,9 @@ type SearchHeaderIcons = {
     Bank?: IconAsset;
 };
 
-const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
+// `getExpenseHeaders` is shared by expense, invoice and trip Search plus the opened single-report table.
+// Invoice is treated like a report, so it labels the date column "Created"; expense/trip and the opened report keep "Date".
+const getExpenseHeaders = (groupBy?: SearchGroupBy, isDateColumnCreated = false): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
@@ -43,7 +45,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        translationKey: 'common.date',
+        translationKey: isDateColumnCreated ? 'search.filters.created' : 'common.date',
         canEdit: true,
     },
     {
@@ -501,7 +503,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
             }
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return getExpenseHeaders(groupBy);
+            return getExpenseHeaders(groupBy, true);
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.TASK:
@@ -618,7 +620,7 @@ function SearchTableHeader({
         <SortableTableHeader
             columns={orderedColumnConfig}
             shouldShowColumn={shouldShowColumn}
-            isDateColumnCreated={type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
+            isDateColumnCreated={type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.INVOICE}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

@@ -72,7 +72,7 @@ type ColumnsSettingsListProps = {
     /** Callback fired with the updated column list when the user saves changes */
     onSave: (columns: SearchCustomColumnIds[]) => void;
 
-    /** The active Search type; the date column reads "Created" only for expense reports (otherwise "Date") */
+    /** The active Search type; the date column reads "Created" only for report-style types (expense report, invoice), otherwise "Date" */
     type?: SearchDataTypes;
 };
 
