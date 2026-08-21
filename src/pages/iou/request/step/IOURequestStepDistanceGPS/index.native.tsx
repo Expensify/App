@@ -9,6 +9,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -62,6 +63,7 @@ function IOURequestStepDistanceGPS({
     const delegateAccountID = useDelegateAccountID();
 
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -174,6 +176,7 @@ function IOURequestStepDistanceGPS({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
+            isOffline,
             gpsCoordinates,
             gpsDistance: originalDistance,
             gpsModifiedDistance: modifiedDistance,

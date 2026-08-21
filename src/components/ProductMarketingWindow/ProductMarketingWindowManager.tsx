@@ -6,7 +6,7 @@ import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 
-import {setNameValuePair} from '@libs/actions/User';
+import {dismissMarketingWindow} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
@@ -66,7 +66,9 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     // Semantically covering overlays take precedence over the marketing window from pre-show through final hide.
     // Responsive popover sheets and route-backed right-docked navigation remain exempt.
     const [isProductMarketingWindowCovered = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
-    const [isAnonymousSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
+    const [isAnonymousSession = false] = useOnyx(ONYXKEYS.SESSION, {
+        selector: isAnonymousSessionSelector,
+    });
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
     // OpenApp provides the dismissal and targeting data; wait for it to avoid a startup flash or a wrong CTA destination.
@@ -110,7 +112,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     }
 
     const persistDismissal = () => {
-        setNameValuePair(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey, lastDismissedMarketingWindow ?? '');
+        dismissMarketingWindow(announcement.updateKey);
     };
 
     const dismiss = () => {
