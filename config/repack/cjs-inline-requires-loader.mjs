@@ -78,15 +78,33 @@ function inlineInteropRequiresPlugin({types: t}) {
 export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
     const callback = this.async();
     try {
-        const sourceMaps = !!this.sourceMap;
+        const options = this.getOptions() || {};
+        // On prebuilt bundles SWC can emit a multi-source map, which remapping() below rejects
+        // ("Transformation map 0 must have exactly one source file"). The node_modules rule passes
+        // `sourcemap: false` to skip maps entirely, like babel-swc-loader does for node_modules.
+        const sourceMaps = options.sourcemap !== undefined ? options.sourcemap : !!this.sourceMap;
+
+        // App source only needs block-scoping (Hermes shares one binding across loop iterations,
+        // see the sign-in bug). node_modules packages additionally ship async generators, which
+        // Hermes cannot parse ("async generators are unsupported"), so the node_modules rule opts
+        // into lowering those too. Everything else modern (classes, private fields, optional
+        // chaining, spread) Hermes handles natively — the full RN-preset lowering set costs +3.5%
+        // minified JS for nothing.
+        const envInclude = options.hermesLowering ? ['transform-block-scoping', 'transform-async-to-generator', 'transform-async-generator-functions'] : ['transform-block-scoping'];
 
         const swcResult = await rspack.experiments.swc.transform(source, {
             filename: this.resourcePath,
             isModule: true,
             env: {
                 targets: {node: 24},
-                include: ['transform-block-scoping'],
+                include: envInclude,
             },
+            jsc: options.hermesLowering
+                ? {
+                      // Loose-mode class lowering, same as the babel config's {loose: true} plugins.
+                      assumptions: {setPublicClassFields: true, privateFieldsAsProperties: true},
+                  }
+                : undefined,
             module: {type: 'commonjs', lazy: false},
             sourceMaps,
             inputSourceMap: inputSourceMap ? JSON.stringify(inputSourceMap) : undefined,
