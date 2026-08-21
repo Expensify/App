@@ -85,4 +85,30 @@ describe('useDebouncedState', () => {
             });
         }).not.toThrow();
     });
+
+    it('should cancel a pending debounced update', () => {
+        const {result} = renderHook(() => useDebouncedState(''));
+
+        act(() => {
+            result.current[2]('pending');
+            result.current[4]();
+            jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
+        });
+
+        expect(result.current[0]).toBe('pending');
+        expect(result.current[1]).toBe('');
+    });
+
+    it('should set the debounced value immediately', () => {
+        const {result} = renderHook(() => useDebouncedState(''));
+
+        act(() => {
+            result.current[2]('pending');
+            result.current[4]();
+            result.current[3]('immediate');
+        });
+
+        expect(result.current[0]).toBe('pending');
+        expect(result.current[1]).toBe('immediate');
+    });
 });

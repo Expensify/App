@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 
+import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,6 +22,8 @@ function SearchAdvancedFiltersBase() {
     const {translate} = useLocalize();
     const {currentDraftFilters, shouldShowResetFilters} = useContext(SearchAdvancedFiltersContext);
     const {applyFilters, resetFilters} = useContext(SearchAdvancedFiltersActionContext);
+    const policyID = getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, currentDraftFilters);
+    const filterKeys = useAdvancedSearchFilters(currentDraftFilters.type, policyID);
 
     return (
         <ScreenWrapper
@@ -32,8 +35,7 @@ function SearchAdvancedFiltersBase() {
             <HeaderWithBackButton title={translate('search.filtersHeader')} />
             <FilterList
                 contentContainerStyle={[styles.pb5]}
-                type={currentDraftFilters.type}
-                policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, currentDraftFilters)}
+                filterKeys={filterKeys}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
             {shouldShowResetFilters && (
