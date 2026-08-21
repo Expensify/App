@@ -136,7 +136,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Sentry Name**: `ShareExtensionOpenSubmitFlow`
 **Threshold**: 1s (P90)
 **What's Measured**: Time from selecting a recipient in the Share Submit flow to the submit-details (confirm) screen rendering
-**Start**: Recipient selected in the in-app Share participants selector, using an existing report or an account that requires an optimistic DM (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`). For users restricted to one workspace, the span instead starts when auto-navigation to the locked workspace's expense chat begins.
+**Start**: Recipient selected in the in-app Share participants selector, using an existing report or an account that requires an optimistic DM (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`).
 **End**:
 - User sees: Confirm-details screen
 - Technical: Confirm-details container layout complete (onLayout event)
