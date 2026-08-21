@@ -9,7 +9,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
@@ -17,7 +16,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isPaidGroupPolicy, isPolicyAdmin, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import colors from '@styles/theme/colors';
@@ -70,17 +69,12 @@ function BookTravelButton({
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isUserValidated = account?.validated ?? false;
     const primaryLogin = account?.primaryLogin ?? '';
 
     const policy = usePolicy(activePolicyID);
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
-    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => {
-        if (blockIfDefaultWorkspaceLacksTravel()) {
-            return;
-        }
-        openTravelDotLink(policy?.id, undefined, undefined, undefined, () => setErrorMessage(translate('travel.errorMessage')));
-    });
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
@@ -147,27 +141,7 @@ function BookTravelButton({
         // TravelDot on an already-enabled workspace, and the legacy request-access path below.
         if (!willUseEnablementStepper && areTravelPersonalDetailsMissing(privatePersonalDetails)) {
             shouldResumeBookingRef.current = true;
-            // Open the legal-name form inside the Travel RHP. The workspace-scoped route mounts over the
-            // ADMIN-gated workspace Settings > Travel central screen, which renders NotFound for non-admins.
-            Navigation.navigate(ROUTES.TRAVEL_MISSING_PERSONAL_DETAILS.getRoute());
-            return;
-        }
-
-        // Everything below is admin-only workspace setup (domain checks, provisioning, the enablement stepper).
-        // A non-admin can't run any of it, but the backend still issues them a Spotnana token when the workspace
-        // is provisioned - so validate the account first (GenerateSpotnanaToken 401s for unvalidated users), then
-        // go straight to TravelDot and surface a failure inline instead of dead-ending in an admin flow.
-        // This must stay above the adminDomains check: a member can't see the admins' private domains, so that
-        // check would wrongly send them to the public-domain error page.
-        if (!isPolicyAdmin(policy, primaryContactMethod)) {
-            if (!isUserValidated) {
-                verifyAccountAndResume(undefined, ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute(), true));
-                return;
-            }
-            if (blockIfDefaultWorkspaceLacksTravel()) {
-                return;
-            }
-            openTravelDotLink(policy?.id, undefined, undefined, undefined, () => setErrorMessage(translate('travel.errorMessage')));
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
             return;
         }
 

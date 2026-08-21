@@ -4,7 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
-const openTravelDotLink = (activePolicyID?: string, postLoginPath?: string, spotnanaToken?: string, isTestAccount?: boolean, onError?: () => void) => {
+const openTravelDotLink = (activePolicyID?: string, postLoginPath?: string, spotnanaToken?: string, isTestAccount?: boolean) => {
     if (spotnanaToken) {
         asyncOpenURL(Promise.resolve(), () => buildTravelDotURL(spotnanaToken, isTestAccount ?? false, postLoginPath));
         return;
@@ -12,12 +12,6 @@ const openTravelDotLink = (activePolicyID?: string, postLoginPath?: string, spot
     openTravelDotLinkWeb(activePolicyID, postLoginPath)
         ?.then(() => {})
         ?.catch(() => {
-            // Callers that render their own inline error (e.g. BookTravelButton) pass onError. The Manage Trips
-            // redirect is the fallback for entry points that have nowhere to show one.
-            if (onError) {
-                onError();
-                return;
-            }
             Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicyID));
         });
 };

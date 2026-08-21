@@ -6,7 +6,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 
 import Onyx from 'react-native-onyx';
 
@@ -119,30 +118,6 @@ describe('useVerifyAccountAndResume', () => {
 
         expect(mockedNavigation.navigate).toHaveBeenCalledWith(mockVerifyAccountRoute);
         expect(onResume).not.toHaveBeenCalled();
-    });
-
-    it('resumes after validation on a custom verify-account route', async () => {
-        const onResume = jest.fn();
-        const customVerifyAccountRoute = 'travel/verify-account?policyID=123&shouldResumeBooking=true' as Route;
-        mockedNavigation.getActiveRouteWithoutParams.mockReturnValue('travel/verify-account');
-        const {result} = renderHook(() => useVerifyAccountAndResume(onResume));
-
-        act(() => {
-            result.current.verifyAccountAndResume(undefined, customVerifyAccountRoute);
-        });
-
-        expect(mockedNavigation.navigate).toHaveBeenCalledWith(customVerifyAccountRoute);
-
-        await setIsUserValidated(true);
-        await waitFor(() => {
-            expect(mockedNavigation.runAfterUpcomingTransition).toHaveBeenCalledTimes(1);
-        });
-
-        act(() => {
-            mockPendingTransitionCallbacks.at(0)?.();
-        });
-
-        expect(onResume).toHaveBeenCalledWith(undefined);
     });
 
     it('resumes the stored payload after validation on the same verify account route', async () => {
