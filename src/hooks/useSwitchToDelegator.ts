@@ -8,12 +8,13 @@ import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
-import type {Account} from '@src/types/onyx';
+import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
+
+import Onyx from 'react-native-onyx';
 
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
-import useOnyx from './useOnyx';
 
 /**
  * Encapsulates the safety checks needed before switching to a delegator account:
@@ -30,15 +31,6 @@ function useSwitchToDelegator() {
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const [delegatedAccess] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account: Account | undefined) => account?.delegatedAccess});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
-
     const showOfflineModal = () => {
         showConfirmModal({
             title: translate('common.youAppearToBeOffline'),
@@ -48,7 +40,7 @@ function useSwitchToDelegator() {
         });
     };
 
-    const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
+    const showGpsInProgressModal = async (gpsPoints: GPSPoint[][], switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
         const result = await showConfirmModal({
             title: translate('gps.switchAccountWarningTripInProgress.title'),
             prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
@@ -60,7 +52,7 @@ function useSwitchToDelegator() {
             return;
         }
 
-        await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
+        await stopGpsTrip(false, gpsPoints, true);
         switchAccount();
     };
 
@@ -69,6 +61,18 @@ function useSwitchToDelegator() {
             modalClose(() => showOfflineModal());
             return;
         }
+        // Read everything up front, in one block, for two reasons. The subscriptions this replaced all came from
+        // a single render snapshot, so every branch below saw a mutually consistent set of values, and reads
+        // spread across the confirmation modal would not be. And every read sits before the first write, which
+        // is what makes it safe to read synchronously at all: Onyx.merge applies to the cache on a microtask.
+        const delegatedAccess = Onyx.get(ONYXKEYS.ACCOUNT)?.delegatedAccess;
+        const credentials = Onyx.get(ONYXKEYS.CREDENTIALS);
+        const stashedCredentials = Onyx.get(ONYXKEYS.STASHED_CREDENTIALS) ?? CONST.EMPTY_OBJECT;
+        const session = Onyx.get(ONYXKEYS.SESSION);
+        const stashedSession = Onyx.get(ONYXKEYS.STASHED_SESSION);
+        const activePolicyID = Onyx.get(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+        const gpsDraftDetails = Onyx.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+
         const isReturningToOriginalUser = isActingAsDelegate && email === stashedSession?.email;
         // Chained delegation isn't supported by the backend — if we're already acting as a delegate,
         // the only legal switch is back to the original user. Anything else triggers the "Not so fast" modal.
@@ -79,8 +83,8 @@ function useSwitchToDelegator() {
         const switchAction = isReturningToOriginalUser
             ? () => disconnect({stashedCredentials, stashedSession})
             : () => connect({email, delegatedAccess, credentials, session, activePolicyID});
-        if (isTrackingGPS) {
-            modalClose(() => showGpsInProgressModal(switchAction));
+        if (isTrackingSelector(gpsDraftDetails)) {
+            modalClose(() => showGpsInProgressModal(getGpsPoints(gpsDraftDetails), switchAction));
             return;
         }
         switchAction();

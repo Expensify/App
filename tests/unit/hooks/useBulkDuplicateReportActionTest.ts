@@ -222,7 +222,7 @@ describe('useBulkDuplicateReportAction', () => {
         );
     });
 
-    it('should pass Onyx policy data (policies, categories, tags)', async () => {
+    it('should not forward Onyx policy data, which bulkDuplicateReports now reads for itself', async () => {
         const policyID = 'policy1';
         mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
@@ -254,23 +254,15 @@ describe('useBulkDuplicateReportAction', () => {
 
         result.current();
 
-        expect(bulkDuplicateReports).toHaveBeenCalledWith(
-            expect.objectContaining({
-                allPolicies: expect.objectContaining({
-                    [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: expect.objectContaining({id: policyID}),
-                }),
-                allPolicyCategories: expect.objectContaining({
-                    [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: expect.objectContaining({
-                        Food: expect.objectContaining({name: 'Food'}),
-                    }),
-                }),
-                allPolicyTags: expect.objectContaining({
-                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]: expect.objectContaining({
-                        Tag: expect.objectContaining({name: 'Tag'}),
-                    }),
-                }),
-            }),
-        );
+        // The data above is in Onyx and does reach the duplication: `tests/actions/IOUTest/DuplicateTest.ts`
+        // asserts the policy, category and tag behaviour against the function, which reads these keys itself.
+        // What this case guards is that the hook stopped threading them through, so nobody adds them back.
+        const params = jest.mocked(bulkDuplicateReports).mock.calls.at(0)?.at(0);
+
+        expect(params).not.toHaveProperty('allPolicies');
+        expect(params).not.toHaveProperty('allPolicyCategories');
+        expect(params).not.toHaveProperty('allPolicyTags');
+        expect(params).toEqual(expect.objectContaining({selectedReports}));
     });
 
     it('should pass allReports to bulkDuplicateReports', async () => {

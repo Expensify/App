@@ -335,6 +335,10 @@ const config = defineConfig([
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
+            // Position and order for the synchronous Onyx read: not during render, where the read does not subscribe; not at module
+            // scope, where it runs at import time, before Onyx.init() has hydrated the cache; and not after an un-awaited write in
+            // the same body, where Onyx.merge() and Onyx.update() apply in a later microtask so the read returns the pre-write value.
+            'rulesdir/no-unsafe-onyx-read': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',

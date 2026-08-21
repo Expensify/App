@@ -10,14 +10,13 @@ import type {Report} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useLocalize from './useLocalize';
-import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
 type UseBulkDuplicateReportActionParams = {
@@ -36,21 +35,12 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-
     const handleDuplicateReports = () => {
+        // `conciergeChat` arrived on main after this hook was converted, so it is read here at event time rather
+        // than through the two subscriptions it came with. `bulkDuplicateReports` still takes it as a parameter.
+        const conciergeReportID = Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeChat = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
         bulkDuplicateReports({
@@ -58,24 +48,13 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             selectedReports,
             allReports: allReports ?? {},
             searchData,
-            allPolicies,
-            allPolicyCategories,
-            allPolicyTags,
             defaultExpensePolicy,
             activePolicyExpenseChat,
             ownerPersonalDetails: currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
-            betas,
-            personalDetails,
-            quickAction,
-            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-            isSelfTourViewed,
-            transactionViolations: allTransactionViolations,
             translate,
-            recentWaypoints,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails?.accountID,
-            isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
             getCurrencyDecimals,

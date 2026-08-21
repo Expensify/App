@@ -55,6 +55,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
@@ -1328,24 +1329,13 @@ type BulkDuplicateReportsParams = {
     selectedReports: SelectedReports[];
     allReports: NonNullable<OnyxCollection<OnyxTypes.Report>>;
     searchData: Record<string, unknown> | undefined;
-    allPolicies: OnyxCollection<OnyxTypes.Policy>;
-    allPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
-    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     defaultExpensePolicy: OnyxEntry<OnyxTypes.Policy>;
     activePolicyExpenseChat: OnyxEntry<OnyxTypes.Report>;
     ownerPersonalDetails: CurrentUserPersonalDetails;
     isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    policyRecentlyUsedCurrencies: string[];
-    isSelfTourViewed: boolean;
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
-    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUserLogin: string;
     currentUserAccountID: number;
-    isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
@@ -1357,29 +1347,34 @@ function bulkDuplicateReports({
     selectedReports: selectedReportsParam,
     allReports,
     searchData,
-    allPolicies,
-    allPolicyCategories,
-    allPolicyTags,
     defaultExpensePolicy,
     activePolicyExpenseChat,
     ownerPersonalDetails,
     isASAPSubmitBetaEnabled,
-    betas,
-    personalDetails,
-    quickAction,
-    policyRecentlyUsedCurrencies,
-    isSelfTourViewed,
-    transactionViolations,
     translate,
-    recentWaypoints,
     currentUserLogin,
     currentUserAccountID,
-    isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
     conciergeChat,
 }: BulkDuplicateReportsParams) {
+    // Every read happens here, in one block, before the loop below writes anything. That ordering is the
+    // condition these reads have to satisfy: Onyx.merge applies to the cache on a microtask, so a read taken
+    // after the first duplicateReport() call could see a half-applied revision. Reading once up front also
+    // keeps every iteration working from the same snapshot, which is what the subscriptions used to guarantee.
+    const allPolicies = Onyx.get(ONYXKEYS.COLLECTION.POLICY);
+    const allPolicyCategories = Onyx.get(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const allPolicyTags = Onyx.get(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const transactionViolations = Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const betas = Onyx.get(ONYXKEYS.BETAS);
+    const personalDetails = Onyx.get(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const quickAction = Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const policyRecentlyUsedCurrencies = Onyx.get(ONYXKEYS.RECENTLY_USED_CURRENCIES) ?? [];
+    const recentWaypoints = Onyx.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const isSelfTourViewed = hasSeenTourSelector(Onyx.get(ONYXKEYS.NVP_ONBOARDING)) ?? false;
+    const isTrackIntentUser = isTrackIntentUserSelector(Onyx.get(ONYXKEYS.NVP_INTRO_SELECTED));
+
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
 

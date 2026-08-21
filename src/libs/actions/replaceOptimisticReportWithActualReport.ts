@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report, ReportActions} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -36,35 +36,13 @@ import {openReport, saveReportDraftComment} from './Report';
  * 3. Transfer any draft comment from the optimistic report to the preexisting report
  * 4. Clean up associated data like parent report actions for money request reports
  *
+ * WHERE THE READS SIT:
+ * The REPORT subscription below is the trigger, so it stays. Everything else is read synchronously at the point of use
+ * rather than mirrored into a module-level cache. The placement matters here, unlike in a plain event handler: this
+ * function writes, then defers, then reads again, and each later read is meant to see the state at that later moment,
+ * which is what the module-level caches gave it before. Reading the parent report action next to its use keeps that,
+ * and keeps it observing the deletion made at the top of the function.
  */
-
-let allReportDraftComments: Record<string, string | undefined> = {};
-// Draft comments are cached only for transferring to the preexisting report; no UI subscribes, so connectWithoutView() is used.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    callback: (value) => (allReportDraftComments = value ?? {}),
-});
-
-let allReports: OnyxCollection<Report>;
-
-// Onyx.connectWithoutView is used here only because this value is consumed inside another Onyx.connectWithoutView callback.
-// Do not use sessionAccountID for other purposes.
-let sessionAccountID: number | undefined;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        sessionAccountID = value?.accountID;
-    },
-});
-
-let allReportActions: OnyxCollection<ReportActions> = {};
-// Report actions are cached only to resolve parent actions for IOU cleanup; no UI subscribes, so connectWithoutView() is used.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (value) => {
-        allReportActions = value ?? {};
-    },
-});
 
 function replaceOptimisticReportWithActualReport(report: Report, draftReportComment: string | undefined, currentUserAccountID: number) {
     const {reportID, preexistingReportID, parentReportID, parentReportActionID} = report;
@@ -85,7 +63,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
     // If an optimistic IOU action was created before we knew a preexisting IOU action for the thread existed,
     // remove it to avoid duplicate IOU report actions
     if (isMoneyRequest(report) && parentReportID && parentReportActionID) {
-        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID];
+        const parentReportAction = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`)?.[parentReportActionID];
         if (parentReportAction?.isOptimisticAction) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentReportActionID]: null,
@@ -100,8 +78,8 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             // Or we optimistically created a thread report under a comment that already has an associated child chat report.
             // In this case, the API will let us know by returning a preexistingReportID.
             // We should clear out the optimistically created report and re-route the user to the preexisting report.
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
-            const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+            const existingReport = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`);
+            const parentReport = parentReportID ? Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`) : undefined;
             let callback = () => {
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
@@ -123,8 +101,10 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         preexistingReportID: null,
                     });
                     // Non-optimistic parent actions already exist, so we update their childReportID;
-                    // optimistic actions were already cleaned up above
-                    const parentReportAction = parentReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID] : null;
+                    // optimistic actions were already cleaned up above, so this read is deliberately here and not
+                    // hoisted: it observes that deletion. The isOptimisticAction check below covers the same case a
+                    // second time, so a stale read would reach the same answer, but the two agreeing is the point
+                    const parentReportAction = parentReportID ? Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`)?.[parentReportActionID] : null;
                     if (parentReportAction && !parentReportAction.isOptimisticAction) {
                         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                             [parentReportActionID]: {childReportID: preexistingReportID},
@@ -211,7 +191,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                 isParentOneTransactionReport &&
                 (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
             ) {
-                const hasReportActions = !!allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+                const hasReportActions = !!Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
                 if (draftReportComment) {
                     // Draft must be saved first because the callback will clear the optimistic report and its associated draft
                     saveReportDraftComment(parentReportID, draftReportComment, () => {
@@ -248,11 +228,12 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
 }
 
 // Reports are observed only to detect preexistingReportID and run replacement; no UI subscribes, so connectWithoutView() is used.
+// This subscription is the trigger for the whole module rather than a cache of report data: it exists to notice a report
+// arriving with a preexistingReportID. The draft comment is read here, per report, instead of being mirrored in a
+// module-level cache of the entire REPORT_DRAFT_COMMENT collection.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (value: OnyxCollection<Report>) => {
-        allReports = value;
-
         if (!value) {
             return;
         }
@@ -264,8 +245,8 @@ Onyx.connectWithoutView({
 
             replaceOptimisticReportWithActualReport(
                 report,
-                allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`],
-                sessionAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`),
+                Onyx.get(ONYXKEYS.SESSION)?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             );
         }
     },
