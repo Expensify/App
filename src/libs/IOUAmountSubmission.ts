@@ -35,8 +35,10 @@ import {convertToBackendAmount} from './CurrencyUtils';
 import {
     calculateDefaultReimbursable,
     getExistingTransactionID,
+    isLookingAroundSearchRoutingActive,
     isMovingTransactionFromTrackExpense,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     navigateToConfirmationPage,
     navigateToParticipantPage,
     resolveOptimisticChatReportID,
@@ -83,6 +85,8 @@ type SubmitAmountArgs = {
     paymentMethod?: PaymentMethodType;
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** Whether the app is offline. Offline suppresses the LOOKING_AROUND self-DM -> Search routing. */
+    isOffline?: boolean;
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -316,6 +320,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         quickAction,
         onboarding,
         introSelected,
+        isOffline,
         recentWaypoints,
         betas,
         transactionViolations,
@@ -339,6 +344,9 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     const optimisticTransactionID = rand64();
     const {optimisticChatReportID} = resolveOptimisticChatReportID([participant?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const isTrackExpenseSubmit = iouType === CONST.IOU.TYPE.TRACK;
+    // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
+    // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
     const draftTransactionIDsList = Object.keys(transactionDrafts ?? {});
     const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
     const executeExpenseWrite = (overrides: WriteOverrides) => {
@@ -426,11 +434,16 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
             backToReport,
             optimisticChatReportID,
             linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
+            isLookingAroundUser: isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline),
+            isSelfDMDestination,
         });
     };
     submitWithDismissFirst({
         executeWrite: executeExpenseWrite,
         destinationReportID: isTrackExpenseSubmit ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID,
+        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+        isLookingAroundUser: isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline),
+        isSelfDMDestination,
         telemetryContext: {
             scenario: isTrackExpenseSubmit ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
             iouType,

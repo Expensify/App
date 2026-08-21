@@ -10,6 +10,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import {getAccountingIntegrationDisplayName, getQuickbooksOnlineIntegrationName, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -52,23 +53,6 @@ import {
     shouldShowInvoiceItemMenuItem,
 } from './netsuite/utils';
 import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
-
-const INTUIT_ENTERPRISE_SUITE_SCOPE = 'app-foundations.custom-dimensions.read';
-
-function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
-    return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(INTUIT_ENTERPRISE_SUITE_SCOPE);
-}
-
-function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
-    return translate(isIntuitEnterpriseSuiteConnection(policy) ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo');
-}
-
-function getAccountingIntegrationDisplayName(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, translate: LocaleContextProps['translate']): string {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
-        return getQuickbooksOnlineIntegrationName(policy, translate);
-    }
-    return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
-}
 
 function getCurrentAccountingIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
     const currentConnectionName = getCurrentConnectionName(policy);

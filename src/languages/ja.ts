@@ -43,6 +43,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: '共有を解除',
         yes: 'はい',
         no: 'いいえ',
+        dontChange: '変更しない',
         ok: 'OK',
         notNow: '今はしない',
         noThanks: '結構です',
@@ -1516,8 +1517,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             unableToSubmitReport: 'レポートを送信できません',
+            unableToMarkAsDone: '完了にできません',
             allTransactionsPendingDescription: 'すべての取引が保留中のため、このレポートは提出できません。反映されるまでに数日かかる場合があります。',
+            allTransactionsPendingMarkAsDoneDescription: 'すべての取引が保留中のため、このレポートを完了にできません。反映されるまでに数日かかる場合があります。',
             allExpensesOnHoldDescription: 'すべての経費が保留中のため、このレポートを送信できません。送信するには、保留を解除してください。',
+            allExpensesOnHoldMarkAsDoneDescription: 'すべての経費が保留中のため、このレポートを完了にできません。続行するには、保留を解除してください。',
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
             failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
         },
@@ -1526,6 +1530,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `清算を開始しました。${submitterDisplayName} がウォレットを有効にするまで、支払いは保留されます。`,
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
+        sendToSomeone: '誰かに送る',
         unhold: '保留を解除',
         holdExpense: () => ({
             one: '経費を保留',
@@ -2040,8 +2045,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'プロフィールアバター',
         customInstructions: 'カスタム指示',
         copilotIntoAccount: 'アカウントにCopilot',
-        viewUserHistory: 'ユーザー履歴を表示',
-        viewAgentHistory: 'エージェント履歴を表示',
         publicSection: {
             title: '公開',
             subtitle: 'これらの詳細はあなたの公開プロフィールに表示され、誰でも閲覧できます。',
@@ -4538,7 +4541,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             subscription: 'サブスクリプション',
             markAsEntered: '手入力としてマーク',
             markAsExported: 'エクスポート済みにする',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポート`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) =>
+                `${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポート`,
             letsDoubleCheck: 'すべて正しく表示されているか、もう一度確認しましょう。',
             lineItemLevel: '明細レベル',
             reportLevel: 'レポートレベル',
@@ -7212,10 +7216,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         },
         exportAgainModal: {
             title: '注意！',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `次のレポートはすでに ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。もう一度エクスポートしてもよろしいですか？
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `次のレポートはすでに ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。もう一度エクスポートしてもよろしいですか？
 
 ${reportName}`,
             confirmText: 'はい、再度エクスポートします',
@@ -7223,17 +7228,17 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: '注意！',
-            description: (connectionName: ConnectionName) =>
-                `選択したレポートは異なる ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} の会社に接続されているため、一緒にエクスポートすることはできません。同じ会社に接続されているレポートを選択して、もう一度お試しください。`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `選択したレポートは異なる ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} の会社に接続されているため、一緒にエクスポートすることはできません。同じ会社に接続されているレポートを選択して、もう一度お試しください。`,
             confirmText: '了解',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `${exportableCount}/${selectedCount}件のレポートを${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}にエクスポートしますか？`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `${exportableCount}/${selectedCount}件のレポートを${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}にエクスポートしますか？`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。`);
+                    reasons.push(`${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。`);
                 }
                 if (hasIneligibleReports) {
                     reasons.push(`エクスポート可能なレポートのみがエクスポートされます。`);
