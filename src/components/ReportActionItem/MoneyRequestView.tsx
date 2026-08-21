@@ -3,6 +3,7 @@ import HighlightableMenuItemWithTopDescription from '@components/HighlightableMe
 import Icon from '@components/Icon';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MerchantRuleSuggestionTooltip from '@components/MerchantRuleSuggestionTooltip';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
@@ -1156,13 +1157,17 @@ function MoneyRequestView({
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {wideRHPRouteKeys} = useWideRHPState();
     const route = useRoute();
     // The receipt is hidden only for the MoneyRequestView rendered inside a wide RHP, where the wide RHP's left
     // receipt panel already shows it. Instances mounted on other screens (e.g. the central report pane behind
     // the RHP) must keep their inline receipt, so the check is scoped to this view's own route key.
     const isInWideRHP = wideRHPRouteKeys.includes(route.key);
+
+    // A "Create a rule" offer only makes sense on a live expense the admin just edited, not in a review or merge flow.
+    // On wide layouts the report footer anchors the tooltip above the composer instead.
+    const shouldOfferMerchantRule = shouldUseNarrowLayout && !readonly && !isFromReviewDuplicates && !isFromMergeTransaction;
 
     // If the view is readonly, we don't need the transactionThread dependency
     if ((!readonly && !transactionThreadReport?.reportID) || !transaction?.transactionID) {
@@ -1174,12 +1179,19 @@ function MoneyRequestView({
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {(!isInWideRHP || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
-                    <MoneyRequestReceiptView
-                        report={transactionThreadReport ?? parentReport}
-                        readonly={readonly}
-                        updatedTransaction={updatedTransaction}
-                        mergeTransactionID={mergeTransactionID}
-                    />
+                    // The "Create a rule" tooltip anchors above the receipt on narrow layouts; on wide layouts the
+                    // report footer anchors it above the composer instead, per design.
+                    <MerchantRuleSuggestionTooltip
+                        reportID={shouldOfferMerchantRule ? (transactionThreadReport?.reportID ?? parentReport?.reportID) : undefined}
+                        policyID={policyID}
+                    >
+                        <MoneyRequestReceiptView
+                            report={transactionThreadReport ?? parentReport}
+                            readonly={readonly}
+                            updatedTransaction={updatedTransaction}
+                            mergeTransactionID={mergeTransactionID}
+                        />
+                    </MerchantRuleSuggestionTooltip>
                 )}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>

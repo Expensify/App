@@ -484,6 +484,16 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
+    /** Expense fields a merchant rule can govern, and whose edit surfaces the "Create a rule" callout on the expense */
+    MERCHANT_RULE_SUGGESTION_FIELDS: {
+        CATEGORY: 'category',
+        TAG: 'tag',
+        TAX: 'tax',
+        DESCRIPTION: 'description',
+        BILLABLE: 'billable',
+        REIMBURSABLE: 'reimbursable',
+    },
+
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
     REQUEST_PREVIEW: {
@@ -8384,6 +8394,7 @@ const CONST = {
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
+        MERCHANT_RULE_SUGGESTION: 'merchantRuleSuggestion',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
