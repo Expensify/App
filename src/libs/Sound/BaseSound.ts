@@ -1,6 +1,8 @@
-import Onyx from 'react-native-onyx';
 import getPlatform from '@libs/getPlatform';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 let isMuted = false;
 

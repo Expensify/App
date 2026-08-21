@@ -1,9 +1,12 @@
+import type {OnyxInput, OnyxKey} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
+import type Request from '../../src/types/onyx/Request';
+
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type Request from '../../src/types/onyx/Request';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -11,8 +14,24 @@ const request: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
     command: 'OpenReport',
     successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
     failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-    requestID: 1,
+    requestIndex: 1,
 };
+
+class MockFile extends Blob {
+    name = 'mock-file';
+
+    source = 'mock-file';
+
+    lastModified = 0;
+
+    webkitRelativePath = '';
+
+    public constructor(fileBits: BlobPart[] = [], fileName = 'mock-file', options?: FilePropertyBag) {
+        super(fileBits, options);
+        this.name = fileName;
+        this.lastModified = options?.lastModified ?? 0;
+    }
+}
 
 beforeAll(() =>
     Onyx.init({
@@ -55,7 +74,7 @@ describe('PersistedRequests', () => {
             command: 'AddComment',
             successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
-            requestID: 2,
+            requestIndex: 2,
         };
         PersistedRequests.save(request2);
         PersistedRequests.processNextRequest();
@@ -70,7 +89,7 @@ describe('PersistedRequests', () => {
             command: 'OpenReport',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
-            requestID: 3,
+            requestIndex: 3,
         };
         PersistedRequests.update(0, newRequest);
         expect(PersistedRequests.getAll().at(0)).toEqual(newRequest);
@@ -81,7 +100,7 @@ describe('PersistedRequests', () => {
             command: 'OpenReport',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
-            requestID: 4,
+            requestIndex: 4,
         };
         PersistedRequests.updateOngoingRequest(newRequest);
         expect(PersistedRequests.getOngoingRequest()).toEqual(newRequest);
@@ -92,17 +111,15 @@ describe('PersistedRequests', () => {
         await waitForBatchedUpdates();
 
         const originalFile = global.File;
-        function MockFile() {}
-        global.File = MockFile as unknown as typeof File;
+        global.File = MockFile;
 
         try {
-            const mockFilePrototype = MockFile.prototype as Record<string, never>;
-            const mockFile = Object.create(mockFilePrototype) as File;
+            const mockFile = new MockFile();
             const newRequest: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
                 command: 'OpenReport',
                 successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
                 failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
-                requestID: 5,
+                requestIndex: 5,
                 data: {file: mockFile},
             };
 
@@ -169,7 +186,7 @@ describe('PersistedRequests persistence guarantees', () => {
             command: 'AddComment',
             successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
-            requestID: 2,
+            requestIndex: 2,
         };
 
         PersistedRequests.save(requestB);
@@ -202,17 +219,15 @@ describe('PersistedRequests persistence guarantees', () => {
         await waitForBatchedUpdates();
 
         const originalFile = global.File;
-        function MockFile() {}
-        global.File = MockFile as unknown as typeof File;
+        global.File = MockFile;
 
         try {
-            const mockFilePrototype = MockFile.prototype as Record<string, never>;
-            const mockFile = Object.create(mockFilePrototype) as File;
+            const mockFile = new MockFile();
             const requestWithFile: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
                 command: 'OpenReport',
                 successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
                 failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-                requestID: 30,
+                requestIndex: 30,
                 data: {file: mockFile},
             };
 
@@ -243,15 +258,14 @@ describe('PersistedRequests persistence guarantees', () => {
         expect(PersistedRequests.getAll()).toHaveLength(0);
 
         // Intercept Onyx.set for PERSISTED_REQUESTS so we can control resolution order
-        type CapturedSet = {value: unknown; triggerRealSet: () => Promise<void>};
+        type CapturedSet = {triggerRealSet: () => Promise<void>};
         const capturedSets: CapturedSet[] = [];
         const originalSet = Onyx.set.bind(Onyx);
-        const setMock = jest.spyOn(Onyx, 'set').mockImplementation((key, value) => {
+        const setMock = jest.spyOn(Onyx, 'set').mockImplementation(<TKey extends OnyxKey>(key: TKey, value: OnyxInput<TKey>) => {
             if (key === ONYXKEYS.PERSISTED_REQUESTS && Array.isArray(value) && value.length > 0) {
                 return new Promise<void>((resolvePromise) => {
                     capturedSets.push({
-                        value,
-                        triggerRealSet: () => originalSet(key, value as Array<Request<OnyxKey>>).then(resolvePromise),
+                        triggerRealSet: () => originalSet(key, value).then(resolvePromise),
                     });
                 });
             }
@@ -263,14 +277,14 @@ describe('PersistedRequests persistence guarantees', () => {
                 command: 'CommandA',
                 successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
                 failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-                requestID: 10,
+                requestIndex: 10,
             };
 
             const requestB: Request<'reportMetadata_3' | 'reportMetadata_4'> = {
                 command: 'CommandB',
                 successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
                 failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
-                requestID: 11,
+                requestIndex: 11,
             };
 
             // save(requestA): in-memory = [A], Onyx.set([A]) captured but not executed
@@ -314,13 +328,13 @@ describe('PersistedRequests persistence guarantees', () => {
             command: 'CommandA',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
-            requestID: 20,
+            requestIndex: 20,
         };
         const requestB: Request<'reportMetadata_3' | 'reportMetadata_4'> = {
             command: 'CommandB',
             successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
-            requestID: 21,
+            requestIndex: 21,
         };
 
         PersistedRequests.save(requestA);
@@ -348,7 +362,7 @@ describe('PersistedRequests persistence guarantees', () => {
             command: 'CommandC',
             successData: [{key: 'reportMetadata_5', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_6', onyxMethod: 'merge', value: {}}],
-            requestID: 22,
+            requestIndex: 22,
         };
         PersistedRequests.save(requestC);
         await waitForBatchedUpdates();

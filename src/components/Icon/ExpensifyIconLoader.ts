@@ -1,4 +1,5 @@
 import type IconAsset from '@src/types/utils/IconAsset';
+
 import type ExpensifyIcons from './chunks/expensify-icons.chunk';
 
 type ExpensifyIconsChunk = {

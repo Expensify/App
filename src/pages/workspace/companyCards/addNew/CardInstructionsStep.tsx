@@ -1,24 +1,29 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
 import {getBankName, getCardFeedWithDomainID} from '@libs/CardUtils';
 import Parser from '@libs/Parser';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedProvider, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CardInstructionsStepProps = {
     policyID?: string;
@@ -54,7 +59,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     const submit = () => {
         if (isStripeFeedProvider && policyID) {
-            updateSelectedFeed(getCardFeedWithDomainID(feedProvider, workspaceAccountID) as CompanyCardFeedWithDomainID, policyID);
+            updateSelectedFeed(getCardFeedWithDomainID(feedProvider, workspaceAccountID), policyID);
             Navigation.goBack();
             return;
         }
@@ -102,12 +107,13 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <Button
                         isDisabled={isOffline}
-                        success
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}
                         onPress={submit}
-                        text={buttonTranslation}
-                    />
+                    >
+                        <Button.Text>{buttonTranslation}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

@@ -1,0 +1,63 @@
+diff --git a/node_modules/victory-native/dist/pie/hooks/useSliceAngularInsetPath.d.ts b/node_modules/victory-native/dist/pie/hooks/useSliceAngularInsetPath.d.ts
+index 18425b7..5508130 100644
+--- a/node_modules/victory-native/dist/pie/hooks/useSliceAngularInsetPath.d.ts
++++ b/node_modules/victory-native/dist/pie/hooks/useSliceAngularInsetPath.d.ts
+@@ -4,5 +4,5 @@ type SliceAngularInsetPathArgs = {
+     slice: PieSliceData;
+     angularInset: PieSliceAngularInsetData;
+ };
+-export declare const useSliceAngularInsetPath: ({ angularInset, slice, }: SliceAngularInsetPathArgs) => readonly [import("@shopify/react-native-skia").SkPath, import("@shopify/react-native-skia").SkPaint];
++export declare const useSliceAngularInsetPath: ({ angularInset, slice, }: SliceAngularInsetPathArgs) => readonly [import("@shopify/react-native-skia").SkPath];
+ export {};
+diff --git a/node_modules/victory-native/src/pie/PieSliceAngularInset.tsx b/node_modules/victory-native/src/pie/PieSliceAngularInset.tsx
+index bede090..0523900 100644
+--- a/node_modules/victory-native/src/pie/PieSliceAngularInset.tsx
++++ b/node_modules/victory-native/src/pie/PieSliceAngularInset.tsx
+@@ -21,7 +21,7 @@ type PieSliceAngularInsetProps = {
+ export const PieSliceAngularInset = (props: PieSliceAngularInsetProps) => {
+   const { angularInset, children, animate, ...rest } = props;
+   const { slice } = usePieSliceContext();
+-  const [path, insetPaint] = useSliceAngularInsetPath({ slice, angularInset });
++  const [path] = useSliceAngularInsetPath({ slice, angularInset });
+ 
+   // If the path is empty, don't render anything
+   if (path.toSVGString() === "M0 0L0 0M0 0L0 0") {
+@@ -34,7 +34,7 @@ export const PieSliceAngularInset = (props: PieSliceAngularInsetProps) => {
+ 
+   const Component = animate ? AnimatedPath : Path;
+   return (
+-    <Component path={path} paint={insetPaint} animate={animate} {...rest}>
++    <Component path={path} style="stroke" color={angularInset.angularStrokeColor} strokeWidth={angularInset.angularStrokeWidth} animate={animate} {...rest}>
+       {children}
+     </Component>
+   );
+diff --git a/node_modules/victory-native/src/pie/hooks/useSliceAngularInsetPath.ts b/node_modules/victory-native/src/pie/hooks/useSliceAngularInsetPath.ts
+index 022dc49..2da6c64 100644
+--- a/node_modules/victory-native/src/pie/hooks/useSliceAngularInsetPath.ts
++++ b/node_modules/victory-native/src/pie/hooks/useSliceAngularInsetPath.ts
+@@ -15,7 +15,7 @@ export const useSliceAngularInsetPath = ({
+   angularInset,
+   slice,
+ }: SliceAngularInsetPathArgs) => {
+-  const [path, paint] = useMemo(() => {
++  const [path] = useMemo(() => {
+     const { radius, center, innerRadius } = slice;
+ 
+     const path = Skia.Path.Make();
+@@ -72,14 +72,8 @@ export const useSliceAngularInsetPath = ({
+       path.moveTo(center.x, center.y);
+       path.lineTo(endPoint.x, endPoint.y);
+     }
+-
+-    // Create Paint for inset
+-    const insetPaint = Skia.Paint();
+-    insetPaint.setColor(Skia.Color(angularInset.angularStrokeColor));
+-    insetPaint.setStyle(PaintStyle.Stroke);
+-    insetPaint.setStrokeWidth(angularInset.angularStrokeWidth);
+-    return [path, insetPaint] as const;
++    return [path] as const;
+   }, [slice, angularInset]);
+ 
+-  return [path, paint] as const;
++  return [path] as const;
+ };

@@ -1,10 +1,12 @@
-import {useEffect, useEffectEvent, useState} from 'react';
 import {setMergeHRInitialSyncModalShown} from '@libs/actions/connections/MergeHR';
-// eslint-disable-next-line no-restricted-imports -- the hook does not use React Navigation hooks internally (isFocused is passed in as a parameter), so there is no navigation instance available to use navigation.addListener for transition detection.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Visibility from '@libs/Visibility';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useEffect, useEffectEvent, useState} from 'react';
+
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';

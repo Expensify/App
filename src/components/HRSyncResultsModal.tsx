@@ -1,20 +1,25 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {HrSyncResult} from '@libs/API/HrSyncResult';
+
+import type HrSyncResult from '@libs/API/HrSyncResult';
 import {getConnectedHRProvider} from '@libs/HRUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Button from './Button';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+import type {ModalProps} from './Modal/Global/ModalContext';
+
+import Button from './ButtonComposed';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import Modal from './Modal';
-import type {ModalProps} from './Modal/Global/ModalContext';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ScrollView from './ScrollView';
 import Text from './Text';
@@ -69,7 +74,10 @@ function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalPr
                     title={translate('workspace.hr.syncResults.title', providerDisplayName)}
                     onBackButtonPress={hideModal}
                 />
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb8]}>
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb8]}
+                    showsVerticalScrollIndicator={false}
+                >
                     <View style={[styles.alignItemsCenter, styles.mt4, styles.mb4, styles.pRelative]}>
                         <Icon
                             src={illustrations.SyncUsers}
@@ -110,11 +118,12 @@ function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalPr
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
-                        large
-                        success
-                        text={translate('common.buttonConfirm')}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={hideModal}
-                    />
+                    >
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </View>
         </Modal>

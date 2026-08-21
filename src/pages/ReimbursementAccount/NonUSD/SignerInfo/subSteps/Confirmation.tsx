@@ -1,13 +1,17 @@
-import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForSignerInfo';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/utils/getNeededDocumentsStatusForSignerInfo';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useMemo} from 'react';
 
 type ConfirmationProps = SubPageProps;
 
@@ -28,6 +32,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
 
     const summaryItems = [
         {
+            id: 'job-title',
             title: values.jobTitle,
             description: translate('signerInfoStep.jobTitle'),
             shouldShowRightIcon: true,
@@ -39,6 +44,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
 
     if (isDocumentNeededStatus.isCopyOfIDNeeded && values.copyOfId.length > 0) {
         summaryItems.push({
+            id: 'copy-of-id',
             title: values.copyOfId.map((id) => id.name).join(', '),
             description: translate('signerInfoStep.id'),
             shouldShowRightIcon: true,
@@ -50,6 +56,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
 
     if (isDocumentNeededStatus.isAddressProofNeeded && values.addressProof.length > 0) {
         summaryItems.push({
+            id: 'address-proof',
             title: values.addressProof.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOf'),
             shouldShowRightIcon: true,
@@ -61,6 +68,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
 
     if (isDocumentNeededStatus.isProofOfDirectorsNeeded && values.proofOfDirectors.length > 0) {
         summaryItems.push({
+            id: 'proof-of-directors',
             title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOfDirectors'),
             shouldShowRightIcon: true,
@@ -72,6 +80,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
 
     if (isDocumentNeededStatus.isCodiceFiscaleNeeded && values.codiceFiscale.length > 0) {
         summaryItems.push({
+            id: 'codice-fiscale',
             title: values.codiceFiscale.map((fiscale) => fiscale.name).join(', '),
             description: translate('signerInfoStep.codiceFiscale'),
             shouldShowRightIcon: true,
@@ -83,6 +92,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
 
     if (!isUserOwner) {
         summaryItems.unshift({
+            id: 'legal-name',
             title: values.fullName,
             description: translate('signerInfoStep.legalName'),
             shouldShowRightIcon: true,
@@ -92,6 +102,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
 
         summaryItems.splice(2, 0, {
+            id: 'date-of-birth',
             title: values.dateOfBirth,
             description: translate('common.dob'),
             shouldShowRightIcon: true,
@@ -101,6 +112,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
 
         summaryItems.splice(3, 0, {
+            id: 'address',
             title: `${values.street}, ${values.city}, ${values.state}, ${values.zipCode}`,
             description: translate('ownershipInfoStep.address'),
             shouldShowRightIcon: true,

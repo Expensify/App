@@ -1,8 +1,11 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {getActivePolicies, isPaidGroupPolicy} from '@libs/PolicyUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useLocalize from './useLocalize';
@@ -24,13 +27,12 @@ function useEligiblePoliciesSelector() {
 const useCardFeedsForActivePolicies = () => {
     const {translate} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const eligiblePoliciesSelector = useEligiblePoliciesSelector();
-    const [eligiblePoliciesIDsArray] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: eligiblePoliciesSelector,
-    });
+    const eligiblePoliciesIDsArray = eligiblePoliciesSelector(allPolicies);
 
-    const allCardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards);
+    const allCardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards, allPolicies);
     const eligiblePolicyIdsSet = new Set(eligiblePoliciesIDsArray ?? []);
     const cardFeedsByPolicy = Object.fromEntries(Object.entries(allCardFeedsByPolicy).filter(([policyID]) => eligiblePolicyIdsSet.has(policyID)));
 

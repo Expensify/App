@@ -8,7 +8,7 @@ private extension Color {
 }
 
 private func distanceString(distance: Double) -> String {
-    String(format: "%.1f", distance)
+    String(format: "%.2f", distance)
 }
 
 private func distanceStringShort(distance: Double, distanceUnit: String) -> String {

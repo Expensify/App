@@ -1,6 +1,8 @@
 import type {ComposerRef} from '@components/Composer/types';
-import focusComposerWithDelay from './focusComposerWithDelay';
+
 import type {ComposerType} from './ReportActionComposeFocusManager';
+
+import focusComposerWithDelay from './focusComposerWithDelay';
 import ReportActionComposeFocusManager from './ReportActionComposeFocusManager';
 
 function refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose: ComposerType | undefined) {

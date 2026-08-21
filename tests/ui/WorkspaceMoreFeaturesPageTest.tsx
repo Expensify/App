@@ -1,56 +1,48 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import WorkspaceMoreFeaturesPage from '@pages/workspace/WorkspaceMoreFeaturesPage';
+
 import * as ReportActions from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
-
-// useConfirmModal resolves only after react-native-modal calls onModalHide via the underlying
-// Modal's onDismiss callback, which never fires in tests because animations are disabled. This mock
-// ports the same trick used by WorkspaceCategoriesTest so that showConfirmModal promises resolve.
 jest.mock('@components/Modal/ReanimatedModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
-
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
-        const wasVisible = useRef<boolean>(isVisible);
-
-        useEffect(() => {
-            if (wasVisible.current && !isVisible) {
-                onModalHide?.();
-            }
-            wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
-
-        if (!isVisible) {
-            return null;
-        }
-
-        return children as React.ReactElement;
-    };
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
+    return MockReanimatedModal;
 });
 
 jest.mock('@hooks/useIsPolicyConnectedToUberReceiptPartner', () => ({__esModule: true, default: jest.fn(() => false)}));
@@ -96,23 +88,34 @@ const renderPage = (initialParams: WorkspaceSplitNavigatorParamList[typeof SCREE
         </ComposeProviders>,
     );
 
+const TEST_USER_LOGIN = 'test@user.com';
+
 /** Build a minimal admin policy for use as Onyx fixture. Lock states are driven by mocked hooks/utils, not policy fields. */
-const buildPolicy = (overrides: Partial<ReturnType<typeof LHNTestUtils.getFakePolicy>> = {}) => ({
-    ...LHNTestUtils.getFakePolicy(),
-    role: CONST.POLICY.ROLE.ADMIN,
-    type: CONST.POLICY.TYPE.CORPORATE,
-    areWorkflowsEnabled: true,
-    areConnectionsEnabled: false,
-    areCategoriesEnabled: true,
-    areTagsEnabled: false,
-    areReportFieldsEnabled: false,
-    areExpensifyCardsEnabled: false,
-    areCompanyCardsEnabled: false,
-    areDistanceRatesEnabled: false,
-    areRulesEnabled: false,
-    isTravelEnabled: false,
-    ...overrides,
-});
+const buildPolicy = (overrides: Partial<ReturnType<typeof LHNTestUtils.getFakePolicy>> = {}) => {
+    const role = overrides.role ?? CONST.POLICY.ROLE.ADMIN;
+
+    return {
+        ...LHNTestUtils.getFakePolicy(),
+        role,
+        type: CONST.POLICY.TYPE.CORPORATE,
+        employeeList: {
+            [TEST_USER_LOGIN]: {
+                role,
+            },
+        },
+        areWorkflowsEnabled: true,
+        areConnectionsEnabled: false,
+        areCategoriesEnabled: true,
+        areTagsEnabled: false,
+        areReportFieldsEnabled: false,
+        areExpensifyCardsEnabled: false,
+        areCompanyCardsEnabled: false,
+        areDistanceRatesEnabled: false,
+        areRulesEnabled: false,
+        isTravelEnabled: false,
+        ...overrides,
+    };
+};
 
 const isSmartLimitEnabledMock = jest.mocked(CardUtils.isSmartLimitEnabled);
 const getCompanyFeedsMock = jest.mocked(CardUtils.getCompanyFeeds);
@@ -145,10 +148,12 @@ describe('WorkspaceMoreFeaturesPage', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
 
         isSmartLimitEnabledMock.mockReturnValue(false);
         getCompanyFeedsMock.mockReturnValue({});
@@ -246,6 +251,57 @@ describe('WorkspaceMoreFeaturesPage', () => {
         });
     });
 
+    describe('Travel toggle (locked when Travel Invoicing is enabled)', () => {
+        const workspaceAccountID = LHNTestUtils.getFakePolicy().policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+        const enableTravelBilling = () => Onyx.merge(getTravelBillingCardSettingsKey(workspaceAccountID), {[CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: true}});
+
+        it('locks the Travel switch when Travel Invoicing is enabled', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
+                await enableTravelBilling();
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+
+            await expect(findLockedSwitch('workspace.moreFeatures.travel.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('leaves the Travel switch interactive when Travel Invoicing is not enabled', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+
+            await expect(findUnlockedSwitch('workspace.moreFeatures.travel.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('navigates to Travel settings when the user confirms the disable-Travel warning', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
+                await enableTravelBilling();
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.travel.subtitle'));
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.travel.disableTravelPrompt'))).toBeOnTheScreen();
+            });
+            fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.travel.disableTravelButton')));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_TRAVEL.getRoute(POLICY_ID));
+        });
+    });
+
     describe('Accounting toggle (locked when an integration is connected)', () => {
         it('locks the Accounting switch when the policy has an active connection', async () => {
             await TestHelper.signInWithTestUser();
@@ -287,7 +343,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
             getCompanyFeedsMock.mockReturnValue({});
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, areExpensifyCardsEnabled: true}));
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${LHNTestUtils.getFakePolicy().workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${LHNTestUtils.getFakePolicy().policyAccountID ?? CONST.DEFAULT_NUMBER_ID}_${CONST.EXPENSIFY_CARD.BANK}`, {
                     someCardID: {nameValuePairs: {}},
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}1`, {paymentBankAccountID: 1});

@@ -1,20 +1,26 @@
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
-import Button from './Button';
+
+import CONST from '@src/CONST';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {SearchCustomColumnIds} from './Search/types';
+import type {ListItem} from './SelectionList/types';
+
+import Button from './ButtonComposed';
 import DraggableList from './DraggableList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
-import type {SearchCustomColumnIds} from './Search/types';
 import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
-import type {ListItem} from './SelectionList/types';
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -293,12 +299,13 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
             </View>
             <View style={[styles.ph5, styles.pb5]}>
                 <Button
-                    large
-                    success
-                    pressOnEnter
-                    text={translate('common.save')}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleSave}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );

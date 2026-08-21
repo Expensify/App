@@ -1,9 +1,12 @@
-import Onyx from 'react-native-onyx';
 import {canSubmitReport} from '@libs/actions/IOU/ReportWorkflow';
 import {canSubmitAndIsAwaitingForCurrentUser, shouldCurrentUserSubmitReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {createExpenseReport, createPolicyExpenseChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -12,7 +15,7 @@ jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     canSubmitReport: jest.fn(),
 }));
 
-const mockedCanSubmitReport = canSubmitReport as jest.Mock;
+const mockedCanSubmitReport = jest.mocked(canSubmitReport);
 
 const CURRENT_USER_ACCOUNT_ID = 5;
 const OTHER_USER_ACCOUNT_ID = 99;

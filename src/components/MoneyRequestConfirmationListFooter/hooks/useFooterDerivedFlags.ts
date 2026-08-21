@@ -1,12 +1,20 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import {derivedFlagsSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
+
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 type UseFooterDerivedFlagsParams = {
     /** Action being performed (create / edit / submit / etc.) */
@@ -15,8 +23,8 @@ type UseFooterDerivedFlagsParams = {
     /** Type of IOU being confirmed (excluding REQUEST and SEND) */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
-    /** The transaction being confirmed */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** ID of the active transaction (the hook resolves a narrow slice internally) */
+    transactionID: string | undefined;
 
     /** The policy that owns the confirmation context */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -49,7 +57,7 @@ type UseFooterDerivedFlagsParams = {
 function useFooterDerivedFlags({
     action,
     iouType,
-    transaction,
+    transactionID,
     policy,
     policyTagLists,
     isPolicyExpenseChat,
@@ -60,9 +68,11 @@ function useFooterDerivedFlags({
     isTypeInvoice,
     shouldShowSmartScanFields,
 }: UseFooterDerivedFlagsParams) {
-    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {policyForMovingExpenses, shouldSelectPolicy, shouldNavigateToUpgradePath: canNavigateToUpgradePath} = usePolicyForMovingExpenses();
 
-    // Self-derived iou* values from transaction
+    const transaction = useTransactionSelector(transactionID, derivedFlagsSliceSelector);
+
+    // Self-derived iou* values from the slice
     const iouCurrencyCode = getCurrency(transaction);
     const isScan = isScanRequest(transaction);
 
@@ -75,7 +85,7 @@ function useFooterDerivedFlags({
 
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited.
     // For distance requests, don't show the merchant as there's already another "Distance" menu item.
-    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
+    const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
 
     // Determines whether the tax fields can be modified.
     // The tax fields can only be modified if the component is not in read-only mode
@@ -86,7 +96,9 @@ function useFooterDerivedFlags({
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    const shouldNavigateToUpgradePath = !isSubmitWorkspace && canNavigateToUpgradePath;
     const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 
     return {

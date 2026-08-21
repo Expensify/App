@@ -1,26 +1,33 @@
-import {isActingAsDelegateSelector} from '@selectors/Account';
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import {emailSelector} from '@selectors/Session';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, hasAnyPaidPolicy} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {emailSelector} from '@selectors/Session';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
+
 import TOOLTIPS from './TOOLTIPS';
 
 type ProductTrainingContextType = {
@@ -52,7 +59,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const isUserPolicyEmployee = useMemo(() => {
         if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
@@ -114,7 +121,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
             return false;
         }
-        return getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies).length > 0;
+        return hasAnyPaidPolicy(allPolicies);
     }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
 
     const shouldTooltipBeVisible = useCallback(
@@ -138,11 +145,18 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
+            // Mileage rate tooltip is exempt from the general "hide when modal visible" rule so it can show on the confirmation surface.
+            // Hide it when a popover or bottom sheet opens (e.g. inline date picker) since those set modal.isPopover.
+            if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && isModalVisible && modal?.isPopover) {
+                return false;
+            }
+
             // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
             if (
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED &&
                 isModalVisible
             ) {
                 return false;
@@ -163,6 +177,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             hasBeenAddedToNudgeMigration,
             isOnboardingCompleted,
             isModalVisible,
+            modal?.isPopover,
             shouldUseNarrowLayout,
             isUserPolicyEmployee,
             isUserPolicyAdmin,
@@ -183,8 +198,8 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const shouldRenderTooltip = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
-            // If the user is acting as a copilot, don't show any tooltips
-            if (isActingAsDelegate) {
+            // Supportal agents and copilots should not see product-training tooltips on behalf of another account.
+            if (shouldSuppressPromotionalUI) {
                 return false;
             }
             // First check base conditions
@@ -201,7 +216,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
             return false;
         },
-        [isActingAsDelegate, shouldTooltipBeVisible, determineVisibleTooltip],
+        [shouldSuppressPromotionalUI, shouldTooltipBeVisible, determineVisibleTooltip],
     );
 
     const contextValue = useMemo(
@@ -268,7 +283,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     <Icon
                         src={expensifyIcons.Lightbulb}
                         fill={theme.tooltipHighlightText}
-                        medium
+                        size={CONST.ICON_SIZE.MEDIUM}
                     />
                     <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
                         <RenderHTML html={translate(tooltip.content)} />

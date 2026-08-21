@@ -1,11 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import reject from 'lodash/reject';
-import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {Keyboard} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,121 +7,142 @@ import BareUserListItem from '@components/SelectionList/ListItem/BareUserListIte
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/types';
-import useContactImport from '@hooks/useContactImport';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
-import useFilteredOptions from '@hooks/useFilteredOptions';
-import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, filterSelectedOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
-import type SelectedOption from './types';
-import useGroupChatDraftParticipantSync from './useGroupDraftRestore';
+
+import type {Ref} from 'react';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import reject from 'lodash/reject';
+import React, {startTransition, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
+
+import useGroupChatDraftParticipantSync from './useGroupChatDraftParticipantSync';
 
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
 
-function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+function isSameSelectedOption(selectedOption: OptionData, option: ListItem & Partial<OptionData>): boolean {
+    if (selectedOption.login || option.login) {
+        return selectedOption.login === option.login;
+    }
+    if (selectedOption.accountID || option.accountID) {
+        return selectedOption.accountID === option.accountID;
+    }
+    return !!selectedOption.reportID && selectedOption.reportID === option.reportID;
+}
+
+type NewChatPageRef = {
+    focus?: () => void;
+};
+
+type NewChatPageProps = {
+    /** Reference to the outer element */
+    ref?: Ref<NewChatPageRef>;
+};
+
+function NewChatPage({ref}: NewChatPageProps) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const currentUserEmail = personalData.email ?? '';
+    const {top} = useSafeAreaInsets();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+    const allPersonalDetails = usePersonalDetails();
+    const {singleExecution} = useSingleExecution();
+
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const {contacts} = useContactImport();
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const allPersonalDetails = usePersonalDetails();
-    const isScreenFocusedRef = useIsFocusedRef();
-    const sortedActions = useSortedActions();
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const {
-        options: listOptions,
-        isLoading,
-        loadMore,
-        hasMore,
-    } = useFilteredOptions({
-        maxRecentReports: 500,
-        enabled: didScreenTransitionEnd,
-        includeP2P: true,
-        batchSize: 100,
-        enablePagination: true,
-        isSearching: !!debouncedSearchTerm.trim(),
-        betas,
-    });
+    useImperativeHandle(ref, () => ({
+        focus: selectionListRef.current?.focusTextInput,
+    }));
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    // Builds the draft participants (selection plus the current user as creator). Empty when the current user isn't loaded yet.
+    const buildDraftParticipants = (options: OptionData[]): SelectedParticipant[] => {
+        if (!personalData?.login || !personalData?.accountID) {
+            return [];
+        }
+        return [
+            ...options.map((option) => ({
+                login: option.login,
+                accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            })),
+            {
+                login: personalData.login,
+                accountID: personalData.accountID,
+            },
+        ];
+    };
 
-    const reports = listOptions?.reports ?? [];
-    const personalDetails = listOptions?.personalDetails ?? [];
-    useGroupChatDraftParticipantSync(personalDetails, !isLoading, allPersonalDetails, loginList, currentUserEmail, currentUserAccountID, selectedOptions, setSelectedOptions);
+    // Persist the selection to the group chat draft so an in-progress group survives navigation/reload.
+    const updateGroupDraft = (newSelectedOptions: OptionData[]) => {
+        const participants = buildDraftParticipants(newSelectedOptions);
+        if (!participants.length) {
+            return;
+        }
+        setGroupDraft({participants});
+    };
 
-    const defaultOptions = getValidOptions(
-        {
-            reports,
-            personalDetails: personalDetails.concat(contacts),
-        },
-        allPolicies,
-        draftComments,
-        loginList,
-        currentUserAccountID,
-        currentUserEmail,
-        conciergeReportID,
-        {
-            betas: betas ?? [],
-            includeSelfDM: true,
-            shouldAlwaysIncludeDM: true,
-            personalDetails: allPersonalDetails,
-            allPolicyTags,
-            countryCode,
-            reportAttributesDerived,
-            sortedActions,
-        },
-    );
-
-    const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
-
-    const areOptionsInitialized = !isLoading;
-
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
-        selectedOptions,
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+        includeUserToInvite: true,
+        includeSelfDM: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        enablePhoneContacts: true,
+        // Keep selected options in place (marked with isSelected) so they stay put when toggled instead of jumping to a separate section.
+        shouldKeepSelectedInAvailableOptions: true,
+        shouldInitialize: didScreenTransitionEnd,
+        onSelectionChange: updateGroupDraft,
+        getValidOptionsConfig: {
+            includeP2P: true,
+            shouldAlwaysIncludeDM: true,
+        },
     });
 
-    const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+    useGroupChatDraftParticipantSync(areOptionsInitialized, allPersonalDetails, loginList, currentUserEmail, currentUserAccountID, translate, selectedOptions, setSelectedOptions);
 
-    const headerMessage = getHeaderMessage(
-        options.personalDetails.length + options.recentReports.length !== 0,
-        !!options.userToInvite,
-        debouncedSearchTerm.trim(),
-        countryCode,
-        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
-    );
+    // Keep the latest selection in a ref so fast toggles build on it while the deferred state update catches up.
+    const latestSelectedOptionsRef = useRef(selectedOptions);
+    useEffect(() => {
+        latestSelectedOptionsRef.current = selectedOptions;
+    }, [selectedOptions]);
 
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => {
@@ -146,86 +160,43 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const handleEndReached = () => {
-        if (!hasMore || !areOptionsInitialized || !isScreenFocusedRef.current) {
-            return;
-        }
-        loadMore();
-    };
+    const {userToInvite, personalDetails, recentReports} = availableOptions;
 
-    return {
-        ...options,
-        searchTerm,
-        debouncedSearchTerm,
-        setSearchTerm,
-        areOptionsInitialized,
-        selectedOptions,
-        setSelectedOptions,
-        headerMessage,
-        handleEndReached,
-    };
-}
+    const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+    const headerMessage = getHeaderMessage(
+        personalDetails.length + recentReports.length !== 0,
+        !!userToInvite,
+        debouncedSearchTerm.trim(),
+        countryCode,
+        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
+    );
 
-type NewChatPageRef = {
-    focus?: () => void;
-};
-
-type NewChatPageProps = {
-    /** Reference to the outer element */
-    ref?: Ref<NewChatPageRef>;
-};
-function NewChatPage({ref}: NewChatPageProps) {
-    const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-
-    const styles = useThemeStyles();
-    const personalData = useCurrentUserPersonalDetails();
-    const currentUserAccountID = personalData.accountID;
-    const {top} = useSafeAreaInsets();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
-    const allPersonalDetails = usePersonalDetails();
-
-    const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-
-    const reportAttributesDerived = reportAttributesDerivedFull?.reports;
-
-    const {singleExecution} = useSingleExecution();
-
-    useImperativeHandle(ref, () => ({
-        focus: selectionListRef.current?.focusTextInput,
-    }));
-
-    const {
-        headerMessage,
-        searchTerm,
-        debouncedSearchTerm,
-        handleEndReached,
-        setSearchTerm,
-        selectedOptions,
-        setSelectedOptions,
-        recentReports,
-        personalDetails,
-        userToInvite,
-        areOptionsInitialized,
-    } = useOptions(reportAttributesDerived);
+    // Selected rows are marked in place by the hook (isSelected), so the checkmark stays with the row instead of jumping to the top.
+    // In group selection mode the self DM stays visible (so the list doesn't shift and jump the scroll position) but is made non-selectable.
+    const recentReportsData = selectedOptions.length ? recentReports.map((option) => (option.isSelfDM ? {...option, isDisabled: true} : option)) : recentReports;
 
     const sections: Array<Section<OptionWithKey>> = [];
 
-    const selectedSection =
-        debouncedSearchTerm === ''
-            ? selectedOptions
-            : selectedOptions.filter((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, debouncedSearchTerm.trim().toLowerCase()));
+    // Existing selected users are already marked in place within Recents/Contacts (and remain reachable in the paginated list),
+    // so they don't need a separate row here. A selected non-existing user (an invited contact created from the search term)
+    // has no row in recents/contacts and disappears once the search input is cleared, so surface only those in a top section
+    // to keep them visible and easy to deselect. The one already shown as the current invite row is excluded to avoid a duplicate.
+    const selectedSection = selectedOptions.filter(
+        (option) =>
+            !!option.isOptimisticAccount && !(userToInvite && option.login === userToInvite.login) && doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm),
+    );
 
-    sections.push({data: selectedSection, title: undefined, sectionIndex: 0});
+    if (selectedSection.length) {
+        sections.push({
+            title: undefined,
+            data: selectedSection,
+            sectionIndex: 0,
+        });
+    }
 
     sections.push({
         title: translate('common.recents'),
-        data: selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports,
+        data: recentReportsData,
         sectionIndex: 1,
     });
 
@@ -247,36 +218,33 @@ function NewChatPage({ref}: NewChatPageProps) {
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      */
     const toggleOption = (option: ListItem & Partial<OptionData>) => {
-        const isOptionInList = !!option.isSelected;
+        const currentSelectedOptions = latestSelectedOptionsRef.current;
+        const isOptionInList = currentSelectedOptions.some((selectedOption) => isSameSelectedOption(selectedOption, option));
+        const shouldRemoveOption = !!option.isSelected && isOptionInList;
 
-        let newSelectedOptions: SelectedOption[];
+        let newSelectedOptions: OptionData[];
 
-        if (isOptionInList) {
-            newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+        if (shouldRemoveOption) {
+            newSelectedOptions = reject(currentSelectedOptions, (selectedOption) => isSameSelectedOption(selectedOption, option));
+        } else if (isOptionInList) {
+            newSelectedOptions = currentSelectedOptions;
         } else {
-            newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
-            selectionListRef?.current?.scrollToIndex(0);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            newSelectedOptions = [...currentSelectedOptions, {...option, isSelected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`} as OptionData];
         }
+
+        latestSelectedOptionsRef.current = newSelectedOptions;
 
         selectionListRef.current?.clearInputAfterSelect();
         if (!canUseTouchScreen()) {
             selectionListRef.current?.focusTextInput();
         }
-        setSelectedOptions(newSelectedOptions);
 
-        if (personalData?.login && personalData?.accountID) {
-            const participants: SelectedParticipant[] = [
-                ...newSelectedOptions.map((selectedOption) => ({
-                    login: selectedOption.login,
-                    accountID: selectedOption.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                })),
-                {
-                    login: personalData.login,
-                    accountID: personalData.accountID,
-                },
-            ];
-            setGroupDraft({participants});
-        }
+        // Defer the heavy list re-render so the tapped checkbox paints first.
+        startTransition(() => {
+            setSelectedOptions(newSelectedOptions);
+            updateGroupDraft(newSelectedOptions);
+        });
     };
 
     /**
@@ -285,7 +253,13 @@ function NewChatPage({ref}: NewChatPageProps) {
      * or navigates to the existing chat if one with those participants already exists.
      */
     const selectOption = (option?: OptionWithKey) => {
+        const latestSelectedOptions = latestSelectedOptionsRef.current;
+
         if (option?.isSelfDM) {
+            // Keep the self DM inert while a group selection is pending.
+            if (latestSelectedOptions.length > 0) {
+                return;
+            }
             if (!option.reportID) {
                 Navigation.dismissModal();
                 return;
@@ -294,7 +268,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
 
-        if (selectedOptions.length && option) {
+        if (latestSelectedOptions.length && option) {
             // Prevent excluded emails from being added to groups
             if (option?.login && excludedGroupEmails.has(option.login)) {
                 return;
@@ -316,20 +290,30 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (option?.login) {
             login = option.login;
-        } else if (selectedOptions.length === 1) {
-            login = selectedOptions.at(0)?.login ?? '';
+        } else if (latestSelectedOptions.length === 1) {
+            login = latestSelectedOptions.at(0)?.login ?? '';
         }
         if (!login) {
             Log.warn('Tried to create chat with empty login');
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas))();
+            singleExecution(() =>
+                navigateToAndOpenReport({
+                    userLogins: [login],
+                    personalDetails: allPersonalDetails,
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                    betas,
+                }),
+            )();
         });
     };
 
     const itemRightSideComponent = (item: OptionWithKey, isFocused?: boolean) => {
-        if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login)) || !item.login) {
+        if (item.isSelfDM) {
             return null;
         }
 
@@ -341,32 +325,40 @@ function NewChatPage({ref}: NewChatPageProps) {
                     disabled={!!item.isDisabled}
                     accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
                     style={styles.ml5}
+                    shouldUseOptimisticSelection
                 />
             );
         }
+
+        // "Add to group" only makes sense for eligible (login-bearing, non-excluded) users
+        if (!item.login || excludedGroupEmails.has(item.login)) {
+            return null;
+        }
+
         const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
         return (
             <Button
                 onPress={() => toggleOption(item)}
                 style={[styles.pl2]}
-                text={translate('newChatPage.addToGroup')}
                 accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
                 innerStyles={buttonInnerStyles}
-                small
-            />
+                size={CONST.BUTTON_SIZE.SMALL}
+            >
+                <Button.Text>{translate('newChatPage.addToGroup')}</Button.Text>
+            </Button>
         );
     };
 
     const createGroup = () => {
-        if (!personalData?.login || !personalData.accountID) {
+        const latestSelectedOptions = latestSelectedOptionsRef.current;
+        if (latestSelectedOptions.length === 0) {
             return;
         }
-        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option) => ({
-            login: option?.login,
-            accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        }));
-        const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
-        setGroupDraft({participants: logins});
+        const participants = buildDraftParticipants(latestSelectedOptions);
+        if (!participants.length) {
+            return;
+        }
+        setGroupDraft({participants});
         Keyboard.dismiss();
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     };
@@ -381,12 +373,13 @@ function NewChatPage({ref}: NewChatPageProps) {
 
             {!!selectedOptions.length && (
                 <Button
-                    success
-                    large
-                    text={translate('common.next')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={createGroup}
-                    pressOnEnter
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.next')}</Button.Text>
+                </Button>
             )}
         </>
     );
@@ -420,16 +413,20 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onSelectRow={selectOption}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
+                canSelectMultiple
+                shouldPreventAutoScrollOnSelect
+                shouldClearInputOnSelect={false}
+                shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
-                    onConfirm: (e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option)),
+                    onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
                 }}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 isLoadingNewOptions={!!isSearchingForReports}
-                onEndReached={handleEndReached}
+                onEndReached={onListEndReached}
                 onEndReachedThreshold={0.75}
                 disableMaintainingScrollPosition
                 addBottomSafeAreaPadding

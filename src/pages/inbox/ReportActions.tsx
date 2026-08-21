@@ -1,0 +1,135 @@
+import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
+import NavigationDeferredMount from '@components/NavigationDeferredMount';
+
+import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
+import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+
+import type ReportScreenNavigationProps from './types';
+
+import ReportActionsList from './report/ReportActionsList';
+import ReportActionsLoadingSkeleton from './report/ReportActionsLoadingSkeleton';
+import UserTypingEventListener from './report/UserTypingEventListener';
+
+const defaultReportLoadingState = {
+    hasOnceLoadedReportActions: false,
+    isLoadingInitialReportActions: true,
+    isLoadingOlderReportActions: false,
+    hasLoadingOlderReportActionsError: false,
+    isLoadingNewerReportActions: false,
+    hasLoadingNewerReportActionsError: false,
+};
+
+/**
+ * Route-only orchestrator for the report actions surface. It owns the coarse branching only —
+ * skeleton vs. money-request table view vs. the chat list — and subscribes to just what those
+ * branches need. All heavy data derivation lives inside the hook-driven `ReportActionsList` body,
+ * which is mounted only for the chat path so its hooks/effects never run while a skeleton shows.
+ */
+function ReportActions() {
+    const route = useRoute<ReportScreenNavigationProps['route']>();
+    const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+
+    const {isOffline} = useNetwork();
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
+    const isAppLoadPending = useIsAppLoadPending();
+    const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
+    const {reportActions} = usePaginatedReportActions(reportIDFromRoute);
+
+    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+
+    const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isReportLoadPending, isOffline);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
+
+    // The app-load skeleton is hoisted out of the body so the body's data hooks/effects never run
+    // during app boot. It only applies on the chat path (after the skeleton and money-request
+    // branches below) — matching the previous behavior, where this skeleton lived inside the
+    // chat-only ReportActionsView.
+    //
+    // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
+    // before content appeared.
+    const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
+    const shouldShowAppLoadSkeleton = isAppLoadPending && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
+
+    if (!report || shouldWaitForTransactions) {
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportIDFromRoute}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.REPORT_ACTIONS_REPORT_DATA_LOADING}
+            />
+        );
+    }
+
+    if (shouldDisplayMoneyRequestActionsList) {
+        return <MoneyRequestReportActionsList />;
+    }
+
+    if (shouldShowAppLoadSkeleton) {
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportIDFromRoute}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.REPORT_ACTIONS_APP_LOAD}
+            />
+        );
+    }
+
+    return (
+        <>
+            <ReportActionsList
+                key={report.reportID}
+                reportID={report.reportID}
+            />
+            <UserTypingEventListener report={report} />
+        </>
+    );
+}
+
+type ReportActionsWithInboxTabDeferredMountProps = {
+    /** The report ID used by the deferred loading skeleton */
+    reportID: string | undefined;
+
+    /** Whether to defer mounting report actions during the initial Inbox tab navigation */
+    shouldDefer: boolean;
+};
+
+function ReportActionsWithInboxTabDeferredMount({reportID, shouldDefer}: ReportActionsWithInboxTabDeferredMountProps) {
+    if (!shouldDefer) {
+        return <ReportActions />;
+    }
+
+    return (
+        <NavigationDeferredMount
+            waitForUpcomingTransition={false}
+            placeholder={
+                // Deferral, not a data wait. Closing the span here would time the defer and tag a cached report cold.
+                <ReportActionsLoadingSkeleton
+                    reportID={reportID}
+                    skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.INBOX_TAB_DEFER}
+                    shouldMarkOpenReportEnd={false}
+                />
+            }
+        >
+            <ReportActions />
+        </NavigationDeferredMount>
+    );
+}
+
+export {ReportActionsWithInboxTabDeferredMount};
+export default ReportActions;

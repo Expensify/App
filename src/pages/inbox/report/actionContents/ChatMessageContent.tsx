@@ -1,12 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import {AttachmentContext} from '@components/AttachmentContext';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getModerationFlagState,
@@ -16,17 +17,25 @@ import {
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
 } from '@libs/ReportActionsUtils';
+
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {hasPendingFollowupListSkeletonSelector} from '@selectors/AgentZeroChat';
+import React from 'react';
+import {View} from 'react-native';
+
 import ChatActionableButtons from './ChatActionableButtons';
 
 type ChatMessageContentProps = {
     action: OnyxTypes.ReportAction;
     policyID: string | undefined;
     reportID: string | undefined;
-    originalReportID: string;
+    originalReportID?: string;
     displayAsGroup: boolean;
     draftMessage: string | undefined;
     isHidden: boolean;
@@ -46,13 +55,18 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
 
     const {hasBeenFlagged} = getModerationFlagState(action);
 
+    const [hasPendingFollowupListSkeleton = false] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, {
+        selector: hasPendingFollowupListSkeletonSelector(action.reportActionID),
+    });
+
     const messageHtml = getReportActionMessage(action)?.html;
     const mayHaveActionableButtons =
         isActionableAddPaymentCard(action) ||
         isConciergeCategoryOptions(action) ||
         isConciergeDescriptionOptions(action) ||
         isActionableTrackExpense(action) ||
-        !!(messageHtml && parseFollowupsFromHtml(messageHtml)?.length);
+        !!(messageHtml && parseFollowupsFromHtml(messageHtml)?.length) ||
+        hasPendingFollowupListSkeleton;
 
     return (
         <MentionReportContext.Provider value={mentionReportContextValue}>
@@ -74,8 +88,10 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
                         />
                         {hasBeenFlagged && (
                             <Button
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 style={[styles.mt2, styles.alignSelfStart]}
+                                // Restores the 12px horizontal padding from the legacy implementation.
+                                innerStyles={styles.ph3}
                                 onPress={() => updateHiddenState(!isHidden)}
                                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
                             >
@@ -92,6 +108,7 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
                                 action={action}
                                 originalReportID={originalReportID}
                                 reportID={reportID}
+                                hasPendingFollowupListSkeleton={hasPendingFollowupListSkeleton}
                             />
                         )}
                     </View>

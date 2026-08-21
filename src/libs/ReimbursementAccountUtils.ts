@@ -1,6 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
+
+import type {ValueOf} from 'type-fest';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
 
@@ -35,7 +36,7 @@ function getBankAccountIDAsNumber(achData?: ACHDataReimbursementAccount): number
 
 /** Returns true if VBBA flow is in progress */
 const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, policyID?: string) => {
-    if (achData?.policyID !== policyID) {
+    if (policyID && achData?.policyID !== policyID) {
         return false;
     }
 

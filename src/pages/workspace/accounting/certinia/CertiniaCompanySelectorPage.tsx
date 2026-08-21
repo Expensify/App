@@ -1,0 +1,89 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
+import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearFinancialForceErrorField, updateFinancialForceCompany} from '@libs/actions/connections/FinancialForce';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
+import {getCertiniaSelectedCompanyID, isCertiniaFFAConnection} from './utils';
+
+type CompanyListItem = ListItem & {
+    value: string;
+};
+
+function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const policyID = policy?.id;
+    const {config, data} = policy?.connections?.financialforce ?? {};
+    const companyID = getCertiniaSelectedCompanyID(config);
+    const companyField = config?.hasPSA ? CONST.CERTINIA_CONFIG.COMPANY_ID : CONST.CERTINIA_CONFIG.COMPANY;
+    const companies = data?.companies ?? [];
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+
+    const dataOptions: CompanyListItem[] = companies.map((company) => ({
+        value: company.id,
+        text: company.name,
+        keyForList: company.id,
+        isSelected: companyID === company.id,
+    }));
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.certinia.noCompaniesFound')}
+            subtitle={translate('workspace.certinia.noCompaniesFoundDescription')}
+            containerStyle={styles.pb10}
+        />
+    );
+
+    const selectCompany = (row: CompanyListItem) => {
+        if (row.value !== companyID && policyID) {
+            updateFinancialForceCompany(policyID, row.value, companyID ?? null, !!config?.hasPSA);
+        }
+        Navigation.goBack(policyID ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID) : undefined);
+    };
+
+    return (
+        <SelectionScreen
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName="CertiniaCompanySelectorPage"
+            shouldBeBlocked={!isCertiniaFFAConnection(config)}
+            data={dataOptions}
+            onSelectRow={selectCompany}
+            shouldSingleExecuteRowSelect
+            initiallyFocusedOptionKey={companyID}
+            onBackButtonPress={() => Navigation.goBack(policyID ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID) : undefined)}
+            title="workspace.certinia.company"
+            listEmptyContent={listEmptyContent}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
+            pendingAction={settingsPendingAction([companyField], config?.pendingFields)}
+            errors={getLatestErrorField(config, companyField)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => clearFinancialForceErrorField(policyID, companyField)}
+        />
+    );
+}
+
+CertiniaCompanySelectorPage.displayName = 'CertiniaCompanySelectorPage';
+
+export default withPolicyConnections(CertiniaCompanySelectorPage);

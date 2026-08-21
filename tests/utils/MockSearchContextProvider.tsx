@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     SearchQueryActionsContext,
     SearchQueryContext,
@@ -17,6 +16,8 @@ import type {
     SearchSelectionContextValue,
     SearchStateContextValue,
 } from '@components/Search/types';
+
+import React from 'react';
 
 type MockSearchContextProviderProps = {
     state: SearchStateContextValue;
@@ -40,6 +41,8 @@ function splitState(value: SearchStateContextValue): {
         },
         results: {
             currentSearchResults: value.currentSearchResults,
+            currentSearchTransactionsByReportID: value.currentSearchTransactionsByReportID,
+            currentSearchViolations: value.currentSearchViolations,
             shouldUseLiveData: value.shouldUseLiveData,
             sortedReportIDs: value.sortedReportIDs,
             shouldShowFiltersBarLoading: value.shouldShowFiltersBarLoading,
@@ -47,12 +50,12 @@ function splitState(value: SearchStateContextValue): {
         },
         selection: {
             selectedTransactions: value.selectedTransactions,
+            excludedTransactions: value.excludedTransactions,
             selectedTransactionIDs: value.selectedTransactionIDs,
             selectedReports: value.selectedReports,
             currentSelectedTransactionReportID: value.currentSelectedTransactionReportID,
             shouldTurnOffSelectionMode: value.shouldTurnOffSelectionMode,
             hasSelectedTransactions: value.hasSelectedTransactions,
-            shouldShowSelectAllMatchingItems: value.shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected: value.areAllMatchingItemsSelected,
         },
     };
@@ -72,11 +75,11 @@ function splitActions(value: SearchActionsContextValue): {
         },
         selection: {
             setSelectedTransactions: value.setSelectedTransactions,
+            applySelection: value.applySelection,
             setSelectedReports: value.setSelectedReports,
             setCurrentSelectedTransactionReportID: value.setCurrentSelectedTransactionReportID,
             clearSelectedTransactions: value.clearSelectedTransactions,
             removeTransaction: value.removeTransaction,
-            setShouldShowSelectAllMatchingItems: value.setShouldShowSelectAllMatchingItems,
             selectAllMatchingItems: value.selectAllMatchingItems,
         },
     };

@@ -1,7 +1,10 @@
-import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import type {ReactNode} from 'react';
-import {defaultPINActionsContextValue, defaultPINStateContextValue} from './default';
+
+import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
+
 import type {PINActionsContextType, PINStateContextType} from './types.context';
+
+import {defaultPINActionsContextValue, defaultPINStateContextValue} from './default';
 
 const PINStateContext = createContext<PINStateContextType>(defaultPINStateContextValue);
 const PINActionsContext = createContext<PINActionsContextType>(defaultPINActionsContextValue);

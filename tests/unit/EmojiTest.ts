@@ -1,8 +1,10 @@
 import Emojis, {emojiNameTable, findEmojiByHexCode, importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
+
 import * as Browser from '@libs/Browser';
 import emojiTrieForLocale, {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
+
 import type FrequentlyUsedEmoji from '@src/types/onyx/FrequentlyUsedEmoji';
 import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
@@ -345,12 +347,6 @@ describe('EmojiTest', () => {
     it('correct suggests emojis accounting for keywords', () => {
         const thumbEmojisEn: Emoji[] = [
             {
-                name: 'hand_with_index_finger_and_thumb_crossed',
-                code: '🫰',
-                hexcode: '1FAF0',
-                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
-            },
-            {
                 code: '👍',
                 name: '+1',
                 hexcode: '1F44D',
@@ -361,6 +357,12 @@ describe('EmojiTest', () => {
                 name: '-1',
                 hexcode: '1F44E',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+            {
+                name: 'hand_with_index_finger_and_thumb_crossed',
+                code: '🫰',
+                hexcode: '1FAF0',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ];
 

@@ -1,23 +1,30 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getRequiredKYBDocuments} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
+import type USDPageProps from './types';
+
 import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnersStep from './BeneficialOwnerInfo/BeneficialOwnersStep';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import Country from './Country';
+import KYBDocuments from './KYBDocuments';
 import RequestorStep from './Requestor/RequestorStep';
 import VerifyIdentity from './Requestor/VerifyIdentity/VerifyIdentity';
-import type USDPageProps from './types';
 
 const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
 const BANK_INFO_SUB_PAGES = CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES;
@@ -61,6 +68,7 @@ const pages: PageEntry[] = [
         firstSubPage: COMPLETE_VERIFICATION_SUB_PAGES.CONFIRM_AGREEMENTS,
         lastSubPage: COMPLETE_VERIFICATION_SUB_PAGES.CONFIRM_AGREEMENTS,
     },
+    {pageName: PAGE_NAMES.KYB_DOCS, component: KYBDocuments as React.ComponentType<USDPageProps>},
     {pageName: PAGE_NAMES.VALIDATION, component: ConnectBankAccount as React.ComponentType<USDPageProps>},
 ];
 
@@ -77,6 +85,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const requestorStepRef = useRef<View>(null);
     const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;
+    const isKYBDocumentsRequired = getRequiredKYBDocuments(reimbursementAccount?.achData?.verifications?.externalApiResponses).length > 0;
 
     const currentPageIndex = useMemo(() => {
         const index = pages.findIndex((p) => p.pageName === currentPage);
@@ -89,9 +98,28 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const shouldSkipVerifyIdentity = useCallback((pageName?: string) => pageName === PAGE_NAMES.VERIFY_IDENTITY && isOnfidoSetupComplete, [isOnfidoSetupComplete]);
 
+    // Skip the KYB documents page unless the backend's verification checks flagged documents that still need to be uploaded.
+    const shouldSkipKYBDocs = useCallback((pageName?: string) => pageName === PAGE_NAMES.KYB_DOCS && !isKYBDocumentsRequired, [isKYBDocumentsRequired]);
+
+    // The bank-info step renders either the Plaid or the manual variant depending on the setup type the user
+    // picked earlier in the flow
+    const getSubPageForNavigation = useCallback(
+        (page: PageEntry | undefined, fallbackSubPage: string | undefined) => {
+            const bankInfoSubStep = reimbursementAccount?.achData?.subStep;
+            if (page?.pageName === PAGE_NAMES.BANK_ACCOUNT && bankInfoSubStep) {
+                return bankInfoSubStep;
+            }
+            return fallbackSubPage;
+        },
+        [reimbursementAccount?.achData?.subStep],
+    );
+
     const onSubmit = useCallback(() => {
         let nextIndex = currentPageIndex + 1;
         if (shouldSkipVerifyIdentity(pages.at(nextIndex)?.pageName)) {
+            nextIndex += 1;
+        }
+        if (shouldSkipKYBDocs(pages.at(nextIndex)?.pageName)) {
             nextIndex += 1;
         }
         if (nextIndex >= pages.length) {
@@ -99,12 +127,22 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
             return;
         }
         const nextPage = pages.at(nextIndex);
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: nextPage?.firstSubPage, backTo}));
-    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity]);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: getSubPageForNavigation(nextPage, nextPage?.firstSubPage), backTo}));
+    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity, shouldSkipKYBDocs, getSubPageForNavigation]);
 
     const onBackButtonPress = useCallback(() => {
+        // When the bank account is pending validation it has already been submitted, so stepping back through the
+        // setup pages doesn't make sense. Pop back to the entry point screen the user came from.
+        if (currentEntry?.pageName === PAGE_NAMES.VALIDATION && reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}));
+            return;
+        }
+
         let prevIndex = currentPageIndex - 1;
         if (shouldSkipVerifyIdentity(pages.at(prevIndex)?.pageName)) {
+            prevIndex -= 1;
+        }
+        if (shouldSkipKYBDocs(pages.at(prevIndex)?.pageName)) {
             prevIndex -= 1;
         }
         if (prevIndex < 0) {
@@ -112,8 +150,8 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
             return;
         }
         const prevPage = pages.at(prevIndex);
-        Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
-    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity]);
+        Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: getSubPageForNavigation(prevPage, prevPage?.lastSubPage), backTo}));
+    }, [backTo, currentEntry?.pageName, currentPageIndex, policyID, reimbursementAccount?.achData?.state, shouldSkipVerifyIdentity, shouldSkipKYBDocs, getSubPageForNavigation]);
 
     return (
         <View style={[styles.flex1, styles.appBG]}>

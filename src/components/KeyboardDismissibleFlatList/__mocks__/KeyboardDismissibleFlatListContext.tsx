@@ -1,10 +1,13 @@
-import type {PropsWithChildren} from 'react';
-import {createContext, useContext} from 'react';
 import type {
     KeyboardDismissibleFlatListActionsContextValue,
     KeyboardDismissibleFlatListContextValue,
     KeyboardDismissibleFlatListStateContextValue,
 } from '@components/KeyboardDismissibleFlatList/types';
+
+import type {PropsWithChildren} from 'react';
+
+import {createContext, useContext} from 'react';
+
 import createSharedValueMock from '../../../../tests/utils/createSharedValueMock';
 
 const mockStateValue: KeyboardDismissibleFlatListStateContextValue = {

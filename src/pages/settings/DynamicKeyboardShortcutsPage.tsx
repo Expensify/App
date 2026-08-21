@@ -1,21 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import React from 'react';
+import {View} from 'react-native';
+
 type Shortcut = {
     displayName: string;
-    descriptionKey: 'search' | 'newChat' | 'openShortcutDialog' | 'escape' | 'copy';
+    descriptionKey: 'search' | 'newChat' | 'openShortcutDialog' | 'escape' | 'copy' | 'markAllMessagesAsRead' | 'openDebug' | 'expenseReportSearch' | 'goToWorkspace';
 };
 
 function DynamicKeyboardShortcutsPage() {

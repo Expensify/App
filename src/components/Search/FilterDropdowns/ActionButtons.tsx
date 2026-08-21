@@ -1,14 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ActionButtonsProps = {
     containerStyle: React.ComponentProps<typeof View>['style'];
     resetSentryLabel?: string;
     applySentryLabel?: string;
-    onReset: () => void;
+    onReset?: () => void;
     onApply: () => void;
 };
 
@@ -18,21 +22,25 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, onRe
 
     return (
         <View style={containerStyle}>
+            {!!onReset && (
+                <Button
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    style={[styles.flex1]}
+                    onPress={onReset}
+                    sentryLabel={resetSentryLabel}
+                >
+                    <Button.Text>{translate('common.reset')}</Button.Text>
+                </Button>
+            )}
             <Button
-                medium
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 style={[styles.flex1]}
-                text={translate('common.reset')}
-                onPress={onReset}
-                sentryLabel={resetSentryLabel}
-            />
-            <Button
-                success
-                medium
-                style={[styles.flex1]}
-                text={translate('common.apply')}
                 onPress={onApply}
                 sentryLabel={applySentryLabel}
-            />
+            >
+                <Button.Text>{translate('common.apply')}</Button.Text>
+            </Button>
         </View>
     );
 }

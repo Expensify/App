@@ -1,12 +1,10 @@
-import React, {useEffect, useRef} from 'react';
-import type {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,25 +13,42 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
-import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import type {CardList, Policy, Report} from '@src/types/onyx';
+import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
     /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
 
+    /** Pre-filtered violations for this transaction. Computed once at the parent so each row doesn't subscribe to Onyx individually. */
+    violations: TransactionViolations;
+
     /** Report to which the transaction belongs */
     report: Report;
 
     /** Policy to which the transaction belongs */
     policy: OnyxEntry<Policy>;
+
+    /** Categories for the policy to which the transaction belongs */
+    policyCategories?: PolicyCategories;
+
+    /** Tag lists for the policy to which the transaction belongs */
+    policyTagLists?: PolicyTagLists;
 
     /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
@@ -53,6 +68,9 @@ type MoneyRequestReportTransactionItemProps = {
     /** The size of the date column */
     dateColumnSize: TableColumnSize;
 
+    /** The size of the posted column */
+    postedColumnSize: TableColumnSize;
+
     /** The size of the amount column */
     amountColumnSize: TableColumnSize;
 
@@ -61,9 +79,6 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Columns to show */
     columns: SearchColumnType[];
-
-    /** Callback function that scrolls to this transaction in case it is newly added */
-    scrollToNewTransaction?: (offset: number) => void;
 
     /** Callback function that navigates to the transaction thread */
     onArrowRightPress?: (transactionID: string) => void;
@@ -79,20 +94,32 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether the list is horizontally scrollable */
     shouldScrollHorizontally?: boolean;
+
+    /** Precomputed transaction-thread report ID for this transaction. Lets the RBR row early-return for clean rows
+     * instead of mounting the heavy RBR inner; the parent computes it once so rows don't scan report actions individually. */
+    transactionThreadReportID?: string;
 };
 
-type MoneyRequestReportTransactionItemBodyProps = MoneyRequestReportTransactionItemProps & {
+// `shouldBeHighlighted` is omitted: the highlight animation is computed by the outer component (so its timeline
+// survives the narrow↔wide swap) and reaches the body as `animatedHighlightStyle`.
+type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransactionItemProps, 'shouldBeHighlighted'> & {
     /** Inline-edit values from `useTransactionInlineEdit`. Undefined on narrow layouts where the hook is skipped. */
     inlineEdit?: InlineEditValues;
 
     /** Highlight animation style, computed by the parent so its state survives the narrow↔wide swap on resize. */
     animatedHighlightStyle: ReturnType<typeof useAnimatedHighlightStyle>;
+
+    /** Whether to skip deferring the RBR content. */
+    shouldSkipDeferRBR?: boolean;
 };
 
 function MoneyRequestReportTransactionItemBody({
     transaction,
+    violations,
     report,
     policy,
+    policyCategories,
+    policyTagLists,
     isSelectionModeEnabled,
     toggleTransaction,
     isSelected,
@@ -100,46 +127,59 @@ function MoneyRequestReportTransactionItemBody({
     handleLongPress,
     columns,
     dateColumnSize,
+    postedColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
-    scrollToNewTransaction,
     onArrowRightPress,
-    shouldBeHighlighted,
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
     shouldScrollHorizontally = false,
+    transactionThreadReportID,
     inlineEdit,
     animatedHighlightStyle,
+    shouldSkipDeferRBR = false,
 }: MoneyRequestReportTransactionItemBodyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isEditingCell} = useEditingCellState();
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const shouldUseMediumNarrowLayout = isMediumScreenWidth && !shouldScrollHorizontally;
+    const shouldUseNarrowTransactionRow = shouldUseNarrowLayout || shouldUseMediumNarrowLayout;
+    let transactionRowStyle: StyleProp<ViewStyle> = [styles.ph3, styles.noBorderRadius];
+    if (shouldUseNarrowLayout) {
+        transactionRowStyle = [styles.p4, styles.noBorderRadius];
+    } else if (shouldUseMediumNarrowLayout) {
+        transactionRowStyle = [styles.p3, styles.pv2, styles.noBorderRadius];
+    }
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
-    // Filter violations based on user visibility and dismissal state at the row level.
-    const filteredViolations = useTransactionViolations(transaction.transactionID);
 
     // On narrow layouts `inlineEdit` is undefined (the parent skips the hook). The fallback ref
     // keeps the press handler shape identical without ever being mutated on narrow.
     const fallbackEditingOnMouseDownRef = useRef(false);
     const wasEditingOnMouseDownRef = inlineEdit?.wasEditingOnMouseDownRef ?? fallbackEditingOnMouseDownRef;
 
-    const viewRef = useRef<View>(null);
-
-    // This useEffect scrolls to this transaction when it is newly added to the report
     useEffect(() => {
-        if (!shouldBeHighlighted || !scrollToNewTransaction) {
+        if (!wasRecentlyEditingCell) {
             return;
         }
-        viewRef?.current?.measure((x, y, width, height, pageX, pageY) => {
-            scrollToNewTransaction?.(pageY);
-        });
-    }, [scrollToNewTransaction, shouldBeHighlighted]);
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
+
+    const handleMouseDown = (e?: React.MouseEvent) => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+
+        if (!isEditingCell) {
+            e?.preventDefault();
+        }
+    };
+
+    const handleHoverIn = () => setShouldDisableHoverStyle(false);
 
     return (
         <OfflineWithFeedback
@@ -168,10 +208,12 @@ function MoneyRequestReportTransactionItemBody({
                 isNested
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
-                hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!isPendingDelete && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                onMouseDown={handleMouseDown}
+                onHoverIn={handleHoverIn}
                 onPressIn={() => {
-                    wasEditingOnMouseDownRef.current = isEditingCell;
+                    wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
                     if (canUseTouchScreen()) {
                         ControlSelection.block();
                     }
@@ -181,26 +223,29 @@ function MoneyRequestReportTransactionItemBody({
                     handleLongPress(transaction.transactionID);
                 }}
                 disabled={isTransactionPendingDelete(transaction)}
-                ref={viewRef}
                 wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
                         transactionItem={transaction}
-                        violations={filteredViolations}
+                        violations={violations}
                         report={report}
                         policy={policy}
+                        policyCategories={policyCategories}
+                        policyTagLists={policyTagLists}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
+                        postedColumnSize={postedColumnSize}
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         shouldShowTooltip
-                        shouldUseNarrowLayout={shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally)}
+                        shouldUseNarrowLayout={shouldUseNarrowTransactionRow}
+                        shouldUseFullHeightEditableCellHoverTarget={!shouldUseNarrowTransactionRow}
                         shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
                         isDisabled={isPendingDelete}
-                        style={!shouldUseNarrowLayout ? [styles.p3, styles.pv2, styles.noBorderRadius] : [styles.p4, styles.noBorderRadius]}
+                        style={transactionRowStyle}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
                         }}
@@ -220,6 +265,8 @@ function MoneyRequestReportTransactionItemBody({
                         onEditCategory={inlineEdit?.onEditCategory}
                         onEditAmount={inlineEdit?.onEditAmount}
                         onEditTag={inlineEdit?.onEditTag}
+                        shouldSkipDeferRBR={shouldSkipDeferRBR}
+                        transactionThreadReportID={transactionThreadReportID}
                     />
                 )}
             </PressableWithFeedback>
@@ -230,7 +277,9 @@ function MoneyRequestReportTransactionItemBody({
 type InlineEditValues = ReturnType<typeof useTransactionInlineEdit>;
 
 function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyRequestReportTransactionItemBodyProps, 'inlineEdit'>) {
-    const inlineEdit = useTransactionInlineEdit({transactionID: props.transaction.transactionID});
+    const inlineEdit = useTransactionInlineEdit({
+        transactionID: props.transaction.transactionID,
+    });
 
     return (
         <MoneyRequestReportTransactionItemBody
@@ -241,6 +290,7 @@ function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyReques
 }
 
 function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionItemProps) {
+    const {shouldBeHighlighted} = props;
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const theme = useTheme();
@@ -251,7 +301,7 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
     // component-type swap caused by browser resize.
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
-        shouldHighlight: props.shouldBeHighlighted,
+        shouldHighlight: shouldBeHighlighted,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
@@ -262,6 +312,7 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
             <MoneyRequestReportTransactionItemBody
                 {...props}
                 animatedHighlightStyle={animatedHighlightStyle}
+                shouldSkipDeferRBR
             />
         );
     }
@@ -270,6 +321,7 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
         <MoneyRequestReportTransactionItemWithInlineEdit
             {...props}
             animatedHighlightStyle={animatedHighlightStyle}
+            shouldSkipDeferRBR
         />
     );
 }

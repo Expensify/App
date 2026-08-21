@@ -1,11 +1,14 @@
-import type {OnyxKey} from 'react-native-onyx';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
+
 import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './types';
 
 function getCircularReplacer() {
@@ -37,7 +40,7 @@ function serializeLoggingData<T extends Record<string, unknown> | undefined>(log
 }
 
 function logRequestDetails<TKey extends OnyxKey>(message: string, request: Request<TKey>, response?: Response<TKey> | void) {
-    // Don't log about log or else we'd cause an infinite loop
+    // Don't log about log or else we'd cause an infinite loop.
     if (request.command === 'Log') {
         return;
     }
@@ -91,6 +94,7 @@ const Logging: Middleware = (response, request) => {
                 message: error.message,
                 status: error.status,
                 title: error.title,
+                requestID: error.requestID,
                 request: sanitizeLogParams(request),
             };
 

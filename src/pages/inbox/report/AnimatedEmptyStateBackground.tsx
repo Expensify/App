@@ -1,13 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
-import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
 import ImageSVG from '@components/ImageSVG';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
 
 // Maximum horizontal and vertical shift in pixels on sensor value change
 const IMAGE_OFFSET_X = 30;

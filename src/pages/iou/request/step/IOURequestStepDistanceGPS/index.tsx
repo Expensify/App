@@ -1,16 +1,21 @@
-import React from 'react';
-import {Linking, View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {Linking, View} from 'react-native';
+
 import type IOURequestStepDistanceGPSProps from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,11 +38,12 @@ function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
             </View>
 
             <Button
-                text={translate('gps.desktop.button')}
                 onPress={() => Linking.openURL(CONST.EXPENSIFY_MOBILE_URL)}
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_OPEN_MOBILE_BUTTON}
-            />
+            >
+                <Button.Text>{translate('gps.desktop.button')}</Button.Text>
+            </Button>
         </View>
     );
 }

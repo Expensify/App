@@ -1,24 +1,33 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {RefObject} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
-import {Keyboard} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
 import getPlatform from '@libs/getPlatform';
 import {containsHtmlTag} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 
 const MAX_VISIBLE_PROMPT_LINES = 15;
 const SAVED_CONFIRMATION_DURATION_MS = 2000;
@@ -47,13 +56,16 @@ function scrollInputIntoView(parentScrollViewRef: RefObject<RNScrollView | null>
 
 function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSectionProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [draftPrompt, setDraftPrompt] = useState('');
     const [showEmptyError, setShowEmptyError] = useState(false);
+    const [showHtmlError, setShowHtmlError] = useState(false);
     const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
+    const [isUserInitiatedSave, setIsUserInitiatedSave] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
     const wasSavingRef = useRef(false);
     const savedConfirmationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -66,7 +78,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     let errorText = '';
     if (showEmptyError) {
         errorText = translate('profilePage.aiPromptSection.promptCannotBeEmpty');
-    } else if (hasHtmlTag) {
+    } else if (showHtmlError && hasHtmlTag) {
         errorText = translate('common.error.invalidCharacter');
     }
     const storedPrompt = Str.htmlDecode(agentPrompt?.prompt ?? '');
@@ -95,19 +107,39 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [agentPrompt?.promptErrors]);
 
+    const triggerSavedConfirmation = useCallback(() => {
+        setShowSavedConfirmation(true);
+        if (savedConfirmationTimerRef.current) {
+            clearTimeout(savedConfirmationTimerRef.current);
+        }
+        savedConfirmationTimerRef.current = setTimeout(() => {
+            setShowSavedConfirmation(false);
+            savedConfirmationTimerRef.current = null;
+        }, SAVED_CONFIRMATION_DURATION_MS);
+    }, []);
+
     useEffect(() => {
-        if (wasSavingRef.current && !isSaving && !hasPromptErrors) {
-            setShowSavedConfirmation(true);
-            if (savedConfirmationTimerRef.current) {
-                clearTimeout(savedConfirmationTimerRef.current);
+        if (wasSavingRef.current && !isSaving) {
+            if (isUserInitiatedSave && !hasPromptErrors) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                triggerSavedConfirmation();
             }
-            savedConfirmationTimerRef.current = setTimeout(() => {
-                setShowSavedConfirmation(false);
-                savedConfirmationTimerRef.current = null;
-            }, SAVED_CONFIRMATION_DURATION_MS);
+            setIsUserInitiatedSave(false);
         }
         wasSavingRef.current = isSaving;
-    }, [isSaving, hasPromptErrors]);
+    }, [isSaving, hasPromptErrors, isUserInitiatedSave, triggerSavedConfirmation]);
+
+    // Network dropped mid-save: pendingAction stays 'update' until reconnect, so isSaving never flips
+    // and the button loader would spin indefinitely. Match the offline-save UX from handleSave by
+    // confirming the optimistic write; the queued request replays on reconnect.
+    useEffect(() => {
+        if (!isOffline || !isUserInitiatedSave) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        triggerSavedConfirmation();
+        setIsUserInitiatedSave(false);
+    }, [isOffline, isUserInitiatedSave, triggerSavedConfirmation]);
 
     useEffect(() => {
         return () => {
@@ -131,7 +163,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     }, [parentScrollViewRef]);
 
     const handleSave = () => {
-        if (isSaving) {
+        if (isSaving && isUserInitiatedSave) {
             return;
         }
 
@@ -142,11 +174,20 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             return;
         }
         if (containsHtmlTag(trimmed)) {
+            setShowHtmlError(true);
             inputRef.current?.focus();
             return;
         }
         dismissInput();
         updateAgentPrompt(accountID, trimmed, agentPrompt?.prompt ?? '');
+
+        // Offline: treat the optimistic write as the final state for UX purposes. The request will be
+        // replayed on reconnect without save-button feedback since the user already saw "Saved".
+        if (isOffline) {
+            triggerSavedConfirmation();
+        } else {
+            setIsUserInitiatedSave(true);
+        }
     };
 
     const handleChangeText = (text: string) => {
@@ -154,11 +195,16 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         if (showEmptyError && text.trim()) {
             setShowEmptyError(false);
         }
+        if (showHtmlError && !containsHtmlTag(text)) {
+            setShowHtmlError(false);
+        }
     };
 
     const handleKeyPress = (e: TextInputKeyPressEvent) => {
         const event = e as unknown as KeyboardEvent;
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
             handleSave();
         }
     };
@@ -172,15 +218,13 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             childrenStyles={styles.pt5}
             titleStyles={styles.accountSettingsSectionTitle}
         >
-            <OfflineWithFeedback
-                errors={agentPrompt?.promptErrors}
-                pendingAction={agentPrompt?.pendingAction}
-                onClose={() => clearAgentPromptUpdateError(accountID)}
-            >
+            <OfflineWithFeedback pendingAction={agentPrompt?.pendingAction}>
                 <TextInput
                     ref={inputRef}
                     label={translate('profilePage.aiPromptSection.prompt')}
                     accessibilityLabel={translate('profilePage.aiPromptSection.prompt')}
+                    type="markdown"
+                    excludedMarkdownStyles={['mentionReport']}
                     value={draftPrompt}
                     onChangeText={handleChangeText}
                     onKeyPress={handleKeyPress}
@@ -188,20 +232,27 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     autoGrowHeight
                     maxAutoGrowHeight={variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}
                     errorText={errorText}
-                    containerStyles={[styles.mb4]}
+                    containerStyles={[styles.mb3]}
                     testID="ai-prompt-input"
                     onFocus={handleInputFocus}
                 />
             </OfflineWithFeedback>
+            <Text style={[styles.textMicroSupporting, styles.mt1, styles.mb5]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             <Button
-                success
-                text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
-                icon={showSavedConfirmation ? icons.Checkmark : undefined}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={handleSave}
-                isLoading={isSaving}
-                isDisabled={hasHtmlTag || isSaving}
+                isLoading={isSaving && isUserInitiatedSave}
+                isDisabled={isSaving && isUserInitiatedSave}
                 style={[styles.alignSelfStart]}
                 testID="save-prompt-button"
+            >
+                {showSavedConfirmation && <Button.Icon src={icons.Checkmark} />}
+                <Button.Text>{showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}</Button.Text>
+            </Button>
+            <ErrorMessageRow
+                errors={agentPrompt?.promptErrors}
+                errorRowStyles={[styles.mt3]}
+                onDismiss={() => clearAgentPromptUpdateError(accountID)}
             />
         </Section>
     );

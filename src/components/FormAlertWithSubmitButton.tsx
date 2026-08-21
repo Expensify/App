@@ -1,12 +1,18 @@
-import type {Ref} from 'react';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import Button from './Button';
+
+import type {Ref} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import Button from './ButtonComposed';
 import FormAlertWrapper from './FormAlertWrapper';
 
 type FormAlertWithSubmitButtonProps = WithSentryLabel & {
@@ -24,6 +30,14 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
 
     /** Is the button in a loading state */
     isLoading?: boolean;
+
+    /**
+     * Controls the submit button's optimistic loading state on press.
+     *
+     * Shows the spinner the moment the button is pressed, ahead of `onSubmit` and any consumer-driven `isLoading`. Defaults to true.
+     * Set it to false when the consumer drives the press loading itself, for example through `usePressLoading`, or when `onSubmit` only changes local state.
+     */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
 
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed?: () => void;
@@ -85,7 +99,7 @@ function FormAlertWithSubmitButton({
     isDisabled = false,
     isMessageHtml = false,
     containerStyles,
-    isLoading = false,
+    isLoading: isOnyxLoading = false,
     onFixTheErrorsLinkPressed = () => {},
     enabledWhenOffline = false,
     disablePressOnEnter = false,
@@ -103,10 +117,21 @@ function FormAlertWithSubmitButton({
     shouldBlendOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
+    shouldShowLoadingImmediatelyOnPress = true,
     sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
+
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
+
+    const submit = () => {
+        if (!shouldShowLoadingImmediatelyOnPress) {
+            onSubmit();
+            return;
+        }
+        startWithLoading(onSubmit);
+    };
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
@@ -128,35 +153,32 @@ function FormAlertWithSubmitButton({
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
-                            success
-                            shouldBlendOpacity={shouldBlendOpacity}
+                            variant={isSubmitActionDangerous ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
+                            blendOpacity={shouldBlendOpacity}
                             isDisabled
-                            text={buttonText}
+                            size={useSmallerSubmitButtonSize ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                             style={style}
-                            danger={isSubmitActionDangerous}
-                            medium={useSmallerSubmitButtonSize}
-                            large={!useSmallerSubmitButtonSize}
                             onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                             sentryLabel={sentryLabel}
-                        />
+                        >
+                            <Button.Text>{buttonText}</Button.Text>
+                        </Button>
                     ) : (
                         <Button
                             ref={buttonRef}
-                            success
-                            shouldBlendOpacity={shouldBlendOpacity}
-                            pressOnEnter={pressOnEnter}
-                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                            text={buttonText}
+                            variant={isSubmitActionDangerous ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
+                            blendOpacity={shouldBlendOpacity}
+                            size={useSmallerSubmitButtonSize ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                             style={style}
-                            onPress={onSubmit}
+                            onPress={submit}
                             isDisabled={isDisabled}
                             isLoading={isLoading}
-                            danger={isSubmitActionDangerous}
-                            medium={useSmallerSubmitButtonSize}
-                            large={!useSmallerSubmitButtonSize}
                             onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                             sentryLabel={sentryLabel}
-                        />
+                        >
+                            {pressOnEnter && <Button.KeyboardShortcut enterKeyEventListenerPriority={enterKeyEventListenerPriority} />}
+                            <Button.Text>{buttonText}</Button.Text>
+                        </Button>
                     )}
                     {!shouldRenderFooterAboveSubmit && footerContent}
                 </View>

@@ -1,12 +1,18 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import ConfirmWhisperContent from '@pages/inbox/report/actionContents/ConfirmWhisperContent';
 import ReportMentionWhisperContent from '@pages/inbox/report/actionContents/ReportMentionWhisperContent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -20,6 +26,7 @@ jest.mock('@hooks/useReportIsArchived', () => ({
 const REPORT_ID = 'report-100';
 const ROOM_ID = 'room-200';
 const POLICY_ID = 'workspace-abc';
+type WhisperActionName = typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER;
 
 // Mock ReportActionItemMessage to render a real MentionReportRenderer with a test tnode.
 // The whisper component provides MentionReportContext, the real renderer consumes it.
@@ -39,8 +46,8 @@ jest.mock('@pages/inbox/report/ReportActionItemMessage', () => {
     );
 });
 
-function createWhisperAction<T extends string>(actionName: T) {
-    return {
+function createWhisperAction<T extends WhisperActionName>(actionName: T): ReportAction<T> {
+    return createMock<ReportAction<T>>({
         reportActionID: 'action-1',
         actorAccountID: 1,
         created: '2025-07-12 09:03:17.653',
@@ -50,8 +57,7 @@ function createWhisperAction<T extends string>(actionName: T) {
         avatar: '',
         person: [{type: 'TEXT', style: 'strong', text: 'Test'}],
         message: [{type: 'COMMENT', html: 'whisper message', text: 'whisper message'}],
-        originalMessage: {},
-    } as ReportAction;
+    });
 }
 
 const report = {
@@ -93,7 +99,7 @@ describe('Whisper content components provide MentionReportContext so room mentio
         render(
             <OnyxListItemProvider>
                 <ReportMentionWhisperContent
-                    action={action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>}
+                    action={action}
                     reportID={REPORT_ID}
                     actionOwnerReportStable={report}
                 />
@@ -111,7 +117,7 @@ describe('Whisper content components provide MentionReportContext so room mentio
         render(
             <OnyxListItemProvider>
                 <ConfirmWhisperContent
-                    action={action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>}
+                    action={action}
                     reportID={REPORT_ID}
                     originalReportID={undefined}
                     actionOwnerReportStable={report}

@@ -31,6 +31,10 @@ type SubmitNavigationSnapshot = {
     isSearchTopmostFullScreen: boolean;
     /** Whether the destination report is already loaded in Onyx. */
     isDestinationReportLoaded: boolean;
+    /** Whether the user onboarded as "Something else" (LOOKING_AROUND) - they have no workspace. */
+    isLookingAroundUser: boolean;
+    /** Whether the sole destination for this expense is the current user's self-DM (Personal Space). */
+    isSelfDMDestination: boolean;
 };
 
 function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean {
@@ -64,11 +68,13 @@ function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean
  * Decision tree (evaluated top to bottom):
  *   isPreInserted && !isReportPreInserted                                       -> SEARCH_PRE_INSERT
  *   isReportPreInserted                                                         -> REPORT_PRE_INSERT
+ *   isFromGlobalCreate && isLookingAroundUser && isSelfDMDestination && canDismissFromSearch -> SEARCH_DISMISS
  *   canUseDismissModalFastPath()                                                -> DISMISS_MODAL
  *   isFromGlobalCreate && canDismissFromSearch && isSearchTopmostFullScreen      -> SEARCH_DISMISS
  *   isReportInRHP && destinationReportID                                        -> REPORT_IN_RHP_DISMISS
  *   isFromGlobalCreate && navigatesToDestinationReport && isSearchTopmostFullScreen -> DISMISS_MODAL
  *   isFromGlobalCreate && navigatesToDestinationReport && destinationReportID && isDestinationReportLoaded -> DISMISS_TO_REPORT
+ *   isFromGlobalCreate && canDismissFromSearch && !navigatesToDestinationReport && !isSearchTopmostFullScreen && !isReportTopmostSplit -> SEARCH_DISMISS
  *   else                                                                        -> DEFAULT
  */
 function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
@@ -77,6 +83,14 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     }
     if (snapshot.isReportPreInserted) {
         return SUBMIT_HANDLER.REPORT_PRE_INSERT;
+    }
+    // "Something else" (LOOKING_AROUND) users have no workspace, so a global-create expense that lands in their self-DM
+    // would otherwise dismiss into that self-DM report (the Inbox). Route them to Spend > Expenses (Search) instead. This
+    // must run before canUseDismissModalFastPath, which would pick DISMISS_MODAL when a report split is topmost (e.g. Home).
+    // Scoped to isSelfDMDestination so a LOOKING_AROUND user who later has a workspace and submits to a real report/friend
+    // (e.g. their workspace chat, or a PAY/SPLIT recipient) still dismisses to that report rather than being sent to Search.
+    if (snapshot.isFromGlobalCreate && snapshot.isLookingAroundUser && snapshot.isSelfDMDestination && snapshot.canDismissFromSearch) {
+        return SUBMIT_HANDLER.SEARCH_DISMISS;
     }
     if (canUseDismissModalFastPath(snapshot)) {
         return SUBMIT_HANDLER.DISMISS_MODAL;
@@ -97,6 +111,14 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     // dismissModalAndOpenReportInInboxTab call.
     if (snapshot.isFromGlobalCreate && snapshot.navigatesToDestinationReport && snapshot.destinationReportID && snapshot.isDestinationReportLoaded) {
         return SUBMIT_HANDLER.DISMISS_TO_REPORT;
+    }
+    // Global create from tabs where neither Search nor Report is topmost (Home, Settings,
+    // Workspaces). The handler dismisses the modal and navigates to Search, avoiding the
+    // slow DEFAULT path that runs createTransaction before navigation.
+    // Destination-report flows (TRACK, SPLIT) are excluded via navigatesToDestinationReport
+    // because their report may not be loaded yet and they need shouldHandleNavigation=true.
+    if (snapshot.isFromGlobalCreate && snapshot.canDismissFromSearch && !snapshot.navigatesToDestinationReport && !snapshot.isSearchTopmostFullScreen && !snapshot.isReportTopmostSplit) {
+        return SUBMIT_HANDLER.SEARCH_DISMISS;
     }
     return SUBMIT_HANDLER.DEFAULT;
 }

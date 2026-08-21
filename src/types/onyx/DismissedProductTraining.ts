@@ -1,7 +1,17 @@
 import CONST from '@src/CONST';
 
-const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, MULTI_SCAN_EDUCATIONAL_MODAL, GPS_TOOLTIP, HAS_FILTER_NEGATION} =
-    CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {
+    CONCIERGE_LHN_GBR,
+    OUTSTANDING_FILTER,
+    ACCOUNT_SWITCHER,
+    SCAN_TEST_DRIVE_CONFIRMATION,
+    MULTI_SCAN_EDUCATIONAL_MODAL,
+    GPS_TOOLTIP,
+    HAS_FILTER_NEGATION,
+    MILEAGE_RATE_AUTO_UPDATED,
+    REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
+    REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
+} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
@@ -22,17 +32,17 @@ type DismissedProductTraining = {
      */
     [CONST.MIGRATED_USER_WELCOME_MODAL]: DismissedProductTrainingElement;
 
+    /**
+     * When user dismisses the AI features promo modal, we store the timestamp here.
+     */
+    [CONST.AI_FEATURES_PROMO_MODAL]: DismissedProductTrainingElement;
+
     // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
     // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
     /**
      * When user dismisses the conciergeLHNGBR product training tooltip, we store the timestamp here.
      */
     [CONCIERGE_LHN_GBR]: DismissedProductTrainingElement;
-
-    /**
-     * When user dismisses the renameSavedSearch product training tooltip, we store the timestamp here.
-     */
-    [RENAME_SAVED_SEARCH]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the outstanding filter product training tooltip, we store the timestamp here.
@@ -60,11 +70,6 @@ type DismissedProductTraining = {
     [CONST.CHANGE_POLICY_TRAINING_MODAL]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the agents workflows promo banner, we store the timestamp here.
-     */
-    [CONST.AGENTS_WORKFLOWS_BANNER]: DismissedProductTrainingElement;
-
-    /**
      * When user dismisses the agents rules promo banner, we store the timestamp here.
      */
     [CONST.AGENTS_RULES_BANNER]: DismissedProductTrainingElement;
@@ -78,6 +83,23 @@ type DismissedProductTraining = {
      * When user dismisses the Has filter negation tooltip, we store the timestamp here.
      */
     [HAS_FILTER_NEGATION]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the mileage rate auto-updated tooltip, we store the timestamp here.
+     */
+    [MILEAGE_RATE_AUTO_UPDATED]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the require fields rule tooltip explaining why Receipt is locked while
+     * Itemized receipt is required, we store the timestamp here.
+     */
+    [REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the require fields rule tooltip explaining why Itemized receipt is locked
+     * while Receipt is waived, we store the timestamp here.
+     */
+    [REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP]: DismissedProductTrainingElement;
 };
 
 export default DismissedProductTraining;

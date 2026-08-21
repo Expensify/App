@@ -1,9 +1,13 @@
-import React from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as Environment from '@libs/Environment/Environment';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import pkg from '../../package.json';
 import Badge from './Badge';
 

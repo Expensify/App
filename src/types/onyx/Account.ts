@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -34,6 +36,9 @@ type DelegateErrors = {
 
     /** Errors while removing a delegate keyed by email */
     removeDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while removing a delegator keyed by email */
+    removeDelegator?: Record<string, OnyxCommon.Errors>;
 
     /** Errors while connecting as a delegate keyed by email */
     connect?: Record<string, OnyxCommon.Errors>;
@@ -105,16 +110,22 @@ type Account = {
     adminsRoomReportID?: string;
 
     /** The Account ID of the account manager */
-    accountManagerAccountID?: string;
+    accountManagerAccountID?: number;
 
     /** The Report ID of the account manager */
     accountManagerReportID?: string;
+
+    /** The calendar link of the account manager */
+    accountManagerCalendarLink?: string;
 
     /** The account ID of the partner manager */
     partnerManagerAccountID?: number;
 
     /** The email of the partner manager */
     partnerManagerEmail?: string;
+
+    /** The calendar link of the partner manager */
+    partnerManagerCalendarLink?: string;
 
     /** The message to be displayed when code requested */
     message?: string;

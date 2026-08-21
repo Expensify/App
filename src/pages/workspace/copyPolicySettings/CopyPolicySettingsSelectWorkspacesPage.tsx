@@ -1,30 +1,35 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import Avatar from '@components/Avatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem, TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+// eslint-disable-next-line no-restricted-imports -- genuine paid-only check: copy-settings carries paid features, so only paid group (Collect/Control) workspaces are valid targets; Submit/Personal are intentionally excluded.
+import {isArchivedPolicy, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 const SEARCH_THRESHOLD = 12;
 
@@ -44,21 +49,22 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const currentUserEmail = currentUserPersonalDetails?.email;
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[]>([]);
-
-    const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
-    const isSourceCorporate = sourcePolicy?.type === CONST.POLICY.TYPE.CORPORATE;
+    const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
+    const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[] | null>(null);
+    const resolvedSelectedTargetIDs = selectedTargetIDs ?? copyPolicySettings?.targetPolicyIDs ?? [];
 
     const eligiblePolicies: EligiblePolicyItem[] = !policies
         ? []
         : Object.values(policies)
               .filter((policy): policy is Policy => {
-                  if (!policy || policy.id === sourcePolicyID || policy.type === CONST.POLICY.TYPE.PERSONAL || isPendingDeletePolicy(policy) || !isPolicyAdmin(policy, currentUserEmail)) {
-                      return false;
-                  }
-                  // Release 1: when copying from a Corporate workspace, only allow Corporate targets.
-                  // Issue 7 (R2) lifts this restriction by inserting an upgrade step.
-                  if (isSourceCorporate && policy.type !== CONST.POLICY.TYPE.CORPORATE) {
+                  if (
+                      !policy ||
+                      policy.id === sourcePolicyID ||
+                      !isPaidGroupPolicy(policy) ||
+                      isPendingDeletePolicy(policy) ||
+                      isArchivedPolicy(policy) ||
+                      !isPolicyAdmin(policy, currentUserEmail)
+                  ) {
                       return false;
                   }
                   return true;
@@ -79,15 +85,13 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const listItems: ListItem[] = filteredPolicies.map((policy) => ({
         text: policy.title,
         keyForList: policy.id,
-        isSelected: selectedTargetIDs.includes(policy.id),
+        isSelected: resolvedSelectedTargetIDs.includes(policy.id),
         leftElement: (
-            <View style={[styles.mr3]}>
-                <Avatar
-                    source={policy.avatarURL ?? getDefaultWorkspaceAvatar(policy.title)}
-                    size={CONST.AVATAR_SIZE.DEFAULT}
+            <View style={styles.mr3}>
+                <WorkspaceAvatar
+                    source={policy.avatarURL}
                     name={policy.title}
                     avatarID={policy.id}
-                    type={CONST.ICON_TYPE_WORKSPACE}
                 />
             </View>
         ),
@@ -98,7 +102,10 @@ function CopyPolicySettingsSelectWorkspacesPage() {
             return;
         }
         const id = item.keyForList;
-        setSelectedTargetIDs((prev) => (prev.includes(id) ? prev.filter((selectedID) => selectedID !== id) : [...prev, id]));
+        setSelectedTargetIDs((prev) => {
+            const current = prev ?? resolvedSelectedTargetIDs;
+            return current.includes(id) ? current.filter((selectedID) => selectedID !== id) : [...current, id];
+        });
     };
 
     // Scope select-all to the currently visible (filtered) rows so its behavior matches
@@ -110,12 +117,13 @@ function CopyPolicySettingsSelectWorkspacesPage() {
             return;
         }
         setSelectedTargetIDs((prev) => {
-            const areAllVisibleSelected = visibleIDs.every((id) => prev.includes(id));
+            const current = prev ?? resolvedSelectedTargetIDs;
+            const areAllVisibleSelected = visibleIDs.every((id) => current.includes(id));
             if (areAllVisibleSelected) {
                 const visibleSet = new Set(visibleIDs);
-                return prev.filter((id) => !visibleSet.has(id));
+                return current.filter((id) => !visibleSet.has(id));
             }
-            return Array.from(new Set([...prev, ...visibleIDs]));
+            return Array.from(new Set([...current, ...visibleIDs]));
         });
     };
 
@@ -123,19 +131,28 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({sourcePolicyID, targetPolicyIDs: selectedTargetIDs});
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
+
+        const previousTargetIDs = copyPolicySettings?.targetPolicyIDs ?? [];
+        const shouldClearParts = previousTargetIDs.length !== resolvedSelectedTargetIDs.length || !previousTargetIDs.every((id) => resolvedSelectedTargetIDs.includes(id));
+
+        setCopyPolicySettingsData({
+            sourcePolicyID,
+            targetPolicyIDs: resolvedSelectedTargetIDs,
+            ...(shouldClearParts ? {parts: []} : {}),
+        }).then(() => {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
+        });
     };
 
     const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {
         showButton: true,
         text: translate('common.next'),
         onConfirm,
-        isDisabled: selectedTargetIDs.length === 0,
+        isDisabled: resolvedSelectedTargetIDs.length === 0,
     };
 
     const textInputOptions: TextInputOptions = {
-        label: translate('workspace.copyPolicySettings.searchPlaceholder'),
+        label: translate('workspace.copyPolicySettings.selectWorkspaces.searchPlaceholder'),
         value: searchValue,
         onChangeText: setSearchValue,
         headerMessage: filteredPolicies.length === 0 && searchValue.length > 0 ? translate('common.noResultsFound') : undefined,
@@ -156,8 +173,8 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                     onBackButtonPress={Navigation.goBack}
                 />
                 <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectWorkspaces')}</Text>
-                    <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.description')}</Text>
+                    <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectWorkspaces.title')}</Text>
+                    <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.selectWorkspaces.description')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
                     <SelectionList

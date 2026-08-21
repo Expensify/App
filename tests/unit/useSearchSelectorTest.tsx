@@ -1,13 +1,21 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useSearchSelectorBase from '@hooks/useSearchSelector/base';
+
+import type {SearchOption} from '@libs/OptionsListUtils';
 import {getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, ReportAction} from '@src/types/onyx';
 import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -18,8 +26,8 @@ const EMPTY_OPTIONS = {recentReports: [], personalDetails: [], userToInvite: nul
 jest.mock('@libs/OptionsListUtils', () => ({
     __esModule: true,
     ...jest.requireActual('@libs/OptionsListUtils'),
-    getValidOptions: jest.fn(() => EMPTY_OPTIONS),
-    getSearchOptions: jest.fn(() => EMPTY_OPTIONS),
+    getValidOptions: jest.fn(() => ({options: EMPTY_OPTIONS, hasMore: false})),
+    getSearchOptions: jest.fn(() => ({options: EMPTY_OPTIONS, hasMore: false})),
 }));
 
 const MOCK_ACCOUNT_ID = 12345;
@@ -28,14 +36,17 @@ const MOCK_EMAIL = 'test@expensify.com';
 const mockGetValidOptions = jest.mocked(getValidOptions);
 const mockGetSearchOptions = jest.mocked(getSearchOptions);
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('@components/OptionListContextProvider', () => ({
-    ...jest.requireActual('@components/OptionListContextProvider'),
-    useOptionsList: () => ({
-        options: {reports: [], personalDetails: []},
-        areOptionsInitialized: true,
-        initializeOptions: jest.fn(),
-        resetOptions: jest.fn(),
+// Holds the Onyx-sourced personal detail options returned by the mocked useFilteredOptions, so individual tests can control them.
+const mockFilteredPersonalDetails: {current: OptionData[]} = {current: []};
+
+jest.mock('@hooks/useFilteredOptions', () => ({
+    __esModule: true,
+    default: () => ({
+        options: {reports: [], personalDetails: mockFilteredPersonalDetails.current},
+        isLoading: false,
+        loadMore: jest.fn(),
+        hasMore: false,
+        isLoadingMore: false,
     }),
 }));
 
@@ -76,15 +87,17 @@ describe('useSearchSelector sortedActions integration', () => {
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {
-                    accountID: MOCK_ACCOUNT_ID,
-                    email: MOCK_EMAIL,
-                    authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
-                },
-                [ONYXKEYS.BETAS]: [],
-                [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
-            } as unknown as OnyxMultiSetInput);
+            await Onyx.multiSet(
+                createMock<OnyxMultiSetInput>({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: MOCK_ACCOUNT_ID,
+                        email: MOCK_EMAIL,
+                        authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+                    },
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
+                }),
+            );
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -122,28 +135,6 @@ describe('useSearchSelector sortedActions integration', () => {
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
                 searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-            }),
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockGetValidOptions).toHaveBeenCalled();
-        const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
-        expect(config?.sortedActions).toEqual(mockData.sortedActions);
-    });
-
-    it('passes sortedActions to getValidOptions for MEMBER_INVITE context', async () => {
-        const mockData = buildMockSortedActions(['10']);
-
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, mockData);
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        renderHook(() =>
-            useSearchSelectorBase({
-                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
             }),
         );
         await waitForBatchedUpdatesWithAct();
@@ -250,30 +241,30 @@ describe('useSearchSelector sortedActions integration', () => {
     });
 });
 
-const EXISTING_CONTACT: OptionData = {
+const EXISTING_CONTACT = createMock<OptionData>({
     text: 'Alice Smith',
     login: 'alice@expensify.com',
     accountID: 100,
     isSelected: false,
     keyForList: 'alice@expensify.com',
-} as OptionData;
+});
 
-const SECOND_CONTACT: OptionData = {
+const SECOND_CONTACT = createMock<OptionData>({
     text: 'Bob Jones',
     login: 'bob@expensify.com',
     accountID: 200,
     isSelected: false,
     keyForList: 'bob@expensify.com',
-} as OptionData;
+});
 
-const NON_EXISTING_USER_TO_INVITE: OptionData = {
+const NON_EXISTING_USER_TO_INVITE = createMock<OptionData>({
     text: 'newuser@gmail.com',
     login: 'newuser@gmail.com',
     accountID: 999999,
     isOptimisticAccount: true,
     isSelected: false,
     keyForList: 'newuser@gmail.com',
-} as OptionData;
+});
 
 describe('useSearchSelector selection and non-existing options', () => {
     beforeAll(() => {
@@ -284,15 +275,17 @@ describe('useSearchSelector selection and non-existing options', () => {
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {
-                    accountID: MOCK_ACCOUNT_ID,
-                    email: MOCK_EMAIL,
-                    authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
-                },
-                [ONYXKEYS.BETAS]: [],
-                [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
-            } as unknown as OnyxMultiSetInput);
+            await Onyx.multiSet(
+                createMock<OnyxMultiSetInput>({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: MOCK_ACCOUNT_ID,
+                        email: MOCK_EMAIL,
+                        authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+                    },
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
+                }),
+            );
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -305,17 +298,19 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('keeps selected contacts in availableOptions.personalDetails when shouldKeepSelectedInAvailableOptions is true', async () => {
         const optionsWithSelected = {
-            recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithSelected);
 
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 initialSelected: [EXISTING_CONTACT],
             }),
@@ -330,17 +325,19 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('filters out selected contacts from availableOptions.personalDetails when shouldKeepSelectedInAvailableOptions is false', async () => {
         const optionsWithSelected = {
-            recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithSelected);
 
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: false,
                 initialSelected: [EXISTING_CONTACT],
             }),
@@ -356,17 +353,19 @@ describe('useSearchSelector selection and non-existing options', () => {
     it('populates selectedNonExistingOptions with selected users not in personalDetails when shouldSeparateNonExistingSelectedOptions is true', async () => {
         // Return contacts that do NOT include the non-existing user
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [EXISTING_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [EXISTING_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
                 initialSelected: [NON_EXISTING_USER_TO_INVITE],
@@ -385,17 +384,19 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('returns empty selectedNonExistingOptions when shouldSeparateNonExistingSelectedOptions is false', async () => {
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [EXISTING_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [EXISTING_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: false,
                 initialSelected: [NON_EXISTING_USER_TO_INVITE],
@@ -408,17 +409,19 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('does not include existing contacts in selectedNonExistingOptions', async () => {
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
                 initialSelected: [EXISTING_CONTACT],
@@ -436,17 +439,19 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('adds non-existing user to selectedNonExistingOptions after toggleSelection', async () => {
         const optionsWithUserToInvite = {
-            recentReports: [],
-            personalDetails: [EXISTING_CONTACT],
-            userToInvite: NON_EXISTING_USER_TO_INVITE,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [EXISTING_CONTACT],
+                userToInvite: NON_EXISTING_USER_TO_INVITE,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithUserToInvite);
 
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
             }),
@@ -472,17 +477,19 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('removes non-existing user from selectedNonExistingOptions after deselection', async () => {
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [EXISTING_CONTACT],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [EXISTING_CONTACT],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
                 initialSelected: [NON_EXISTING_USER_TO_INVITE],
@@ -504,17 +511,19 @@ describe('useSearchSelector selection and non-existing options', () => {
 
     it('handles mix of existing and non-existing selected users correctly', async () => {
         const optionsWithContacts = {
-            recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}],
-            userToInvite: null,
-            currentUserOption: null,
+            options: {
+                recentReports: [],
+                personalDetails: [{...EXISTING_CONTACT, isSelected: true}],
+                userToInvite: null,
+                currentUserOption: null,
+            },
         };
         mockGetValidOptions.mockReturnValue(optionsWithContacts);
 
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
                 initialSelected: [EXISTING_CONTACT, NON_EXISTING_USER_TO_INVITE],
@@ -532,5 +541,147 @@ describe('useSearchSelector selection and non-existing options', () => {
         // The existing contact should remain in availableOptions.personalDetails
         const personalDetailLogins = result.current.availableOptions.personalDetails.map((o) => o.login);
         expect(personalDetailLogins).toContain('alice@expensify.com');
+    });
+});
+
+// Imported device contacts are always given a generated (optimistic) accountID, even when that person already exists in Onyx.
+function makeDeviceContact(login: string, accountID: number, text = login): SearchOption<PersonalDetails> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture only needs a minimal contact option shape
+    return {login, accountID, text, keyForList: login} as SearchOption<PersonalDetails>;
+}
+
+describe('useSearchSelector phone contact de-duplication', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockFilteredPersonalDetails.current = [];
+
+        // getValidOptions is mocked, so the contact de-duplication under test only depends on the inputs passed to the hook.
+        mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterAll(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+    });
+
+    /** Returns the personalDetails that were handed to getValidOptions on the most recent call. */
+    function getPersonalDetailsPassedToGetValidOptions() {
+        return mockGetValidOptions.mock.calls.at(-1)?.[0]?.personalDetails ?? [];
+    }
+
+    it('drops an imported contact whose login already exists in personal details, keeping the real Onyx account', async () => {
+        // EXISTING_CONTACT is alice@expensify.com with the real Onyx accountID 100.
+        mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
+
+        renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                contactOptions: [makeDeviceContact('alice@expensify.com', 987654, 'Alice From Phone'), makeDeviceContact('carol@gmail.com', 987655, 'Carol')],
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const personalDetails = getPersonalDetailsPassedToGetValidOptions();
+
+        // Alice must appear exactly once, and with the real Onyx accountID rather than the generated contact one.
+        const aliceEntries = personalDetails.filter((option) => option.login === 'alice@expensify.com');
+        expect(aliceEntries).toHaveLength(1);
+        expect(aliceEntries.at(0)?.accountID).toBe(100);
+
+        // The contact that isn't already known must still be added.
+        expect(personalDetails.map((option) => option.login)).toContain('carol@gmail.com');
+    });
+
+    it('de-dupes imported contacts that share the same login', async () => {
+        renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                contactOptions: [makeDeviceContact('carol@gmail.com', 987655), makeDeviceContact('carol@gmail.com', 111111)],
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const personalDetails = getPersonalDetailsPassedToGetValidOptions();
+        expect(personalDetails.filter((option) => option.login === 'carol@gmail.com')).toHaveLength(1);
+    });
+
+    it('drops a phone contact that resolves to an SMS login already in personal details', async () => {
+        // getContactOption already normalizes a device phone number to its SMS-domain login, so both sides carry the same login.
+        const smsLogin = '+15551234567@expensify.sms';
+        mockFilteredPersonalDetails.current = [{...EXISTING_CONTACT, login: smsLogin, accountID: 300}];
+
+        renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                contactOptions: [makeDeviceContact(smsLogin, 987654, 'Alice From Phone')],
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const personalDetails = getPersonalDetailsPassedToGetValidOptions();
+        expect(personalDetails).toHaveLength(1);
+        expect(personalDetails.at(0)?.accountID).toBe(300);
+    });
+
+    it('matches logins case-insensitively so a differently-cased contact is not duplicated', async () => {
+        mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
+
+        renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                contactOptions: [makeDeviceContact('Alice@Expensify.com', 987654)],
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const personalDetails = getPersonalDetailsPassedToGetValidOptions();
+        expect(personalDetails).toHaveLength(1);
+        expect(personalDetails.at(0)?.accountID).toBe(100);
+    });
+
+    it('keeps an imported contact when the only matching Onyx entry is optimistic', async () => {
+        // An optimistic personal detail is filtered out by getValidOptions, so it must not suppress the real device contact.
+        mockFilteredPersonalDetails.current = [{...EXISTING_CONTACT, isOptimisticPersonalDetail: true}];
+
+        renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                contactOptions: [makeDeviceContact('alice@expensify.com', 987654, 'Alice From Phone')],
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const personalDetails = getPersonalDetailsPassedToGetValidOptions();
+        const aliceContact = personalDetails.find((option) => option.login === 'alice@expensify.com' && option.accountID === 987654);
+        expect(aliceContact).toBeDefined();
+    });
+
+    it('keeps all imported contacts when none of them are already known', async () => {
+        mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
+
+        renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                contactOptions: [makeDeviceContact('carol@gmail.com', 987655)],
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getPersonalDetailsPassedToGetValidOptions().map((option) => option.login)).toEqual(['alice@expensify.com', 'carol@gmail.com']);
     });
 });

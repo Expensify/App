@@ -1,27 +1,33 @@
-import type {SeverityLevel} from '@sentry/react-native';
-import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import ScenarioConfigs from '@components/MultifactorAuthentication/config/scenarios';
 import {DeniedTransactionServerFailureScreen, DeniedTransactionSuccessScreen} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {denyTransaction, fireAndForgetDenyTransaction} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import type {SeverityLevel} from '@sentry/react-native';
+
+import * as Sentry from '@sentry/react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import MultifactorAuthenticationAuthorizeTransactionActions from './AuthorizeTransactionActions';
 import MultifactorAuthenticationAuthorizeTransactionContent from './AuthorizeTransactionContent';
 
@@ -96,12 +102,20 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         setIsDenyingTransaction(true);
         denyTransaction({transactionID}).then(({reason, httpStatusCode, message}) => {
             addBreadcrumb('Deny completed', {transactionID, reason, httpStatusCode, message});
+            // The deny outcome is rendered inside this RHP page (not inside the MFA modal navigator),
+            // so the outcome screen's default CLOSE_MODAL dispatch has no effect here. Override its
+            // close handler to dismiss the RHP instead.
+            const closeRHP = () => {
+                allowNavigatingAwayRef.current = true;
+                Navigation.closeRHPFlow();
+            };
             if (reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.FLOW_OUTCOMES.TRANSACTION_DENIED) {
-                setDenyOutcomeScreen(<DeniedTransactionSuccessScreen />);
+                setDenyOutcomeScreen(<DeniedTransactionSuccessScreen onClose={closeRHP} />);
                 return;
             }
-            const failureScreen = reason ? authorizeTransactionConfig.failureScreens[reason] : undefined;
-            setDenyOutcomeScreen(failureScreen ?? <DeniedTransactionServerFailureScreen />);
+            const failureElement = reason ? authorizeTransactionConfig.failureScreens[reason] : undefined;
+            const failureWithCloseOverride = failureElement ? React.cloneElement(failureElement, {onClose: closeRHP}) : <DeniedTransactionServerFailureScreen onClose={closeRHP} />;
+            setDenyOutcomeScreen(failureWithCloseOverride);
         });
     };
 
@@ -143,8 +157,8 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
                     }}
                     shouldShowBackButton
                 />
-                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
-                    <FullScreenLoadingIndicator reasonAttributes={{context: 'MultifactorAuthenticationScenarioAuthorizeTransactionPage'}} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             </ScreenWrapper>
         );

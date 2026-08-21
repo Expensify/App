@@ -1,11 +1,15 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
 import type {Route} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import findAllMatchingDynamicSuffixes from './findAllMatchingDynamicSuffixes';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
 import type {DynamicSuffixMatch} from './findAllMatchingDynamicSuffixes';
+
+import findAllMatchingDynamicSuffixes from './findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from './isDynamicRouteScreen';
 
@@ -85,7 +89,7 @@ function getDynamicRouteAdaptedState(state: PartialState<NavigationState>, focus
         const allSuffixMatches = findAllMatchingDynamicSuffixes(currentPath);
 
         for (const candidate of allSuffixMatches) {
-            const candidateBasePath = getPathWithoutDynamicSuffix(currentPath, candidate.actualSuffix, candidate.pattern);
+            const candidateBasePath = getPathWithoutDynamicSuffix(candidate.pathUsedForMatching, candidate.actualSuffix, candidate.pattern);
             if (!candidateBasePath || candidateBasePath === currentPath) {
                 continue;
             }

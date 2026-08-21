@@ -1,19 +1,25 @@
-import React, {useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import MenuItem from '@components/MenuItem';
-import type {SearchAmountFilterKeys} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useState} from 'react';
+
 import BasePopup from './BasePopup';
 
 type AmountPopupProps = {
-    filterKey: SearchAmountFilterKeys;
+    baseFilterKey: SearchAmountFilterKeys;
     label: string;
-    value: Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
+    value: SearchAmountValues;
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
     closeOverlay: () => void;
 };
@@ -33,15 +39,13 @@ function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInpu
     return (
         <BasePopup
             label={title}
-            onReset={() => onSave('')}
             onApply={() => onSave(amount)}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_AMOUNT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
             onBackButtonPress={onBackButtonPress}
         >
             <AmountWithoutCurrencyInput
                 containerStyles={[styles.ph4, styles.mb2]}
-                defaultValue={amount}
+                defaultValue={value}
                 onInputChange={setAmount}
                 label={title}
                 accessibilityLabel={title}
@@ -55,7 +59,7 @@ function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInpu
     );
 }
 
-function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
+function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
     const {translate} = useLocalize();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
     const [amountValues, setAmountValues] = useState(value);
@@ -102,38 +106,28 @@ function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: 
             <AmountInput
                 title={title[selectedModifier]}
                 value={formatAmount(amountValues[selectedModifier])}
-                name={`${filterKey}${selectedModifier}`}
+                name={`${baseFilterKey}${selectedModifier}`}
                 onBackButtonPress={goBack}
                 onSave={save}
             />
         );
     }
 
-    const onChange = (values: Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>) => {
+    const onChange = (values: SearchAmountValues) => {
         const formValues: Record<string, string | undefined> = {};
-        formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO];
-        formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
-        formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
+        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO];
+        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
+        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
         updateFilterForm(formValues);
         closeOverlay();
     };
 
     const applyChanges = () => onChange(amountValues);
 
-    const resetChanges = () => {
-        onChange({
-            [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: undefined,
-            [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: undefined,
-            [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: undefined,
-        });
-    };
-
     return (
         <BasePopup
             label={label}
-            onReset={resetChanges}
             onApply={applyChanges}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_AMOUNT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
         >
             {modifierConfig.map((modifier) => (

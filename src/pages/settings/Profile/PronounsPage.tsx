@@ -1,4 +1,3 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,14 +8,19 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {updatePronouns as updatePronounsPersonalDetails} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 type PronounEntry = ListItem & {
     value: string;
@@ -31,7 +35,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const currentPronouns = currentUserPersonalDetails?.pronouns ?? '';
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
     const [searchValue, setSearchValue] = useState('');
-    const isOptionSelected = useRef(false);
+    const [selectedPronouns, setSelectedPronouns] = useState(currentPronouns);
     const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
@@ -41,6 +45,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
         const currentPronounsText = CONST.PRONOUNS_LIST.find((value) => value === currentPronounsKey);
 
         setSearchValue(currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '');
+        setSelectedPronouns(currentPronouns);
 
         // Only need to update search value when the first time the data is loaded
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,13 +54,12 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const filteredPronounsList = useMemo((): PronounEntry[] => {
         const pronouns = CONST.PRONOUNS_LIST.map((value) => {
             const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${value}`;
-            const isCurrentPronouns = fullPronounKey === currentPronouns;
 
             return {
                 text: translate(`pronouns.${value}`),
                 value: fullPronounKey,
                 keyForList: value,
-                isSelected: isCurrentPronouns,
+                isSelected: fullPronounKey === selectedPronouns,
             };
         }).sort((a, b) => localeCompare(a.text.toLowerCase(), b.text.toLowerCase()));
 
@@ -65,16 +69,25 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             return [];
         }
         return pronouns.filter((pronoun) => pronoun.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
-    }, [searchValue, currentPronouns, translate, localeCompare]);
+    }, [searchValue, selectedPronouns, translate, localeCompare]);
 
-    const updatePronouns = (selectedPronouns: PronounEntry) => {
-        if (isOptionSelected.current) {
-            return;
-        }
-        isOptionSelected.current = true;
-        updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : (selectedPronouns?.value ?? ''), currentUserAccountID);
-        Navigation.goBack();
+    const selectPronoun = (selectedPronoun: PronounEntry) => {
+        setSelectedPronouns(selectedPronoun.value === selectedPronouns ? '' : (selectedPronoun?.value ?? ''));
     };
+
+    const savePronouns = useCallback(() => {
+        updatePronounsPersonalDetails(selectedPronouns, currentUserAccountID);
+        Navigation.goBack();
+    }, [selectedPronouns, currentUserAccountID]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: savePronouns,
+        }),
+        [savePronouns, translate],
+    );
 
     const textInputOptions = useMemo(
         () => ({
@@ -89,11 +102,11 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID="PronounsPage"
         >
             {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'PronounsPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes} />
+                <FullScreenLoadingIndicator />
             ) : (
                 <>
                     <CollapsibleHeaderOnKeyboard>
@@ -107,9 +120,10 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                     <SelectionList
                         data={filteredPronounsList}
                         ListItem={SingleSelectListItem}
-                        onSelectRow={updatePronouns}
+                        onSelectRow={selectPronoun}
                         textInputOptions={textInputOptions}
                         initiallyFocusedItemKey={currentPronounsKey}
+                        confirmButtonOptions={confirmButtonOptions}
                         shouldSingleExecuteRowSelect
                     />
                 </>

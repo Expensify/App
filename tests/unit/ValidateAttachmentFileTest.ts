@@ -1,7 +1,10 @@
 import validateAttachmentFile from '@libs/validateAttachmentFile';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import CONST from '../../src/CONST';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
+import createMock from '../utils/createMock';
 
 // Mock only normalizeFileObject and validateImageForCorruption; keep real hasHeicOrHeifExtension and isValidReceiptExtension
 jest.mock('@src/libs/fileDownload/FileUtils', () => {
@@ -13,7 +16,7 @@ jest.mock('@src/libs/fileDownload/FileUtils', () => {
     };
 });
 
-const mockFileUtils = FileUtils as jest.Mocked<typeof FileUtils>;
+const mockFileUtils = jest.mocked(FileUtils);
 
 const createMockFile = (name: string, size: number): FileObject => ({
     name,
@@ -52,7 +55,7 @@ describe('validateAttachmentFile', () => {
         });
 
         it('returns invalid result with FILE_INVALID when file has null size', async () => {
-            const file: FileObject = {name: 'receipt.jpg', size: null as unknown as number};
+            const file = {name: 'receipt.jpg', size: null};
             const error = await validateAttachmentFile(file, undefined, true);
 
             if (error.isValid) {
@@ -189,12 +192,10 @@ describe('validateAttachmentFile', () => {
 
     describe('FOLDER_NOT_ALLOWED', () => {
         it('returns invalid result with FOLDER_NOT_ALLOWED when DataTransferItem is a directory', async () => {
-            const mockItem = {
+            const mockItem = createMock<DataTransferItem>({
                 kind: 'file' as const,
-                webkitGetAsEntry: jest.fn(() => ({
-                    isDirectory: true,
-                })),
-            } as unknown as DataTransferItem;
+                webkitGetAsEntry: jest.fn(() => createMock<FileSystemEntry>({isDirectory: true})),
+            });
 
             const file = createMockFile('folder', 0);
             const error = await validateAttachmentFile(file, mockItem);
@@ -207,12 +208,10 @@ describe('validateAttachmentFile', () => {
         });
 
         it('returns valid result when DataTransferItem is not a directory', async () => {
-            const mockItem = {
+            const mockItem = createMock<DataTransferItem>({
                 kind: 'file' as const,
-                webkitGetAsEntry: jest.fn(() => ({
-                    isDirectory: false,
-                })),
-            } as unknown as DataTransferItem;
+                webkitGetAsEntry: jest.fn(() => createMock<FileSystemEntry>({isDirectory: false})),
+            });
 
             const file = createMockFile('file.pdf', 100);
             const error = await validateAttachmentFile(file, mockItem);
@@ -314,11 +313,11 @@ describe('validateAttachmentFile', () => {
             try {
                 const blob = new Blob(['content'], {type: 'text/plain'});
                 const convertedFile = new File([blob], 'file.txt', {type: 'text/plain'});
-                const file = {
+                const file = createMock<FileObject>({
                     name: 'file.txt',
                     size: 7,
                     getAsFile: () => convertedFile,
-                } as unknown as FileObject;
+                });
 
                 const error = await validateAttachmentFile(file);
 
@@ -326,6 +325,78 @@ describe('validateAttachmentFile', () => {
                 expect(mockFileUtils.normalizeFileObject).toHaveBeenCalledWith(convertedFile);
             } finally {
                 createObjectURLSpy.mockRestore();
+            }
+        });
+    });
+
+    describe('object URL revocation', () => {
+        it('revokes the superseded blob: uri and assigns the new object URL', async () => {
+            // In Node/Jest the react-native-url-polyfill throws for createObjectURL (no BlobModule).
+            // Mock it so the File path that assigns file.uri can run.
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
+            const revokeObjectURLSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+            try {
+                const previousUri = 'blob:previous-url';
+                const fileWithUri: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], 'image.png', {type: 'image/png'});
+                fileWithUri.uri = previousUri;
+
+                const error = await validateAttachmentFile(fileWithUri);
+
+                expect(error.isValid).toBe(true);
+                if (!error.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(revokeObjectURLSpy).toHaveBeenCalledWith(previousUri);
+                expect(error.file.uri).toBe('blob:new-url');
+            } finally {
+                createObjectURLSpy.mockRestore();
+                revokeObjectURLSpy.mockRestore();
+            }
+        });
+
+        it('still revokes the superseded blob: uri when the filename needs cleaning (new File() drops the custom .uri)', async () => {
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
+            const revokeObjectURLSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+            try {
+                const previousUri = 'blob:previous-url';
+                // A name cleanFileName rewrites (spaces), forcing the `new File(...)` reassignment that does
+                // not carry over the custom .uri property — the revoke must still target the original URI.
+                const fileWithUri: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], 'Screenshot 2026-07-11 at 9.15.03 AM.png', {type: 'image/png'});
+                fileWithUri.uri = previousUri;
+
+                const error = await validateAttachmentFile(fileWithUri);
+
+                expect(error.isValid).toBe(true);
+                if (!error.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(revokeObjectURLSpy).toHaveBeenCalledWith(previousUri);
+                expect(error.file.uri).toBe('blob:new-url');
+            } finally {
+                createObjectURLSpy.mockRestore();
+                revokeObjectURLSpy.mockRestore();
+            }
+        });
+
+        it('does not revoke any object URL when the incoming file has no uri', async () => {
+            // In Node/Jest the react-native-url-polyfill throws for createObjectURL (no BlobModule).
+            // Mock it so the File path that assigns file.uri can run.
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
+            const revokeObjectURLSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+            try {
+                const fileWithoutUri: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], 'image.png', {type: 'image/png'});
+
+                const error = await validateAttachmentFile(fileWithoutUri);
+
+                expect(error.isValid).toBe(true);
+                if (!error.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(revokeObjectURLSpy).not.toHaveBeenCalled();
+                expect(error.file.uri).toBe('blob:new-url');
+            } finally {
+                createObjectURLSpy.mockRestore();
+                revokeObjectURLSpy.mockRestore();
             }
         });
     });

@@ -1,17 +1,24 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
+
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import Button from './Button';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import type DotLottieAnimation from './LottieAnimations/types';
+
+import Button from './ButtonComposed';
 import FixedFooter from './FixedFooter';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
-import type DotLottieAnimation from './LottieAnimations/types';
 import Text from './Text';
 
 type ConfirmationPageProps = {
@@ -147,23 +154,25 @@ function ConfirmationPage({
                 <FixedFooter style={footerStyle}>
                     {shouldShowSecondaryButton && (
                         <Button
-                            large
-                            text={secondaryButtonText}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             testID="confirmation-secondary-button"
                             style={styles.mt3}
                             onPress={onSecondaryButtonPress}
-                        />
+                        >
+                            <Button.Text>{secondaryButtonText}</Button.Text>
+                        </Button>
                     )}
                     {shouldShowButton && (
                         <Button
-                            success
-                            large
-                            text={buttonText}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             testID="confirmation-primary-button"
                             style={styles.mt3}
-                            pressOnEnter
                             onPress={onButtonPress}
-                        />
+                        >
+                            <Button.KeyboardShortcut />
+                            <Button.Text>{buttonText}</Button.Text>
+                        </Button>
                     )}
                 </FixedFooter>
             )}

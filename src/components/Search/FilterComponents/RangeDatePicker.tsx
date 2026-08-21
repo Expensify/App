@@ -1,12 +1,15 @@
-import {isValid, parse} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import {isValid, parse} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
 
 type RangeDatePickerProps = {
     /** The "From" date value */

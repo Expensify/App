@@ -1,18 +1,25 @@
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
+
+import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
+import type {TabNavigatorParamList} from '@libs/Navigation/types';
+
+import HomePage from '@pages/home/HomePage';
+
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
+
 /**
  * Tab Navigator containing Home, Inbox (Reports), Search, Settings, and Workspaces pages.
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import type {NavigationAction, NavigationState, Router, TabNavigationState} from '@react-navigation/native';
+
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import type {TabNavigatorParamList} from '@libs/Navigation/types';
-import HomePage from '@pages/home/HomePage';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
+
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import SettingsSplitNavigator from './SettingsSplitNavigator';
@@ -89,6 +96,7 @@ function TabNavigator() {
             backBehavior="fullHistory"
             tabBar={renderTabBar}
             screenOptions={screenOptions}
+            screenLayout={bottomTabScreenLayoutWrapper}
             UNSTABLE_router={tabRouterOverride}
         >
             <Tab.Screen

@@ -1,6 +1,8 @@
-import {getBankLinkedPersonalCards} from '@selectors/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList} from '@src/types/onyx';
+
+import {getBankLinkedPersonalCards} from '@selectors/Card';
+
 import useOnyx from './useOnyx';
 
 function useBankLinkedPersonalCards(): CardList {

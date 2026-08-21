@@ -1,21 +1,26 @@
-import React, {useRef, useState} from 'react';
-import type {ImageResizeMode, ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import DeferredImageWithLoading from '@components/DeferredImageWithLoading';
+import EReceiptStaticThumbnail from '@components/EReceiptStaticThumbnail';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
-import ImageWithLoading from '@components/ImageWithLoading';
-import PDFThumbnail from '@components/PDFThumbnail';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+import LocalPDFReceiptPreview from '@components/ReportActionItem/LocalPDFReceiptPreview';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import ThumbnailImage from '@components/ThumbnailImage';
+
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ImageResizeMode, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import shouldUseAspectRatioForEReceipts from './shouldUseAspectRatioForEReceipts';
 
 // It is used to avoid updating the image width in a loop.
@@ -105,9 +110,6 @@ type ReceiptImageProps = (
 
     isEmptyReceipt?: boolean;
 
-    /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
-
     /** Callback to be called on pressing the image */
     onPress?: () => void;
 
@@ -131,6 +133,9 @@ type ReceiptImageProps = (
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle & ImageStyle>;
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
 };
 
 function ReceiptImage({
@@ -150,7 +155,6 @@ function ReceiptImage({
     fallbackIconColor,
     fallbackIconBackground,
     isEmptyReceipt = false,
-    reasonAttributes,
     onPress,
     transactionItem,
     isPerDiemRequest,
@@ -161,6 +165,7 @@ function ReceiptImage({
     onLoadFailure,
     resizeMode,
     style,
+    previewUri,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -180,15 +185,24 @@ function ReceiptImage({
 
     if (isPDFThumbnail) {
         return (
-            <PDFThumbnail
-                previewSourceURL={source ?? ''}
-                style={[styles.w100, styles.h100]}
+            <LocalPDFReceiptPreview
+                sourceURL={source ?? ''}
+                shouldUseFullHeight={shouldUseFullHeight}
                 onLoadSuccess={onLoad}
+                onLoadFailure={onLoadFailure}
             />
         );
     }
 
     if (isEReceipt && !isPerDiemRequest) {
+        if (shouldUseThumbnailImage && transactionItem) {
+            return (
+                <EReceiptStaticThumbnail
+                    transactionItem={transactionItem}
+                    style={style}
+                />
+            );
+        }
         return (
             <EReceiptWithSizeCalculation
                 transactionID={transactionID}
@@ -216,6 +230,7 @@ function ReceiptImage({
         return (
             <ThumbnailImage
                 previewSourceURL={source ?? ''}
+                previewUri={previewUri}
                 style={[styles.w100, styles.h100, style, thumbnailContainerStyles]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
@@ -229,13 +244,12 @@ function ReceiptImage({
                 onLoad={onLoad}
                 onLoadFailure={onLoadFailure}
                 resizeMode={resizeMode}
-                reasonAttributes={reasonAttributes}
             />
         );
     }
 
     return (
-        <ImageWithLoading
+        <DeferredImageWithLoading
             onLayout={(e) => {
                 if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
                     setReceiptImageWidth(e.nativeEvent.layout.width);
@@ -254,7 +268,7 @@ function ReceiptImage({
             imageWidthToCalculateHeight={receiptImageWidth}
             onError={onLoadFailure}
             resizeMode={resizeMode}
-            reasonAttributes={reasonAttributes}
+            previewUri={previewUri}
         />
     );
 }

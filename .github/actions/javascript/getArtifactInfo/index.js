@@ -11536,8 +11536,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const core = __importStar(__nccwpck_require__(2186));
 const run = function () {
     const artifactName = core.getInput('ARTIFACT_NAME', { required: true });
     return GithubUtils_1.default.getArtifactByName(artifactName)
@@ -11594,13 +11594,6 @@ const CONST = {
     STATE: {
         OPEN: 'open',
     },
-    COMMENT: {
-        TYPE_BOT: 'Bot',
-        NAME_MELVIN_BOT: 'melvin-bot[bot]',
-        NAME_MELVIN_USER: 'MelvinBot',
-        NAME_CODEX: 'chatgpt-codex-connector',
-        NAME_GITHUB_ACTIONS: 'github-actions',
-    },
     ACTIONS: {
         CREATED: 'created',
         EDITED: 'edited',
@@ -11636,8 +11629,14 @@ const CONST = {
     MOBILE_EXPENSIFY_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.MOBILE_EXPENSIFY_REPO}`,
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
-    ACTION_REQUIRED: 'ACTION_REQUIRED',
-    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
+    /**
+     * What a comment on a Help Wanted issue is trying to do, for comments that don't follow the proposal template.
+     */
+    INTENT: {
+        NOT_AN_ATTEMPT: 'NOT_AN_ATTEMPT',
+        GENUINE_ATTEMPT: 'GENUINE_ATTEMPT',
+        SPAM: 'SPAM',
+    },
 };
 exports["default"] = CONST;
 
@@ -11859,6 +11858,20 @@ class GithubUtils {
             issue_number: number,
             body: messageBody,
         });
+    }
+    /**
+     * Collapse a comment as spam. Only exposed over GraphQL, and unlike rewriting the body it leaves the
+     * original text intact and can be undone from the UI.
+     */
+    static minimizeCommentAsSpam(commentNodeID) {
+        console.log(`Minimizing comment ${commentNodeID} as spam`);
+        return this.graphql(`mutation($subjectId: ID!) {
+                minimizeComment(input: {subjectId: $subjectId, classifier: SPAM}) {
+                    minimizedComment {
+                        isMinimized
+                    }
+                }
+            }`, { subjectId: commentNodeID });
     }
     /**
      * Get the most recent workflow run for the given New Expensify workflow.

@@ -1,49 +1,66 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
-import Button from '@components/Button';
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {openExternalLink} from '@libs/actions/Link';
 import {clearImportedSpreadsheetMemberData, importPolicyMembers} from '@libs/actions/Policy/Member';
+import Tab from '@libs/actions/Tab';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canMemberAssignElevatedRole, canMemberAssignRole, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
-type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
+import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
+
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION
+>;
 
 function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [role = CONST.POLICY.ROLE.USER] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE);
+    const [roleFromOnyx = CONST.POLICY.ROLE.USER] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE);
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
+    const role = canMemberAssignRole(policy, currentUserLogin, roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
     const [isImporting, setIsImporting] = useState(false);
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const personalDetails = usePersonalDetails();
     const {setIsClosing} = useCloseImportPage();
@@ -86,11 +103,20 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
     };
 
+    // The same confirmation screen is reused for the Members importer and the Workflows importer, so we return the user
+    // to the page the import was started from.
+    const isWorkflowsImport = route.name === SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION;
+
+    // Only reached once the import succeeded. Workflows returns to a tabbed page that reopens on the tab the user left,
+    // so point it at Approvals — otherwise the workflows just imported are hidden behind whichever tab that was.
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
         closeImportPage();
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        if (isWorkflowsImport && isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, CONST.TAB.WORKFLOWS.APPROVALS);
+        }
+        Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
     const importMembers = async () => {
@@ -99,7 +125,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        const importFinalModal = await importPolicyMembers(policy, membersWithRole);
+        const importFinalModal = await importPolicyMembers(policy, membersWithRole, spreadsheet?.shouldShowMemberRolePermissionWarning);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImporting(false);
@@ -121,7 +147,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                title={translate('workspace.inviteMessage.confirmDetails')}
+                title={isWorkflowsImport ? translate('workspace.invite.members') : translate('workspace.inviteMessage.confirmDetails')}
                 subtitle={policy?.name}
                 shouldShowBackButton
                 onBackButtonPress={() => {
@@ -130,13 +156,12 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             />
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ReportActionAvatars
-                        size={CONST.AVATAR_SIZE.LARGE}
+                    <MultiAccountAvatar
+                        size={CONST.AVATAR_SIZE.XXX_LARGE}
                         accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
-                        horizontalStacking={{
-                            displayInRows: true,
+                        horizontalOptions={{
+                            maxRows: 2,
                         }}
-                        secondaryAvatarContainerStyle={[styles.secondAvatarInline]}
                     />
                 </View>
                 <View style={[styles.mb5]}>
@@ -147,7 +172,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                         <MenuItemWithTopDescription
                             title={translate(`workspace.common.roleName`, role)}
                             description={translate('common.role')}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canAssignElevatedRoles}
+                            interactive={canAssignElevatedRoles}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path))}
                         />
                     </View>
@@ -155,15 +181,16 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             </View>
             <FixedFooter style={[styles.flex1, styles.justifyContentEnd]}>
                 <Button
-                    text={translate('common.import')}
                     onPress={importMembers}
                     isLoading={isImporting}
                     isDisabled={isOffline}
-                    pressOnEnter
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={styles.mb3}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{isWorkflowsImport ? translate('common.invite') : translate('common.import')}</Button.Text>
+                </Button>
                 <PressableWithoutFeedback
                     onPress={openPrivacyURL}
                     role={CONST.ROLE.LINK}

@@ -1,17 +1,22 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getWaypointIndex, hasReceipt, isFetchingWaypointsFromServer} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';

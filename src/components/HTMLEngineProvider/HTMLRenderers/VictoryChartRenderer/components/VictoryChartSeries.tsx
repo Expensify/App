@@ -1,6 +1,7 @@
-import React, {useEffect} from 'react';
 import type {TNode} from 'react-native-render-html';
-import Log from '@libs/Log';
+
+import React from 'react';
+
 import VictoryChartBar from './VictoryChartBar';
 import VictoryChartBarGroup from './VictoryChartBarGroup';
 import VictoryChartLine from './VictoryChartLine';
@@ -24,13 +25,6 @@ const SERIES_RENDERERS: Partial<Record<string, SeriesComponent>> = {
 
 function VictoryChartSeries({tnode, isHorizontal}: VictoryChartSeriesProps) {
     const SeriesRenderer = SERIES_RENDERERS[tnode.tagName ?? ''];
-
-    useEffect(() => {
-        if (SeriesRenderer) {
-            return;
-        }
-        Log.warn('Trying to render an unsupported series chart', {tagName: tnode.tagName});
-    }, [SeriesRenderer, tnode.tagName]);
 
     if (!SeriesRenderer) {
         return null;

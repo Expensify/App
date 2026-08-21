@@ -1,13 +1,30 @@
-import {useMemo} from 'react';
 import type {SearchKey} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useMemo} from 'react';
+
 import useOnyx from './useOnyx';
 
-function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, searchHash: number | undefined, enabled: boolean) {
+function getSearchRequestOffsetForMissingAllMatchingCount(offset: number, serverOffset: number | undefined, isAllMatchingItemsCountMissing: boolean): number {
+    if (!isAllMatchingItemsCountMissing) {
+        return offset;
+    }
+    return Math.min(offset, serverOffset ?? offset);
+}
+
+function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, searchHash: number | undefined, enabled: boolean, areAllMatchingItemsSelected = false) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
     const shouldCalculateTotals = useMemo(() => {
+        // All-matching selections need the server-computed count/total, including for ad-hoc queries.
+        // The caller enables this only while the initial offset is active or the count is still missing,
+        // so later pagination requests can avoid recalculating totals.
+        if (areAllMatchingItemsSelected) {
+            return enabled;
+        }
+
         if (!enabled) {
             return false;
         }
@@ -35,9 +52,10 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, search
         const isSavedSearch = searchHash !== undefined && savedSearches && !!savedSearches[searchHash];
 
         return isSuggestedSearchWithTotals || isSavedSearch;
-    }, [enabled, savedSearches, searchKey, searchHash]);
+    }, [enabled, savedSearches, searchKey, searchHash, areAllMatchingItemsSelected]);
 
     return shouldCalculateTotals ?? false;
 }
 
 export default useSearchShouldCalculateTotals;
+export {getSearchRequestOffsetForMissingAllMatchingCount};

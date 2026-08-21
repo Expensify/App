@@ -1,18 +1,23 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptImage from '@components/ReceiptImage';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
 
 type ConfirmationReceiptThumbnailProps = {
     /** ID of the transaction whose receipt is being previewed */
@@ -75,6 +80,9 @@ type ConfirmationReceiptThumbnailProps = {
     /** Callback when the PDF requests a password */
     onPDFPassword?: () => void;
 
+    /** Callback when the PDF thumbnail finishes rendering, used to end the receipt-load span */
+    onPDFLoadSuccess?: () => void;
+
     /** Layout callback used in compact mode to capture container width */
     onCompactReceiptContainerLayout: (event: LayoutChangeEvent) => void;
 
@@ -103,6 +111,7 @@ function ConfirmationReceiptThumbnail({
     compactReceiptContainerStyle,
     onPDFLoadError,
     onPDFPassword,
+    onPDFLoadSuccess,
     onCompactReceiptContainerLayout,
     onReceiptLoad,
 }: ConfirmationReceiptThumbnailProps) {
@@ -127,7 +136,7 @@ function ConfirmationReceiptThumbnail({
             style={[styles.moneyRequestImage, receiptContainerStyle, isLoadingReceipt && [styles.justifyContentCenter, styles.alignItemsCenter]]}
             onLayout={isCompactMode ? onCompactReceiptContainerLayout : undefined}
         >
-            {isLoadingReceipt && <ActivityIndicator reasonAttributes={{context: 'MoneyRequestConfirmationListFooter.receiptThumbnail'}} />}
+            {isLoadingReceipt && <ActivityIndicator />}
             {!isLoadingReceipt &&
                 (isPDF ? (
                     <PressableWithoutFocus
@@ -145,6 +154,7 @@ function ConfirmationReceiptThumbnail({
                             style={styles.h100}
                             onLoadError={onPDFLoadError}
                             onPassword={onPDFPassword}
+                            onLoadSuccess={onPDFLoadSuccess}
                         />
                     </PressableWithoutFocus>
                 ) : (

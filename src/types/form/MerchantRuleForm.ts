@@ -1,8 +1,21 @@
+import type CONST from '@src/CONST';
+
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+
 import type Form from './Form';
 
-const INPUT_IDS = CONST.MERCHANT_RULES.FIELDS;
+const INPUT_IDS = {
+    BILLABLE: 'billable',
+    CATEGORY: 'category',
+    DESCRIPTION: 'comment',
+    MATCH_TYPE: 'matchType',
+    MERCHANT_TO_MATCH: 'merchantToMatch',
+    MERCHANT: 'merchant',
+    REIMBURSABLE: 'reimbursable',
+    TAG: 'tag',
+    TAX: 'tax',
+    VENDOR_ID: 'vendorID',
+} as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
@@ -18,8 +31,9 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.REIMBURSABLE]: boolean;
         [INPUT_IDS.TAG]: string;
         [INPUT_IDS.TAX]: string;
+        [INPUT_IDS.VENDOR_ID]: string;
     }
 >;
 
-// eslint-disable-next-line import/prefer-default-export
 export type {MerchantRuleForm};
+export default INPUT_IDS;

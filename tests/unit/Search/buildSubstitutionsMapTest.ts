@@ -1,11 +1,15 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-// we need "dirty" object key names in these tests
-import type {OnyxCollection} from 'react-native-onyx';
 import {buildSubstitutionsMap} from '@src/components/Search/SearchRouter/buildSubstitutionsMap';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {translateLocal} from '../../utils/TestHelper';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+// we need "dirty" object key names in these tests
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
+import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 
 jest.mock('@libs/ReportUtils', () => {
     return {
@@ -47,24 +51,22 @@ const taxRatesMock = {
     TAX_1: ['id_TAX_1'],
 } as Record<string, string[]>;
 
-const cardListMock = {
+const cardListMock = createMock<OnyxTypes.CardList>({
     '11223344': {
-        state: 1,
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
         bank: 'vcf',
-        fundID: 1,
         lastFourPAN: '1234',
     },
     '10203040': {
-        state: 1,
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
         bank: CONST.EXPENSIFY_CARD.BANK,
-        fundID: 2,
         lastFourPAN: '1234',
     },
-} as unknown as OnyxTypes.CardList;
+});
 
-const cardFeedMock = 'oauth.americanexpressfdx.com 1001' as OnyxTypes.CompanyCardFeed;
+const cardFeedMock: CardFeedWithNumber = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 1001`;
 const cardFeedsMock: OnyxCollection<OnyxTypes.CardFeeds> = {
-    sharedNVP_private_domain_member_1234: {
+    sharedNVP_private_domain_member_1234: createMock<OnyxTypes.CardFeeds>({
         settings: {
             companyCards: {
                 [cardFeedMock]: {},
@@ -73,10 +75,10 @@ const cardFeedsMock: OnyxCollection<OnyxTypes.CardFeeds> = {
                 [cardFeedMock]: {accountList: ['CREDIT CARD...1234'], credentials: 'xxxxx', expiration: 1730998958},
             },
         },
-    },
+    }),
 };
 
-const policiesMock = {
+const policiesMock = createMock<OnyxCollection<OnyxTypes.Policy>>({
     [`${ONYXKEYS.COLLECTION.POLICY}policyA`]: {
         id: 'policyA',
         name: 'Test Workspace',
@@ -85,20 +87,20 @@ const policiesMock = {
         id: 'policyB',
         name: 'Test Workspace',
     },
-} as OnyxCollection<OnyxTypes.Policy>;
+});
 
 describe('buildSubstitutionsMap should return correct substitutions map', () => {
     test('when there were no substitutions', () => {
         const userQuery = 'foo bar';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {}, cardFeedsMock, {}, 12345, translateLocal, {});
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {}, cardFeedsMock, {}, 12345, translateLocal, formatPhoneNumber, {});
 
         expect(result).toStrictEqual({});
     });
     test('when query has a single substitution', () => {
         const userQuery = 'foo from:12345';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {}, cardFeedsMock, {}, 11111, translateLocal, {});
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {}, cardFeedsMock, {}, 11111, translateLocal, formatPhoneNumber, {});
 
         expect(result).toStrictEqual({
             'from:John Doe': '12345',
@@ -108,7 +110,7 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
     test('when query has multiple substitutions of different types', () => {
         const userQuery = 'from:78901,12345 to:nonExistingGuy@mail.com cardID:11223344 in:rep123 taxRate:id_TAX_1 groupBy:cards feed:"1234_oauth.americanexpressfdx.com 1001"';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, {}, 11111, translateLocal, {});
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, {}, 11111, translateLocal, formatPhoneNumber, {});
 
         expect(result).toStrictEqual({
             'from:Jane Doe': '78901',
@@ -123,7 +125,7 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
     test('when query has a substitution for the current user', () => {
         const userQuery = 'from:12345';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, {}, 12345, translateLocal, {});
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, {}, 12345, translateLocal, formatPhoneNumber, {});
 
         expect(result).toStrictEqual({
             'from:me': '12345',
@@ -133,7 +135,19 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
     test('when query has duplicate workspaces with same display name, build indexed substitution keys', () => {
         const userQuery = 'policyID:policyA,policyB';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, policiesMock, 12345, translateLocal, {});
+        const result = buildSubstitutionsMap(
+            userQuery,
+            personalDetailsMock,
+            reportsMock,
+            taxRatesMock,
+            cardListMock,
+            cardFeedsMock,
+            policiesMock,
+            12345,
+            translateLocal,
+            formatPhoneNumber,
+            {},
+        );
 
         expect(result).toStrictEqual({
             'policyID:Test Workspace': 'policyA',

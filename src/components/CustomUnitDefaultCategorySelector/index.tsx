@@ -1,12 +1,17 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useThemeStyles from '@hooks/useThemeStyles';
+
+import useLocalize from '@hooks/useLocalize';
+
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
 
 type CustomUnitDefaultCategorySelectorProps = {
     /** Currently selected category */
@@ -23,13 +28,16 @@ type CustomUnitDefaultCategorySelectorProps = {
 
     /** The custom unit ID to update when selecting a category */
     customUnitID: string;
+
+    /** Whether the selector should navigate to the edit flow */
+    interactive?: boolean;
 };
 
-function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, label, focused, customUnitID}: CustomUnitDefaultCategorySelectorProps) {
-    const styles = useThemeStyles();
+function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, label, focused, customUnitID, interactive = true}: CustomUnitDefaultCategorySelectorProps) {
+    const {translate} = useLocalize();
 
     const decodedCategoryName = getDecodedCategoryName(defaultValue);
-    const descStyle = decodedCategoryName.length === 0 ? styles.textNormal : null;
+    const title = decodedCategoryName || translate('common.none');
 
     const onPress = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DEFAULT_CATEGORY_SELECTOR.getRoute(customUnitID)));
@@ -37,11 +45,11 @@ function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, lab
 
     return (
         <MenuItemWithTopDescription
-            shouldShowRightIcon
-            title={decodedCategoryName}
+            shouldShowRightIcon={interactive}
+            title={title}
             description={label}
-            descriptionTextStyle={descStyle}
             onPress={onPress}
+            interactive={interactive}
             wrapperStyle={wrapperStyle}
             focused={focused}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CATEGORY_SELECTOR}

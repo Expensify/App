@@ -1,10 +1,11 @@
-import React, {createContext, useContext} from 'react';
-import type {TNode} from 'react-native-render-html';
-import {useChartDefaultTypeface} from '@components/Charts/hooks';
-import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
-import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {ChartType, LabelItem, LegendItem, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import computeAdjustedOverlayY from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeAdjustedOverlayY';
+import computeDynamicChartHeight from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeDynamicChartHeight';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+
+import type {TNode} from 'react-native-render-html';
+
+import React, {createContext, useContext} from 'react';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -20,38 +21,39 @@ type VictoryChartContextValue = {
     categories: ProcessNodeResult['categories'];
     labelItems: ProcessNodeResult['labelItems'];
     legendItems: ProcessNodeResult['legendItems'];
+    pointMetadata: ProcessNodeResult['pointMetadata'];
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
     chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
-    type: ChartType | null;
+    type: ChartType;
 };
 
 const VictoryChartContext = createContext<VictoryChartContextValue | null>(null);
 
-/**
- * Parses the HTML tnode tree into chart config and makes it available to all chart sub-components.
- * Returns null when the chart data is invalid (no data points, or mixed cartesian/polar content).
- */
-function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
-    const {regular: regularTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface, null);
+type VictoryChartProviderProps = {
+    tnode: TNode;
+    processedResult: ProcessNodeResult;
+    type: ChartType;
+    children: React.ReactNode;
+};
+
+/** Supplies parsed chart config to chart sub-components. Callers must parse and validate the tnode first. */
+function VictoryChartProvider({tnode, processedResult, type, children}: VictoryChartProviderProps) {
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems, pointMetadata} = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
-
-    const hasCartesianData = Object.keys(data).length > 0;
-    const hasPolarData = false;
-    let type: ChartType | null = null;
-
-    // XNOR Check. There must be one and only one valid chart
-    if (hasCartesianData === hasPolarData) {
-        type = null;
-    } else if (hasCartesianData) {
-        type = CHART_TYPE.CARTESIAN;
-    } else if (hasPolarData) {
-        type = CHART_TYPE.POLAR;
-    }
-
-    if (!type) {
-        return null;
-    }
+    const parsedDesignHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
+    const itemCount = categories?.length ?? Object.keys(data).length;
+    const effectiveChartHeight = computeDynamicChartHeight({
+        designHeight: parsedDesignHeight,
+        isHorizontal,
+        itemCount,
+        padding,
+    });
+    const heightDelta = parsedDesignHeight !== undefined && effectiveChartHeight !== undefined ? parsedDesignHeight - effectiveChartHeight : 0;
+    const effectiveChartContentStyles = heightDelta > 0 ? {...chartContentStyles, height: effectiveChartHeight} : chartContentStyles;
+    const effectiveLabelItems: LabelItem[] =
+        heightDelta > 0 ? labelItems.map((labelItem) => ({...labelItem, y: computeAdjustedOverlayY(labelItem.y, effectiveChartHeight, heightDelta)})) : labelItems;
+    const effectiveLegendItems: LegendItem[] =
+        heightDelta > 0 ? legendItems.map((legendItem) => ({...legendItem, y: computeAdjustedOverlayY(legendItem.y, effectiveChartHeight, heightDelta)})) : legendItems;
 
     const contextValue: VictoryChartContextValue = {
         tnode,
@@ -65,17 +67,16 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         padding,
         isHorizontal,
         categories,
-        labelItems,
-        legendItems,
-        chartContentStyles,
+        pointMetadata,
+        labelItems: effectiveLabelItems,
+        legendItems: effectiveLegendItems,
+        chartContentStyles: effectiveChartContentStyles,
         chartContainerStyles,
         type,
     };
 
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
 }
-
-VictoryChartProvider.displayName = 'VictoryChartProvider';
 
 function useVictoryChartContext(): VictoryChartContextValue {
     const context = useContext(VictoryChartContext);
@@ -86,4 +87,3 @@ function useVictoryChartContext(): VictoryChartContextValue {
 }
 
 export {VictoryChartProvider, useVictoryChartContext};
-export type {VictoryChartContextValue};

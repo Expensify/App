@@ -1,50 +1,172 @@
-import type {ReactNode} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {MapMarkerType} from '@hooks/useMapMarkers/types';
+
 import type {Unit} from '@src/types/onyx/Policy';
+
+import type {Camera} from '@rnmapbox/maps';
+import type {RefObject} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 
 type Coordinate = [number, number];
 
 type MapViewProps = {
-    // Public access token to be used to fetch map data from Mapbox.
+    /** Public access token to be used to fetch map data from Mapbox. */
     accessToken: string;
-    // Style applied to MapView component. Note some of the View Style props are not available on ViewMap
+
+    /** Style applied to MapView component. Note some of the View Style props are not available on ViewMap */
     style: StyleProp<ViewStyle>;
-    // Link to the style JSON document.
+
+    /** Link to the style JSON document. */
     styleURL?: string;
-    // Whether map can tilt in the vertical direction.
+
+    /** Whether map can tilt in the vertical direction. */
     pitchEnabled?: boolean;
-    // Padding to apply when the map is adjusted to fit waypoints and directions
+
+    /** Padding to apply when the map is adjusted to fit waypoints and directions */
     mapPadding?: number;
-    // Initial coordinate and zoom level
+
+    /** Initial coordinate and zoom level */
     initialState?: InitialState;
-    // Locations on which to put markers
+
+    /** Locations on which to put markers */
     waypoints?: WayPoint[];
-    // List of coordinates which together forms a direction.
+
+    /** List of coordinates which together forms a direction. */
     directionCoordinates?: Coordinate[] | Coordinate[][];
-    // Callback to call when the map is idle / ready.
+
+    /** List of coordinates which together forms an alternate direction. */
+    alternateDirection?: {
+        /** List of coordinates which together forms an alternate direction. */
+        coordinates: Coordinate[] | Coordinate[][];
+
+        /** Whether the alternate direction is selected */
+        isSelected: boolean;
+
+        /** Distance displayed on the map in meters. */
+        distanceInMeters: number;
+    };
+
+    /** Callback to call when the alternate direction is selected */
+    setIsAlternateDirectionSelected?: (isAlternateDirectionSelected: boolean) => void;
+
+    /** Callback to call when the map is idle / ready. */
     onMapReady?: () => void;
-    // Whether the map is interactive or not
+
+    /** Whether the map is interactive or not */
     interactive?: boolean;
 
-    // Distance displayed on the map in meters.
+    /** Distance displayed on the map in meters. */
     distanceInMeters?: number;
 
-    // Unit of measurement for distance
+    /** Unit of measurement for distance */
     unit?: Unit;
 
-    // Reference to the outerElement
+    /** Reference to the outerElement */
     ref?: React.ForwardedRef<MapViewHandle>;
 
-    // Whether it should display the current user's location on the map
+    /** Whether it should display the current user's location on the map */
     shouldDisplayCurrentLocation?: boolean;
+
+    /** Whether it should display the compass overlay on the map */
+    shouldDisplayCompass?: boolean;
+};
+
+type CompassProps = {
+    /** Whether the map is interactive or not */
+    interactive: boolean;
+
+    /** Whether the compass should be displayed or not */
+    shouldDisplayCompass: boolean;
+
+    /** Shared value for the map heading */
+    mapHeading: SharedValue<number>;
+
+    /** Reference to the camera */
+    cameraRef: RefObject<Camera | null>;
+};
+
+type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates' | 'initialState'> & {
+    /** Whether the GPS trip is active */
+    isTrackingGPS: boolean;
+
+    /** List of coordinates which together forms a direction. */
+    directionCoordinates: Coordinate[][];
+};
+
+type GPSDirectionProps = {
+    /** Whether the GPS trip is active */
+    isTrackingGPS: boolean;
+
+    /** Last location of the user */
+    lastLocation: {longitude: number; latitude: number} | undefined;
+
+    /** List of coordinates which together forms a direction. */
+    directionCoordinates: Coordinate[][];
+
+    /** ID of the layer to place the line layer below */
+    belowLayerID?: string;
+};
+
+type DistanceSymbolProps = {
+    /** Distance displayed on the map in meters. */
+    distanceInMeters?: number;
+
+    /** Unit of measurement for distance. */
+    distanceUnit?: Unit;
+
+    /** Toggles the unit of measurement for every symbol on the map. */
+    toggleDistanceUnit: () => void;
+
+    /** Coordinate at which the symbol is anchored on the map. */
+    distanceSymbolCoordinate?: Coordinate | null;
+
+    /**
+     * Whether the direction to which the symbol is assigned to is selected, true by default if not provided.
+     * Should be used if alternative directions are available. Determines what style to apply to the symbol.
+     */
+    isSelected?: boolean;
+
+    /** Selects the direction to which the symbol is assigned to. Called instead of toggling the unit when the direction is not selected. */
+    selectDirection?: () => void;
 };
 
 type DirectionProps = {
-    // Coordinates of points that constitute the direction
+    /** Coordinates of points that constitute the direction. Single segment route or multiple segments route */
     coordinates: Coordinate[] | Coordinate[][];
 
-    // ID of the layer to place the line layer below
+    /** ID of the layer to place the line layer below */
     belowLayerID?: string;
+};
+
+type AlternateDirection = {
+    /** List of coordinates which together forms a direction. */
+    coordinates: Coordinate[] | Coordinate[][];
+
+    /** Whether the alternate direction is selected */
+    isSelected: boolean;
+
+    /** Distance displayed on the map in meters. */
+    distanceInMeters: number;
+};
+
+type DirectionsProps = {
+    /** List of coordinates which together forms a direction. */
+    directionCoordinates?: Coordinate[] | Coordinate[][];
+
+    /** List of coordinates which together forms an alternate direction. */
+    alternateDirection?: AlternateDirection;
+
+    /** Callback to call when the alternate direction is selected */
+    setIsAlternateDirectionSelected?: (isAlternateDirectionSelected: boolean) => void;
+
+    /** Distance displayed on the map in meters. */
+    distanceInMeters?: number;
+
+    /** Unit of measurement for distance */
+    unit?: Unit;
+
+    /** List of waypoints on the map */
+    waypoints?: WayPoint[];
 };
 
 type PendingMapViewProps = {
@@ -61,26 +183,52 @@ type PendingMapViewProps = {
     isSmallerIcon?: boolean;
 };
 
-// Initial state of the map
+/** Initial state of the map */
 type InitialState = {
-    // Coordinate on which to center the map
+    /** Coordinate on which to center the map */
     location: Coordinate;
+
+    /** Zoom level of the map */
     zoom: number;
 };
 
-// Waypoint to be displayed on the map
+/** Waypoint to be displayed on the map */
 type WayPoint = {
+    /** Unique identifier of the waypoint */
     id: string;
+
+    /** Coordinate at which the waypoint is placed */
     coordinate: Coordinate;
-    markerComponent: () => ReactNode;
+
+    /** Type of the marker used to display the waypoint */
+    markerType: MapMarkerType;
 };
 
-// Represents a handle to interact with a map view.
+/** Represents a handle to interact with a map view. */
 type MapViewHandle = {
-    // Fly to a location on the map
+    /** Fly to a location on the map */
     flyTo: (location: Coordinate, zoomLevel: number, animationDuration?: number) => void;
-    // Fit the map view to a bounding box
+
+    /** Fit the map view to a bounding box */
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};
+type DistanceSymbolMarkerProps = {distanceSymbolCoordinate: Coordinate; children: React.ReactNode; onPress: () => void};
+
+type AlternateDirectionsProps = Required<Pick<DirectionsProps, 'directionCoordinates' | 'alternateDirection'>> & Pick<DirectionsProps, 'setIsAlternateDirectionSelected'>;
+
+export type {
+    WayPoint,
+    MapViewProps,
+    GPSMapViewProps,
+    DirectionProps,
+    PendingMapViewProps,
+    Coordinate,
+    GPSDirectionProps,
+    CompassProps,
+    DistanceSymbolProps,
+    DistanceSymbolMarkerProps,
+    AlternateDirectionsProps,
+    DirectionsProps,
+    AlternateDirection,
+};

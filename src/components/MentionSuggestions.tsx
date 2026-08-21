@@ -1,13 +1,18 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getStyledTextArray from '@libs/GetStyledTextArray';
+
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import type {MeasureParentContainerAndCursorCallback} from './AutoCompleteSuggestions/types';
+
+import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
 import Text from './Text';
 
@@ -92,7 +97,7 @@ function MentionSuggestions({
                         <View style={styles.mentionSuggestionsAvatarContainer}>
                             <Avatar
                                 source={item.icons.at(0)?.source}
-                                size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
+                                size={isIcon ? CONST.AVATAR_SIZE.XXX_SMALL : CONST.AVATAR_SIZE.X_SMALL}
                                 name={item.icons.at(0)?.name}
                                 avatarID={item.icons.at(0)?.id}
                                 type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}

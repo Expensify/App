@@ -1,6 +1,3 @@
-import cloneDeep from 'lodash/cloneDeep';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     CreateWorkspaceReportFieldListValueParams,
@@ -16,6 +13,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WorkspaceReportFieldForm} from '@src/types/form/WorkspaceReportFieldForm';
@@ -23,6 +21,11 @@ import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import cloneDeep from 'lodash/cloneDeep';
+import Onyx from 'react-native-onyx';
 
 type CreateReportFieldsListValueParams = {
     valueName: string;
@@ -103,6 +106,8 @@ function openPolicyReportFieldsPage(policyID: string) {
  */
 function setInitialCreateReportFieldsForm() {
     Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
+        [INPUT_IDS.NAME]: '',
+        [INPUT_IDS.TYPE]: '',
         [INPUT_IDS.INITIAL_VALUE]: '',
     });
 }
@@ -168,6 +173,11 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 function createReportField({name, type, initialValue, listValues, disabledListValues, policyExpenseReportIDs, policy}: CreateReportFieldParams) {
     if (!policy) {
         Log.warn('Policy data is not present');
+        return;
+    }
+
+    if (!type) {
+        Log.warn('Report field type is not present');
         return;
     }
 

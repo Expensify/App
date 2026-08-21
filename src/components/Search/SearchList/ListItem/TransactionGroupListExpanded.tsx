@@ -1,9 +1,7 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
@@ -11,14 +9,18 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -27,19 +29,30 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getTransactionViolations, isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
-function TransactionGroupListExpanded<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function TransactionGroupListExpandedImpl({
     transactionsQueryJSON,
     showTooltip,
     canSelectMultiple,
@@ -59,16 +72,18 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     shouldDisplayEmptyView,
     searchTransactions,
     isInSingleTransactionReport,
-    isAttendeesEnabledForMovingPolicy,
     onLongPress,
     nonPersonalAndWorkspaceCards,
     onUndelete,
-}: TransactionGroupListExpandedProps<TItem>) {
+    hideSearchTableHeader,
+}: TransactionGroupListExpandedProps<ListItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -76,6 +91,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
@@ -94,8 +112,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         return ids;
     }, [visibleTransactions]);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => {
+    const reportsSelector = useCallback(
+        (reports: OnyxCollection<OnyxTypes.Report>) => {
             const result: OnyxCollection<OnyxTypes.Report> = {};
             for (const key of Object.keys(reports ?? {})) {
                 if (neededReportIDs.has(key)) {
@@ -104,7 +122,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             }
             return result;
         },
-    });
+        [neededReportIDs],
+    );
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
 
     const isLastTransaction = (index: number) => {
         return index === visibleTransactions.length - 1;
@@ -115,9 +135,25 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             currentColumns = [];
         } else {
-            currentColumns = getColumnsToShow({currentAccountID: accountID, data: transactionsSnapshot?.data, visibleColumns, type: transactionsSnapshot?.search.type});
+            currentColumns = getColumnsToShow({
+                currentAccountID: accountID,
+                data: transactionsSnapshot?.data,
+                visibleColumns,
+                type: transactionsSnapshot?.search.type,
+                fallbackPolicyID: policyForMovingExpensesID,
+            });
         }
     }
+
+    const getTransactionPolicyID = (transaction: TransactionListItemType) =>
+        [transaction.policyID, transaction.policy?.id, transaction.report?.policyID].find(Boolean) ??
+        (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
+
+    const getPolicyCategoriesForTransaction = (transaction: TransactionListItemType) =>
+        policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
+
+    const getPolicyTagListsForTransaction = (transaction: TransactionListItemType) =>
+        policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
@@ -136,8 +172,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
 
-    const {markReportIDAsExpense} = useWideRHPActions();
-    const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    const {markReportRHPWidth} = useWideRHPActions();
+    const selectRow = onSelectRow as (item: ListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
         const parentReport = getReportOrDraftReport(transactionItem?.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]);
@@ -166,12 +202,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             if (!transactionItem?.reportAction?.childReportID) {
                 if (isModifiedMousePress(event)) {
                     const targetReportID = createAndOpenSearchTransactionThread({
+                        getCurrencyDecimals,
                         item: transactionItem,
                         introSelected,
                         backTo,
                         currentUserLogin: currentUserDetails.email ?? '',
                         currentUserAccountID: currentUserDetails.accountID,
                         betas,
+                        personalDetails,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         IOUTransactionID: transactionItem?.reportAction?.childReportID,
@@ -183,19 +221,21 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     return;
                 }
                 createAndOpenSearchTransactionThread({
+                    getCurrencyDecimals,
                     item: transactionItem,
                     introSelected,
                     backTo,
                     currentUserLogin: currentUserDetails.email ?? '',
                     currentUserAccountID: currentUserDetails.accountID,
                     betas,
+                    personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     IOUTransactionID: transactionItem?.reportAction?.childReportID,
                 });
                 return;
             }
-            markReportIDAsExpense(reportID);
+            markReportRHPWidth(reportID, 'wide');
             const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
             if (openInternalRouteInNewTab(route, event)) {
                 return;
@@ -205,7 +245,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         // The arrow navigation in RHP is only allowed for group-by:reports
         if (!isExpenseReportType) {
-            selectRow(transactionItem as unknown as TItem, getTransactionPreviewData(transactionItem), event);
+            selectRow(transactionItem as ListItem, getTransactionPreviewData(transactionItem), event);
             return;
         }
 
@@ -232,11 +272,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         }
     };
 
-    const transactionGroupLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'TransactionGroupListExpanded',
-        isOffline: !!isOffline,
-    };
-
     if (shouldDisplayEmptyView) {
         return (
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
@@ -251,8 +286,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
-        if (isMobileSelectionModeEnabled) {
-            onSelectionButtonPress?.(transaction as unknown as TItem);
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
+            onSelectionButtonPress?.(transaction as ListItem);
             return;
         }
         openReportInRHP(transaction, event);
@@ -272,7 +308,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const content = (
         <View style={[styles.flexColumn, styles.flex1]}>
-            {isLargeScreenWidth && !(isEmpty && shouldDisplayLoadingIndicator) && (
+            {isLargeScreenWidth && !hideSearchTableHeader && !(isEmpty && shouldDisplayLoadingIndicator) && (
                 <>
                     <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
                         <SearchTableHeader
@@ -322,15 +358,10 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                 <TransactionItemRow
                                     report={transaction.report}
                                     policy={transaction.policy}
+                                    policyCategories={getPolicyCategoriesForTransaction(transaction)}
+                                    policyTagLists={getPolicyTagListsForTransaction(transaction)}
                                     transactionItem={transaction}
-                                    violations={getTransactionViolations(
-                                        transaction,
-                                        violations,
-                                        currentUserDetails.email ?? '',
-                                        currentUserDetails.accountID,
-                                        transaction.report,
-                                        transaction.policy,
-                                    )}
+                                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                                     isSelected={!!transaction.isSelected}
                                     isDisabled={isTransactionPendingDelete(transaction)}
                                     dateColumnSize={dateColumnSize}
@@ -340,7 +371,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
                                     checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
-                                    onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
+                                    onCheckboxPress={() => onSelectionButtonPress?.(transaction as ListItem)}
                                     columns={currentColumns}
                                     onButtonPress={(event) => handleButtonPress(transaction, event)}
                                     style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}
@@ -350,7 +381,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     onArrowRightPress={isDeletedOrPendingDelete ? undefined : (event) => openReportInRHP(transaction, event)}
                                     shouldShowArrowRightOnNarrowLayout
                                     reportActions={exportedReportActions}
-                                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}
@@ -362,16 +392,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             })}
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                 <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
-                    <Button
-                        text={translate('common.showMore')}
+                    <LinkButton
                         onPress={onShowMoreButtonPress}
-                        link
-                        shouldUseDefaultHover={false}
                         isNested
-                        medium
-                        innerStyles={[styles.ph3]}
-                        textStyles={[styles.fontSizeNormal]}
-                    />
+                        size={CONST.BUTTON_SIZE.MEDIUM}
+                        innerStyles={[styles.ph2]}
+                    >
+                        <LinkButton.Text style={[styles.fontSizeNormal]}>{translate('common.showMore')}</LinkButton.Text>
+                    </LinkButton>
                 </View>
             )}
             {shouldDisplayLoadingIndicator && (
@@ -380,7 +408,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         color={theme.spinner}
                         size={25}
                         style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
-                        reasonAttributes={transactionGroupLoadingReasonAttributes}
                     />
                 </View>
             )}
@@ -399,6 +426,10 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     ) : (
         content
     );
+}
+
+function TransactionGroupListExpanded<TItem extends ListItem>(props: TransactionGroupListExpandedProps<TItem>) {
+    return <TransactionGroupListExpandedImpl {...(props as TransactionGroupListExpandedProps<ListItem>)} />;
 }
 
 export default TransactionGroupListExpanded;

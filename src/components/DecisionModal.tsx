@@ -1,8 +1,13 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ButtonVariant} from '@styles/utils/types';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import Button from './Button';
+
+import Button from './ButtonComposed';
 import Header from './Header';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
@@ -74,10 +79,25 @@ function DecisionModal({
 }: DecisionModalProps) {
     const styles = useThemeStyles();
 
+    let firstOptionVariant: ButtonVariant | undefined;
+    if (isFirstOptionDanger) {
+        firstOptionVariant = CONST.BUTTON_VARIANT.DANGER;
+    } else if (isFirstOptionSuccess) {
+        firstOptionVariant = CONST.BUTTON_VARIANT.SUCCESS;
+    }
+
+    let secondOptionVariant: ButtonVariant | undefined;
+    if (isSecondOptionDanger) {
+        secondOptionVariant = CONST.BUTTON_VARIANT.DANGER;
+    } else if (isSecondOptionSuccess) {
+        secondOptionVariant = CONST.BUTTON_VARIANT.SUCCESS;
+    }
+
     return (
         <Modal
             onClose={onClose}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             onModalHide={onModalHide}
@@ -96,23 +116,23 @@ function DecisionModal({
                 </View>
                 {!!firstOptionText && (
                     <Button
-                        success={isFirstOptionSuccess}
-                        danger={isFirstOptionDanger}
+                        variant={firstOptionVariant}
                         style={styles.mt5}
                         onPress={onFirstOptionSubmit}
-                        pressOnEnter
-                        text={firstOptionText}
-                        large
-                    />
+                        size={CONST.BUTTON_SIZE.LARGE}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{firstOptionText}</Button.Text>
+                    </Button>
                 )}
                 <Button
                     style={[firstOptionText ? styles.mt3 : styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
-                    text={secondOptionText}
-                    success={isSecondOptionSuccess}
-                    danger={isSecondOptionDanger}
-                    large
-                />
+                    variant={secondOptionVariant}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{secondOptionText}</Button.Text>
+                </Button>
             </ScrollView>
         </Modal>
     );

@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {ValueOf} from 'type-fest';
 
 /** Pending onyx actions */
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION> | null;
@@ -59,6 +61,9 @@ type Icon = {
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
+
+    /** Display name of the account, embedded at build time so consumers can sort icons by name without a personal-details subscription */
+    displayName?: string;
 
     /** Avatar id */
     id?: number | string;

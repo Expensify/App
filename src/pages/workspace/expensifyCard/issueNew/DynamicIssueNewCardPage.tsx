@@ -1,22 +1,30 @@
-import React, {useEffect, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
+
 import {startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {IssueNewCard, IssueNewCardStep} from '@src/types/onyx/Card';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useMemo} from 'react';
+
 import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
@@ -147,9 +155,10 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             {getCurrentStep()}
         </AccessOrNotFoundWrapper>

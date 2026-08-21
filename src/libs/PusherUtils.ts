@@ -1,11 +1,14 @@
-import type {OnyxKey} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {AnyOnyxUpdatesFromServer, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import type {PingPongEvent} from './Pusher/types';
+
 import {reconnect} from './actions/Reconnect';
 import Log from './Log';
 import Pusher from './Pusher';
-import type {PingPongEvent} from './Pusher/types';
 
 type Callback<TKey extends OnyxKey> = (data: Array<OnyxServerUpdate<TKey>>) => Promise<void>;
 
@@ -41,11 +44,6 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
-    function onPusherResubscribeToPrivateUserChannel() {
-        Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
-        reconnect();
-    }
-
     function onEventPush(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
@@ -54,11 +52,24 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
     function onSubscriptionFailed(error: Error) {
         Log.hmmm('Failed to subscribe to Pusher channel', {error, pusherChannelName, eventName});
     }
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush).catch(onSubscriptionFailed);
+}
+
+let unregisterPrivateUserChannelResubscribe: (() => void) | undefined;
+
+function onPrivateUserChannelResubscribe(accountID: string) {
+    unregisterPrivateUserChannelResubscribe?.();
+    unregisterPrivateUserChannelResubscribe = Pusher.onChannelResubscribe(getUserChannelName(accountID), () => {
+        Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
+        reconnect();
+    });
+
+    return unregisterPrivateUserChannelResubscribe;
 }
 
 export default {
     subscribeToPrivateUserChannelEvent,
+    onPrivateUserChannelResubscribe,
     subscribeToMultiEvent,
     triggerMultiEventHandler,
 };

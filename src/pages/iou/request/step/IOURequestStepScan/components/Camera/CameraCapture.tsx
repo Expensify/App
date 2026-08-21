@@ -1,30 +1,36 @@
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWebCamera from '@hooks/useWebCamera';
+
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import HapticFeedback from '@libs/HapticFeedback';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
+
 import type {CameraProps} from './types';
 
 const BLINK_DURATION_MS = 80;
@@ -142,13 +148,6 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
-                            reasonAttributes={
-                                {
-                                    context: 'CameraCapture',
-                                    cameraPermissionState,
-                                    isQueriedPermissionState,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
                         />
                     )}
                     {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
@@ -168,13 +167,14 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                                 <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                             )}
                             <Button
-                                success
-                                text={translate('common.continue')}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 accessibilityLabel={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}
-                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                            />
+                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_BUTTON}
+                            >
+                                <Button.Text>{translate('common.continue')}</Button.Text>
+                            </Button>
                         </View>
                     )}
                     {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (

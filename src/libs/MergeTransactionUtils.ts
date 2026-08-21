@@ -1,23 +1,29 @@
-import {deepEqual} from 'fast-equals';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import SafeString from '@src/utils/SafeString';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+import {SafeString} from 'expensify-common';
+import {deepEqual} from 'fast-equals';
+
+import type {TransactionDetails} from './ReportUtils';
+
 import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
+import {getAllNonDeletedTransactions} from './MoneyRequestReportUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {constructReceiptSourceFromFilename} from './ReceiptUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
-import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     calculateTaxAmount,
@@ -47,6 +53,7 @@ const DERIVED_MERGE_FIELDS = [...MERGE_FIELDS, 'taxCode', 'taxAmount'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
+    transactionDetails: TransactionDetails;
     displayValue: string;
     isSelected: boolean;
 };
@@ -219,12 +226,17 @@ function getMergeableDataAndConflictFields(
     searchReports: Array<OnyxEntry<Report>> = [],
     targetTransactionPolicy?: OnyxEntry<Policy>,
     sourceTransactionPolicy?: OnyxEntry<Policy>,
+    targetReportOwnerAsAttendee?: Attendee,
+    sourceReportOwnerAsAttendee?: Attendee,
 ) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
-    const targetTransactionDetails = getTransactionDetails(targetTransaction);
-    const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
+    // Resolve the report-owner fallback the same way the display path (buildMergeFieldsData) does, so an expense
+    // with no stored attendee is compared as [owner] instead of [] and doesn't produce a false attendee conflict
+    // against an expense whose attendee is that same owner.
+    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, undefined, targetReportOwnerAsAttendee);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
 
     for (const field of getMergeFields(targetTransaction)) {
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
@@ -287,14 +299,10 @@ function getMergeableDataAndConflictFields(
         }
 
         if (field === 'attendees') {
-            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
-                .filter((login): login is string => !!login)
-                .sort(localeCompare);
-            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
-                .filter((login): login is string => !!login)
-                .sort(localeCompare);
+            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.email) ?? []).filter((login): login is string => !!login).sort(localeCompare);
+            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.email) ?? []).filter((login): login is string => !!login).sort(localeCompare);
 
-            if (isTargetValueEmpty || isSourceValueEmpty || deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
+            if (deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
                 mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
             } else {
                 conflictFields.push(field);
@@ -351,6 +359,50 @@ function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
     }
     const iouActionOfTargetTransaction = getIOUActionForReportID(getReportIDForExpense(transaction), transaction?.transactionID);
     return iouActionOfTargetTransaction?.childReportID;
+}
+
+/**
+ * Whether merging the source away leaves the target's report with a single expense (a one-transaction thread report).
+ */
+function willReportBecomeOneTransactionReportAfterMerge(
+    reportID: string | undefined,
+    sourceTransactionID: string | undefined,
+    reportTransactionsCollection: OnyxCollection<Transaction>,
+    searchResultsData: SearchResults['data'] | undefined,
+    reportActions: ReportAction[],
+    isOffline: boolean,
+): boolean {
+    if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportID === CONST.REPORT.SPLIT_REPORT_ID) {
+        return false;
+    }
+
+    // In the Search snapshot only transactions carry a string transactionID, so this narrows without a cast.
+    const isSearchResultTransaction = (value: unknown): value is Transaction =>
+        typeof value === 'object' && value !== null && 'transactionID' in value && typeof value.transactionID === 'string';
+
+    // Merge both sources by transactionID; Onyx overrides the snapshot so the optimistic values win over stale rows.
+    const transactionsByID: Record<string, Transaction> = {};
+    for (const value of Object.values(searchResultsData ?? {})) {
+        if (!isSearchResultTransaction(value) || value.reportID !== reportID) {
+            continue;
+        }
+        transactionsByID[value.transactionID] = value;
+    }
+    for (const transaction of Object.values(reportTransactionsCollection ?? {})) {
+        if (!transaction || transaction.reportID !== reportID) {
+            continue;
+        }
+        transactionsByID[transaction.transactionID] = transaction;
+    }
+
+    // Count exactly what SearchMoneyRequestReportPage renders: getAllNonDeletedTransactions drops rows whose IOU action
+    // was deleted (a deleted expense can leave its transaction behind) and hides superseded pending card auths, then we
+    // apply the same online-only pending-delete filter the page uses for its visible transactions.
+    const visibleTransactions = getAllNonDeletedTransactions(transactionsByID, reportActions, isOffline, true).filter(
+        (transaction) => transaction.transactionID !== sourceTransactionID && (isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
+
+    return visibleTransactions.length <= 1;
 }
 
 /**
@@ -503,13 +555,14 @@ function selectTargetAndSourceTransactionsForMerge(
 function getDisplayValue(
     field: MergeFieldKey,
     transaction: Transaction,
+    transactionDetails: TransactionDetails | undefined,
     policy: Policy | undefined,
     translate: LocaleContextProps['translate'],
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     localeCompare: LocaleContextProps['localeCompare'],
     reports?: Array<OnyxEntry<Report>>,
 ): string {
-    const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
+    const fieldValue = getMergeFieldValue(transactionDetails, transaction, field);
 
     if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
         return '';
@@ -560,19 +613,37 @@ function getDisplayValue(
  * @param translate - The translation function
  * @returns Array of merge field data for UI rendering
  */
-function buildMergeFieldsData(
-    conflictFields: MergeFieldKey[],
-    targetTransaction: Transaction | undefined,
-    sourceTransaction: Transaction | undefined,
-    mergeTransaction: MergeTransaction | null | undefined,
-    targetTransactionPolicy: Policy | undefined,
-    sourceTransactionPolicy: Policy | undefined,
-    translate: LocaleContextProps['translate'],
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    localeCompare: LocaleContextProps['localeCompare'],
-    reports: Array<OnyxEntry<Report>> = [],
-): MergeFieldData[] {
-    if (!targetTransaction || !sourceTransaction) {
+function buildMergeFieldsData({
+    conflictFields,
+    targetTransaction,
+    sourceTransaction,
+    targetReportOwnerAsAttendee,
+    sourceReportOwnerAsAttendee,
+    mergeTransaction,
+    targetTransactionPolicy,
+    sourceTransactionPolicy,
+    translate,
+    convertToDisplayString,
+    localeCompare,
+    reports,
+}: {
+    conflictFields: MergeFieldKey[];
+    targetTransaction: Transaction | undefined;
+    sourceTransaction: Transaction | undefined;
+    targetReportOwnerAsAttendee: Attendee | undefined;
+    sourceReportOwnerAsAttendee: Attendee | undefined;
+    mergeTransaction: MergeTransaction | null | undefined;
+    targetTransactionPolicy: Policy | undefined;
+    sourceTransactionPolicy: Policy | undefined;
+    translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    localeCompare: LocaleContextProps['localeCompare'];
+    reports: Array<OnyxEntry<Report>>;
+}): MergeFieldData[] {
+    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, undefined, targetReportOwnerAsAttendee);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
+
+    if (!targetTransaction || !sourceTransaction || !targetTransactionDetails || !sourceTransactionDetails) {
         return [];
     }
 
@@ -584,12 +655,14 @@ function buildMergeFieldsData(
         const options: MergeFieldOption[] = [
             {
                 transaction: targetTransaction,
-                displayValue: getDisplayValue(field, targetTransaction, targetTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
+                transactionDetails: targetTransactionDetails,
+                displayValue: getDisplayValue(field, targetTransaction, targetTransactionDetails, targetTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
             {
                 transaction: sourceTransaction,
-                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
+                transactionDetails: sourceTransactionDetails,
+                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionDetails, sourceTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },
         ];
@@ -702,6 +775,7 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
+    willReportBecomeOneTransactionReportAfterMerge,
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,

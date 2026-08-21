@@ -1,6 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -8,9 +7,16 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {TransactionWeekGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import WeekListItemHeader from '@components/Search/SearchList/ListItem/WeekListItemHeader';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -19,26 +25,28 @@ jest.mock('@libs/Navigation/Navigation');
 
 // Mock useResponsiveLayout to control screen size in tests
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 const mockSearchStateContext = {
     currentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSearchTransactionsByReportID: new Map(),
+    currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
+    excludedTransactions: {},
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
-    shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
-    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    suggestedSearches: createMock<SearchStateContextValue['suggestedSearches']>({}),
     sortedReportIDs: [],
     hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
@@ -47,11 +55,11 @@ const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
-    setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),

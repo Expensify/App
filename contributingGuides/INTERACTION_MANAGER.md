@@ -2,13 +2,17 @@
 
 ## Why
 
-`InteractionManager` is being removed from React Native. We currently maintain a patch to keep it working, but that's a temporary measure and upstream libraries will also drop support over time.
+`InteractionManager` is being removed from React Native. It is already deprecated, and as of RN 0.86 the shipped implementation is a no-op stub: `runAfterInteractions` falls through to `setImmediate`, `createInteractionHandle` returns `-1`, and `clearInteractionHandle` does nothing. Nothing can block the queue anymore.
 
-Rather than keep patching, we're replacing `InteractionManager.runAfterInteractions` with purpose-built alternatives that are more precise.
+We used to carry patches that restored the real implementation (`react-native+…+restore-interaction-manager.patch`) and that opened interaction handles during screen transitions (`@react-navigation+native-stack+…+added-interaction-manager-integration.patch`). Both patches have been removed - the app no longer calls `InteractionManager` anywhere, so there was nothing left for them to serve.
+
+`InteractionManager.runAfterInteractions` has been replaced with purpose-built alternatives that are more precise.
 
 ## Current state
 
-`runAfterInteractions` is used across the codebase for a wide range of reasons: waiting for navigation transitions, deferring work after modals close, managing input focus, delaying scroll operations, and many other cases that are hard to classify.
+Application code no longer uses `runAfterInteractions`.
+
+Historically `runAfterInteractions` was used across the codebase for a wide range of reasons: waiting for navigation transitions, deferring work after modals close, managing input focus, delaying scroll operations, and many other cases that are hard to classify.
 
 ## The problem
 
@@ -29,7 +33,37 @@ On top of TransitionTracker, existing APIs gain transition-aware callbacks:
 
 This makes the code self-descriptive: instead of a generic `runAfterInteractions`, each call site says exactly what it's waiting for and why.
 
-> **Note:** `TransitionTracker.runAfterTransitions` is an internal primitive. Application code should use the higher-level APIs (`Navigation`, `useConfirmModal`, etc.) rather than importing TransitionTracker directly.
+### What TransitionTracker actually tracks
+
+TransitionTracker registers transitions **only** in the following cases:
+
+1. **Navigation transitions** — screen push/pop/replace animations (via `transitionStart`/`transitionEnd` events in `ScreenLayout`)
+2. **Modal transitions** — modal open/close animations (via `ReanimatedModal`)
+3. **Keyboard transitions** — keyboard dismiss animations (via `KeyboardUtils.dismiss`)
+
+### When to use `runAfterTransitions` directly
+
+Prefer higher-level APIs (`Navigation` with `afterTransition`/`waitForTransition`, `KeyboardUtils`, `useConfirmModal`) whenever possible. Use `TransitionTracker.runAfterTransitions` directly **only** when:
+
+- There is no specific navigation/keyboard/modal action you can attach a callback to, or
+- There are too many concurrent actions and it's impossible to bind the callback to a particular one.
+
+### When NOT to use `runAfterTransitions`
+
+If you are not waiting for any of the tracked events (navigation, modal, keyboard), adding `runAfterTransitions` is meaningless - TransitionTracker will have no active transitions and the callback will fire synchronously in the same tick. For example, scroll events, layout animations, or Lottie playback are **not** tracked, so wrapping post-scroll logic in `runAfterTransitions` provides no benefit.
+
+### How `runAfterTransitions` works
+
+1. If there are ongoing transitions at the time of the call, the callback is enqueued and waits until all current transitions complete.
+2. If there are no ongoing transitions, the callback executes in the same tick.
+
+### The same-tick race condition
+
+Sometimes a transition starts in the same tick as the `runAfterTransitions` call. Because TransitionTracker hasn't registered the transition yet, the callback fires immediately - before the transition even begins.
+
+To fix this, pass the `waitForUpcomingTransition` flag along with the callback. This tells TransitionTracker to wait for a transition that hasn't started yet, ensuring the callback truly runs after the transition completes.
+
+> **Important:** `waitForUpcomingTransition` waits up to 1 second for a transition to begin. If no transition starts within that window, the callback fires anyway — effectively acting as a 1-second timeout. When using this flag, always make sure that TransitionTracker actually picks up the transition (i.e. the transition is registered within the 1-second window). Otherwise you're not waiting for a real transition, just adding an arbitrary delay.
 
 ## How
 The migration is split into 9 issues. Current status of the migration can be found in the parent Github issue [here](https://github.com/Expensify/App/issues/71913). 
@@ -53,10 +87,10 @@ For reference, here's how the available timing primitives compare:
 
 ### `InteractionManager.runAfterInteractions` (legacy — do not use)
 
-- React Native-specific. Fires after all **ongoing interactions** (animations, touches) complete
-- Tracks interactions via `createInteractionHandle()` — anything that calls `handle.done()` unblocks the queue
-- In practice, this means "run after the current navigation transition finishes"
-- Problem: it's a global queue with no granularity — you can't say "after _this specific_ transition"
+- React Native-specific. Deprecated upstream, the current RN implementation is a stub, so it no longer waits for anything - it is just `setImmediate` with extra steps
+- Historically it fired after all **ongoing interactions** (animations, touches) completed, tracked via `createInteractionHandle()` - clearing the last handle unblocked the queue
+- In practice that meant "run after the current navigation transition finishes"
+- Problem: it was a global queue with no granularity — you couldn't say "after _this specific_ transition"
 
 ### Summary
 
@@ -64,4 +98,4 @@ For reference, here's how the available timing primitives compare:
 | ---------------------- | ------------------------- | ------------------------- | --------------------- |
 | `rAF`                  | Next frame (~16ms)        | None — just "next paint"  | Web + RN              |
 | `requestIdleCallback`  | When idle (unpredictable) | None — "whenever free"    | Web + RN (polyfilled) |
-| `runAfterInteractions` | After animations finish   | Global — all interactions | RN only               |
+| `runAfterInteractions` | Same as `setImmediate` (stubbed) | None - nothing blocks the queue | RN only          |

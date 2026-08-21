@@ -16,9 +16,10 @@ jobs:
     if: |
       github.actor != 'OSBotify'
       && github.actor != 'imgbot[bot]'
+      && github.actor != 'MelvinBot'
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Check contributor authorization
         id: gate
@@ -31,7 +32,10 @@ jobs:
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: authorChecklist.ts
-        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
+        # Internal Expensify engineers skip the author checklist; external contributors still fill it out.
+        if: |
+          steps.gate.outputs.IS_AUTHORIZED == 'true'
+          && steps.gate.outputs.IS_INTERNAL != 'true'
         uses: ./.github/actions/javascript/authorChecklist
         with:
           GITHUB_TOKEN: ${{ github.token }}

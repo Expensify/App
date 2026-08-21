@@ -1,13 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import Banner from '@components/Banner';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {dismissForSession} from '@libs/actions/ConciergeNotificationBanner';
 import NotificationPermission from '@libs/Notification/notificationPermission';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 // Visual breathing room hidden behind the composer in addition to the corner-radius arc.
 const BANNER_EXTRA_OVERLAP_PX = 8;
@@ -41,17 +46,19 @@ function EnableNotificationsBanner() {
                 containerStyles={[styles.pt3, styles.pr3, styles.pl4, containerOverrideStyle]}
             >
                 <Button
-                    success
-                    small
-                    text={translate('concierge.enableNotifications.cta')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={requestAndDismiss}
-                />
+                >
+                    <Button.Text>{translate('concierge.enableNotifications.cta')}</Button.Text>
+                </Button>
                 <Button
-                    small
+                    size={CONST.BUTTON_SIZE.SMALL}
                     style={[styles.ml2]}
-                    text={translate('common.notNow')}
                     onPress={dismissForSession}
-                />
+                >
+                    <Button.Text>{translate('common.notNow')}</Button.Text>
+                </Button>
             </Banner>
         </View>
     );

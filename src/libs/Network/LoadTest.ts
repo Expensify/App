@@ -1,7 +1,10 @@
-import type {OnyxKey} from 'react-native-onyx';
 import HttpUtils from '@libs/HttpUtils';
+
 import type Request from '@src/types/onyx/Request';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import enhanceParameters from './enhanceParameters';
 import {getDuplicateRequestCount} from './LoadTestState';
 
@@ -28,5 +31,5 @@ function triggerDuplicates<TKey extends OnyxKey>(request: Request<TKey> | Pagina
     }
 }
 
-export {getDuplicateRequestCount, setLoadTestParameters} from './LoadTestState';
+// eslint-disable-next-line import/prefer-default-export
 export {triggerDuplicates};

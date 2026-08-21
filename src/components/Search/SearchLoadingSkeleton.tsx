@@ -1,20 +1,23 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {endNavigateToReportsFirstPaint} from '@libs/telemetry/navigateToReportsSpans';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 type SearchLoadingSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoadingSkeletonProps) {
+function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
-    const skeletonReasonAttributes = reasonAttributes ?? {context: 'SearchLoadingSkeleton'};
 
     return (
         <Animated.View
@@ -23,12 +26,12 @@ function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoading
             style={[styles.flex1]}
             onLayout={() => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
+                endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.COLD);
             }}
         >
             <SearchRowSkeleton
                 shouldAnimate
                 containerStyle={containerStyle}
-                reasonAttributes={skeletonReasonAttributes}
             />
         </Animated.View>
     );

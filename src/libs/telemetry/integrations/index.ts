@@ -1,8 +1,17 @@
 import * as Sentry from '@sentry/react-native';
+
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
 
 const tracingIntegration = Sentry.reactNativeTracingIntegration({
     shouldCreateSpanForRequest,
 });
 
-export {navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration};
+// The Reporting API is a browser-only feature, so there is no native integration. This stub keeps
+// the web/native export shape in parity; it is filtered out of the integrations list on native.
+const reportingObserverIntegration = undefined;
+
+// Only the web bundle is stamped with an application key by `@sentry/webpack-plugin`, so on native every
+// frame would look foreign. Stub for export shape parity; filtered out of the integrations list here.
+const thirdPartyErrorFilterIntegration = undefined;
+
+export {navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration, thirdPartyErrorFilterIntegration};

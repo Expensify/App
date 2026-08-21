@@ -1,8 +1,8 @@
 ---
 title: Sage Intacct FAQ
 description: Learn why reports may fail to export to Sage Intacct, how to manually export reports, and how to disconnect the Sage Intacct integration.
-keywords: Sage Intacct export FAQ, automatic export failure, manual export Sage Intacct, report not exporting, disconnect Sage Intacct integration
-internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers automatic export failures, manual export requirements, and disconnecting the Sage Intacct integration. Does not cover specific Sage Intacct error codes.
+keywords: Sage Intacct export FAQ, automatic export failure, manual export Sage Intacct, report not exporting, disconnect Sage Intacct integration, update Sage Intacct credentials, update Web Services credentials, rotate Web Services password
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers automatic export failures, manual export requirements, updating Web Services credentials, and disconnecting the Sage Intacct integration. Does not cover specific Sage Intacct error codes.
 ---
 
 # Sage Intacct FAQ
@@ -39,6 +39,18 @@ If a report is in **Draft** status, clicking the export button may load an empty
 1. If the report is in **Draft**, submit the report.  
 2. If the report is **Outstanding**, have an approver approve it.  
 3. Once the report is **Approved**, **Done**, or **Paid**, a Workspace Admin can manually export the report.  
+
+---
+
+## How Do I Update My Sage Intacct Credentials?
+
+Sage Intacct uses Web Services credentials (company ID, user ID, and password) that may need to be updated periodically. You can proactively update your credentials at any time. 
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces** > **[Workspace Name]** > **Accounting**.
+2. Select the three dots **(⋮)** next to the Sage Intacct connection.
+3. Click **Update credentials**.
+4. Enter your updated credentials.
+5. Click **Confirm**.
 
 ---
 

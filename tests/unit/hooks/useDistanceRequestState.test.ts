@@ -1,6 +1,10 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import createMock from '../../utils/createMock';
 
 jest.mock('@libs/DistanceRequestUtils', () => ({
     __esModule: true,
@@ -8,18 +12,29 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
         getDefaultMileageRate: () => undefined,
         getRate: () => ({rate: 0.5, unit: 'mi', currency: 'USD'}),
         getDistanceRequestAmount: (distance: number, _unit: string, rate: number): number => Math.round(distance * rate * 100),
+        getCommuterExclusionDisplayData: (customUnit: {commuterExclusion?: number; reimbursableDistance?: number; distanceUnit?: string} | undefined, distanceUnit: string) => {
+            if (!customUnit?.commuterExclusion) {
+                return null;
+            }
+            return {
+                commuterExclusion: customUnit.commuterExclusion,
+                reimbursableDistance: customUnit.reimbursableDistance ?? 0,
+                distanceUnit: customUnit.distanceUnit ?? distanceUnit,
+            };
+        },
+        convertToDistanceInMeters: (distance: number): number => distance,
     },
 }));
 
 jest.mock('@libs/TransactionUtils', () => ({
-    getDistanceInMeters: (transaction: {comment?: {customUnit?: {distance?: number}}} | undefined): number => transaction?.comment?.customUnit?.distance ?? 0,
-    hasRoute: (transaction: {comment?: {customUnit?: {distance?: number}}} | undefined): boolean => !!transaction?.comment?.customUnit?.distance,
+    getDistanceInMeters: (transaction: {comment?: {customUnit?: {routeDistanceMeters?: number}}} | undefined): number => transaction?.comment?.customUnit?.routeDistanceMeters ?? 0,
+    hasRoute: (transaction: {comment?: {customUnit?: {routeDistanceMeters?: number}}} | undefined): boolean => !!transaction?.comment?.customUnit?.routeDistanceMeters,
 }));
 
 type Params = Parameters<typeof useDistanceRequestState>[0];
 
 const baseParams: Params = {
-    transaction: {transactionID: 'txn1', comment: {customUnit: {distance: 10}}} as unknown as OnyxTypes.Transaction,
+    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {customUnit: {routeDistanceMeters: 10}}}),
     policy: undefined,
     policyID: 'policy1',
     policyForMovingExpenses: undefined,
@@ -37,11 +52,54 @@ describe('useDistanceRequestState', () => {
         expect(result.current.distanceRequestAmount).toBe(500); // 10 * 0.5 * 100
     });
 
+    it('recalculates only when the reimbursable distance changes', () => {
+        const transaction = baseParams.transaction;
+        if (!transaction) {
+            throw new Error('Expected a transaction');
+        }
+
+        let reimbursableDistance = 8;
+        const {result, rerender} = renderHook(() =>
+            useDistanceRequestState({
+                ...baseParams,
+                transaction: {
+                    ...transaction,
+                    transactionID: 'txn1',
+                    comment: {
+                        ...transaction.comment,
+                        customUnit: {
+                            ...transaction.comment?.customUnit,
+                            routeDistanceMeters: 10,
+                            quantity: 10,
+                            distanceUnit: 'mi',
+                            commuterExclusion: 2,
+                            reimbursableDistance,
+                        },
+                    },
+                },
+                iouAmount: 500,
+            }),
+        );
+
+        expect(result.current.distance).toBe(10);
+        expect(result.current.distanceRequestAmount).toBe(400);
+        expect(result.current.shouldCalculateDistanceAmount).toBe(false);
+
+        reimbursableDistance = 7;
+        rerender(undefined);
+
+        expect(result.current.distanceRequestAmount).toBe(350);
+        expect(result.current.shouldCalculateDistanceAmount).toBe(true);
+
+        rerender(undefined);
+        expect(result.current.shouldCalculateDistanceAmount).toBe(false);
+    });
+
     it('isDistanceRequestWithPendingRoute is true when transaction has no route', () => {
         const {result} = renderHook(() =>
             useDistanceRequestState({
                 ...baseParams,
-                transaction: {transactionID: 'txn1', comment: {customUnit: {}}} as unknown as OnyxTypes.Transaction,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {customUnit: {}}}),
             }),
         );
         expect(result.current.hasRoute).toBe(false);

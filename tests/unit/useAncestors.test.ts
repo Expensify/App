@@ -1,17 +1,24 @@
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
+
 import useAncestors from '@hooks/useAncestors';
+
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const numberOfMockReports = 11;
 
-const mockReports: Record<string, Report> = {};
-const mockReportActions: Record<string, ReportActions> = {};
+const mockReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {};
+const mockReportActions: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, ReportActions> = {};
 
 let parentReportID: string | undefined;
 let parentReportActionID: string | undefined;
@@ -50,10 +57,12 @@ describe('useAncestors', () => {
             keys: ONYXKEYS,
         });
 
-        Onyx.multiSet({
-            ...mockReports,
-            ...mockReportActions,
-        } as unknown as OnyxMultiSetInput);
+        Onyx.multiSet(
+            createMock<OnyxMultiSetInput>({
+                ...mockReports,
+                ...mockReportActions,
+            }),
+        );
         return waitForBatchedUpdates();
     });
 

@@ -1,6 +1,9 @@
-import React from 'react';
-import type {TDefaultRendererProps} from 'react-native-render-html';
 import Text from '@components/Text';
+
+import type {TDefaultRendererProps} from 'react-native-render-html';
+
+import React from 'react';
+
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
 

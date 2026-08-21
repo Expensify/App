@@ -1,22 +1,30 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {FlatList as FlatListType} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FlatList from '@components/FlatList/FlatList';
 import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import useReceiptPreviewsSizes from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptPreviewsSizes';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {FlatList as FlatListType} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import SubmitButtonShadow from './SubmitButtonShadow';
 
 type ReceiptWithTransactionID = Receipt & {transactionID: string};
@@ -94,7 +102,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                 accessible
                 accessibilityLabel={translate('common.receipt')}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID, Navigation.getActiveRoute()))}
+                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID)))}
                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_PREVIEW_ITEM}
             >
                 {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
@@ -133,19 +141,23 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                     showsHorizontalScrollIndicator={false}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={
-                        isInLandscapeMode ? [{paddingBottom: styles.singleAvatarMedium.height}, styles.ph4] : [{paddingRight: styles.singleAvatarMedium.width}, styles.pl4]
+                        isInLandscapeMode ? [{paddingBottom: styles.singleAvatarXLarge.height}, styles.ph4] : [{paddingRight: styles.singleAvatarXLarge.width}, styles.pl4]
                     }
                 />
                 <SubmitButtonShadow isInLandscapeMode={isInLandscapeMode}>
                     <Button
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         isDisabled={!optimisticTransactionsReceipts.length || isCapturingPhoto}
-                        innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
-                        icon={icons.ArrowRight}
-                        iconFill={theme.white}
+                        innerStyles={[styles.singleAvatarXLarge, styles.bgGreenSuccess]}
                         onPress={submit}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_PREVIEW_SUBMIT_BUTTON}
-                    />
+                    >
+                        <Button.Icon
+                            src={icons.ArrowRight}
+                            fill={theme.white}
+                            hoverFill={theme.white}
+                        />
+                    </Button>
                 </SubmitButtonShadow>
             </View>
         </Animated.View>

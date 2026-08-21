@@ -1,7 +1,8 @@
-import * as core from '@actions/core';
-import * as github from '@actions/github';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
+
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 
 const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github.context.payload.pull_request?.number;
 

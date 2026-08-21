@@ -1,41 +1,81 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
-import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useEffect, useRef} from 'react';
+
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
 
-type WorkspaceRoomsTableColumnKey = 'name' | 'createdBy' | 'members' | 'actions';
+import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
+
+type WorkspaceRoomsTableColumnKey = 'name' | 'members' | 'actions';
 
 type WorkspaceRoomsTableProps = {
     /** Pre-built row data for each room */
     rooms: WorkspaceRoomRowData[];
+
+    /** The policyID that we are viewing the rooms of */
+    policyID: string;
+
+    /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
+    highlightedReportID?: string;
 };
 
-function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
+    const [isPolicyRoomDataLoaded] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED, {
+        selector: (value) => value?.[policyID],
+    });
+
+    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb5,
+    });
+
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
+    useEffect(() => {
+        if (!highlightedReportID) {
+            return;
+        }
+        const highlightedRoom = rooms.find((room) => room.reportID === highlightedReportID);
+        if (!highlightedRoom) {
+            return;
+        }
+        // The room has to be looked up in the table's processed data: an active search can filter it out
+        // (in which case there is nothing to scroll to and the FlashList is not even mounted), and FlashList
+        // matches the scroll target by reference, so the row instance must come from the data the list renders.
+        const highlightedRow = tableRef.current?.getProcessedData().find((row) => row.keyForList === highlightedRoom.keyForList);
+        if (!highlightedRow) {
+            return;
+        }
+        tableRef.current?.scrollToItem({item: highlightedRow, animated: false});
+        tableRef.current?.highlightItems([highlightedRow.keyForList]);
+    }, [highlightedReportID, rooms]);
+
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
-        {key: 'name', label: translate('common.name')},
-        {key: 'createdBy', label: translate('common.createdBy')},
-        {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth},
-        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+        {key: 'name', label: translate('common.name'), sortable: true},
+        {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth, sortable: true},
+        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
-
-        if (activeSorting.columnKey === 'createdBy') {
-            return orderMultiplier * localeCompare(a.ownerDisplayName, b.ownerDisplayName);
-        }
 
         if (activeSorting.columnKey === 'members') {
             return orderMultiplier * (a.memberCount - b.memberCount);
@@ -54,8 +94,13 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
         />
     );
 
+    if (!isPolicyRoomDataLoaded) {
+        return <Table.LoadingState />;
+    }
+
     return (
         <Table
+            ref={tableRef}
             data={rooms}
             columns={columns}
             renderItem={renderItem}
@@ -63,16 +108,15 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             isItemInSearch={isItemInSearch}
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
-            keyExtractor={(row) => row.reportID}
+            keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowTableLayout)]}>
-                <Table.SearchBar label={translate('workspace.common.findRoom')} />
-            </View>
+            <Table.FilterBar label={translate('workspace.common.findRoom')} />
+            <Table.NoResultsState />
             <Table.Header />
-            <Table.Body />
+            <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>
     );
 }
 
 export default WorkspaceRoomsTable;
-export type {WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey};
+export type {WorkspaceRoomRowData};

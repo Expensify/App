@@ -1,20 +1,25 @@
-import React from 'react';
-import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetSplitShares, setIndividualShare} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail} from '@libs/OptionsListUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {Keyboard, View} from 'react-native';
 
 type UseSplitParticipantsParams = {
     /** Whether the current IOU type is split */
@@ -65,8 +70,8 @@ function useSplitParticipants({
     currentUserAccountID,
 }: UseSplitParticipantsParams) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
 
     const transactionID = transaction?.transactionID;
     const onSplitShareChange = (accountID: number, value: number) => {
@@ -81,7 +86,7 @@ function useSplitParticipants({
             return [];
         }
 
-        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
+        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate, formatPhoneNumber);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;
@@ -89,7 +94,7 @@ function useSplitParticipants({
                 if (iouAmount > 0) {
                     amount =
                         transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
-                        calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
+                        calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer, false, getCurrencyDecimals);
                 }
                 return {
                     ...participantOption,
@@ -155,7 +160,7 @@ function useSplitParticipants({
                         // Dismiss the keyboard so that MoneyRequestAmountInput's useEffect syncs the new amount.
                         // Without this, the effect skips the update while the input is focused (see formatAmountOnBlur guard).
                         Keyboard.dismiss();
-                        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
+                        resetSplitShares(transaction, undefined, undefined, currentUserAccountID, getCurrencyDecimals);
                     }}
                     accessibilityLabel={CONST.ROLE.BUTTON}
                     role={CONST.ROLE.BUTTON}

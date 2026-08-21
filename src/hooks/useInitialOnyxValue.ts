@@ -1,5 +1,7 @@
-import {useState} from 'react';
 import type {OnyxKey, OnyxValue} from 'react-native-onyx';
+
+import {useState} from 'react';
+
 import useOnyx from './useOnyx';
 
 /**

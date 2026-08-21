@@ -1,27 +1,36 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import RadioButton from '@components/RadioButton';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps, TransactionItemRowRBRDeferControlProps} from './types';
+
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
-import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps} from './types';
 
 type TransactionItemRowNarrowProps = Pick<
     TransactionItemRowProps,
     | 'transactionItem'
     | 'report'
+    | 'policy'
     | 'isSelected'
     | 'shouldShowTooltip'
     | 'onCheckboxPress'
@@ -30,6 +39,9 @@ type TransactionItemRowNarrowProps = Pick<
     | 'isInSingleTransactionReport'
     | 'shouldShowRadioButton'
     | 'onRadioButtonPress'
+    | 'shouldStopRadioButtonMouseDownPropagation'
+    | 'radioButtonContainerStyle'
+    | 'radioButtonWrapperStyle'
     | 'shouldShowErrors'
     | 'isDisabled'
     | 'violations'
@@ -38,11 +50,13 @@ type TransactionItemRowNarrowProps = Pick<
     | 'shouldShowArrowRightOnNarrowLayout'
     | 'checkboxSentryLabel'
 > &
-    TransactionItemRowNarrowComputedData;
+    TransactionItemRowNarrowComputedData &
+    TransactionItemRowRBRDeferControlProps;
 
 function TransactionItemRowNarrow({
     transactionItem,
     report,
+    policy,
     isSelected,
     shouldShowTooltip,
     onCheckboxPress = () => {},
@@ -51,6 +65,9 @@ function TransactionItemRowNarrow({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    shouldStopRadioButtonMouseDownPropagation = false,
+    radioButtonContainerStyle,
+    radioButtonWrapperStyle,
     shouldShowErrors = true,
     isDisabled = false,
     violations,
@@ -58,6 +75,7 @@ function TransactionItemRowNarrow({
     onArrowRightPress,
     shouldShowArrowRightOnNarrowLayout,
     checkboxSentryLabel,
+    shouldDeferRBR = true,
     bgActiveStyles,
     merchant,
     merchantOrDescription,
@@ -82,8 +100,8 @@ function TransactionItemRowNarrow({
                     {shouldShowCheckbox && (
                         <Checkbox
                             disabled={isDisabled}
-                            onPress={() => {
-                                onCheckboxPress(transactionItem.transactionID);
+                            onPress={(event) => {
+                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
@@ -119,6 +137,8 @@ function TransactionItemRowNarrow({
                                 <TotalCell
                                     transactionItem={transactionItem}
                                     shouldShowTooltip={shouldShowTooltip}
+                                    report={report}
+                                    policy={policy}
                                     shouldUseNarrowLayout
                                 />
                             </View>
@@ -149,18 +169,21 @@ function TransactionItemRowNarrow({
                         </View>
                     )}
                     {shouldShowRadioButton && (
-                        <View style={[styles.ml3, styles.justifyContentCenter]}>
+                        <View style={[styles.ml3, styles.justifyContentCenter, radioButtonContainerStyle]}>
                             <RadioButton
                                 isChecked={isSelected}
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
+                                shouldStopMouseDownPropagation={shouldStopRadioButtonMouseDownPropagation}
+                                style={radioButtonWrapperStyle}
                             />
                         </View>
                     )}
                 </View>
                 {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
+                        shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
                         violations={violations}
                         report={report}

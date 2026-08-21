@@ -3,13 +3,17 @@ import type {ComponentProps} from 'react';
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type {CartesianChart} from 'victory-native';
-import type {CHART_TYPE, X_KEY, Y_KEY_PREFIX} from './constants';
+
+import type {CHART_TYPE, COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY, Y_KEY_PREFIX} from './constants';
 
 type VictoryChartRendererProps = CustomRendererProps<TBlock>;
 
 type RawChartData = {
     x: string | number;
     y: number;
+    label?: string;
+    currency?: string;
+    searchQuery?: string;
 };
 
 type RawLegendData = {
@@ -36,6 +40,8 @@ type RawLabelStyle = {
     fill?: Color;
     fontSize?: string | number;
     fontWeight?: string | number;
+    fontFamily?: string;
+    fontStyle?: string;
 };
 
 type RawLegendStyle = {
@@ -43,7 +49,14 @@ type RawLegendStyle = {
         fill?: Color;
         fontSize?: string | number;
         fontWeight?: string | number;
+        fontFamily?: string;
+        fontStyle?: string;
     };
+};
+
+type RawShiftedLineSegmentStyle = {
+    stroke?: Color;
+    strokeWidth?: number;
 };
 
 type XKey = typeof X_KEY;
@@ -52,6 +65,31 @@ type YKey = `${typeof Y_KEY_PREFIX}${string}`;
 type CartesianChartData = {
     [X_KEY]: string | number;
     [key: `${YKey}`]: number;
+};
+
+type ChartPointMetadata = {
+    label?: string;
+    currency?: string;
+    searchQuery?: string;
+};
+
+type ChartPointMetadataByYKey = Partial<Record<YKey, Record<string, ChartPointMetadata>>>;
+
+type PolarChartData = {
+    [LABEL_KEY]: string | number;
+    [VALUE_KEY]: number;
+    [COLOR_KEY]: Color;
+};
+
+type TextAnchor = 'start' | 'middle' | 'end';
+
+/** A pie-chart slice label's fully resolved, absolute position — shared by `VictoryChartPieLabel` and `VictoryChartPieLabelIndicator` so both always agree. */
+type ResolvedPieLabel = {
+    x: number;
+    y: number;
+    textAnchor: TextAnchor;
+    /** The angle actually used for this slice's layout. */
+    midAngle: number;
 };
 
 type LabelItem = {
@@ -64,14 +102,29 @@ type LabelItem = {
     /** Text to draw */
     text: string;
 
-    /** The color of the text */
-    color?: Color;
+    /** The color of the text (per line) */
+    color?: Record<number, Color>;
 
-    /** Font size */
-    fontSize?: number;
+    /** Font size (per line) */
+    fontSize?: Record<number, number>;
 
-    /** Font weight */
-    fontWeight?: 'normal' | 'bold';
+    /** Font weight (per line) */
+    fontWeight?: Record<number, 'normal' | 'bold'>;
+
+    /** Font family (per line) */
+    fontFamily?: Record<number, string>;
+
+    /** Font style (per line) */
+    fontStyle?: Record<number, string>;
+
+    /** Line height (per line) */
+    lineHeight?: Record<number, number>;
+
+    /** Text horizontal anchor  */
+    textAnchor?: TextAnchor;
+
+    /** Text vertical anchor  */
+    verticalAnchor?: TextAnchor;
 };
 
 type LegendItemEntry = {
@@ -86,6 +139,12 @@ type LegendItemEntry = {
 
     /** Font weight */
     fontWeight?: 'normal' | 'bold';
+
+    /** Font family */
+    fontFamily?: string;
+
+    /** Font style */
+    fontStyle?: string;
 
     /** The color of the symbol */
     symbolColor?: Color;
@@ -116,7 +175,7 @@ type CartesianChartProps = ComponentProps<typeof CartesianChart<CartesianChartDa
 
 /** Fully merged result of walking the HTML tnode tree. */
 type ProcessNodeResult = {
-    data: Record<string, CartesianChartData>;
+    data: Record<string, CartesianChartData> | Record<string, PolarChartData>;
     xKey: XKey;
     yKeys: YKey[];
     xAxis: CartesianChartProps['xAxis'];
@@ -124,10 +183,13 @@ type ProcessNodeResult = {
     domain: CartesianChartProps['domain'];
     domainPadding: CartesianChartProps['domainPadding'];
     padding: CartesianChartProps['padding'];
+    // Pixel width the left y-axis actually needs for its widest label, used to shrink `padding.left` when it's larger than the content requires.
+    leftAxisLabelPadding: number | undefined;
     isHorizontal: boolean | undefined;
     categories: string[] | undefined;
     labelItems: LabelItem[];
     legendItems: LegendItem[];
+    pointMetadata: ChartPointMetadataByYKey;
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
@@ -144,15 +206,19 @@ export type {
     RawAxisStyle,
     RawLabelStyle,
     RawLegendStyle,
-    XKey,
+    RawShiftedLineSegmentStyle,
     YKey,
     CartesianChartData,
+    ChartPointMetadata,
     CartesianChartProps,
+    TextAnchor,
+    ResolvedPieLabel,
     LabelItem,
     LegendItemEntry,
     LegendItem,
     ProcessNodeResult,
     PartialProcessNodeResult,
     NodeParser,
+    PolarChartData,
     ChartType,
 };

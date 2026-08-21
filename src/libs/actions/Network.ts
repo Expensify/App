@@ -1,5 +1,6 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 function setTimeSkew(skew: number) {
     Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: skew});

@@ -1,18 +1,21 @@
-import React, {useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 import Badge from '@components/Badge';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
+
+import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
+
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 import {useTabSelectorActions} from './TabSelectorContext';
-import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
@@ -31,18 +34,18 @@ function TabSelectorItem({
     shouldShowLabelWhenInactive = true,
     testID,
     sentryLabel,
-    shouldShowProductTrainingTooltip = false,
-    renderProductTrainingTooltip,
     equalWidth = false,
     badgeText,
+    isBadgeCondensed = false,
+    badgeStyles,
     isDisabled = false,
+    disabledAction,
     pendingAction,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
 
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
-    const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
 
     const {onTabLayout, scrollToTab} = useTabSelectorActions();
 
@@ -75,7 +78,7 @@ function TabSelectorItem({
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
             sentryLabel={sentryLabel}
-            disabled={isDisabled}
+            disabled={!disabledAction && isDisabled}
         >
             <TabIcon
                 icon={icon}
@@ -95,28 +98,14 @@ function TabSelectorItem({
                 <Badge
                     text={badgeText}
                     success
+                    isCondensed={isBadgeCondensed}
+                    badgeStyles={badgeStyles}
                 />
             )}
         </AnimatedPressableWithFeedback>
     );
 
-    return shouldShowEducationalTooltip ? (
-        <EducationalTooltip
-            shouldRender
-            renderTooltipContent={renderProductTrainingTooltip}
-            shouldHideOnNavigate
-            shouldHideOnScroll
-            anchorAlignment={{
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-            }}
-            wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pAbsolute]}
-            computeHorizontalShiftForNative
-            minWidth={variables.minScanTooltipWidth}
-        >
-            {children}
-        </EducationalTooltip>
-    ) : (
+    return (
         <Tooltip
             shouldRender={!shouldShowLabelWhenInactive && !isActive}
             text={title}

@@ -1,10 +1,15 @@
-import React, {useDeferredValue} from 'react';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import ActionCell from '.';
+
+import React, {useDeferredValue} from 'react';
+
 import type {ActionCellProps} from '.';
+
+import ActionCell from '.';
 import actionTranslationsMap from './actionTranslationsMap';
 
 function DeferredActionCell(actionCellProps: ActionCellProps) {
@@ -16,18 +21,23 @@ function DeferredActionCell(actionCellProps: ActionCellProps) {
         const action = actionCellProps.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
         const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE;
         const isSuccess = !shouldUseViewAction && action !== CONST.SEARCH.ACTION_TYPES.UNDELETE;
-        const text = shouldUseViewAction ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
+        let text: string;
+        if (shouldUseViewAction) {
+            text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
+        } else {
+            text = actionCellProps.shouldShowMarkAsDoneCopy ? translate('common.done') : translate(actionTranslationsMap[action]);
+        }
 
         return (
             <Button
-                text={text}
-                small={!actionCellProps.extraSmall}
-                extraSmall={actionCellProps.extraSmall}
+                size={CONST.BUTTON_SIZE.SMALL}
                 style={[styles.w100, styles.pointerEventsNone]}
                 isDisabled
-                success={isSuccess}
+                variant={isSuccess ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                 isNested
-            />
+            >
+                <Button.Text>{text}</Button.Text>
+            </Button>
         );
     }
 

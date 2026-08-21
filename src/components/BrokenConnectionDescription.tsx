@@ -1,13 +1,18 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter, isReportApproved, isReportManuallyReimbursed} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import RenderHTML from './RenderHTML';
 
 type BrokenConnectionDescriptionProps = {

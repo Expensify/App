@@ -1,4 +1,3 @@
-import {AppState} from 'react-native';
 import {
     cancelDeferredWrite,
     deferOrExecuteWrite,
@@ -10,7 +9,10 @@ import {
     reserveDeferredWriteChannel,
     resetForTesting,
 } from '@libs/deferredLayoutWrite';
+
 import CONST from '@src/CONST';
+
+import {AppState} from 'react-native';
 
 beforeEach(() => {
     jest.useFakeTimers();
@@ -114,7 +116,7 @@ describe('deferredLayoutWrite', () => {
         expect(callbackA).not.toHaveBeenCalled();
         expect(callbackB).not.toHaveBeenCalled();
 
-        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('background');
+        AppState.emitCurrentTestState('background');
 
         expect(callbackA).toHaveBeenCalledTimes(1);
         expect(callbackB).toHaveBeenCalledTimes(1);
@@ -126,7 +128,7 @@ describe('deferredLayoutWrite', () => {
         const callback = jest.fn();
         registerDeferredWrite('test', callback);
 
-        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('active');
+        AppState.emitCurrentTestState('active');
 
         expect(callback).not.toHaveBeenCalled();
         expect(hasDeferredWrite('test')).toBe(true);

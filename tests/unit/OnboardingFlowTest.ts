@@ -1,9 +1,27 @@
-import {getOnboardingInitialPath} from '@libs/actions/Welcome/OnboardingFlow';
+import {getOnboardingInitialPath, getRequired2FAOnboardingResumePath} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
+
 import CONST from '@src/CONST';
 
 describe('OnboardingFlow', () => {
     describe('getOnboardingInitialPath', () => {
+        it('should return the onboarding fallback path when the last visited path is null', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: null,
+                onboardingValues: undefined,
+            };
+
+            let path = '';
+            expect(() => {
+                path = getOnboardingInitialPath(params);
+            }).not.toThrow();
+            expect(path).toBe('/onboarding');
+        });
+
         it('should return the correct path for personal spend', () => {
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: false,
@@ -64,7 +82,7 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);
-            expect(path).toBe('/onboarding/accounting');
+            expect(path).toBe('/onboarding/employees');
         });
 
         it('should return the correct path for SMB and is not from public domain', () => {
@@ -199,6 +217,47 @@ describe('OnboardingFlow', () => {
             };
             const path = getOnboardingInitialPath(params);
             expect(path).not.toBe('/onboarding/purpose');
+        });
+    });
+
+    describe('getRequired2FAOnboardingResumePath', () => {
+        it('returns personal-details for private domain users with accessible policies and no saved path', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                currentOnboardingPurposeSelected: undefined,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: null,
+                onboardingValues: undefined,
+            };
+
+            expect(getRequired2FAOnboardingResumePath(params)).toBe('/onboarding/personal-details');
+        });
+
+        it('returns work-email for public domain users with no saved path', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: false,
+                currentOnboardingPurposeSelected: undefined,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: '',
+                onboardingValues: undefined,
+            };
+
+            expect(getRequired2FAOnboardingResumePath(params)).toBe('/onboarding/work-email');
+        });
+
+        it('preserves a saved work-email path', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                currentOnboardingPurposeSelected: undefined,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: '/onboarding/work-email/validation',
+                onboardingValues: undefined,
+            };
+
+            expect(getRequired2FAOnboardingResumePath(params)).toBe('/onboarding/work-email/validation');
         });
     });
 });

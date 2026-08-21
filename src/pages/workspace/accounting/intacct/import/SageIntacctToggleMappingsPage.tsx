@@ -1,27 +1,32 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearSageIntacctErrorField, updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+
+import {Str} from 'expensify-common';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
 
 type SageIntacctToggleMappingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
@@ -74,7 +79,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     return (
         <ConnectionLayout
             displayName="SageIntacctToggleMappingsPage"
-            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', {mappingName}))}
+            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', mappingName))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -84,11 +89,11 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5, styles.flexRow]}>
-                <RenderHTML html={translate('workspace.intacct.toggleImportTitle', translate('workspace.intacct.mappingTitle', {mappingName}))} />
+                <RenderHTML html={translate('workspace.intacct.toggleImportTitle', translate('workspace.intacct.mappingTitle', mappingName))} />
             </View>
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
-                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', {mappingName})}`}
+                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', mappingName)}`}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={isImportMappingEnable}

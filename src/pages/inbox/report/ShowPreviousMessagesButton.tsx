@@ -1,14 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
-import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import Button from '@components/ButtonComposed';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ShowPreviousMessagesButtonProps = {
     /** The ID of the report this list item belongs to */
@@ -31,11 +33,10 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
-    const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeSidePanel = isInSidePanel && reportID === conciergeReportID;
+    const isConciergeChat = reportID === conciergeReportID;
 
-    if (!isConciergeSidePanel) {
+    if (!isConciergeChat) {
         return null;
     }
     if (!onPress) {
@@ -56,12 +57,12 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
             <View>
                 <Button
-                    small
-                    shouldShowRightIcon
-                    iconRight={expensifyIcons.UpArrow}
-                    text={translate('common.concierge.showHistory')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={onPress}
-                />
+                >
+                    <Button.Text>{translate('common.concierge.showHistory')}</Button.Text>
+                    <Button.Icon src={expensifyIcons.UpArrow} />
+                </Button>
             </View>
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
         </View>

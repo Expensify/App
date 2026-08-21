@@ -1,13 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ImageSVG from '@components/ImageSVG';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CameraPermissionPromptProps = {
     /** Whether the device is currently in landscape orientation */
@@ -15,9 +18,15 @@ type CameraPermissionPromptProps = {
 
     /** Callback fired when the continue button is pressed */
     onPress: () => void;
+
+    /** Explanation shown under the title. Defaults to the generic receipt camera access copy */
+    subtitle?: string;
+
+    /** Sentry label for the continue button */
+    sentryLabel?: string;
 };
 
-function CameraPermissionPrompt({isInLandscapeMode, onPress}: CameraPermissionPromptProps) {
+function CameraPermissionPrompt({isInLandscapeMode, onPress, subtitle, sentryLabel = CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_PROMPT_BUTTON}: CameraPermissionPromptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const lazyIllustrations = useMemoizedLazyIllustrations(['Hand']);
@@ -32,17 +41,17 @@ function CameraPermissionPrompt({isInLandscapeMode, onPress}: CameraPermissionPr
                     height={CONST.RECEIPT.HAND_ICON_HEIGHT}
                     style={styles.pb5}
                 />
-
                 <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                <Text style={[styles.subTextFileUpload]}>{subtitle ?? translate('receipt.cameraAccess')}</Text>
                 <Button
-                    success
-                    text={translate('common.continue')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     accessibilityLabel={translate('common.continue')}
                     style={[styles.p9, styles.pt5]}
                     onPress={onPress}
-                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                />
+                    sentryLabel={sentryLabel}
+                >
+                    <Button.Text>{translate('common.continue')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );

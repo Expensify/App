@@ -1,8 +1,10 @@
-import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import type {StackNavigationOptions} from '@react-navigation/stack';
 import type Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
+
 import type CommonProperties from '@src/types/utils/CommonProperties';
+
+import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
+import type {StackNavigationOptions} from '@react-navigation/stack';
 
 // Navigation properties that are only available in web or native stack navigations.
 type WebOnlyNavigationOptions = StackNavigationOptions;

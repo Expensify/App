@@ -1,19 +1,26 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {createNewReport} from '@libs/actions/Report';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
+
 import DynamicNewReportWorkspaceSelectionPage from '@pages/DynamicNewReportWorkspaceSelectionPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Policy, Report, TodosDerivedValue, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Report', () => ({
@@ -36,6 +43,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => false);
 jest.mock('@navigation/helpers/isRHPOnSearchMoneyRequestReportPage', () => () => false);
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: jest.fn(() => false)}),
+}));
 
 const mockCreateNewReport = jest.mocked(createNewReport);
 
@@ -44,14 +55,6 @@ const EMAIL = 'test@example.com';
 const POLICY_ID = 'policy-1';
 const POLICY_NAME = 'Test Workspace';
 const REPORT_ID = 'report-1';
-
-const BASE_TODOS: TodosDerivedValue = {
-    reportsToSubmit: [],
-    reportsToApprove: [],
-    reportsToPay: [],
-    reportsToExport: [],
-    transactionsByReportID: {},
-};
 
 const Stack = createPlatformStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>();
 
@@ -73,7 +76,7 @@ function renderPage() {
     );
 }
 
-async function seedBaseOnyx() {
+async function seedBaseOnyx(policyOverrides?: Partial<Policy>) {
     const policy: Partial<Policy> = {
         id: POLICY_ID,
         name: POLICY_NAME,
@@ -83,6 +86,7 @@ async function seedBaseOnyx() {
         owner: EMAIL,
         employeeList: {[EMAIL]: {email: EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
         pendingAction: null,
+        ...policyOverrides,
     };
     const report: Partial<Report> = {
         reportID: REPORT_ID,
@@ -116,10 +120,9 @@ describe('NewReportWorkspaceSelectionPage', () => {
         jest.clearAllMocks();
     });
 
-    it('opens the empty-report confirmation when TODOS has no transactions for the user report', async () => {
+    it('opens the empty-report confirmation when there are no transactions for the user report', async () => {
         await act(async () => {
             await seedBaseOnyx();
-            await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -133,18 +136,15 @@ describe('NewReportWorkspaceSelectionPage', () => {
         expect(mockCreateNewReport).not.toHaveBeenCalled();
     });
 
-    it('creates the report directly when TODOS has a live transaction for the user report', async () => {
-        const transaction: Partial<Transaction> = {
+    it('creates the report directly when there is a live transaction for the user report', async () => {
+        const transaction = createMock<Transaction>({
             transactionID: 'txn-1',
             reportID: REPORT_ID,
             pendingAction: null,
-        };
+        });
         await act(async () => {
             await seedBaseOnyx();
-            await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
-                ...BASE_TODOS,
-                transactionsByReportID: {[REPORT_ID]: [transaction as Transaction]},
-            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -156,5 +156,49 @@ describe('NewReportWorkspaceSelectionPage', () => {
 
         expect(mockCreateNewReport).toHaveBeenCalled();
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('shows only group workspaces in the selector', async () => {
+        await act(async () => {
+            await seedBaseOnyx();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}personal-policy`, {
+                id: 'personal-policy',
+                name: 'Personal Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.PERSONAL,
+                owner: EMAIL,
+                employeeList: {[EMAIL]: {email: EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(await screen.findByText(POLICY_NAME)).toBeOnTheScreen();
+        expect(screen.queryByText('Personal Workspace')).not.toBeOnTheScreen();
+    });
+
+    it('shows Submit workspaces in the selector', async () => {
+        await act(async () => {
+            await seedBaseOnyx();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}submit-policy`, {
+                id: 'submit-policy',
+                name: 'Submit Workspace',
+                role: CONST.POLICY.ROLE.EDITOR,
+                type: CONST.POLICY.TYPE.SUBMIT,
+                owner: EMAIL,
+                employeeList: {[EMAIL]: {email: EMAIL, role: CONST.POLICY.ROLE.EDITOR}},
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(await screen.findByText(POLICY_NAME)).toBeOnTheScreen();
+        expect(await screen.findByText('Submit Workspace')).toBeOnTheScreen();
     });
 });

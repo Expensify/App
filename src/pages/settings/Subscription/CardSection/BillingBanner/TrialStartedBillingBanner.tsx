@@ -1,9 +1,13 @@
-import React from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import BillingBanner from './BillingBanner';
 
 function TrialStartedBillingBanner() {

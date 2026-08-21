@@ -1,10 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PaymentCardDetails from '@components/PaymentCardDetails';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -14,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {requestRefund as requestRefundByUser} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
@@ -25,12 +25,20 @@ import {
     shouldShowPreTrialBillingBanner,
     shouldShowTrialEndedUI,
 } from '@libs/SubscriptionUtils';
+
 import {verifySetupIntent} from '@userActions/PaymentMethods';
 import {clearOutstandingBalance} from '@userActions/Subscription';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
+import type {BillingStatusResult} from './utils';
+
 import EarlyDiscountBanner from './BillingBanner/EarlyDiscountBanner';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
@@ -41,11 +49,10 @@ import CardSectionActions from './CardSectionActions';
 import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import getSectionSubtitle from './CardSectionSubtitle';
-import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
 function CardSection() {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'Close']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
@@ -75,6 +82,7 @@ function CardSection() {
     const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isGrandfatheredFree] = useOnyx(ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE);
     const requestRefund = useCallback(() => {
@@ -100,6 +108,8 @@ function CardSection() {
     const viewPurchases = () => {
         const query = buildQueryStringFromFilterFormValues({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            merchant: CONST.EXPENSIFY_MERCHANT,
+            from: session?.accountID ? [session.accountID.toString()] : undefined,
             status: [
                 CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
                 CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
@@ -109,8 +119,6 @@ function CardSection() {
                 CONST.SEARCH.STATUS.EXPENSE.PAID,
                 CONST.SEARCH.STATUS.EXPENSE.DELETED,
             ],
-            merchant: CONST.EXPENSIFY_MERCHANT,
-            from: [CONST.SEARCH.ME],
         });
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
@@ -119,6 +127,7 @@ function CardSection() {
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
         CardSectionUtils.getBillingStatus({
             translate,
+            dateFnsLocale,
             stripeCustomerId: privateStripeCustomerID,
             accountData: defaultCard?.accountData ?? {},
             purchase: purchaseList?.[0],
@@ -131,10 +140,11 @@ function CardSection() {
             fundList,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
         }),
     );
 
-    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate(dateFnsLocale) : undefined;
 
     const sectionSubtitle = getSectionSubtitle({
         translate,
@@ -147,6 +157,7 @@ function CardSection() {
         setBillingStatus(
             CardSectionUtils.getBillingStatus({
                 translate,
+                dateFnsLocale,
                 stripeCustomerId: privateStripeCustomerID,
                 accountData: defaultCard?.accountData ?? {},
                 purchase: purchaseList?.[0],
@@ -159,6 +170,7 @@ function CardSection() {
                 fundList,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerTravelBillingGracePeriodEnd,
             }),
         );
     }, [
@@ -166,6 +178,7 @@ function CardSection() {
         subscriptionRetryBillingStatusSuccessful,
         subscriptionRetryBillingStatusFailed,
         translate,
+        dateFnsLocale,
         defaultCard?.accountData,
         privateStripeCustomerID,
         purchaseList,
@@ -176,6 +189,7 @@ function CardSection() {
         fundList,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        ownerTravelBillingGracePeriodEnd,
     ]);
 
     const handleRetryPayment = () => {
@@ -242,25 +256,27 @@ function CardSection() {
             <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
             {billingStatus?.isRetryAvailable !== undefined && (
                 <CardSectionButton
-                    text={translate('subscription.cardSection.retryPaymentButton')}
                     isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                     isLoading={subscriptionRetryBillingStatusPending}
                     onPress={handleRetryPayment}
                     style={[styles.w100, styles.mb3]}
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.RETRY_PAYMENT}
-                />
+                >
+                    <CardSectionButton.Text>{translate('subscription.cardSection.retryPaymentButton')}</CardSectionButton.Text>
+                </CardSectionButton>
             )}
             {hasCardAuthenticatedError(privateStripeCustomerID, amountOwed) && (
                 <CardSectionButton
-                    text={translate('subscription.cardSection.authenticatePayment')}
                     isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
                     isLoading={subscriptionRetryBillingStatusPending}
                     onPress={handleAuthenticatePayment}
                     style={[styles.w100, styles.mt5]}
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTHENTICATE_PAYMENT}
-                />
+                >
+                    <CardSectionButton.Text>{translate('subscription.cardSection.authenticatePayment')}</CardSectionButton.Text>
+                </CardSectionButton>
             )}
 
             {!!account?.hasPurchases && (

@@ -1,7 +1,13 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+
 import CONST from '@src/CONST';
+import en from '@src/languages/en';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import type Transaction from '@src/types/onyx/Transaction';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 
@@ -11,6 +17,16 @@ const totalDistance = 1000;
 const taxClaimablePercentage = 0.5;
 const distanceUnit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 const customUnitRateIDWithOutTaxClaimablePercentage = 'EB515052039A4';
+const distanceCustomUnitBase = {
+    attributes: {
+        taxEnabled: true,
+        unit: distanceUnit,
+    },
+    customUnitID: 'C9031B6F4725D',
+    defaultCategory: '',
+    enabled: true,
+    name: 'Distance',
+};
 const FAKE_POLICY: Policy = {
     id: 'CEEEDB0EC660F71A',
     name: 'Test',
@@ -21,14 +37,7 @@ const FAKE_POLICY: Policy = {
     isPolicyExpenseChatEnabled: true,
     customUnits: {
         C9031B6F4725D: {
-            attributes: {
-                taxEnabled: true,
-                unit: distanceUnit,
-            },
-            customUnitID: 'C9031B6F4725D',
-            defaultCategory: '',
-            enabled: true,
-            name: 'Distance',
+            ...distanceCustomUnitBase,
             rates: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '222AAF6B93BCB': {
@@ -83,6 +92,63 @@ const FAKE_POLICY: Policy = {
                         taxClaimablePercentage,
                     },
                     pendingFields: {},
+                },
+            },
+        },
+    },
+};
+
+const DATE_BOUND_POLICY: Policy = {
+    ...FAKE_POLICY,
+    customUnits: {
+        C9031B6F4725D: {
+            ...distanceCustomUnitBase,
+            rates: {
+                DEFAULT_RATE_ID: {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: 'DEFAULT_RATE_ID',
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: 67,
+                    subRates: [],
+                    index: 0,
+                },
+                RATE_2025_ID: {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: 'RATE_2025_ID',
+                    enabled: true,
+                    name: '2025 Rate',
+                    rate: 70,
+                    subRates: [],
+                    index: 1,
+                    startDate: '2025-01-01',
+                    endDate: '2025-12-31',
+                },
+                RATE_2026_ID: {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: 'RATE_2026_ID',
+                    enabled: true,
+                    name: '2026 Rate',
+                    rate: 75,
+                    subRates: [],
+                    index: 2,
+                    startDate: '2026-01-01',
+                    endDate: '2026-12-31',
+                },
+                RATE_2026_H1_ID: {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: 'RATE_2026_H1_ID',
+                    enabled: true,
+                    name: '2026 H1 Rate',
+                    rate: 80,
+                    subRates: [],
+                    index: 3,
+                    startDate: '2026-01-01',
+                    endDate: '2026-06-30',
                 },
             },
         },
@@ -186,31 +252,339 @@ describe('DistanceRequestUtils', () => {
 
             expect(result).toBe('222AAF6B93BCB');
         });
+
+        it('returns last selected rate when no expense date is provided', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: {[DATE_BOUND_POLICY.id]: 'RATE_2025_ID'},
+            });
+
+            expect(result).toBe('RATE_2025_ID');
+        });
+
+        it('returns last selected rate when it is eligible for the expense date', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: {[DATE_BOUND_POLICY.id]: 'RATE_2026_ID'},
+                expenseDate: '2026-03-15',
+            });
+
+            expect(result).toBe('RATE_2026_ID');
+        });
+
+        it('returns the best eligible rate when the last selected rate is not eligible for the expense date', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: {[DATE_BOUND_POLICY.id]: 'RATE_2025_ID'},
+                expenseDate: '2026-03-15',
+            });
+
+            expect(result).toBe('RATE_2026_H1_ID');
+        });
+
+        it('returns the best eligible rate when no last selected rate is provided', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: undefined,
+                expenseDate: '2025-06-01',
+            });
+
+            expect(result).toBe('RATE_2025_ID');
+        });
+
+        it('returns the unbounded default rate when no date-bound rates are eligible for the expense date', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: undefined,
+                expenseDate: '2024-06-01',
+            });
+
+            expect(result).toBe('DEFAULT_RATE_ID');
+        });
+
+        it('returns the policy default rate when no expense date is provided and no last selected rate exists', () => {
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: DATE_BOUND_POLICY,
+                lastSelectedDistanceRates: undefined,
+            });
+
+            expect(result).toBe('DEFAULT_RATE_ID');
+        });
+
+        it('returns the policy default rate as a fallback when no rates are eligible for the expense date', () => {
+            const boundedOnlyPolicy: Policy = {
+                ...DATE_BOUND_POLICY,
+                customUnits: {
+                    C9031B6F4725D: {
+                        ...distanceCustomUnitBase,
+                        rates: {
+                            DEFAULT_RATE_ID: {
+                                attributes: {},
+                                currency: 'USD',
+                                customUnitRateID: 'DEFAULT_RATE_ID',
+                                enabled: true,
+                                name: 'Default Rate',
+                                rate: 67,
+                                subRates: [],
+                                index: 0,
+                                startDate: '2025-01-01',
+                                endDate: '2025-12-31',
+                            },
+                            RATE_2026_ID: {
+                                attributes: {},
+                                currency: 'USD',
+                                customUnitRateID: 'RATE_2026_ID',
+                                enabled: true,
+                                name: '2026 Rate',
+                                rate: 75,
+                                subRates: [],
+                                index: 1,
+                                startDate: '2026-01-01',
+                                endDate: '2026-12-31',
+                            },
+                        },
+                    },
+                },
+            };
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: '1234',
+                isPolicyExpenseChat: true,
+                policy: boundedOnlyPolicy,
+                lastSelectedDistanceRates: undefined,
+                expenseDate: '2024-06-01',
+            });
+
+            expect(result).toBe('DEFAULT_RATE_ID');
+        });
     });
 
     describe('getDistanceForDisplay', () => {
         it('returns empty string when distance is 0 and isManualDistanceRequest is false', () => {
-            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, false);
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, translateLocal, false, false);
             expect(result).toBe('');
         });
 
         it('formats zero distance when isManualDistanceRequest is true', () => {
-            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, true);
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, translateLocal, false, true);
             expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+
+        it('formats zero reimbursable commuter distance', () => {
+            const commuterExclusionData = {
+                commuterExclusion: 1,
+                reimbursableDistance: 0,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            };
+
+            const result = DistanceRequestUtils.getDistanceForDisplay(
+                true,
+                DistanceRequestUtils.convertToDistanceInMeters(1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                translateLocal,
+                false,
+                false,
+                commuterExclusionData,
+            );
+
+            expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+    });
+
+    describe('getDistanceDisplayDetailsWithCommuter', () => {
+        it.each([
+            [1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 'Removed 1.00 commuter mile'],
+            [2, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 'Removed 2.00 commuter miles'],
+            [1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, 'Removed 1.00 commuter kilometer'],
+            [2, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, 'Removed 2.00 commuter kilometers'],
+        ])('localizes a commuter exclusion of %s %s', (commuterExclusion, unit, expected) => {
+            const translation = en.distance.commuterExclusion.removedCommuterDistance[unit]({distance: commuterExclusion.toFixed(2)});
+
+            expect(commuterExclusion === 1 ? translation.one : translation.other).toBe(expected);
+        });
+
+        it('passes commuter distance semantics to localization', () => {
+            const translateMock = jest.fn();
+            const translate: LocaleContextProps['translate'] = (path, ...parameters) => {
+                translateMock(path, ...parameters);
+                return translateLocal(path, ...parameters);
+            };
+
+            DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(
+                {
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                translate,
+            );
+
+            expect(translateMock).toHaveBeenCalledWith('distance.commuterExclusion.removedCommuterDistance.mi', {
+                distance: '1.00',
+                count: 1,
+            });
+        });
+    });
+
+    describe('getCommuterExclusionDisplayData', () => {
+        it('returns stored commuter display data from custom unit', () => {
+            const result = DistanceRequestUtils.getCommuterExclusionDisplayData(
+                {
+                    quantity: 4,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+
+            expect(result).toEqual({
+                commuterExclusion: 1,
+                reimbursableDistance: 3,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            });
+        });
+    });
+
+    describe('getTransactionCommuterExclusionData', () => {
+        it('builds optimistic commuter fields from route distance in meters', () => {
+            const getCurrencySymbolMock = (currency: string): string | undefined => (currency === CONST.CURRENCY.USD ? '$' : undefined);
+            const toLocaleDigitMock = (digit: string) => digit;
+            const transaction = {
+                ...createRandomTransaction(1),
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: '222AAF6B93BCB',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        routeDistanceMeters: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                    },
+                },
+            } as Transaction;
+            const policy = {
+                ...FAKE_POLICY,
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            };
+
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction,
+                policy,
+                translate: translateLocal,
+                toLocaleDigit: toLocaleDigitMock,
+                getCurrencySymbol: getCurrencySymbolMock,
+            });
+
+            expect(result?.modifiedAmount).toBe(201);
+            expect(result?.modifiedMerchant).toBe('3.00 mi @ $0.67 / mi');
+            expect(result?.customUnit.quantity).toBe(4);
+            expect(result?.customUnit.commuterExclusion).toBe(1);
+            expect(result?.customUnit.reimbursableDistance).toBe(3);
         });
     });
 
     describe('getRate', () => {
         it('returns the rate from policyForMovingExpenses if an unreported transaction rate belongs to it', () => {
             const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'EE75E6DBC6FF8'}}};
-            const result = DistanceRequestUtils.getRate({policyForMovingExpenses: FAKE_POLICY, transaction, policy: undefined});
+            const result = DistanceRequestUtils.getRate({policyForMovingExpenses: FAKE_POLICY, transaction, policy: undefined, personalPolicyOutputCurrency: undefined});
             expect(result.customUnitRateID).toBe('EE75E6DBC6FF8');
         });
 
         it('does not return the default rate of the policy if the customUnitRateID of the tracked transaction does not exist', () => {
             const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'some-rate'}}};
-            const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction});
+            const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction, personalPolicyOutputCurrency: undefined});
             expect(result.customUnitRateID).toBeUndefined();
+        });
+
+        describe('output currency resolution', () => {
+            // getRate resolves the currency as `policy.outputCurrency ?? personalPolicyOutputCurrency ?? personal policy ?? USD`.
+            // Every caller that threads personalPolicyOutputCurrency relies on this precedence, and it's what lets the
+            // getPersonalPolicy() fallback be removed later: a caller that passes the currency must get the same result.
+            // A non-P2P rate ID that doesn't resolve to any policy rate + `isMovingTransactionFromTrackExpense` forces the
+            // mileage rate to be undefined, so the returned `currency` falls through to the resolved policy currency.
+            const unresolvedRateTransaction = {
+                ...createRandomTransaction(1),
+                comment: {customUnit: {customUnitRateID: 'nonexistent-rate-id'}},
+            } as Transaction;
+
+            it('uses personalPolicyOutputCurrency when no policy currency is available', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: undefined,
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+                expect(result.currency).toBe('EUR');
+            });
+
+            it('prefers the policy outputCurrency over personalPolicyOutputCurrency', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: {...FAKE_POLICY, outputCurrency: 'GBP'},
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+                expect(result.currency).toBe('GBP');
+            });
+
+            it('falls back to USD when neither a policy currency nor personalPolicyOutputCurrency is provided', () => {
+                const result = DistanceRequestUtils.getRate({
+                    transaction: unresolvedRateTransaction,
+                    policy: undefined,
+                    isMovingTransactionFromTrackExpense: true,
+                    personalPolicyOutputCurrency: undefined,
+                });
+                expect(result.currency).toBe(CONST.CURRENCY.USD);
+            });
+        });
+    });
+
+    describe('getRateForP2P', () => {
+        // These tests run with the default P2P mileage rate unloaded (it's fetched asynchronously when a
+        // distance request starts), which is the case for flows that don't start a new distance request,
+        // such as editing an existing distance expense.
+        it('falls back to the existing transaction currency and unit when the default P2P rate is not loaded', () => {
+            // Given an existing P2P distance expense in GBP measured in kilometers, with its own saved rate
+            const transaction = {
+                ...createRandomTransaction(1),
+                currency: 'GBP',
+                comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, defaultP2PRate: 45}},
+            } as Transaction;
+
+            // When reading the P2P rate for that transaction's currency
+            const result = DistanceRequestUtils.getRateForP2P('GBP', transaction);
+
+            // Then it preserves the transaction's currency, unit, and saved rate instead of flipping to USD/miles
+            expect(result.currency).toBe('GBP');
+            expect(result.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(result.rate).toBe(45);
+        });
+
+        it('falls back to USD and miles for a brand-new request with no transaction', () => {
+            // Given a brand-new distance request that has no transaction yet
+            // When reading the P2P rate
+            const result = DistanceRequestUtils.getRateForP2P('GBP', undefined);
+
+            // Then it falls back to the hardcoded USD/miles default
+            expect(result.currency).toBe(CONST.CURRENCY.USD);
+            expect(result.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            expect(result.rate).toBe(67);
         });
     });
 
@@ -235,6 +609,43 @@ describe('DistanceRequestUtils', () => {
                 getCurrencySymbolMock,
                 true,
             );
+            expect(result).toBe('0.00 mi @ $0.67 / mi');
+        });
+
+        it('formats distance merchants with a currency amount', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                DistanceRequestUtils.convertToDistanceInMeters(3.49, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                67,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+                true,
+            );
+
+            expect(result).toBe('3.49 mi @ $0.67 / mi');
+        });
+
+        it('formats zero reimbursable commuter distance', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                DistanceRequestUtils.convertToDistanceInMeters(1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                67,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+                false,
+                {
+                    commuterExclusion: 1,
+                    reimbursableDistance: 0,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            );
+
             expect(result).toBe('0.00 mi @ $0.67 / mi');
         });
     });
@@ -275,6 +686,28 @@ describe('DistanceRequestUtils', () => {
         it('should return out-of-policy message for workspace expenses with invalid rate', () => {
             const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
             expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
+        });
+    });
+
+    describe('isRateEligibleForDate', () => {
+        const boundedRate = {
+            customUnitRateID: 'rate_1',
+            rate: 65,
+            unit: distanceUnit,
+            startDate: '2025-01-01',
+            endDate: '2025-12-31',
+        };
+
+        it('should treat a DB timestamp on the inclusive end date as eligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2025-12-31 10:00:00')).toBe(true);
+        });
+
+        it('should treat a DB timestamp on the inclusive start date as eligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2025-01-01 08:30:00')).toBe(true);
+        });
+
+        it('should treat a DB timestamp after the end date as ineligible', () => {
+            expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2026-01-01 00:00:00')).toBe(false);
         });
     });
 });
