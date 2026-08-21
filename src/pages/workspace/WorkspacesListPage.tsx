@@ -185,7 +185,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        tableRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+        tableRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false, viewPosition: 0.5});
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => clearDuplicateWorkspace(),
         });
