@@ -1634,6 +1634,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
         categoryName?: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: {
         policyID: string;

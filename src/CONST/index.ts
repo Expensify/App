@@ -484,6 +484,16 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
+    /** Expense fields a merchant rule can govern, and whose edit surfaces the "Create a rule" callout on the expense */
+    MERCHANT_RULE_SUGGESTION_FIELDS: {
+        CATEGORY: 'category',
+        TAG: 'tag',
+        TAX: 'tax',
+        DESCRIPTION: 'description',
+        BILLABLE: 'billable',
+        REIMBURSABLE: 'reimbursable',
+    },
+
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
     REQUEST_PREVIEW: {

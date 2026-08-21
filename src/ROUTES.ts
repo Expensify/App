@@ -3796,7 +3796,8 @@ const ROUTES = {
     },
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
-        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/merchant-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
+        getRoute: (policyID: string, categoryName?: string, backTo?: string) =>
+            getUrlWithBackToParam(`workspaces/${policyID}/rules/merchant-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const, backTo),
     },
     RULES_MERCHANT_IMPORT: {
         route: 'workspaces/:policyID/rules/merchant-rules/import',

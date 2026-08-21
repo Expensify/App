@@ -43,6 +43,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
@@ -62,6 +63,8 @@ type MerchantRulePageBaseProps = {
     ruleID?: string;
     /** Pre-scopes the category default when creating a rule (e.g. from the category details RHP). */
     initialCategoryName?: string;
+    /** Where to return after saving. Set when the rule is created outside workspace settings, e.g. from an expense. */
+    backTo?: Route;
     titleKey: TranslationPaths;
     testID: string;
 };
@@ -111,7 +114,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
     return translate('workspace.rules.merchantRules.confirmError');
 };
 
-function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, testID}: MerchantRulePageBaseProps) {
+function MerchantRulePageBase({policyID, ruleID, initialCategoryName, backTo, titleKey, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -307,7 +310,10 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
             return;
         }
         setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
-        if (!isEditing && isRulesRevampEnabled) {
+        if (backTo) {
+            // The rule was created from outside workspace settings (e.g. an expense), so return there instead of the Rules page
+            Navigation.goBack(backTo);
+        } else if (!isEditing && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
         } else {

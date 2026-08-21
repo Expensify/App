@@ -2,6 +2,7 @@ import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
+import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
 
@@ -108,6 +109,14 @@ function ReportFooter() {
         );
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+                {/* On narrow layouts the expense detail view renders this callout under its own header instead, per design */}
+                {!shouldUseNarrowLayout && !isComposerFullSize && (
+                    <MerchantRuleSuggestionBanner
+                        reportID={reportIDFromRoute}
+                        policyID={report.policyID}
+                        containerStyles={styles.mb2}
+                    />
+                )}
                 {shouldShowEnableNotificationsBanner ? (
                     <>
                         <EnableNotificationsBanner />

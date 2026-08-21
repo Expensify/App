@@ -3,6 +3,7 @@ import HighlightableMenuItemWithTopDescription from '@components/HighlightableMe
 import Icon from '@components/Icon';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
@@ -1156,7 +1157,7 @@ function MoneyRequestView({
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {wideRHPRouteKeys} = useWideRHPState();
     const route = useRoute();
     // The receipt is hidden only for the MoneyRequestView rendered inside a wide RHP, where the wide RHP's left
@@ -1173,6 +1174,14 @@ function MoneyRequestView({
         <View style={[styles.moneyRequestView]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
+                {/* On wide layouts this callout renders above the composer in the report footer instead, per design */}
+                {shouldUseNarrowLayout && !readonly && !isFromReviewDuplicates && !isFromMergeTransaction && (
+                    <MerchantRuleSuggestionBanner
+                        reportID={transactionThreadReport?.reportID ?? parentReport?.reportID}
+                        policyID={policyID}
+                        containerStyles={[styles.mh4, styles.mb3]}
+                    />
+                )}
                 {(!isInWideRHP || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
                     <MoneyRequestReceiptView
                         report={transactionThreadReport ?? parentReport}
