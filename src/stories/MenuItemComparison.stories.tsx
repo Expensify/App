@@ -37,6 +37,9 @@ import Onyx from 'react-native-onyx';
 const story: Meta<typeof MenuItem> = {
     title: 'Components/MenuItemComparison',
     component: MenuItem,
+    // Storybook awaits loaders before the first render, so the ID-driven avatar cases always see the seeded data,
+    // and the writes only happen while this story is open.
+    loaders: [seedStoryOnyxData],
 };
 
 const CARD_WIDTH = 360;
@@ -46,26 +49,29 @@ const STORY_ACCOUNT_ID = 90210;
 const STORY_REPORT_ID = 'menuItemComparisonStoryReport';
 const STORY_POLICY_ID = 'menuItemComparisonStoryPolicy';
 
-Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-    [STORY_ACCOUNT_ID]: {
-        accountID: STORY_ACCOUNT_ID,
-        displayName: 'Alex Reed',
-        login: 'alex@example.com',
-    },
-});
-
-Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${STORY_POLICY_ID}`, {
-    id: STORY_POLICY_ID,
-    name: 'Expensify Inc',
-});
-
-Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${STORY_REPORT_ID}`, {
-    reportID: STORY_REPORT_ID,
-    reportName: '#announce',
-    type: CONST.REPORT.TYPE.CHAT,
-    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-    policyID: STORY_POLICY_ID,
-});
+/** Seeds the personal details, policy and report the ID-driven avatar cases read from */
+async function seedStoryOnyxData() {
+    await Promise.all([
+        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [STORY_ACCOUNT_ID]: {
+                accountID: STORY_ACCOUNT_ID,
+                displayName: 'Alex Reed',
+                login: 'alex@example.com',
+            },
+        }),
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${STORY_POLICY_ID}`, {
+            id: STORY_POLICY_ID,
+            name: 'Expensify Inc',
+        }),
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${STORY_REPORT_ID}`, {
+            reportID: STORY_REPORT_ID,
+            reportName: '#announce',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: STORY_POLICY_ID,
+        }),
+    ]);
+}
 
 const STORY_TOOLTIP_DETAILS: DisplayNameWithTooltip[] = [{displayName: 'Alex Reed', accountID: STORY_ACCOUNT_ID, login: 'alex@example.com'}];
 
