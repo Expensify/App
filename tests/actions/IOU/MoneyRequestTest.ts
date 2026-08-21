@@ -1,5 +1,6 @@
-import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
+import {createTransaction, getMoneyRequestParticipantOptions, setMoneyRequestCommuterExclusionFields} from '@libs/actions/IOU/MoneyRequest';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -10,7 +11,7 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyTagLists, QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {SplitShares} from '@src/types/onyx/Transaction';
@@ -135,6 +136,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
             report: fakeReport,
@@ -203,6 +205,26 @@ describe('MoneyRequest', () => {
             const lastTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
             expect(lastTrackExpenseParams && 'shouldDeferForSearch' in lastTrackExpenseParams).toBeFalsy();
             expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeFalsy();
+        });
+
+        it('threads the conciergeChat report through to trackExpense and requestMoney', () => {
+            const conciergeChat = {reportID: 'concierge-create-transaction-1'};
+
+            createTransaction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                conciergeChat,
+                iouType: CONST.IOU.TYPE.TRACK,
+            });
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+
+            createTransaction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                conciergeChat,
+                iouType: CONST.IOU.TYPE.SEND,
+            });
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -768,6 +790,7 @@ describe('MoneyRequest', () => {
             amountOwed: 0,
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
+            conciergeChat: undefined,
             action: CONST.IOU.ACTION.CREATE,
             currentUserLocalCurrency: undefined,
             policyTagList: {},
@@ -848,7 +871,24 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
+            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1, getCurrencyDecimalsLocal);
+        });
+
+        it('threads the conciergeChat report through to trackExpense when skipping confirmation', () => {
+            const conciergeChat = {reportID: 'concierge-distance-1'};
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                conciergeChat,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
@@ -1295,7 +1335,17 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        transactionID: baseParams.transactionID,
+                        reportID: baseParams.reportID,
+                    }),
+                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID),
+                ),
+            );
         });
 
         it('should pass amountOwed through to shouldUseDefaultExpensePolicy and navigate to participants page when no default policy', () => {
@@ -1310,7 +1360,17 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        transactionID: baseParams.transactionID,
+                        reportID: baseParams.reportID,
+                    }),
+                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID),
+                ),
+            );
         });
 
         it('should pass ownerBillingGracePeriodEnd through to shouldUseDefaultExpensePolicy', () => {
@@ -1327,7 +1387,17 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        transactionID: baseParams.transactionID,
+                        reportID: baseParams.reportID,
+                    }),
+                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID),
+                ),
+            );
         });
 
         it('should pass currentUserAccountID to shouldUseDefaultExpensePolicy so the billing restriction uses the explicit account, not the deprecated session value', () => {
@@ -1515,9 +1585,116 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, baseParams.reportID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: baseParams.transactionID,
+                        reportID: baseParams.reportID,
+                    }),
+                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, baseParams.reportID),
+                ),
+            );
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('setMoneyRequestCommuterExclusionFields', () => {
+        const COMMUTER_TRANSACTION_ID = 'commuter-transaction-1';
+        const COMMUTER_RATE_ID = 'commuterRate1';
+        const COMMUTER_CUSTOM_UNIT_ID = 'commuterCustomUnit1';
+        const ROUTE_DISTANCE_METERS = DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+        const commuterPolicy = {
+            ...createRandomPolicy(9, CONST.POLICY.TYPE.TEAM),
+            outputCurrency: CONST.CURRENCY.USD,
+            customUnits: {
+                [COMMUTER_CUSTOM_UNIT_ID]: {
+                    customUnitID: COMMUTER_CUSTOM_UNIT_ID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        [COMMUTER_RATE_ID]: {
+                            customUnitRateID: COMMUTER_RATE_ID,
+                            name: 'Default Rate',
+                            rate: 67,
+                            currency: CONST.CURRENCY.USD,
+                            enabled: true,
+                            attributes: {},
+                            subRates: [],
+                        },
+                    },
+                },
+            },
+            commuterExclusions: {
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 1,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+        } as Policy;
+        const commuterTransaction = {
+            ...createRandomTransaction(9),
+            transactionID: COMMUTER_TRANSACTION_ID,
+            currency: CONST.CURRENCY.USD,
+            comment: {
+                customUnit: {
+                    customUnitRateID: COMMUTER_RATE_ID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    routeDistanceMeters: ROUTE_DISTANCE_METERS,
+                },
+            },
+        };
+        const commuterFieldParams = {
+            transactionID: COMMUTER_TRANSACTION_ID,
+            policy: commuterPolicy,
+            customUnitRateID: COMMUTER_RATE_ID,
+            routeDistanceMeters: ROUTE_DISTANCE_METERS,
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            translate: translateLocal,
+            toLocaleDigit: (digit: string) => digit,
+            getCurrencySymbol,
+        };
+
+        afterEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${COMMUTER_TRANSACTION_ID}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('applies the workspace commuter exclusion to a workspace expense', async () => {
+            setMoneyRequestCommuterExclusionFields({...commuterFieldParams, transaction: commuterTransaction, isPolicyExpenseChat: true});
+            await waitForBatchedUpdates();
+
+            // The 1 mile exclusion leaves 3 of the 4 route miles reimbursable, and the amount follows the reimbursable distance
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${COMMUTER_TRANSACTION_ID}`);
+            expect(draft?.comment?.customUnit?.commuterExclusion).toBe(1);
+            expect(draft?.comment?.customUnit?.reimbursableDistance).toBe(3);
+            expect(draft?.modifiedAmount).toBe(201);
+        });
+
+        it('clears commuter fields for a self-DM expense created on a workspace rate', async () => {
+            // A workspace participant was selected first, so the draft already carries the exclusion
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${COMMUTER_TRANSACTION_ID}`, {
+                modifiedAmount: 201,
+                modifiedMerchant: '3.00 mi @ $0.67 / mi',
+                comment: {customUnit: {commuterExclusion: 1, reimbursableDistance: 3}},
+            });
+            await waitForBatchedUpdates();
+
+            const transactionWithExclusion = {
+                ...commuterTransaction,
+                comment: {customUnit: {...commuterTransaction.comment.customUnit, commuterExclusion: 1, reimbursableDistance: 3}},
+            };
+            setMoneyRequestCommuterExclusionFields({...commuterFieldParams, transaction: transactionWithExclusion, isPolicyExpenseChat: false});
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${COMMUTER_TRANSACTION_ID}`);
+            expect(draft?.comment?.customUnit?.commuterExclusion).toBeUndefined();
+            expect(draft?.comment?.customUnit?.reimbursableDistance).toBeUndefined();
+            expect(draft?.comment?.customUnit?.commuterExclusionMethod).toBeUndefined();
+            expect(draft?.modifiedAmount).toBeUndefined();
+            expect(draft?.modifiedMerchant).toBeUndefined();
         });
     });
 
@@ -1654,10 +1831,10 @@ describe('MoneyRequest', () => {
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
-        it('should return false when isPolicyExpenseChatEnabled is false', () => {
+        it('should return false when policy is not a group policy', () => {
             const policy = {
                 ...fakePolicy,
-                type: CONST.POLICY.TYPE.TEAM,
+                type: CONST.POLICY.TYPE.PERSONAL,
                 isPolicyExpenseChatEnabled: false,
             };
 

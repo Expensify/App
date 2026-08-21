@@ -23,10 +23,15 @@ function FieldRequirementsDirectionToggle({direction, disabled = false, onSelect
     const isRequireSelected = direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
     const isWaiveDirectionSelected = direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
 
+    // Pressing the selected direction clears it, which drops the override so the policy-level requirement applies.
+    const selectDirection = (isSelected: boolean, nextDirection: FieldRequirementsDirection) => {
+        onSelect(isSelected ? undefined : nextDirection);
+    };
+
     return (
-        <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
+        <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal, styles.alignSelfStart]}>
             <Button
-                onPress={() => onSelect(isRequireSelected ? undefined : CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE)}
+                onPress={() => selectDirection(isRequireSelected, CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE)}
                 isDisabled={disabled}
                 size={CONST.BUTTON_SIZE.SMALL}
                 style={styles.ph0}
@@ -39,7 +44,7 @@ function FieldRequirementsDirectionToggle({direction, disabled = false, onSelect
                 </Button.Text>
             </Button>
             <Button
-                onPress={() => onSelect(isWaiveDirectionSelected ? undefined : CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE)}
+                onPress={() => selectDirection(isWaiveDirectionSelected, CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE)}
                 isDisabled={disabled}
                 size={CONST.BUTTON_SIZE.SMALL}
                 style={styles.ph0}
