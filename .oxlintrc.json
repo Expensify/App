@@ -449,7 +449,6 @@
         "rulesdir/no-thenable-actions-in-views": "error",
         "rulesdir/no-unstable-hook-defaults": "error",
         "rulesdir/no-use-state-initializer-functions": "error",
-        "rulesdir/no-useOnyx-dependencies-arg": "error",
         "rulesdir/no-useless-compose": "error",
         "rulesdir/prefer-actions-set-data": "error",
         "rulesdir/prefer-early-return": "error",
@@ -465,6 +464,7 @@
         "rulesdir/prefer-type-fest": "error",
         "rulesdir/require-a11y-disable-justification": "error",
         "rulesdir/require-live-region-for-status-updates": "error",
+        "rulesdir/require-locale-for-localized-date-format": "error",
         "rulesdir/use-double-negation-instead-of-boolean": "error",
         // The four rulesdir rules below are listed as OFF on purpose rather than left out: a rule
         // missing from this file is indistinguishable from an oversight. Each is still wanted — the
@@ -2399,6 +2399,17 @@
             "files": ["**/*.d.ts", "**/*.d.tsx"],
             "rules": {
                 "core/no-unreachable-loop": "off"
+            }
+        },
+        {
+            // Mirrors config/eslint/eslint.config.mjs: bun-types declares
+            // `expect(...).resolves` / `.rejects` as returning `void` even though Bun's own docs
+            // recommend (and its runtime requires) awaiting them, so the rule reports every correct
+            // use of that pattern here. See https://github.com/oven-sh/bun/pull/23425. Without this
+            // block oxlint reports 30 findings across 7 files that ESLint never shows.
+            "files": ["tests/tooling/**/*.ts"],
+            "rules": {
+                "typescript/await-thenable": "off"
             }
         }
     ]
