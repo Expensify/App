@@ -510,6 +510,7 @@ const CONST = {
 
     EXPORT_LABELS: {
         NETSUITE: 'NetSuite',
+        INTUIT_ENTERPRISE_SUITE: 'Intuit Enterprise Suite',
         QBO: 'QuickBooks Online',
         QBD: 'QuickBooks Desktop',
         XERO: 'Xero',
@@ -4418,6 +4419,7 @@ const CONST = {
             ACCOUNTING_INTEGRATION_ALIASES: {
                 INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
             },
+            INTUIT_ENTERPRISE_SUITE_SCOPE: 'app-foundations.custom-dimensions.read',
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -4617,6 +4619,7 @@ const CONST = {
     },
 
     HELP_DOC_LINKS: {
+        'Intuit Enterprise Suite': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Desktop': '',
         quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',

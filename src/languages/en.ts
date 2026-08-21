@@ -15,6 +15,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
+import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 type StateValue = {
@@ -4717,7 +4718,8 @@ const translations = {
             subscription: 'Subscription',
             markAsEntered: 'Mark as manually entered',
             markAsExported: 'Mark as exported',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}: ExportIntegrationSelectedParams) =>
+                `Export to ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
@@ -7517,24 +7519,24 @@ const translations = {
         },
         exportAgainModal: {
             title: 'Careful!',
-            description: (reportName: string, connectionName: ConnectionName) =>
-                `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Are you sure you want to export them again?\n\n${reportName}`,
+            description: ({reportName, connectionName, connectionNameFriendly}: ExportAgainModalDescriptionParams) =>
+                `The following reports have already been exported to ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Are you sure you want to export them again?\n\n${reportName}`,
             confirmText: 'Yes, export again',
             cancelText: 'Cancel',
         },
         exportDifferentCompaniesModal: {
             title: 'Careful!',
-            description: (connectionName: ConnectionName) =>
-                `The selected reports are connected to different ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} companies, so they can't be exported together. Select reports connected to the same company and try again.`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `The selected reports are connected to different ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} companies, so they can't be exported together. Select reports connected to the same company and try again.`,
             confirmText: 'Got it',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `Export ${exportableCount}/${selectedCount} reports to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `Export ${exportableCount}/${selectedCount} reports to ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Only reports connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} will be exported.`);
+                    reasons.push(`Only reports connected to ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} will be exported.`);
                 }
                 if (hasIneligibleReports) {
                     reasons.push(`Only reports that are eligible to export will be exported.`);

@@ -103,6 +103,7 @@ import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} fro
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
 
+import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {unholdRequest} from './actions/IOU/Hold';
 import {
@@ -9282,9 +9283,13 @@ function buildOptimisticTaskReport(
  *
  * @param integration - The connectionName of the integration
  * @param markedManually - Whether the integration was marked as manually exported
+ * @param exportLabel - The canonical label stored in the export action
  */
-function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false): OptimisticExportIntegrationAction {
-    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];
+function buildOptimisticExportIntegrationAction(
+    integration: ConnectionName,
+    markedManually = false,
+    exportLabel: string = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
+): OptimisticExportIntegrationAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
@@ -9303,7 +9308,7 @@ function buildOptimisticExportIntegrationAction(integration: ConnectionName, mar
         created: DateUtils.getDBTime(),
         shouldShow: true,
         originalMessage: {
-            label,
+            label: exportLabel,
             lastModified: DateUtils.getDBTime(),
             markedManually,
             inProgress: true,
@@ -13178,13 +13183,22 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
 function getIntegrationIcon(
     connectionName?: ConnectionName,
     expensifyIcons?:
-        | Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'GustoSquare', IconAsset>
+        | Partial<
+              Record<
+                  'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'GustoSquare' | 'IntuitSquare',
+                  IconAsset
+              >
+          >
         | undefined,
+    policy?: OnyxEntry<Policy>,
 ) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         return expensifyIcons?.XeroSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        if (isIntuitEnterpriseSuiteConnection(policy)) {
+            return expensifyIcons?.IntuitSquare;
+        }
         return expensifyIcons?.QBOSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {

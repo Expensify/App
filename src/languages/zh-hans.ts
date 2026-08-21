@@ -4430,7 +4430,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             subscription: '订阅',
             markAsEntered: '标记为手动输入',
             markAsExported: '标记为已导出',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `导出到 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: '我们再仔细检查一下，确保一切都正确。',
             lineItemLevel: '单行项目级别',
             reportLevel: '报表级别',
@@ -7037,7 +7037,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         },
         exportAgainModal: {
             title: '小心！',
-            description: (reportName: string, connectionName: ConnectionName) => `以下报表已导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}。确定要再次导出吗？
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `以下报表已导出到 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}。确定要再次导出吗？
 
 ${reportName}`,
             confirmText: '是，再次导出',
@@ -7045,20 +7049,20 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: '小心！',
-            description: (connectionName: ConnectionName) =>
-                `所选报表连接到不同的 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 公司，因此无法一起导出。请选择连接到同一公司的报表，然后重试。`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `所选报表关联到不同的 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 公司，因此无法一起导出。请选择关联到同一公司的报表后重试。`,
             confirmText: '知道了',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `将 ${exportableCount}/${selectedCount} 份报表导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}？`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `将 ${exportableCount}/${selectedCount} 份报表导出到 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 吗？`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`只有连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 的报表会被导出。`);
+                    reasons.push(`只有与 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 关联的报表会被导出。`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`只有符合导出条件的报表会被导出。`);
+                    reasons.push(`只有符合导出条件的报表才会被导出。`);
                 }
                 return `${reasons.join('\n\n')}\n\n将导出以下报表：`;
             },
