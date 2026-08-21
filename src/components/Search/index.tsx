@@ -1028,9 +1028,8 @@ function Search({
                     {...(!isInvalidQuery && {
                         buttonTranslationKey: 'common.tryAgain',
                         onButtonPress: () => {
-                            // A failed load-more clears the whole snapshot (data: null), so retrying with the
-                            // paginated offset would refetch only the later page into an empty snapshot and drop
-                            // the initial results. Reset pagination to the first page before retrying.
+                            // A response replaces the snapshot's results rather than appending to them, so retrying at
+                            // the paginated offset would leave only that later page behind. Retry from the first page.
                             setOffset(0);
                             handleSearch({
                                 queryJSON,

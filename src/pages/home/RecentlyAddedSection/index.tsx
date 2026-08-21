@@ -112,7 +112,7 @@ function RecentlyAddedSection() {
         <WidgetContainer
             title={translate('homePage.recentlyAddedSection.title')}
             titleRightContent={overflowMenu}
-            containerStyles={hasExpenses ? listBottomPadding : undefined}
+            containerStyles={listBottomPadding}
         >
             {hasExpenses ? (
                 transactions.map((expense, index) => (
