@@ -386,11 +386,9 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            // Deleting the last split child from report details redirects into the edit flow, whose back path is this route.
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
         // `splitReportID` is deliberately not named `reportID` so it cannot inherit the base path's report:
-        // the split is always scoped to the transaction's report, which may differ from the screen underneath.
         getRoute: (splitReportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string) => {
             if (!splitReportID || !originalTransactionID) {
                 Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE route`);

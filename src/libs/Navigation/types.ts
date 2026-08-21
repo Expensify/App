@@ -2293,13 +2293,11 @@ type MoneyRequestNavigatorParamList = {
         splitExpenseTransactionID?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH]: {
-        /** Deliberately not named `reportID` so it cannot inherit the base path's report. */
         splitReportID: string;
         transactionID: string;
         splitExpenseTransactionID?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
-        /** Inherited from the split overview screen underneath. */
         splitReportID: string;
         transactionID: string;
     };
