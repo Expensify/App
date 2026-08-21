@@ -70,13 +70,8 @@ type NavigateToCreatedExpenseParams = {
 };
 
 /**
- * Navigates to a just-created expense, choosing the destination from the surface the user
- * is currently looking at (they may have switched tabs while the growl was up)
- * - Spend tab: the transaction thread RHP within Spend (report shown underneath via the wide RHP)
- * - Inbox tab, narrow layout: the transaction thread as a full report view
- * - Inbox tab, wide layout, with an expense report: the expense report - a multi-transaction report opens super
- *   wide with the specific thread RHP stacked on top; a single-transaction report collapses to the thread itself
- * - Inbox tab, wide layout, tracked/unreported expense (no expense report): the transaction thread RHP directly
+ * Opens a just-created expense when "View" is pressed on the "Expense added" growl. The user may have
+ * switched tabs while the growl was up, so the destination follows wherever they are now.
  */
 function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: NavigateToCreatedExpenseParams) {
     const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
@@ -100,9 +95,8 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: 
     if (iouReportID) {
         Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}), {forceReplace});
 
-        // A multi-transaction report opens super wide (see SearchMoneyRequestReportPage's `shouldShowSuperWideRHP`),
-        // so stack the specific thread RHP on top of it. A single-transaction report collapses to the thread
-        // itself, so the expense report navigation above already lands on it.
+        // A multi-transaction report opens super wide RHP, so stack the thread RHP on top of it. A single-transaction
+        // report collapses to the thread itself, so the navigation above already landed on it.
         const hasMultipleReportTransactions =
             getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
         if (hasMultipleReportTransactions) {
@@ -117,9 +111,8 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: 
         return;
     }
 
-    // Tracked/unreported expense (self-DM): there's no expense report, so open the transaction thread as a full
-    // report - the same way tapping the expense in its self-DM chat does (see ChatTransactionPreview), rather
-    // than the Search-tab RHP.
+    // A tracked expense has no expense report, so open the thread as a full report - the same way tapping
+    // the expense in its self-DM chat does.
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo), {forceReplace});
 }
 

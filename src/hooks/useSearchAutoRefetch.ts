@@ -48,9 +48,8 @@ type UseSearchAutoRefetch = {
 };
 
 /**
- * Hook used to trigger a search when a new transaction or report action is added, so the Search snapshot
- * reflects freshly-created entries. Also returns the newly-added transactions, which the grouped views use to
- * refetch each expanded group's child snapshot.
+ * Triggers a search when a transaction or report action is added so the snapshot reflects it.
+ * Returns the newly-added transactions, which the grouped views use to refetch each expanded group's child snapshot.
  */
 function useSearchAutoRefetch({
     searchResults,

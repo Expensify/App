@@ -65,11 +65,6 @@ function ExpenseAddedGrowl() {
     );
 }
 
-/**
- * Reads the candidate transaction and its report/actions and renders the growl. Split out from
- * `ExpenseAddedGrowl` so these Onyx connections only exist while there is a pending signal or a visible growl -
- * the outer component is mounted for the whole app lifetime and would otherwise hold them permanently while idle.
- */
 function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: ExpenseAddedGrowlContentProps) {
     const nonceRef = useRef(0);
 
@@ -81,17 +76,16 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const reportID = transaction?.reportID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    // A tracked/unreported expense's transaction.reportID is UNREPORTED_REPORT_ID, and its IOU/track action lives
-    // on the self-DM report - not on transaction.reportID. Read actions from the report that actually hosts the
-    // action so "View" resolves the real transaction thread (the action's childReportID) instead of fabricating
-    // a mismatched optimistic one.
+
+    // A tracked expense's IOU action lives on the self-DM report, not on transaction.reportID, so read actions
+    // from the report that actually hosts it so "View" can resolve the real transaction thread.
     const isUnreportedExpense = !reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const selfDMReportID = isUnreportedExpense ? findSelfDMReportID() : undefined;
     const hostReportID = isUnreportedExpense ? selfDMReportID : reportID;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${hostReportID}`);
-    // Only IOU/expense/invoice reports have the expense-report RHP that "View" opens. A tracked/unreported
-    // (self-DM) expense lives in a chat, so it has no such report - leaving iouReportID undefined makes
-    // navigateToCreatedExpense open the transaction thread directly instead of a super-wide report RHP it lacks.
+
+    // A tracked expense lives in a chat, not an expense report. Leaving iouReportID undefined tells
+    // navigateToCreatedExpense to open the transaction thread directly instead of an expense report RHP.
     const iouReport = isMoneyRequestReport(report) || isInvoiceReport(report) ? report : undefined;
     const iouReportID = iouReport?.reportID;
 
@@ -100,18 +94,12 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
             return;
         }
         const pendingTransactionIDs = Object.keys(signal ?? {});
+
         // The last key is the last-created transaction: IDs are large (rand64), so they exceed the array-index
         // range and JS preserves insertion order rather than sorting them numerically ascending.
         const latestTransactionID = pendingTransactionIDs.at(-1);
         const dataType = latestTransactionID ? signal?.[latestTransactionID] : undefined;
-        if (!latestTransactionID || !dataType) {
-            return;
-        }
-        // Wait for the created expense's optimistic data to land before acting. The create's API.write is
-        // usually deferred (the deferred-for-search pattern) until Search's onLayout flushes it, and the whole
-        // optimistic dataset (transaction + IOU report/action + thread) is applied atomically - so the
-        // transaction appearing in Onyx means "View" can resolve AND its report is known for the check below.
-        if (!transaction) {
+        if (!latestTransactionID || !dataType || !transaction) {
             return;
         }
 
@@ -119,10 +107,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
         // collapse into a single growl for the newest expense.
         mergeExpenseAddedGrowlTransactionIDs(Object.fromEntries(pendingTransactionIDs.map((id) => [id, null])));
 
-        // Suppress the growl when the user is already viewing the expense's money-request report (its
-        // transaction list), where the new row is highlighted so a growl would be redundant. A tracked/self-DM
-        // expense has transaction.reportID === UNREPORTED_REPORT_ID (never a report you view), so this never
-        // matches for those and the growl always shows - matching "no transaction list to be in".
+        // Suppress the growl when the user is already viewing the expense's money-request report
         if (Navigation.getTopmostReportId() === transaction.reportID) {
             return;
         }
@@ -136,9 +121,8 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
 
     const isInvoice = active.dataType === CONST.SEARCH.DATA_TYPES.INVOICE;
 
-    // Materialize the transaction thread and navigate to it at press time (not show time): the thread is
-    // only built if the user actually taps "View", against the freshest Onyx data, matching how every other
-    // thread navigation entry point builds the thread at navigation time.
+    // Build the thread on press rather than when the growl shows, so it is only created if the user taps
+    // "View" and is built against the freshest Onyx data.
     const navigateToExpense = () => {
         const iouAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), active.transactionID);
         let threadReportID = transaction?.transactionThreadReportID ?? iouAction?.childReportID;

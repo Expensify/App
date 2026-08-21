@@ -466,8 +466,8 @@ function SubmitDetailsPage({
                 });
             }
 
-            // requestMoney/trackExpense only signal the success growl for the global-create flow; the share extension
-            // isn't flagged as such, so signal it directly here with the created transaction's ID.
+            // requestMoney/trackExpense only signal the growl for the global-create flow and the share
+            // extension isn't flagged as such, so signal it here instead.
             signalExpenseAddedGrowl(optimisticTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
         };
 
