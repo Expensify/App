@@ -173,7 +173,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     ) : undefined;
     const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
     const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
-    const bankBadgeIcon = !isWalletConnectionStatusBetaEnabled && (isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments)) ? expensifyIcons.DotIndicator : undefined;
     const canInteractWithBankAccountRow = canWritePayments && !isOffline && !isBankAccountPendingDelete;
     // Only the reimburser can send the unlock request, so a locked account offers no action to anyone else rather than
     // an Unlock button that would instead start connecting a different bank account.
@@ -228,14 +227,13 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         iconStyles: bankIcon.iconStyles,
         titleStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
         descriptionTextStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
-        disabled: isOffline || !canWritePayments || isBankAccountPendingDelete,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT,
-        shouldShowRightIcon: canWritePayments && !isBankAccountPendingDelete,
-        interactive: canWritePayments && !isBankAccountPendingDelete,
         shouldGreyOutWhenDisabled: !policy?.pendingFields?.reimbursementChoice,
         ...(isWalletConnectionStatusBetaEnabled
             ? {
-                  badgeIcon: bankBadgeIcon,
+                  disabled: isOffline || !canWritePayments || isBankAccountPendingDelete,
+                  shouldShowRightIcon: canWritePayments && !isBankAccountPendingDelete,
+                  interactive: canWritePayments && !isBankAccountPendingDelete,
                   descriptionAddon: bankConnectionStatusAddon,
                   shouldRemoveBackground: true,
                   shouldRemoveHoverBackground: true,
@@ -243,8 +241,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                   brickRoadIndicator: bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator,
               }
             : {
-                  badgeText: getBadgeText(accountData?.state),
+                  disabled: isOffline || !canWritePayments,
+                  shouldShowRightIcon: canWritePayments,
+                  interactive: canWritePayments,
                   badgeIcon: isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined,
+                  badgeText: getBadgeText(accountData?.state),
                   isBadgeSuccess: isAccountInSetupState,
                   isBadgeError: isBusinessBankAccountLocked && canWritePayments,
                   wrapperStyle: [styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3],
