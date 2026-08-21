@@ -47,9 +47,11 @@ function SearchEditMultipleTagPage() {
     const headerTitle = tagListName || translate('common.tag');
 
     const saveTag = (item: Partial<OptionData>) => {
+        const selectedTagName = item.searchText ?? '';
+
         const updatedTag = getUpdatedTransactionTag({
             transactionTag,
-            selectedTagName: item.searchText ?? '',
+            selectedTagName,
             currentTag,
             tagListIndex,
             policyTags,
@@ -57,8 +59,26 @@ function SearchEditMultipleTagPage() {
             hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
         });
 
+        // Record the per-level edit intent. For dependent tags, editing this level invalidates every
+        // deeper (child) level, so drop any child intents previously recorded in the same draft. The
+        // draft is merged, so without this a stale child edit would be replayed after this parent change
+        // at apply time and re-add a child that no longer belongs under the newly selected parent, even
+        // though the displayed updatedTag above already cleared it. Independent tags keep every level.
+        const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: selectedTagName};
+        if (hasDependentTags) {
+            for (const recordedIndex of Object.keys(draftTransaction?.bulkEditTagChanges ?? {})) {
+                if (Number(recordedIndex) <= tagListIndex) {
+                    continue;
+                }
+                bulkEditTagChanges[recordedIndex] = null;
+            }
+        }
+
         updateBulkEditDraftTransaction({
+            // Keep the flattened tag for the summary display, and record the per-level edit intent so
+            // apply time can merge it into each transaction's own tag instead of overwriting all levels.
             tag: updatedTag,
+            bulkEditTagChanges,
         });
         Navigation.goBack();
     };

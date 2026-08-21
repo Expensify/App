@@ -1095,6 +1095,185 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
         });
 
+        it('merges a bulk parent-tag edit into each transaction, preserving their own untouched child levels (independent tags)', () => {
+            const firstTransactionID = 'transaction-independent-1';
+            const secondTransactionID = 'transaction-independent-2';
+            const iouReportID = 'iou-independent-1';
+            const policy = {
+                ...createRandomPolicy(70, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(70, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            // Both expenses share the parent (CostCenterA) but differ on the child levels.
+            const firstTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: firstTransactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-independent-1',
+                tag: 'CostCenterA:IndicationX:PhaseP',
+            };
+            const secondTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: secondTransactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-independent-2',
+                tag: 'CostCenterA:IndicationY:PhaseQ',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`]: firstTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`]: secondTransaction,
+            };
+
+            // Independent multi-level tags: no parentTagsFilter on any tag.
+            const policyTagList = {
+                CostCenter: {
+                    name: 'CostCenter',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {CostCenterA: {name: 'CostCenterA', enabled: true}, CostCenterB: {name: 'CostCenterB', enabled: true}},
+                },
+                Indication: {
+                    name: 'Indication',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {IndicationX: {name: 'IndicationX', enabled: true}, IndicationY: {name: 'IndicationY', enabled: true}},
+                },
+                Phase: {name: 'Phase', orderWeight: 2, required: false, tags: {PhaseP: {name: 'PhaseP', enabled: true}, PhaseQ: {name: 'PhaseQ', enabled: true}}},
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [firstTransactionID, secondTransactionID],
+                // The bulk-edit page pre-computes a common-prefix display string (parent only)...
+                changes: {tag: 'CostCenterB'},
+                // ...but apply time uses the resolved per-level edit intent (index 0 maps to CostCenterB) to
+                // merge into each expense's own tag. Build the index-keyed map programmatically because
+                // numeric-string object-literal keys trip the naming-convention lint rule.
+                bulkEditTagChanges: Object.fromEntries([[0, 'CostCenterB']]),
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Each transaction keeps its OWN Indication/Phase. Only the shared parent level changed.
+            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterB:IndicationX:PhaseP');
+            expect(getBulkEditUpdates(writeSpy, 1).tag).toBe('CostCenterB:IndicationY:PhaseQ');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('preserves parent levels but clears dependent child levels below the edited one when bulk-editing a middle level (dependent tags)', () => {
+            const transactionID = 'transaction-dep-1';
+            const iouReportID = 'iou-dep-1';
+            const policy = {
+                ...createRandomPolicy(71, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(71, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-dep-1',
+                tag: 'CostCenterA:IndicationX:PhaseP',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // Dependent multi-level tags: child tags declare a parentTagsFilter. Phase has 2 enabled
+            // tags so no single-tag auto-select fires after clearing.
+            const policyTagList = {
+                CostCenter: {name: 'CostCenter', orderWeight: 0, required: false, tags: {CostCenterA: {name: 'CostCenterA', enabled: true}}},
+                Indication: {
+                    name: 'Indication',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        IndicationX: {name: 'IndicationX', enabled: true, parentTagsFilter: 'CostCenterA'},
+                        IndicationZ: {name: 'IndicationZ', enabled: true, parentTagsFilter: 'CostCenterA'},
+                    },
+                },
+                Phase: {
+                    name: 'Phase',
+                    orderWeight: 2,
+                    required: false,
+                    tags: {PhaseP: {name: 'PhaseP', enabled: true, parentTagsFilter: 'IndicationX'}, PhaseR: {name: 'PhaseR', enabled: true, parentTagsFilter: 'IndicationZ'}},
+                },
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {tag: 'CostCenterA:IndicationZ'},
+                // Edit only the middle (Indication, index 1) level. Built programmatically because
+                // numeric-string object-literal keys trip the naming-convention lint rule.
+                bulkEditTagChanges: Object.fromEntries([[1, 'IndicationZ']]),
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Parent (CostCenter) is preserved. The edited Indication level is updated. The dependent Phase level is cleared.
+            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterA:IndicationZ');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
         it('skips category, tag, tax, and billable changes for plain IOU transactions', async () => {
             const transactionID = 'transaction-iou-1';
             const transactionThreadReportID = 'thread-iou-1';
