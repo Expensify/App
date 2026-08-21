@@ -1,12 +1,12 @@
 import {getButtonRole} from '@components/Button/utils';
-import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {BaseListItemProps, ListItem} from '@components/SelectionList/ListItem/types';
+import {ListItemContext, ListItemHoverContext} from '@components/SelectionList/ListItemContext';
 import getListItemAccessibilityProps from '@components/SelectionList/utils/getListItemAccessibilityProps';
 import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
 
 import useHover from '@hooks/useHover';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -17,59 +17,83 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useRef} from 'react';
-import {View} from 'react-native';
+import type {ReactNode} from 'react';
+import type {View} from 'react-native';
 
-import type {BaseListItemProps, ListItem} from './types';
+import React, {useRef} from 'react';
+
+type ListItemPressableProps<TItem extends ListItem> = Pick<
+    BaseListItemProps<TItem>,
+    | 'item'
+    | 'pressableStyle'
+    | 'pressableWrapperStyle'
+    | 'isDisabled'
+    | 'shouldPreventEnterKeySubmit'
+    | 'canSelectMultiple'
+    | 'onSelectRow'
+    | 'onDismissError'
+    | 'errorRowStyles'
+    | 'isFocused'
+    | 'isFocusVisible'
+    | 'shouldSyncFocus'
+    | 'onFocus'
+    | 'hoverStyle'
+    | 'onLongPressRow'
+    | 'shouldHighlightSelectedItem'
+    | 'shouldDisableHoverStyle'
+    | 'accessible'
+    | 'accessibilityLabel'
+    | 'accessibilityRole'
+    | 'shouldUseOptionRole'
+    | 'isSelected'
+> & {
+    /** Whether content inside the row should show tooltips (provided to children via ListItemContext) */
+    shouldShowTooltip: boolean;
+
+    /** Row content */
+    children?: ReactNode;
+};
 
 /**
- * The foundational pressable row that all list items build on. Handles press/hover/focus states,
- * error indicators, and accessibility roles. Use SelectableListItem when a selection button
- * (checkbox or radio) is needed.
+ * The interaction core every list item row builds on: offline/error feedback, press/hover/focus states,
+ * keyboard activation, and accessibility roles. Carries zero layout opinions - callers own the row
+ * structure through children.
  */
-function BaseListItem<TItem extends ListItem>({
+function ListItemPressable<TItem extends ListItem>({
     item,
     pressableStyle,
-    wrapperStyle,
     pressableWrapperStyle,
-    containerStyle,
     isDisabled = false,
     shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
-    rightHandSideComponent,
-    keyForList,
-    errors,
     errorRowStyles,
-    pendingAction,
-    FooterComponent,
     children,
     isFocused,
     isFocusVisible = isFocused,
     shouldSyncFocus = true,
-    shouldDisplayRBR = true,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
     shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
-    shouldShowRightCaret = false,
     accessible,
     accessibilityLabel,
     accessibilityRole = getButtonRole(true),
     shouldUseOptionRole,
     isSelected,
-    forwardedFSClass,
-    testID,
-}: BaseListItemProps<TItem>) {
+    shouldShowTooltip,
+}: ListItemPressableProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {hovered, bind} = useHover();
+    const {
+        hovered,
+        bind: {onMouseEnter, onMouseLeave},
+    } = useHover();
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
@@ -79,7 +103,7 @@ function BaseListItem<TItem extends ListItem>({
     // When the list-level keyboard shortcut is disabled (disableKeyboardShortcuts), we handle
     // Enter activation here at the item level so each row can still be activated individually
     // without interfering with other focusable controls (e.g. footer inputs) on the same screen.
-    const handleKeyDown = (event: React.KeyboardEvent) => {
+    const selectRowOnEnterKey = (event: React.KeyboardEvent) => {
         if (
             shouldPreventEnterKeySubmit ||
             accessible === false ||
@@ -96,26 +120,13 @@ function BaseListItem<TItem extends ListItem>({
         onSelectRow(item);
     };
 
-    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
-        bind.onMouseLeave();
+    const clearHoverAndMouseDownState = (e: React.MouseEvent<Element, MouseEvent>) => {
+        onMouseLeave();
         e.stopPropagation();
         setMouseUp();
     };
 
-    const rightHandSideComponentRender = () => {
-        if (!rightHandSideComponent) {
-            return null;
-        }
-
-        if (typeof rightHandSideComponent === 'function') {
-            return rightHandSideComponent(item, isFocused);
-        }
-
-        return rightHandSideComponent;
-    };
-
     const isRowSelected = isListItemSelected(item, isSelected);
-    const shouldShowRBRIndicator = (!isRowSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getListItemAccessibilityProps({
         role: accessibilityRole,
@@ -132,14 +143,13 @@ function BaseListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={pendingAction ?? item.pendingAction}
-            errors={errors ?? item.errors}
+            pendingAction={item.pendingAction}
+            errors={item.errors}
             errorRowStyles={[styles.mh5, errorRowStyles]}
-            contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
-                {...bind}
+                onMouseEnter={onMouseEnter}
                 ref={pressableRef}
                 lang={item.lang}
                 accessibilityLanguage={item.lang}
@@ -164,12 +174,13 @@ function BaseListItem<TItem extends ListItem>({
                 hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || isRowSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => {
-                    if ((e?.target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT) {
+                    const target = e?.target;
+                    if (target instanceof HTMLElement && target.tagName === CONST.ELEMENT_NAME.INPUT) {
                         return;
                     }
                     e.preventDefault();
                 }}
-                id={keyForList ?? item.keyForList ?? ''}
+                id={item.keyForList ?? ''}
                 testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                 style={[
                     pressableStyle,
@@ -188,46 +199,18 @@ function BaseListItem<TItem extends ListItem>({
                 {...accessibleAndAccessibilityLabel}
                 accessibilityState={accessibilityState}
                 aria-current={ariaCurrent}
-                onMouseLeave={handleMouseLeave}
+                onMouseLeave={clearHoverAndMouseDownState}
                 // When the list-level Enter shortcut is disabled (disableKeyboardShortcuts), items with role="option"
                 // won't natively fire click on Enter, so we handle it manually via onKeyDown.
-                onKeyDown={!shouldPreventEnterKeySubmit ? handleKeyDown : undefined}
+                onKeyDown={!shouldPreventEnterKeySubmit ? selectRowOnEnterKey : undefined}
                 wrapperStyle={pressableWrapperStyle}
             >
-                <View
-                    testID={testID}
-                    style={wrapperStyle}
-                    fsClass={forwardedFSClass}
-                >
-                    {typeof children === 'function' ? children(hovered) : children}
-
-                    {shouldShowRBRIndicator && (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml3]}>
-                            <Icon
-                                testID={CONST.DOT_INDICATOR_TEST_ID}
-                                src={icons.DotIndicator}
-                                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
-                            />
-                        </View>
-                    )}
-
-                    {rightHandSideComponentRender()}
-                    {shouldShowRightCaret && (
-                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
-                            <Icon
-                                src={icons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                        </View>
-                    )}
-                </View>
-                {FooterComponent}
+                <ListItemContext.Provider value={{isFocused: !!isFocused, isFocusVisible: !!isFocusVisible, shouldShowTooltip}}>
+                    <ListItemHoverContext.Provider value={hovered}>{children}</ListItemHoverContext.Provider>
+                </ListItemContext.Provider>
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
 }
 
-export default BaseListItem;
+export default ListItemPressable;
