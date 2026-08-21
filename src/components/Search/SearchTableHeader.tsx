@@ -31,7 +31,7 @@ type SearchHeaderIcons = {
 };
 
 // `getExpenseHeaders` is shared by expense, invoice and trip Search plus the opened single-report table.
-// Invoice is treated like a report, so it labels the date column "Created"; expense/trip and the opened report keep "Date".
+// Invoice is treated like a report, so it labels the date column "Created". Expense/trip and the opened report keep "Date".
 const getExpenseHeaders = (groupBy?: SearchGroupBy, isDateColumnCreated = false): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,

@@ -5,7 +5,7 @@ import {FILTER_VIEW_MAP, getFilterViewLabelKey, getSearchColumnTranslationKey, g
 import CONST from '@src/CONST';
 
 /**
- * Issue #98148: the "Created" / "Created date" rename is scoped to report-style Search types only —
+ * Issue #98148: the "Created" / "Created date" rename is scoped to report-style Search types only.
  * `type:expense-report` and `type:invoice` (invoice is treated like a report). Every other Search type
  * (expense, trip, chat, task) and the opened single-report table (which reuses getExpenseHeaders) keep
  * "Date". These tests lock that scoping in on the column label, the filter label and the column width so
