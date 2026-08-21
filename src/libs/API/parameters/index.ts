@@ -312,6 +312,7 @@ export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMore
 export type {default as OpenPolicyMemberProfilePageParams} from './OpenPolicyMemberProfilePageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
+export type {default as SetWorkspaceDistanceAutoUpdateParams} from './SetWorkspaceDistanceAutoUpdateParams';
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
 export type {default as SetCustomUnitDefaultCategoryParams} from './SetCustomUnitDefaultCategoryParams';
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
@@ -602,3 +603,4 @@ export type {default as ClearExportDownloadParams} from './ClearExportDownloadPa
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
 export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';
+export type {default as DismissMarketingWindowParams} from './DismissMarketingWindow';
