@@ -1,3 +1,4 @@
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
+import {hasTravelEnabledPolicySelector} from '@src/selectors/Policy';
 import {emailSelector} from '@src/selectors/Session';
 
 import {Str} from 'expensify-common';
@@ -30,9 +32,11 @@ function TravelMenuItem() {
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const isVisible = !!activePolicy?.isTravelEnabled;
+    const isVisible = !!hasTravelEnabledPolicy;
 
     const isTravelEnabled =
         !isBlockedFromSpotnanaTravel &&
@@ -42,6 +46,10 @@ function TravelMenuItem() {
         hasAcceptedTravelTerms(activePolicy, travelSettings);
 
     const openTravel = () => {
+        if (blockIfDefaultWorkspaceLacksTravel()) {
+            return;
+        }
+
         if (isTravelEnabled) {
             openTravelDotLink(activePolicy?.id);
             return;

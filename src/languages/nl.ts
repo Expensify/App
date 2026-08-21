@@ -4493,8 +4493,9 @@ ${amount} voor ${merchant} - ${date}`,
                 'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Reizen is niet ingeschakeld',
-            message: 'Om te boeken, schakel reizen in op je standaardwerkruimte of stel een standaardwerkruimte in die reizen ondersteunt.',
+            title: 'Je kunt nog geen reizen boeken',
+            message:
+                'Je bent lid van een werkruimte met reizen ingeschakeld, maar dit is niet je standaardwerkruimte. Schakel reizen in op je standaardwerkruimte of stel een werkruimte met reizen als standaardwerkruimte in om te boeken.',
         },
     },
     workspace: {

@@ -6,10 +6,12 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -186,7 +188,7 @@ describe('QuickCreationActionsBar - travel', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('blocks opening travel when the default workspace has no travel', async () => {
+    it('explains the wrong default workspace instead of opening travel for another workspace', async () => {
         await seedTravelWorkspaces(MOCK_POLICY_ID);
         renderComponent();
         await waitForBatchedUpdatesWithAct();
@@ -194,11 +196,40 @@ describe('QuickCreationActionsBar - travel', () => {
         fireEvent.press(screen.getByText(translateLocal('workspace.common.travel')));
         await waitForBatchedUpdatesWithAct();
 
+        expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toBe(translateLocal('travel.defaultWorkspaceTravelDisabled.message'));
         expect(openTravelDotLink).not.toHaveBeenCalled();
-        expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toContain('default workspace');
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('opens travel when the travel-enabled workspace is the default one', async () => {
+    it('sends the user to set up travel on their default workspace rather than on another workspace', async () => {
+        const DEFAULT_POLICY_AWAITING_SETUP_ID = 'policy-awaiting-setup-789';
+        await seedTravelWorkspaces(MOCK_POLICY_ID);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_AWAITING_SETUP_ID}`, {
+                id: DEFAULT_POLICY_AWAITING_SETUP_ID,
+                name: 'Workspace Awaiting Travel Setup',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                pendingAction: null,
+                owner: CURRENT_USER_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+                isTravelEnabled: true,
+            });
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, DEFAULT_POLICY_AWAITING_SETUP_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(translateLocal('workspace.common.travel')));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(openTravelDotLink).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(DEFAULT_POLICY_AWAITING_SETUP_ID));
+    });
+
+    it('opens travel when the default workspace is set up for travel', async () => {
         await seedTravelWorkspaces(TRAVEL_POLICY_ID);
         renderComponent();
         await waitForBatchedUpdatesWithAct();
@@ -207,5 +238,6 @@ describe('QuickCreationActionsBar - travel', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_POLICY_ID);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 });
