@@ -5827,7 +5827,7 @@ ${amount} para ${merchant} - ${date}`,
                     comment: 'Comentario',
                     category: 'Categoría',
                     tag: 'Etiqueta',
-                    uniqueID: 'ID único',
+                    uniqueID: 'ID única',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,

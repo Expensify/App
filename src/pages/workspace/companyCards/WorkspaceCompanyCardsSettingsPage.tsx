@@ -46,7 +46,6 @@ const ADVANCED_CSV_COLUMNS = new Set<string>([
     CONST.CSV_IMPORT_COLUMNS.COMMENT,
     CONST.CSV_IMPORT_COLUMNS.CATEGORY,
     CONST.CSV_IMPORT_COLUMNS.TAG,
-    CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID,
 ]);
 
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
