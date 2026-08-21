@@ -494,8 +494,6 @@ const DYNAMIC_ROUTES = {
     MONEY_REQUEST_STEP_WAYPOINT: {
         path: 'expense-waypoint',
         entryScreens: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE],
-        // Only `pageIndex` is owned by this suffix. Repeating the distance page's own params would make `createDynamicRoute` throw on duplicates.
-        // It is stringified explicitly because the first waypoint has index 0, which `getUrlWithParams` would drop as falsy.
         getRoute: (pageIndex: number) => getUrlWithParams('expense-waypoint', {pageIndex: String(pageIndex)}),
         queryParams: ['pageIndex'],
     },
