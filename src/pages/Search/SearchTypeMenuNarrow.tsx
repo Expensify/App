@@ -22,7 +22,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu, getSavedSearchIconName, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +35,7 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import useSavedSearchIcons from './hooks/useSavedSearchIcons';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 
 type SearchTypeMenuNarrowProps = {
@@ -134,21 +135,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, ...SAVED_SEARCH_ICON_NAMES, 'Trashcan', 'LinkCopy', 'Checkmark']);
 
-    // Resolve each saved search's icon once per collection change, keyed only on `savedSearches`.
-    // getSavedSearchIconName parses the query with buildSearchQueryJSON, whose small FIFO cache thrashes
-    // when 50+ queries are parsed together in the same order. Deriving the map here (instead of parsing
-    // inline in the tab map below) keeps the parser from re-running on every unrelated Onyx update or state
-    // change in this frequently-rerendering component. Mirrors the same pattern in SavedSearchList.
-    const savedSearchIconNames = useMemo(() => {
-        const iconNames = new Map<string, ReturnType<typeof getSavedSearchIconName>>();
-        for (const item of Object.values(savedSearches ?? {})) {
-            if (iconNames.has(item.query)) {
-                continue;
-            }
-            iconNames.set(item.query, getSavedSearchIconName(item.query));
-        }
-        return iconNames;
-    }, [savedSearches]);
+    // Resolve each saved search's icon once per collection change (see useSavedSearchIcons for why).
+    const savedSearchIconNames = useSavedSearchIcons(savedSearches);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
@@ -180,7 +168,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   return {
                       key,
-                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? getSavedSearchIconName(item.query)],
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                       pendingAction: item.pendingAction,

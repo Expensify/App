@@ -17,7 +17,7 @@ import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, getSavedSearchIconName, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -30,6 +30,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 
+import useSavedSearchIcons from './hooks/useSavedSearchIcons';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuItem from './SearchTypeMenuItem';
@@ -124,20 +125,8 @@ function SavedSearchList({hash}: SavedSearchListProps) {
 
     const itemStyle = [styles.alignItemsCenter];
 
-    // Resolve each saved search's icon once per collection change, keyed only on `savedSearches`.
-    // getSavedSearchIconName parses the query with buildSearchQueryJSON, whose small FIFO cache thrashes
-    // when 50+ queries are parsed together in the same order. Deriving the map here (instead of parsing
-    // inline in the render map below) keeps the parser from re-running on every unrelated Onyx update.
-    const savedSearchIconNames = useMemo(() => {
-        const iconNames = new Map<string, ReturnType<typeof getSavedSearchIconName>>();
-        for (const item of Object.values(savedSearches ?? {})) {
-            if (iconNames.has(item.query)) {
-                continue;
-            }
-            iconNames.set(item.query, getSavedSearchIconName(item.query));
-        }
-        return iconNames;
-    }, [savedSearches]);
+    // Resolve each saved search's icon once per collection change (see useSavedSearchIcons for why).
+    const savedSearchIconNames = useSavedSearchIcons(savedSearches);
 
     const savedSearchesMenuItems = savedSearches
         ? Object.entries(savedSearches)
@@ -151,7 +140,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
                       getOverflowMenu,
                       itemStyle,
                       isCopied: copiedHash === Number(key),
-                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? getSavedSearchIconName(item.query)],
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
                   }),
               )
               .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))

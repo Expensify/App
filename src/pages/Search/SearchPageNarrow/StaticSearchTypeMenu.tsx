@@ -50,7 +50,7 @@ function getActiveSavedSearch(savedSearches: OnyxEntry<SaveSearch>, hash: number
         return undefined;
     }
     const [key, item] = entry;
-    return {key, title: item.name || item.query || key, query: item.query ?? ''};
+    return {key, title: item.name || item.query || key, query: item.query};
 }
 
 function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
