@@ -1866,10 +1866,7 @@ function hasTransactionBeenRejected(transactionViolations: OnyxEntry<Transaction
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
     return !!transactionViolations?.some(
         (transactionViolation: TransactionViolation) =>
-            transactionViolation.name === CONST.VIOLATIONS.RTER &&
-            transactionViolation.data?.pendingPattern &&
-            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION &&
-            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+            transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern && !isBrokenConnectionViolation(transactionViolation),
     );
 }
 
@@ -1917,8 +1914,14 @@ function hasBrokenConnectionViolation(
 function isBrokenConnectionViolation(violation: TransactionViolation) {
     return (
         violation.name === CONST.VIOLATIONS.RTER &&
-        (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530)
+        (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH)
     );
+}
+
+function getBrokenConnectionViolation(transactionViolations: TransactionViolation[] | undefined): TransactionViolation | undefined {
+    return transactionViolations?.find(isBrokenConnectionViolation);
 }
 
 function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
@@ -3498,6 +3501,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
+    getBrokenConnectionViolation,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
