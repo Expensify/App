@@ -57,6 +57,7 @@ function pickerElement(value: string, listValues: string[]) {
 
 describe('ReportFieldsInitialListValuePicker', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrows the props captured from the mocked SelectionList in this test
     const getSelectionListProps = () => mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
 
     beforeEach(() => {
