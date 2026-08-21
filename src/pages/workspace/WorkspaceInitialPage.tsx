@@ -591,7 +591,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     badgeText={item.badgeText}
                                     shouldIconUseAutoWidthStyle
                                     sentryLabel={item.sentryLabel}
-                                    shouldGreyOutWhenDisabled={false}
+                                    shouldGreyOutWhenDisabled={hasPolicyCreationError}
                                 />
                             ))}
                         </View>
