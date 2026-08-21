@@ -1220,6 +1220,18 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.getDetailedExpenseTypeTranslationKey(transaction)).toBe('common.distance');
         });
+
+        it('returns pending for a still-posting card transaction, ahead of its card type', () => {
+            const transaction = generateTransaction({managedCard: true, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, status: CONST.TRANSACTION.STATUS.PENDING});
+
+            expect(TransactionUtils.getDetailedExpenseTypeTranslationKey(transaction)).toBe('iou.pending');
+        });
+
+        it('returns Travel Card for a travel billing transaction', () => {
+            const transaction = generateTransaction({managedCard: true, feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US});
+
+            expect(TransactionUtils.getDetailedExpenseTypeTranslationKey(transaction)).toBe('cardTransactions.travelCard');
+        });
     });
 
     describe('isMapBasedDistanceRequest', () => {

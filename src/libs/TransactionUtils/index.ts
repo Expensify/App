@@ -8,6 +8,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
+import {isTravelCardTransaction} from '@libs/CardUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
@@ -301,10 +302,16 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
 }
 
 /**
- * Same as getExpenseTypeTranslationKey, but splits a card transaction into Expensify Card, Company card, or
- * Personal card depending on who issued it.
+/**
+ * Returns the corresponding translation key for card type
  */
 function getDetailedExpenseTypeTranslationKey(transaction: OnyxEntry<Transaction>, card?: Card): TranslationPaths {
+    if (isPending(transaction)) {
+        return 'iou.pending';
+    }
+    if (isTravelCardTransaction(transaction?.feedCountry, card)) {
+        return 'cardTransactions.travelCard';
+    }
     const transactionType = getTransactionType(transaction, card);
     if (transactionType !== CONST.SEARCH.TRANSACTION_TYPE.CARD) {
         return getExpenseTypeTranslationKey(transactionType);
