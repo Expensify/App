@@ -112,7 +112,9 @@ function RecentlyAddedSection() {
         <WidgetContainer
             title={translate('homePage.recentlyAddedSection.title')}
             titleRightContent={overflowMenu}
-            containerStyles={listBottomPadding}
+            // The skeleton stands in for the rows, so it needs their bottom padding to avoid a jump when they land.
+            // The empty state never had it, so it keeps its existing spacing.
+            containerStyles={hasExpenses || isAwaitingFirstResult ? listBottomPadding : undefined}
         >
             {hasExpenses ? (
                 transactions.map((expense, index) => (
