@@ -4,7 +4,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
@@ -14,7 +13,6 @@ import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspacePlanType, getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -33,6 +31,7 @@ import {View} from 'react-native';
 
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
 
+import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
@@ -161,12 +160,14 @@ function WorkspaceConfirmationForm({
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const DefaultAvatar = useWorkspaceConfirmationAvatar({
-        policyID,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-        source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
-        name: workspaceNameFirstCharacter,
-    });
+    const workspaceAvatarNode = (
+        <WorkspaceAvatar
+            source={stashedLocalAvatarImage}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            name={workspaceNameFirstCharacter}
+            avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
+        />
+    );
 
     return (
         <>
@@ -190,8 +191,8 @@ function WorkspaceConfirmationForm({
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    avatarID={policyID}
                     source={stashedLocalAvatarImage}
+                    avatar={workspaceAvatarNode}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
                         setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
@@ -200,13 +201,9 @@ function WorkspaceConfirmationForm({
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    avatarStyle={styles.alignSelfCenter}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
-                    type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
-                    DefaultAvatar={DefaultAvatar}
                     editorMaskImage={icons.ImageCropSquareMask}
                 />
                 <FormProvider

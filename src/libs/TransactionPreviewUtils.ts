@@ -7,6 +7,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import truncate from 'lodash/truncate';
@@ -18,7 +19,14 @@ import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
-import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
+import {
+    getMostRecentActiveDEWSubmitFailedAction,
+    getOriginalMessage,
+    isDeletedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
+    isMessageDeleted,
+    isMoneyRequestAction,
+} from './ReportActionsUtils';
 import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -207,6 +215,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     reportActions,
     originalTransaction,
     convertToDisplayString,
+    dateFnsLocale,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -222,6 +231,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     reportActions?: OnyxTypes.ReportActions;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    dateFnsLocale: DateFnsLocale | undefined;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -244,11 +254,11 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = {text: ''};
     }
 
-    if (shouldShowHoldMessage && RBRMessage === undefined) {
-        RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
-    }
+    // The caller appends the hold, so resolve the rest as if the expense weren't held - otherwise it collapses into "Review required".
+    const violationsForRBR = shouldShowHoldMessage ? violations.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) : violations;
+    const isOnHoldForRBR = isTransactionOnHold && !shouldShowHoldMessage;
 
-    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isGroupPolicy);
+    const path = getViolationTranslatePath(violationsForRBR, hasFieldErrors, violationMessage ?? '', isOnHoldForRBR, !isGroupPolicy);
     if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
         RBRMessage = path;
     }
@@ -311,12 +321,16 @@ function getTransactionPreviewTextAndTranslationPaths({
     let previewDateText: TranslationPathOrText | undefined;
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
-        const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        const date = DateUtils.formatWithUTCTimeZone(
+            created,
+            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            dateFnsLocale,
+        );
         previewDateText = {text: date};
     }
 
-    // Paid, Approved and Review required are intentionally omitted here because the report status badge and the violation
-    // row already show them, so repeating them on this line is noise. Canceled is the exception: it can't be derived from
+    // Paid, Approved, Review required and the hold message are intentionally omitted here because the report status badge and the
+    // RBR row already show them, so repeating them on this line is noise. Canceled is the exception: it can't be derived from
     // stateNum/statusNum, so surfaces without their own report status badge have to report it here.
     const previewStatusText: TranslationPathOrText[] = [];
 
@@ -328,8 +342,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewStatusText.push({translationPath: 'iou.canceled'});
     } else if (hasPendingRTERViolation(violations)) {
         previewStatusText.push({translationPath: 'iou.pendingMatch'});
-    } else if (shouldShowHoldMessage) {
-        previewStatusText.push({translationPath: 'violations.hold'});
     }
 
     const amount = isBillSplit ? getAmount(originalTransaction ?? transaction) : requestAmount;
@@ -343,6 +355,8 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     return {
         RBRMessage,
+        /** Whether the hold has to be appended to the RBR message, after any other reason the expense is flagged for */
+        shouldShowHoldMessage,
         displayAmountText,
         displayDeleteAmountText,
         previewDateText,
@@ -401,7 +415,7 @@ function createTransactionPreviewConditionals({
     const isFullySettled = isMoneyRequestSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
-    const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
 
     const categoryForDisplay = isCategoryMissing(category) ? '' : category;

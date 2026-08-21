@@ -11,8 +11,8 @@
         "ignoreCase": true,
         "customGroups": [
             {
-                "groupName": "jest",
-                "elementNamePattern": ["@jest/globals", "@testing-library/**"]
+                "groupName": "test-runner",
+                "elementNamePattern": ["@jest/globals", "@testing-library/**", "bun:test"]
             },
             {"groupName": "assets", "elementNamePattern": ["@assets/**"]},
             {"groupName": "components", "elementNamePattern": ["@components/**"]},
@@ -28,7 +28,7 @@
             {"groupName": "src", "elementNamePattern": ["@src/**"]}
         ],
         "groups": [
-            "jest",
+            "test-runner",
             "assets",
             "components",
             "github",

@@ -6,7 +6,7 @@ import AttachmentView, {checkIsFileImage} from '@components/Attachments/Attachme
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -351,7 +351,6 @@ function AttachmentModalBaseContent({
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             testID="attachment-loading-spinner"
-                            reasonAttributes={{context: 'AttachmentModalBaseContent'}}
                         />
                     </View>
                 )}
@@ -388,16 +387,16 @@ function AttachmentModalBaseContent({
                         >
                             <Button
                                 ref={submitRef ? viewRef(submitRef) : undefined}
-                                success
-                                large
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                textStyles={[styles.buttonConfirmText]}
-                                text={translate('common.send')}
                                 onPress={submitAndClose}
                                 isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
-                                pressOnEnter
                                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.SEND_BUTTON}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text style={[styles.buttonConfirmText]}>{translate('common.send')}</Button.Text>
+                            </Button>
                         </Animated.View>
                     )}
                 </LayoutAnimationConfig>

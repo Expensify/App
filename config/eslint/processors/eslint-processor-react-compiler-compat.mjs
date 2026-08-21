@@ -5,7 +5,7 @@
  * React Compiler automatically memoizes components and hooks, making rules like
  * `react/jsx-no-constructed-context-values` redundant for memoized files. But the app
  * runs two different compilers -- Babel (babel-plugin-react-compiler) on native/Jest and
- * OXC (oxc-transform) on web -- and they don't always agree. A file that only one compiler
+ * OXC (oxc-transform-react) on web -- and they don't always agree. A file that only one compiler
  * memoizes still ships without memoization on the other platform, so the manual memoization
  * (and the lint rules that enforce it) is still needed there.
  *
