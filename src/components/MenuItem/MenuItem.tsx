@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Avatar from '@components/Avatar';
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Badge from '@components/Badge';
 import {useIsCompactMenu} from '@components/CompactMenuContext';
@@ -40,6 +40,7 @@ import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -1005,13 +1006,12 @@ function MenuItem({
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
-                                                                <Avatar
-                                                                    imageStyles={[styles.alignSelfCenter]}
+                                                                <UserAvatar
+                                                                    imageStyles={styles.alignSelfCenter}
                                                                     source={icon}
-                                                                    avatarID={avatarID}
+                                                                    accountID={getAccountIDFromAvatarID(avatarID)}
                                                                     fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                                                     size={avatarSize}
-                                                                    type={CONST.ICON_TYPE_AVATAR}
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_PLAID && !!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
