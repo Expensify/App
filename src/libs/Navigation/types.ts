@@ -2285,6 +2285,21 @@ type MoneyRequestNavigatorParamList = {
         /** Deliberately not named `reportID` so it cannot inherit the base path's report. */
         holdReportID?: string;
     };
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE]: {
+        /** Deliberately not named `reportID` so it cannot inherit the base path's report. */
+        splitReportID: string;
+        transactionID: string;
+        splitExpenseTransactionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH]: {
+        splitReportID: string;
+        transactionID: string;
+        splitExpenseTransactionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
+        splitReportID: string;
+        transactionID: string;
+    };
     [SCREENS.MONEY_REQUEST.REJECT]: {
         /** ID of the transaction the page was opened for */
         transactionID: string;
@@ -2726,7 +2741,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
     [SCREENS.RIGHT_MODAL.AVATAR_CROP]: NavigatorScreenParams<AvatarCropNavigatorParamList>;
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
@@ -2993,6 +3007,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS]: {
@@ -3338,19 +3355,6 @@ type MissingPersonalDetailsParamList = {
 };
 
 type SplitExpenseParamList = {
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
-        reportID: string;
-        transactionID: string;
-        splitExpenseTransactionID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
-        reportID: string;
-        transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
         reportID: string;
         transactionID: string;
