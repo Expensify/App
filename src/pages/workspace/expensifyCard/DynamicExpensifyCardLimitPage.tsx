@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateExpensifyCardLimit} from '@libs/actions/Card';
-import {filterInactiveCardsForWorkspace} from '@libs/CardUtils';
+import {filterInactiveCardsForWorkspace, getProgramKeyForCard} from '@libs/CardUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -49,10 +49,11 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
     const defaultFundID = useDefaultFundID(policyID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path);
 
-    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
-
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
     const card = cardsList?.[cardID];
+
+    // Resolve currency from the card's own program (feedCountry) so a GB card shows GBP/EUR even when the feed also has a US program.
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID, programKey: getProgramKeyForCard(card)});
 
     // Keep a ref to the latest card so the confirmation callback recomputes spend from current data,
     // not the stale card captured when the form was submitted (the card can refresh while the modal is open).

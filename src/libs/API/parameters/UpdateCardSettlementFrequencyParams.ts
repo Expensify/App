@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 type UpdateCardSettlementFrequencyParams = {
     settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>;
     policyAccountID: number;
+    feedCountry: string;
 };
 
 export default UpdateCardSettlementFrequencyParams;

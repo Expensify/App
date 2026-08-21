@@ -1,9 +1,11 @@
 import {
     getCardSettings,
+    getConfiguredExpensifyCardProgramKeys,
     getFundIdFromSettingsKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
+    parseCardFeedKey,
 } from '@libs/CardUtils';
 
 import CONST from '@src/CONST';
@@ -24,8 +26,10 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
-    const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`);
-    const lastSelectedSettings = getCardSettings(lastSelectedCardSettings);
+    const {fundID: lastSelectedFundID, programKey: lastSelectedProgramKey} = parseCardFeedKey(lastSelectedExpensifyCardFeed);
+    const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedFundID}`);
+    const resolvedProgramKey = lastSelectedProgramKey ?? getConfiguredExpensifyCardProgramKeys(lastSelectedCardSettings).at(0);
+    const lastSelectedSettings = resolvedProgramKey ? getCardSettings(lastSelectedCardSettings, resolvedProgramKey) : lastSelectedCardSettings;
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
@@ -56,8 +60,8 @@ function useDefaultFundID(policyID: string | undefined) {
 
     const isFeedPendingDelete = lastSelectedCardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    if (lastSelectedExpensifyCardFeed && lastSelectedSettings?.paymentBankAccountID && !isFeedPendingDelete) {
-        return lastSelectedExpensifyCardFeed;
+    if (lastSelectedFundID && lastSelectedSettings?.paymentBankAccountID && !isFeedPendingDelete) {
+        return lastSelectedFundID;
     }
 
     if (domainFundID) {
