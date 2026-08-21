@@ -36,9 +36,6 @@ type ExportDownload = {
 
     /** Whether the export file should be sent from Concierge */
     shouldSendFromConcierge?: boolean;
-
-    /** Set client-side only when the user dismisses the Concierge hand-off confirmation, so it is not shown again after a reload */
-    hasBeenSurfaced?: boolean;
 };
 
 export default ExportDownload;

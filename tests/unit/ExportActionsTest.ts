@@ -59,19 +59,6 @@ describe('Export actions', () => {
         );
     });
 
-    test('markExportDownloadSurfaced merges hasBeenSurfaced client-side without touching the rest of the record', async () => {
-        const exportID = 'test-export-surfaced';
-        const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
-        await Onyx.set(onyxKey, {state: 'preparing', shouldSendFromConcierge: true});
-        await waitForBatchedUpdates();
-
-        Export.markExportDownloadSurfaced(exportID);
-        await waitForBatchedUpdates();
-
-        const value = await getOnyxValue(onyxKey);
-        expect(value).toEqual({state: 'preparing', shouldSendFromConcierge: true, hasBeenSurfaced: true});
-    });
-
     test('clearExportDownload sets the Onyx key to null', async () => {
         const exportID = 'test-export-789';
         const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;

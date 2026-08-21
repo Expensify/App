@@ -55,15 +55,6 @@ function clearExportDownload(exportID: string, exportDownload: OnyxEntry<ExportD
     write(WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD, {exportID}, {optimisticData, failureData});
 }
 
-/**
- * Marks a Concierge hand-off confirmation as surfaced. This is a client-side only Onyx write (no API command):
- * the backend does not care whether the confirmation was shown, and the worker deletes the record when it
- * finishes delivering the file. Persisting it keeps the confirmation from popping again after a reload.
- */
-function markExportDownloadSurfaced(exportID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`, {hasBeenSurfaced: true});
-}
-
 function clearStaleExportDownloads() {
     // Uses connectWithoutView instead of useOnyx to avoid subscribing the caller component
     // to the entire collection, which would cause unnecessary re-renders on every change.
@@ -152,4 +143,4 @@ function exportReceiptsToZip({reportIDs, transactionIDs}: {reportIDs?: string[];
     return exportID;
 }
 
-export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, markExportDownloadSurfaced, exportReportsToPDF, exportReceiptsToZip};
+export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF, exportReceiptsToZip};
