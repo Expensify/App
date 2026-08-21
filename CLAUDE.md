@@ -9,7 +9,7 @@
 
 - App (NewDot) and Mobile-Expensify (OldDot) are combined into a single mobile application
 - The HybridApp module (`@expensify/react-native-hybrid-app`) manages transitions between OldDot and NewDot
-- Build process merges dotenv configurations from both repositories
+- Build process merges `.env` files from both repositories
 - Mobile-Expensify environment variables supersede App variables
 - Mobile builds **must** be initiated from the Mobile-Expensify directory
 
