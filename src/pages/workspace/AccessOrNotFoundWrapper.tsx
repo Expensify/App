@@ -121,6 +121,9 @@ type AccessOrNotFoundWrapperProps = {
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
 
+    /** Whether the ADMIN access variant should still grant access when the policy is archived */
+    canBeAccessedIfArchived?: boolean;
+
     /** The type of the transaction */
     iouType?: IOUType;
 
@@ -158,6 +161,7 @@ function AccessOrNotFoundWrapper({
     accessVariants = [],
     fullPageNotFoundViewProps,
     shouldBeBlocked,
+    canBeAccessedIfArchived = false,
     policyID,
     reportID,
     iouType,
@@ -208,6 +212,9 @@ function AccessOrNotFoundWrapper({
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
             return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+        }
+        if (variant === CONST.POLICY.ACCESS_VARIANTS.ADMIN) {
+            return acc && canEditWorkspaceSettings(policy, login, canBeAccessedIfArchived);
         }
         return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
