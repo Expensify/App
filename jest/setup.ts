@@ -121,7 +121,14 @@ jest.mock('react-native-fs', () => ({
                 res([]);
             }),
     ),
-    CachesDirectoryPath: jest.fn(),
+    exists: jest.fn(() => Promise.resolve(false)),
+    mkdir: jest.fn(() => Promise.resolve()),
+    moveFile: jest.fn(() => Promise.resolve()),
+    copyFile: jest.fn(() => Promise.resolve()),
+    writeFile: jest.fn(() => Promise.resolve()),
+    DocumentDirectoryPath: '/mock/documents',
+    CachesDirectoryPath: '/mock/caches',
+    LibraryDirectoryPath: '/mock/library',
 }));
 
 jest.mock('react-native-share', () => ({
