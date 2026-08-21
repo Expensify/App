@@ -262,6 +262,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 shouldUseModalPaddingStyle
                 avoidKeyboard
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <View
                     collapsable={false}

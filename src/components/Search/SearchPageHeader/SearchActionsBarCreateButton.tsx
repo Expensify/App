@@ -237,6 +237,7 @@ function SearchActionsBarCreateButton() {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
+                enableEdgeToEdgeBottomSafeAreaPadding
             />
             <Button
                 ref={createButtonRef}
