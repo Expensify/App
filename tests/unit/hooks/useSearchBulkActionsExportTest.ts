@@ -209,6 +209,7 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockAreAllMatchingItemsSelected = false;
+let mockCurrentSearchKey: string | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
@@ -220,7 +221,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         currentSearchResults: mockCurrentSearchResults,
     }),
     useSearchQueryContext: () => ({
-        currentSearchKey: undefined,
+        currentSearchKey: mockCurrentSearchKey,
         currentSearchHash: 12345,
         currentSearchQueryJSON: undefined,
         suggestedSearches: undefined,
@@ -425,6 +426,7 @@ describe('useSearchBulkActions - export options', () => {
         // tests override with mockResolvedValueOnce to exercise the cancel path.
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
         mockAreAllMatchingItemsSelected = false;
+        mockCurrentSearchKey = undefined;
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         // A policy connected to NetSuite so the integration export branch is reachable.
@@ -1246,6 +1248,94 @@ describe('useSearchBulkActions - export options', () => {
                 expect(mockGetExportTemplates).toHaveBeenCalled();
             });
             expect(getIncludeMultipleTaxExportArgument()).toBe(false);
+        });
+    });
+
+    describe('Reconciliation - All Expenses eligibility', () => {
+        /** The includeReconciliationAllExpenses argument getExportTemplates was last called with */
+        function getIncludeReconciliationAllExpensesArgument() {
+            return mockGetExportTemplates.mock.calls.at(-1)?.at(8);
+        }
+
+        it('offers the template when the user is a workspace admin of the selected workspace', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
+        });
+
+        it('offers the template when the user is a card admin of the selected workspace', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.CARD_ADMIN});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
+        });
+
+        it('hides the template when the user is a member of the selected workspace', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.USER});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('keeps the template on Card Statements when a card group is selected', async () => {
+            mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.STATEMENTS;
+            mockGetExportTemplates.mockReturnValue({
+                customTemplates: [{name: 'Custom template', templateName: 'customTemplate', type: 'in-app', policyID: undefined, description: ''}],
+                defaultTemplates: [
+                    {name: 'export.expenseLevelExport', templateName: 'detailed_export', type: 'integrations', policyID: undefined, description: ''},
+                    {name: 'export.reportLevelExport', templateName: 'report_level_export', type: 'integrations', policyID: undefined, description: ''},
+                    {
+                        name: 'export.reconciliationAllExpenses',
+                        templateName: CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES,
+                        type: 'integrations',
+                        policyID: undefined,
+                        description: '',
+                    },
+                ],
+            });
+
+            const cardStatementsQueryJSON: SearchQueryJSON = {
+                ...expenseReportQueryJSON,
+                inputQuery: 'type:expense groupBy:card',
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
+            };
+
+            mockSelectedTransactions = {
+                tx1: makeSelectedTransaction({
+                    groupKey: `${CONST.SEARCH.GROUP_PREFIX}card`,
+                    isSelectedViaGroup: true,
+                }),
+            };
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardStatementsQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.reconciliationAllExpenses']);
+            });
         });
     });
 });
