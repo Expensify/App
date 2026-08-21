@@ -29,6 +29,11 @@ function getEffectiveLastUpdateID(): number {
     return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
 }
 
+// Advanced synchronously as soon as updates apply, so a caller can read it right after an apply settles.
+function getPersistedLastUpdateID(): number {
+    return lastUpdateIDAppliedToClient ?? 0;
+}
+
 // We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -297,5 +302,5 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
     return false;
 }
 
-export {apply, doesClientNeedToBeUpdated, getEffectiveLastUpdateID, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
+export {apply, doesClientNeedToBeUpdated, getEffectiveLastUpdateID, getPersistedLastUpdateID, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
 export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};

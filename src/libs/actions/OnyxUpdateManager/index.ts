@@ -4,7 +4,7 @@ import {setAuthToken} from '@libs/Network/NetworkStore';
 import {registerPauseWatchdogEscalation, unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
 
 import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates, reconnectApp, reconnectAppWithSideEffects} from '@userActions/App';
-import {getEffectiveLastUpdateID} from '@userActions/OnyxUpdates';
+import {getEffectiveLastUpdateID, getPersistedLastUpdateID} from '@userActions/OnyxUpdates';
 import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
 
 import CONST from '@src/CONST';
@@ -81,7 +81,10 @@ function escalateIfFetchStalled(response: Awaited<ReturnType<typeof getMissingOn
 
     // The client advanced, either through this response or through another path in the meantime
     // (e.g. a parallel Pusher update applied mid-fetch). The fetches are making progress.
-    if (getEffectiveLastUpdateID() > lastUpdateIDFromClient) {
+    // Only the persisted watermark counts: a WRITE staged for the deferred flush moves `lastUpdateIDPendingFlush`
+    // without serving the requested range, and that marker sits above the persisted one in exactly the stuck
+    // state this guard exists to catch, so reading it here would hide the stall.
+    if (getPersistedLastUpdateID() > lastUpdateIDFromClient) {
         return false;
     }
 
