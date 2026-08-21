@@ -403,7 +403,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           pendingAction: policy?.connections?.quickbooksOnline?.config?.pendingFields?.realmId,
                           brickRoadIndicator: policy?.connections?.quickbooksOnline?.config?.errorFields?.realmId ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress:
-                              isConnectedToIntuitEnterpriseSuite && canWriteAccounting
+                              isConnectedToIntuitEnterpriseSuite && canWriteAccounting && policyID
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
@@ -469,6 +469,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         canWriteAccounting,
         connectedIntegration,
         currentXeroOrganization?.id,
+        isConnectedToIntuitEnterpriseSuite,
         policy,
         policyID,
         styles.fontWeightNormal,
