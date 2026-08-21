@@ -293,7 +293,7 @@ function initSplitExpenseItemData(
             liveTaxValue = defaultTaxValue;
         }
         // Only refresh when a live rate actually resolves. If none does, leave the parent's stored (internally
-        // consistent) trio in place rather than desyncing an undefined code/value from a recomputed amount.
+        // consistent) trio in place instead of pairing an undefined code and value with a recomputed amount.
         if (liveTaxValue !== undefined) {
             const splitAmount = Math.abs(amount ?? transactionDetails?.amount ?? 0);
             const splitCurrency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
