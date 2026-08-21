@@ -61,8 +61,6 @@ jest.mock('@hooks/useCardFeedErrors', () =>
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'test@example.com'})));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
-
-// Renders the "Time sensitive" group the way the Home "For you" card now does (hook + presentational group).
 function TimeSensitiveSection() {
     return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
 }

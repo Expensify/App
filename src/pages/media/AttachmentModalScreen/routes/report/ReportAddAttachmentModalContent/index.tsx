@@ -45,7 +45,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         onClose,
     } = route.params;
 
-    // Read `confirmLeavesScreen` from the context rather than the URL params, same as `onConfirm`.
     const {getCurrentAttachment} = useContext(AttachmentModalContext);
     const confirmLeavesScreen = getCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>()?.confirmLeavesScreen;
 

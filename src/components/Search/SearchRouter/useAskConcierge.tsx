@@ -18,8 +18,6 @@ import type {FileObject} from '@src/types/utils/Attachment';
  * Also returns a flag indicating whether the Ask Concierge item is ready to be displayed.
  *
  * @param forceConcierge Always target the Concierge report, ignoring the report the side panel currently maps to.
- * Entry points whose sole purpose is messaging Concierge (e.g. the Home prompt) must set this, otherwise the message
- * can be posted to the workspace #admins room the side panel maps to during the onboarding RHP variants.
  */
 function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = {}) {
     const sidePanelReportID = useSidePanelReportID();
