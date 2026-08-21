@@ -5917,6 +5917,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     comment: 'Comentário',
                     category: 'Categoria',
                     tag: 'Etiqueta',
+                    uniqueID: 'ID único',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Atribua uma coluna a cada um dos atributos: ${missingColumns}.`,
