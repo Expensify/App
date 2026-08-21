@@ -65,6 +65,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
+    // Read here (rather than inside createAgent()) so the write action stays a pure function of its params.
+    const [optimisticAgentAccountIDMappingCreatedAt] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
     const hasSubmittedRef = useRef(false);
     const formRef = useRef<FormRef>(null);
 
@@ -131,8 +133,28 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
         // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
         const {optimisticReportID} = uploadedAvatar?.uri
-            ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
-            : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
+            ? createAgent(
+                  firstName,
+                  prompt,
+                  ownerAccountID,
+                  ownerLogin,
+                  undefined,
+                  buildFileFromAvatarCropResult(uploadedAvatar),
+                  uploadedAvatar.uri,
+                  policyID,
+                  optimisticAgentAccountIDMappingCreatedAt,
+              )
+            : createAgent(
+                  firstName,
+                  prompt,
+                  ownerAccountID,
+                  ownerLogin,
+                  selectedPresetID ?? AGENT_AVATARS.getRandomID(),
+                  undefined,
+                  undefined,
+                  policyID,
+                  optimisticAgentAccountIDMappingCreatedAt,
+              );
 
         clearNewAgentTemplate();
         clearNewAgentAvatarDraft();
