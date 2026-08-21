@@ -268,7 +268,11 @@ function initSplitExpenseItemData(
     // consistent:
     //   - rate updated: keep the transaction's own taxCode and read its current value from the policy.
     //   - rate deleted: fall back to the policy's default tax code and its value.
-    //   - neither resolves (no default / tax tracking off): clear all three, since no tax applies.
+    //   - neither resolves (no default / tax tracking off): keep the parent's stored trio untouched. It is
+    //     internally consistent (code/value/amount all from the same old rate), and the save path in
+    //     SplitTransactionUpdate falls back to those same parent values via `splitExpense.taxX ?? original`, so
+    //     emitting an `undefined` code/value here would only be overwritten by the parent's deleted values while a
+    //     recomputed amount stuck — recreating the very mismatch this path avoids.
     // The amount is recalculated from the resolved live value against this split's amount. Only gate when a policy
     // is available to compare against; otherwise keep inheriting the stored values.
     const isStoredTaxValueStale = !!policy && !!transaction?.taxValue && !hasTaxRateWithMatchingValue(policy, transaction);
@@ -277,18 +281,24 @@ function initSplitExpenseItemData(
     let resolvedTaxValue = transactionDetails?.taxValue;
     let resolvedTaxAmount = taxAmount ?? transactionDetails?.taxAmount;
     if (isStoredTaxValueStale) {
-        resolvedTaxValue = resolvedTaxCode ? getTaxValue(policy, transaction, resolvedTaxCode) : undefined;
+        let liveTaxCode = resolvedTaxCode;
+        let liveTaxValue = liveTaxCode ? getTaxValue(policy, transaction, liveTaxCode) : undefined;
         // The stored taxCode no longer resolves to a live value (the rate was deleted) — fall back to the policy default.
-        if (resolvedTaxValue === undefined) {
+        if (liveTaxValue === undefined) {
             const defaultTaxCode = getDefaultTaxCode(policy, transaction);
             const defaultTaxValue = defaultTaxCode ? getTaxValue(policy, transaction, defaultTaxCode) : undefined;
-            resolvedTaxCode = defaultTaxValue !== undefined ? defaultTaxCode : undefined;
-            resolvedTaxValue = defaultTaxValue;
+            liveTaxCode = defaultTaxValue !== undefined ? defaultTaxCode : undefined;
+            liveTaxValue = defaultTaxValue;
         }
-        const splitAmount = Math.abs(amount ?? transactionDetails?.amount ?? 0);
-        const splitCurrency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
-        // calculateTaxAmount returns 0 for an undefined value, so this also zeroes the amount when the tax is cleared.
-        resolvedTaxAmount = convertToBackendAmount(calculateTaxAmount(resolvedTaxValue, splitAmount, getCurrencyDecimals(splitCurrency)));
+        // Only refresh when a live rate actually resolves. If none does, leave the parent's stored (internally
+        // consistent) trio in place rather than desyncing an undefined code/value from a recomputed amount.
+        if (liveTaxValue !== undefined) {
+            const splitAmount = Math.abs(amount ?? transactionDetails?.amount ?? 0);
+            const splitCurrency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
+            resolvedTaxCode = liveTaxCode;
+            resolvedTaxValue = liveTaxValue;
+            resolvedTaxAmount = convertToBackendAmount(calculateTaxAmount(liveTaxValue, splitAmount, getCurrencyDecimals(splitCurrency)));
+        }
     }
 
     return {

@@ -113,13 +113,15 @@ describe('initSplitExpenseItemData stale tax handling', () => {
         expect(splitExpense.taxAmount).toBe(909);
     });
 
-    it('clears all tax fields when no live rate can be resolved', () => {
-        // The rate was deleted and there is no default to fall back to -> no tax applies.
+    it('keeps the parent stored tax trio when no live rate can be resolved', () => {
+        // The rate was deleted and there is no default to fall back to. Rather than emitting an undefined code/value
+        // (which the save path would overwrite with the parent's deleted values while keeping a recomputed amount),
+        // leave the parent's internally-consistent stored trio in place.
         const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithoutRates()});
 
-        expect(splitExpense.taxCode).toBeUndefined();
-        expect(splitExpense.taxValue).toBeUndefined();
-        expect(splitExpense.taxAmount).toBe(0);
+        expect(splitExpense.taxCode).toBe(TAX_CODE);
+        expect(splitExpense.taxValue).toBe('5%');
+        expect(splitExpense.taxAmount).toBe(476);
     });
 
     it('keeps the stored tax fields when the stored value still matches the policy rate', () => {
