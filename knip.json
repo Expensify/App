@@ -84,7 +84,8 @@
         "shellcheck",
         "patch-package",
         "diff-so-fancy",
-        "@babel/plugin-proposal-class-properties"
+        "@babel/plugin-proposal-class-properties",
+        "typescript7"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"]
 }
