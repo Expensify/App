@@ -2282,12 +2282,19 @@ function getIntegrationLastSuccessfulDate(
         syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
     }
 
-    const connectionSyncTimeStamp = getLocalDateFromDatetime(connectionSyncProgress?.timestamp).toISOString();
+    // `toISOString` throws on an Invalid Date, and these read backend timestamps that can arrive unparsable. Closes over
+    // the injected `getLocalDateFromDatetime`, so it cannot be hoisted to module scope.
+    const toIsoOrEmpty = (datetime?: string) => {
+        const date = getLocalDateFromDatetime(datetime);
+        return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+    };
+    const connectionSyncTimeStamp = toIsoOrEmpty(connectionSyncProgress?.timestamp);
 
     if (
         connectionSyncProgress?.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
         syncSuccessfulDate &&
-        connectionSyncTimeStamp > getLocalDateFromDatetime(syncSuccessfulDate).toISOString()
+        connectionSyncTimeStamp &&
+        connectionSyncTimeStamp > toIsoOrEmpty(syncSuccessfulDate)
     ) {
         syncSuccessfulDate = connectionSyncTimeStamp;
     }

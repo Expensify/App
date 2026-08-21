@@ -160,7 +160,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.SUBMIT &&
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -313,7 +313,7 @@ function ParticipantSearchResults({
             currentUserAccountID,
             allPolicies,
             translate,
-            dateFnsLocale,
+            preferredLocale,
             personalDetails,
             true,
             undefined,
@@ -387,7 +387,7 @@ function ParticipantSearchResults({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
-                              {translate, dateFnsLocale},
+                              {translate, preferredLocale},
                               currentUserAccountID,
                               reportAttributesDerived,
                           )

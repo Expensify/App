@@ -192,11 +192,11 @@ describe('OnyxDerived', () => {
 
             // When the report attributes are recomputed with both report and transaction updates
             reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
                 {},
             );
             const reportAttributesComputedValue = reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
                 {
                     sourceValues: {
                         [ONYXKEYS.COLLECTION.REPORT]: {
@@ -310,17 +310,33 @@ describe('OnyxDerived', () => {
 
             // Reset the module-level diff baseline (no sourceValues clears it) so the seed below is deterministic.
             reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
                 {},
             );
             // First personal-details compute computes both reports (no prior currentValue) and seeds the baseline.
             const initial = reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
                 personalDetailsSource,
             );
             // Changing only account 2's display name should recompute just its report, carrying the other by reference.
             const afterChange = reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, changedPersonalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    changedPersonalDetails,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
                 {...personalDetailsSource, currentValue: initial},
             );
 

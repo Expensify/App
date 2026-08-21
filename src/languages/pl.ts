@@ -180,7 +180,6 @@ const translations: TranslationDeepObject<typeof en> = {
         remove: 'Usuń',
         admin: 'Administrator',
         owner: 'Właściciel',
-        dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'kalendarz otwarty',
         dialogOpened: 'okno dialogowe',
         send: 'Wyślij',
@@ -1925,7 +1924,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta}. dnia każdego miesiąca` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} dnia każdego miesiąca` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -3907,7 +3906,6 @@ ${amount} dla ${merchant} - ${date}`,
         industryClassificationCode: 'Kod klasyfikacji branżowej',
         confirmCompanyIsNot: 'Potwierdzam, że ta firma nie znajduje się na',
         listOfRestrictedBusinesses: 'lista działalności objętych ograniczeniami',
-        incorporationDatePlaceholder: 'Data początkowa (rrrr-mm-dd)',
         incorporationTypes: {
             LLC: 'spółka z o.o.',
             CORPORATION: 'Firma corp.',
@@ -3971,7 +3969,6 @@ ${amount} dla ${merchant} - ${date}`,
         },
         selectYourCompanyIncorporationDate: 'Jaka jest data rejestracji Twojej firmy?',
         incorporationDate: 'Data rejestracji firmy',
-        incorporationDatePlaceholder: 'Data początkowa (rrrr-mm-dd)',
         incorporationState: 'Stan rejestracji firmy',
         pleaseSelectTheStateYourCompanyWasIncorporatedIn: 'W którym stanie została zarejestrowana Twoja firma?',
         letsDoubleCheck: 'Sprawdźmy jeszcze raz, czy wszystko wygląda poprawnie.',

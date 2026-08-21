@@ -51,13 +51,11 @@ const mockLocalize: ReturnType<typeof useLocalize> = {
     datetimeToCalendarTime: () => '',
     formatPhoneNumber: (value: string) => value,
     toLocaleDigit: () => '',
-    toLocaleOrdinal: () => '',
     toLocaleOrdinalWithWords: () => '',
     fromLocaleDigit: () => '',
     localeCompare: (first: string, second: string) => first.localeCompare(second),
     formatTravelDate: () => '',
-    preferredLocale: CONST.LOCALES.DEFAULT,
-    dateFnsLocale: undefined,
+    preferredLocale: CONST.LOCALES.EN,
 };
 
 let mockPersonalDetails: PersonalDetailsList = {};

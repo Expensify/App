@@ -43,7 +43,7 @@ type OnboardingHelpButtonProps = {
 const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1);
 
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const StyleUtils = useStyleUtils();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
@@ -77,32 +77,29 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             },
         });
     }
-
     if (hasActiveScheduledCall && latestScheduledCall) {
-        options.push({
-            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT, {locale: dateFnsLocale})}, ${DateUtils.formatInTimeZoneWithFallback(
-                latestScheduledCall.eventTime,
-                userTimezone,
-                CONST.DATE.MONTH_DAY_YEAR_FORMAT,
-                {locale: dateFnsLocale},
-            )}`,
-            value: CONST.ONBOARDING_HELP.EVENT_TIME,
-            description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
-                addMinutes(latestScheduledCall.eventTime, 30),
-                userTimezone,
-                CONST.DATE.LOCAL_TIME_FORMAT,
-                {locale: dateFnsLocale},
-            )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
-            descriptionTextStyle: [styles.themeTextColor, styles.ml2],
-            displayInDefaultIconColor: true,
-            icon: illustrations.HeadSet,
-            iconWidth: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
-            iconHeight: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
-            wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
-            interactive: false,
-            titleStyle: styles.ml2,
-            avatarSize: CONST.AVATAR_SIZE.LARGE,
-        });
+        const eventDate = DateUtils.toUTCDate(latestScheduledCall.eventTime);
+        const weekday = DateUtils.formatInTimeZoneToWeekday(eventDate, userTimezone, preferredLocale);
+        const longDate = DateUtils.formatInTimeZoneToLong(eventDate, userTimezone, preferredLocale);
+        const startTime = DateUtils.formatInTimeZoneToShortTime(eventDate, userTimezone, preferredLocale);
+        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(eventDate, 30), userTimezone, preferredLocale);
+        // Only the display row depends on the formatters. Reschedule and Cancel stay reachable either way.
+        if (weekday && longDate && startTime && endTime) {
+            options.push({
+                text: `${weekday}, ${longDate}`,
+                value: CONST.ONBOARDING_HELP.EVENT_TIME,
+                description: `${startTime} - ${endTime} ${DateUtils.getZoneAbbreviation(eventDate, userTimezone)}`,
+                descriptionTextStyle: [styles.themeTextColor, styles.ml2],
+                displayInDefaultIconColor: true,
+                icon: illustrations.HeadSet,
+                iconWidth: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
+                iconHeight: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
+                wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
+                interactive: false,
+                titleStyle: styles.ml2,
+                avatarSize: CONST.AVATAR_SIZE.LARGE,
+            });
+        }
         options.push({
             text: translate('common.reschedule'),
             value: CONST.ONBOARDING_HELP.RESCHEDULE,

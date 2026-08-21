@@ -88,7 +88,7 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -472,12 +472,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const isCancelled = currentItemReport?.isCancelledIOU;
         const percentage = adjustedPercentages.at(index) ?? 0;
 
-        const date = DateUtils.formatWithUTCTimeZone(
-            item.created,
-            DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
-        previewHeaderText.unshift({text: date}, dotSeparator);
+        const date = DateUtils.formatTransactionListDate(item.created, preferredLocale);
+        // Skip when empty, else the row renders a leading orphan " · " before the type label.
+        if (date) {
+            previewHeaderText.unshift({text: date}, dotSeparator);
+        }
 
         if (isCancelled) {
             previewHeaderText.push(dotSeparator, {text: translate('iou.canceled')});

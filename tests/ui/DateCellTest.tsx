@@ -82,9 +82,8 @@ describe('DateCell', () => {
 
         await setPreferredLocale(CONST.LOCALES.EL);
 
-        // The cell stays mounted and its `date` prop never changes, so the language has to be a real input of the
-        // formatted date for this to update.
-        expect(screen.getByText('Νοε 7, 2024')).toBeOnTheScreen();
+        // Greek puts the day first, which a translated-token format would not, and the cell never remounts.
+        expect(screen.getByText('7 Νοε 2024')).toBeOnTheScreen();
         expect(screen.queryByText('Nov 7, 2024')).not.toBeOnTheScreen();
     });
 });

@@ -39,13 +39,9 @@ type RecentlyAddedRowProps = {
 function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview, rowStyle}: RecentlyAddedRowProps) {
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {dateFnsLocale} = useLocalize();
+    const {preferredLocale} = useLocalize();
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(
-        expense.created,
-        DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-        dateFnsLocale,
-    );
+    const formattedDate = DateUtils.formatTransactionListDate(expense.created, preferredLocale);
 
     const formattedAmount = convertToDisplayString(expense.amount, expense.currency);
 

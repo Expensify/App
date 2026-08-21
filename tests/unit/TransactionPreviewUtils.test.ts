@@ -23,7 +23,6 @@ import {convertToDisplayString, getCurrencyDecimalsLocal} from '../utils/TestHel
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
-    dateFnsLocale: undefined,
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD', getCurrencyDecimalsLocal),
     iouReportOwnerLogin: undefined,
     policy: undefined,
@@ -61,6 +60,7 @@ const basicProps = {
     currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
     reportViolations: undefined,
     convertToDisplayString,
+    preferredLocale: CONST.LOCALES.EN,
 };
 
 describe('TransactionPreviewUtils', () => {

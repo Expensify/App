@@ -180,7 +180,6 @@ const translations: TranslationDeepObject<typeof en> = {
         remove: '削除',
         admin: '管理者',
         owner: 'オーナー',
-        dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'カレンダーが開きました',
         dialogOpened: 'ダイアログ',
         send: '送信',
@@ -1913,7 +1912,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `毎月${eta}日に` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `毎月${eta}に` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -3892,7 +3891,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         industryClassificationCode: '業種分類コード',
         confirmCompanyIsNot: '私は、この会社が次のリストに掲載されていないことを確認します',
         listOfRestrictedBusinesses: '制限対象事業の一覧',
-        incorporationDatePlaceholder: '開始日 (yyyy-mm-dd)',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: '法人',
@@ -3956,7 +3954,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         selectYourCompanyIncorporationDate: '会社の法人設立日はいつですか？',
         incorporationDate: '設立日',
-        incorporationDatePlaceholder: '開始日 (yyyy-mm-dd)',
         incorporationState: '法人設立州',
         pleaseSelectTheStateYourCompanyWasIncorporatedIn: '会社はどの州で法人登記されていますか？',
         letsDoubleCheck: 'すべて正しく表示されているか、もう一度確認しましょう。',

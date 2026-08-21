@@ -47,6 +47,7 @@ import type {
     GpsDraftDetails,
     IntroSelected,
     LastSelectedDistanceRates,
+    Locale,
     PersonalDetailsList,
     Policy,
     QuickAction,
@@ -61,7 +62,6 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -278,7 +278,7 @@ function getMoneyRequestParticipantOptions(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report> | undefined,
     translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
+    preferredLocale: Locale,
 ): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
@@ -287,7 +287,7 @@ function getMoneyRequestParticipantOptions(
             ? getParticipantsOption(participant, personalDetails, translate)
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, {
                   translate,
-                  dateFnsLocale,
+                  preferredLocale,
               });
     });
 }

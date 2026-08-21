@@ -9,6 +9,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
 import type {
     Beta,
+    Locale,
     Login,
     PersonalDetails,
     PersonalDetailsList,
@@ -23,7 +24,6 @@ import type {
 } from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
@@ -113,10 +113,10 @@ type LazyHydrationContext = {
     conciergeReportID: string | undefined;
     currentUserAccountID: number;
 
-    /** Date-fns locale used when the option list was built. */
-    dateFnsLocale: DateFnsLocale | undefined;
+    /** Locale the option list was built in. */
+    preferredLocale: Locale;
 
-    /** Locale used when the option list was built. */
+    /** Translator bound to the active locale. */
     translate: LocalizedTranslate;
 };
 
@@ -206,7 +206,7 @@ type GetValidOptionsSharedConfig = {
 };
 
 type GetValidReportsConfig = {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     betas?: OnyxEntry<Beta[]>;
     includeMultipleParticipantReports?: boolean;
     showChatPreviewLine?: boolean;
@@ -263,7 +263,7 @@ type IsValidReportsConfig = Pick<
 };
 
 type GetOptionsConfig = {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
@@ -287,7 +287,7 @@ type GetOptionsConfig = {
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     searchValue: string | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     searchInputValue?: string;
@@ -344,7 +344,7 @@ type PreviewConfig = {
 };
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };

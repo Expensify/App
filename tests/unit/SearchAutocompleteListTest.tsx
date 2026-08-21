@@ -174,7 +174,7 @@ const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const CURRENT_USER_ACCOUNT_ID = 1;
 const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-    dateFnsLocale: undefined,
+    preferredLocale: CONST.LOCALES.EN,
     conciergeReportID: undefined,
     isSearching: true,
 });
@@ -449,7 +449,7 @@ describe('SearchAutocompleteList', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
@@ -538,7 +538,7 @@ describe('SearchAutocompleteList', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },

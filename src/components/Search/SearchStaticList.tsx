@@ -77,7 +77,7 @@ function SearchStaticList({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
     const personalDetails = usePersonalDetails();
@@ -101,7 +101,7 @@ function SearchStaticList({
         }
 
         const [filteredData] = getSections({
-            dateFnsLocale,
+            preferredLocale,
             type,
             data: searchData,
             currentAccountID: accountID,

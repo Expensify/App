@@ -10,6 +10,7 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -53,7 +54,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -180,7 +180,11 @@ function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
     return subRates.reduce((total, subRate) => total + subRate.quantity * subRate.rate, 0);
 }
 
-function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>, dateFnsLocale: DateFnsLocale | undefined) {
+/**
+ * Persisted wire value that consumers parse positionally on `', '`. The range stays enUS-pinned because `'MMM d, yyyy'`
+ * is the only shape guaranteeing that comma count in every language. Localized rendering reads `attributes.dates`.
+ */
+function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>) {
     if (!customUnit.customUnitRateID) {
         return '';
     }
@@ -192,8 +196,15 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     if (!startDate || !endDate) {
         return locationName;
     }
-    const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate), dateFnsLocale);
-    return `${locationName}, ${formattedTime}`;
+    // `attributes.dates` holds space-separated wire timestamps, which Hermes parses as Invalid Date and date-fns `format`
+    // then throws on, aborting the whole submit. The location alone is a better merchant than no expense at all.
+    const start = DateUtils.toLocalDate(startDate);
+    const end = DateUtils.toLocalDate(endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        Log.warn('[PerDiem] unparsable expense dates; the merchant will carry the location only', {startDate, endDate});
+        return locationName;
+    }
+    return `${locationName}, ${DateUtils.getStablePerDiemMerchantDateRange(start, end)}`;
 }
 
 function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, decimals: number) {
@@ -224,7 +235,6 @@ type RecentlyUsedParams = {
 };
 
 type PerDiemExpenseInformation = {
-    dateFnsLocale: DateFnsLocale | undefined;
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -254,7 +264,6 @@ type PerDiemExpenseInformation = {
 };
 
 type PerDiemExpenseInformationParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     transactionParams: PerDiemExpenseTransactionParams;
     participantParams: RequestMoneyParticipantParams;
@@ -282,7 +291,6 @@ type PerDiemExpenseInformationParams = {
 };
 
 type PerDiemExpenseInformationForSelfDM = {
-    dateFnsLocale: DateFnsLocale | undefined;
     selfDMReport: OnyxTypes.Report | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     transactionParams: PerDiemExpenseTransactionParams;
@@ -361,7 +369,6 @@ function getPerDiemExpensePolicyID({report, participantParams, existingIOUReport
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
     const {
-        dateFnsLocale,
         parentChatReport,
         transactionParams,
         participantParams,
@@ -392,7 +399,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
-    const merchant = computePerDiemExpenseMerchant(customUnit, policy, dateFnsLocale);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
     const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
     const finalComment = comment || defaultComment;
 
@@ -664,22 +671,12 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to submit a per diem expense from self DM.
  */
 function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDiemExpenseInformationForSelfDM): PerDiemExpenseInformationForSelfDMResult {
-    const {
-        dateFnsLocale,
-        selfDMReport,
-        transactionParams,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        quickAction,
-        optimisticChatReportID,
-        delegateAccountID,
-        getCurrencyDecimals,
-    } = perDiemExpenseInformation;
+    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID, getCurrencyDecimals} =
+        perDiemExpenseInformation;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
-    const merchant = computePerDiemExpenseMerchant(customUnit, policy, dateFnsLocale);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
     const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
     const finalComment = comment || defaultComment;
 
@@ -1009,7 +1006,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
-        dateFnsLocale,
         getCurrencyDecimals,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
@@ -1044,7 +1040,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         billable,
         reimbursable,
     } = getPerDiemExpenseInformation({
-        dateFnsLocale,
         parentChatReport: currentChatReport,
         participantParams,
         policyParams,
@@ -1138,7 +1133,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
     const {
-        dateFnsLocale,
         selfDMReport,
         policy,
         transactionParams,
@@ -1164,7 +1158,6 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     }
 
     const {chatReport, transaction, iouAction, transactionThreadReportID, createdReportActionIDForThread, onyxData} = getPerDiemExpenseInformationForSelfDM({
-        dateFnsLocale,
         getCurrencyDecimals,
         selfDMReport,
         policy,

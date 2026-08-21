@@ -41,12 +41,12 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
+import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
@@ -2100,7 +2100,7 @@ function getCardHintText(
     validFrom: string | undefined,
     validThru: string | undefined,
     assigneeTimeZone: SelectedTimezone | undefined,
-    dateFnsLocale: DateFnsLocale | undefined,
+    preferredLocale: Locale,
     translate: LocalizedTranslate,
 ) {
     if (!validFrom || !validThru) {
@@ -2108,7 +2108,7 @@ function getCardHintText(
     }
     const formatDateForDisplay = (utcDateTime: string): string => {
         const dateInTimezone = DateUtils.formatUTCDateTimeToDateInTimezone(utcDateTime, assigneeTimeZone);
-        return dateInTimezone ? DateUtils.formatToReadableString(dateInTimezone, dateFnsLocale) : '';
+        return dateInTimezone ? DateUtils.formatToReadableString(dateInTimezone, preferredLocale) : '';
     };
     const startDate = formatDateForDisplay(validFrom);
     const endDate = formatDateForDisplay(validThru);

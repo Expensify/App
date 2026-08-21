@@ -1,3 +1,4 @@
+import {registerDerivedIntlCache} from '@libs/IntlFormatterCaches';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
@@ -14,6 +15,9 @@ import Onyx from 'react-native-onyx';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
+
+// One warning per locale pair, not per key: the fallback branch runs for every string in the app while a locale loads.
+const warnedFallbackLocalePairs = new Set<string>();
 
 // TODO: Remove this Onyx.connectWithoutView after deprecating translateLocal (#64943) and completing Onyx.connect deprecation - see https://github.com/Expensify/App/issues/66329
 Onyx.connectWithoutView({
@@ -36,6 +40,13 @@ const memoizedCreateConjunctionListFormat = memoize(createConjunctionListFormat)
 
 const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
 const memoizedCreatePluralRules = memoize(createPluralRules);
+
+// Both hold Intl instances that resolve their locale at construction, so one built before that locale's polyfill data
+// landed is stuck on English until the data arrives and drops it.
+registerDerivedIntlCache(() => {
+    memoizedCreateConjunctionListFormat.cache.clear();
+    memoizedCreatePluralRules.cache.clear();
+});
 
 /**
  * Helper function to get the translated string for given
@@ -108,12 +119,21 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
 /**
  * Return translated string for given locale and phrase
  *
- * @param [locale] eg 'en', 'es'
+ * @param locale eg 'en', 'es'. Always defined, since LocaleContextProvider and IntlStore.getCurrentLocale guarantee it.
  * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TPath extends TranslationPaths>(locale: Locale | undefined, path: TPath, ...parameters: TranslationParameters<TPath>): string {
-    if (!locale) {
-        // If no language is provided, return the path as is
+function translate<TPath extends TranslationPaths>(locale: Locale, path: TPath, ...parameters: TranslationParameters<TPath>): string {
+    if (!IntlStore.hasLocale(locale)) {
+        // Beats a raw dotted path, but it is the wrong language, so warn: a caller that persists it cannot correct it later.
+        const currentLocale = IntlStore.getCurrentLocale();
+        if (currentLocale !== locale && IntlStore.hasLocale(currentLocale)) {
+            const pair = `${locale}>${currentLocale}`;
+            if (!warnedFallbackLocalePairs.has(pair)) {
+                warnedFallbackLocalePairs.add(pair);
+                Log.warn('[Localize] Translating in a fallback locale because the requested one is not loaded', {requested: locale, used: currentLocale, path});
+            }
+            return translate(currentLocale, path, ...parameters);
+        }
         return Array.isArray(path) ? path.join('.') : path;
     }
 
@@ -122,8 +142,7 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
         return translatedPhrase;
     }
 
-    // Phrase is not found in default language, on production and staging log an alert to server
-    // on development throw an error
+    // Locale is loaded but the key genuinely doesn't exist, so alert in prod and staging, throw in dev.
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = Array.isArray(path) ? path.join('.') : path;
         Log.alert(`${phraseString} was not found in the ${locale} locale`);
@@ -146,7 +165,7 @@ function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parame
 }
 
 function getPreferredListFormat(): Intl.ListFormat {
-    return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT);
+    return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale());
 }
 
 /**

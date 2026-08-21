@@ -4463,7 +4463,7 @@ describe('ReportActionsUtils', () => {
                     newValue: true,
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action);
             expect(actual).toBe('enabled the Distance rate "Default Rate"');
         });
 
@@ -4480,7 +4480,7 @@ describe('ReportActionsUtils', () => {
                     newValue: false,
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action);
             expect(actual).toBe('disabled the Distance rate "Default Rate"');
         });
 
@@ -4497,7 +4497,7 @@ describe('ReportActionsUtils', () => {
                     newValue: 'Custom Rate',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action);
             expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
         });
 
@@ -4517,7 +4517,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'ARS',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action);
             expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "ARS 1.40" (previously "ARS 1.30")');
         });
 
@@ -4534,7 +4534,7 @@ describe('ReportActionsUtils', () => {
                     newValue: '$0.55',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action);
             expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "$0.55" (previously "$0.50")');
         });
 
@@ -4550,7 +4550,7 @@ describe('ReportActionsUtils', () => {
                     newStartDate: '2026-04-01',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 (previously for all dates)');
         });
 
@@ -4569,7 +4569,7 @@ describe('ReportActionsUtils', () => {
                     oldEndDate: '2026-04-30',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 - May 31, 2026 (previously March 1, 2026 - April 30, 2026)');
         });
 
@@ -4586,7 +4586,7 @@ describe('ReportActionsUtils', () => {
                     oldEndDate: '2026-04-30',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply until May 31, 2026 (previously until April 30, 2026)');
         });
 
@@ -4603,7 +4603,7 @@ describe('ReportActionsUtils', () => {
                     oldEndDate: '2026-04-30',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
         });
     });
@@ -5288,7 +5288,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, CONST.LOCALES.EN, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then the message shows the last 4 digits of the account that funded the payment
             const expected = `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '4321')}${translateLocal('iou.reimbursedWithACH', {
@@ -5306,7 +5306,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, CONST.LOCALES.EN, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             expect(result).toBe(
                 `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
@@ -5326,7 +5326,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, CONST.LOCALES.EN, action, 2, undefined, undefined, convertToDisplayString);
 
             // Then the message reports the credited amount instead of the report total and names both accounts
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
@@ -5341,7 +5341,7 @@ describe('ReportActionsUtils', () => {
                 creditedAmount: 8050,
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, CONST.LOCALES.EN, action, 2, undefined, undefined, convertToDisplayString);
 
             // Then we describe the payment without an amount rather than guessing a currency
             expect(result).toBe(
@@ -5363,7 +5363,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, CONST.LOCALES.EN, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
 
             // Then the message announces the submitter taking the report off hold rather than the credited amount
             expect(result).toBe(
@@ -5386,7 +5386,7 @@ describe('ReportActionsUtils', () => {
 
             const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(
                 translateLocal,
-                undefined,
+                CONST.LOCALES.EN,
                 action,
                 ownerAccountID,
                 submitterLogin,
@@ -5397,7 +5397,7 @@ describe('ReportActionsUtils', () => {
             expect(resultCurrentUser).toContain('your');
             expect(resultCurrentUser).not.toContain(submitterLogin);
 
-            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, CONST.LOCALES.EN, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
             expect(resultOtherUser).not.toContain('your');
         });
@@ -5414,7 +5414,7 @@ describe('ReportActionsUtils', () => {
 
             const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(
                 translateLocal,
-                undefined,
+                CONST.LOCALES.EN,
                 action,
                 ownerAccountID,
                 submitterLogin,
@@ -5424,7 +5424,7 @@ describe('ReportActionsUtils', () => {
             );
             expect(resultCurrentUser).toContain('your');
 
-            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, CONST.LOCALES.EN, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
         });
     });

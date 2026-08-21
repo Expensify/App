@@ -1,4 +1,6 @@
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
+import {refreshIntlFormatterCaches} from '@libs/IntlFormatterCaches';
+import Log from '@libs/Log';
 import {endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
@@ -8,10 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type DynamicModule from '@src/types/utils/DynamicModule';
 import retryDynamicImport from '@src/utils/retryDynamicImport';
 
-import type {Locale as DateUtilsLocale} from 'date-fns';
-
 import * as Sentry from '@sentry/react-native';
-import {setDefaultOptions} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type de from './de';
@@ -28,10 +27,11 @@ import type {FlatTranslationsObject, TranslationPaths} from './types';
 import type zhHans from './zh-hans';
 
 import flattenObject from './flattenObject';
-import {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules} from './shouldPolyfill';
+import {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules, shouldPolyfillRelativeTimeFormat} from './shouldPolyfill';
 
 // This function was added here to avoid circular dependencies
 function setAreTranslationsLoading(areTranslationsLoading: boolean) {
+    // No module-level mirror: `Onyx.clear()` resets this key independently, so a mirror would fall out of step.
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, areTranslationsLoading);
 }
@@ -39,202 +39,229 @@ function setAreTranslationsLoading(areTranslationsLoading: boolean) {
 // Scopes the dynamic-import retry state per locale
 const LOCALE_RETRY_KEY_PREFIX = 'locale:';
 
-class IntlStore {
-    private static currentLocale: Locale | undefined = undefined;
+/** Degrading one Intl API to English beats rejecting the `Promise.all` and discarding the translations with it. */
+function loadOptionalData(dataImport: Promise<unknown> | false, locale: Locale): Promise<void> {
+    if (!dataImport) {
+        return Promise.resolve();
+    }
+    return dataImport.then(
+        () => undefined,
+        (error: unknown) => {
+            Log.warn('[IntlStore] Intl polyfill locale data failed to load; that API falls back to English', {locale, error});
+        },
+    );
+}
 
-    /**
-     * Cache for translations
-     */
+class IntlStore {
+    private static currentLocale: Locale = LOCALES.DEFAULT;
+
+    private static listeners = new Set<() => void>();
+
+    /** No eager EN pre-seed. The splash gate covers cold-start flash, and pre-seeding would drag ~150 KB gzip into every bundle. */
     private static cache = new Map<Locale, FlatTranslationsObject>();
 
     /**
-     * Cache for localized date-fns
-     * @private
-     */
-    private static dateUtilsCache = new Map<Locale, DateUtilsLocale>();
-
-    /**
-     * Set of loaders for each locale.
-     * Note that this can't be trivially DRYed up because dynamic imports must use string literals in metro: https://github.com/facebook/metro/issues/52
+     * Can't be DRYed up because dynamic imports must use string literals in metro: https://github.com/facebook/metro/issues/52
      * @formatjs locale data is keyed by the base CLDR tag, so pt covers pt-BR and zh covers zh-hans.
+     * `cache.set` runs after `Promise.all`, so `cache.has(locale)` is true only once every import has settled.
      */
-    private static loaders: Record<Locale, () => Promise<unknown[]>> = {
+    private static loaders: Record<Locale, () => Promise<void>> = {
         [LOCALES.DE]: () =>
             this.cache.has(LOCALES.DE)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./de').then((module: DynamicModule<typeof de>) => {
-                          this.cache.set(LOCALES.DE, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/de').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.DE, module.de);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.DE) ? import('@formatjs/intl-numberformat/locale-data/de') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.DE) ? import('@formatjs/intl-listformat/locale-data/de') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.DE) ? import('@formatjs/intl-pluralrules/locale-data/de') : Promise.resolve(),
-                  ]),
+                      import('./de'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.DE) && import('@formatjs/intl-numberformat/locale-data/de'), LOCALES.DE),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.DE) && import('@formatjs/intl-listformat/locale-data/de'), LOCALES.DE),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.DE) && import('@formatjs/intl-pluralrules/locale-data/de'), LOCALES.DE),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.DE) && import('@formatjs/intl-relativetimeformat/locale-data/de'), LOCALES.DE),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.DE, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof de>)));
+                  }),
         [LOCALES.EL]: () =>
             this.cache.has(LOCALES.EL)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./el').then((module: DynamicModule<typeof el>) => {
-                          this.cache.set(LOCALES.EL, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/el').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.EL, module.el);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.EL) ? import('@formatjs/intl-numberformat/locale-data/el') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.EL) ? import('@formatjs/intl-listformat/locale-data/el') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.EL) ? import('@formatjs/intl-pluralrules/locale-data/el') : Promise.resolve(),
-                  ]),
+                      import('./el'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.EL) && import('@formatjs/intl-numberformat/locale-data/el'), LOCALES.EL),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.EL) && import('@formatjs/intl-listformat/locale-data/el'), LOCALES.EL),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.EL) && import('@formatjs/intl-pluralrules/locale-data/el'), LOCALES.EL),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.EL) && import('@formatjs/intl-relativetimeformat/locale-data/el'), LOCALES.EL),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.EL, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof el>)));
+                  }),
         [LOCALES.EN]: () =>
             this.cache.has(LOCALES.EN)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./en').then((module: DynamicModule<typeof en>) => {
-                          this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/en-GB').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.EN, module.enGB);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.EN) ? import('@formatjs/intl-numberformat/locale-data/en') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.EN) ? import('@formatjs/intl-listformat/locale-data/en') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.EN) ? import('@formatjs/intl-pluralrules/locale-data/en') : Promise.resolve(),
-                  ]),
+                      import('./en'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.EN) && import('@formatjs/intl-numberformat/locale-data/en'), LOCALES.EN),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.EN) && import('@formatjs/intl-listformat/locale-data/en'), LOCALES.EN),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.EN) && import('@formatjs/intl-pluralrules/locale-data/en'), LOCALES.EN),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.EN) && import('@formatjs/intl-relativetimeformat/locale-data/en'), LOCALES.EN),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof en>)));
+                  }),
         [LOCALES.ES]: () =>
             this.cache.has(LOCALES.ES)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./es').then((module: DynamicModule<typeof es>) => {
-                          this.cache.set(LOCALES.ES, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/es').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.ES, module.es);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.ES) ? import('@formatjs/intl-numberformat/locale-data/es') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.ES) ? import('@formatjs/intl-listformat/locale-data/es') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.ES) ? import('@formatjs/intl-pluralrules/locale-data/es') : Promise.resolve(),
-                  ]),
+                      import('./es'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.ES) && import('@formatjs/intl-numberformat/locale-data/es'), LOCALES.ES),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.ES) && import('@formatjs/intl-listformat/locale-data/es'), LOCALES.ES),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.ES) && import('@formatjs/intl-pluralrules/locale-data/es'), LOCALES.ES),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.ES) && import('@formatjs/intl-relativetimeformat/locale-data/es'), LOCALES.ES),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.ES, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof es>)));
+                  }),
         [LOCALES.FR]: () =>
             this.cache.has(LOCALES.FR)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./fr').then((module: DynamicModule<typeof fr>) => {
-                          this.cache.set(LOCALES.FR, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/fr').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.FR, module.fr);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.FR) ? import('@formatjs/intl-numberformat/locale-data/fr') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.FR) ? import('@formatjs/intl-listformat/locale-data/fr') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.FR) ? import('@formatjs/intl-pluralrules/locale-data/fr') : Promise.resolve(),
-                  ]),
+                      import('./fr'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.FR) && import('@formatjs/intl-numberformat/locale-data/fr'), LOCALES.FR),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.FR) && import('@formatjs/intl-listformat/locale-data/fr'), LOCALES.FR),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.FR) && import('@formatjs/intl-pluralrules/locale-data/fr'), LOCALES.FR),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.FR) && import('@formatjs/intl-relativetimeformat/locale-data/fr'), LOCALES.FR),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.FR, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof fr>)));
+                  }),
         [LOCALES.IT]: () =>
             this.cache.has(LOCALES.IT)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./it').then((module: DynamicModule<typeof it>) => {
-                          this.cache.set(LOCALES.IT, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/it').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.IT, module.it);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.IT) ? import('@formatjs/intl-numberformat/locale-data/it') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.IT) ? import('@formatjs/intl-listformat/locale-data/it') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.IT) ? import('@formatjs/intl-pluralrules/locale-data/it') : Promise.resolve(),
-                  ]),
+                      import('./it'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.IT) && import('@formatjs/intl-numberformat/locale-data/it'), LOCALES.IT),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.IT) && import('@formatjs/intl-listformat/locale-data/it'), LOCALES.IT),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.IT) && import('@formatjs/intl-pluralrules/locale-data/it'), LOCALES.IT),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.IT) && import('@formatjs/intl-relativetimeformat/locale-data/it'), LOCALES.IT),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.IT, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof it>)));
+                  }),
         [LOCALES.JA]: () =>
             this.cache.has(LOCALES.JA)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./ja').then((module: DynamicModule<typeof ja>) => {
-                          this.cache.set(LOCALES.JA, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/ja').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.JA, module.ja);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.JA) ? import('@formatjs/intl-numberformat/locale-data/ja') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.JA) ? import('@formatjs/intl-listformat/locale-data/ja') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.JA) ? import('@formatjs/intl-pluralrules/locale-data/ja') : Promise.resolve(),
-                  ]),
+                      import('./ja'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.JA) && import('@formatjs/intl-numberformat/locale-data/ja'), LOCALES.JA),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.JA) && import('@formatjs/intl-listformat/locale-data/ja'), LOCALES.JA),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.JA) && import('@formatjs/intl-pluralrules/locale-data/ja'), LOCALES.JA),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.JA) && import('@formatjs/intl-relativetimeformat/locale-data/ja'), LOCALES.JA),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.JA, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof ja>)));
+                  }),
         [LOCALES.NL]: () =>
             this.cache.has(LOCALES.NL)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./nl').then((module: DynamicModule<typeof nl>) => {
-                          this.cache.set(LOCALES.NL, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/nl').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.NL, module.nl);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.NL) ? import('@formatjs/intl-numberformat/locale-data/nl') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.NL) ? import('@formatjs/intl-listformat/locale-data/nl') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.NL) ? import('@formatjs/intl-pluralrules/locale-data/nl') : Promise.resolve(),
-                  ]),
+                      import('./nl'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.NL) && import('@formatjs/intl-numberformat/locale-data/nl'), LOCALES.NL),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.NL) && import('@formatjs/intl-listformat/locale-data/nl'), LOCALES.NL),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.NL) && import('@formatjs/intl-pluralrules/locale-data/nl'), LOCALES.NL),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.NL) && import('@formatjs/intl-relativetimeformat/locale-data/nl'), LOCALES.NL),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.NL, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof nl>)));
+                  }),
         [LOCALES.PL]: () =>
             this.cache.has(LOCALES.PL)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./pl').then((module: DynamicModule<typeof pl>) => {
-                          this.cache.set(LOCALES.PL, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/pl').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.PL, module.pl);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.PL) ? import('@formatjs/intl-numberformat/locale-data/pl') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.PL) ? import('@formatjs/intl-listformat/locale-data/pl') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.PL) ? import('@formatjs/intl-pluralrules/locale-data/pl') : Promise.resolve(),
-                  ]),
+                      import('./pl'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.PL) && import('@formatjs/intl-numberformat/locale-data/pl'), LOCALES.PL),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.PL) && import('@formatjs/intl-listformat/locale-data/pl'), LOCALES.PL),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.PL) && import('@formatjs/intl-pluralrules/locale-data/pl'), LOCALES.PL),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.PL) && import('@formatjs/intl-relativetimeformat/locale-data/pl'), LOCALES.PL),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.PL, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof pl>)));
+                  }),
         [LOCALES.PT_BR]: () =>
             this.cache.has(LOCALES.PT_BR)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./pt-BR').then((module: DynamicModule<typeof ptBR>) => {
-                          this.cache.set(LOCALES.PT_BR, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/pt-BR').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.PT_BR, module.ptBR);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.PT_BR) ? import('@formatjs/intl-numberformat/locale-data/pt') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.PT_BR) ? import('@formatjs/intl-listformat/locale-data/pt') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.PT_BR) ? import('@formatjs/intl-pluralrules/locale-data/pt') : Promise.resolve(),
-                  ]),
+                      import('./pt-BR'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.PT_BR) && import('@formatjs/intl-numberformat/locale-data/pt'), LOCALES.PT_BR),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.PT_BR) && import('@formatjs/intl-listformat/locale-data/pt'), LOCALES.PT_BR),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.PT_BR) && import('@formatjs/intl-pluralrules/locale-data/pt'), LOCALES.PT_BR),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.PT_BR) && import('@formatjs/intl-relativetimeformat/locale-data/pt'), LOCALES.PT_BR),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.PT_BR, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof ptBR>)));
+                  }),
         [LOCALES.ZH_HANS]: () =>
             this.cache.has(LOCALES.ZH_HANS)
-                ? Promise.all([Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve(), Promise.resolve()])
+                ? Promise.resolve()
                 : Promise.all([
-                      import('./zh-hans').then((module: DynamicModule<typeof zhHans>) => {
-                          this.cache.set(LOCALES.ZH_HANS, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/zh-CN').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.ZH_HANS, module.zhCN);
-                      }),
-                      shouldPolyfillNumberFormat(LOCALES.ZH_HANS) ? import('@formatjs/intl-numberformat/locale-data/zh') : Promise.resolve(),
-                      shouldPolyfillListFormat(LOCALES.ZH_HANS) ? import('@formatjs/intl-listformat/locale-data/zh') : Promise.resolve(),
-                      shouldPolyfillPluralRules(LOCALES.ZH_HANS) ? import('@formatjs/intl-pluralrules/locale-data/zh') : Promise.resolve(),
-                  ]),
+                      import('./zh-hans'),
+                      loadOptionalData(shouldPolyfillNumberFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-numberformat/locale-data/zh'), LOCALES.ZH_HANS),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-listformat/locale-data/zh'), LOCALES.ZH_HANS),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.ZH_HANS) && import('@formatjs/intl-pluralrules/locale-data/zh'), LOCALES.ZH_HANS),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-relativetimeformat/locale-data/zh'), LOCALES.ZH_HANS),
+                  ]).then(([module]) => {
+                      this.cache.set(LOCALES.ZH_HANS, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof zhHans>)));
+                  }),
     };
 
-    public static getCurrentLocale() {
-        return this.currentLocale;
+    /**
+     * `useSyncExternalStore` calls these detached from the class. `this: void` enforces the contract in the
+     * types, and bodies reference `IntlStore.x` rather than `this.x` to enforce it at runtime.
+     */
+    public static subscribe(this: void, listener: () => void): () => void {
+        IntlStore.listeners.add(listener);
+        return () => {
+            IntlStore.listeners.delete(listener);
+        };
+    }
+
+    public static getCurrentLocale(this: void): Locale {
+        return IntlStore.currentLocale;
+    }
+
+    /** Distinguishes "not loaded yet" from a genuinely missing translation. */
+    public static hasLocale(this: void, locale: Locale): boolean {
+        return IntlStore.cache.has(locale);
     }
 
     /**
-     * Returns the date-fns locale to format dates in, which is undefined until that locale's date-fns module has loaded.
-     *
-     * Callers pass the locale they are rendering with so that a formatted date re-renders when the user switches
-     * language. That relies on `load()` populating `dateUtilsCache` before it sets `currentLocale`: the loader promise
-     * resolves first, so by the time anything can ask for the new locale its date-fns module is already cached.
+     * Seeds the real singleton, which a mock module cannot do. Skips the Onyx write and span that `load()` does.
      */
-    public static getDateFnsLocale(locale: Locale | undefined) {
-        return locale ? this.dateUtilsCache.get(locale) : undefined;
+    public static seedForTests(locale: Locale, translations: FlatTranslationsObject): void {
+        IntlStore.cache.set(locale, translations);
+        // The splash gate reads the snapshot, not the Onyx flag, so notifying is enough to clear it.
+        IntlStore.notifyListeners();
+    }
+
+    private static loadToken = 0;
+
+    /** An object, not the locale string: React bails on `Object.is`, which would swallow a cache fill under one locale. */
+    private static snapshot: {locale: Locale; isCurrentLocaleLoaded: boolean} = {locale: LOCALES.DEFAULT, isCurrentLocaleLoaded: false};
+
+    public static getSnapshot(this: void): {locale: Locale; isCurrentLocaleLoaded: boolean} {
+        return IntlStore.snapshot;
+    }
+
+    /** Fresh snapshot identity on every emit, so a content-only change still re-renders. Call only after mutating `currentLocale` or `cache`, never speculatively. */
+    private static notifyListeners() {
+        // A superseded load caches a locale nothing renders in, so `size > 0` would lift the splash onto path strings.
+        const isCurrentLocaleLoaded = IntlStore.cache.has(IntlStore.currentLocale);
+        // Compared by reference, so an identical snapshot would re-render the app root for nothing.
+        if (IntlStore.snapshot.locale === IntlStore.currentLocale && IntlStore.snapshot.isCurrentLocaleLoaded === isCurrentLocaleLoaded) {
+            return;
+        }
+        IntlStore.snapshot = {locale: IntlStore.currentLocale, isCurrentLocaleLoaded};
+        for (const listener of IntlStore.listeners) {
+            listener();
+        }
     }
 
     public static load(locale: Locale) {
-        if (this.currentLocale === locale) {
+        if (IntlStore.currentLocale === locale && IntlStore.cache.has(locale)) {
+            // Bump the token so an in-flight earlier load() is invalidated, otherwise its `.then` commits a stale locale.
+            IntlStore.loadToken++;
+            // Reset here, because the discarded load's `.then` bails on the token check before reaching its own reset.
+            setAreTranslationsLoading(false);
             return Promise.resolve();
         }
-        const loaderPromise = this.loaders[locale];
+        const loaderPromise = IntlStore.loaders[locale];
+        const token = ++IntlStore.loadToken;
         setAreTranslationsLoading(true);
 
         const localeSpan = getSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT);
@@ -251,39 +278,62 @@ class IntlStore {
         // deploy) would otherwise reject unhandled and permanently block the boot splash gate in Expensify.tsx.
         return retryDynamicImport(loaderPromise, `${LOCALE_RETRY_KEY_PREFIX}${locale}`)
             .then(() => {
-                this.currentLocale = locale;
-                // Set the default date-fns locale
-                const dateUtilsLocale = this.dateUtilsCache.get(locale);
-                if (dateUtilsLocale) {
-                    setDefaultOptions({locale: dateUtilsLocale});
+                // Superseded, so let the newer call commit the locale. Still notify: the cache grew either way.
+                if (IntlStore.loadToken !== token) {
+                    IntlStore.notifyListeners();
+                    return;
                 }
-                setAreTranslationsLoading(false);
-
+                IntlStore.currentLocale = locale;
+                // Must follow the commit: a refresh running under the previous locale cannot evict what it targets.
+                refreshIntlFormatterCaches();
+                IntlStore.notifyListeners();
                 if (localeSpan) {
                     endSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
                 }
             })
             .catch((error: unknown) => {
-                if (localeSpan) {
-                    endSpanWithAttributes(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {[CONST.TELEMETRY.ATTRIBUTE_FAILED]: true});
-                }
-
-                // Recovery is exhausted: the locale never resolves and the boot splash intentionally stays up —
-                // with no translations in memory any screen would render raw translation keys. Report the cause
-                // so the stuck splash is diagnosable in Sentry.
+                Log.warn('[IntlStore] locale chunk failed to load', {locale, error});
                 Sentry.captureException(error, {
                     fingerprint: ['locale-load-failed'],
                     extra: {locale},
                 });
+                // Only stamp the span this call started. A superseded load shares the span id, so it would blame the successor.
+                if (localeSpan && IntlStore.loadToken === token) {
+                    endSpanWithAttributes(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {[CONST.TELEMETRY.ATTRIBUTE_FAILED]: true});
+                }
+                // Same question the splash gate asks. A merely non-empty cache would skip the fallback and strand the boot.
+                if (IntlStore.loadToken !== token || IntlStore.cache.has(IntlStore.currentLocale) || locale === LOCALES.DEFAULT) {
+                    // Publish whatever a superseded load already cached, else the gate never sees it and the splash sticks.
+                    IntlStore.notifyListeners();
+                    return;
+                }
+                return retryDynamicImport(IntlStore.loaders[LOCALES.DEFAULT], `${LOCALE_RETRY_KEY_PREFIX}${LOCALES.DEFAULT}`)
+                    .then(() => {
+                        if (IntlStore.loadToken !== token) {
+                            return;
+                        }
+                        IntlStore.currentLocale = LOCALES.DEFAULT;
+                        refreshIntlFormatterCaches();
+                        IntlStore.notifyListeners();
+                    })
+                    .catch((fallbackError: unknown) => {
+                        // Nothing left to render, so the splash stays up by design.
+                        Log.warn('[IntlStore] default-locale fallback also failed; boot splash stays up', {locale, fallbackError});
+                        Sentry.captureException(fallbackError, {fingerprint: ['locale-load-failed'], extra: {locale: LOCALES.DEFAULT}});
+                    });
+            })
+            .finally(() => {
+                // Same question again, so OnyxDerived cannot start deriving from a locale that has no translations.
+                if (IntlStore.loadToken !== token || !IntlStore.cache.has(IntlStore.currentLocale)) {
+                    return;
+                }
+                setAreTranslationsLoading(false);
             });
     }
 
     public static get<TPath extends TranslationPaths>(key: TPath, locale?: Locale) {
-        const localeToUse = locale && this.cache.has(locale) ? locale : this.currentLocale;
-        if (!localeToUse) {
-            return null;
-        }
-        const translations = this.cache.get(localeToUse);
+        const localeToUse = locale && IntlStore.cache.has(locale) ? locale : IntlStore.currentLocale;
+        const translations = IntlStore.cache.get(localeToUse);
         return translations?.[key] ?? null;
     }
 }

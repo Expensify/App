@@ -180,7 +180,6 @@ const translations: TranslationDeepObject<typeof en> = {
         remove: '移除',
         admin: '管理员',
         owner: '所有者',
-        dateFormat: 'YYYY-MM-DD',
         calendarOpened: '日历已打开',
         dialogOpened: '对话框',
         send: '发送',
@@ -1857,7 +1856,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每个月的 ${eta} 日` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每个月的 ${eta}` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -3800,7 +3799,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         industryClassificationCode: '行业分类代码',
         confirmCompanyIsNot: '我确认此公司不在',
         listOfRestrictedBusinesses: '受限业务列表',
-        incorporationDatePlaceholder: '开始日期 (yyyy-mm-dd)',
         incorporationTypes: {
             LLC: '有限责任公司',
             CORPORATION: '公司',
@@ -3864,7 +3862,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         selectYourCompanyIncorporationDate: '贵公司是什么时候成立的？',
         incorporationDate: '成立日期',
-        incorporationDatePlaceholder: '开始日期 (yyyy-mm-dd)',
         incorporationState: '注册州',
         pleaseSelectTheStateYourCompanyWasIncorporatedIn: '贵公司是在哪个州注册成立的？',
         letsDoubleCheck: '我们再仔细检查一下，确保一切都正确。',

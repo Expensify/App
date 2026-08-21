@@ -23,7 +23,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {localeCompare, formatPhoneNumber, translate, dateFnsLocale} = useLocalize();
+    const {localeCompare, formatPhoneNumber, translate, preferredLocale} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -46,7 +46,7 @@ function useSearchSections(): UseSearchSectionsResult {
     let results: Array<string | undefined> = [];
     if (!!type && !!searchResultsData && !!searchResultsSearch) {
         const [searchData] = getSections({
-            dateFnsLocale,
+            preferredLocale,
             type,
             data: searchResultsData,
             currentAccountID,
