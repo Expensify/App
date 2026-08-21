@@ -34,6 +34,9 @@ const ONYXKEYS = {
     /** Contains the default rate and unit to use for P2P distance expenses, based on the user's personal policy outputCurrency (default / report currency). */
     DEFAULT_P2P_MILEAGE_RATE: 'defaultP2PMileageRate',
 
+    /** Government-published reference mileage rates, returned by OpenPolicyDistanceRatesPage */
+    GOVERNMENT_MILEAGE_RATES: 'governmentMileageRates',
+
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
 
@@ -1544,6 +1547,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
     [ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE]: DefaultP2PMileageRate;
+    [ONYXKEYS.GOVERNMENT_MILEAGE_RATES]: OnyxTypes.GovernmentMileageRate[];
 
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
