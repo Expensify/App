@@ -2,8 +2,9 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
-import {Activity, createElement} from 'react';
 import type {PropsWithChildren} from 'react';
+
+import {Activity, createElement} from 'react';
 
 type NavigationListener = (event: {data: Record<string, unknown>}) => void;
 type UseSingleExecution = () => {
