@@ -1,6 +1,7 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import type {OptionData} from '@libs/ReportUtils';
@@ -9,6 +10,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
 import type {
     Beta,
+    CardList,
     Login,
     PersonalDetails,
     PersonalDetailsList,
@@ -20,6 +22,7 @@ import type {
     ReportAttributesDerivedValue,
     TransactionViolation,
     VisibleReportActionsDerivedValue,
+    WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -281,6 +284,16 @@ type GetOptionsConfig = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
+    /** Derived one-transaction-thread reportIDs (RAM_ONLY_SORTED_REPORT_ACTIONS.transactionThreadIDs). */
+    transactionThreadIDs?: Record<string, string | undefined>;
+    /** Derived last (unfiltered) actions per report (RAM_ONLY_SORTED_REPORT_ACTIONS.lastActions). */
+    lastActions?: Record<string, ReportAction>;
+    currentUserLogin?: string;
+    cardList?: OnyxEntry<CardList>;
+    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
     isTrackIntentUser?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;

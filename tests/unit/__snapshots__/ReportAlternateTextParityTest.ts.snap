@@ -1,0 +1,291 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads ACTIONABLE_CARD_FRAUD_ALERT with resolution 1`] = `"cleared the suspicious activity and reactivated card x4444. All set to keep expensing!"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads ADD_INTEGRATION with connection name 1`] = `"connected to QuickBooks Online"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads CARD_ISSUED with card 1`] = `"issued @Hidden an Expensify Card! The card will arrive in 2-3 business days."`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads CARD_ISSUED without card 1`] = `"issued @Hidden an Expensify Card! The card will arrive in 2-3 business days."`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads DELETE_INTEGRATION with connection name 1`] = `"removed connection to Xero"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads MOVED_TRANSACTION with derived report name 1`] = `"moved this expense from another report"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads OldDot action SELECTED_FOR_RANDOM_AUDIT (markdown leak preserved) 1`] = `"[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads POLICY remove with single target 1`] = `"Alice: removed 1 member"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads REASSIGN_APPROVER with new approver 1`] = `"reassigned the approver to @Hidden via a workflow update"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads RENAMED with old/new name 1`] = `"Alice renamed this room to "New room name" (previously "Old room name")"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads REPORT_PREVIEW skips actor prefix and falls to else branch 1`] = `"owes $1.00"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads ROOM invite with targetAccountIDs and room name from originalMessage 1`] = `"Alice: invited 2 members to general"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads ROOM invite without targetAccountIDs falls back to mention-user count in lastMessageHtml 1`] = `"Alice: invited 2 members"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads TRAVEL_UPDATE booking ticketed 1`] = `"Your flight LO 3925 (KRK → SFO) on 2024-03-01 10:00:00 has been booked. Confirmation code: ABC123"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads UPDATE_EMPLOYEE with role change 1`] = `"updated the role of bob@test.com to workspace admin (previously member)"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads generic ADD_COMMENT from current user in room 1`] = `"You: Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads generic ADD_COMMENT in room gets actor prefix 1`] = `"Alice: Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads generic branch resolves actor from person[0].text when personalDetails miss the actor 1`] = `"Mystery Person: Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots branches with bespoke payloads invite with room name resolved from lastActionReport 1`] = `"Alice: invited 1 member to #target-room"`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants DM last message from current user has no actor prefix 1`] = `"You: Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants DM with last message shows actor prefix via shouldShowLastActorDisplayName 1`] = `"Alice: Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants SMS domain is stripped from last message 1`] = `"Alice: ping +15551234567 please"`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants archived room skips the special-action chain 1`] = `"Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants empty DM falls back to welcome message (non-chat else branch) 1`] = `"This chat is with alice@test.com and test@example.com."`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants empty policy expense chat falls back to welcome message 1`] = `"This is where  will submit expenses to Unavailable workspace. Just use the + button."`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants empty room falls back to welcome message 1`] = `"This chat is with Unavailable workspace admin. Use it to chat about workspace setup and more."`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants empty self-DM with isTrackIntentUser false 1`] = `"This is your personal space. Use it for notes, tasks, drafts, and reminders."`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants empty self-DM with isTrackIntentUser true 1`] = `"This is your personal space. Use it for notes, tasks, drafts, and reminders."`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants group chat with last comment 1`] = `"Alice: Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots report-type and fallback variants multiline last message collapses line breaks 1`] = `"Alice: line one line two line three"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL 1`] = `"Alice: Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) COMPANYCARDCONNECTIONBROKEN 1`] = `"The  connection is broken. To restore card imports, log into your bank."`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) DELEGATESUBMIT 1`] = `"Alice: Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) INTEGRATIONSYNCFAILED 1`] = `"there was a problem syncing with . Please fix the issue in workspace settings."`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) LEAVEROOM 1`] = `"Alice: left the chat"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) PLAIDBALANCEFAILURE 1`] = `"the Plaid connection to your business bank account is broken. Please reconnect your bank account  so you can continue to use your Expensify Cards."`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_AGENT_RULE 1`] = `"added an agent rule: "`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_APPROVER_RULE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_BUDGET 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_CARD_FEED 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_CATEGORY 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_EMPLOYEE 1`] = `"added  as a member"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_EXPENSIFY_CARD_RULE 1`] = `"allowed on the card"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_REPORT_FIELD 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_RULE 1`] = `"added a rule"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_TAG 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ADD_TAX 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_ASSIGN_COMPANY_CARD 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE 1`] = `"This workspace has been upgraded to the Control plan. Click here for more information."`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_CORPORATE_UPGRADE 1`] = `"upgraded this workspace to the Control plan"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_AGENT_RULE 1`] = `"removed an agent rule"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_ALL_TAGS 1`] = `"deleted all tags"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_APPROVER_RULE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_BUDGET 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_CARD_FEED 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_CATEGORY 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_EMPLOYEE 1`] = `"removed member "`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_REPORT_FIELD 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_TAG 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_DELETE_TAX 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_IMPORT_TAGS 1`] = `"imported tags from a spreadsheet"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_LEAVE_POLICY 1`] = `"Alice: left the workspace"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_LEAVEROOM 1`] = `"Alice: Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_REMOVE_EXPENSIFY_CARD_RULE 1`] = `"removed spend rule from the card"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_REMOVE_RULE 1`] = `"removed a rule"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_RENAME_CARD_FEED 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_SET_AUTO_JOIN 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_SHARED_BUDGET_NOTIFICATION 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_TEAM_DOWNGRADE 1`] = `"downgraded this workspace to the Collect plan"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UNASSIGN_COMPANY_CARD 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_ACH_ACCOUNT 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_ADDRESS 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AGENT_RULE 1`] = `"updated an agent rule to: "`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_APPROVER_RULE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AUDIT_RATE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED 1`] = `"disabled auto-pay approved reports"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AUTOHARVESTING 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_BUDGET 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CATEGORIES 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CATEGORY 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CATEGORY_TAX_RATE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CURRENCY 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CURRENCY_DEFAULT_TAX 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CUSTOM_TAX_NAME 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CUSTOM_UNIT 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_RATE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_SUB_RATE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_DEFAULT_BILLABLE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_DEFAULT_REIMBURSABLE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_DEFAULT_TITLE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_DEFAULT_TITLE_ENFORCED 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_DESCRIPTION 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_EXPENSIFY_CARD_RULE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_FEATURE_ENABLED 1`] = `"disabled "`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_FIELD 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_FORWARDS_TO 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE 1`] = `"updated the currency conversion fee setting to "Employee pays""`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_NAME 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_WEBSITE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED 1`] = `"disabled attendee tracking"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AGE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_MCC_GROUP_CATEGORY 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_NAME 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_OWNERSHIP 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_REIMBURSER 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_REPORT_FIELD 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED 1`] = `"disabled the company card purchases requirement"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_REQUIRES_CATEGORY 1`] = `"disabled the expense categorization requirement"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_REQUIRES_TAG 1`] = `"disabled the expense tagging requirement"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_RULE 1`] = `"updated a rule"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_SUBMITS_TO 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_TAG 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_TAG_LIST 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_TAG_LIST_NAME 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_TAG_LIST_REQUIRED 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_TAX 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_TIME_ENABLED 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_TIME_RATE 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) REOPENED 1`] = `"reopened"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) REROUTE 1`] = `"changed the approver to @Hidden"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) RETRACTED 1`] = `"retracted"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) SETTLEMENTACCOUNTLOCKED 1`] = `"business bank account  has been automatically locked due to an issue with either Reimbursement or Expensify Card settlement. Please fix the issue in your workspace settings."`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) TAKECONTROL 1`] = `"changed the approver to @Hidden"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) TASKCOMPLETED 1`] = `"marked as complete"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) UNREPORTEDTRANSACTION 1`] = `"moved this expense from another report"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) UPDATEROOMAVATAR 1`] = `"removed the room avatar"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) UPDATEROOMDESCRIPTION 1`] = `"cleared the room description"`;

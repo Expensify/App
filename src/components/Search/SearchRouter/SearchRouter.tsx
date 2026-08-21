@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useCardList, usePersonalDetails, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import DeferredAutocompleteList from '@components/Search/DeferredSearchAutocompleteList';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
@@ -21,7 +21,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {scrollToRight} from '@libs/InputUtils';
@@ -79,7 +79,7 @@ type SearchRouterProps = {
 };
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -91,7 +91,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const personalDetails = usePersonalDetails();
-    const sortedActions = useSortedActions();
+    const cardList = useCardList();
+    const workspaceCardList = useWorkspaceCardList();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
@@ -223,6 +228,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     privateIsArchived: contextualReportNVP,
                     policy: contextualReportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserPersonalDetails.login,
+                    cardList,
+                    workspaceCardList,
+                    localeCompare,
+                    formatPhoneNumber,
                     conciergeReportID,
                     reportAttributesDerived: reportAttributes,
                     config: {
@@ -294,6 +307,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             contextualReport,
             personalDetails,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserAccountID,
+            currentUserPersonalDetails.login,
+            cardList,
+            workspaceCardList,
+            localeCompare,
+            formatPhoneNumber,
             contextualReportNVP,
             contextualReportPolicy,
             reportAttributes,

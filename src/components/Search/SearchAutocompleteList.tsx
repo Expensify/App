@@ -1,4 +1,4 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
@@ -18,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
@@ -28,7 +28,7 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {getParsableSearchValue} from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
@@ -196,13 +196,18 @@ function SearchAutocompleteList({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
+    const cardList = useCardList();
+    const workspaceCardList = useWorkspaceCardList();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -278,7 +283,15 @@ function SearchAutocompleteList({
             currentUserEmail,
             policyCollection: policies,
             personalDetails,
+            reportAttributesDerived: reportAttributes,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserLogin: currentUserEmail,
+            cardList,
+            workspaceCardList,
+            localeCompare,
+            formatPhoneNumber,
             conciergeReportID,
             isTrackIntentUser,
             translate,
@@ -295,7 +308,14 @@ function SearchAutocompleteList({
         currentUserEmail,
         policies,
         personalDetails,
+        reportAttributes,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
+        cardList,
+        workspaceCardList,
+        localeCompare,
+        formatPhoneNumber,
         conciergeReportID,
         isTrackIntentUser,
         translate,
@@ -521,14 +541,12 @@ function SearchAutocompleteList({
             const report = getReportOrDraftReport(option.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
             const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-            const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
             return {
                 ...option,
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-                alternateText: shouldParseAlternateText ? option.alternateText : getReportSubtitlePrefix(report) + formatReportLastMessageText(option.lastMessageText ?? ''),
                 wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });

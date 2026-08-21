@@ -1,4 +1,4 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useCardList, usePersonalDetails, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -48,7 +48,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 }
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {options, isLoading} = useFilteredOptions({
@@ -62,11 +62,16 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const cardList = useCardList();
+    const workspaceCardList = useWorkspaceCardList();
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const reportAttributesDerived = useReportAttributes();
@@ -90,6 +95,14 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     privateIsArchived,
                     policy: reportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserEmail,
+                    cardList,
+                    workspaceCardList,
+                    localeCompare,
+                    formatPhoneNumber,
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
@@ -103,7 +116,27 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const alternateText = getAlternateText(
             report,
             {},
-            {dateFnsLocale, isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
+            {
+                dateFnsLocale,
+                isReportArchived,
+                personalDetails,
+                policy,
+                reportAttributesDerived,
+                policyTags: reportPolicyTags,
+                conciergeReportID,
+                isTrackIntentUser,
+                translate,
+                visibleReportActionsData: undefined,
+                sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                currentUserAccountID,
+                currentUserLogin: currentUserEmail,
+                cardList,
+                workspaceCardList,
+                localeCompare,
+                formatPhoneNumber,
+            },
         );
         return {...report, alternateText};
     };
@@ -131,6 +164,13 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   personalDetails,
                   policyCollection: allPolicies,
                   sortedActions,
+                  transactionThreadIDs,
+                  lastActions,
+                  currentUserLogin: currentUserEmail,
+                  cardList,
+                  workspaceCardList,
+                  localeCompare,
+                  formatPhoneNumber,
                   conciergeReportID,
                   isTrackIntentUser,
                   translate,
