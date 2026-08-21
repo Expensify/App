@@ -123,6 +123,10 @@ function ScheduleCallPage() {
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         for (const timeSlot of allTimeSlots) {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            // Empty means the slot had no usable start time. Bucketing it would put an unsortable '' among the selectable days.
+            if (!timeSlotDate) {
+                continue;
+            }
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }

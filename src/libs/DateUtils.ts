@@ -386,7 +386,7 @@ function formatRelative(locale: Locale, date: Date, now: Date): string {
     }
     const abs = Math.abs(diffSecs);
     const sign = diffSecs > 0 ? 1 : -1;
-    // date-fns said "less than a minute ago", which Intl cannot express without a bespoke translation key.
+    // Seconds would need `numeric: 'auto'`, which also turns day-level output into "yesterday".
     if (abs < 60) {
         return rtf.format(sign, 'minute');
     }
@@ -678,7 +678,10 @@ function extractDate(dateTimeString: string): string {
     if (dateTimeString === 'never') {
         return '';
     }
-    const date = new Date(dateTimeString);
+    const date = toLocalDate(dateTimeString);
+    if (!isValid(date)) {
+        return '';
+    }
     return format(date, 'yyyy-MM-dd');
 }
 
@@ -880,7 +883,7 @@ const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeStrin
     const now = new Date();
 
     // Check if the combinedDate is at least one minute later than the current date and time
-    return isAfter(new Date(dateToCheck), addMinutes(now, 1));
+    return isAfter(toLocalDate(dateToCheck), addMinutes(now, 1));
 };
 
 /**
@@ -891,7 +894,7 @@ const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeStrin
  */
 const isValidStartEndTimeRange = ({startTime, endTime}: {startTime: string; endTime: string}): boolean => {
     // Check if the combinedDate is at least one minute later than the current date and time
-    return isAfter(new Date(endTime), new Date(startTime));
+    return isAfter(toLocalDate(endTime), toLocalDate(startTime));
 };
 
 /**
@@ -1222,8 +1225,7 @@ function getDifferenceInDaysFromNow(date: Date) {
  * @returns True if the date string is valid, otherwise false.
  */
 function isValidDateString(dateString: string) {
-    const date = new Date(dateString);
-    return !Number.isNaN(date.getTime());
+    return isValid(toLocalDate(dateString));
 }
 
 /** Persists to backend as `merchant`, so it is pinned to enUS to keep the wire string byte-stable across engines. */
@@ -1241,8 +1243,8 @@ function getFormattedSplitDateRange(translateParam: LocaleContextProps['translat
         return '';
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = toLocalDate(startDate);
+    const end = toLocalDate(endDate);
     const daysCount = differenceInDays(end, start) + 1;
 
     return translateParam('iou.splitDateRange', startDate, endDate, daysCount);

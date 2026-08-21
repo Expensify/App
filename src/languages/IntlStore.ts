@@ -238,7 +238,7 @@ class IntlStore {
         return IntlStore.snapshot;
     }
 
-    /** Fresh snapshot identity on every emit, so a content-only change still re-renders. Call only after mutating `currentLocale` or `cache`, never speculatively. */
+    /** Emits only when `locale` or `isCurrentLocaleLoaded` moved, so re-caching the same locale's content does not re-render. */
     private static notifyListeners() {
         // A superseded load caches a locale nothing renders in, so `size > 0` would lift the splash onto path strings.
         const isCurrentLocaleLoaded = IntlStore.cache.has(IntlStore.currentLocale);
@@ -303,7 +303,7 @@ class IntlStore {
                 }
                 // Same question the splash gate asks. A merely non-empty cache would skip the fallback and strand the boot.
                 if (IntlStore.loadToken !== token || IntlStore.cache.has(IntlStore.currentLocale) || locale === LOCALES.DEFAULT) {
-                    // Publish whatever a superseded load already cached, else the gate never sees it and the splash sticks.
+                    // Publishes only when the superseded load cached the committed locale, which is the case that unsticks the splash.
                     IntlStore.notifyListeners();
                     return;
                 }

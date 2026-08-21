@@ -1040,6 +1040,26 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('wire-timestamp helpers accept the DB shape', () => {
+        it('extractDate returns the calendar day', () => {
+            expect(DateUtils.extractDate('2025-07-09 14:30:00')).toBe('2025-07-09');
+        });
+
+        it('extractDate returns empty rather than throwing on an unparsable value', () => {
+            expect(() => DateUtils.extractDate('not-a-date')).not.toThrow();
+            expect(DateUtils.extractDate('not-a-date')).toBe('');
+        });
+
+        it('isValidStartEndTimeRange accepts a picker-built range', () => {
+            expect(DateUtils.isValidStartEndTimeRange({startTime: '2025-07-09 08:00:00', endTime: '2025-07-09 14:00:00'})).toBe(true);
+        });
+
+        it('isValidDateString accepts the DB shape and rejects garbage', () => {
+            expect(DateUtils.isValidDateString('2025-07-09 14:30:00')).toBe(true);
+            expect(DateUtils.isValidDateString('not-a-date')).toBe(false);
+        });
+    });
+
     describe('toLocalDate parses the DB wire shapes explicitly (Hermes rejects what V8 accepts)', () => {
         it.each([
             ['2025-07-09', [2025, 6, 9, 0, 0, 0, 0]],
