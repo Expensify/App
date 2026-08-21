@@ -7664,6 +7664,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 enableCategoriesToUnlockTitle: 'Włączyć kategorie?',
                 enableCategoriesToUnlockPrompt: 'Włącz Kategorie (w sekcji Więcej funkcji), aby odblokować.',
                 enableCategoriesAndRequirePrompt: 'Na pewno chcesz włączyć kategorie i wymagać ich dla wszystkich wydatków?',
+                enableTagsPrompt: 'Na pewno chcesz włączyć tagi? Będziesz mógł wymagać ich dla wszystkich wydatków, gdy będziesz mieć co najmniej jeden tag.',
+                noTagsToRequirePrompt: 'Nie masz żadnych tagów. Utwórz tag.',
+                noCategoriesToRequirePrompt: 'Nie masz żadnych kategorii. Utwórz kategorię.',
             },
             expenseReportRules: {
                 title: 'Zaawansowane',

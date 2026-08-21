@@ -7680,6 +7680,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 enableCategoriesToUnlockTitle: 'Categorieën inschakelen?',
                 enableCategoriesToUnlockPrompt: 'Schakel Categorieën (onder Meer functies) in om te ontgrendelen.',
                 enableCategoriesAndRequirePrompt: 'Weet je zeker dat je categorieën wilt inschakelen en ze verplicht wilt maken voor alle uitgaven?',
+                enableTagsPrompt: 'Weet je zeker dat je labels wilt inschakelen? Je kunt ze verplicht maken voor alle uitgaven zodra je minstens één label hebt.',
+                noTagsToRequirePrompt: 'Je hebt nog geen tags. Maak alsjeblieft een tag aan.',
+                noCategoriesToRequirePrompt: 'Je hebt nog geen categorieën. Maak een categorie aan.',
             },
             expenseReportRules: {
                 title: 'Geavanceerd',

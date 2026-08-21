@@ -7699,6 +7699,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 enableCategoriesToUnlockTitle: 'Abilitare le categorie?',
                 enableCategoriesToUnlockPrompt: 'Attiva Categorie (in Altre funzionalità) per sbloccare.',
                 enableCategoriesAndRequirePrompt: 'Sei sicuro di voler abilitare le categorie e renderle obbligatorie per tutte le spese?',
+                enableTagsPrompt: 'Sei sicuro di voler abilitare i tag? Potrai renderli obbligatori per tutte le spese non appena avrai almeno un tag.',
+                noTagsToRequirePrompt: 'Non hai ancora nessun tag. Crea un tag.',
+                noCategoriesToRequirePrompt: 'Non hai ancora nessuna categoria. Crea una categoria.',
             },
             expenseReportRules: {
                 title: 'Avanzate',

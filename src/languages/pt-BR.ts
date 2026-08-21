@@ -7682,6 +7682,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 enableCategoriesToUnlockTitle: 'Ativar categorias?',
                 enableCategoriesToUnlockPrompt: 'Ative Categorias (em Mais recursos) para desbloquear.',
                 enableCategoriesAndRequirePrompt: 'Tem certeza de que deseja ativar categorias e torná-las obrigatórias para todas as despesas?',
+                enableTagsPrompt: 'Tem certeza de que quer ativar tags? Você poderá exigi-las para todas as despesas assim que tiver pelo menos uma tag.',
+                noTagsToRequirePrompt: 'Você não tem nenhuma tag. Crie uma tag.',
+                noCategoriesToRequirePrompt: 'Você não tem nenhuma categoria. Crie uma categoria.',
             },
             expenseReportRules: {
                 title: 'Avançado',

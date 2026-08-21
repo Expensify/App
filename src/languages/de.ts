@@ -7732,6 +7732,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 enableCategoriesToUnlockTitle: 'Kategorien aktivieren?',
                 enableCategoriesToUnlockPrompt: 'Aktivieren Sie Kategorien (unter Weitere Funktionen), um dies freizuschalten.',
                 enableCategoriesAndRequirePrompt: 'Sind Sie sicher, dass Sie Kategorien aktivieren und für alle Ausgaben verpflichtend machen möchten?',
+                enableTagsPrompt: 'Möchten Sie Tags wirklich aktivieren? Sie können sie für alle Ausgaben erforderlich machen, sobald Sie mindestens einen Tag haben.',
+                noTagsToRequirePrompt: 'Sie haben keine Tags. Bitte erstellen Sie einen Tag.',
+                noCategoriesToRequirePrompt: 'Sie haben keine Kategorien. Bitte erstellen Sie eine Kategorie.',
             },
             expenseReportRules: {
                 title: 'Erweitert',
