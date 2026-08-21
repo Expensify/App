@@ -1,14 +1,17 @@
 #!/bin/bash
 #
-# What do the React Compiler rules cost, and would Oxlint's native aggregate be a drop-in?
-# See "The native aggregate, measured" in OXLINT_MIGRATION_INVESTIGATION.md for the answer
-# this produced on 2026-08-11 (short version: 47 s, and no, it un-checks 182 files).
+# What do the React Compiler rules cost, and would Oxlint's native react/* rules be a drop-in?
+# See "The native aggregate, measured" in OXLINT_MIGRATION_INVESTIGATION.md for the answer this
+# produced on 2026-08-11 against the old aggregate rule (short version: 47 s, and no, it
+# un-checks 182 files). Oxlint 1.79.0 removed that single aggregate rule (react/react-compiler)
+# and split it into 22 per-check rules; variant `d` below now enables the 12 that are exact
+# twins of our rh/* rules, and the answer is unchanged (re-checked this session).
 #
 #   a  production config, all 16 rh/* rules in the Node sidecar        (reference)
-#   b  only the 2 rules the aggregate cannot replace (exhaustive-deps,
+#   b  only the 2 rules with no native twin (exhaustive-deps,
 #      component-hook-factories) -- does one surviving rule keep the whole cost?
 #   c  all 16 off                                                     (lower bound)
-#   d  c + native react/react-compiler                                (the swap)
+#   d  c + the 12 native per-check rules (react/refs, react/use-memo, ...)  (the swap)
 #
 # The `total` column is the gate: variant a must report 4629, the same figure
 # `npm run compare-oxlint` reports. Anything else means the variants are linting the wrong
@@ -26,7 +29,7 @@ OUT="${1:-/tmp}"
 RESULTS="$OUT/rc-cost.tsv"
 
 python3 oxlint-migration/reactCompilerVariants.py write
-printf 'run\tvariant\tseconds\ttotal\trh\treact_compiler\n' >"$RESULTS"
+printf 'run\tvariant\tseconds\ttotal\trh\tnative\n' >"$RESULTS"
 
 run() {
     local run_id="$1" variant="$2" json="$OUT/rc-$2-$1.json"
@@ -46,8 +49,8 @@ echo "== timings (variant a MUST report total=4629) =="
 cat "$RESULTS"
 
 echo
-echo "== is the native aggregate a drop-in for the 14 sidecar rules? =="
-python3 oxlint-migration/compareReactCompilerAggregate.py "$OUT/rc-a-1.json" "$OUT/rc-d-1.json"
+echo "== is the native per-check split a drop-in for the 12 twin sidecar rules? =="
+python3 oxlint-migration/compareReactCompilerNative.py "$OUT/rc-a-1.json" "$OUT/rc-d-1.json"
 
 rm -f .oxlintrc.measure-a.json .oxlintrc.measure-b.json .oxlintrc.measure-c.json .oxlintrc.measure-d.json
 echo

@@ -42,7 +42,7 @@ stopped matching. The root file is therefore the real config, and that is delibe
 | `listAllRules.py` | inventory of every rule either tool enables, and why anything is off | `npm run oxlint-rule-inventory`, `npm run oxlint-rule-availability` |
 | `ruleMap.py` | the shared rule-id map and `PORT_PLAN`; imported by most of the above | library |
 | `naming-codemod.py`, `wire-codemod.py` | one-shot codemod scripts that added the dual suppression comments | already applied |
-| `compareNativeCtxValues.py`, `compareReactCompiler*.{py,mjs}`, `measureReactCompilerCost.sh`, `reactCompilerVariants.py` | the React Compiler measurements behind the decision to keep the jsPlugin re-export instead of Oxlint's native aggregate | on demand |
+| `compareNativeCtxValues.py`, `compareReactCompiler*.{py,mjs}`, `measureReactCompilerCost.sh`, `reactCompilerVariants.py` | the React Compiler measurements behind the decision to keep the jsPlugin re-export instead of Oxlint's native react/* per-check rules | on demand |
 
 ## Files that are records, not inputs
 
