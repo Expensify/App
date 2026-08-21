@@ -29,12 +29,11 @@ Onyx.connectWithoutView({
  * Whether the Play Store put this build on the device. Anything else means a tester installed it from a GitHub
  * release.
  */
-function isPlayStoreInstall(): boolean {
+function isPlayStoreInstall(): boolean | undefined {
     try {
         return DeviceInfo.getInstallerPackageNameSync() === CONST.PLAY_STORE_INSTALLER_PACKAGE_NAME;
     } catch {
-        // A throwing native call tells us nothing about the install, so let the version comparison decide.
-        return true;
+        return undefined;
     }
 }
 
@@ -47,7 +46,7 @@ function isPlayStoreInstall(): boolean {
  */
 function isBetaBuild(): IsBetaBuild {
     return new Promise((resolve) => {
-        if (!isPlayStoreInstall()) {
+        if (isPlayStoreInstall() === false) {
             AppUpdate.setIsAppInBeta(true);
             resolve(true);
             return;
