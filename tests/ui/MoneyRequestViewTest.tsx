@@ -608,7 +608,7 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'v-1', isManuallySet: false}},
+                comment: {vendor: {externalID: 'v-1', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -639,7 +639,7 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'xc1', isManuallySet: false}},
+                comment: {vendor: {externalID: 'xc1', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
