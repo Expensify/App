@@ -3,23 +3,31 @@ name: PR Reviews with Claude Code
 permissions:
   contents: read
   pull-requests: write
+  statuses: write
 
 on:
   pull_request_target:
     types: [opened, ready_for_review]
+  issue_comment:
+    types: [created]
 
 concurrency:
-  group: claude-review-${{ github.event.pull_request.html_url }}
+  group: >-
+    claude-review-${{
+      github.event_name == 'pull_request_target' && github.event.pull_request.html_url ||
+      github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude review') && github.event.issue.html_url ||
+      github.run_id
+    }}
   cancel-in-progress: true
 
 jobs:
   review:
-    if: |
-      github.event.pull_request.draft != true
-      && !contains(github.event.pull_request.title, 'Revert')
+    if: >-
+      (github.event_name == 'pull_request_target' && github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')) ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude review'))
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
-      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
@@ -28,9 +36,9 @@ jobs:
         id: gate
         uses: ./.github/actions/javascript/isAuthorizedContributor
         with:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          ACTOR: ${{ github.event.pull_request.user.login }}
-          ACTOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          ACTOR: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.user.login || github.event.comment.user.login }}
+          ACTOR_ASSOCIATION: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.author_association || github.event.comment.author_association }}
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -53,25 +61,34 @@ jobs:
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         uses: ./.github/actions/composite/setupNode
 
-      - name: Filter paths
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
-        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
-        id: filter
-        with:
-          filters: |
-            code:
-              - 'src/**'
-            docs:
-              - 'docs/**/*.md'
-              - 'docs/**/*.csv'
-
       - name: Setup Claude review toolkit
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: toolkit
-        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@2b751e9a86d8690f53443cce0ce886079eccea76
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@096f415ac7bb77cae9189d1061350563def00a99
+
+      - name: Check for an existing review of this commit
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        id: skip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: shouldSkipReview.sh "$PR_NUMBER" "ai-review-completed/claude"
+
+      - name: Filter paths
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
+        id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json files --jq '.files[].path' > changed-files.txt
+          if grep -q '^src/' changed-files.txt; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          fi
+          if grep -qE '^docs/.*\.(md|csv)$' changed-files.txt; then
+            echo "docs=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Mark review as in progress
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -79,45 +96,50 @@ jobs:
 
       - name: Run Claude Code (code)
         id: code-review
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.code == 'true'
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true' && steps.filter.outputs.code == 'true'
         uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
           display_report: 'true'
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: '*'
-          prompt: '/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}'
+          prompt: '/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}'
           claude_args: |
             --model claude-opus-4-8
             --effort xhigh
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
 
       - name: Post code review results
-        if: |
-          steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
-          && steps.code-review.outcome == 'success'
-          && steps.filter.outputs.code == 'true'
+        if: steps.code-review.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           STRUCTURED_OUTPUT: ${{ steps.code-review.outputs.structured_output }}
         run: postCodeReviewResults.sh "$PR_NUMBER"
 
       - name: Run Claude Code (docs)
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.docs == 'true'
+        id: docs-review
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true' && steps.filter.outputs.docs == 'true'
         uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
           display_report: 'true'
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: '*'
-          prompt: '/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}'
+          prompt: '/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}'
           claude_args: |
             --model claude-opus-4-8
             --effort high
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
 
+      - name: Record review completion
+        if: steps.code-review.outcome == 'success' || steps.docs-review.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ steps.skip.outputs.head_sha }}
+        run: recordReviewComplete.sh "$HEAD_SHA" "ai-review-completed/claude" "Reviewed at this commit - comment @claude review to re-run"
+
       - name: Remove in-progress indicator
-        if: always() && steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
+        if: always() && steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
