@@ -1,6 +1,6 @@
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -12,7 +12,9 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCurrency,
+    getDefaultTaxCode,
     getSelectedRouteKey,
+    getTaxValue,
     hasManualDistanceOverride,
     hasTaxRateWithMatchingValue,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -258,12 +260,36 @@ function initSplitExpenseItemData(
     }
 
     // If the parent expense's stored tax value is out of date relative to the live policy rate (for example, the
-    // rate's value was edited in workspace settings after the expense was created), its taxCode/taxAmount/taxValue
-    // no longer agree. The code resolves to the current rate while the stored amount and value are from the old rate.
-    // Seed the split without those stale tax fields so its tax is derived from the current rate the user picks,
-    // instead of persisting a label and amount that disagree. Only gate when a policy is available to compare
-    // against. Otherwise keep the existing behavior of inheriting the stored values.
+    // rate's value was edited or the rate was deleted in workspace settings after the expense was created), its
+    // stored taxAmount/taxValue no longer agree with the taxCode — the code resolves to the current rate while the
+    // stored amount and value are from the old rate. Rather than persisting those stale fields (or clearing only
+    // some of them, which lets the optimistic transaction fall back to the parent's old code/value while a zero
+    // amount is sent to the server), resolve the tax fresh against the live policy so all three fields stay
+    // consistent:
+    //   - rate updated: keep the transaction's own taxCode and read its current value from the policy.
+    //   - rate deleted: fall back to the policy's default tax code and its value.
+    //   - neither resolves (no default / tax tracking off): clear all three, since no tax applies.
+    // The amount is recalculated from the resolved live value against this split's amount. Only gate when a policy
+    // is available to compare against; otherwise keep inheriting the stored values.
     const isStoredTaxValueStale = !!policy && !!transaction?.taxValue && !hasTaxRateWithMatchingValue(policy, transaction);
+
+    let resolvedTaxCode = transactionDetails?.taxCode;
+    let resolvedTaxValue = transactionDetails?.taxValue;
+    let resolvedTaxAmount = taxAmount ?? transactionDetails?.taxAmount;
+    if (isStoredTaxValueStale) {
+        resolvedTaxValue = resolvedTaxCode ? getTaxValue(policy, transaction, resolvedTaxCode) : undefined;
+        // The stored taxCode no longer resolves to a live value (the rate was deleted) — fall back to the policy default.
+        if (resolvedTaxValue === undefined) {
+            const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+            const defaultTaxValue = defaultTaxCode ? getTaxValue(policy, transaction, defaultTaxCode) : undefined;
+            resolvedTaxCode = defaultTaxValue !== undefined ? defaultTaxCode : undefined;
+            resolvedTaxValue = defaultTaxValue;
+        }
+        const splitAmount = Math.abs(amount ?? transactionDetails?.amount ?? 0);
+        const splitCurrency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
+        // calculateTaxAmount returns 0 for an undefined value, so this also zeroes the amount when the tax is cleared.
+        resolvedTaxAmount = convertToBackendAmount(calculateTaxAmount(resolvedTaxValue, splitAmount, getCurrencyDecimals(splitCurrency)));
+    }
 
     return {
         transactionID: transactionID ?? transactionDetails?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -277,9 +303,9 @@ function initSplitExpenseItemData(
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
         billable: transactionDetails?.billable,
-        taxCode: isStoredTaxValueStale ? undefined : transactionDetails?.taxCode,
-        taxAmount: isStoredTaxValueStale ? 0 : (taxAmount ?? transactionDetails?.taxAmount),
-        taxValue: isStoredTaxValueStale ? undefined : transactionDetails?.taxValue,
+        taxCode: resolvedTaxCode,
+        taxAmount: resolvedTaxAmount,
+        taxValue: resolvedTaxValue,
         customUnit: splitCustomUnit,
         waypoints: transaction?.comment?.waypoints ?? undefined,
         odometerStart: transaction?.comment?.odometerStart ?? undefined,
