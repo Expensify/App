@@ -204,6 +204,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
             createTransactionThreadReport({
                 introSelected,
+                conciergeChat,
                 currentUserLogin: currentUserEmail ?? '',
                 currentUserAccountID,
                 betas,
@@ -280,6 +281,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
         createTransactionThreadReport({
             introSelected,
+            conciergeChat,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
@@ -306,6 +308,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         snapshotViolations,
         transactionThreadReportID,
         visibleTransactions,
+        conciergeChat,
     ]);
 
     const shouldUseSnapshotTransaction = reportTransactions.length === 0 && !!snapshotTransaction;
