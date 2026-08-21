@@ -6,6 +6,7 @@ import {
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
+    hasPolicyWithXeroConnection,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
     isPendingDeletePolicy,
@@ -202,6 +203,12 @@ const createTimeSensitiveAdminPoliciesSelector =
 
         return result;
     };
+
+// boolean out, so subscribers don't deep-compare a policy array on every policy_ write
+const createHasAdminPolicyWithXeroConnectionSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
 
@@ -466,6 +473,7 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,

@@ -7,6 +7,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
+    createHasAdminPolicyWithXeroConnectionSelector,
     createHasWorkspaceToSubmitToSelector,
     createOwnedPaidPoliciesCountsSelector,
     createTimeSensitiveAdminPoliciesSelector,
@@ -154,6 +155,34 @@ describe('activeAdminPoliciesSelector', () => {
 
         const result = activeAdminPoliciesSelector(policies, TEST_LOGIN);
         expect(result).toHaveLength(0);
+    });
+});
+
+describe('createHasAdminPolicyWithXeroConnectionSelector', () => {
+    const xeroConnections = createMock<Policy['connections']>({xero: {lastSync: {isSuccessful: true}}});
+
+    it('returns true when an administered workspace has a Xero connection', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN, connections: xeroConnections}),
+        };
+
+        expect(createHasAdminPolicyWithXeroConnectionSelector(TEST_LOGIN)(policies)).toBe(true);
+    });
+
+    it('returns false when the Xero-connected workspace is not administered by the user', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.USER, connections: xeroConnections}),
+        };
+
+        expect(createHasAdminPolicyWithXeroConnectionSelector(TEST_LOGIN)(policies)).toBe(false);
+    });
+
+    it('returns false when no workspace has a Xero connection', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN, connections: undefined}),
+        };
+
+        expect(createHasAdminPolicyWithXeroConnectionSelector(TEST_LOGIN)(policies)).toBe(false);
     });
 });
 

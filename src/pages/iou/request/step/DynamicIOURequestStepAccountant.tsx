@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,12 +17,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
-import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import React from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -37,9 +34,8 @@ function DynamicIOURequestStepAccountant({
     },
 }: DynamicIOURequestStepAccountantProps) {
     const {translate} = useLocalize();
-    const {accountID, login, email = '', localCurrencyCode} = useCurrentUserPersonalDetails();
-    const selector = (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? '');
-    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
+    const {accountID, email = '', localCurrencyCode} = useCurrentUserPersonalDetails();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.path);
@@ -50,8 +46,7 @@ function DynamicIOURequestStepAccountant({
 
     const navigateToNextStep = () => {
         // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
-        const hasActiveAdminWorkspaces = (adminPolicies?.length ?? 0) > 0;
-        if (!hasActiveAdminWorkspaces) {
+        if (!hasActiveAdminPolicies) {
             createDraftWorkspaceAndNavigateToConfirmationScreen(
                 introSelected,
                 transactionID,
