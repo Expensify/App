@@ -5041,6 +5041,50 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     return typeMenuSections;
 }
 
+/**
+ * Icons used for each saved-search data type. Each asset already has the bookmark subscript baked in,
+ * so it can be rendered directly with the standard Expensicons component.
+ */
+const SAVED_SEARCH_TYPE_TO_ICON_NAME = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: 'ReceiptBookmark',
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: 'DocumentBookmark',
+    [CONST.SEARCH.DATA_TYPES.CHAT]: 'CommentBubbleBookmark',
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: 'InvoiceBookmark',
+    [CONST.SEARCH.DATA_TYPES.TRIP]: 'LuggageBookmark',
+    [CONST.SEARCH.DATA_TYPES.TASK]: 'TaskBookmark',
+} as const satisfies Record<SearchDataTypes, ExpensifyIconName>;
+
+/** Icon shown for a saved search whose query can't be resolved to a known/supported data type. */
+const SAVED_SEARCH_FALLBACK_ICON_NAME = 'Bookmark' satisfies ExpensifyIconName;
+
+type SavedSearchIconName = (typeof SAVED_SEARCH_TYPE_TO_ICON_NAME)[SearchDataTypes] | typeof SAVED_SEARCH_FALLBACK_ICON_NAME;
+
+/**
+ * Every icon a saved search row can render - one per data type plus the fallback. Derived from the map
+ * (and the fallback) above so callers load exactly the set `getSavedSearchIconName` can return, with no
+ * hand-kept second list to drift out of sync.
+ */
+const SAVED_SEARCH_ICON_NAMES: readonly SavedSearchIconName[] = [...Object.values(SAVED_SEARCH_TYPE_TO_ICON_NAME), SAVED_SEARCH_FALLBACK_ICON_NAME];
+
+/**
+ * Resolves the icon name for a saved search from its query type, falling back to the generic bookmark
+ * icon for queries that can't be parsed into a known data type - including queries whose type is present
+ * but outside the supported set (e.g. a hand-edited `type:test` URL), which have no entry in the map.
+ */
+function getSavedSearchIconName(query: string | undefined): SavedSearchIconName {
+    // This is the single place that decides what a missing/empty query means: it resolves to the generic
+    // fallback for every caller, and avoids passing an empty/undefined query into buildSearchQueryJSON -
+    // which would parse '' as the grammar default (type:expense) or throw on undefined and log a console error.
+    if (!query) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
+    const type = buildSearchQueryJSON(query)?.type;
+    if (!type) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
+    return SAVED_SEARCH_TYPE_TO_ICON_NAME[type] ?? SAVED_SEARCH_FALLBACK_ICON_NAME;
+}
+
 function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
     return {
         key,
@@ -6937,6 +6981,9 @@ export {
     getSectionBadgeText,
     getItemBadgeText,
     createBaseSavedSearchMenuItem,
+    getSavedSearchIconName,
+    SAVED_SEARCH_FALLBACK_ICON_NAME,
+    SAVED_SEARCH_ICON_NAMES,
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
