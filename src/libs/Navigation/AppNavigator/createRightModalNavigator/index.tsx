@@ -20,7 +20,8 @@ function RightModalNavigatorEffects(props: CustomEffectsHookProps) {
 
 const RightModalNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
     createRouter: RightModalRouter,
-    defaultScreenOptions: defaultPlatformStackScreenOptions,
+    // The whole-navigator opt-in is temporary, and the final rollout will opt screens in individually.
+    defaultScreenOptions: {...defaultPlatformStackScreenOptions, nonTopScreenBehavior: 'activity'},
     Effects: RightModalNavigatorEffects,
 });
 

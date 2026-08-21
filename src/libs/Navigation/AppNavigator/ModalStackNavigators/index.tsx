@@ -156,7 +156,8 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 aria-modal={isSmallScreenWidth || undefined}
                 role={isSmallScreenWidth ? 'dialog' : undefined}
             >
-                <ModalStackNavigator.Navigator>
+                {/* The whole-navigator opt-in is temporary, and the final rollout will opt screens in individually. */}
+                <ModalStackNavigator.Navigator screenOptions={{nonTopScreenBehavior: 'activity'}}>
                     {Object.keys(screens as Required<Screens>).map((name) => (
                         <ModalStackNavigator.Screen
                             key={name}

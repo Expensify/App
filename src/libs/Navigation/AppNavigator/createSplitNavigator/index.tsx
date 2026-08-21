@@ -41,10 +41,10 @@ function getCustomSplitNavigatorState({state, shouldUseNarrowLayout}: CustomStat
 const SplitNavigatorComponent = createPlatformStackNavigatorComponent('SplitNavigator', {
     createRouter: SplitRouter,
     Effects: SplitNavigatorEffects,
-    defaultScreenOptions: defaultPlatformStackScreenOptions,
+    // The whole-navigator opt-in is temporary, and the final rollout will opt screens in individually.
+    defaultScreenOptions: {...defaultPlatformStackScreenOptions, nonTopScreenBehavior: 'activity'},
     getCustomState: getCustomSplitNavigatorState,
     NavigationContentWrapper: SidebarSpacerWrapper,
-    freezeNonTopScreens: true,
 });
 
 function createSplitNavigator<

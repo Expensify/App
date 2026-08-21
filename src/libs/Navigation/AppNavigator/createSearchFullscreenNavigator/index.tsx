@@ -25,7 +25,8 @@ function SearchFullscreenNavigatorEffects(props: CustomEffectsHookProps) {
 
 const SearchFullscreenNavigatorComponent = createPlatformStackNavigatorComponent('SearchFullscreenNavigator', {
     createRouter: addPushParamsRouterExtension(SearchFullscreenRouter),
-    defaultScreenOptions: defaultPlatformStackScreenOptions,
+    // The whole-navigator opt-in is temporary, and the final rollout will opt screens in individually.
+    defaultScreenOptions: {...defaultPlatformStackScreenOptions, nonTopScreenBehavior: 'activity'},
     Effects: SearchFullscreenNavigatorEffects,
     getCustomState,
     ExtraContent: SearchSidebar,
