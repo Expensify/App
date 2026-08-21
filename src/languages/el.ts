@@ -41,6 +41,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
         no: 'Όχι',
+        dontChange: 'Να μην αλλάξει',
         ok: 'OK',
         notNow: 'Όχι τώρα',
         noThanks: 'Όχι, ευχαριστώ',
@@ -1281,6 +1282,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Δημιουργία χρονοχρέωσης',
     },
     iou: {
+        expenseAdded: 'Δαπάνη προστέθηκε',
+        invoiceSent: 'Τιμολόγιο στάλθηκε',
         amount: 'Ποσό',
         percent: 'Ποσοστό',
         date: 'Ημερομηνία',
@@ -1560,9 +1563,14 @@ const translations: TranslationDeepObject<typeof en> = {
             odometerReadingTooLarge: (formattedMax: string) => `Οι μετρήσεις χιλιομετρητή δεν μπορούν να υπερβαίνουν τα ${formattedMax}.`,
             stitchOdometerImagesFailed: 'Αποτυχία συνδυασμού των εικόνων οδομέτρου. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             unableToSubmitReport: 'Δεν είναι δυνατή η υποβολή της αναφοράς',
+            unableToMarkAsDone: 'Δεν είναι δυνατή η σήμανση ως ολοκληρωμένο',
             allTransactionsPendingDescription:
                 'Δεν μπορείτε να υποβάλετε αυτήν την αναφορά, επειδή όλες οι συναλλαγές είναι σε εκκρεμότητα. Μπορεί να χρειαστούν λίγες ημέρες για να καταχωριστούν.',
+            allTransactionsPendingMarkAsDoneDescription:
+                'Δεν μπορείτε να επισημάνετε αυτήν την αναφορά ως ολοκληρωμένη, επειδή όλες οι συναλλαγές είναι σε εκκρεμότητα. Μπορεί να χρειαστούν λίγες ημέρες για να καταχωριστούν.',
             allExpensesOnHoldDescription: 'Δεν μπορείτε να υποβάλετε αυτήν την αναφορά, επειδή όλες οι δαπάνες είναι σε αναμονή. Αφαιρέστε την αναμονή για να την υποβάλετε.',
+            allExpensesOnHoldMarkAsDoneDescription:
+                'Δεν μπορείτε να επισημάνετε αυτήν την αναφορά ως ολοκληρωμένη, επειδή όλες οι δαπάνες είναι σε αναμονή. Αφαιρέστε την αναμονή για να συνεχίσετε.',
             failedToSaveOdometerDraft: 'Δεν ήταν δυνατή η αποθήκευση του πρόχειρου χιλιομετρητή σας. Παρακαλούμε δοκιμάστε ξανά.',
             invalidIntegerAmount: 'Παρακαλούμε εισαγάγετε ένα ακέραιο ποσό σε δολάρια πριν συνεχίσετε',
             invalidTaxAmount: (amount: string) => `Το μέγιστο ποσό φόρου είναι ${amount}`,
@@ -1604,6 +1612,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ξεκίνησε τη διαδικασία τακτοποίησης. Η πληρωμή έχει τεθεί σε αναμονή μέχρι ο/η ${submitterDisplayName} να ενεργοποιήσει το πορτοφόλι του/της.`,
         enableWallet: 'Ενεργοποίηση πορτοφολιού',
         hold: 'Σε αναμονή',
+        sendToSomeone: 'Αποστολή σε κάποιον',
         unhold: 'Αφαίρεση κράτησης',
         holdExpense: () => ({
             one: 'Αναστολή δαπάνης',
@@ -2113,8 +2122,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Εικόνα προφίλ',
         customInstructions: 'Προσαρμοσμένες οδηγίες',
         copilotIntoAccount: 'Οδηγός εντός λογαριασμού',
-        viewUserHistory: 'Προβολή ιστορικού χρήστη',
-        viewAgentHistory: 'Προβολή ιστορικού αντιπροσώπου',
         publicSection: {
             title: 'Δημόσιο',
             subtitle: 'Αυτές οι πληροφορίες εμφανίζονται στο δημόσιο προφίλ σας. Μπορεί να τις δει οποιοσδήποτε.',
@@ -4680,7 +4687,7 @@ ${amount} για ${merchant} - ${date}`,
             subscription: 'Συνδρομή',
             markAsEntered: 'Σήμανση ως καταχωρισμένο χειροκίνητα',
             markAsExported: 'Επισήμανση ως εξαχθέν',
-            exportIntegrationSelected: (connectionName) => `Εξαγωγή σε ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `Εξαγωγή σε ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Ας ελέγξουμε άλλη μία φορά ότι όλα φαίνονται σωστά.',
             lineItemLevel: 'Σε επίπεδο επιμέρους στοιχείου',
             reportLevel: 'Επίπεδο αναφοράς',
@@ -5023,6 +5030,9 @@ ${amount} για ${merchant} - ${date}`,
                     `Επιλέξτε από πού θα πληρώνετε τους λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') =>
                     `Επιλέξτε πού θα λαμβάνετε τις πληρωμές τιμολογίων και θα δημιουργήσουμε την πληρωμή στο ${integrationName}.`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `λογαριασμός προμήθειας μετατροπής νομίσματος ${integrationName}`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
+                    `Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος σε μια πληρωμή που έγινε στο εξωτερικό, θα καταχωρίσουμε αυτό το κόστος σε αυτόν τον λογαριασμό στο ${integrationName} ως λογιστική εγγραφή.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή χρεωστικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο ${integrationName}. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Debit Card Misc.» για τη συσχέτιση.`,
@@ -7381,6 +7391,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
                 },
             },
+            findIntegration: 'Βρείτε ενοποίηση',
         },
         export: {
             notReadyHeading: 'Μη έτοιμο για εξαγωγή',
@@ -7491,6 +7502,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 startDateMustBeBeforeEndDate: 'Η ημερομηνία έναρξης πρέπει να είναι πριν από την ημερομηνία λήξης',
             },
             autoGeneratedRateTooltip: 'Αυτός ο συντελεστής δημιουργείται αυτόματα.',
+            autoUpdateGovernmentRate: 'Αυτόματη ενημέρωση κρατικών συντελεστών',
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Δημιουργείτε αυτόματα νέες τιμές όταν η ${countryPhrase} δημοσιεύει νέες οδηγίες.`,
+            governmentRateCountries: {US: 'οι Ηνωμένες Πολιτείες', CA: 'Καναδάς', GB: 'Μεγάλη Βρετανία', AU: 'Αυστραλία'},
         },
         editor: {
             descriptionInputLabel: 'Περιγραφή',
@@ -7589,10 +7603,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         },
         exportAgainModal: {
             title: 'Προσοχή!',
-            description: (
+            description: ({
                 reportName,
                 connectionName,
-            ) => `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
+                connectionNameFriendly,
+            }) => `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
 
 ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',
@@ -7600,21 +7615,22 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: 'Προσοχή!',
-            description: (connectionName) =>
-                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν μπορούν να εξαχθούν μαζί. Επιλέξτε αναφορές που είναι συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
+            description: (connectionName, connectionNameFriendly) =>
+                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν γίνεται να εξαχθούν μαζί. Επιλέξτε αναφορές συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
             confirmText: 'Το κατάλαβα',
         },
         exportPartialModal: {
-            title: (exportableCount, selectedCount, integration) => `Εξαγωγή ${exportableCount}/${selectedCount} αναφορών στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]};`,
-            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports) => {
+            title: (exportableCount, selectedCount, integration, connectionNameFriendly) =>
+                `Εξαγωγή ${exportableCount}/${selectedCount} αναφορών στο ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]};`,
+            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports, connectionNameFriendly) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι συνδεδεμένες στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                    reasons.push(`Μόνο οι αναφορές που είναι συνδεδεμένες με το ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} θα εξαχθούν.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι επιλέξιμες για εξαγωγή.`);
+                    reasons.push(`Μόνο οι αναφορές που είναι κατάλληλες για εξαγωγή θα εξαχθούν.`);
                 }
-                return `${reasons.join('\n\n')}\n\nΘα εξαχθούν οι παρακάτω αναφορές:`;
+                return `${reasons.join('\n\n')}\n\nΟι ακόλουθες αναφορές θα εξαχθούν:`;
             },
             confirmText: () => ({
                 one: `Εξαγωγή 1 αναφοράς`,
@@ -7875,6 +7891,13 @@ ${reportName}`,
                 description: 'Αν θέλετε να κάνετε τους συνδέσμους των αποδείξεών σας προσβάσιμους σε οποιονδήποτε, όπως έναν πελάτη ή εξωτερικό λογιστή, αυτή η λειτουργία είναι για εσάς.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η δημόσια ορατότητα αποδείξεων είναι διαθέσιμη μόνο στο πρόγραμμα Control, με τιμή από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
+            governmentDistanceRates: {
+                title: 'Αυτόματη ενημέρωση κρατικών συντελεστών',
+                description:
+                    'Αν θέλετε η Expensify να διατηρεί τις χρεώσεις χιλιομέτρων σας ενημερωμένες κάθε φορά που η κυβέρνησή σας δημοσιεύει νέες οδηγίες, αυτή η δυνατότητα είναι για εσάς.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Η αυτόματη ενημέρωση κυβερνητικών συντελεστών είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
         },
         downgrade: {

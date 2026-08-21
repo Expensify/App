@@ -43,6 +43,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Freigabe aufheben',
         yes: 'Ja',
         no: 'Nein',
+        dontChange: 'Nicht ändern',
         ok: 'OK',
         notNow: 'Nicht jetzt',
         noThanks: 'Nein danke',
@@ -1230,6 +1231,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Zeitaufwand erstellen',
     },
     iou: {
+        expenseAdded: 'Ausgabe hinzugefügt',
+        invoiceSent: 'Rechnung gesendet',
         amount: 'Betrag',
         percent: 'Prozent',
         date: 'Datum',
@@ -1535,8 +1538,12 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Die maximale Anzahl zulässiger Aufteilungen beträgt ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
             unableToSubmitReport: 'Bericht kann nicht eingereicht werden',
+            unableToMarkAsDone: 'Kann nicht als erledigt markiert werden',
             allTransactionsPendingDescription: 'Sie können diesen Bericht nicht einreichen, weil alle Transaktionen ausstehen. Es kann einige Tage dauern, bis sie gebucht werden.',
+            allTransactionsPendingMarkAsDoneDescription:
+                'Sie können diesen Bericht nicht als erledigt markieren, weil alle Transaktionen ausstehen. Es kann einige Tage dauern, bis sie gebucht werden.',
             allExpensesOnHoldDescription: 'Sie können diesen Bericht nicht einreichen, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um ihn einzureichen.',
+            allExpensesOnHoldMarkAsDoneDescription: 'Sie können diesen Bericht nicht als erledigt markieren, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um fortzufahren.',
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
             failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
@@ -1545,6 +1552,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `hat mit dem Ausgleich begonnen. Die Zahlung ist ausgesetzt, bis ${submitterDisplayName} das Wallet aktiviert.`,
         enableWallet: 'Wallet aktivieren',
         hold: 'Warteschleife',
+        sendToSomeone: 'An jemanden senden',
         unhold: 'Zurückhalten aufheben',
         holdExpense: () => ({
             one: 'Ausgabe zurückhalten',
@@ -2062,8 +2070,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profil-Avatar',
         customInstructions: 'Benutzerdefinierte Anweisungen',
         copilotIntoAccount: 'Copilot in Konto',
-        viewUserHistory: 'Nutzerverlauf anzeigen',
-        viewAgentHistory: 'Agentenverlauf anzeigen',
         publicSection: {
             title: 'Öffentlich',
             subtitle: 'Diese Angaben werden in deinem öffentlichen Profil angezeigt. Jede:r kann sie sehen.',
@@ -4599,7 +4605,8 @@ ${amount} für ${merchant} – ${date}`,
             subscription: 'Abonnement',
             markAsEntered: 'Als manuell erfasst markieren',
             markAsExported: 'Als exportiert markieren',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Exportieren nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) =>
+                `Exportieren nach ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
             lineItemLevel: 'Positionsebene',
             reportLevel: 'Report-Ebene',
@@ -4939,6 +4946,9 @@ ${amount} für ${merchant} – ${date}`,
                     `Wählen Sie, von welchem Konto Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') =>
                     `Wähle aus, wo Rechnungszahlungen eingehen sollen, und wir erstellen die Zahlung in ${integrationName}.`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName}-Währungskursgebührenkonto`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
+                    `Wenn Ihr Unternehmen die Währungsumrechnungskosten für eine im Ausland getätigte Zahlung übernimmt, buchen wir diese Kosten in ${integrationName} als Journalbuchung auf dieses Konto.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Wir gleichen den Händlernamen der Debitkartentransaktion automatisch mit allen entsprechenden Lieferanten in ${integrationName} ab. Falls keine Lieferanten vorhanden sind, erstellen wir zur Zuordnung einen Lieferanten „Debit Card Misc.“.`,
@@ -7235,6 +7245,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             startDate: 'Startdatum',
             endDate: 'Enddatum',
             autoGeneratedRateTooltip: 'Dieser Satz wurde automatisch erzeugt.',
+            autoUpdateGovernmentRate: 'Regierungssätze automatisch aktualisieren',
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Neue Sätze automatisch erstellen, wenn ${countryPhrase} neue Richtlinien veröffentlicht.`,
+            governmentRateCountries: {US: 'die Vereinigten Staaten', CA: 'Kanada', GB: 'Großbritannien', AU: 'Australien'},
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',
@@ -7330,10 +7343,11 @@ Wenn du die Abrechnung für das gesamte Abonnement übernehmen willst, bitte sie
         },
         exportAgainModal: {
             title: 'Vorsicht!',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `Die folgenden Berichte wurden bereits nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} exportiert. Möchten Sie sie wirklich erneut exportieren?
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `Die folgenden Berichte wurden bereits nach ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} exportiert. Sind Sie sicher, dass Sie sie erneut exportieren möchten?
 
 ${reportName}`,
             confirmText: 'Ja, erneut exportieren',
@@ -7341,20 +7355,20 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: 'Vorsicht!',
-            description: (connectionName: ConnectionName) =>
-                `Die ausgewählten Berichte sind mit verschiedenen ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-Unternehmen verbunden und können daher nicht zusammen exportiert werden. Wählen Sie Berichte aus, die mit demselben Unternehmen verbunden sind, und versuchen Sie es erneut.`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `Die ausgewählten Berichte sind mit verschiedenen ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-Unternehmen verbunden, daher können sie nicht gemeinsam exportiert werden. Wählen Sie Berichte aus, die mit demselben Unternehmen verbunden sind, und versuchen Sie es erneut.`,
             confirmText: 'Verstanden',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `${exportableCount}/${selectedCount} Berichte nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} exportieren?`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `${exportableCount}/${selectedCount} Berichte nach ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} exportieren?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Nur mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verbundene Berichte werden exportiert.`);
+                    reasons.push(`Es werden nur Berichte exportiert, die mit ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verknüpft sind.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Nur exportierbare Berichte werden exportiert.`);
+                    reasons.push(`Es werden nur Berichte exportiert, die für den Export berechtigt sind.`);
                 }
                 return `${reasons.join('\n\n')}\n\nDie folgenden Berichte werden exportiert:`;
             },
@@ -7617,6 +7631,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     'Wenn Sie Ihre Beleglinks für alle zugänglich machen möchten, zum Beispiel für einen Kunden oder eine externe Buchhalterin bzw. einen externen Buchhalter, ist diese Funktion genau das Richtige für Sie.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Die öffentliche Belegsichtbarkeit ist nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            governmentDistanceRates: {
+                title: 'Regierungssätze automatisch aktualisieren',
+                description:
+                    'Wenn Sie möchten, dass Expensify Ihre Kilometerpauschalen automatisch aktualisiert, sobald Ihre Regierung neue Richtlinien veröffentlicht, ist diese Funktion genau das Richtige für Sie.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Automatisch aktualisierte amtliche Sätze sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -8290,6 +8311,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
             reconnect: 'Erneut verbinden',
             reconnectLink: 'Erneut verbinden.',
+            findIntegration: 'Integration finden',
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
