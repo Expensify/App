@@ -441,3 +441,4 @@ function useParticipantSubmission({
 }
 
 export default useParticipantSubmission;
+export type {UseParticipantSubmissionParams};
