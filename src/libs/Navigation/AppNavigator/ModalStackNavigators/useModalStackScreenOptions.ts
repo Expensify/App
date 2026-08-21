@@ -46,10 +46,7 @@ function useWideModalStackScreenOptions() {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
                         // left edge stays put instead of being pushed off-screen. See https://github.com/Expensify/App/issues/99035
-                        cardStyle: {
-                            ...styles.superWideRHPExtendedCardInterpolatorStyles,
-                            width: Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current),
-                        },
+                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current)),
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {

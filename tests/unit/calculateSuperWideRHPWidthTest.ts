@@ -1,11 +1,9 @@
-import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 
-import variables from '@styles/variables';
-
 // jest-expo resolves `.native` files by default (defaultPlatform 'ios'), but the super wide RHP is a
-// web/desktop-only layout whose native stubs are intentional no-ops. Force the web `index.ts` so these
-// tests exercise the real width math (same pattern as resetOnboardingStackToRootTest).
+// web/desktop-only layout whose native stubs are intentional no-ops. Force the web `index.ts` (and the
+// receipt pane width it depends on) so these tests exercise the real width math (same pattern as
+// resetOnboardingStackToRootTest).
 jest.mock('@libs/Navigation/helpers/calculateSuperWideRHPWidth', () =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     jest.requireActual('@libs/Navigation/helpers/calculateSuperWideRHPWidth/index.ts'),
@@ -15,43 +13,42 @@ jest.mock('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth', () =>
     jest.requireActual('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth/index.ts'),
 );
 
+// The expected widths below are pinned to concrete pixels rather than recomputed from variables, so any
+// change to superWideRHPLeftMargin (147), sideBarWidth (375), receiptPaneRHPMaxWidth (465) or
+// sidePanelWidth (375) forces a deliberate, visible update here instead of silently tracking the value.
 describe('calculateSuperWideRHPWidth', () => {
-    it('leaves the configured left margin on a wide window', () => {
-        const windowWidth = 1440;
-
-        // The sheet is anchored to the right edge, so its left edge sits at windowWidth - width.
-        const leftEdge = windowWidth - calculateSuperWideRHPWidth(windowWidth);
-
-        expect(calculateSuperWideRHPWidth(windowWidth)).toBe(windowWidth - variables.superWideRHPLeftMargin);
-        expect(leftEdge).toBe(variables.superWideRHPLeftMargin);
+    it('leaves the configured 147px left margin on a wide window', () => {
+        // 1440 - 147 (superWideRHPLeftMargin) = 1293.
+        expect(calculateSuperWideRHPWidth(1440)).toBe(1293);
+        // The sheet is anchored to the right edge, so its left edge sits at windowWidth - width = 147.
+        expect(1440 - calculateSuperWideRHPWidth(1440)).toBe(147);
     });
 
     it('never shrinks below the wide RHP width', () => {
-        // A window narrow enough that (windowWidth - leftMargin) would fall under the wide RHP floor.
-        const windowWidth = 900;
-        const wideRHPWidth = calculateReceiptPaneRHPWidth(windowWidth) + variables.sideBarWidth;
+        // At 900px the raw super wide width (900 - 147 = 753) would fall under the wide RHP floor
+        // (sideBarWidth 375 + receiptPaneRHPMaxWidth 465 = 840), so the floor wins.
+        expect(calculateSuperWideRHPWidth(900)).toBe(840);
+    });
 
-        expect(windowWidth - variables.superWideRHPLeftMargin).toBeLessThan(wideRHPWidth);
-        expect(calculateSuperWideRHPWidth(windowWidth)).toBe(wideRHPWidth);
+    it('pins the exact window width where the wide RHP floor takes over', () => {
+        // The floor (840) equals the raw super wide width when windowWidth - 147 = 840, i.e. at 987.
+        expect(calculateSuperWideRHPWidth(986)).toBe(840); // 986 - 147 = 839, floored to 840
+        expect(calculateSuperWideRHPWidth(987)).toBe(840); // 987 - 147 = 840, boundary
+        expect(calculateSuperWideRHPWidth(988)).toBe(841); // 988 - 147 = 841, super wide wins
     });
 
     describe('regression: Concierge/Help Side Panel open (https://github.com/Expensify/App/issues/99035)', () => {
-        it('keeps the sheet left edge fixed when shrunk by the Side Panel offset', () => {
+        it('shrinks by the Side Panel width so the sheet left edge stays at 147px', () => {
+            // The Side Panel (375px) shifts the whole RHP left by its width, so the super wide sheet is
+            // shrunk by the same amount to keep its right-anchored left edge on-screen.
             const windowWidth = 1440;
-            const sidePanelOffset = variables.sidePanelWidth;
+            const sidePanelWidth = 375;
+            const shrunkWidth = calculateSuperWideRHPWidth(windowWidth) - sidePanelWidth;
 
-            // When the Side Panel is open it shifts the whole RHP left by its width (paddingRight),
-            // so the fix shrinks the super wide sheet by the same amount.
-            const shrunkWidth = calculateSuperWideRHPWidth(windowWidth) - sidePanelOffset;
-
-            // The shrunk, right-anchored sheet now sits inside the window minus the Side Panel.
-            const leftEdgeWithSidePanel = windowWidth - sidePanelOffset - shrunkWidth;
-            const leftEdgeWithoutSidePanel = windowWidth - calculateSuperWideRHPWidth(windowWidth);
-
-            // Left edge must be the same with and without the Side Panel — never pushed off-screen.
-            expect(leftEdgeWithSidePanel).toBe(leftEdgeWithoutSidePanel);
-            expect(leftEdgeWithSidePanel).toBe(variables.superWideRHPLeftMargin);
-            expect(leftEdgeWithSidePanel).toBeGreaterThanOrEqual(0);
+            // 1293 - 375 = 918, still wider than the 840 wide RHP floor.
+            expect(shrunkWidth).toBe(918);
+            // Right-anchored inside (windowWidth - sidePanelWidth): left edge = 1440 - 375 - 918 = 147.
+            expect(windowWidth - sidePanelWidth - shrunkWidth).toBe(147);
         });
     });
 });
