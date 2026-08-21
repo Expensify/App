@@ -43,7 +43,7 @@ Onyx.connectWithoutView({
 
 let socket: PusherWithAuthParams | null;
 let pusherSocketID: string | undefined;
-let didSocketGoUnavailable = false;
+let hasUnclaimedOutage = false;
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
@@ -111,7 +111,7 @@ function init(args: Args): Promise<void> {
         });
 
         socket?.connection.bind('state_change', (states: States) => {
-            didSocketGoUnavailable ||= states.current === 'unavailable';
+            hasUnclaimedOutage ||= states.current === 'unavailable';
             callSocketEventCallbacks('state_change', states);
         });
     }).then(resolveInitPromise);
@@ -482,7 +482,7 @@ function disconnect() {
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
-    didSocketGoUnavailable = false;
+    hasUnclaimedOutage = false;
     eventsBoundToChannels.clear();
     initPromise = new Promise((resolve) => {
         resolveInitPromise = resolve;
@@ -501,7 +501,7 @@ function reconnect() {
     Log.info('[Pusher] Reconnecting to Pusher');
 
     // pusher-js takes a manual disconnect through `disconnected`, never `unavailable`, so record the outage here.
-    didSocketGoUnavailable = true;
+    hasUnclaimedOutage = true;
     socket.disconnect();
     socket.connect();
 }
@@ -511,10 +511,12 @@ function getPusherSocketID(): string | undefined {
 }
 
 // pusher-js only enters `unavailable` after unavailableTimeout of failed connects, so a socket that came back without reaching it only blipped.
-function consumeDidSocketGoUnavailable(): boolean {
-    const didGoUnavailable = didSocketGoUnavailable;
-    didSocketGoUnavailable = false;
-    return didGoUnavailable;
+function claimOutageSync(): boolean {
+    if (!hasUnclaimedOutage) {
+        return false;
+    }
+    hasUnclaimedOutage = false;
+    return true;
 }
 
 if (window) {
@@ -537,7 +539,7 @@ const WebPusher: PusherModule = {
     reconnect,
     registerSocketEventCallback,
     registerCustomAuthorizer,
-    consumeDidSocketGoUnavailable,
+    claimOutageSync,
     TYPE,
     getPusherSocketID,
 };

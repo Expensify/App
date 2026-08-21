@@ -122,7 +122,7 @@ type PusherModule = {
     disconnect: () => void;
     reconnect: () => void;
     registerSocketEventCallback: (cb: SocketEventCallback) => void;
-    consumeDidSocketGoUnavailable: () => boolean;
+    claimOutageSync: () => boolean;
     registerCustomAuthorizer?: (authorizer: ChannelAuthorizerGenerator) => void;
     getPusherSocketID: () => string | undefined;
     TYPE: typeof TYPE;
