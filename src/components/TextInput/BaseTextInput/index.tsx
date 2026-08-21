@@ -11,11 +11,8 @@ import type {BaseTextInputProps} from './types';
 import BaseTextInputImplementation from './implementation';
 
 /**
- * `autoGrowSingleLine` makes the input grow like a text box while still behaving like a single-line field:
- * it grows with content up to `variables.textInputAutoGrowMaxHeight` then scrolls internally, and the return
- * key (including Shift+Enter and on touch devices) submits instead of inserting a line break. This needs the
- * multiline rendering path, so those newline behaviors are turned back off here.
- *
+ * `autoGrowSingleLine` grows the input up to `variables.textInputAutoGrowMaxHeight` then scrolls internally,
+ * while the return key (incl. Shift+Enter and on touch devices) submits instead of inserting a line break.
  * Pass `useAutoFocusInput(true)` when auto-focusing so the caret lands after an existing value.
  */
 function BaseTextInput({ref, autoGrowSingleLine = false, ...props}: BaseTextInputProps) {
