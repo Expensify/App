@@ -48,7 +48,6 @@ import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} fr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
@@ -269,8 +268,9 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingState, editingReportActionID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
+    const {editingState, editingReportID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
     const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
     const text = useComposerText();
@@ -286,14 +286,7 @@ function ComposerWithSuggestions({
     });
 
     // Save the draft of the report action. This debounced so that we're not ceaselessly saving your edit.
-    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(
-        useCallback(
-            (comment: string) => {
-                saveReportActionDraft(reportID, editingReportAction, comment);
-            },
-            [reportID, editingReportAction],
-        ),
-    );
+    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(saveReportActionDraft);
 
     // Save the draft of the report comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -304,6 +297,8 @@ function ComposerWithSuggestions({
             },
             [reportID],
         ),
+        undefined,
+        true,
     );
 
     useDraftMessageVideoAttributeCache({
@@ -558,11 +553,11 @@ function ComposerWithSuggestions({
             if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
-                    debouncedSaveReportActionDraft(newCommentConverted);
+                    debouncedSaveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
                     return;
                 }
 
-                saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
                 return;
             }
 
@@ -591,7 +586,9 @@ function ComposerWithSuggestions({
             setCurrentEditMessageSelection,
             setEditingMessage,
             reportID,
-            editingReportActionID,
+            editingReportID,
+            editingReportAction,
+            reportActions,
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
             currentUserAccountID,
@@ -633,7 +630,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -682,6 +679,7 @@ function ComposerWithSuggestions({
             onEnterKeyPress,
             lastReportAction,
             reportID,
+            reportActions,
             updateComment,
             setCurrentEditMessageSelection,
         ],
@@ -1074,7 +1072,7 @@ function ComposerWithSuggestions({
     return (
         <>
             <View
-                style={[containerComposeStyles, styles.textInputComposeBorder]}
+                style={containerComposeStyles}
                 onTouchEndCapture={() => {
                     isTouchEndedRef.current = true;
                 }}

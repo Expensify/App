@@ -25,6 +25,8 @@ type SearchQueryItem = ListItem & {
     autocompleteID?: string;
     roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
     mapKey?: string;
+    /** Navigates to the destination represented by this suggestion. */
+    action?: () => void;
 };
 
 type SearchQueryListItemProps = {
@@ -79,7 +81,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         text={item.text ?? ''}
                         style={[
                             styles.optionDisplayName,
-                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
                             styles.pre,
                             item.alternateText ? styles.mb1 : null,
@@ -94,6 +96,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         />
                     )}
                 </View>
+                {!!item.rightElement && <View style={[styles.ml2, styles.flexShrink1, styles.mw50]}>{item.rightElement}</View>}
             </>
         </BaseListItem>
     );

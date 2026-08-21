@@ -4,19 +4,21 @@ import type {
     UpdateRilletAccountingMethodParams,
     UpdateRilletAutoSyncParams,
     UpdateRilletBillPaymentAccountParams,
+    UpdateRilletCardProgramAccountParams,
     UpdateRilletCreditCardAccountParams,
     UpdateRilletDefaultVendorParams,
     UpdateRilletEnableNewCategoriesParams,
     UpdateRilletExportDateParams,
     UpdateRilletExporterParams,
+    UpdateRilletExportToMultipleAccountsParams,
     UpdateRilletFieldMappingParams,
     UpdateRilletSettlementsAccountParams,
     UpdateRilletSubsidiaryParams,
     UpdateRilletSyncExpensifyCardSettlementsParams,
     UpdateRilletSyncReimbursedReportsParams,
     UpdateRilletSyncTaxRatesParams,
-    UpdateRilletSyncTravelInvoicingSettlementsParams,
-    UpdateRilletTravelInvoicingSettlementsAccountParams,
+    UpdateRilletSyncTravelBillingSettlementsParams,
+    UpdateRilletTravelBillingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -508,6 +510,88 @@ function prepareRilletSyncOnyxData<TSettingName extends keyof RilletSync>(
     return {optimisticData, successData, failureData};
 }
 
+function prepareRilletCardProgramAccountOnyxData(
+    policyID: string,
+    feedKey: keyof RilletExport['cardProgramAccounts'],
+    accountCode: ValueOf<RilletExport['cardProgramAccounts']>,
+    oldAccountCode?: ValueOf<RilletExport['cardProgramAccounts']> | null,
+) {
+    const cardProgramAccountOfflineFeedbackKey = `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    // An empty accountCode string implies clearing the custom account
+                                    [feedKey]: accountCode || null,
+                                },
+                            },
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    [feedKey]: oldAccountCode ?? null,
+                                },
+                            },
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                            errorFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 function updateRilletSubsidiary(policyID: string, subsidiaryID: RilletConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: RilletConnectionsConfig['subsidiaryID']) {
     const onyxData = prepareRilletOnyxData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateRilletSubsidiaryParams = {
@@ -644,31 +728,55 @@ function updateRilletSettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_RILLET_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateRilletSyncTravelInvoicingSettlements(policyID: string, enabled: RilletSync['syncTravelInvoicingSettlements'], oldEnabled?: RilletSync['syncTravelInvoicingSettlements']) {
-    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS, enabled, oldEnabled ?? null);
-    const parameters: UpdateRilletSyncTravelInvoicingSettlementsParams = {
+function updateRilletSyncTravelBillingSettlements(policyID: string, enabled: RilletSync['syncTravelInvoicingSettlements'], oldEnabled?: RilletSync['syncTravelInvoicingSettlements']) {
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletSyncTravelBillingSettlementsParams = {
         policyID,
         enabled,
     };
-    write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_TRAVEL_INVOICING_SETTLEMENTS, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_TRAVEL_BILLING_SETTLEMENTS, parameters, onyxData);
 }
 
-function updateRilletTravelInvoicingSettlementsAccount(
+function updateRilletTravelBillingSettlementsAccount(
     policyID: string,
     travelInvoicingSettlementsBankAccountID: RilletSync['travelInvoicingSettlementsBankAccountID'],
-    oldTravelInvoicingSettlementsBankAccountID?: RilletSync['travelInvoicingSettlementsBankAccountID'],
+    oldTravelBillingSettlementsBankAccountID?: RilletSync['travelInvoicingSettlementsBankAccountID'],
 ) {
     const onyxData = prepareRilletSyncOnyxData(
         policyID,
-        CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+        CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
         travelInvoicingSettlementsBankAccountID,
-        oldTravelInvoicingSettlementsBankAccountID ?? null,
+        oldTravelBillingSettlementsBankAccountID ?? null,
     );
-    const parameters: UpdateRilletTravelInvoicingSettlementsAccountParams = {
+    const parameters: UpdateRilletTravelBillingSettlementsAccountParams = {
         policyID,
         travelInvoicingSettlementsBankAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_RILLET_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_RILLET_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+}
+
+function updateRilletExportToMultipleAccounts(policyID: string, enabled: RilletExport['exportToMultipleAccounts'], oldEnabled?: RilletExport['exportToMultipleAccounts']) {
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletExportToMultipleAccountsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_EXPORT_TO_MULTIPLE_ACCOUNTS, parameters, onyxData);
+}
+
+function updateRilletCardProgramAccount(
+    policyID: string,
+    feedKey: keyof RilletExport['cardProgramAccounts'],
+    accountCode: ValueOf<RilletExport['cardProgramAccounts']>,
+    oldAccountCode?: ValueOf<RilletExport['cardProgramAccounts']>,
+) {
+    const onyxData = prepareRilletCardProgramAccountOnyxData(policyID, feedKey, accountCode, oldAccountCode ?? null);
+    const parameters: UpdateRilletCardProgramAccountParams = {
+        policyID,
+        feedKey,
+        accountCode,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_CARD_PROGRAM_ACCOUNT, parameters, onyxData);
 }
 
 export {
@@ -688,6 +796,8 @@ export {
     updateRilletBillPaymentAccount,
     updateRilletSyncExpensifyCardSettlements,
     updateRilletSettlementsAccount,
-    updateRilletSyncTravelInvoicingSettlements,
-    updateRilletTravelInvoicingSettlementsAccount,
+    updateRilletSyncTravelBillingSettlements,
+    updateRilletTravelBillingSettlementsAccount,
+    updateRilletExportToMultipleAccounts,
+    updateRilletCardProgramAccount,
 };

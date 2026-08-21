@@ -6,11 +6,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import {updateSelectedFeed} from '@libs/actions/Card';
 import {openPolicyCompanyCardsPage} from '@libs/actions/CompanyCards';
-import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
+import {getCompanyCardFeedWithDomainIDForCard, getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import colors from '@styles/theme/colors';
 
@@ -87,12 +87,7 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     }, [cardFeeds, card.fundID]);
 
     if (!cardFeeds || cardFeeds.isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TimeSensitiveSection.FixCompanyCardConnectionSkeleton',
-            isCardFeedsUndefined: !cardFeeds,
-            isCardFeedsLoading: !!cardFeeds?.isLoading,
-        };
-        return <FixCompanyCardConnectionSkeleton reasonAttributes={reasonAttributes} />;
+        return <FixCompanyCardConnectionSkeleton />;
     }
 
     const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];
@@ -109,8 +104,16 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
-            onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
-            buttonProps={{danger: true}}
+            onCtaPress={() => {
+                // The Company cards page opens the last selected feed, so select this card's broken feed before going there.
+                // An unknown feed is ignored by getSelectedFeed, which falls back to the first available one.
+                const brokenFeed = getCompanyCardFeedWithDomainIDForCard(card);
+                if (brokenFeed) {
+                    updateSelectedFeed(brokenFeed, policyID);
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            }}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

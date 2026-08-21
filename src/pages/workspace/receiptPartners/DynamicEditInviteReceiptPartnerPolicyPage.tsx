@@ -14,18 +14,17 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearUberEmployeeError, inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {formatMemberForList, getHeaderMessage, sortAlphabetically} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -55,12 +54,13 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['SewerDino']);
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.path);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const inviteOrResend = useCallback(
         (email: string) => {
@@ -147,7 +147,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 continue;
             }
-            const personalDetail = getPersonalDetailByEmail(email);
+            const personalDetail = employeePersonalDetails[email ?? ''];
             const status = deriveStatus(email);
 
             let rightElement;
@@ -211,7 +211,21 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
             list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
         }
         return sortAlphabetically(list, 'text', localeCompare);
-    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend, icons.Checkmark, icons.FallbackAvatar]);
+    }, [
+        policy?.employeeList,
+        styles,
+        StyleUtils,
+        localeCompare,
+        isOffline,
+        deriveStatus,
+        uberEmployeesByEmail,
+        translate,
+        inviteOrResend,
+        icons.Checkmark,
+        icons.FallbackAvatar,
+        formatPhoneNumber,
+        employeePersonalDetails,
+    ]);
 
     const applyTabStatusFilter = useCallback(
         (tab: ReceiptPartnersTab, data: MemberForList[]) => {

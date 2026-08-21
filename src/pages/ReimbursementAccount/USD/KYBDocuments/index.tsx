@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -169,12 +169,13 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
 
     const footer = (
         <Button
-            large
+            size={CONST.BUTTON_SIZE.LARGE}
             style={[styles.mv3]}
-            text={translate('documentsStep.finishViaChat')}
             onPress={handleNavigateToConciergeChat}
             isDisabled={isLoading}
-        />
+        >
+            <Button.Text>{translate('documentsStep.finishViaChat')}</Button.Text>
+        </Button>
     );
 
     return (

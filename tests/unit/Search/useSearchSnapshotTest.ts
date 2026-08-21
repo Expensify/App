@@ -114,7 +114,6 @@ function makeQueryJSON(overrides: Partial<SearchQueryJSON> = {}): SearchQueryJSO
     const base = {
         hash: HASH,
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
         ...overrides,
@@ -180,7 +179,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -206,7 +204,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults: undefined,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -225,7 +222,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -245,7 +241,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -268,7 +263,6 @@ describe('useSearchSnapshot', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 }),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -289,7 +283,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -314,7 +307,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -342,7 +334,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -350,24 +341,6 @@ describe('useSearchSnapshot', () => {
 
         expect(result.current.data).toBe(stabilized);
         expect(result.current.hasCachedOptimisticItem).toBe(true);
-    });
-
-    it('stamps the post-create highlight on matching rows (newSearchResultKeys)', () => {
-        const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-        mockGetSortedSections.mockReturnValue([{transactionID: '7', keyForList: '7'}]);
-
-        const {result} = renderHook(() =>
-            useSearchSnapshot({
-                queryJSON: makeQueryJSON(),
-                searchResults,
-                newSearchResultKeys: new Set([`${ONYXKEYS.COLLECTION.TRANSACTION}7`]),
-                transactions: undefined,
-                reportActions: undefined,
-            }),
-        );
-
-        expect(result.current.chartData.at(0)).toEqual(expect.objectContaining({shouldAnimateInHighlight: true}));
     });
 
     it('passes the query type through to getSortedSections for each variant shape', () => {
@@ -387,7 +360,6 @@ describe('useSearchSnapshot', () => {
                 useSearchSnapshot({
                     queryJSON: makeQueryJSON({type}),
                     searchResults,
-                    newSearchResultKeys: undefined,
                     transactions: undefined,
                     reportActions: undefined,
                 }),
@@ -415,7 +387,6 @@ describe('useSearchSnapshot', () => {
         const props = {
             queryJSON: makeQueryJSON(),
             searchResults,
-            newSearchResultKeys: undefined,
             transactions: undefined,
             reportActions: undefined,
         };

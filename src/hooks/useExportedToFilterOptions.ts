@@ -1,9 +1,7 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import {getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
-import {getExportTemplates} from '@libs/actions/Search';
-import {getConnectedIntegrationNamesForPolicies} from '@libs/PolicyUtils';
-import {getAllPolicyValues} from '@libs/SearchQueryUtils';
+import {getExportLabelsForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
+import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,7 +9,7 @@ import type {ExportTemplate, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import useLocalize from './useLocalize';
+import useCombinedExportTemplates from './useCombinedExportTemplates';
 import useOnyx from './useOnyx';
 
 type UseExportedToFilterDataResult = {
@@ -33,7 +31,7 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
         if (!policy) {
             continue;
         }
-        result[key] = {id: policy.id, name: policy.name, connections: policy.connections, exportLayouts: policy.exportLayouts} as Policy;
+        result[key] = {id: policy.id, name: policy.name, connections: policy.connections, exportLayouts: policy.exportLayouts, outputCurrency: policy.outputCurrency} as Policy;
     }
     return result;
 }
@@ -45,27 +43,14 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  */
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const policyIDs = currentSearchQueryJSON?.policyID;
+    const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
-    const {translate} = useLocalize();
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
-    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
-    const policiesToUse = policyIDs !== undefined ? getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies) : Object.values(policies ?? {});
-    const policyLevelExportTemplates = policiesToUse.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
-    const accountLevelExportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
-    const combinedExportTemplates = [...accountLevelExportTemplates, ...policyLevelExportTemplates];
+    const policiesToUse = getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies);
+    const {combinedExportTemplates: combinedUniqueExportTemplates} = useCombinedExportTemplates(policiesToUse);
 
-    const uniqueExportTemplatesByName = new Map<string, ExportTemplate>();
-    for (const template of combinedExportTemplates) {
-        if (!uniqueExportTemplatesByName.has(template.templateName)) {
-            uniqueExportTemplatesByName.set(template.templateName, template);
-        }
-    }
-
-    const combinedUniqueExportTemplates = Array.from(uniqueExportTemplatesByName.values());
     const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
 
     const standardAndCustomExportTemplates: string[] = [];
@@ -80,18 +65,17 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
         standardAndCustomExportTemplates.push(filterValue);
     }
 
-    const connectedIntegrationNames = policyIDs?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
+    const connectedIntegrationNames = policyIDs.value?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
-    const displayNameToConnectionName = new Map<string, string>(
-        Object.entries(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY).map(([connectionName, displayName]) => [displayName, connectionName]),
-    );
+    const connectedIntegrationSearchValues = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.flatMap((connectionName) => {
+        if (!connectedIntegrationNames.has(connectionName)) {
+            return [];
+        }
 
-    const connectedIntegrationDisplayNames = CONST.POLICY.CONNECTIONS.EXPORTED_TO_INTEGRATION_DISPLAY_NAMES.filter((displayName) => {
-        const connectionName = displayNameToConnectionName.get(displayName);
-        return connectionName && connectedIntegrationNames.has(connectionName);
+        return getExportLabelsForConnection(connectionName, policiesToUse);
     });
 
-    const exportedToFilterOptions = [...new Set([...connectedIntegrationDisplayNames, ...standardAndCustomExportTemplates])];
+    const exportedToFilterOptions = [...new Set([...connectedIntegrationSearchValues, ...standardAndCustomExportTemplates])];
 
     return {
         exportedToFilterOptions,

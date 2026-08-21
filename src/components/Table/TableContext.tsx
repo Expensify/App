@@ -36,7 +36,13 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     originalDataLength: number;
 
     /** Column configuration for the table. */
-    columns: Array<TableColumn<ColumnKey>>;
+    columns: Array<TableColumn<ColumnKey, DataType>>;
+
+    /**
+     * The CSS grid tracks the header and every row must render, when the columns are sized from their content.
+     * `undefined` means the columns keep their static tracks (fixed widths and equal `1fr` shares).
+     */
+    dynamicGridTemplateColumns: string[] | undefined;
 
     /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig<FilterKey> | undefined;
@@ -46,6 +52,12 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Currently active sorting configuration. */
     activeSorting: ActiveSorting<ColumnKey>;
+
+    /** The column the table is initially sorted by, used as the reset target for sort controls. */
+    initialSortColumn: ColumnKey | undefined;
+
+    /** The column sorting is locked to on narrow layouts, where user sorting is ignored. */
+    narrowLayoutSortColumn: ColumnKey | undefined;
 
     /** Currently active search string. */
     activeSearchString: string;
@@ -67,6 +79,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Whether to use a narrow layout (e.g. on mobile screens). */
     shouldUseNarrowTableLayout: boolean;
+
+    /** Callback when the user changes the search string in the filter bar. */
+    onSearchStringChange?: (searchString: string) => void;
 };
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
@@ -74,11 +89,14 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     processedData: [],
     originalDataLength: 0,
     columns: [],
+    dynamicGridTemplateColumns: undefined,
     activeFilters: {},
     activeSorting: {
         columnKey: undefined,
         order: 'asc',
     },
+    initialSortColumn: undefined,
+    narrowLayoutSortColumn: undefined,
     activeSearchString: '',
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,

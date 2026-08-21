@@ -5,11 +5,10 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 
 import variables from '@styles/variables';
 
-import type {ComponentType} from 'react';
+import type * as NativeNavigation from '@react-navigation/native';
 import type ReactNative from 'react-native';
 
 import React, {useState} from 'react';
@@ -47,28 +46,21 @@ jest.mock('@hooks/useNetwork', () =>
     })),
 );
 
-jest.mock('@components/withKeyboardState', () => <TProps extends KeyboardStateContextValue>(Component: ComponentType<TProps>) => {
-    function WrappedComponent(props: Omit<TProps, keyof KeyboardStateContextValue>) {
-        return (
-            <Component
-                {...(props as TProps)}
-                isKeyboardShown={false}
-            />
-        );
-    }
-    WrappedComponent.displayName = `WrappedComponent`;
-    return WrappedComponent;
-});
-
 jest.mock('@react-navigation/stack', () => ({
     useCardAnimation: () => {},
 }));
 
-jest.mock('@react-navigation/native', () => ({
-    useFocusEffect: () => {},
-    useIsFocused: () => true,
-    createNavigationContainerRef: jest.fn(),
-}));
+jest.mock('@react-navigation/native', () => {
+    // Spread the actual module so context objects like NavigationContainerRefContext and NavigationContext
+    // remain defined. useResponsiveLayout (native) reads them via useContext, which crashes if they are undefined.
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useFocusEffect: () => {},
+        useIsFocused: () => true,
+        createNavigationContainerRef: jest.fn(),
+    };
+});
 
 jest.mock('../../src/hooks/useKeyboardState', () => ({
     __esModule: true,

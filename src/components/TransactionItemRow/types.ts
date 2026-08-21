@@ -22,6 +22,12 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The personal details of the user paying the request */
     to?: PersonalDetails;
 
+    /** The date the report was submitted, derived from the report and its live actions on the Search page */
+    submitted?: string;
+
+    /** The date the report was approved, derived from the report and its live actions on the Search page */
+    approved?: string;
+
     /** The date the report was exported */
     exported?: string;
 
@@ -51,11 +57,15 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Policy to which the transaction belongs */
     policy?: Policy;
+
+    /** ID of the policy the transaction belongs to, provided on search transactions */
+    policyID?: string;
 };
 
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
+    chatReport?: Report;
     policy?: Policy;
     policyCategories?: PolicyCategories;
     policyTagLists?: PolicyTagLists;
@@ -69,7 +79,7 @@ type TransactionItemRowProps = {
     exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
-    onCheckboxPress?: (transactionID: string) => void;
+    onCheckboxPress?: (transactionID: string, shiftKey?: boolean) => void;
     shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
     onButtonPress?: (event?: ModifiedMouseEvent) => void;
@@ -103,6 +113,8 @@ type TransactionItemRowProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     isActionColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
+    /** Enables the full-height hover target layout for the main table row content. */
+    shouldUseFullHeightEditableCellHoverTarget?: boolean;
     /** Callbacks for inline cell editing */
     onEditDate?: (newDate: string) => void;
     onEditMerchant?: (newMerchant: string) => void;
@@ -118,6 +130,15 @@ type TransactionItemRowProps = {
     canEditCategory?: boolean;
     canEditAmount?: boolean;
     canEditTag?: boolean;
+
+    /** When true, RBR content renders immediately instead of via useDeferredValue. Use in FlashList contexts. */
+    shouldSkipDeferRBR?: boolean;
+};
+
+/** Derived from shouldSkipDeferRBR; passed to layout variants for DeferredTransactionItemRowRBR. */
+type TransactionItemRowRBRDeferControlProps = {
+    /** When false, RBR content renders immediately instead of via useDeferredValue. */
+    shouldDeferRBR?: boolean;
 };
 
 /** Window position of the hovered cell used to anchor the receipt preview beside the row. */
@@ -148,7 +169,14 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     transactionAttendees: Attendee[];
     shouldShowAttendees: boolean;
     totalPerAttendee: number | undefined;
-    isMarkAsDone: boolean;
+    shouldShowMarkAsDoneCopy: boolean;
 };
 
-export type {AnchorPosition, TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};
+export type {
+    AnchorPosition,
+    TransactionWithOptionalSearchFields,
+    TransactionItemRowProps,
+    TransactionItemRowRBRDeferControlProps,
+    TransactionItemRowNarrowComputedData,
+    TransactionItemRowWideComputedData,
+};

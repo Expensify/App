@@ -1,6 +1,7 @@
 import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
@@ -51,7 +52,8 @@ function OptionRowLHNData({
     const styles = useThemeStyles();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
@@ -145,6 +147,7 @@ function OptionRowLHNData({
     // When getOptionData returns a fresh object with the same content, the Compiler
     // ensures that only expressions whose inputs actually changed recompute.
     const optionItem = SidebarUtils.getOptionData({
+        dateFnsLocale,
         report: fullReport,
         reportAttributes,
         oneTransactionThreadReport,
@@ -158,6 +161,7 @@ function OptionRowLHNData({
         card,
         lastAction,
         translate,
+        convertToDisplayString,
         localeCompare,
         isReportArchived,
         lastActionReport,
@@ -168,6 +172,7 @@ function OptionRowLHNData({
         policyTags,
         currentUserLogin: login ?? '',
         isTrackIntentUser,
+        formatPhoneNumber,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
@@ -199,7 +204,7 @@ function OptionRowLHNData({
         return isReportFocused ? null : <View style={placeholderRowStyle} />;
     }
 
-    const shouldUseMarkAsDone =
+    const shouldShowMarkAsDoneCopy =
         shouldShowMarkAsDone({
             report: fullReport,
             isTrackIntentUser,
@@ -213,7 +218,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             hasDraftComment={hasDraftComment}
-            isMarkAsDone={shouldUseMarkAsDone}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
         />
     );
 }

@@ -1,15 +1,16 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
@@ -36,6 +37,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ScrollView} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
@@ -53,6 +55,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const formRef = useRef<ScrollView>(null);
     const {showConfirmModal} = useConfirmModal();
     const isDeleting = useRef(false);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const updateApprovalWorkflowCallback = () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
@@ -63,13 +66,15 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
-        // We need to remove members and approvers that are no longer in the updated workflow
-        const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
-        const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
-        Navigation.dismissModal({
-            afterTransition: () => {
-                updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
-            },
+        startWithLoading(() => {
+            // We need to remove members and approvers that are no longer in the updated workflow
+            const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
+            const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
+            Navigation.dismissModal({
+                afterTransition: () => {
+                    updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
+                },
+            });
         });
     };
 
@@ -161,8 +166,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         isLoadingApprovalWorkflow,
     ]);
 
-    const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
-
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -185,7 +188,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         title={translate('workflowsEditApprovalsPage.title')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {!!approvalWorkflow && (
+                    {!!approvalWorkflow && !!initialApprovalWorkflow && (
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
@@ -206,20 +209,27 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 policyID={route.params.policyID}
                                 ref={formRef}
                             />
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
-                                onSubmit={updateApprovalWorkflowCallback}
-                                onFixTheErrorsLinkPressed={() => {
-                                    formRef.current?.scrollTo({y: 0, animated: true});
-                                }}
-                                buttonText={translate('common.save')}
-                                containerStyles={submitButtonContainerStyles}
-                                enabledWhenOffline
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EDIT_SAVE}
-                            />
+                            <FixedFooter addBottomSafeAreaPadding>
+                                <FormAlertWithSubmitButton
+                                    isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
+                                    onSubmit={updateApprovalWorkflowCallback}
+                                    onFixTheErrorsLinkPressed={() => {
+                                        formRef.current?.scrollTo({y: 0, animated: true});
+                                    }}
+                                    buttonText={translate('common.save')}
+                                    enabledWhenOffline
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EDIT_SAVE}
+                                    shouldShowLoadingImmediatelyOnPress={false}
+                                    isLoading={isLoading}
+                                />
+                            </FixedFooter>
                         </>
                     )}
-                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsEditPage'}} />}
+                    {!initialApprovalWorkflow && (
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                        </View>
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

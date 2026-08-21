@@ -62,25 +62,6 @@ function isChronosAutomaticTimerAction(reportAction: OnyxEntry<ReportAction>, is
     return isChronosReport && isChronosStartOrStopMessage(getReportActionText(reportAction as GetReportActionTextArg)) !== null;
 }
 
-function getTimeOfChronosTimerRunningFromVisibleActions(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): string | null {
-    for (const action of sortedVisibleReportActionsDesc) {
-        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
-            continue;
-        }
-        if (action.actorAccountID !== currentUserAccountID) {
-            continue;
-        }
-        const kind = isChronosStartOrStopMessage(getReportActionText(action as GetReportActionTextArg));
-        if (kind === CONST.CHRONOS.TIMER_COMMAND.START) {
-            return action.created;
-        }
-        if (kind !== null) {
-            return null;
-        }
-    }
-    return null;
-}
-
 /**
  * If the user sends consecutive actions to Chronos to automatically start/stop the timer,
  * then detect that and show each individually so that the user can easily see when they were sent.
@@ -185,13 +166,4 @@ function buildOOOCommand({date, time, durationAmount, durationUnit, reason, work
     return command;
 }
 
-export {
-    buildOOOCommand,
-    computeDurationDays,
-    computeEndDate,
-    getTimeOfChronosTimerRunningFromVisibleActions,
-    isChronosOOOListAction,
-    isChronosStartOrStopMessage,
-    isConsecutiveChronosAutomaticTimerAction,
-    parseDate,
-};
+export {buildOOOCommand, computeDurationDays, computeEndDate, isChronosOOOListAction, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction, parseDate};

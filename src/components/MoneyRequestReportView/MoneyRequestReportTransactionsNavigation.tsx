@@ -1,3 +1,4 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -46,8 +47,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [siblingDescriptorsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const personalDetails = usePersonalDetails();
+
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
 
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
@@ -79,7 +82,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
             let reportActions = {};
             for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
-                reportActions = {...reportActions, ...allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`]};
+                reportActions = {
+                    ...reportActions,
+                    ...allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`],
+                };
             }
             return parentReportActionIDsSelector(reportActions);
         },
@@ -92,7 +98,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const {prevParentReportAction, nextParentReportAction} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
-            return {prevParentReportAction: undefined, nextParentReportAction: undefined};
+            return {
+                prevParentReportAction: undefined,
+                nextParentReportAction: undefined,
+            };
         }
 
         return {
@@ -113,7 +122,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     useEffect(() => {
         return () => {
             const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-            if (focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW) {
+            if (focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW) {
                 return;
             }
             clearActiveTransactionIDs();
@@ -141,19 +150,37 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const nextDescriptor = nextTransactionID ? siblingDescriptorsByTransactionID?.[nextTransactionID] : undefined;
         if (nextDescriptor) {
             requestAnimationFrame(() => {
-                const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
-                markReportIDAsExpense(nextReportID);
-                requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, backTo})));
+                const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {
+                    introSelected,
+                    betas,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    personalDetails,
+                });
+                markReportRHPWidth(nextReportID, 'wide');
+                requestAnimationFrame(() =>
+                    startTransition(() =>
+                        Navigation.setParams({
+                            reportID: nextReportID,
+                            reportActionID: undefined,
+                            backTo,
+                        }),
+                    ),
+                );
             });
             return;
         }
 
         const nextThreadReportID = nextParentReportAction?.childReportID;
-        const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
+        const navigationParams = {
+            reportID: nextThreadReportID,
+            reportActionID: undefined,
+            backTo,
+        };
 
         requestAnimationFrame(() => {
             if (nextThreadReportID) {
-                markReportIDAsExpense(nextThreadReportID);
+                markReportRHPWidth(nextThreadReportID, 'wide');
             }
             // We know that the next thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
             if (!nextThreadReport && nextThreadReportID) {
@@ -169,6 +196,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     iouReport: nextParentReport,
                     iouReportAction: nextParentReportAction,
                     transaction: nextTransaction,
+                    personalDetails,
                 });
                 navigationParams.reportID = transactionThreadReport?.reportID;
             }
@@ -191,19 +219,37 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const prevDescriptor = prevTransactionID ? siblingDescriptorsByTransactionID?.[prevTransactionID] : undefined;
         if (prevDescriptor) {
             requestAnimationFrame(() => {
-                const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
-                markReportIDAsExpense(prevReportID);
-                requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, backTo})));
+                const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {
+                    introSelected,
+                    betas,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    personalDetails,
+                });
+                markReportRHPWidth(prevReportID, 'wide');
+                requestAnimationFrame(() =>
+                    startTransition(() =>
+                        Navigation.setParams({
+                            reportID: prevReportID,
+                            reportActionID: undefined,
+                            backTo,
+                        }),
+                    ),
+                );
             });
             return;
         }
 
         const prevThreadReportID = prevParentReportAction?.childReportID;
-        const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
+        const navigationParams = {
+            reportID: prevThreadReportID,
+            reportActionID: undefined,
+            backTo,
+        };
 
         requestAnimationFrame(() => {
             if (prevThreadReportID) {
-                markReportIDAsExpense(prevThreadReportID);
+                markReportRHPWidth(prevThreadReportID, 'wide');
             }
             // We know that the previous thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
             if (!prevThreadReport && prevThreadReportID) {
@@ -219,6 +265,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     iouReport: prevParentReport,
                     iouReportAction: prevParentReportAction,
                     transaction: prevTransaction,
+                    personalDetails,
                 });
                 navigationParams.reportID = transactionThreadReport?.reportID;
             }

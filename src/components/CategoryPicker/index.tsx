@@ -10,26 +10,35 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
+import type {OptionTree} from '@libs/OptionsListUtils/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data (GL code flags are trimmed from the snapshot).
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
+    shouldShowNoneOption?: boolean;
 
     /**
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
+    shouldAutoFocusSearchInput?: boolean;
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -46,12 +55,15 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false, shouldAutoFocusSearchInput = false}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
+    const [shouldShowGLCode] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
+        selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes,
+    });
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getNonEmptyStringOnyxID(policyID)}`);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const {isOffline} = useNetwork();
 
     const {translate, localeCompare} = useLocalize();
@@ -69,9 +81,31 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         localeCompare,
         recentlyUsedCategories: validPolicyRecentlyUsedCategories,
         translate,
+        shouldShowGLCode,
     });
 
-    const categoryData = sections?.at(0)?.data ?? [];
+    const noneOption: OptionTree[] = shouldShowNoneOption
+        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map(
+              (option): OptionTree => ({
+                  text: option.text,
+                  keyForList: option.keyForList,
+                  searchText: '',
+                  tooltipText: option.text,
+                  isDisabled: false,
+                  isSelected: option.isSelected,
+              }),
+          )
+        : [];
+    const noneOptionSection = {
+        title: '',
+        data: noneOption,
+        sectionIndex: -1,
+    };
+    const selectedCategorySectionIndex = sections.findIndex((section) => section.data.some((category) => category.searchText === selectedCategory));
+    const sectionsWithNoneOption =
+        noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
+
+    const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
     const categoriesCount = getEnabledCategoriesCount(categories);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
 
@@ -81,13 +115,14 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue),
         hint: offlineMessage,
-        disableAutoFocus: true,
+        // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
+        disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
     return (
         <SelectionListWithSections
-            sections={sections}
+            sections={sectionsWithNoneOption}
             onSelectRow={onSubmit}
             ListItem={SingleSelectListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
@@ -102,3 +137,4 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
 }
 
 export default CategoryPicker;
+export type {CategoryPickerProps};

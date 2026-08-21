@@ -31,6 +31,7 @@ import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Bot from '@assets/images/bot.svg';
 import Box from '@assets/images/box.svg';
+import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
@@ -133,11 +134,13 @@ import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
+import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
+import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -158,6 +161,7 @@ import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LocationAdd from '@assets/images/location-add.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
 import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
@@ -271,6 +275,7 @@ import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
+import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
@@ -312,6 +317,7 @@ const Expensicons = {
     Bolt,
     Bot,
     Box,
+    Briefcase,
     Bug,
     Building,
     Buildings,
@@ -404,11 +410,13 @@ const Expensicons = {
     Info,
     Invoice,
     InvoiceGeneric,
+    IntuitSquare,
     Key,
     Keyboard,
     Link,
     LinkCopy,
     Location,
+    LocationAdd,
     Lock,
     UserMinus,
     Luggage,
@@ -469,6 +477,7 @@ const Expensicons = {
     ReplaceReceipt,
     ReceiptMultiple,
     RilletSquare,
+    DualEntrySquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -501,6 +510,7 @@ const Expensicons = {
     Wallet,
     Workflows,
     Workspace,
+    Wrench,
     XeroSquare,
     GustoSquare,
     IntacctSquare: SageIntacctSquare,

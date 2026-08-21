@@ -7,7 +7,6 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -53,7 +52,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
-    const {isSelected} = useRowSelection(item.keyForList);
+    const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
@@ -67,14 +66,6 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     };
 
     const pressableStyle = [styles.transactionListItemStyle, styles.p4, styles.noBorderRadius, isSelected && styles.activeComponentBG, {...styles.flexColumn, ...styles.alignItemsStretch}];
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: true,
-    });
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
@@ -99,7 +90,8 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 wrapperStyle={[
                     styles.mh5,
                     styles.flex1,
-                    animatedHighlightStyle,
+                    StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                    styles.br0,
                     styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,

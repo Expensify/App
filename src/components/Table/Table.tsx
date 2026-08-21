@@ -7,22 +7,58 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {canMeasureText} from '@libs/measureTextWidth';
 
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
+import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 
 import type {TableContextValue} from './TableContext';
-import type {TableData, TableHandle, TableMethods, TableProps} from './types';
+import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
+import {shouldUseTableSemantics} from './tableAccessibility';
+import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableContext from './TableContext';
+import TableSemanticContainer from './TableSemanticContainer';
+import useDynamicColumnWidths from './useDynamicColumnWidths';
+
+/**
+ * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
+ * falling back to FlashList's own methods (e.g. `scrollToIndex`).
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useImperativeHandle`
+ * callback) because OXC's React Compiler currently fails to compile a component when a generic type
+ * cast referencing the component's own type parameters (e.g. `as TableHandle<DataType, ColumnKey, FilterKey>`)
+ * appears inside a nested closure. That bailout is silent (no build warning) and disables automatic
+ * memoization for the entire file, which is what previously caused an infinite FlashList re-render.
+ */
+function createTableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
+    tableMethods: TableMethods<ColumnKey, FilterKey>,
+    listRef: React.RefObject<FlashListRef<DataType> | null>,
+    getProcessedData: () => Array<TableRow<DataType>>,
+): TableHandle<DataType, ColumnKey, FilterKey> {
+    return new Proxy(tableMethods, {
+        get: (target, property) => {
+            if (property in target) {
+                return target[property as keyof typeof target];
+            }
+
+            if (property === 'getProcessedData') {
+                return getProcessedData;
+            }
+
+            return listRef.current?.[property as keyof FlashListRef<DataType>];
+        },
+    }) as TableHandle<DataType, ColumnKey, FilterKey>;
+}
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.
@@ -159,7 +195,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     children,
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
+    shouldUseDynamicColumns = false,
     onRowSelectionChange,
+    onSearchStringChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
@@ -196,13 +234,34 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         methods: selectionMethods,
         mobileSelectionModalRowKey,
         middleware: selectionMiddleware,
-    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
+    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, activeSearchString, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
     const selectionData = selectionMiddleware(sortedData);
 
     const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
+
+    const [tableWidth, setTableWidth] = useState(0);
+
+    const handleTableLayout = (event: LayoutChangeEvent) => {
+        setTableWidth(event.nativeEvent.layout.width);
+    };
+
+    // Narrow and medium layouts render as cards with no columns to size, and native can't measure text, so both keep the
+    // static tracks and never measure the table.
+    const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
+
+    // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
+    // searches or filters instead of reflowing on every keystroke.
+    const {gridTemplateColumns: dynamicGridTemplateColumns, scrollWidth: dynamicScrollWidth} = useDynamicColumnWidths<DataType, ColumnKey>({
+        columns,
+        data,
+        tableWidth,
+        isEnabled: isDynamicSizingEnabled,
+        // In the wide layout the checkbox column is rendered whenever selection is enabled.
+        hasSelectionColumn: !!selectionEnabled,
+    });
 
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
         ...filterMethods,
@@ -216,21 +275,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
      */
-    useImperativeHandle(ref, () => {
-        return new Proxy(tableMethods, {
-            get: (target, property) => {
-                if (property in target) {
-                    return target[property as keyof typeof target];
-                }
-
-                if (property === 'getProcessedData') {
-                    return () => processedData;
-                }
-
-                return listRef.current?.[property as keyof FlashListRef<DataType>];
-            },
-        }) as TableHandle<DataType, ColumnKey, FilterKey>;
-    });
+    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData));
 
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
@@ -252,9 +297,12 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         processedData,
         originalDataLength,
         columns,
+        dynamicGridTemplateColumns,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
+        initialSortColumn,
+        narrowLayoutSortColumn,
         activeSearchString,
         tableMethods,
         hasActiveFilters,
@@ -264,11 +312,32 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
+        onSearchStringChange,
     };
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
+    // The selection checkbox renders as an extra leading column when selection is enabled (always visible in the wide
+    // web layout where semantics apply), so it has to be counted alongside the configured data columns.
+    const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
+
+    // When empty, `TableBody` still renders (keeping its role="rowgroup") if an empty-state or header list slot is
+    // supplied, so the semantic wrapper must be preserved then to avoid orphaned table semantics.
+    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps);
 
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            {children}
+            <TableSemanticContainer
+                isEnabled={isTableSemanticsEnabled}
+                title={title}
+                rowCount={processedData.length}
+                columnCount={semanticColumnCount}
+                rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                scrollWidth={dynamicScrollWidth}
+                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
+            >
+                {children}
+            </TableSemanticContainer>
 
             <Modal
                 shouldPreventScrollOnFocus

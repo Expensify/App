@@ -1,5 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
@@ -14,6 +14,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Parser from '@libs/Parser';
+
+import CONST from '@src/CONST';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -62,9 +64,21 @@ function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: Vi
     );
 }
 
-function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding, onClose: onCloseOverride, titleStyle}: OutcomeScreenBaseProps) {
+function OutcomeScreenBaseContent({
+    headerTitle,
+    illustration,
+    iconWidth,
+    iconHeight,
+    title,
+    subtitle,
+    customSubtitle,
+    padding,
+    onClose: onCloseOverride,
+    titleStyle,
+}: OutcomeScreenBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    // useMemoizedLazyAsset freezes the first importFn; remount when illustration changes (see OutcomeScreenBase key).
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(illustration));
     const {dispatch} = useMultifactorAuthenticationActions();
 
@@ -104,15 +118,29 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                 </ScrollView>
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     <Button
-                        large
-                        success
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         style={styles.flex1}
                         onPress={onClose}
-                        text={translate('common.buttonConfirm')}
-                    />
+                    >
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
                 </View>
             </View>
         </ScreenWrapper>
+    );
+}
+
+/**
+ * Remounts content when `illustration` changes so useMemoizedLazyAsset picks up a new loader.
+ * That hook intentionally freezes the first importFn to avoid infinite loops from inline loaders.
+ */
+function OutcomeScreenBase(props: OutcomeScreenBaseProps) {
+    return (
+        <OutcomeScreenBaseContent
+            key={props.illustration}
+            {...props}
+        />
     );
 }
 

@@ -1,9 +1,9 @@
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getMemberChangeMessageFragment, getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getMemberChangeMessageFragment, getOriginalMessage, isMemberChangeAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 
 import TextCommentFragment from '@pages/inbox/report/comment/TextCommentFragment';
@@ -25,10 +25,13 @@ type MemberChangeContentProps = {
 function MemberChangeContent({action}: MemberChangeContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const reportAttributes = useReportAttributes();
+    const memberChangeLogReportActionMessage = isMemberChangeAction(action) ? getOriginalMessage(action) : undefined;
     const [actorDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(action.actorAccountID)});
-    const [targetAccountDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(getOriginalMessage(action)?.targetAccountIDs)});
-    const fragment = getMemberChangeMessageFragment(translate, action, actorDetails, targetAccountDetailsList, getReportName, reportAttributes);
+    const [targetAccountDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(memberChangeLogReportActionMessage?.targetAccountIDs)});
+    const [memberChangeLogRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${memberChangeLogReportActionMessage?.reportID}`);
+    const derivedMemberChangeLogRoomReportName = useDerivedReportNameByReportID(memberChangeLogRoomReport?.reportID);
+    const memberChangeLogRoomReportName = getReportName(memberChangeLogRoomReport, derivedMemberChangeLogRoomReportName) || memberChangeLogReportActionMessage?.roomName;
+    const fragment = getMemberChangeMessageFragment(translate, action, actorDetails, targetAccountDetailsList, memberChangeLogRoomReportName);
 
     return (
         <View style={[styles.chatItemMessage]}>

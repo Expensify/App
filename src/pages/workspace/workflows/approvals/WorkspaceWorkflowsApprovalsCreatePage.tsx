@@ -1,13 +1,14 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
@@ -48,6 +49,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const formRef = useRef<ScrollView>(null);
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
 
@@ -60,11 +62,11 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
-        Navigation.dismissModal();
-    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport]);
-
-    const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
+        startWithLoading(() => {
+            createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
+            Navigation.dismissModal();
+        });
+    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, startWithLoading]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -96,24 +98,24 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                                 policyID={route.params.policyID}
                                 ref={formRef}
                             />
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
-                                onSubmit={createApprovalWorkflow}
-                                onFixTheErrorsLinkPressed={() => {
-                                    formRef.current?.scrollTo({y: 0, animated: true});
-                                }}
-                                buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
-                                containerStyles={submitButtonContainerStyles}
-                                enabledWhenOffline
-                            />
+                            <FixedFooter addBottomSafeAreaPadding>
+                                <FormAlertWithSubmitButton
+                                    isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
+                                    onSubmit={createApprovalWorkflow}
+                                    onFixTheErrorsLinkPressed={() => {
+                                        formRef.current?.scrollTo({y: 0, animated: true});
+                                    }}
+                                    buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
+                                    enabledWhenOffline
+                                    shouldShowLoadingImmediatelyOnPress={false}
+                                    isLoading={isLoading}
+                                />
+                            </FixedFooter>
                         </>
                     )}
                     {!approvalWorkflow && (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsCreatePage'}}
-                            />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     )}
                 </FullPageNotFoundView>

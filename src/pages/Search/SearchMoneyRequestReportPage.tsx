@@ -1,9 +1,10 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
-import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
+import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -14,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
@@ -45,14 +47,11 @@ import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, op
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
+import type {Transaction, TransactionViolations} from '@src/types/onyx';
 
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
-import reportByIDsSelector from '@selectors/ReportAttributes';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 
 type SearchMoneyRequestPageProps =
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
@@ -75,6 +74,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
     const parentReportAction = useParentReportAction(report);
@@ -87,6 +87,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isFocused = useIsFocused();
 
     useDismissOnMoneyRequestReportRemoval(reportIDFromRoute);
@@ -125,6 +126,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
     const {transactionThreadReportID, effectiveTransactionThreadReportID, reportActions} = useTransactionThreadReportID(reportIDFromRoute);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
@@ -136,9 +139,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportID = report?.reportID;
 
-    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector(reportID ? [reportID] : [])(attributes), [reportID]);
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
-    useDocumentTitle(getReportName(report, reportAttributes));
+    const derivedReportName = useDerivedReportNameByReportID(reportID);
+    useDocumentTitle(getReportName(report, derivedReportName));
 
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);
     const hasLoadedReportActionsForAccessError = hasLoadedReportActions(reportLoadingState, isOffline);
@@ -181,7 +183,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;
 
-    useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
+    useRHPWidth(shouldShowSuperWideRHP ? 'super-wide' : 'wide');
 
     // Tracks initial mount to ensure openReport is called once for multi-transaction reports
     const isInitialMountRef = useRef(true);
@@ -207,11 +209,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 betas,
                 iouReport: report,
                 iouReportAction: iouAction,
+                personalDetails,
             });
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, betas});
+        openReport({reportID: reportIDFromRoute, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID});
         isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:
@@ -283,6 +286,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             iouReport: report,
             transaction,
             transactionViolations: violations,
+            personalDetails,
         });
     }, [
         allReportTransactions,
@@ -291,6 +295,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         currentUserEmail,
         currentUserAccountID,
         betas,
+        personalDetails,
         report,
         reportActions,
         reportIDFromRoute,
@@ -403,6 +408,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                 <DragAndDropProvider isDisabled={isEditingDisabled}>
                                     <MoneyRequestReportView
                                         report={report}
+                                        reportIDFromRoute={reportIDFromRoute}
                                         reportLoadingState={reportLoadingState}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         key={report?.reportID}

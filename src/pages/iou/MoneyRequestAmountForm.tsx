@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -106,6 +106,7 @@ function MoneyRequestAmountForm({
     policyID = '',
     onCurrencyButtonPress,
     onSubmitButtonPress,
+    onAmountChange,
     selectedTab = CONST.TAB_REQUEST.MANUAL,
     shouldKeepUserInput = false,
     chatReportID,
@@ -155,8 +156,12 @@ function MoneyRequestAmountForm({
     );
 
     const toggleNegative = useCallback(() => {
-        setIsNegative(!isNegative);
-    }, [isNegative]);
+        const nextIsNegative = !isNegative;
+        setIsNegative(nextIsNegative);
+        // The sign flip bypasses the input's change handler, so report the newly signed value like a keystroke would
+        const currentNumber = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+        onAmountChange?.(currentNumber && nextIsNegative ? `-${currentNumber}` : currentNumber);
+    }, [isNegative, onAmountChange]);
 
     const clearNegative = useCallback(() => {
         setIsNegative(false);
@@ -240,7 +245,7 @@ function MoneyRequestAmountForm({
                         currency={currency ?? CONST.CURRENCY.USD}
                         policyID={policyID}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        buttonSize={CONST.BUTTON_SIZE.LARGE}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         kycWallAnchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -256,18 +261,17 @@ function MoneyRequestAmountForm({
                     />
                 ) : (
                     <Button
-                        success
-                        // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                        allowBubble={!isEditing}
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => submitAndNavigateToNextPage()}
-                        text={buttonText}
                         testID="next-button"
                         sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_NEXT_BUTTON}
-                    />
+                    >
+                        {/* Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked. */}
+                        <Button.KeyboardShortcut allowBubble={!isEditing} />
+                        <Button.Text>{buttonText}</Button.Text>
+                    </Button>
                 )}
             </View>
         ),
@@ -299,7 +303,9 @@ function MoneyRequestAmountForm({
                 isCurrencyPressable={isCurrencyPressable}
                 onCurrencyButtonPress={onCurrencyButtonPress}
                 onFormatAmount={onFormatAmount}
-                onAmountChange={() => {
+                onAmountChange={(newAmount) => {
+                    // Signed the same way `getNumber` composes it, so the parent compares like-for-like
+                    onAmountChange?.(newAmount && isNegative ? `-${newAmount}` : newAmount);
                     if (!formError) {
                         return;
                     }

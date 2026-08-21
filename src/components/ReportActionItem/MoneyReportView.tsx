@@ -36,7 +36,6 @@ import {
     isSettled as isSettledReportUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
@@ -101,7 +100,7 @@ function MoneyReportView({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const isSettled = isSettledReportUtils(report?.reportID);
     const isTotalUpdated = hasUpdatedTotal(report, policy) && !isTotalPending;
@@ -129,12 +128,6 @@ function MoneyReportView({
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
     const isPartiallyPaid = !!report?.pendingFields?.partial;
-    const totalActivityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyReportView.Total',
-        isTotalUpdated,
-        isOffline,
-        isTotalPending,
-    };
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
@@ -153,7 +146,7 @@ function MoneyReportView({
 
     const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
+    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && !isOnlyTitleFieldEnabled;
@@ -191,7 +184,7 @@ function MoneyReportView({
                                     return null;
                                 }
 
-                                const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName);
+                                const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
                                 const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
@@ -222,7 +215,6 @@ function MoneyReportView({
                                             shouldGreyOutWhenDisabled={false}
                                             numberOfLinesTitle={0}
                                             interactive={!isFieldDisabled}
-                                            shouldStackHorizontally={false}
                                             onSecondaryInteraction={() => {}}
                                             titleWithTooltips={[]}
                                             brickRoadIndicator={violation ? 'error' : undefined}
@@ -254,7 +246,6 @@ function MoneyReportView({
                                         <ActivityIndicator
                                             style={[styles.moneyRequestLoadingHeight]}
                                             color={theme.textSupporting}
-                                            reasonAttributes={totalActivityReasonAttributes}
                                         />
                                     ) : (
                                         <Text

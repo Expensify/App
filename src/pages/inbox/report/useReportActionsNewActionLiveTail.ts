@@ -1,17 +1,23 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
 
 import type {OpenReportActionParams} from '@libs/actions/Report';
 import {openReport, pruneReportActionPagesToNewestWindow, subscribeToNewActionEvent} from '@libs/actions/Report';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
 
 // In the component we are subscribing to the arrival of new actions.
@@ -75,6 +81,8 @@ function useReportActionsNewActionLiveTail({
     prevIsLoadingInitialReportActions,
     reportLoadingState,
 }: UseReportActionsNewActionLiveTailParams) {
+    const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
@@ -106,6 +114,8 @@ function useReportActionsNewActionLiveTail({
                             reportID,
                             introSelected,
                             betas,
+                            hasReportActions: true,
+                            currentUserAccountID,
                         });
                     }
                     return;
@@ -159,9 +169,9 @@ function useReportActionsNewActionLiveTail({
         }
 
         setTreatAsNoPaginationAnchor(true);
-        Navigation.setParams({reportActionID: ''});
+        navigation.setParams({reportActionID: ''});
         liveTailJumpRef.current = {stage: 'await_scroll'};
-    }, [prevIsLoadingInitialReportActions, reportLoadingState?.isLoadingInitialReportActions, setTreatAsNoPaginationAnchor]);
+    }, [prevIsLoadingInitialReportActions, reportLoadingState?.isLoadingInitialReportActions, setTreatAsNoPaginationAnchor, navigation]);
 
     useEffect(() => {
         if (liveTailJumpRef.current.stage !== 'await_scroll') {

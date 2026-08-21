@@ -17,14 +17,17 @@ import type {HRCardDescriptor} from '@pages/workspace/hr/utils';
 
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {
     ConnectionLastSync,
+    ConnectionName,
     Connections,
     GustoConnectionConfig,
     MergeHRConnectionConfig,
     MergeHRConnectionLastSync,
     PolicyConnectionSyncProgress,
+    PolicyConnectionSyncStage,
     ZenefitsConnectionConfig,
 } from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
@@ -42,16 +45,13 @@ const GUSTO = CONST.POLICY.CONNECTIONS.NAME.GUSTO;
 const ZENEFITS = CONST.POLICY.CONNECTIONS.NAME.ZENEFITS;
 const MERGE_HR = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
 
-const STUB_ICON = {} as IconAsset;
+const STUB_ICON: IconAsset = {uri: 'stub'};
 const POLICY_ID = 'ABC123';
 const SYNC_TIMEOUT = CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
 type GetHRCardsParams = Parameters<typeof getHRCards>[0];
 
-// `Connections` marks every integration as required, but a real policy only carries the connections it has
-// actually set up (a type bug to fix one day). We accept a partial `connections` and let the single `as Policy`
-// cast below absorb it here, so individual tests can pass just the connection(s) they care about.
-function makePolicy(overrides: Partial<Omit<Policy, 'connections'>> & {connections?: Partial<Connections>} = {}): Policy {
+function makePolicy(overrides: Partial<Policy> = {}): Policy {
     return {
         id: POLICY_ID,
         name: 'Test Workspace',
@@ -62,7 +62,7 @@ function makePolicy(overrides: Partial<Omit<Policy, 'connections'>> & {connectio
         isPolicyExpenseChatEnabled: true,
         outputCurrency: 'USD',
         ...overrides,
-    } as Policy;
+    };
 }
 
 function makeLastSync(overrides: Partial<ConnectionLastSync> = {}): ConnectionLastSync {
@@ -109,17 +109,21 @@ function makeMergeHRConnection({
     };
 }
 
-function makeSyncProgress(connectionName: string, stage: string, minutesAgo = 1): PolicyConnectionSyncProgress {
+function makeSyncProgress(connectionName: ConnectionName, stage: PolicyConnectionSyncStage, minutesAgo = 1): PolicyConnectionSyncProgress {
     const timestamp = new Date(Date.now() - minutesAgo * 60 * 1000).toISOString();
     return {
         stageInProgress: stage,
         connectionName,
         timestamp,
-    } as PolicyConnectionSyncProgress;
+    };
 }
 
 const stubGetLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'] = (datetime) => (datetime ? new Date(datetime) : new Date(0));
-const stubTranslate = ((key: string) => key) as unknown as LocaleContextProps['translate'];
+function stubTranslate<TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string;
+function stubTranslate(path: TranslationPaths): string {
+    return path;
+}
+const stubFormatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => phoneNumber;
 
 function getRow(card: HRCardDescriptor | undefined, field: string) {
     return card?.configRows?.find((row) => row.field === field);
@@ -131,6 +135,7 @@ function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRC
         connectionSyncProgress: undefined,
         getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
         translate: stubTranslate,
+        formatPhoneNumber: stubFormatPhoneNumber,
         policyID: POLICY_ID,
         gustoIcon: STUB_ICON,
         trinetIcon: STUB_ICON,
@@ -880,8 +885,8 @@ describe('getHRCards', () => {
     });
 
     it('uses provider icons from params for static providers', () => {
-        const gustoIcon = {testId: 'gusto'} as unknown as IconAsset;
-        const trinetIcon = {testId: 'zenefits'} as unknown as IconAsset;
+        const gustoIcon: IconAsset = {uri: 'gusto'};
+        const trinetIcon: IconAsset = {uri: 'zenefits'};
         const cards = getHRCards(makeGetHRCardsParams({gustoIcon, trinetIcon}));
 
         expect(cards?.at(0)?.icon).toBe(gustoIcon);
@@ -894,9 +899,9 @@ describe('getHRCards', () => {
 
         expect(mergeCards.length).toBeGreaterThan(0);
         for (const card of mergeCards) {
-            const slug = card.key.replace('merge_', '');
-            const expected = MERGE_HR_PROVIDERS[slug as keyof typeof MERGE_HR_PROVIDERS]?.iconUrl;
-            expect(card.icon).toBe(expected);
+            const providerEntry = Object.entries(MERGE_HR_PROVIDERS).find(([slug]) => `merge_${slug}` === card.key);
+            expect(providerEntry).toBeDefined();
+            expect(card.icon).toBe(providerEntry?.[1].iconUrl);
         }
     });
 

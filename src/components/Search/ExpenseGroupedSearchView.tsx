@@ -15,7 +15,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -36,6 +36,8 @@ type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtr
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+const isGroupRowExiting = (item: SearchListItem) => isRowDeleted(item) || (isTransactionGroupListItemType(item) && item.transactions.length > 0 && item.transactions.every(isRowDeleted));
 
 const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTransactions) => !!(key && selectedTransactions[key]?.isSelected);
 
@@ -87,8 +89,7 @@ function buildNewTransactionIDMap(data: SearchListItem[], newTransactions: Trans
  * `useSearchListViewState`, and the surrounding chrome from `SearchListViewLayout`. This view owns the group
  * machinery: on wide web it splits each group into a sticky `GroupHeader` plus an expandable
  * `GroupChildrenContainer` (`shouldSplitGroups`); otherwise each group renders through `TransactionGroupListItem`.
- * Selection counts are report-aware (flattened over child transactions plus empty groups), and the scroll
- * handle remaps the router's data index to the split-list index.
+ * Selection counts are report-aware (flattened over child transactions plus empty groups).
  */
 function ExpenseGroupedSearchView({
     queryJSON,
@@ -110,7 +111,6 @@ function ExpenseGroupedSearchView({
     onScroll,
     contentContainerStyle,
     containerStyle,
-    ref,
 }: ExpenseGroupedSearchViewProps) {
     const {type, groupBy} = queryJSON;
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -133,9 +133,6 @@ function ExpenseGroupedSearchView({
         });
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {
         isOffline,
@@ -173,26 +170,6 @@ function ExpenseGroupedSearchView({
     const firstVisibleIndex = listData.findIndex(isItemVisible);
     const lastVisibleIndex = listData.findLastIndex(isItemVisible);
 
-    // The router highlights by source-data index; remap it to the split-list index before scrolling.
-    useImperativeHandle(
-        ref,
-        () => ({
-            scrollToIndex: (index: number, animated = true) => {
-                if (!shouldSplit) {
-                    scrollToListIndex(index, animated);
-                    return;
-                }
-                const item = data.at(index);
-                if (!item) {
-                    return;
-                }
-                const splitIndex = item.keyForList ? listData.findIndex((listItem) => listItem.keyForList === `header_${item.keyForList}`) : -1;
-                scrollToListIndex(splitIndex !== -1 ? splitIndex : index, animated);
-            },
-        }),
-        [data, listData, shouldSplit, scrollToListIndex],
-    );
-
     const getItemType = (item: SearchListItem) => {
         if (!shouldSplit) {
             return undefined;
@@ -216,7 +193,7 @@ function ExpenseGroupedSearchView({
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         if (isGroupHeaderItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('header_', '');
+            const originalKey = item.groupKeyForList;
             return (
                 <GroupHeader
                     item={item}
@@ -233,7 +210,6 @@ function ExpenseGroupedSearchView({
                     isFocused={isItemFocused}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={false}
-                    originalKey={originalKey}
                     lastPaymentMethod={lastPaymentMethod}
                     personalPolicyID={personalPolicyID}
                     userBillingGracePeriodEnds={userBillingGracePeriodEnds}
@@ -244,8 +220,8 @@ function ExpenseGroupedSearchView({
         }
 
         if (isGroupChildrenContainerItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('children_', '');
-            const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
+            const originalKey = item.groupKeyForList;
+            const containerNewTransactionID = newTransactionIDByItemKey.get(originalKey);
             return (
                 <GroupChildrenContainer
                     item={item}
@@ -261,9 +237,6 @@ function ExpenseGroupedSearchView({
                     onUndelete={handleUndelete}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     newTransactionID={containerNewTransactionID}
-                    bankAccountList={bankAccountList}
-                    cardFeeds={cardFeeds}
-                    conciergeReportID={conciergeReportID}
                 />
             );
         }
@@ -274,6 +247,7 @@ function ExpenseGroupedSearchView({
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
+                isRowExiting={isGroupRowExiting(item)}
             >
                 <TransactionGroupListItem
                     showTooltip

@@ -42,6 +42,9 @@ type ListItem<K extends string | number = string> = {
     /** Alternate text to display */
     alternateText?: string | null;
 
+    /** Custom node rendered in place of the alternate text (e.g. a description containing an inline link). Takes precedence over `alternateText` when set. */
+    alternateTextComponent?: ReactNode;
+
     /** Whether to force hide the alternate text even if it exists */
     shouldHideAlternateText?: boolean;
 
@@ -62,6 +65,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
+
+    /** Whether to hide the selection button (radio/checkbox) entirely, e.g. for structural parent rows that only provide hierarchy context */
+    shouldHideSelectionButton?: boolean;
 
     /** Whether this item should be interactive at all */
     isInteractive?: boolean;
@@ -143,6 +149,9 @@ type ListItem<K extends string | number = string> = {
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
 
+    /** Styles applied to the item title */
+    titleStyles?: StyleProp<TextStyle>;
+
     /** Boolean whether to display the right icon */
     shouldShowRightCaret?: boolean;
 
@@ -217,6 +226,12 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
+
+    /** When `false`, a single-select row stays a `button` instead of becoming a listbox `option`. */
+    shouldUseOptionRole?: boolean;
+
+    /** Overrides the row's selected state (aria-selected, highlight). Defaults to `item.isSelected`; pass it when selection isn't stored on the item itself. */
+    isSelected?: boolean;
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
@@ -324,6 +339,8 @@ type ValidListItem =
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
     ForwardedFSClassProps & {
         item: TItem;
+        /** Overrides the row's screen-reader name. Defaults to the item's derived label when omitted. */
+        accessibilityLabel?: string;
         shouldPreventEnterKeySubmit?: boolean;
         shouldShowBlueBorderOnFocus?: boolean;
         keyForList: string;
@@ -438,6 +455,7 @@ type WorkspaceListItemType = {
     text: string;
     policyID?: string;
     isPolicyAdmin?: boolean;
+    isArchived?: boolean;
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
 

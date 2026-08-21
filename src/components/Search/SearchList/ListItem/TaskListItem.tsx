@@ -2,7 +2,6 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -44,8 +43,9 @@ function TaskListItem<TItem extends ListItem>({
     const taskItem = item as unknown as TaskListItemType;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
     const parentReportID = taskItem?.parentReportID;
-    const parentReportAttributeNameSelector = (value: OnyxEntry<ReportAttributesDerivedValue>) => (parentReportID ? value?.reports?.[parentReportID]?.reportName : undefined);
-    const [liveParentReportAttributeName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: parentReportAttributeNameSelector}, [parentReportID]);
+    const [liveParentReportAttributeName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (value: OnyxEntry<ReportAttributesDerivedValue>) => (parentReportID ? value?.reports?.[parentReportID]?.reportName : undefined),
+    });
     const liveTaskItem: TaskListItemType =
         liveParentReportAttributeName && liveParentReportAttributeName !== taskItem.parentReportName ? {...taskItem, parentReportName: liveParentReportAttributeName} : taskItem;
     const styles = useThemeStyles();
@@ -59,7 +59,7 @@ function TaskListItem<TItem extends ListItem>({
         styles.selectionListPressableItemWrapper,
         styles.pv3,
         styles.ph3,
-        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        // Background is applied on the parent wrapper, so keep this transparent
         styles.bgTransparent,
         isSelected && styles.activeComponentBG,
         styles.mh0,
@@ -71,14 +71,6 @@ function TaskListItem<TItem extends ListItem>({
         styles.userSelectNone,
         isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-        shouldApplyOtherStyles: !isLargeScreenWidth,
-    });
 
     const fsClass = FS.getChatFSClass(parentReport);
 
@@ -99,7 +91,11 @@ function TaskListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
+            pressableWrapperStyle={[
+                styles.mh5,
+                {backgroundColor: theme.highlightBG, ...(!isLargeScreenWidth && {borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth)})},
+                isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+            ]}
             forwardedFSClass={fsClass}
         >
             <TaskListItemRow

@@ -1,4 +1,5 @@
 import DateUtils from '@libs/DateUtils';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -6,11 +7,11 @@ import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
-import type {Connections, NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
+import type {InvitedEmailsToAccountIDs, PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -20,6 +21,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -34,8 +36,8 @@ describe('actions/PolicyMember', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -46,10 +48,8 @@ describe('actions/PolicyMember', () => {
                 ...createRandomReport(0, undefined),
                 policyID: fakePolicy.id,
             };
-            const fakeReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
+            const fakeReportAction = createRandomReportAction(0);
+            fakeReportAction.actionName = CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -62,16 +62,22 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
-                        const reportAction = reportActions?.[fakeReportAction.reportActionID] as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
+                        const reportAction = reportActions?.[fakeReportAction.reportActionID];
 
-                        if (!isEmptyObject(reportAction)) {
-                            expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice)?.toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
-                            expect(reportAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        if (!reportAction) {
+                            throw new Error('Expected the optimistic report action to exist');
                         }
+                        if (isEmptyObject(reportAction)) {
+                            throw new Error('Expected the optimistic report action to be populated');
+                        }
+                        if (!ReportActionsUtils.isActionableJoinRequest(reportAction)) {
+                            throw new Error('Expected the optimistic report action to be an actionable join request');
+                        }
+                        expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice).toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
+                        expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
                     },
                 });
@@ -81,7 +87,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
@@ -121,7 +126,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
@@ -148,7 +152,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
@@ -164,7 +167,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         resolve();
@@ -200,7 +202,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -216,7 +217,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -251,7 +251,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -267,7 +266,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -299,7 +297,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -326,7 +323,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -351,7 +347,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -381,14 +376,13 @@ describe('actions/PolicyMember', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -402,6 +396,37 @@ describe('actions/PolicyMember', () => {
                 });
             });
             await mockFetch?.resume?.();
+        });
+
+        it('uses new personal details onyx data to decide new-member success-data participants instead of the deprecated copy', () => {
+            const policyID = '1';
+            const policy = {...createRandomPolicy(Number(policyID))};
+
+            const presentMemberEmail = 'present@example.com';
+            const presentMemberAccountID = 4321;
+            const absentMemberEmail = 'absent@example.com';
+            const absentMemberAccountID = 8765;
+
+            const newPersonalDetailsOnyxData = getPersonalDetailsOnyxDataForOptimisticUsers([absentMemberEmail], [absentMemberAccountID], TestHelper.formatPhoneNumber);
+
+            const {membersChats} = Member.buildAddMembersToWorkspaceOnyxData(
+                {[presentMemberEmail]: presentMemberAccountID, [absentMemberEmail]: absentMemberAccountID},
+                newPersonalDetailsOnyxData,
+                policy,
+                [],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                undefined,
+            );
+
+            const findSuccessReportUpdate = (email: string) => {
+                const reportID = membersChats.reportCreationData[email]?.reportID;
+                return membersChats.onyxSuccessData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            };
+
+            // The known member keeps their optimistic participant ({}); the unknown member's participant is removed (null).
+            expect(findSuccessReportUpdate(presentMemberEmail)).toHaveProperty(['value', 'participants', `${presentMemberAccountID}`], {});
+            expect(findSuccessReportUpdate(absentMemberEmail)).toHaveProperty(['value', 'participants', `${absentMemberAccountID}`], null);
         });
 
         it('Add new members with admin/scoped admin role to the #admins room', async () => {
@@ -435,19 +460,9 @@ describe('actions/PolicyMember', () => {
 
             // When adding a new admin, scoped admin, and user members
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber, undefined, currentUser, {});
-            Member.addMembersToWorkspace(
-                {[cardAdminEmail]: cardAdminAccountID},
-                'Welcome',
-                policy,
-                [],
-                CONST.POLICY.ROLE.CARD_ADMIN,
-                TestHelper.formatPhoneNumber,
-                undefined,
-                currentUser,
-                {},
-            );
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, currentUser, {});
+            Member.addMembersToWorkspace({[cardAdminEmail]: cardAdminAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.CARD_ADMIN, currentUser, {});
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -493,7 +508,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             // When the caller passes ROLE.USER for a Submit workspace
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -501,7 +516,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -526,7 +540,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             // When the caller passes ROLE.USER on a non-Submit workspace
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -534,7 +548,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -569,7 +582,7 @@ describe('actions/PolicyMember', () => {
 
             // When inviting a new member on a Submit workspace (role is forced to Editor)
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -618,7 +631,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -678,17 +691,7 @@ describe('actions/PolicyMember', () => {
             };
 
             // When adding the user with the explicit reportActionsList argument
-            Member.addMembersToWorkspace(
-                {[userEmail]: userAccountID},
-                'Welcome',
-                policy,
-                [],
-                CONST.POLICY.ROLE.USER,
-                TestHelper.formatPhoneNumber,
-                undefined,
-                currentUser,
-                reportActionsList,
-            );
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, reportActionsList);
 
             await waitForBatchedUpdates();
 
@@ -709,27 +712,27 @@ describe('actions/PolicyMember', () => {
                 Member.buildAddMembersToWorkspaceOnyxData(
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     {'new-member@example.com': 9001},
+                    {},
                     createRandomPolicy(101),
                     [],
                     CONST.POLICY.ROLE.USER,
-                    TestHelper.formatPhoneNumber,
-                    undefined,
                     currentUserInput,
                     undefined,
                 );
 
             type BuildResult = ReturnType<typeof buildForCurrentUser>;
+            type ReportActionsUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
+            type ReportActionsValueUpdate = Extract<ReportActionsUpdate, {onyxMethod: typeof Onyx.METHOD.SET | typeof Onyx.METHOD.MERGE}>;
+            type ReportActionsValue = NonNullable<ReportActionsValueUpdate['value']>;
+            type ReportActionUpdateEntry = NonNullable<ReportActionsValue[string]>;
 
-            const findOptimisticCreatedAction = (optimisticData: BuildResult['optimisticData']) => {
-                for (const update of optimisticData) {
-                    if (!update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-                        continue;
-                    }
-                    const value = update.value as Record<string, ReportAction> | null | undefined;
-                    if (!value) {
-                        continue;
-                    }
-                    const createdAction = Object.values(value).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            const findOptimisticCreatedAction = (optimisticData: BuildResult['optimisticData']): ReportActionUpdateEntry | undefined => {
+                const reportActionsUpdates = optimisticData.filter(
+                    (update): update is ReportActionsValueUpdate =>
+                        (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE) && update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS),
+                );
+                for (const update of reportActionsUpdates) {
+                    const createdAction = Object.values(update.value ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
                     if (createdAction) {
                         return createdAction;
                     }
@@ -874,14 +877,14 @@ describe('actions/PolicyMember', () => {
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
                 connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({
                         verified: true,
                         accountID: '123456',
                         options: {
-                            data: {} as NetSuiteConnectionData,
-                            config: {
+                            data: createMock<NetSuiteConnectionData>({}),
+                            config: createMock<NetSuiteConnectionConfig>({
                                 exporter: adminEmail,
-                            } as NetSuiteConnectionConfig,
+                            }),
                         },
                         lastSync: {
                             errorDate: '',
@@ -892,8 +895,8 @@ describe('actions/PolicyMember', () => {
                             source: 'NEWEXPENSIFY',
                             successfulDate: '',
                         },
-                    } as NetSuiteConnection,
-                } as Connections,
+                    }),
+                },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
@@ -1088,6 +1091,15 @@ describe('actions/PolicyMember', () => {
             // Then it should show the singular member added success message
             expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+            expect(importFinalModal.pendingMessageKey).toBeUndefined();
+        });
+
+        it('should include a role permission warning when restricted roles are replaced', async () => {
+            const policy = createRandomPolicy(1);
+
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER}], true);
+
+            expect(importFinalModal.pendingMessageKey).toBe('spreadsheet.importMembersRolePermissionWarning');
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
@@ -1256,13 +1268,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             // Then the draft should be saved to the correct Onyx key
-            const draft = await new Promise<typeof invitedEmailsToAccountIDs | null | undefined>((resolve) => {
+            const draft = await new Promise<InvitedEmailsToAccountIDs | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as typeof invitedEmailsToAccountIDs | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1301,10 +1312,9 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1338,10 +1348,9 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1371,10 +1380,9 @@ describe('actions/PolicyMember', () => {
             const savedDraft1 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID1}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1382,10 +1390,9 @@ describe('actions/PolicyMember', () => {
             const savedDraft2 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID2}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1415,10 +1422,9 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1447,10 +1453,9 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });

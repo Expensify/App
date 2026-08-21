@@ -26,25 +26,25 @@ describe('getStateToResetAfterLogout', () => {
         expect(getStateToResetAfterLogout(buildRootState([]))).toBeUndefined();
     });
 
-    it('resets to TAB_NAVIGATOR when a consumed magic-link is the last route, even if a host is mounted (post-logout reset always lands on the public TAB_NAVIGATOR/SignInPage route)', () => {
+    it('resets to TAB_NAVIGATOR when a consumed security-link is the last route, even if a host is mounted (post-logout reset always lands on the public TAB_NAVIGATOR/SignInPage route)', () => {
         const result = getStateToResetAfterLogout(buildRootState([{name: NAVIGATORS.TAB_NAVIGATOR, params: {deep: 'link'}}, {name: SCREENS.VALIDATE_LOGIN}]));
 
         expect(result).toEqual({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
     });
 
-    it('resets to TAB_NAVIGATOR for a consumed magic-link with a ReportsSplit host too', () => {
+    it('resets to TAB_NAVIGATOR for a consumed security-link with a ReportsSplit host too', () => {
         const result = getStateToResetAfterLogout(buildRootState([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: SCREENS.VALIDATE_LOGIN}]));
 
         expect(result).toEqual({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
     });
 
-    it('resets to TAB_NAVIGATOR when a consumed magic-link is the only route (fresh session, no host mounted)', () => {
+    it('resets to TAB_NAVIGATOR when a consumed security-link is the only route (fresh session, no host mounted)', () => {
         const result = getStateToResetAfterLogout(buildRootState([{name: SCREENS.VALIDATE_LOGIN, params: {accountID: '1'}}]));
 
         expect(result).toEqual({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
     });
 
-    it('PRESERVES params and does NOT redirect to TAB_NAVIGATOR for a non-magic-link login/logout route (TransitionBetweenApps — a29d2e24c6a)', () => {
+    it('PRESERVES params and does NOT redirect to TAB_NAVIGATOR for a non-security-link login/logout route (TransitionBetweenApps — a29d2e24c6a)', () => {
         const transitionParams = {shortLivedAuthToken: 'tok', exitTo: 'settings'};
         const result = getStateToResetAfterLogout(buildRootState([{name: SCREENS.TRANSITION_BETWEEN_APPS, params: transitionParams}]));
 

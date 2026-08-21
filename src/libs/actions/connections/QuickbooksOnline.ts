@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {ConnectPolicyToAccountingIntegrationParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
+import type {UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
 import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -19,13 +19,19 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-function getQuickbooksOnlineSetupLink(policyID: string) {
-    const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
+function getQuickbooksOnlineSetupLink(policyID: string, isIntuitEnterpriseSuite = false, isSandbox = false) {
+    const params = new URLSearchParams({policyID});
+    if (isIntuitEnterpriseSuite) {
+        params.set('isIntuitEnterpriseSuite', 'true');
+    }
+    if (isSandbox) {
+        params.set('isSandbox', 'true');
+    }
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE,
         shouldSkipWebProxy: true,
     });
-    return commandURL + new URLSearchParams(params).toString();
+    return commandURL + params.toString();
 }
 
 function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
@@ -425,6 +431,25 @@ function updateQuickbooksOnlineCollectionAccountID<TSettingValue extends QBOConn
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
+function updateQuickbooksOnlineFxExpenseAccount<TSettingValue extends QBOConnectionConfig['fxExpenseAccount']>(
+    policyID: string | undefined,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    if (settingValue === oldSettingValue || !policyID) {
+        return;
+    }
+
+    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT, parameters, {optimisticData, failureData, successData});
+}
+
 function updateQuickbooksOnlineSyncReimbursedReports(
     policyID: string | undefined,
     settingValue: QBOConnectionConfig['collectionAccountID'],
@@ -520,14 +545,14 @@ function updateQuickbooksOnlinePreferredExporter<TSettingValue extends Connectio
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineTravelInvoicingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
-    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
+function updateQuickbooksOnlineTravelBillingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, accountID, oldAccountID);
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: accountID,
-        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT),
     };
-    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
 export {
@@ -545,6 +570,7 @@ export {
     updateQuickbooksOnlineExportDate,
     updateQuickbooksOnlineNonReimbursableExpensesAccount,
     updateQuickbooksOnlineCollectionAccountID,
+    updateQuickbooksOnlineFxExpenseAccount,
     updateQuickbooksOnlineSyncReimbursedReports,
     updateQuickbooksOnlineNonReimbursableBillDefaultVendor,
     updateQuickbooksOnlineNonReimbursableCreditCardDefaultVendor,
@@ -553,5 +579,5 @@ export {
     updateQuickbooksOnlineSyncLocations,
     updateQuickbooksOnlineSyncCustomers,
     updateQuickbooksOnlineAccountingMethod,
-    updateQuickbooksOnlineTravelInvoicingPayableAccount,
+    updateQuickbooksOnlineTravelBillingPayableAccount,
 };

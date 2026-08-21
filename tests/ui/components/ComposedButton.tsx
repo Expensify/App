@@ -3,12 +3,12 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import HapticFeedback from '@libs/HapticFeedback';
 
 import colors from '@styles/theme/colors';
+import type {ButtonVariant} from '@styles/utils/types';
 import variables from '@styles/variables';
 
 import type {ButtonProps} from '@src/components/ButtonComposed';
 import Button from '@src/components/ButtonComposed';
 import {useButtonContext} from '@src/components/ButtonComposed/context';
-import type {ButtonVariant} from '@src/components/ButtonComposed/context';
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -557,7 +557,10 @@ describe('ButtonComposed — Button', () => {
 
             // `style` maps to PressableWithFeedback's wrapperStyle on the outer OpacityView.
             // We find it by scanning for any host View in the tree that carries the margin.
-            const wrapperView = renderResult.UNSAFE_getAllByType(View).find((v) => (StyleSheet.flatten(v.props.style ?? []) as {margin?: number})?.margin === 10);
+            const wrapperView = renderResult.UNSAFE_getAllByType(View).find((v) => {
+                const flatStyle: unknown = StyleSheet.flatten(v.props.style ?? []);
+                return typeof flatStyle === 'object' && flatStyle !== null && 'margin' in flatStyle && flatStyle.margin === 10;
+            });
             expect(wrapperView).toBeDefined();
         });
 
@@ -569,7 +572,10 @@ describe('ButtonComposed — Button', () => {
 
             // contentContainerStyle is applied to the flexRow View wrapping all children.
             // We find it by scanning host Views for the custom padding.
-            const contentWrapper = renderResult.UNSAFE_getAllByType(View).find((v) => (StyleSheet.flatten(v.props.style ?? []) as {paddingTop?: number})?.paddingTop === 8);
+            const contentWrapper = renderResult.UNSAFE_getAllByType(View).find((v) => {
+                const flatStyle: unknown = StyleSheet.flatten(v.props.style ?? []);
+                return typeof flatStyle === 'object' && flatStyle !== null && 'paddingTop' in flatStyle && flatStyle.paddingTop === 8;
+            });
             expect(contentWrapper).toBeDefined();
         });
 
@@ -579,22 +585,14 @@ describe('ButtonComposed — Button', () => {
             const renderResult = renderButton({blendOpacity: true});
 
             const overlayView = renderResult.UNSAFE_getAllByType(View).find((v) => {
-                const flat = StyleSheet.flatten(v.props.style ?? []) as {
-                    position?: string;
-                };
-                return flat?.position === 'absolute';
+                const flatStyle: unknown = StyleSheet.flatten(v.props.style ?? []);
+                return typeof flatStyle === 'object' && flatStyle !== null && 'position' in flatStyle && flatStyle.position === 'absolute';
             });
 
             expect(overlayView).toBeDefined();
 
             // The overlay must cover the full button — verify absoluteFill dimensions
-            const overlayStyle = StyleSheet.flatten(overlayView?.props.style ?? []) as {
-                position?: string;
-                top?: number;
-                left?: number;
-                right?: number;
-                bottom?: number;
-            };
+            const overlayStyle: unknown = StyleSheet.flatten(overlayView?.props.style ?? []);
             expect(overlayStyle).toMatchObject({
                 position: 'absolute',
                 top: 0,

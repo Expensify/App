@@ -1,12 +1,13 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import type {TableRow} from '@components/Table';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,8 +21,8 @@ import {View} from 'react-native';
 import type {AgentRowData} from '.';
 
 type AgentsTableRowProps = {
-    /** Data about the agent */
-    item: AgentRowData;
+    /** Data about the agent (wrapped by the table, so it also carries row state such as `selected`) */
+    item: TableRow<AgentRowData>;
 
     /** The index of the row relative to all other rows */
     rowIndex: number;
@@ -33,20 +34,17 @@ type AgentsTableRowProps = {
 export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: AgentsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'ChatBubble']);
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const isPendingDeletion = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isPendingAddOrDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
     const areActionsDisabled = isPendingAddOrDelete || item.accountID <= 0 || !item.login;
     const accessibilityLabel = [item.displayName, item.login].filter(Boolean).join(', ');
-
-    const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
-        styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-        hovered ? styleUtils.getBackgroundAndBorderStyle(styles.sidebarLinkHover?.backgroundColor ?? theme.sidebar) : undefined,
-    ];
+    const selectedButtonInnerStyle = item.selected ? styles.buttonDefaultHovered : undefined;
 
     return (
         <Table.Row
@@ -65,13 +63,14 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                        <ReportActionAvatars
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
+                        <AccountAvatar
                             size={avatarSize}
-                            accountIDs={[item.accountID]}
+                            accountID={item.accountID}
                             fallbackDisplayName={item.displayName}
-                            shouldShowTooltip
-                            secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip
@@ -87,13 +86,17 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         </View>
                     </View>
 
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         {!shouldUseNarrowTableLayout && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Button
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.onChatPress}
                                     isDisabled={areActionsDisabled}
+                                    innerStyles={selectedButtonInnerStyle}
                                     accessibilityLabel={translate('editAgentPage.chatWithAgent')}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.CHAT}
                                 >
@@ -103,6 +106,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.onCopilotPress}
                                     isDisabled={areActionsDisabled}
+                                    innerStyles={selectedButtonInnerStyle}
                                     accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.COPILOT}
                                 >
@@ -112,6 +116,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={item.action}
                                     isDisabled={isPendingDeletion}
+                                    innerStyles={selectedButtonInnerStyle}
                                     sentryLabel={CONST.SENTRY_LABEL.AGENTS.EDIT}
                                 >
                                     <Button.Text>{translate('common.edit')}</Button.Text>

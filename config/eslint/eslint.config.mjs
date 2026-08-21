@@ -334,7 +334,8 @@ const config = defineConfig([
             'rulesdir/no-beta-handler': 'error',
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
-            'rulesdir/no-useOnyx-dependencies-arg': 'error',
+            'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
+            'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -534,6 +535,14 @@ const config = defineConfig([
         },
     },
 
+    // Rspack loaders receive their `this` from the bundler, and it's standard practice to use it
+    {
+        files: ['config/rsbuild/loaders/*-loader.mjs'],
+        rules: {
+            'no-invalid-this': 'off',
+        },
+    },
+
     {
         files: ['**/en.ts', '**/es.ts'],
         rules: {
@@ -591,6 +600,32 @@ const config = defineConfig([
                             message: 'Do not import files from src/ directory as they can break the GH Actions build script.',
                         },
                     ],
+                },
+            ],
+        },
+    },
+
+    {
+        // Only the sources that esbuild bundles into an action's index.js. Those bundles are real ESM (see
+        // .github/actions/javascript/package.json), where `module`/`__dirname`/`__filename` don't exist. esbuild
+        // leaves the identifiers untouched rather than failing, so a CJS idiom here builds fine and then throws
+        // a ReferenceError when the action runs in CI. `.github/scripts/` is excluded: it runs directly under
+        // Bun, which does provide these.
+        files: ['.github/actions/**/*.ts', '.github/libs/**/*.ts'],
+        rules: {
+            'no-restricted-globals': [
+                'error',
+                {
+                    name: 'module',
+                    message: 'This file is bundled as ESM and runs on Node 24. For an entry-point guard use `import.meta.main` instead of `require.main === module`.',
+                },
+                {
+                    name: '__dirname',
+                    message: 'This file is bundled as ESM. Use `import.meta.dirname` instead of `__dirname`.',
+                },
+                {
+                    name: '__filename',
+                    message: 'This file is bundled as ESM. Use `import.meta.filename` instead of `__filename`.',
                 },
             ],
         },
@@ -690,6 +725,53 @@ const config = defineConfig([
     },
 
     {
+        // Its own project because `@types/bun`'s globals conflict with the app's, so it is excluded from
+        // the root tsconfig and would otherwise belong to no project at all.
+        files: ['evals/**/*.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'evals/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        // CIGitLogic is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
+        // be pointed at the project that does own it. See tests/tooling/README.md.
+        files: ['tests/tooling/CIGitLogic.test.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tests/tooling/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        // lint.ts is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
+        // be pointed at the project that does own it. See scripts/tsconfig.json.
+        files: ['scripts/lint.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'scripts/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        files: ['tests/tooling/**/*.ts'],
+        rules: {
+            // bun-types declares `expect(...).resolves`/`.rejects` matchers as returning `void` even though Bun's
+            // own docs recommend (and its runtime requires) awaiting them, so this rule reports every correct use
+            // of that pattern here. See https://github.com/oven-sh/bun/pull/23425. The cost of turning it off is
+            // that a *missing* await on `.rejects` also lints clean, so check those by hand in review.
+            '@typescript-eslint/await-thenable': 'off',
+        },
+    },
+
+    {
         files: ['server/victory-chart-renderer/**/*.ts', 'server/victory-chart-renderer/**/*.tsx'],
         languageOptions: {
             parserOptions: {
@@ -737,6 +819,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/el.ts',
         'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',

@@ -2,12 +2,15 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react-native'
 
 import {LoginProvider} from '@pages/signin/SignInLoginContext';
 
-import {beginSignIn} from '@userActions/Session';
+import {beginSignIn, clearAccountMessages} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -71,13 +74,22 @@ jest.mock('@userActions/CloseAccount', () => ({
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const BaseLoginForm = require('@pages/signin/LoginForm/BaseLoginForm').default;
 
-const mockBeginSignIn = beginSignIn as jest.MockedFunction<typeof beginSignIn>;
+const mockBeginSignIn = jest.mocked(beginSignIn);
+const Stack = createStackNavigator();
 
 function renderForm() {
     return render(
-        <LoginProvider>
-            <BaseLoginForm isVisible />
-        </LoginProvider>,
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name={SCREENS.SIGN_IN_ROOT}>
+                    {() => (
+                        <LoginProvider>
+                            <BaseLoginForm isVisible />
+                        </LoginProvider>
+                    )}
+                </Stack.Screen>
+            </Stack.Navigator>
+        </NavigationContainer>,
     );
 }
 
@@ -136,6 +148,41 @@ describe('BaseLoginForm', () => {
 
         await waitFor(() => {
             expect(mockBeginSignIn).toHaveBeenCalledWith('user@expensify.com');
+        });
+    });
+
+    it('does not clear the account message on mount when it is a freshly-set unlink success message', async () => {
+        // UnlinkLoginPage resets the stack to the sign-in page as soon as the unlink settles, so this
+        // mount is the one that has to render the result — clearing it here would show nothing.
+        await Onyx.set(ONYXKEYS.ACCOUNT, {
+            isLoading: false,
+            errors: null,
+            message: 'unlinkLoginForm.successfullyUnlinkedLogin',
+        });
+        await waitForBatchedUpdates();
+
+        renderForm();
+        await waitFor(() => {
+            expect(screen.getByText('unlinkLoginForm.successfullyUnlinkedLogin')).toBeTruthy();
+        });
+
+        expect(clearAccountMessages).not.toHaveBeenCalled();
+    });
+
+    it('still clears a stale account message on an ordinary mount (control case)', async () => {
+        // Regression guard: the skip above must be scoped to the unlink success value only — any other
+        // leftover message (e.g. from an earlier flow) must still be cleared as before.
+        await Onyx.set(ONYXKEYS.ACCOUNT, {
+            isLoading: false,
+            errors: null,
+            message: 'closeAccountPage.reasonForLeavingPrompt',
+        });
+        await waitForBatchedUpdates();
+
+        renderForm();
+
+        await waitFor(() => {
+            expect(clearAccountMessages).toHaveBeenCalled();
         });
     });
 });

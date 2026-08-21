@@ -8,10 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
-    areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getMoneyRequestSpendBreakdown,
-    getTransactionsWithReceipts,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
@@ -20,12 +17,12 @@ import {
 } from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasPendingUI, isPending} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {reportActionsLoadingStateSelector, isOptimisticReportSelector} from '@src/selectors/ReportMetaData';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -47,6 +44,7 @@ import {
     ReportPreviewDataContext,
     ReportPreviewHoldMenuContext,
     ReportPreviewMetaContext,
+    ReportPreviewTransactionViolationsContext,
     ReportPreviewUIStateContext,
 } from './MoneyRequestReportPreviewContext';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
@@ -60,7 +58,9 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     iouReport: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     transactions: Transaction[];
-    allReportTransactions: Transaction[];
+    transactionsWithReceipts: Transaction[];
+    hasNonReimbursableTransactions: boolean;
+    areAllRequestsBeingSmartScanned: boolean;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
@@ -86,7 +86,9 @@ function MoneyRequestReportPreviewProvider({
     iouReport,
     chatReport,
     transactions,
-    allReportTransactions,
+    transactionsWithReceipts,
+    hasNonReimbursableTransactions,
+    areAllRequestsBeingSmartScanned,
     policy,
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
@@ -98,8 +100,8 @@ function MoneyRequestReportPreviewProvider({
     reportPreviewStyles,
     newTransactionIDs,
 }: MoneyRequestReportPreviewProviderProps) {
-    const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
-    const [chatReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`);
+    const [isOptimisticChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {selector: isOptimisticReportSelector});
+    const [chatReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {selector: reportActionsLoadingStateSelector});
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
@@ -127,8 +129,7 @@ function MoneyRequestReportPreviewProvider({
         }, [isTransitionPending]),
     );
 
-    const shouldShowLoading =
-        chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
+    const shouldShowLoading = chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !isOptimisticChatReport;
     const [transactionViolations] = useReportTransactionViolations(transactions);
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded
@@ -142,18 +143,6 @@ function MoneyRequestReportPreviewProvider({
     // Empty/access placeholders do not depend on measured carousel width, so we can show them immediately
     // once the report data is ready instead of keeping the taller loading state around and causing the preview to reflow.
     const shouldShowPreviewLoading = isTransitionPending || shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
-    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyRequestReportPreviewContent',
-        hasOnceLoadedReportActions: chatReportLoadingState?.hasOnceLoadedReportActions,
-        isTransactionsEmpty: transactions.length === 0,
-        isOptimisticReport: chatReportMetadata?.isOptimisticReport,
-    };
-    const carouselReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyRequestReportPreviewContent.Carousel',
-        hasCurrentWidth: !!currentWidth,
-        shouldShowLoading,
-        shouldShowLoadingDeferred,
-    };
     const previewCarouselMinWidth = shouldUseNarrowLayout ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH;
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
@@ -173,14 +162,7 @@ function MoneyRequestReportPreviewProvider({
     const isTripRoom = isTripRoomReportUtils(chatReport);
 
     const numberOfRequests = transactions?.length ?? 0;
-    // Pass the reactive `allReportTransactions` list (the full set, matching `getReportTransactions`) into these
-    // ReportUtils helpers rather than letting them read from Onyx by ID. This keeps the derivation logic in one place,
-    // preserves the pre-decomposition behavior (including optimistically-deleted rows), and lets React Compiler
-    // recompute these values when the report's transactions change.
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction)).length;
-    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReportID, allReportTransactions);
-    const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
 
@@ -282,6 +264,7 @@ function MoneyRequestReportPreviewProvider({
         invoiceReceiverPolicy,
         invoiceReceiverPersonalDetail,
     };
+    const transactionViolationsValue = {transactionViolations};
     const uiStateValue = {
         isTransitionPending,
         shouldShowPreviewLoading,
@@ -292,8 +275,6 @@ function MoneyRequestReportPreviewProvider({
         shouldShowCarouselArrows,
         isScanning,
         previewCarouselMinWidth,
-        skeletonReasonAttributes,
-        carouselReasonAttributes,
         previewMessageStyle,
         reportPreviewStyles,
         buttonMaxWidth,
@@ -321,21 +302,23 @@ function MoneyRequestReportPreviewProvider({
 
     return (
         <ReportPreviewDataContext.Provider value={dataValue}>
-            <ReportPreviewUIStateContext.Provider value={uiStateValue}>
-                <ReportPreviewCarouselStateContext.Provider value={carouselStateValue}>
-                    <ReportPreviewAnimationStateContext.Provider value={animationStateValue}>
-                        <ReportPreviewCarouselListContext.Provider value={carouselList}>
-                            <ReportPreviewActionStateContext.Provider value={actionStateValue}>
-                                <ReportPreviewActionsContext.Provider value={actionsValue}>
-                                    <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
-                                        <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
-                                    </ReportPreviewHoldMenuContext.Provider>
-                                </ReportPreviewActionsContext.Provider>
-                            </ReportPreviewActionStateContext.Provider>
-                        </ReportPreviewCarouselListContext.Provider>
-                    </ReportPreviewAnimationStateContext.Provider>
-                </ReportPreviewCarouselStateContext.Provider>
-            </ReportPreviewUIStateContext.Provider>
+            <ReportPreviewTransactionViolationsContext.Provider value={transactionViolationsValue}>
+                <ReportPreviewUIStateContext.Provider value={uiStateValue}>
+                    <ReportPreviewCarouselStateContext.Provider value={carouselStateValue}>
+                        <ReportPreviewAnimationStateContext.Provider value={animationStateValue}>
+                            <ReportPreviewCarouselListContext.Provider value={carouselList}>
+                                <ReportPreviewActionStateContext.Provider value={actionStateValue}>
+                                    <ReportPreviewActionsContext.Provider value={actionsValue}>
+                                        <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
+                                            <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
+                                        </ReportPreviewHoldMenuContext.Provider>
+                                    </ReportPreviewActionsContext.Provider>
+                                </ReportPreviewActionStateContext.Provider>
+                            </ReportPreviewCarouselListContext.Provider>
+                        </ReportPreviewAnimationStateContext.Provider>
+                    </ReportPreviewCarouselStateContext.Provider>
+                </ReportPreviewUIStateContext.Provider>
+            </ReportPreviewTransactionViolationsContext.Provider>
         </ReportPreviewDataContext.Provider>
     );
 }

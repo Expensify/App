@@ -109,7 +109,7 @@ type GetHRCardStateParams = {
     /** Locale helper that converts an ISO datetime to a localized date string. */
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
 
-    /** Slug identifying a specific Merge HR sub-provider (e.g. "bamboohr", "rippling"). */
+    /** Slug identifying a specific Merge HR sub-provider (e.g. "bamboohr", "workday"). */
     mergeSlug?: MergeHRProviderSlug;
 };
 
@@ -201,11 +201,21 @@ function getMergeHRGroupsLabel(policy: OnyxEntry<Policy>): string | undefined {
 }
 
 /** Resolves the final approver email to a display name via personal details. Returns "Not set" when no approver is configured. */
-function getFinalApproverDisplayName(finalApprover: string | undefined | null, translate: LocaleContextProps['translate']): string {
+function getFinalApproverDisplayName(
+    finalApprover: string | undefined | null,
+    translate: LocaleContextProps['translate'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     if (!finalApprover) {
         return translate('workspace.hr.notSet');
     }
-    return temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailByEmail(finalApprover), defaultValue: finalApprover, shouldFallbackToHidden: false, translate});
+    return temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: getPersonalDetailByEmail(finalApprover),
+        defaultValue: finalApprover,
+        shouldFallbackToHidden: false,
+        translate,
+        formatPhoneNumber,
+    });
 }
 
 /** Extracts the connection-specific config object (approval mode, final approver, pending/error fields) from the policy for a given HR provider. */
@@ -256,6 +266,9 @@ type GetHRCardsParams = {
     /** Translation function for resolving i18n keys into display strings. */
     translate: LocaleContextProps['translate'];
 
+    /** Formats a phone-number login for display in the current locale. */
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
     /** ID of the workspace policy, used to build navigation routes. */
     policyID: string;
 
@@ -267,7 +280,7 @@ type GetHRCardsParams = {
 };
 
 /** Builds the full list of HR provider card descriptors for the workspace HR page, including static providers (Gusto, Zenefits) and dynamic Merge HR sub-providers. */
-function getHRCards({policy, connectionSyncProgress, getLocalDateFromDatetime, translate, policyID, ...iconParams}: GetHRCardsParams): HRCardDescriptor[] {
+function getHRCards({policy, connectionSyncProgress, getLocalDateFromDatetime, translate, formatPhoneNumber, policyID, ...iconParams}: GetHRCardsParams): HRCardDescriptor[] {
     const cards: HRCardDescriptor[] = [];
 
     for (const provider of STATIC_HR_PROVIDERS) {
@@ -295,7 +308,7 @@ function getHRCards({policy, connectionSyncProgress, getLocalDateFromDatetime, t
                           {
                               field: 'finalApprover',
                               description: translate('workspace.hr.finalApprover'),
-                              title: getFinalApproverDisplayName(config?.finalApprover, translate),
+                              title: getFinalApproverDisplayName(config?.finalApprover, translate, formatPhoneNumber),
                               route: provider.finalApproverRoute.getRoute(policyID),
                               pendingAction: config?.pendingFields?.finalApprover,
                               errors: config?.errorFields?.finalApprover,
@@ -337,7 +350,7 @@ function getHRCards({policy, connectionSyncProgress, getLocalDateFromDatetime, t
                       {
                           field: 'finalApprover',
                           description: translate('workspace.hr.finalApprover'),
-                          title: getFinalApproverDisplayName(mergeConfig?.finalApprover, translate),
+                          title: getFinalApproverDisplayName(mergeConfig?.finalApprover, translate, formatPhoneNumber),
                           route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                           pendingAction: mergeConfig?.pendingFields?.finalApprover,
                           errors: mergeConfig?.errorFields?.finalApprover,

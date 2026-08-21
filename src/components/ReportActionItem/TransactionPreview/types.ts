@@ -1,4 +1,4 @@
-import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -84,6 +84,9 @@ type TransactionPreviewContentProps = {
 
     /** Represents the report linked to the transaction */
     report: OnyxEntry<Report>;
+
+    /** The policy the report linked to the transaction belongs to */
+    policy: OnyxEntry<Policy>;
 
     /** Flag to determine if a transaction involves a bill split among multiple parties. */
     isBillSplit: boolean;
