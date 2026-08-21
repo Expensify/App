@@ -1030,9 +1030,16 @@ describe('actions/Task', () => {
                 taskCreatorAndAssigneeDetails: undefined,
             });
 
-            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
-            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            expect(reportAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            // `buildOptimisticTaskCommentReportAction` is spied on in this suite, so assert on the forwarded argument
+            // rather than the emitted action. The builder itself is covered in ReportUtilsTest.
+            expect(mockBuildOptimisticTaskCommentReportAction).toHaveBeenCalledWith(
+                'task_report_123',
+                mockTitle,
+                mockAssigneeAccountID,
+                `task for ${mockTitle}`,
+                mockParentReportID,
+                DELEGATE_ACCOUNT_ID,
+            );
         });
 
         it('should leave delegateAccountID unset on the optimistic task comment when no delegate is passed', () => {
@@ -1053,9 +1060,14 @@ describe('actions/Task', () => {
                 taskCreatorAndAssigneeDetails: undefined,
             });
 
-            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
-            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            expect(reportAction.delegateAccountID).toBeUndefined();
+            expect(mockBuildOptimisticTaskCommentReportAction).toHaveBeenCalledWith(
+                'task_report_123',
+                mockTitle,
+                mockAssigneeAccountID,
+                `task for ${mockTitle}`,
+                mockParentReportID,
+                undefined,
+            );
         });
     });
 
