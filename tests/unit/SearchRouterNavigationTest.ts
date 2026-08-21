@@ -246,10 +246,12 @@ describe('Search Router navigation query helpers', () => {
         expect(buildNavigationSuggestions('o inbox', source, localeCompare)).toEqual([]);
     });
 
-    it('does not include internal matching terms in returned navigation rows', () => {
-        const source = [[{text: 'Go to Inbox', keyForList: 'inbox', matchTerms: ['Inbox']}]];
+    it('does not include internal matching or sorting metadata in returned navigation rows', () => {
+        const source = [[{text: 'Go to Inbox', keyForList: 'inbox', matchTerms: ['Inbox'], sortText: 'Inbox'}]];
+        const item = buildNavigationSuggestions('inbox', source, localeCompare).at(0);
 
-        expect(buildNavigationSuggestions('inbox', source, localeCompare).at(0)).not.toHaveProperty('matchTerms');
+        expect(item).not.toHaveProperty('matchTerms');
+        expect(item).not.toHaveProperty('sortText');
     });
 
     it('matches short queries only when they exactly match a localized destination', () => {
@@ -482,11 +484,11 @@ describe('Workspace Search Router navigation source', () => {
     });
 
     it('supports the short HR query and alphabetizes equal-priority Workspace rows', () => {
-        const items = buildItems([createWorkspacePolicy('2', 'Beta Workspace', {isHREnabled: true}), createWorkspacePolicy('1', 'Alpha Workspace', {isHREnabled: true})]);
+        const items = buildItems([createWorkspacePolicy('1', 'Beta Workspace', {isHREnabled: true}), createWorkspacePolicy('2', 'Alpha Workspace', {isHREnabled: true})]);
 
         expect(buildNavigationSuggestions('hr', [items], localeCompare).map((item) => item.keyForList)).toEqual([
-            `workspace_1_${SCREENS.WORKSPACE.HR}`,
             `workspace_2_${SCREENS.WORKSPACE.HR}`,
+            `workspace_1_${SCREENS.WORKSPACE.HR}`,
         ]);
     });
 

@@ -238,6 +238,7 @@ function buildWorkspaceNavigationItems({
                     keyForList: `workspace_${policy.id}_${item.screenName}`,
                     rightElement: <WorkspaceIdentityCell policy={policy} />,
                     matchTerms: item.screenName === SCREENS.WORKSPACE.PROFILE ? [itemText, policy.name] : [itemText],
+                    sortText: policy.name,
                 };
             });
         });
