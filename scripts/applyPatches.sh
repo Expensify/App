@@ -28,7 +28,7 @@ function patchPackage() {
   if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     PATCH_DIRS+=(./Mobile-Expensify/patches)
   fi
-  node "$SCRIPT_DIR/copyPatchFiles.js" "$TEMP_PATCH_DIR" "${PATCH_DIRS[@]}"
+  bun "$SCRIPT_DIR/copyPatchFiles.js" "$TEMP_PATCH_DIR" "${PATCH_DIRS[@]}"
 
   if ! ./node_modules/.bin/patch-package --patch-dir "$TEMP_PATCH_DIR" --error-on-fail --color=always; then
     return 1
