@@ -2,10 +2,7 @@
 # @pre    text="Inbox"
 # @pre    role="button" label="Search"
 # @post   label="Write something..." editable=true
-# @tag    chat
-# @tag    navigation
-# @tag    perf
-# @tag    sentry-ManualSendMessage
+# @span   ManualSendMessage
 # @param  MESSAGE Message text to send in the opened chat.
 # @param  TARGET_CHAT Visible report/chat title to open from Inbox LHN.
 

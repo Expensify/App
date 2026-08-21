@@ -2,9 +2,6 @@
 # @pre    text="Inbox"
 # @pre    role="button" label="Search"
 # @post   label="Search for something..." editable=true
-# @tag    navigation
-# @tag    perf
-# @tag    search
-# @tag    sentry-ManualOpenSearchRouter
+# @span   ManualOpenSearchRouter
 press "label=\"Inbox\" || label=\"Inbox. Your review is required\""
 press "role=\"button\" label=\"Search\""

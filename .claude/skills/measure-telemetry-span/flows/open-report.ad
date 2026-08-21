@@ -2,10 +2,7 @@
 # @pre    text="Inbox"
 # @pre    role="button" label="Search"
 # @post   role="textview" label="Write something..."
-# @tag    chat
-# @tag    navigation
-# @tag    perf
-# @tag    sentry-ManualOpenReport
+# @span   ManualOpenReport
 # @param  TARGET_CHAT Visible report/chat title to open from Inbox LHN.
 
 find "Inbox" "click"

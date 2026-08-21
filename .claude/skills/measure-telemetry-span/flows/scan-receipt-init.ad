@@ -2,10 +2,7 @@
 # @pre    text="Inbox"
 # @pre    role="button" label="Open actions menu"
 # @post   text="Take a photo"
-# @tag    iou
-# @tag    scan
-# @tag    perf
-# @tag    sentry-ManualCameraInit
+# @span   ManualCameraInit
 find "Inbox" "click"
 press "role=\"button\" label=\"Open actions menu\""
 press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""

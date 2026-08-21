@@ -2,10 +2,7 @@
 # @pre    text="Inbox"
 # @pre    role="button" label="Open actions menu"
 # @post   text="Manual"
-# @tag    iou
-# @tag    navigation
-# @tag    perf
-# @tag    sentry-ManualOpenCreateExpense
+# @span   ManualOpenCreateExpense
 find "Inbox" "click"
 press "role=\"button\" label=\"Open actions menu\""
 press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""

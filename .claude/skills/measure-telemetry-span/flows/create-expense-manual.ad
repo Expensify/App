@@ -2,16 +2,9 @@
 # @pre    role="button" label="Open actions menu"
 # @post   text="Reports"
 # @post   role="button" label="Expenses"
-# @tag    iou
-# @tag    navigation
-# @tag    perf
-# @tag    sentry-ManualCreateExpenseSubmit
-# @tag    sentry-ManualSubmitToDestinationVisible
-# @tag    sentry-ManualCreateExpenseServerResponse
-# @tag    sentry-ManualConfirmationMount
-# @tag    sentry-ManualConfirmationListReady
-# @tag    sentry-ManualConfirmationReceiptLoad
-# @tag    sentry-ManualGeolocationWait
+# @span   ManualConfirmationMount
+# @span   ManualConfirmationListReady
+# @span   ManualConfirmationReceiptLoad
 # @param  AMOUNT Whole-number amount to type into the Manual amount input (for example `22`).
 # @param  CURRENCY Currency symbol used by the submit CTA selector (for example `PLN` or `USD`).
 # @param  MERCHANT Merchant name to populate before submit.
