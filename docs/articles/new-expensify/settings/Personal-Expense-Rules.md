@@ -130,4 +130,4 @@ When you create or edit a rule and open the **Category**, **Tag**, or **Tax rate
 
 ## How do I leave Reimbursable or Billable unset in an Expense Rule?
 
-When you open the **Reimbursable** or **Billable** selector, it shows three options: **Don’t change**, **Yes**, and **No**. **Don’t change** is selected by default and leaves the field unset, so matching expenses keep their existing value. To clear a previously selected **Yes** or **No**, select **Don’t change**, then click or tap **Save rule**.
+When you open the **Reimbursable** or **Billable** selector, it shows three options: **Don’t change**, **Yes**, and **No**. **Don’t change** is selected by default and leaves the field unset, so matching expenses keep their existing value.
