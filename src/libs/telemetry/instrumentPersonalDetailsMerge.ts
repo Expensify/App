@@ -35,9 +35,11 @@ import {notePersonalDetailsWrite} from './renderTimings';
  * write duration when it is `false`.
  *
  * A synthetic subscriber fleet is attached to the mirror because the comparison is otherwise rigged:
- * the single key broadcasts every write to its ~300 real subscribers, and a mirror with none would
- * win on that alone. Each synthetic subscriber watches one member key, which is what the migration
- * would produce. `shadowSubscribers` is logged on every line so a run is self-describing; set it to 0
+ * the single key broadcasts every write to its ~196 real subscribers, and a mirror with none would
+ * win on that alone. The fleet mirrors the real subscriber mix (see the counts below) rather than
+ * putting every synthetic subscriber on a member key — an all-member fleet hands the collection a free
+ * win, because Onyx skips a member subscriber unless its own key changed. `shadowSubscribers` and
+ * `subscribedMembersHit` are logged on every line so a run is self-describing; set the counts to 0
  * to measure the write path in isolation.
  */
 
@@ -47,10 +49,26 @@ const SHADOW_KEY = ONYXKEYS.COLLECTION.PERSONAL_DETAILS_SHADOW;
 const SHOULD_SEED_MIRROR_FOR_READS = true;
 
 /**
- * Kept in the same order of magnitude as the real `personalDetailsList` subscriber count. Grep
- * `ONYXKEYS.PERSONAL_DETAILS_LIST` under src/ to re-check it before trusting a run.
+ * The real `personalDetailsList` subscriber mix, from an audit of its 261 read sites. Re-run the audit
+ * before trusting a run: grep `ONYXKEYS.PERSONAL_DETAILS_LIST` under src/ for the `useOnyx` and
+ * `Onyx.connect` sites, and `usePersonalDetails()` for the ones reading through the context provider.
+ *
+ * Watching a single member: 112 `useOnyx` call sites whose selector resolves to one accountID.
  */
-const SHADOW_SUBSCRIBER_COUNT = 300;
+const SHADOW_MEMBER_SUBSCRIBER_COUNT = 112;
+
+/**
+ * Taking the whole map and looking a bounded set of accountIDs out of it: 74 bare `useOnyx`, 9
+ * module-level `Onyx.connect`, and the `OnyxListItemProvider` context, minus the iterators below.
+ */
+const SHADOW_WHOLE_MAP_SUBSCRIBER_COUNT = 69;
+
+/**
+ * Iterating every member on each broadcast (`usePersonalDetailsByLogin`, `useFilteredOptions`,
+ * `loginToAccountIDMap`, ...). Split out from the count above because these are the only subscribers
+ * whose cost scales with N, so a run where they dominate says something different.
+ */
+const SHADOW_ITERATING_SUBSCRIBER_COUNT = 15;
 
 let existingKeyCount = 0;
 
@@ -61,6 +79,14 @@ let existingKeyCount = 0;
  * genuinely written (`changedMembers`) versus how many the collection path skipped for free.
  */
 const mirroredMembers = new Map<string, string>();
+
+/**
+ * The accountIDs the synthetic member subscribers cover. Which ones they are decides how many of a
+ * write's changed members reach a subscriber at all, so the count that landed is reported per sample as
+ * `subscribedMembersHit` — a collection sample with a low hit count is cheap because nobody was
+ * listening, not because the shape is faster.
+ */
+const subscribedMemberIDs = new Set<string>();
 
 const shadowConnections: Array<ReturnType<typeof Onyx.connectWithoutView>> = [];
 
@@ -133,6 +159,7 @@ function mergeShadowCollection(source: string, changes: PersonalDetailsList, ext
     const collection: OnyxMergeCollectionInput<typeof SHADOW_KEY> = {};
     let upsertCount = 0;
     let changedMembers = 0;
+    let subscribedMembersHit = 0;
     for (const accountID of accountIDs) {
         const member = changes[accountID];
 
@@ -148,6 +175,9 @@ function mergeShadowCollection(source: string, changes: PersonalDetailsList, ext
         const serialised = JSON.stringify(member);
         if (mirroredMembers.get(accountID) !== serialised) {
             changedMembers++;
+            if (subscribedMemberIDs.has(accountID)) {
+                subscribedMembersHit++;
+            }
         }
         mirroredMembers.set(accountID, serialised);
 
@@ -159,7 +189,22 @@ function mergeShadowCollection(source: string, changes: PersonalDetailsList, ext
         return Promise.resolve();
     }
 
-    return measure(source, existingKeys, upsertCount, {...extraParams, shadowSubscribers: shadowConnections.length, changedMembers}, Onyx.mergeCollection(SHADOW_KEY, collection));
+    return measure(
+        source,
+        existingKeys,
+        upsertCount,
+        {
+            ...extraParams,
+            shadowSubscribers: shadowConnections.length,
+            memberSubscribers: SHADOW_MEMBER_SUBSCRIBER_COUNT,
+            wholeMapSubscribers: SHADOW_WHOLE_MAP_SUBSCRIBER_COUNT + SHADOW_ITERATING_SUBSCRIBER_COUNT,
+            changedMembers,
+            // How many of `changedMembers` a member subscriber was actually watching. Near zero means the
+            // member fleet sat idle for this write, so the sample only exercised the collection subscribers.
+            subscribedMembersHit,
+        },
+        Onyx.mergeCollection(SHADOW_KEY, collection),
+    );
 }
 
 /**
@@ -173,8 +218,9 @@ function attachShadowSubscribers() {
         return;
     }
 
-    for (let i = 0; i < SHADOW_SUBSCRIBER_COUNT; i++) {
-        const accountID = mirroredAccountIDs.at(i % mirroredAccountIDs.length);
+    for (let i = 0; i < SHADOW_MEMBER_SUBSCRIBER_COUNT; i++) {
+        const accountID = mirroredAccountIDs.at(i % mirroredAccountIDs.length) ?? '';
+        subscribedMemberIDs.add(accountID);
         shadowConnections.push(
             Onyx.connectWithoutView({
                 key: `${SHADOW_KEY}${accountID}` as const,
@@ -182,6 +228,34 @@ function attachShadowSubscribers() {
                 reuseConnection: false,
                 // Reading the value is the point: it's what a real per-member subscriber costs
                 callback: (member) => member?.accountID,
+            }),
+        );
+    }
+
+    // Onyx hands every collection-root subscriber the same frozen snapshot (`OnyxUtils.keysChanged`),
+    // rebuilt at most once per write, so these cost one callback plus whatever each one reads — not a
+    // rebuild each. That is the whole reason to model them separately from the member subscribers.
+    for (let i = 0; i < SHADOW_WHOLE_MAP_SUBSCRIBER_COUNT; i++) {
+        const accountID = mirroredAccountIDs.at(i % mirroredAccountIDs.length) ?? '';
+        shadowConnections.push(
+            Onyx.connectWithoutView({
+                key: SHADOW_KEY,
+                reuseConnection: false,
+                // Stands in for `getIcons(report, …, personalDetails)` and friends: handed the whole map,
+                // reads a couple of accountIDs out of it. Enumerating the map here would overstate these
+                // by ~6k operations each — that shape is SHADOW_ITERATING_SUBSCRIBER_COUNT below.
+                callback: (collection) => collection?.[`${SHADOW_KEY}${accountID}`]?.accountID,
+            }),
+        );
+    }
+
+    for (let i = 0; i < SHADOW_ITERATING_SUBSCRIBER_COUNT; i++) {
+        shadowConnections.push(
+            Onyx.connectWithoutView({
+                key: SHADOW_KEY,
+                reuseConnection: false,
+                // The O(N) shape: a full pass over every member on every broadcast, like the login->accountID map
+                callback: (collection) => Object.values(collection ?? {}).filter((member) => !!member?.login).length,
             }),
         );
     }
