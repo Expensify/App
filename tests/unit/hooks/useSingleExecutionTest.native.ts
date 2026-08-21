@@ -2,6 +2,9 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
+import {Activity, createElement} from 'react';
+import type {PropsWithChildren} from 'react';
+
 type NavigationListener = (event: {data: Record<string, unknown>}) => void;
 type UseSingleExecution = () => {
     isExecuting: boolean;
@@ -97,6 +100,37 @@ describe('useSingleExecution (native)', () => {
         });
 
         expect(action).toHaveBeenCalledTimes(1);
+    });
+
+    it('resets execution when Activity hides the hook before the unlock callback runs', () => {
+        const action = jest.fn();
+        let activityMode: 'visible' | 'hidden' = 'visible';
+        const wrapper = ({children}: PropsWithChildren) => {
+            const activityProps = {mode: activityMode, children};
+            return createElement(Activity, activityProps);
+        };
+        const {result, rerender} = renderHook(() => useSingleExecution(), {wrapper});
+
+        act(() => {
+            result.current.singleExecution(action)();
+        });
+
+        expect(result.current.isExecuting).toBe(true);
+
+        activityMode = 'hidden';
+        rerender({});
+
+        activityMode = 'visible';
+        rerender({});
+        act(() => {
+            result.current.singleExecution(action)();
+        });
+
+        expect(action).toHaveBeenCalledTimes(2);
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
     });
 
     it('cancels the pending transition handle on unmount', () => {

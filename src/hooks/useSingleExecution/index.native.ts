@@ -18,6 +18,9 @@ export default function useSingleExecution() {
     useEffect(
         () => () => {
             transitionHandleRef.current?.cancel();
+            transitionHandleRef.current = null;
+            isExecutingRef.current = false;
+            setIsExecuting(false);
         },
         [],
     );
