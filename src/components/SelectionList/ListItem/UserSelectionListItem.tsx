@@ -58,7 +58,7 @@ function UserSelectionListItem<TItem extends ListItem>({
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
             formatPhoneNumber,
-            translate,
+            hiddenTranslation: translate('common.hidden'),
         });
     }, [formatPhoneNumber, item.accountID, translate]);
 
