@@ -3,6 +3,7 @@ import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
+import SurfaceBackgroundColorContext from '@components/SurfaceBackgroundColorContext';
 import Text from '@components/Text';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -228,9 +229,11 @@ function Section({
                           </View>
                       )}
 
-                <View style={[styles.w100, childrenStyles]}>{children}</View>
+                <SurfaceBackgroundColorContext.Provider value={theme.cardBG}>
+                    <View style={[styles.w100, childrenStyles]}>{children}</View>
 
-                <View style={[styles.w100]}>{!!menuItems && <MenuItemList menuItems={menuItems} />}</View>
+                    <View style={[styles.w100]}>{!!menuItems && <MenuItemList menuItems={menuItems} />}</View>
+                </SurfaceBackgroundColorContext.Provider>
             </View>
         </View>
     );

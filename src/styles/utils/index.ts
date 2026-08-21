@@ -532,6 +532,34 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
+/**
+ * Maps a row's background color to the hover color one product step darker, so a row hovers to
+ * product200 on a product100 background and to product300 on a product200 (card) background.
+ */
+const ROW_HOVER_BACKGROUND_STEP: Record<string, string> = {
+    [colors.productDark100]: colors.productDark200,
+    [colors.productDark200]: colors.productDark300,
+    [colors.productDark300]: colors.productDark400,
+    [colors.productDark400]: colors.productDark500,
+    [colors.productLight100]: colors.productLight200,
+    [colors.productLight200]: colors.productLight300,
+    [colors.productLight300]: colors.productLight400,
+    [colors.productLight400]: colors.productLight500,
+};
+
+function getRowHoverBackgroundColor(backgroundColor: string): string {
+    return ROW_HOVER_BACKGROUND_STEP[backgroundColor] ?? backgroundColor;
+}
+
+/**
+ * Returns a background style for a row's hover state, one product step darker than its background.
+ */
+function getRowHoverBackgroundColorStyle(backgroundColor: string): ViewStyle {
+    return {
+        backgroundColor: getRowHoverBackgroundColor(backgroundColor),
+    };
+}
+
 function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
     if (isInLandscapeMode && aspectRatio) {
         return {aspectRatio, height: '100%', maxWidth: '100%'};
@@ -1415,6 +1443,8 @@ const staticStyleUtils = {
     getAvatarSubscriptIconContainerStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getRowHoverBackgroundColor,
+    getRowHoverBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
     getCameraViewfinderStyle,
     getPaddingLeft,
@@ -1658,7 +1688,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.BUTTON_STATES.PRESSED:
                 return isMenuItem ? {backgroundColor: theme.buttonHoveredBG} : {backgroundColor: theme.buttonPressedBG};
             case CONST.BUTTON_STATES.ACTIVE:
-                return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
+                return isMenuItem ? {backgroundColor: theme.activeComponentBG} : {backgroundColor: theme.buttonHoveredBG};
             case CONST.BUTTON_STATES.DISABLED:
             case CONST.BUTTON_STATES.DEFAULT:
             default:

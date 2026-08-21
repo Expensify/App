@@ -8,6 +8,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+import SurfaceBackgroundColorContext from './SurfaceBackgroundColorContext';
 import Text from './Text';
 
 type WidgetContainerProps = {
@@ -40,7 +41,7 @@ function WidgetContainer({children, title, titleContent, containerStyles, titleR
                 </View>
                 {titleRightContent}
             </View>
-            {children}
+            <SurfaceBackgroundColorContext.Provider value={theme.cardBG}>{children}</SurfaceBackgroundColorContext.Provider>
         </View>
     );
 }
