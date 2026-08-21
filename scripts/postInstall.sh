@@ -29,4 +29,4 @@ echo -e "\n${GREEN}Setting up Skia WASM!${NC}"
 rm -rf "$ROOT_DIR/web/static"
 
 # Apply packages using patch-package
-scripts/applyPatches.sh
+bun scripts/applyPatches.ts
