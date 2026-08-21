@@ -1,7 +1,7 @@
 ---
 title: Split Expenses 
 description: Learn how to create and submit expenses to a workspace or individual using SmartScan, manual entry, or distance tracking in Expensify.
-keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split, unreported expenses, split unreported]
+keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split, unreported expenses, split unreported, split tax rate, split reimbursable, split billable]
 internalScope: Audience is submitters, approvers and admins. Covers how to split, edit, and revert expenses in New Expensify using the Split feature. Does not cover Classic behavior.
 ---
 
@@ -25,7 +25,7 @@ This is the default split method.
 1. Open an expense and tap **More > Split**.
 2. The split table appears with two equal rows.
 3. Tap **Add split** to insert more rows.
-4. Tap a row to update category, tag, date, or description, or remove the split.
+4. Tap a row to update category, tag, date, or description, set the **Tax** rate, toggle **Reimbursable** or **Billable**, or remove the split. (Tax, Reimbursable, and Billable appear only when they're enabled on the workspace.)
 5. Tap **More > Split evenly** to recalculate all editable rows equally. (If some splits are already submitted or approved, only editable rows are updated).
 6. Tap **Save**.
 
@@ -77,7 +77,7 @@ Validation rules ensure your splits match the original expense amount based on t
 1. Open a split expense.
 2. Tap **More > Edit splits**.
 3. Change the amount directly in the table.
-4. Tap a row to update category, tag, date, or description or remove the split.
+4. Tap a row to update category, tag, date, or description, set the **Tax** rate, toggle **Reimbursable** or **Billable**, or remove the split. (Tax, Reimbursable, and Billable appear only when they're enabled on the workspace.)
 5. Tap **Save**.
 
 **Note:** Splits that are on approved or paid reports cannot be edited.
@@ -120,5 +120,9 @@ Yes. You can split distance expenses just like any other expense. However, total
 ## Can I assign different tags or categories to each split?
 
 Yes. Each split row can have its own category, tag, date, and description.
+
+## Can I set a tax rate or mark each split as reimbursable or billable?
+
+Yes. When your workspace has tax tracking or rules enabled, tapping a split row lets you set its **Tax** rate and toggle **Reimbursable** or **Billable** independently for that split.
 
 
