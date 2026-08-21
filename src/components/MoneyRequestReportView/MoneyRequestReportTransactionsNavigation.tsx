@@ -64,6 +64,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     // When the carousel is opened from a search (e.g. the Spend page), the sibling transactions may only exist
     // in the search snapshot and not in the live collection yet. We keep the snapshot around to fall back to it
     // so prev/next navigation resolves the correct report instead of breaking.
+    // `useOnyx`'s automatic snapshot redirection doesn't cover this: it only kicks in inside `SearchScopeProvider`
+    // (which wraps the search list, not the RHP this header renders in), it reads the *currently displayed*
+    // search hash rather than the one the carousel was seeded from, and it returns snapshot data *instead of*
+    // live data — whereas here live data has to win over the snapshot (see the merge below).
     const [snapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
     // Snapshot-backed flows (e.g. Home "Recently added") seed a descriptor per sibling so the carousel can
@@ -113,17 +117,20 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             const parentActions: Record<string, OnyxTypes.ReportAction> = {};
             for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}` as const;
-                collectParentReportActions(allReportActions?.[key] ?? (snapshot?.data?.[key] as OnyxTypes.ReportActions | undefined), parentActions);
+                collectParentReportActions(allReportActions?.[key], parentActions);
             }
             return parentActions;
         },
-        [currentTransaction, nextTransaction, prevTransaction, snapshot],
+        [currentTransaction, nextTransaction, prevTransaction],
     );
 
     const [reportedParentReportActions = getEmptyObject<Record<string, OnyxTypes.ReportAction>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: parentReportActionsSelector,
     });
 
+    // The live pass above can only look up `report_actions_{transaction.reportID}`, which never resolves an
+    // unreported (self-DM) sibling — its IOU action lives in the self-DM's report actions, not under reportID "0".
+    // Scanning the snapshot's report actions is how those siblings get a parent action at all.
     const snapshotData = snapshot?.data;
     const snapshotParentReportActions = useMemo(() => {
         const parentActions: Record<string, OnyxTypes.ReportAction> = {};

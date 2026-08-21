@@ -235,6 +235,11 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
 }
 
+/**
+ * How much room a scrollable popover actually has, given where it is anchored. Bounding the popover by the
+ * full window height instead lets it overflow the screen edge when the anchor sits away from the top, which is
+ * what happens to the header's "More" menu once the header buttons move down into the status/next-step row.
+ */
 function getAvailableHeightForAnchor(anchorVertical: number, verticalAlignment: AnchorAlignment['vertical'], windowHeight: number): number {
     if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
         return windowHeight - anchorVertical;
