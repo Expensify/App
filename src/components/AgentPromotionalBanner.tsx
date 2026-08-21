@@ -5,13 +5,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 
+import CONST from '@src/CONST';
+
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 import Badge from './Badge';
-import Button from './Button';
+import Button from './ButtonComposed';
 import Text from './Text';
 
 type AgentPromotionalBannerProps = {
@@ -75,23 +77,23 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
             return (
                 <View style={[styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter]}>
                     <Button
-                        success
-                        medium
-                        text={ctaText}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={onCtaPress}
                         sentryLabel={ctaSentryLabel}
-                    />
+                    >
+                        <Button.Text>{ctaText ?? ''}</Button.Text>
+                    </Button>
                 </View>
             );
         }
         return (
             <Button
-                success
-                medium
-                text={ctaText}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={onCtaPress}
                 sentryLabel={ctaSentryLabel}
-            />
+            >
+                <Button.Text>{ctaText ?? ''}</Button.Text>
+            </Button>
         );
     }, [hasCta, shouldUseNarrowLayout, isInLandscapeMode, ctaText, onCtaPress, ctaSentryLabel, styles]);
 
