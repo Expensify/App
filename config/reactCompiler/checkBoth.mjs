@@ -2,7 +2,7 @@
  * Runs both React Compilers (Babel + OXC) against a single source file and reports
  * whether they disagree on memoization.
  *
- * The web build uses OXC (oxc-transform) while Metro/Jest use babel-plugin-react-compiler.
+ * The web build uses OXC (oxc-transform-react) while Metro/Jest use babel-plugin-react-compiler.
  * When one compiler memoizes a file and the other does not, that file ships without
  * memoization on one platform. `isDivergent` captures exactly that gap by comparing the
  * `memoized` signal (did the compiler actually emit a `_c(...)` cache?) rather than the
