@@ -43,6 +43,7 @@ type TimeSlot = {
     guideEmail: string;
     startTime: string;
     scheduleURL: string;
+    startsAt: Date;
 };
 
 const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
@@ -108,11 +109,16 @@ function ScheduleCallPage() {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
             if (guideSchedule) {
                 for (const timeSlot of guideSchedule.timeSlots) {
+                    // The API applies no runtime validation, and `toUTCDate` throws on a non-string.
+                    if (!timeSlot.startTime) {
+                        continue;
+                    }
                     allSlots.push({
                         guideAccountID: Number(guideAccountID),
                         guideEmail: guideSchedule.guideEmail,
                         startTime: timeSlot.startTime,
                         scheduleURL: timeSlot.schedulingURL,
+                        startsAt: DateUtils.toUTCDate(timeSlot.startTime),
                     });
                 }
             }
@@ -122,8 +128,9 @@ function ScheduleCallPage() {
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         for (const timeSlot of allTimeSlots) {
-            const timeSlotDate = DateUtils.formatUTCDateTimeToDateInTimezone(timeSlot.startTime, userTimezone);
-            // Empty means the slot had no usable start time. Bucketing it would put an unsortable '' among the selectable days.
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(timeSlot.startsAt, userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            // Empty means the timezone could not be applied, so there is no day to file the slot under. Bucketing it
+            // would put an unsortable '' among the selectable days.
             if (!timeSlotDate) {
                 continue;
             }
@@ -135,7 +142,7 @@ function ScheduleCallPage() {
 
         // Sort time slots within each date array to have in chronological order
         for (const slots of Object.values(timeSlotMap)) {
-            slots.sort((a, b) => compareAsc(DateUtils.toUTCDate(a.startTime), DateUtils.toUTCDate(b.startTime)));
+            slots.sort((a, b) => compareAsc(a.startsAt, b.startsAt));
         }
 
         return timeSlotMap;
@@ -246,7 +253,7 @@ function ScheduleCallPage() {
                                             enableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
                                         >
-                                            <Button.Text>{DateUtils.formatInTimeZoneToShortTime(timeSlot.startTime, userTimezone, preferredLocale)}</Button.Text>
+                                            <Button.Text>{DateUtils.formatInTimeZoneToShortTime(timeSlot.startsAt, userTimezone, preferredLocale)}</Button.Text>
                                         </Button>
                                     ))}
                                     {timeFillerItem}

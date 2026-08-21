@@ -278,7 +278,7 @@ class IntlStore {
         // deploy) would otherwise reject unhandled and permanently block the boot splash gate in Expensify.tsx.
         return retryDynamicImport(loaderPromise, `${LOCALE_RETRY_KEY_PREFIX}${locale}`)
             .then(() => {
-                // Superseded, so let the newer call commit the locale. Still notify: the cache grew either way.
+                // Superseded, so let the newer call commit the locale.
                 if (IntlStore.loadToken !== token) {
                     IntlStore.notifyListeners();
                     return;

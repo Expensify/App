@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
+import {clearIntlFormatterCaches, refreshIntlFormatterCaches} from '@libs/IntlFormatterCaches';
 import {translate} from '@libs/Localize';
 
 import CONST from '@src/CONST';
@@ -94,16 +95,16 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, today, UTC)).toBe('Today at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, today, UTC, false)).toBe('Today at 2:32 PM');
 
         const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow, UTC)).toBe('Tomorrow at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow, UTC, false)).toBe('Tomorrow at 2:32 PM');
 
         const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday, UTC)).toBe('Yesterday at 7:43 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday, UTC, false)).toBe('Yesterday at 7:43 AM');
 
         const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, date, UTC)).toBe('Nov 5, 2022 at 10:17 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, date, UTC, false)).toBe('Nov 5, 2022 at 10:17 AM');
 
         const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32).toString();
         expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, UTC, true)).toBe('today at 2:32 PM');
@@ -117,30 +118,30 @@ describe('DateUtils', () => {
         it('es renders 24h time', () => {
             jest.useFakeTimers().setSystemTime(new Date('2026-03-11T14:32:00Z'));
             const now = new Date().toISOString();
-            expect(DateUtils.datetimeToCalendarTime(CONST.LOCALES.ES, now, UTC)).toMatch(/14:32/);
+            expect(DateUtils.datetimeToCalendarTime(CONST.LOCALES.ES, now, UTC, false)).toMatch(/14:32/);
         });
 
         it('ja bucketing uses Sunday-start', () => {
             jest.useFakeTimers().setSystemTime(new Date('2026-03-11T12:00:00Z'));
             // Sunday 2026-03-08 is inside the current ja week (Sun-start) but the previous en week (Mon-start).
             const sunday = '2026-03-08T10:00:00Z';
-            const jaResult = DateUtils.datetimeToCalendarTime(CONST.LOCALES.JA, sunday, UTC);
+            const jaResult = DateUtils.datetimeToCalendarTime(CONST.LOCALES.JA, sunday, UTC, false);
             expect(jaResult).not.toMatch(/2026/);
-            const enResult = DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, sunday, UTC);
+            const enResult = DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, sunday, UTC, false);
             expect(enResult).toMatch(/2026/);
         });
 
         it('past year renders with year', () => {
             jest.useFakeTimers().setSystemTime(new Date('2026-06-15T12:00:00Z'));
             const oldDate = '2022-11-05T10:17:00Z';
-            expect(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, oldDate, UTC)).toBe('Nov 5, 2022 at 10:17 AM');
+            expect(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, oldDate, UTC, false)).toBe('Nov 5, 2022 at 10:17 AM');
         });
 
         it('today/tomorrow boundary respects the selected timezone', () => {
             // 00:30 UTC Mar 11 is 16:30 Mar 10 in Pacific, and the 04:00 UTC target is 20:00 Mar 10 there: same LA day.
             jest.useFakeTimers().setSystemTime(new Date('2026-03-11T00:30:00Z'));
             const laterSameLaDay = '2026-03-11T04:00:00Z';
-            const result = DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, laterSameLaDay, 'America/Los_Angeles');
+            const result = DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, laterSameLaDay, 'America/Los_Angeles', false);
             expect(result).toMatch(/Today/);
         });
     });
@@ -1177,7 +1178,7 @@ describe('DateUtils', () => {
         });
 
         it('refreshIntlFormatterCaches drops cached failures but keeps working formatters', () => {
-            DateUtils.clearIntlFormatterCaches();
+            clearIntlFormatterCaches();
             const throwingSpy = jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
                 throw new RangeError('no Intl');
             });
@@ -1189,7 +1190,7 @@ describe('DateUtils', () => {
 
             expect(DateUtils.formatToMediumDate('2025-07-09', CONST.LOCALES.EN)).not.toBe('');
             const constructorSpy = jest.spyOn(Intl, 'DateTimeFormat');
-            DateUtils.refreshIntlFormatterCaches();
+            refreshIntlFormatterCaches();
 
             expect(DateUtils.formatToMediumDate('2025-07-09', CONST.LOCALES.ES)).not.toBe('');
             const constructionsToRecoverTheFailure = constructorSpy.mock.calls.length;
@@ -1200,13 +1201,13 @@ describe('DateUtils', () => {
         });
 
         it('getFormattedQuarterForSearch keeps the quarter label when the bounds cannot be formatted', () => {
-            DateUtils.clearIntlFormatterCaches();
+            clearIntlFormatterCaches();
             jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
                 throw new RangeError('no Intl');
             });
             expect(DateUtils.getFormattedQuarterForSearch(2025, 3, LOCALE)).toBe('Q3 2025');
             jest.restoreAllMocks();
-            DateUtils.clearIntlFormatterCaches();
+            clearIntlFormatterCaches();
         });
     });
 

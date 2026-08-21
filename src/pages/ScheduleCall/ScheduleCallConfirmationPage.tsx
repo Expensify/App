@@ -72,13 +72,14 @@ function ScheduleCallConfirmationPage() {
 
     let dateTimeString = '';
     if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
+        // Parsed once, so the two ends of the range and the zone abbreviation beside them cannot label different instants.
+        const startsAt = DateUtils.toUTCDate(scheduleCallDraft.timeSlot);
         const dateString = DateUtils.formatToReadableString(scheduleCallDraft.date, preferredLocale);
-        const startTime = DateUtils.formatInTimeZoneToShortTime(scheduleCallDraft.timeSlot, userTimezone, preferredLocale);
-        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(scheduleCallDraft.timeSlot, 30), userTimezone, preferredLocale);
-        const timezoneString = DateUtils.getZoneAbbreviation(DateUtils.toLocalDate(scheduleCallDraft.timeSlot), userTimezone);
+        const startTime = DateUtils.formatInTimeZoneToShortTime(startsAt, userTimezone, preferredLocale);
+        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(startsAt, 30), userTimezone, preferredLocale);
+        const timezoneString = DateUtils.getZoneAbbreviation(startsAt, userTimezone);
 
-        // The start is a raw string the unzoned guard can reject, while the end is a Date that bypasses it, so without
-        // this the range renders as " - 10:30 AM".
+        // A formatter failure on either end would otherwise render the range as " - 10:30 AM".
         if (dateString && startTime && endTime) {
             dateTimeString = `${dateString} from ${startTime} - ${endTime} ${timezoneString}`;
         }

@@ -44,14 +44,7 @@ import {Str} from 'expensify-common';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
-import {
-    INTL_FORMAT_CACHE_MAX_SIZE,
-    clearIntlFormatterCaches,
-    intlDateTimeFormatCache,
-    refreshIntlFormatterCaches,
-    registerDerivedIntlCache,
-    relativeTimeFormatCache,
-} from './IntlFormatterCaches';
+import {INTL_FORMAT_CACHE_MAX_SIZE, intlDateTimeFormatCache, registerDerivedIntlCache, relativeTimeFormatCache} from './IntlFormatterCaches';
 import {translate as translateLocalize} from './Localize';
 import Log from './Log';
 import memoize from './memoize';
@@ -284,7 +277,7 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): s
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone, isLowercase = false): string {
+function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone, isLowercase: boolean): string {
     // Mapped once, so the isToday/isYesterday branches and the rendered string cannot resolve against different zones.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- backward IANA ids are real, just outside the tighter union.
     const mappedTimezone = fallbackToSupportedTimezone(currentSelectedTimezone) as SelectedTimezone;
@@ -1020,11 +1013,11 @@ function joinRange(startPart: string, endPart: string, separator: string): strin
 }
 
 function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2: Date, locale: Locale): string {
-    const to = ` ${translate('common.to').toLocaleLowerCase(locale)} `;
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
         return formatIntl(locale, 'MONTH_DAY', date1);
     }
+    const to = ` ${translate('common.to').toLocaleLowerCase(locale)} `;
     if (isSameMonth(date1, date2)) {
         const isDayFirst = isDayBeforeMonth(locale);
         const startPart = isDayFirst ? formatIntl(locale, 'DAY_ONLY', date1) : formatIntl(locale, 'MONTH_DAY', date1);
@@ -1188,7 +1181,12 @@ function doesDateBelongToAPastYear(date: string): boolean {
     // Read the year off the wire string, so a Dec 31 transaction viewed that evening (already Jan 1 in UTC) is not
     // suffixed with a year on what is still today's row.
     const yearMatch = date.match(WIRE_YEAR_PREFIX);
-    const transactionYear = yearMatch ? Number(yearMatch[1]) : toUTCDate(date).getUTCFullYear();
+    // Anything without a leading wire year is unparsable here too, and a NaN year would compare unequal and force the
+    // long format, which renders empty on an invalid date.
+    if (!yearMatch) {
+        return false;
+    }
+    const transactionYear = Number(yearMatch[1]);
     // Local on the "now" side: the question is whether this differs from the year the viewer is currently in, and a
     // UTC "now" would put a Dec 31 evening in the Americas into next year, which is what the line above guards against.
     return transactionYear !== new Date().getFullYear();
@@ -1691,8 +1689,6 @@ const DateUtils = {
     getMonthNames,
     getFilteredMonthItems,
     getDaysOfWeekNarrow,
-    clearIntlFormatterCaches,
-    refreshIntlFormatterCaches,
     toLocalDate,
     toUTCDate,
     getLocalizedDatePlaceholder,
