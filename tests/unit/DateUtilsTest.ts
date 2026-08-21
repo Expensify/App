@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -22,6 +23,10 @@ jest.mock('@src/libs/Log');
 
 const LOCALE = CONST.LOCALES.EN;
 const UTC = 'UTC';
+const getTranslateFn =
+    (locale: Locale): LocaleContextProps['translate'] =>
+    (path, ...params) =>
+        translate(locale, path, ...params);
 describe('DateUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -744,6 +749,27 @@ describe('DateUtils', () => {
             const newStart = DateUtils.combineDateAndTime('08:00 AM', '2026-08-04');
             const newEnd = DateUtils.combineDateAndTime('02:00 PM', '2026-08-04');
             expect(DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd})).toBe(true);
+        });
+
+        it('getTime12HourWithTranslatedPeriod shows the same period the picker offers', () => {
+            const translateDE = getTranslateFn(CONST.LOCALES.DE);
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateDE, '2026-08-04 00:00:00')).toBe('12:00 AM');
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateDE, '2026-08-04 12:00:00')).toBe('12:00 PM');
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateDE, '2026-08-04 08:30:00')).toBe('08:30 AM');
+        });
+
+        it('getTime12HourWithTranslatedPeriod returns an empty string when there is no date', () => {
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(getTranslateFn(CONST.LOCALES.DE), '')).toBe('');
+        });
+    });
+
+    describe('getTime12HourWithTranslatedPeriod in a locale that translates the period', () => {
+        beforeEach(() => IntlStore.load(CONST.LOCALES.JA));
+
+        it('keeps the translated marker', () => {
+            const translateJA = getTranslateFn(CONST.LOCALES.JA);
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateJA, '2026-08-04 14:00:00')).toBe('02:00 午後');
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateJA, '2026-08-04 08:00:00')).toBe('08:00 午前');
         });
     });
 });
