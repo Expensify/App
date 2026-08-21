@@ -139,6 +139,7 @@ function buildSpendNavigationItems({sections, icons, rightElement, getItemText, 
 function buildAccountNavigationItems({sections, rightElement, getItemText, getDestinationText}: BuildAccountNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return sections.flatMap((section) =>
         section.items.flatMap((item) => {
+            // Keep future action-only Settings rows from becoming Search Router destinations.
             if (!item.screenName || item.screenName === SCREENS.SETTINGS.SAVE_THE_WORLD) {
                 return [];
             }
