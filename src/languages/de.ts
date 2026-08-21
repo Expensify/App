@@ -8296,6 +8296,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
             reconnect: 'Erneut verbinden',
             reconnectLink: 'Erneut verbinden.',
+            findIntegration: 'Integration finden',
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',

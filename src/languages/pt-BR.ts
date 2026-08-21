@@ -8240,6 +8240,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             authenticationError: (providerName: string) => `Não é possível conectar a ${providerName} devido a uma conexão expirada.`,
             reconnect: 'Reconectar',
             reconnectLink: 'Reconectar.',
+            findIntegration: 'Encontrar integração',
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',

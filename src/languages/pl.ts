@@ -8218,6 +8218,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             authenticationError: (providerName: string) => `Nie można połączyć z ${providerName} z powodu wygasłego połączenia.`,
             reconnect: 'Połącz ponownie',
             reconnectLink: 'Połącz ponownie.',
+            findIntegration: 'Znajdź integrację',
         },
         emptyDomain: {
             title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',

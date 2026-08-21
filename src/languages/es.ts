@@ -7102,6 +7102,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             authenticationError: (providerName: string) => `No se puede conectar a ${providerName} porque la conexión ha caducado.`,
             reconnect: 'Volver a conectar',
             reconnectLink: 'Volver a conectar.',
+            findIntegration: 'Buscar integración',
         },
         export: {
             notReadyHeading: 'No está listo para exportar',

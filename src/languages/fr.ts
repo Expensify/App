@@ -8327,6 +8327,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
             reconnect: 'Reconnect',
             reconnectLink: 'Reconnectez-vous.',
+            findIntegration: 'Rechercher une intégration',
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
