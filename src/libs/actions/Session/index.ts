@@ -882,7 +882,7 @@ function setIsAuthenticatingWithShortLivedToken(isAuthenticating: boolean) {
  *
  * @param validateCode - 6 digit code required for login
  */
-function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode?: string) {
+function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode: string | undefined, login: string | undefined, storedValidateCode: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -930,24 +930,24 @@ function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFa
     Device.getDeviceInfoWithID().then((deviceInfo) => {
         const params: SignInUserParams = {
             twoFactorAuthCode,
-            email: credentials.login,
+            email: login,
             preferredLocale: preferredLocale ?? null,
             deviceInfo,
         };
 
         // Conditionally pass a password or validateCode to command since we temporarily allow both flows
         if (validateCode || twoFactorAuthCode) {
-            params.validateCode = validateCode || credentials.validateCode;
+            params.validateCode = validateCode || storedValidateCode;
         }
 
         API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {optimisticData, successData, failureData});
     });
 }
 
-function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '') {
-    // If this is called from the 2fa step, get the validateCode directly from onyx
+function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', storedValidateCode?: string) {
+    // If this is called from the 2fa step, use the validateCode stored in Onyx (passed in as `storedValidateCode`)
     // instead of the one passed from the component state because the state is changing when this method is called.
-    const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
+    const validateCode = twoFactorAuthCode ? storedValidateCode : code;
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
@@ -1199,7 +1199,7 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
 /**
  * Request a new validation link / validateCode to unlink an unvalidated secondary login from a primary login
  */
-function requestUnlinkValidationLink() {
+function requestUnlinkValidationLink(login: string | undefined) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1234,7 +1234,7 @@ function requestUnlinkValidationLink() {
         },
     ];
 
-    const params: RequestUnlinkValidationLinkParams = {email: credentials.login};
+    const params: RequestUnlinkValidationLinkParams = {email: login};
 
     API.write(WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
@@ -1339,7 +1339,11 @@ function clearDisableTwoFactorAuthErrors() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {requiresTwoFactorAuth: null}});
 }
 
-function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
+type ValidateTwoFactorAuthOptions = {
+    shouldKeepTwoFactorAuthFlowOpen?: boolean;
+};
+
+function updateAuthToken(authToken?: string, encryptedAuthToken?: string) {
     // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
     updateSessionAuthTokens(authToken, encryptedAuthToken);
 
@@ -1347,11 +1351,14 @@ function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: stri
     // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
     // enough to do the updateSessionAuthTokens() call above.
     NetworkStore.setAuthToken(authToken ?? null);
+}
 
+function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
+    updateAuthToken(authToken, encryptedAuthToken);
     openApp();
 }
 
-function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean) {
+function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean, options: ValidateTwoFactorAuthOptions = {}) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1390,6 +1397,36 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, params, {optimisticData, successData, failureData}).then((response) => {
         if (!response?.authToken) {
+            return;
+        }
+
+        // Forced onboarding 2FA: swap to the post-validate auth token immediately so Got it → openApp()
+        // cannot race the async reconnect, then clear stale pre-2FA Onyx while deferring openApp() until
+        // DynamicSuccessPage Got it so the 2FA RHP stays open through verify → success.
+        // Preserve list matches login-required 2FA reconnect baseline plus onboarding resume keys
+        // (including work-email form state for account-merge validation after dismiss).
+        if (options.shouldKeepTwoFactorAuthFlowOpen) {
+            const keysToPreserveForForcedOnboarding2FA = [
+                ...KEYS_TO_PRESERVE,
+                ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                ONYXKEYS.NVP_ONBOARDING,
+                ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+                ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+                ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+                ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            ];
+            updateAuthToken(response.authToken, response.encryptedAuthToken);
+            clearOnyxAndSeedFullReconnect(keysToPreserveForForcedOnboarding2FA, {
+                [ONYXKEYS.ACCOUNT]: {
+                    requiresTwoFactorAuth: true,
+                    twoFactorAuthSetupInProgress: true,
+                    needsTwoFactorAuthSetup: false,
+                    isLoading: false,
+                },
+                [ONYXKEYS.NVP_ONBOARDING]: {
+                    hasCompletedGuidedSetupFlow: false,
+                },
+            });
             return;
         }
 
@@ -1484,8 +1521,8 @@ function handleExitToNavigation(exitTo: Route) {
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', exitTo?: Route) {
-    signInWithValidateCode(accountID, validateCode, preferredLocale, twoFactorAuthCode);
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, exitTo?: Route) {
+    signInWithValidateCode(accountID, validateCode, preferredLocale);
     if (exitTo) {
         handleExitToNavigation(exitTo);
     } else {

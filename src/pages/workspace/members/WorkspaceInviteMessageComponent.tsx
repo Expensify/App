@@ -1,10 +1,11 @@
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -130,7 +131,7 @@ function WorkspaceInviteMessageComponent({
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
-            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate});
+            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber});
             if (displayName) {
                 return displayName;
             }
@@ -291,19 +292,18 @@ function WorkspaceInviteMessageComponent({
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
                     )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <ReportActionAvatars
-                            size={CONST.AVATAR_SIZE.XXX_LARGE}
-                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
-                            horizontalStacking={{
-                                maxRows: 2,
-                            }}
-                            secondaryAvatarContainerStyle={styles.secondAvatarInline}
-                            invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
-                            shouldUseCustomFallbackAvatar
-                            shouldShowTooltip={shouldShowTooltip}
-                        />
+                        <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
+                            <MultiAccountAvatar
+                                size={CONST.AVATAR_SIZE.XXX_LARGE}
+                                accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                                horizontalOptions={{
+                                    maxRows: 2,
+                                }}
+                                invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
+                            />
+                        </AvatarTooltipsProvider>
                     </View>
-                    <View style={[styles.mb3]}>
+                    <View style={styles.mb3}>
                         <View style={[styles.mhn5, styles.mb3]}>
                             {isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
@@ -342,6 +342,7 @@ function WorkspaceInviteMessageComponent({
                                         defaultValue: workspaceInviteApproverDraft,
                                         shouldFallbackToHidden: false,
                                         translate,
+                                        formatPhoneNumber,
                                     })}
                                     description={translate('workflowsPage.approver')}
                                     shouldShowRightIcon
