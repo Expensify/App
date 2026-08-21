@@ -54,6 +54,8 @@ function subscribe(callback: () => void): () => void {
     if (!isListenerAttached) {
         addOrientationChangeListener();
         isListenerAttached = true;
+        // The orientation can change while nothing is subscribed and no listener is attached, so refresh the cache once we start listening again.
+        handleOrientationChange();
     }
 
     return () => {
