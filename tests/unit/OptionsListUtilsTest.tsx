@@ -879,6 +879,11 @@ describe('OptionsListUtils', () => {
 
         // createFilteredOptionList caches results at module level; clear it so tests stay order-independent.
         clearFilteredOptionListCache();
+
+        // Report-linked display names resolve through ReportUtils.allPersonalDetails (Onyx PERSONAL_DETAILS_LIST).
+        // Re-seed it after the clear so every test builds options against the real personal details.
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await waitForBatchedUpdates();
     });
 
     describe('getSearchOptions()', () => {
