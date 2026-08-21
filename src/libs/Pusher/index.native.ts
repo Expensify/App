@@ -474,7 +474,7 @@ function getPusherSocketID(): string | undefined {
     return pusherSocketID;
 }
 
-// The native SDK exposes no `unavailable` state, so native cannot tell a blip from an outage and keeps syncing on every resubscribe.
+// The native SDK exposes no `unavailable` state, so it cannot tell a blip from an outage and keeps syncing on every resubscribe.
 function consumeDidSocketGoUnavailable(): boolean {
     return true;
 }

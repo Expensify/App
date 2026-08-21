@@ -433,8 +433,8 @@ describe('Pusher.subscribe on web', () => {
     });
 
     it('should trigger one reconnect per outage, however many times the channel shakes hands', async () => {
-        // Given an outage that already triggered a sync, because the latch has to die on the resubscribe
-        // that reads it and not on the next connect
+        // Given an outage that already triggered a sync, because the record is cleared by the resubscribe
+        // that reads it and not by the next connect
         const accountID = '1';
         const userChannel = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
 
@@ -456,7 +456,7 @@ describe('Pusher.subscribe on web', () => {
         channel?.startSubscription();
         channel?.completeHandshake();
 
-        // Then the sync is not repeated, so one outage costs one ReconnectApp
+        // Then the sync does not repeat, so one outage costs one ReconnectApp
         expect(reconnect).toHaveBeenCalledTimes(1);
     });
 
@@ -522,7 +522,7 @@ describe('Pusher.subscribe on web', () => {
         channel?.startSubscription();
         channel?.completeHandshake();
 
-        // Then the outage the previous socket saw costs no sync on this one
+        // Then the earlier socket's outage costs no sync on this one
         expect(reconnect).not.toHaveBeenCalled();
     });
 });

@@ -500,7 +500,7 @@ function reconnect() {
 
     Log.info('[Pusher] Reconnecting to Pusher');
 
-    // pusher-js takes a manual disconnect through `disconnected`, never `unavailable`, so latch the outage here.
+    // pusher-js takes a manual disconnect through `disconnected`, never `unavailable`, so record the outage here.
     didSocketGoUnavailable = true;
     socket.disconnect();
     socket.connect();
@@ -510,7 +510,7 @@ function getPusherSocketID(): string | undefined {
     return pusherSocketID;
 }
 
-// pusher-js only enters `unavailable` after unavailableTimeout of failed connects, so a socket that came back without reaching it merely blipped.
+// pusher-js only enters `unavailable` after unavailableTimeout of failed connects, so a socket that came back without reaching it only blipped.
 function consumeDidSocketGoUnavailable(): boolean {
     const didGoUnavailable = didSocketGoUnavailable;
     didSocketGoUnavailable = false;
