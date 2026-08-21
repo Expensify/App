@@ -1,7 +1,7 @@
 ---
 title: Reconcile Reimbursements
 description: Learn how to match reimbursement payments to bank charges, trace payments to expense reports, and troubleshoot discrepancies with your accounting system.
-keywords: [New Expensify, reconcile reimbursements, match reimbursements bank statement, reimbursement payments Expensify, reimbursement mismatch NetSuite QuickBooks, trace reimbursement to expense reports]
+keywords: [New Expensify, reconcile reimbursements, match reimbursements bank statement, reimbursement payments Expensify, reimbursement mismatch NetSuite QuickBooks, trace reimbursement to expense reports, amount debited, amount reimbursed, cross-border reimbursement currency]
 internalScope: Audience is Workspace Admins reconciling reimbursement payments. Covers payment-based reconciliation under Reconciliation > Reimbursements. Does not cover Expensify Card reconciliation or company card statement matching.
 ---
 
@@ -22,7 +22,18 @@ Workspace Admins can reconcile reimbursements when Payments is enabled on the Wo
 1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Spend**.
 2. In the **Reconciliation** section, select **Reimbursements**.
 3. Choose the **Withdrawn** filter to select a date range (for example, **Last month**).
-4. Review the list of reimbursements. Each row represents a reimbursement for a single report and shows the total amount.
+4. Review the list of reimbursements. Each row represents a reimbursement for a single report and shows the total amount. For a cross-border reimbursement, the row also shows the **Amount debited** and **Amount reimbursed** in their own currencies.
+
+---
+
+## How to read the Amount debited and Amount reimbursed columns
+
+A cross-border reimbursement debits your company in one currency and pays the employee in another, so a single total cannot describe it. When your selected results include at least one cross-border reimbursement, the reconciliation view shows two additional columns between **Expenses** and **Total**:
+
+- **Amount debited** — the amount withdrawn from your company's bank account, shown in the settlement currency.
+- **Amount reimbursed** — the amount deposited to the employee, shown in the employee's deposit currency.
+
+If every reimbursement in view is domestic, these columns are hidden entirely. In a mixed list, domestic rows leave both cells blank and show their amount in the **Total** column. You can sort the list by either column by clicking its header.
 
 ---
 
@@ -52,6 +63,10 @@ If you see a charge on your bank statement that you cannot identify, go to the R
 ## What does a reimbursement payment include?
 
 A single reimbursement payment may cover one expense report. Expanding the payment row shows all the expenses on the report that was reimbursed. 
+
+## Why don't I see the Amount debited and Amount reimbursed columns, or why are they blank?
+
+Those columns apply only to cross-border reimbursements, where the debited and reimbursed amounts are in different currencies. If your selected results contain only domestic reimbursements, the columns don't appear at all. In a mixed list, domestic rows leave both cells blank because the amount is shown in the **Total** column instead.
 
 ## Why don't I see Reimbursements under Reconciliation?
 
