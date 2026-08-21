@@ -300,6 +300,24 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+/**
+ * Same as getExpenseTypeTranslationKey, but splits a card transaction into Expensify Card, Company card, or
+ * Personal card depending on who issued it.
+ */
+function getDetailedExpenseTypeTranslationKey(transaction: OnyxEntry<Transaction>, card?: Card): TranslationPaths {
+    const transactionType = getTransactionType(transaction, card);
+    if (transactionType !== CONST.SEARCH.TRANSACTION_TYPE.CARD) {
+        return getExpenseTypeTranslationKey(transactionType);
+    }
+    if (isExpensifyCardTransaction(transaction)) {
+        return 'cardTransactions.expensifyCard';
+    }
+    if (isManagedCardTransaction(transaction)) {
+        return 'cardTransactions.companyCard';
+    }
+    return 'cardTransactions.personalCard';
+}
+
 function getReceiptTypeTranslationKey(receiptType: ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>): TranslationPaths {
     // eslint-disable-next-line default-case
     switch (receiptType) {
@@ -3579,6 +3597,7 @@ export {
     getConvertedAmount,
     isTimeRequest,
     getExpenseTypeTranslationKey,
+    getDetailedExpenseTypeTranslationKey,
     getReceiptTypeTranslationKey,
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,

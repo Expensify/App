@@ -3467,8 +3467,6 @@ describe('CardUtils', () => {
         });
 
         it("only reads the nickname from the card's own domain, not other domains sharing the same feed key", () => {
-            // Two different domains can each have a VISA feed with their own nickname. Passing the wrong
-            // domain's CardFeeds entry must never leak that domain's nickname onto this card.
             const otherDomainNickname = 'Other domain Visa';
             const otherDomainCardFeeds: CardFeeds = {
                 settings: {
