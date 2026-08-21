@@ -37,6 +37,7 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -178,6 +179,7 @@ const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedRepo
     dateFnsLocale: undefined,
     conciergeReportID: undefined,
     isSearching: true,
+    formatPhoneNumber,
 });
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {addSafeAreaPadding: true};
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {addSafeAreaPadding: false};
@@ -461,6 +463,7 @@ describe('SearchAutocompleteList', () => {
                     dateFnsLocale: undefined,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
             ),
             isLoading: false,
@@ -550,6 +553,7 @@ describe('SearchAutocompleteList', () => {
                     dateFnsLocale: undefined,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
             ),
             isLoading: false,

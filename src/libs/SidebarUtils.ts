@@ -1031,6 +1031,7 @@ function getOptionData({
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
+            formatPhoneNumber,
             dateFnsLocale,
             report,
             personalDetails,

@@ -28,6 +28,7 @@ type UseMoneyRequestParticipantsPolicyTagsParams = {
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
     translate: LocaleContextProps['translate'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type UseMoneyRequestParticipantsPolicyTagsResult = {
@@ -45,20 +46,22 @@ function useMoneyRequestParticipantsPolicyTags({
     reportAttributesDerived,
     reportDraft,
     translate,
+    formatPhoneNumber,
     dateFnsLocale,
 }: UseMoneyRequestParticipantsPolicyTagsParams): UseMoneyRequestParticipantsPolicyTagsResult {
-    const participants = getMoneyRequestParticipantOptions(
+    const participants = getMoneyRequestParticipantOptions({
         currentUserAccountID,
         report,
         policy,
         personalDetails,
         conciergeReportID,
-        isArchived,
+        privateIsArchived: isArchived,
         reportAttributesDerived,
         reportDraft,
         translate,
+        formatPhoneNumber,
         dateFnsLocale,
-    );
+    });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     return {participants, participantsPolicyTags};

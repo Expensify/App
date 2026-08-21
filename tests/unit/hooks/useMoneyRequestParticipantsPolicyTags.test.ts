@@ -10,6 +10,7 @@ import type {PolicyTagLists} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import {formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
@@ -51,12 +52,25 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived,
                 reportDraft,
                 translate,
+                formatPhoneNumber,
             }),
         );
 
         await waitFor(() => expect(result.current.participants).toEqual(mockParticipants));
 
-        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(999, report, policy, personalDetails, 'concierge1', false, reportAttributesDerived, reportDraft, translate, undefined);
+        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith({
+            currentUserAccountID: 999,
+            report,
+            policy,
+            personalDetails,
+            conciergeReportID: 'concierge1',
+            privateIsArchived: false,
+            reportAttributesDerived,
+            reportDraft,
+            translate,
+            formatPhoneNumber,
+            dateFnsLocale: undefined,
+        });
     });
 
     it('derives participantsPolicyTags from Onyx policy tags keyed by each participant policyID', async () => {
@@ -97,6 +111,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate,
+                formatPhoneNumber,
             }),
         );
 
@@ -120,6 +135,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate,
+                formatPhoneNumber,
             }),
         );
 

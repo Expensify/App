@@ -10,6 +10,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/ActiveClientManager', () => ({
@@ -102,6 +103,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             REPORT_ATTRIBUTES,
         );
         await waitForBatchedUpdates();
@@ -133,6 +135,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             undefined,
         );
         await waitForBatchedUpdates();
@@ -164,6 +167,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             REPORT_ATTRIBUTES,
         );
         await waitForBatchedUpdates();

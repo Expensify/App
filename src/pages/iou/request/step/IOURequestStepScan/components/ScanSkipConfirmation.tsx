@@ -122,18 +122,19 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
-    const participants = getMoneyRequestParticipantOptions(
-        currentUserPersonalDetails.accountID,
+    const participants = getMoneyRequestParticipantOptions({
+        currentUserAccountID: currentUserPersonalDetails.accountID,
         report,
         policy,
         personalDetails,
         conciergeReportID,
-        isArchived,
+        privateIsArchived: isArchived,
         reportAttributesDerived,
         reportDraft,
         translate,
+        formatPhoneNumber,
         dateFnsLocale,
-    );
+    });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     // Whether this expense's sole destination is the current user's self-DM. Forwarded to the cleanup helpers so the

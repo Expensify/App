@@ -677,6 +677,7 @@ function triggerNotifications<TKey extends OnyxKey>(
     onyxUpdates: Array<OnyxServerUpdate<TKey>>,
     currentUserAccountID: number,
     currentUserEmail: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     topmostOneTransactionThreadReportID: string | undefined,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -691,7 +692,7 @@ function triggerNotifications<TKey extends OnyxKey>(
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
-                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, reportAttributes);
+                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, formatPhoneNumber, reportAttributes);
             }
         }
     }
@@ -880,6 +881,7 @@ function initializePusherPingPong(currentUserAccountID: number) {
 function subscribeToUserEvents(
     currentUserAccountID: number,
     currentUserEmail: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getTopmostOneTransactionThreadReportID: () => string | undefined,
     getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
@@ -939,7 +941,7 @@ function subscribeToUserEvents(
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, formatPhoneNumber, getTopmostOneTransactionThreadReportID(), getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
