@@ -454,13 +454,14 @@ function ReportSubmitToContent({
     );
 
     const containerStyle = useMemo(() => {
-        const baseStyle = [styles.w100, styles.flex1, styles.pt3, styles.pb3];
+        // `FixedFooter` already pads 20px below the Confirm button, so no extra bottom padding is added here.
+        const baseStyle = [styles.w100, styles.flex1, styles.pt3];
         if (isInLandscapeMode) {
             return baseStyle;
         }
 
         return [...baseStyle, StyleUtils.getMinimumHeight(CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT)];
-    }, [StyleUtils, isInLandscapeMode, styles.flex1, styles.pb3, styles.pt3, styles.w100]);
+    }, [StyleUtils, isInLandscapeMode, styles.flex1, styles.pt3, styles.w100]);
 
     if (shouldShowNotFoundView) {
         return (
