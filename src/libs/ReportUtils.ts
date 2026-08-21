@@ -3202,9 +3202,6 @@ function getAddExpenseDropdownOptions({
     lastDistanceExpenseType,
     currentUserAccountID,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
-    // The iouReport being added to may belong to a different policy than the chat surrounding it is rendered in
-    // (e.g. a Teachers Unite expense report preview shown inside a non-Teachers-Unite chat), so check the
-    // iouReport's own policy rather than the surrounding `policy`.
     const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
 
     return [
