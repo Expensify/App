@@ -614,7 +614,8 @@ function shouldDuplicateAsManualDistance(transaction: OnyxTypes.Transaction) {
 function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, transactionDetails: ReturnType<typeof getTransactionDetails>) {
     const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
     const duplicateAsManualDistance = shouldDuplicateAsManualDistance(transaction);
-    const waypoints = !isExpenseSplit(transaction) && !duplicateAsManualDistance ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
+    const shouldKeepWaypoints = !isExpenseSplit(transaction) && !duplicateAsManualDistance;
+    const waypoints = shouldKeepWaypoints ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
 
     const transactionParams = {
         ...transactionWithoutLinkedAction,
