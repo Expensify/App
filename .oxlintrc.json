@@ -22,7 +22,8 @@
         {"name": "report-name-utils", "specifier": "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs"},
         {"name": "core", "specifier": "./config/oxlint/plugins/core-rules.mjs"},
         {"name": "hosted", "specifier": "./config/oxlint/plugins/hosted-rules.mjs"},
-        {"name": "rh", "specifier": "./config/oxlint/plugins/rh-plugin.mjs"}
+        {"name": "rh", "specifier": "./config/oxlint/plugins/rh-plugin.mjs"},
+        {"name": "rc", "specifier": "./config/oxlint/plugins/rc-rules.mjs"}
     ],
     "categories": {
         "correctness": "off"
@@ -868,12 +869,31 @@
                 "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated."
             }
         ],
-        "rh/refs": "error",
-        "rh/set-state-in-effect": "error",
-        "rh/preserve-manual-memoization": "error",
-        "rh/immutability": "error",
-        "rh/static-components": "error",
+        // The 12 React Compiler rules now run as rc/* below, off the Rust compiler instead of the
+        // JavaScript one: config/oxlint/reactCompilerRust.mjs, 5.2 s over 6891 files against 52 s of
+        // a 121 s whole-repo run. ALL 14 compiler-category rh/* rules have to be off for that saving
+        // to exist -- any one of them still enabled pays for the whole shared JavaScript analysis,
+        // which has already been measured twice at 125 s and 123 s for configs that left rh/config
+        // and rh/gating on. rh/exhaustive-deps and rh/component-hook-factories stay: they read no
+        // compiler output and cost ~1 s between them.
+        "rh/refs": "off",
+        "rh/set-state-in-effect": "off",
+        "rh/preserve-manual-memoization": "off",
+        "rh/immutability": "off",
+        "rh/static-components": "off",
         "rh/exhaustive-deps": "error",
+        "rc/refs": "error",
+        "rc/set-state-in-effect": "error",
+        "rc/set-state-in-render": "error",
+        "rc/preserve-manual-memoization": "error",
+        "rc/immutability": "error",
+        "rc/static-components": "error",
+        "rc/use-memo": "error",
+        "rc/globals": "error",
+        "rc/error-boundaries": "error",
+        "rc/purity": "error",
+        "rc/incompatible-library": "error",
+        "rc/unsupported-syntax": "error",
         "no-restricted-exports": [
             "error",
             {
@@ -991,15 +1011,20 @@
         ],
         "hosted/static-property-placement": ["error", "property assignment"],
         "rh/component-hook-factories": "error",
-        "rh/config": "error",
-        "rh/error-boundaries": "error",
-        "rh/gating": "error",
-        "rh/globals": "error",
-        "rh/incompatible-library": "error",
-        "rh/purity": "error",
-        "rh/set-state-in-render": "error",
-        "rh/unsupported-syntax": "error",
-        "rh/use-memo": "error"
+        // Off with the rest of the compiler-category rules, see the rc/* block above. These two are
+        // the only ones dropped rather than replaced: both need per-rule options to reach the
+        // compiler (a `gating`/`dynamicGating` source, or an option for the config validator to
+        // reject), which the shared per-file analysis behind rc/* deliberately does not take, and
+        // neither can fire in this repo because it passes them no options at all.
+        "rh/config": "off",
+        "rh/gating": "off",
+        "rh/error-boundaries": "off",
+        "rh/globals": "off",
+        "rh/incompatible-library": "off",
+        "rh/purity": "off",
+        "rh/set-state-in-render": "off",
+        "rh/unsupported-syntax": "off",
+        "rh/use-memo": "off"
     },
     "overrides": [
         {

@@ -3,6 +3,18 @@
     "plugins": ["react"],
     "categories": {},
     "rules": {
-        "react/react-compiler": "error"
+        "react/refs": "error",
+        "react/set-state-in-effect": "error",
+        "react/set-state-in-render": "error",
+        "react/preserve-manual-memoization": "error",
+        "react/immutability": "error",
+        "react/static-components": "error",
+        "react/use-memo": "error",
+        "react/globals": "error",
+        "react/error-boundaries": "error",
+        "react/purity": "error",
+        "react/incompatible-library": "error",
+        "react/unsupported-syntax": "error",
+        "react/rule-suppression": "error"
     }
 }

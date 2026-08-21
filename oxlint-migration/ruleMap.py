@@ -65,6 +65,26 @@ PORT_PLAN = {
     # measured for the context rule first and rejected: it cannot be gated, so it needs 115 inline
     # suppressions and one per new context provider forever. Its two divergences from ESLint's rule
     # are recorded in oxlint-migration/compareNativeCtxValues.py.
+    # -- dropped 2026-08-21 with the move to the Rust React Compiler (OXLINT_RUST_COMPILER_PLAN.md) --
+    # The other 12 compiler rules moved to rc/* over oxc-transform-react. These two could not come
+    # along: each needs per-rule options handed to the compiler, and rc/* runs ONE cached analysis per
+    # file with a fixed option set, which is what makes it 10x faster than the sidecar. Leaving either
+    # one on the sidecar would have kept the entire 52 s JavaScript analysis, i.e. the whole saving.
+    'react-hooks/config': {
+        'mechanism': 'dropped - validates compiler options, and rc/* passes none from config',
+        'effort': 'none', 'proven': False,
+        'notes': 'inert in this repo either way: the ESLint plugin only reaches its config validator '
+                 'through per-rule options (COMPILER_OPTIONS merged with userOpts, '
+                 'eslint-plugin-react-hooks.development.js:51821) and eslint-config-expensify enables it '
+                 'with none (configs/public/react.js:448)',
+    },
+    'react-hooks/gating': {
+        'mechanism': 'dropped - needs a gating/dynamicGating source in rule options',
+        'effort': 'none', 'proven': False,
+        'notes': 'a `use memo if(...)` directive only produces Gating diagnostics when the compiler is '
+                 'given a dynamicGating source, which is why the fixture had to supply one in both '
+                 'fixture configs; production supplies none, so the rule cannot fire',
+    },
     # -- blocked by a missing API in oxlint's JS-plugin bridge, not by types --
     'no-invalid-this': {
         'mechanism': 'blocked - oxlint\'s bridge throws on sourceCode.getJSDocComment',
@@ -180,8 +200,10 @@ def norm_ox(code):
         return OXLINT_RENAMES.get(rule, rule)
     if plugin == 'typescript':
         return f'@typescript-eslint/{rule}'
-    if plugin == 'rh' or (plugin == 'react' and rule == 'exhaustive-deps'):
-        # 'rh' is the jsPlugin alias for eslint-plugin-react-hooks
+    if plugin in ('rh', 'rc') or (plugin == 'react' and rule == 'exhaustive-deps'):
+        # 'rh' is the jsPlugin alias for eslint-plugin-react-hooks; 'rc' hosts the 12 React Compiler
+        # rules of that same plugin, reimplemented over the Rust compiler
+        # (config/oxlint/reactCompilerRust.mjs), so both normalize to the same ESLint names
         return f'react-hooks/{rule}'
     if plugin == 'hosted':
         return f'{HOSTED_RULE_ORIGIN[rule]}/{rule}'
@@ -207,7 +229,7 @@ def norm_ox_config(rule_id):
         return '@typescript-eslint/' + rule_id.split('/', 1)[1]
     if rule_id.startswith('core/'):
         return rule_id.split('/', 1)[1]
-    if rule_id.startswith('rh/'):
+    if rule_id.startswith('rh/') or rule_id.startswith('rc/'):
         return 'react-hooks/' + rule_id.split('/', 1)[1]
     if rule_id.startswith('hosted/'):
         rule = rule_id.split('/', 1)[1]

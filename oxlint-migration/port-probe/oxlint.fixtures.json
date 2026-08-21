@@ -7,7 +7,8 @@
         "../../config/oxlint/plugins/core-rules.mjs",
         "../../config/oxlint/plugins/hosted-rules.mjs",
         "../../config/oxlint/plugins/expensify-rules.mjs",
-        "../../config/oxlint/plugins/rh-plugin.mjs"
+        "../../config/oxlint/plugins/rh-plugin.mjs",
+        "../../config/oxlint/plugins/rc-rules.mjs"
     ],
     "categories": {},
     // Same settings block as .oxlintrc.json, plus one entry the repo does not have: the object form
@@ -147,39 +148,33 @@
     },
     "overrides": [
         {
-            // The eslint-plugin-react-hooks rules, scoped to the rh* fixtures. Scoped rather than
-            // global because these run the React Compiler over every file they see, and because the
-            // repo's own components in the other fixtures would report shapes no manifest entry
-            // claims. Severities are production's: every one of the 16 is "error". rules-of-hooks is
-            // absent on purpose -- production runs oxlint's native react/rules-of-hooks, not the
-            // sidecar copy, so covering it here would test a rule the shipped config does not run.
+            // The React Compiler rules, scoped to the rh* fixtures. Scoped rather than global because
+            // these analyze every file they see, and because the repo's own components in the other
+            // fixtures would report shapes no manifest entry claims. Severities and off switches are
+            // production's: the 12 compiler rules run as rc/* over the Rust compiler
+            // (config/oxlint/reactCompilerRust.mjs) and their rh/* twins are off, because leaving any
+            // one of them on would run the JavaScript compiler as well. rules-of-hooks is absent on
+            // purpose -- production runs oxlint's native react/rules-of-hooks, not the sidecar copy,
+            // so covering it here would test a rule the shipped config does not run. rh/config and
+            // rh/gating are off and have no rc/ twin: see the PORT_PLAN entries in
+            // oxlint-migration/ruleMap.py for why they were dropped rather than ported.
             "files": ["**/rh*.tsx"],
             "rules": {
                 "rh/component-hook-factories": "error",
-                "rh/config": "error",
-                "rh/error-boundaries": "error",
                 "rh/exhaustive-deps": "error",
-                "rh/gating": "error",
-                "rh/globals": "error",
-                "rh/immutability": "error",
-                "rh/incompatible-library": "error",
-                "rh/preserve-manual-memoization": "error",
-                "rh/purity": "error",
-                "rh/refs": "error",
-                "rh/set-state-in-effect": "error",
-                "rh/set-state-in-render": "error",
-                "rh/static-components": "error",
-                "rh/unsupported-syntax": "error",
-                "rh/use-memo": "error"
+                "rc/error-boundaries": "error",
+                "rc/globals": "error",
+                "rc/immutability": "error",
+                "rc/incompatible-library": "error",
+                "rc/preserve-manual-memoization": "error",
+                "rc/purity": "error",
+                "rc/refs": "error",
+                "rc/set-state-in-effect": "error",
+                "rc/set-state-in-render": "error",
+                "rc/static-components": "error",
+                "rc/unsupported-syntax": "error",
+                "rc/use-memo": "error"
             }
-        },
-        {
-            // gating validates the compiler options it is handed, so its violation cannot live in a
-            // source file alone: this block configures dynamic gating, and the fixture then asks for
-            // it with a directive naming something that is not an identifier. Production passes no
-            // options, which is why the rule can never report there.
-            "files": ["**/rhGating.tsx"],
-            "rules": {"rh/gating": ["error", {"dynamicGating": {"source": "@libs/CompilerGate"}}]}
         },
         {
             // Scoped to one file because the rule throws on any *read* of `.propTypes` once an exact

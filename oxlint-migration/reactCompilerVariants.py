@@ -8,6 +8,10 @@
 are TEXT patches, not `extends` wrappers: oxlint's `extends` does not inherit ignorePatterns, so
 a wrapper lints Mobile-Expensify and node_modules (measured: 426467 findings and 21 min per run
 instead of 4629 and 107 s).
+
+This script is historical: it only runs against the pre-flip config where the 14 compiler
+category rh/* rules were "error", superseded on 2026-08-21 by the rc/* Rust compiler plugin.
+The switch_off function asserts on today's config.
 """
 
 import json
@@ -51,7 +55,7 @@ def write_variants():
         'b': switch_off(base, COMPILER),
         'c': switch_off(base, COMPILER + NON_COMPILER),
         # `rh/use-memo` is the last entry of the root `rules` object, so appending after it
-        # keeps the JSON valid without restructuring anything.
+        # keeps the JSON valid without restructuring anything. This describes the pre-flip config.
         'd': switch_off(base, COMPILER + NON_COMPILER).replace(
             '"rh/use-memo": "off"',
             f'"rh/use-memo": "off",\n        {native_rules}',

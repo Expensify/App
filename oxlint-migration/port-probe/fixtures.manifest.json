@@ -98,54 +98,48 @@
 
     "react-hooks/purity": {
         "fixture": "fixtures/rhPurity.tsx",
-        "oxlintRule": "rh/purity",
+        "oxlintRule": "rc/purity",
         "expected": 1,
         "why": "covered 2026-08-12; the compiler rules had no fixture at all before, and 10 of the 16 had no evidence of any kind"
     },
-    "react-hooks/set-state-in-render": {"fixture": "fixtures/rhSetStateInRender.tsx", "oxlintRule": "rh/set-state-in-render", "expected": 1, "why": "covered 2026-08-12"},
-    "react-hooks/globals": {"fixture": "fixtures/rhGlobals.tsx", "oxlintRule": "rh/globals", "expected": 1, "why": "covered 2026-08-12"},
-    "react-hooks/error-boundaries": {"fixture": "fixtures/rhErrorBoundaries.tsx", "oxlintRule": "rh/error-boundaries", "expected": 1, "why": "covered 2026-08-12"},
-    "react-hooks/use-memo": {"fixture": "fixtures/rhUseMemo.tsx", "oxlintRule": "rh/use-memo", "expected": 1, "why": "covered 2026-08-12"},
-    "react-hooks/unsupported-syntax": {"fixture": "fixtures/rhUnsupportedSyntax.tsx", "oxlintRule": "rh/unsupported-syntax", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/set-state-in-render": {"fixture": "fixtures/rhSetStateInRender.tsx", "oxlintRule": "rc/set-state-in-render", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/globals": {"fixture": "fixtures/rhGlobals.tsx", "oxlintRule": "rc/globals", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/error-boundaries": {"fixture": "fixtures/rhErrorBoundaries.tsx", "oxlintRule": "rc/error-boundaries", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/use-memo": {"fixture": "fixtures/rhUseMemo.tsx", "oxlintRule": "rc/use-memo", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/unsupported-syntax": {"fixture": "fixtures/rhUnsupportedSyntax.tsx", "oxlintRule": "rc/unsupported-syntax", "expected": 1, "why": "covered 2026-08-12"},
     "react-hooks/incompatible-library": {
         "fixture": "fixtures/rhIncompatibleLibrary.tsx",
-        "oxlintRule": "rh/incompatible-library",
+        "oxlintRule": "rc/incompatible-library",
         "expected": 1,
         "why": "covered 2026-08-12; react-hook-form is matched by module name, so the package does not have to be installed"
     },
-    "react-hooks/gating": {
-        "fixture": "fixtures/rhGating.tsx",
-        "oxlintRule": "rh/gating",
-        "expected": 1,
-        "why": "covered 2026-08-12, same shape as config: a gating block with no source, supplied by both fixture configs"
-    },
     "react-hooks/refs": {
         "fixture": "fixtures/rhRefs.tsx",
-        "oxlintRule": "rh/refs",
+        "oxlintRule": "rc/refs",
         "expected": 1,
-        "why": "covered 2026-08-12; had repo-wide parity before, which is evidence only while the repo keeps violating it"
+        "why": "covered 2026-08-12; ported to rc/ 2026-08-21. Doubles as the direct test of the Rust engine's reason for existing: the component also carries an eslint-disable-next-line react-hooks/exhaustive-deps comment, which makes oxlint's native react/refs report nothing (measured 0) while ESLint and rc/refs both report line 20"
     },
     "react-hooks/immutability": {
         "fixture": "fixtures/rhImmutability.tsx",
-        "oxlintRule": "rh/immutability",
-        "expected": 2,
-        "why": "covered 2026-08-12; previously repo parity only. The reassignment produces two findings, and both tools report both of them on the same lines"
+        "oxlintRule": "rc/immutability",
+        "expected": 1,
+        "why": "covered 2026-08-12, ported to rc/ 2026-08-21. Both tools report TWO diagnostics here (the reassignment and the escaping function) and this harness compares a set of (file, line, rule), so the two collapse into one row. Deliberately so: the fixture is one line because the two engines anchor the second diagnostic differently, ESLint on the escape site and the Rust compiler on the modification site. That divergence, and the count of two, are asserted separately by npm run oxlint-react-compiler-rust against oxlint-migration/native-vs-sidecar-probe/rhImmutabilityAnchor.tsx"
     },
     "react-hooks/set-state-in-effect": {
         "fixture": "fixtures/rhSetStateInEffect.tsx",
-        "oxlintRule": "rh/set-state-in-effect",
+        "oxlintRule": "rc/set-state-in-effect",
         "expected": 1,
         "why": "covered 2026-08-12; previously repo parity only"
     },
     "react-hooks/static-components": {
         "fixture": "fixtures/rhStaticComponents.tsx",
-        "oxlintRule": "rh/static-components",
+        "oxlintRule": "rc/static-components",
         "expected": 1,
         "why": "covered 2026-08-12; previously repo parity only"
     },
     "react-hooks/preserve-manual-memoization": {
         "fixture": "fixtures/rhPreserveManualMemoization.tsx",
-        "oxlintRule": "rh/preserve-manual-memoization",
+        "oxlintRule": "rc/preserve-manual-memoization",
         "expected": 1,
         "why": "covered 2026-08-12; previously repo parity only"
     },

@@ -195,7 +195,11 @@ export default [
         // oxlint.fixtures.json: they run the React Compiler over every file they see, and the other
         // fixtures contain components that would report shapes no manifest entry claims.
         // rules-of-hooks is absent because production runs oxlint's native port of it, not the
-        // sidecar copy.
+        // sidecar copy. The dynamic-gating options that used to be scoped to rhGating.tsx are gone
+        // with the rule: oxlint dropped react-hooks/gating on 2026-08-21 when the other 12 compiler
+        // rules moved to rc/* over the Rust compiler, so there is nothing left to compare against.
+        // Production passes the compiler no gating options either, which is why the rule cannot fire
+        // in either tool outside that removed block.
         files: ['**/rh*.tsx'],
         languageOptions: {parser: tseslint.parser, parserOptions: {sourceType: 'module', ecmaFeatures: {jsx: true}}},
         plugins: {'react-hooks': {rules: reactHooks.rules}},
@@ -217,14 +221,6 @@ export default [
             'react-hooks/unsupported-syntax': 'error',
             'react-hooks/use-memo': 'error',
         },
-    },
-    {
-        // gating validates the compiler options it is handed, so its violation cannot live in a source
-        // file alone: this block configures dynamic gating, and the fixture then asks for it with a
-        // directive naming something that is not an identifier. Production passes no options, which is
-        // why the rule can never report there.
-        files: ['**/rhGating.tsx'],
-        rules: {'react-hooks/gating': ['error', {dynamicGating: {source: '@libs/CompilerGate'}}]},
     },
     {
         // Scoped to one file because the rule throws on any *read* of `.propTypes` once an exact

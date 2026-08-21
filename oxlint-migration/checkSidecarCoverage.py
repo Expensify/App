@@ -71,11 +71,6 @@ EXEMPT = {
         'eslint-plugin-react-hooks 7.1.0 ships this as a deprecated stub -- makeDeprecatedRule returns a rule whose create() '
         'returns {} -- so neither tool can report anything. Both configs keep it because ESLint lists it and the rule sets have to match'
     ),
-    'rh/config': (
-        'the rule only reports compiler-configuration problems, and production hands it no configuration at all. Every invalid '
-        'option we tried (top-level gating, dynamicGating, environment.*) throws a ReactCompilerError out of ESLint rather than '
-        'producing a lint message, so there is no behavior to compare'
-    ),
 }
 
 
