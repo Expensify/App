@@ -27,6 +27,7 @@ import {interpolate} from 'react-native-reanimated';
 import type {ThemeColors} from './theme/types';
 
 import colors from './theme/colors';
+import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
 import addOutlineWidth from './utils/addOutlineWidth';
 import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
@@ -355,12 +356,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emojiSuggestionsEmoji: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeEmojisWithinText,
             width: 51,
             textAlign: 'center',
         },
         emojiSuggestionsText: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeNormal,
             flex: 1,
             ...wordBreak.breakWord,
             ...spacing.pr4,
@@ -379,7 +380,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         mentionSuggestionsText: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeNormal,
             ...spacing.ml2,
         },
 
@@ -482,14 +483,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         label: {
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         textLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         themeTextColor: {
@@ -498,19 +499,19 @@ const staticStyles = (theme: ThemeColors) =>
 
         mutedTextLabel: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         mutedNormalTextLabel: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightNormal,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         textSmall: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.micro,
         },
 
         textExtraSmall: {
@@ -519,36 +520,28 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textMicro: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            ...textVariants.micro,
         },
 
         textMicroBold: {
+            ...textVariants.microStrong,
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroBoldSupporting: {
+            ...textVariants.microStrong,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroSupporting: {
+            ...textVariants.micro,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
         },
 
         textSupportingNormal: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            fontSize: fontScale.text,
+            lineHeight: lineHeightScale.text,
         },
 
         textExtraSmallSupporting: {
@@ -567,12 +560,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
         },
         textNormal: {
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.text,
         },
 
         textNormalThemeText: {
             color: theme.text,
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.text,
         },
 
         textLarge: {
@@ -594,16 +587,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         textXXXLarge: {
             fontSize: variables.fontSizeXXXLarge,
+            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHero: {
-            fontSize: variables.fontSizeHero,
-            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
-            lineHeight: variables.lineHeightHero,
+            ...textVariants.introHeadline,
         },
 
         textStrong: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...fontFamilyScale.strong,
         },
 
         fontWeightNormal: {
@@ -611,35 +603,23 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textHeadline: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.h1,
             color: theme.heading,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH2: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.h2,
             color: theme.heading,
-            fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeH2,
         },
 
         textHeadlineH1: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.h1,
             color: theme.heading,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeH1,
         },
 
         exportDownloadTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            ...whiteSpace.preWrap,
+            ...textVariants.pageHeader,
             color: theme.heading,
-            fontSize: variables.fontSizeLarge,
-            lineHeight: variables.lineHeightXLarge,
         },
 
         textWhite: {
@@ -868,8 +848,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonExtraSmallText: {
-            fontSize: variables.fontSizeExtraSmall,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...textVariants.finePrintStrong,
             textAlign: 'center',
         },
 
@@ -1722,9 +1701,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         labelStrong: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightNormal,
+            ...textVariants.labelStrong,
         },
 
         textLabelSupporting: {
@@ -1989,31 +1966,6 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeH2,
             lineHeight: variables.lineHeightSizeH2,
             ...headlineFont,
-        },
-
-        breadcrumbsContainer: {
-            minHeight: 24,
-        },
-
-        breadcrumb: {
-            color: theme.textSupporting,
-            fontSize: variables.breadcrumbsFontSize,
-            ...headlineFont,
-        },
-
-        breadcrumbStrong: {
-            color: theme.text,
-            fontSize: variables.breadcrumbsFontSize,
-        },
-
-        breadcrumbSeparator: {
-            color: theme.icon,
-            fontSize: variables.breadcrumbsFontSize,
-            ...headlineFont,
-        },
-
-        breadcrumbLogo: {
-            top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
         },
 
         onboardingNavigatorOuterView: {
@@ -3507,12 +3459,9 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
-        // textMicroBold with a tighter line height, so the from/to cells line up with the rest of the expense preview metadata
         moneyRequestPreviewParticipantsText: {
+            ...textVariants.microStrong,
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: 14,
         },
 
         moneyRequestLoadingHeight: {
@@ -4193,9 +4142,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            ...textVariants.textStrong,
             color: theme.text,
         },
 
@@ -6582,9 +6529,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
         chartTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            ...textVariants.textStrong,
             color: theme.text,
         },
         chartTooltipWrapper: {

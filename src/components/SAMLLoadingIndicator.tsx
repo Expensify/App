@@ -27,7 +27,7 @@ function SAMLLoadingIndicator() {
                         src={illustrations.RocketBlue}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('samlSignIn.launching')}</Text>
+                <Text style={[styles.textHeadline, styles.textAlignCenter]}>{translate('samlSignIn.launching')}</Text>
                 <View style={[styles.mt2, styles.mh2, styles.textAlignCenter]}>
                     <Text
                         style={[styles.textAlignCenter]}
