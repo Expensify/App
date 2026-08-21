@@ -4584,7 +4584,7 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
 
 /**
  * The date column/filter reads "Created"/"Created date" only for report-style types: expense report and invoice
- * (invoice is treated like a report). Every other type — expense, trip, chat, task — keeps "Date".
+ * (invoice is treated like a report). Every other type (expense, trip, chat, task) keeps "Date".
  */
 function isCreatedDateType(type?: SearchDataTypes): boolean {
     return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.INVOICE;
@@ -5873,7 +5873,7 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
 
 /**
  * Returns the label key for a filter, accounting for the active Search type.
- * The date filter reads "Created date" only for report-style types (expense report, invoice); every other type keeps its base label ("Date").
+ * The date filter reads "Created date" only for report-style types (expense report, invoice). Every other type keeps its base label ("Date").
  */
 function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
     if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && isCreatedDateType(type)) {
@@ -6709,7 +6709,7 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
             minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
-            // Only the report-style "Created" header (expense report, invoice) needs the sibling date-column room ("Submitted"/"Approved"); other types keep "Date" narrower.
+            // Only the report-style "Created" header (expense report, invoice) needs the sibling date-column room ("Submitted"/"Approved"). Other types keep "Date" narrower.
             minWidth += isCreatedDateType(type) ? 72 : 48;
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
