@@ -89,6 +89,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         : getEligibleBankAccountsForCard(bankAccountList);
     const shouldStartBankAccountSetup = !eligibleBankAccounts.length || isSetupUnfinished;
     const canEditSettings = canEditWorkspaceSettings(policy, currentUserLogin);
+    // Without an existing feed the only path forward is enrolling a new card program, and both the
+    // bank account setup page and the currency page are admin only
     const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && !canEditSettings);
 
     const startFlow = () => {
@@ -164,13 +166,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     ctaText={translate(isSetupUnfinished && !hasAccessibleFeeds ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
-                        if (!canWriteExpensifyCard) {
-                            showReadOnlyModal();
-                            return;
-                        }
-                        // Without an existing feed the only path forward is enrolling a new card program, and both the
-                        // bank account setup page and the currency page are admin only
-                        if (!hasAccessibleFeeds && !canEditSettings) {
+                        if (shouldDisableCTA) {
                             showReadOnlyModal();
                             return;
                         }
