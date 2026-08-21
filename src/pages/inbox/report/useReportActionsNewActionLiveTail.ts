@@ -44,7 +44,8 @@ type UseReportActionsNewActionLiveTailParams = {
     hasNewerActions: boolean;
     linkedReportActionID: string | undefined;
     hasNewestReportAction: boolean;
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    /** Actions rendered by the list in chronological order. */
+    renderedVisibleReportActions: OnyxTypes.ReportAction[];
     sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
     reportActionPages: OnyxTypes.Pages | undefined;
     setTreatAsNoPaginationAnchor: (value: boolean) => void;
@@ -73,7 +74,7 @@ function useReportActionsNewActionLiveTail({
     hasNewerActions,
     linkedReportActionID,
     hasNewestReportAction,
-    sortedVisibleReportActions,
+    renderedVisibleReportActions,
     sortedAllReportActionsForPagination,
     reportActionPages,
     setTreatAsNoPaginationAnchor,
@@ -121,14 +122,14 @@ function useReportActionsNewActionLiveTail({
                     return;
                 }
 
-                const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
+                const index = renderedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                    if (index > 0) {
+                    setIsFloatingMessageCounterVisible(false);
+                    if (index >= 0 && index < renderedVisibleReportActions.length - 1) {
                         setTimeout(() => {
                             reportScrollManager.scrollToIndex(index);
                         }, 100);
                     } else {
-                        setIsFloatingMessageCounterVisible(false);
                         reportScrollManager.scrollToBottom();
                     }
                     if (action?.reportActionID) {

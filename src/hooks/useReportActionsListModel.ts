@@ -146,7 +146,11 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const state = {
         report,
         hasOnceLoadedReportActions,
+        hasOlderActions,
         hasNewerActions,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
+        oldestReportActionID: currentReportOldestActionID,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,

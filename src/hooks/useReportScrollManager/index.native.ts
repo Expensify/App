@@ -21,17 +21,14 @@ function useReportScrollManager(): ReportScrollManagerData {
         listRef.current.scrollToIndex({index, animated, viewOffset, viewPosition});
     };
 
-    /**
-     * Scroll to the bottom of the inverted FlatList.
-     * When FlatList is inverted it's "bottom" is really it's top
-     */
+    /** Scroll to the bottom of the chronological action list. */
     const scrollToBottom = () => {
         const listRef = getListRef();
         if (!listRef?.current) {
             return;
         }
 
-        listRef.current.scrollToIndex({animated: false, index: 0});
+        listRef.current.scrollToEnd({animated: false});
     };
 
     /**

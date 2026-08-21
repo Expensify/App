@@ -18,10 +18,10 @@ type UseFollowActionBadgeTargetParams = {
     /** The report action the badge currently targets (the oldest preview still requiring action) */
     actionTargetReportActionID: string | undefined;
 
-    /** Index of the current target in the rendered (inverted) list, or -1 when it is not rendered */
+    /** Index of the current target in the chronological list, or -1 when it is not rendered */
     actionBadgeTargetIndex: number;
 
-    /** The rendered (inverted) report actions the list is displaying */
+    /** The chronological report actions the list is displaying */
     renderedVisibleReportActions: OnyxTypes.ReportAction[];
 
     /** Scrolls the list to the current action-badge target */

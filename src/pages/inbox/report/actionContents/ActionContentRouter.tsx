@@ -212,6 +212,7 @@ function ActionContentRouter({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
         return (
             <MoneyRequestReportPreview
+                key={action.reportActionID}
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
                 iouReport={iouReport}
                 policyID={policyID}
