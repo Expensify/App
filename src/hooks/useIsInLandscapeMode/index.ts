@@ -1,9 +1,10 @@
-import {isMobile as isMobileUtil} from '@libs/Browser';
-import isInLandscapeMode from '@libs/isInLandscapeMode';
+import {isMobile} from '@libs/Browser';
+import isInLandscapeMode, {isTabletScreen} from '@libs/isInLandscapeMode';
 
 import {useSyncExternalStore} from 'react';
 
-const isMobile = isMobileUtil();
+// Tablets and desktops never report landscape mode, so there is nothing to listen for on them.
+const shouldTrackOrientation = isMobile() && !isTabletScreen();
 const subscribers = new Set<() => void>();
 let cachedValue = isInLandscapeMode();
 let isListenerAttached = false;
@@ -44,7 +45,7 @@ function removeOrientationChangeListener() {
 }
 
 function subscribe(callback: () => void): () => void {
-    if (!isMobile) {
+    if (!shouldTrackOrientation) {
         return () => {};
     }
 
