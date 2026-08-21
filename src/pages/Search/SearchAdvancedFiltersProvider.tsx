@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringWithResetFilters, getQueryFilterWithoutKeywordHash} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault} from '@libs/SearchQueryUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -70,7 +70,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         currentDraftFilters: values,
         shouldShowResetFilters:
             currentDefaultSearchQueryJSON && currentSearchQueryJSON
-                ? getQueryFilterWithoutKeywordHash(currentDefaultSearchQueryJSON) !== getQueryFilterWithoutKeywordHash(currentSearchQueryJSON)
+                ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON)
                 : // Show the reset button only if a non-"type" filter is applied.
                   Object.values(searchAdvancedFiltersForm ?? {}).length > 1,
     };

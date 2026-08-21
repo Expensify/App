@@ -29,11 +29,12 @@ import {
     getLastRouteByName,
     getParamsState,
     buildQueryStringWithResetFilters,
-    getQueryFilterWithoutKeywordHash,
+    getQueryHashWithoutFilters,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
     getValidLastQuery,
+    hasFiltersChangedFromDefault,
     isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
@@ -2084,7 +2085,10 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('getQueryFilterWithoutKeywordHash', () => {
+    describe('getQueryHashWithoutFilters', () => {
+        const noExcludedFilters = new Set<SearchFilterKey>();
+        const excludedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
         it('returns the same hash for identical queries', () => {
             const queryJSONa = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
             const queryJSONb = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
@@ -2093,10 +2097,10 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
         });
 
-        it('ignores keyword filters when computing the hash', () => {
+        it('ignores excluded keyword filters when computing the hash', () => {
             const withoutKeyword = buildSearchQueryJSON('type:expense category:travel');
             const withKeyword = buildSearchQueryJSON('type:expense category:travel hello world');
 
@@ -2104,10 +2108,10 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            expect(getQueryFilterWithoutKeywordHash(withKeyword)).toEqual(getQueryFilterWithoutKeywordHash(withoutKeyword));
+            expect(getQueryHashWithoutFilters(withKeyword, excludedFilters)).toEqual(getQueryHashWithoutFilters(withoutKeyword, excludedFilters));
         });
 
-        it('ignores group-currency filters when computing the hash', () => {
+        it('ignores excluded group-currency filters when computing the hash', () => {
             const withoutGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category');
             const withGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category group-currency:USD');
 
@@ -2115,7 +2119,30 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            expect(getQueryFilterWithoutKeywordHash(withGroupCurrency)).toEqual(getQueryFilterWithoutKeywordHash(withoutGroupCurrency));
+            expect(getQueryHashWithoutFilters(withGroupCurrency, excludedFilters)).toEqual(getQueryHashWithoutFilters(withoutGroupCurrency, excludedFilters));
+        });
+
+        it('takes filters that are not excluded into account', () => {
+            const withoutKeyword = buildSearchQueryJSON('type:expense category:travel');
+            const withKeyword = buildSearchQueryJSON('type:expense category:travel hello world');
+
+            if (!withoutKeyword || !withKeyword) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withKeyword, noExcludedFilters)).not.toEqual(getQueryHashWithoutFilters(withoutKeyword, noExcludedFilters));
+        });
+
+        it('only ignores the filters that are excluded', () => {
+            const onlyKeywordExcluded = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]);
+            const withoutGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category hello');
+            const withGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category group-currency:USD');
+
+            if (!withoutGroupCurrency || !withGroupCurrency) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withGroupCurrency, onlyKeywordExcluded)).not.toEqual(getQueryHashWithoutFilters(withoutGroupCurrency, onlyKeywordExcluded));
         });
 
         it('is independent of the order in which filters appear', () => {
@@ -2126,7 +2153,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
         });
 
         it('is independent of the order of values within a filter', () => {
@@ -2137,7 +2164,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
         });
 
         it('returns different hashes for queries with different filter values', () => {
@@ -2148,7 +2175,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).not.toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).not.toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
         });
 
         it('returns different hashes for queries with different filter keys', () => {
@@ -2159,7 +2186,42 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            expect(getQueryFilterWithoutKeywordHash(queryJSONa)).not.toEqual(getQueryFilterWithoutKeywordHash(queryJSONb));
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).not.toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+    });
+
+    describe('hasFiltersChangedFromDefault', () => {
+        it('returns false when the current query only differs by filters that are kept when resetting', () => {
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense groupBy:category category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category category:travel group-currency:USD hello');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when the current query has a different filter value', () => {
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:food');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the current query has an extra filter', () => {
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
     });
 

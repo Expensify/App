@@ -17,7 +17,7 @@ import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringWithResetFilters, getQueryFilterWithoutKeywordHash, removeNegation} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, removeNegation} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -223,9 +223,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
         shouldShowResetFilters:
-            currentDefaultSearchQueryJSON && currentSearchQueryJSON
-                ? getQueryFilterWithoutKeywordHash(currentDefaultSearchQueryJSON) !== getQueryFilterWithoutKeywordHash(currentSearchQueryJSON)
-                : filters.length > 0,
+            currentDefaultSearchQueryJSON && currentSearchQueryJSON ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
         resetFilters,
     };
 }

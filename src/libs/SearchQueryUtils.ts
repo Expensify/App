@@ -549,7 +549,7 @@ function wasViewExplicitlySet(queryJSON?: SearchQueryJSON | Readonly<SearchQuery
     return false;
 }
 
-function getQueryFilterWithoutKeywordHash(query: SearchQueryJSON) {
+function getQueryHashWithoutFilters(query: SearchQueryJSON, exclude: ReadonlySet<SearchFilterKey>) {
     let orderedQuery = '';
     const flatFilters = query.flatFilters
         .map((filter) => {
@@ -561,7 +561,7 @@ function getQueryFilterWithoutKeywordHash(query: SearchQueryJSON) {
         .sort((a, b) => customCollator.compare(a.filterString, b.filterString));
 
     for (const {filterString, filterKey} of flatFilters) {
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
+        if (exclude.has(filterKey)) {
             continue;
         }
 
@@ -823,6 +823,10 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
         type: defaultQueryJSON?.type ?? currentQueryJSON.type,
         flatFilters: [...resetFilters, ...keptFilters],
     });
+}
+
+function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON) {
+    return getQueryHashWithoutFilters(currentQueryJSON, NON_FILTER_CHIP_KEYS) !== getQueryHashWithoutFilters(defaultQueryJSON, NON_FILTER_CHIP_KEYS);
 }
 
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
@@ -2652,8 +2656,9 @@ export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
-    getQueryFilterWithoutKeywordHash,
+    getQueryHashWithoutFilters,
     getQueryHashes,
+    hasFiltersChangedFromDefault,
     withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
