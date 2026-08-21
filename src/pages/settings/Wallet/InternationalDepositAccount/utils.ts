@@ -160,4 +160,27 @@ function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERN
     return errors;
 }
 
-export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors};
+function isInternationalBankAccountFieldLabel(label: string): boolean {
+    const normalizedLabel = label.toLowerCase();
+    return CONST.CORPAY_FIELDS.INTERNATIONAL_BANK_ACCOUNT_LABEL_KEYWORDS.some((keyword) => normalizedLabel.includes(keyword));
+}
+
+function getAccountDetailsFieldsMap(accountDetailsFields: CorpayFieldsMap | undefined, shouldCollectInternationalDepositDetails: boolean): CorpayFieldsMap {
+    const fields = accountDetailsFields ?? {};
+    if (!shouldCollectInternationalDepositDetails) {
+        return fields;
+    }
+
+    const nextFields: CorpayFieldsMap = {};
+    for (const [fieldName, field] of Object.entries(fields)) {
+        nextFields[fieldName] = isInternationalBankAccountFieldLabel(field.label)
+            ? {
+                  ...field,
+                  isRequired: true,
+              }
+            : field;
+    }
+    return nextFields;
+}
+
+export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors, getAccountDetailsFieldsMap};

@@ -37,6 +37,12 @@ type InternationalBankAccountDetailsStepProps<TFormID extends keyof OnyxFormValu
 
     /** Pre-filled SWIFT/BIC code value, if one is already known */
     swiftCodeDefaultValue?: string;
+
+    /** Whether the IBAN input is non-editable because it was already collected on the bank details page */
+    isIBANDisabled?: boolean;
+
+    /** Whether the SWIFT/BIC input is non-editable because it was already collected on the bank details page */
+    isSwiftCodeDisabled?: boolean;
 };
 
 function InternationalBankAccountDetailsStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -45,6 +51,8 @@ function InternationalBankAccountDetailsStep<TFormID extends keyof OnyxFormValue
     onSubmit,
     ibanDefaultValue = '',
     swiftCodeDefaultValue = '',
+    isIBANDisabled = false,
+    isSwiftCodeDisabled = false,
     isEditing,
 }: InternationalBankAccountDetailsStepProps<TFormID>) {
     const {translate} = useLocalize();
@@ -65,16 +73,19 @@ function InternationalBankAccountDetailsStep<TFormID extends keyof OnyxFormValue
                 <Text style={[styles.mb5, styles.textSupporting]}>{translate('bankAccount.internationalBankAccountDetailsSubtitle')}</Text>
                 <InputWrapper
                     InputComponent={TextInput}
-                    ref={inputCallbackRef}
+                    ref={!isIBANDisabled ? inputCallbackRef : undefined}
                     inputID={IBAN_INPUT_ID}
                     label={translate('bankAccount.iban')}
                     aria-label={translate('bankAccount.iban')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={ibanDefaultValue}
                     shouldSaveDraft={!isEditing}
+                    disabled={isIBANDisabled}
+                    shouldUseDefaultValue={isIBANDisabled}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
+                    ref={isIBANDisabled && !isSwiftCodeDisabled ? inputCallbackRef : undefined}
                     inputID={SWIFT_CODE_INPUT_ID}
                     containerStyles={[styles.mt6]}
                     label={translate('bankAccount.swiftBicCode')}
@@ -82,6 +93,8 @@ function InternationalBankAccountDetailsStep<TFormID extends keyof OnyxFormValue
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={swiftCodeDefaultValue}
                     shouldSaveDraft={!isEditing}
+                    disabled={isSwiftCodeDisabled}
+                    shouldUseDefaultValue={isSwiftCodeDisabled}
                 />
             </View>
         </FormProvider>

@@ -7,7 +7,7 @@ import InternationalBankAccountDetailsForm, {IBAN_INPUT_ID, SWIFT_CODE_INPUT_ID}
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 
-import {getInternationalBankAccountDetailsErrors, getInternationalBankAccountDetailsValues} from '@libs/BankAccountUtils';
+import {getDisabledInternationalBankAccountFields, getInternationalBankAccountDetailsErrors, getInternationalBankAccountDetailsValues} from '@libs/BankAccountUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
@@ -35,6 +35,7 @@ function InternationalBankAccountDetails({isEditing, onNext, formValues}: Custom
         formValues.accountNumber,
         formValues.swiftBicCode,
     );
+    const {isIBANDisabled, isSwiftCodeDisabled} = getDisabledInternationalBankAccountFields(formValues.accountNumber, formValues.swiftBicCode);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => ({
         ...getFieldRequiredErrors(values, STEP_FIELDS, translate),
@@ -49,6 +50,8 @@ function InternationalBankAccountDetails({isEditing, onNext, formValues}: Custom
             isEditing={isEditing}
             ibanDefaultValue={ibanDefaultValue}
             swiftCodeDefaultValue={swiftCodeDefaultValue}
+            isIBANDisabled={isIBANDisabled}
+            isSwiftCodeDisabled={isSwiftCodeDisabled}
         />
     );
 }

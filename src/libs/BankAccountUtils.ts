@@ -321,6 +321,30 @@ function getInternationalBankAccountDetailsValues(iban: string | undefined, swif
 }
 
 /**
+ * Locks the international-details IBAN or SWIFT/BIC input when the initial bank details page already collected
+ * that value, so the user cannot submit a second conflicting copy.
+ */
+function getDisabledInternationalBankAccountFields(accountNumber?: string, swiftBicCode?: string): {isIBANDisabled: boolean; isSwiftCodeDisabled: boolean} {
+    return {
+        isIBANDisabled: CONST.BANK_ACCOUNT.REGEX.IBAN.test((accountNumber ?? '').trim()),
+        isSwiftCodeDisabled: CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test((swiftBicCode ?? '').trim()),
+    };
+}
+
+/**
+ * Confirmation should list IBAN/SWIFT from the international details step only when the user entered them there.
+ * Prefill comes from `accountNumber` (IBAN countries) or `swiftBicCode`, which are already shown on the initial
+ * bank details fields, so a matching value is hidden.
+ */
+function shouldShowInternationalDetailOnConfirmation(value: string | undefined, sourceValue?: string): boolean {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+        return false;
+    }
+    return trimmed !== sourceValue?.trim();
+}
+
+/**
  * Shared IBAN/SWIFT format validation for the international bank account details step, used by both the USD and
  * international personal bank account flows.
  */
@@ -342,6 +366,8 @@ function getInternationalBankAccountDetailsErrors(
 export {
     hasValidInternationalBankAccountDetails,
     getInternationalBankAccountDetailsValues,
+    getDisabledInternationalBankAccountFields,
+    shouldShowInternationalDetailOnConfirmation,
     getInternationalBankAccountDetailsErrors,
     getBankAccountSearchLabel,
     isFilterableBankAccount,

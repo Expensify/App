@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
+import {shouldShowInternationalDetailOnConfirmation} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
@@ -91,29 +92,34 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                   },
               ];
 
-        const internationalBankAccountDetails =
-            bankAccountPersonalDetails?.iban && bankAccountPersonalDetails?.swiftCode
+        const internationalBankAccountDetails = [
+            ...(shouldShowInternationalDetailOnConfirmation(bankAccountPersonalDetails?.iban, bankAccountPersonalDetails?.accountNumber)
                 ? [
                       {
                           id: 'iban',
                           description: translate('bankAccount.iban'),
-                          title: bankAccountPersonalDetails.iban,
-                          shouldShowRightIcon: true,
-                          onPress: () => {
-                              moveToEditStep(1);
-                          },
-                      },
-                      {
-                          id: 'swift-code',
-                          description: translate('bankAccount.swiftBicCode'),
-                          title: bankAccountPersonalDetails.swiftCode,
+                          title: bankAccountPersonalDetails?.iban ?? '',
                           shouldShowRightIcon: true,
                           onPress: () => {
                               moveToEditStep(1);
                           },
                       },
                   ]
-                : [];
+                : []),
+            ...(shouldShowInternationalDetailOnConfirmation(bankAccountPersonalDetails?.swiftCode)
+                ? [
+                      {
+                          id: 'swift-code',
+                          description: translate('bankAccount.swiftBicCode'),
+                          title: bankAccountPersonalDetails?.swiftCode ?? '',
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              moveToEditStep(1);
+                          },
+                      },
+                  ]
+                : []),
+        ];
 
         return [
             ...bankConnection,
