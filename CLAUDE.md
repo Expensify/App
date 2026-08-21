@@ -88,9 +88,7 @@ App tests use Jest. Tests for `.github/` and `scripts/` live in `tests/tooling/`
 - Queue-based request handling
 - Conflict resolution strategies
 
-## Documentation Resources
-
-### Help Documentation
+## Customer-Facing Help Site
 
 - **NewDot Help**: https://help.expensify.com/new-expensify/hubs/
 - **OldDot/Expensify Classic Help**: https://help.expensify.com/expensify-classic/hubs/
