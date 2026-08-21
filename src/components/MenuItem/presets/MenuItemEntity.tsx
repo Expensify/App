@@ -51,7 +51,7 @@ function MenuItemEntity({title, description, accountID, avatarSource, onPress, i
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
-            accessibilityLabel={[title, description].filter(Boolean).join(', ')}
+            accessibilityLabel={[title, description].join(', ')}
         >
             <MenuItemRow>
                 <MenuItemLeading>
