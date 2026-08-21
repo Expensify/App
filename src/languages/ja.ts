@@ -5863,6 +5863,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     comment: 'コメント',
                     category: 'カテゴリ',
                     tag: 'タグ',
+                    uniqueID: '一意の ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
