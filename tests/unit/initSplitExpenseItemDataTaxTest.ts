@@ -59,6 +59,52 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             },
         }) as Policy;
 
+    // The originally selected tax code still exists but is disabled, so it is no longer selectable. A different
+    // enabled code is now the default.
+    const buildPolicyWithDisabledRate = (disabledRateValue: string, defaultRateValue: string): Policy =>
+        ({
+            id: '200',
+            name: 'Tax Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: 'owner@test.com',
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.ADMIN,
+            tax: {trackingEnabled: true},
+            taxRates: {
+                name: 'Tax',
+                defaultExternalID: NEW_TAX_CODE,
+                foreignTaxDefault: NEW_TAX_CODE,
+                defaultValue: defaultRateValue,
+                taxes: {
+                    [TAX_CODE]: {name: 'Tax Rate 1', value: disabledRateValue, isDisabled: true},
+                    [NEW_TAX_CODE]: {name: 'Tax Rate 2', value: defaultRateValue},
+                },
+            },
+        }) as Policy;
+
+    // The originally selected tax code is disabled and it is also the policy default, so no selectable rate resolves.
+    const buildPolicyWithOnlyDisabledRate = (disabledRateValue: string): Policy =>
+        ({
+            id: '200',
+            name: 'Tax Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: 'owner@test.com',
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.ADMIN,
+            tax: {trackingEnabled: true},
+            taxRates: {
+                name: 'Tax',
+                defaultExternalID: TAX_CODE,
+                foreignTaxDefault: TAX_CODE,
+                defaultValue: disabledRateValue,
+                taxes: {
+                    [TAX_CODE]: {name: 'Tax Rate 1', value: disabledRateValue, isDisabled: true},
+                },
+            },
+        }) as Policy;
+
     // No tax rate resolves at all (the rate was deleted and there is no default to fall back to).
     const buildPolicyWithoutRates = (): Policy =>
         ({
@@ -111,6 +157,36 @@ describe('initSplitExpenseItemData stale tax handling', () => {
         expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
         expect(splitExpense.taxValue).toBe('10%');
         expect(splitExpense.taxAmount).toBe(909);
+    });
+
+    it('falls back to the policy default rate when the stored tax rate was disabled', () => {
+        // The stored code still exists but is disabled, so it is not selectable. The enabled default is a 10% rate
+        // (100 * 10 / 110 = 9.09).
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithDisabledRate('20%', '10%'), getCurrencyDecimals: () => 2});
+
+        expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
+        expect(splitExpense.taxValue).toBe('10%');
+        expect(splitExpense.taxAmount).toBe(909);
+    });
+
+    it('refreshes to the default rate when the stored value still matches but its rate is now disabled', () => {
+        // The stored 5% still matches the (now disabled) rate's value, but a disabled rate is not selectable, so the
+        // split refreshes to the enabled 10% default (100 * 10 / 110 = 9.09) instead of keeping the disabled rate.
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithDisabledRate('5%', '10%'), getCurrencyDecimals: () => 2});
+
+        expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
+        expect(splitExpense.taxValue).toBe('10%');
+        expect(splitExpense.taxAmount).toBe(909);
+    });
+
+    it('keeps the parent stored tax trio when only a disabled rate resolves', () => {
+        // The stored code is disabled and it is also the default, so no selectable rate resolves. Keep the parent's
+        // internally-consistent stored trio.
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithOnlyDisabledRate('20%'), getCurrencyDecimals: () => 2});
+
+        expect(splitExpense.taxCode).toBe(TAX_CODE);
+        expect(splitExpense.taxValue).toBe('5%');
+        expect(splitExpense.taxAmount).toBe(476);
     });
 
     it('keeps the parent stored tax trio when no live rate can be resolved', () => {

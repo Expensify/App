@@ -6,7 +6,7 @@ import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translate} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getTaxByID, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {
     buildOptimisticTransaction,
@@ -16,7 +16,6 @@ import {
     getSelectedRouteKey,
     getTaxValue,
     hasManualDistanceOverride,
-    hasTaxRateWithMatchingValue,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     calculateTaxAmount,
 } from '@libs/TransactionUtils';
@@ -261,39 +260,38 @@ function initSplitExpenseItemData(
         delete splitCustomUnit.commuterExclusionMethod;
     }
 
-    // If the parent expense's stored tax value is out of date relative to the live policy rate (for example, the
-    // rate's value was edited or the rate was deleted in workspace settings after the expense was created), its
-    // stored taxAmount and taxValue no longer agree with the taxCode. The code resolves to the current rate while
-    // the stored amount and value are from the old rate. Rather than persisting those stale fields (or clearing only
-    // some of them, which lets the optimistic transaction fall back to the parent's old code and value while a zero
-    // amount is sent to the server), resolve the tax fresh against the live policy so all three fields stay
-    // consistent.
-    //   - rate updated: keep the transaction's own taxCode and read its current value from the policy.
-    //   - rate deleted: fall back to the policy's default tax code and its value.
-    //   - neither resolves (no default or tax tracking off): keep the parent's stored trio untouched. It is
-    //     internally consistent because code, value and amount all come from the same old rate. The save path in
-    //     SplitTransactionUpdate also falls back to those same parent values via splitExpense.taxX ?? original, so
-    //     emitting an undefined code or value here would only be overwritten by the parent's deleted values while a
-    //     recomputed amount stuck. That would recreate the very mismatch this path avoids.
-    // The amount is recalculated from the resolved live value against this split's amount. Only gate when a policy
-    // is available to compare against. Otherwise keep inheriting the stored values.
-    const isStoredTaxValueStale = !!policy && !!transaction?.taxValue && !hasTaxRateWithMatchingValue(policy, transaction);
+    // Resolve a tax code to its live value, but only when the rate is still selectable. A disabled or pending-delete
+    // rate still resolves to a value, yet the user can no longer pick it, so treat it the same as a removed rate.
+    const getSelectableTaxValue = (code: string | undefined) => {
+        const value = code ? getTaxValue(policy, transaction, code) : undefined;
+        const taxRate = code ? getTaxByID(policy, resolveCurrentTaxCode(policy, code)) : undefined;
+        const isSelectable = !!taxRate && !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        return value !== undefined && isSelectable ? value : undefined;
+    };
+
+    // The stored tax is out of date when the stored taxCode and taxValue no longer match a currently-selectable rate,
+    // i.e. the rate's value was edited, or the rate was deleted or disabled after the expense was created. When that
+    // happens the tax is resolved fresh below so all three tax fields stay consistent, rather than persisting stale
+    // values. Only gate when a policy is available to compare against.
+    const isStoredTaxValueStale = !!policy && !!transaction?.taxValue && getSelectableTaxValue(transaction?.taxCode) !== transaction.taxValue;
 
     let resolvedTaxCode = transactionDetails?.taxCode;
     let resolvedTaxValue = transactionDetails?.taxValue;
     let resolvedTaxAmount = taxAmount ?? transactionDetails?.taxAmount;
     if (isStoredTaxValueStale) {
-        let liveTaxCode = resolvedTaxCode;
-        let liveTaxValue = liveTaxCode ? getTaxValue(policy, transaction, liveTaxCode) : undefined;
-        // The stored taxCode no longer resolves to a live value because the rate was deleted, so fall back to the policy default.
+        let liveTaxCode = transactionDetails?.taxCode;
+        let liveTaxValue = getSelectableTaxValue(liveTaxCode);
+        // The stored taxCode no longer points to a selectable rate (deleted or disabled), so fall back to the policy default.
         if (liveTaxValue === undefined) {
-            const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-            const defaultTaxValue = defaultTaxCode ? getTaxValue(policy, transaction, defaultTaxCode) : undefined;
-            liveTaxCode = defaultTaxValue !== undefined ? defaultTaxCode : undefined;
-            liveTaxValue = defaultTaxValue;
+            liveTaxCode = getDefaultTaxCode(policy, transaction);
+            liveTaxValue = getSelectableTaxValue(liveTaxCode);
+            if (liveTaxValue === undefined) {
+                liveTaxCode = undefined;
+            }
         }
-        // Only refresh when a live rate actually resolves. If none does, leave the parent's stored (internally
-        // consistent) trio in place instead of pairing an undefined code and value with a recomputed amount.
+        // Only refresh when a live rate resolves. If none does, keep the parent's stored trio, which is internally
+        // consistent, instead of pairing an undefined code and value with a recomputed amount. The tax is computed
+        // from the whole split amount, matching every other split tax recalculation in this file.
         if (liveTaxValue !== undefined) {
             const splitAmount = Math.abs(amount ?? transactionDetails?.amount ?? 0);
             const splitCurrency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
