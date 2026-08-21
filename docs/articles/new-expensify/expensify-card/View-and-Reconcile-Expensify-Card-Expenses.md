@@ -92,7 +92,7 @@ If you don’t see any withdrawals, adjust the **Withdrawn** filter and select a
 
 ## Can I download a statement for one Expensify Card program?
 
-Yes. If each program settles to its own bank account, apply the **Bank account** filter for that account to show only its settlements, then select the settlements and choose **Download statement**. The **Bank account** filter keeps **Download statement** available because it selects whole settlements rather than narrowing the transactions inside them.
+Yes. If each program settles to its own bank account, apply the **Bank account** filter for that account to show only its settlements, then select the settlements and click **Download statement**. The **Bank account** filter keeps **Download statement** available because it selects whole settlements rather than narrowing the transactions inside them.
 
 ## Can I download a statement for a failed or pending settlement?
 
