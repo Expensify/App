@@ -9,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+import {isScanning} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -91,6 +92,8 @@ function TransactionItemRowNarrow({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    // While scanning the merchant slot already says "Scanning...", so the amount and type on the right would only repeat it.
+    const isTransactionScanning = isScanning(transactionItem);
 
     return (
         <>
@@ -137,13 +140,15 @@ function TransactionItemRowNarrow({
                                         isInSingleTransactionReport={isInSingleTransactionReport}
                                     />
                                 )}
-                                <TotalCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    report={report}
-                                    policy={policy}
-                                    shouldUseNarrowLayout
-                                />
+                                {!isTransactionScanning && (
+                                    <TotalCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        report={report}
+                                        policy={policy}
+                                        shouldUseNarrowLayout
+                                    />
+                                )}
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
@@ -153,11 +158,13 @@ function TransactionItemRowNarrow({
                                 isLargeScreenWidth={false}
                                 suffixText={categoryForDisplay}
                             />
-                            <TypeCell
-                                transactionItem={transactionItem}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout
-                            />
+                            {!isTransactionScanning && (
+                                <TypeCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout
+                                />
+                            )}
                         </View>
                     </View>
                     {!!shouldShowArrowRightOnNarrowLayout && !!onArrowRightPress && (
