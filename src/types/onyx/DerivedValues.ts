@@ -269,8 +269,9 @@ type LoginToAccountIDMapDerivedValue = Record<string, number>;
  *
  * Guides are identified by their login's email domain. Deriving the list once means callers can answer
  * "does this report have a guide participant?" with a cheap membership check instead of re-scanning the
- * whole personal details list per subscriber (see issue #66413). The array is sorted so the derived value
- * stays referentially comparable across recomputes.
+ * whole personal details list per subscriber (see issue #66413). The IDs are emitted sorted so that two
+ * recomputes of the same guide set are shallowEqual, which is what stops `useOnyx` handing subscribers a new
+ * reference on every unrelated personal-details change.
  */
 type GuideAccountIDsDerivedValue = number[];
 

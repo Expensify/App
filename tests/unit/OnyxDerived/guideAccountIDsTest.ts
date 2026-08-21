@@ -33,7 +33,7 @@ describe('guideAccountIDs', () => {
         expect(guideAccountIDsConfig.compute([personalDetailsList], {})).toEqual([guideAccountID]);
     });
 
-    it('sorts the result so an unrelated personal-details change recomputes to a deep-equal array', () => {
+    it('sorts the result so an unrelated personal-details change recomputes to a shallow-equal array', () => {
         const guideListedLast: PersonalDetailsList = {
             [otherGuideAccountID]: {accountID: otherGuideAccountID, login: otherGuideLogin},
             [guideAccountID]: {accountID: guideAccountID, login: guideLogin},

@@ -382,7 +382,7 @@ describe('useSidebarOrderedReports', () => {
         );
     });
 
-    it('should not recompute all reports when the guide accountIDs are rederived to the same set', async () => {
+    it('should not recompute all reports when the guide accountIDs are recomputed to the same set', async () => {
         const participantAccountID = '8';
         const displayedReports = createMockReports({
             report1: {reportName: 'Chat A'},
@@ -412,7 +412,7 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
 
         // An unrelated personal-details change (a new avatar, a display name edit) recomputes the derived value to a
-        // fresh but deep-equal array. That must not look like guide hydration and force a full LHN rescan.
+        // fresh but shallow-equal array. That must not look like guide hydration and force a full LHN re-scan.
         await act(async () => {
             await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, [Number(participantAccountID)]);
         });
