@@ -420,8 +420,8 @@ function DynamicIOURequestStepDistance({
     const navigateToWaypointEditPage = useCallback(
         (index: number) => {
             // In the edit flow this page is wrapped in an OnyxTabNavigator, so Navigation.getActiveRoute()
-            // returns a URL with the tab suffix (e.g. "/distance-map") that doesn't match the stack entry
-            // — Navigation.goBack() then REPLACEs instead of POPs and crashes. Build the base URL
+            // returns a URL with the tab suffix (e.g. "/distance-map") that doesn't match the stack entry.
+            // Navigation.goBack() then REPLACEs instead of POPs and crashes, so build the base URL
             // explicitly there. The create flow has no tab navigator, so the production getActiveRoute()
             // path is correct (GH #90037).
             const waypointBase =
