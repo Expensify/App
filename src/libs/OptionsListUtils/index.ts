@@ -549,7 +549,7 @@ function getChatPreviewParts({
     const sortedActionsForReport = sortedActions?.[report.reportID];
     const lastAction = sortedActionsForReport
         ? sortedActionsForReport.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID, currentUserAccountID))
-        : getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
+        : getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData, currentUserAccountID);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
