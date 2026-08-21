@@ -4603,7 +4603,8 @@ ${amount} für ${merchant} – ${date}`,
             subscription: 'Abonnement',
             markAsEntered: 'Als manuell erfasst markieren',
             markAsExported: 'Als exportiert markieren',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Exportieren nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) =>
+                `Exportieren nach ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
             lineItemLevel: 'Positionsebene',
             reportLevel: 'Report-Ebene',
@@ -7334,10 +7335,11 @@ Wenn du die Abrechnung für das gesamte Abonnement übernehmen willst, bitte sie
         },
         exportAgainModal: {
             title: 'Vorsicht!',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `Die folgenden Berichte wurden bereits nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} exportiert. Möchten Sie sie wirklich erneut exportieren?
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `Die folgenden Berichte wurden bereits nach ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} exportiert. Sind Sie sicher, dass Sie sie erneut exportieren möchten?
 
 ${reportName}`,
             confirmText: 'Ja, erneut exportieren',
@@ -7345,20 +7347,20 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: 'Vorsicht!',
-            description: (connectionName: ConnectionName) =>
-                `Die ausgewählten Berichte sind mit verschiedenen ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-Unternehmen verbunden und können daher nicht zusammen exportiert werden. Wählen Sie Berichte aus, die mit demselben Unternehmen verbunden sind, und versuchen Sie es erneut.`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `Die ausgewählten Berichte sind mit verschiedenen ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-Unternehmen verbunden, daher können sie nicht gemeinsam exportiert werden. Wählen Sie Berichte aus, die mit demselben Unternehmen verbunden sind, und versuchen Sie es erneut.`,
             confirmText: 'Verstanden',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `${exportableCount}/${selectedCount} Berichte nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} exportieren?`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `${exportableCount}/${selectedCount} Berichte nach ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} exportieren?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Nur mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verbundene Berichte werden exportiert.`);
+                    reasons.push(`Es werden nur Berichte exportiert, die mit ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verknüpft sind.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Nur exportierbare Berichte werden exportiert.`);
+                    reasons.push(`Es werden nur Berichte exportiert, die für den Export berechtigt sind.`);
                 }
                 return `${reasons.join('\n\n')}\n\nDie folgenden Berichte werden exportiert:`;
             },
@@ -8294,6 +8296,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
             reconnect: 'Erneut verbinden',
             reconnectLink: 'Erneut verbinden.',
+            findIntegration: 'Integration finden',
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',

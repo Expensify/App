@@ -4685,7 +4685,7 @@ ${amount} για ${merchant} - ${date}`,
             subscription: 'Συνδρομή',
             markAsEntered: 'Σήμανση ως καταχωρισμένο χειροκίνητα',
             markAsExported: 'Επισήμανση ως εξαχθέν',
-            exportIntegrationSelected: (connectionName) => `Εξαγωγή σε ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `Εξαγωγή σε ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Ας ελέγξουμε άλλη μία φορά ότι όλα φαίνονται σωστά.',
             lineItemLevel: 'Σε επίπεδο επιμέρους στοιχείου',
             reportLevel: 'Επίπεδο αναφοράς',
@@ -7386,6 +7386,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
                 },
             },
+            findIntegration: 'Βρείτε ενοποίηση',
         },
         export: {
             notReadyHeading: 'Μη έτοιμο για εξαγωγή',
@@ -7594,10 +7595,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         },
         exportAgainModal: {
             title: 'Προσοχή!',
-            description: (
+            description: ({
                 reportName,
                 connectionName,
-            ) => `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
+                connectionNameFriendly,
+            }) => `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
 
 ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',
@@ -7605,21 +7607,22 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: 'Προσοχή!',
-            description: (connectionName) =>
-                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν μπορούν να εξαχθούν μαζί. Επιλέξτε αναφορές που είναι συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
+            description: (connectionName, connectionNameFriendly) =>
+                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν γίνεται να εξαχθούν μαζί. Επιλέξτε αναφορές συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
             confirmText: 'Το κατάλαβα',
         },
         exportPartialModal: {
-            title: (exportableCount, selectedCount, integration) => `Εξαγωγή ${exportableCount}/${selectedCount} αναφορών στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]};`,
-            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports) => {
+            title: (exportableCount, selectedCount, integration, connectionNameFriendly) =>
+                `Εξαγωγή ${exportableCount}/${selectedCount} αναφορών στο ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]};`,
+            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports, connectionNameFriendly) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι συνδεδεμένες στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                    reasons.push(`Μόνο οι αναφορές που είναι συνδεδεμένες με το ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} θα εξαχθούν.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι επιλέξιμες για εξαγωγή.`);
+                    reasons.push(`Μόνο οι αναφορές που είναι κατάλληλες για εξαγωγή θα εξαχθούν.`);
                 }
-                return `${reasons.join('\n\n')}\n\nΘα εξαχθούν οι παρακάτω αναφορές:`;
+                return `${reasons.join('\n\n')}\n\nΟι ακόλουθες αναφορές θα εξαχθούν:`;
             },
             confirmText: () => ({
                 one: `Εξαγωγή 1 αναφοράς`,

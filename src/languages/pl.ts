@@ -4561,7 +4561,7 @@ ${amount} dla ${merchant} - ${date}`,
             subscription: 'Subskrypcja',
             markAsEntered: 'Oznacz jako wprowadzone ręcznie',
             markAsExported: 'Oznacz jako wyeksportowane',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Eksportuj do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `Eksportuj do ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Sprawdźmy jeszcze raz, czy wszystko wygląda poprawnie.',
             lineItemLevel: 'Poziom pozycji liniowej',
             reportLevel: 'Poziom raportu',
@@ -7266,10 +7266,11 @@ Jeśli chcesz przejąć rozliczenia za całą ich subskrypcję, poproś ich najp
         },
         exportAgainModal: {
             title: 'Uwaga!',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `Następujące raporty zostały już wyeksportowane do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Na pewno chcesz wyeksportować je ponownie?
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `Następujące raporty zostały już wyeksportowane do ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Na pewno chcesz wyeksportować je ponownie?
 
 ${reportName}`,
             confirmText: 'Tak, wyeksportuj ponownie',
@@ -7277,17 +7278,17 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: 'Uwaga!',
-            description: (connectionName: ConnectionName) =>
-                `Wybrane raporty są połączone z różnymi firmami ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, więc nie można ich wyeksportować razem. Wybierz raporty połączone z tą samą firmą i spróbuj ponownie.`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `Wybrane raporty są połączone z różnymi firmami ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, więc nie można ich wyeksportować razem. Wybierz raporty połączone z tą samą firmą i spróbuj ponownie.`,
             confirmText: 'Rozumiem',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `Wyeksportować ${exportableCount}/${selectedCount} raportów do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `Wyeksportować ${exportableCount}/${selectedCount} raportów do ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Wyeksportowane zostaną tylko raporty połączone z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                    reasons.push(`Wyeksportowane zostaną tylko raporty połączone z ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
                 }
                 if (hasIneligibleReports) {
                     reasons.push(`Wyeksportowane zostaną tylko raporty kwalifikujące się do eksportu.`);
@@ -8217,6 +8218,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             authenticationError: (providerName: string) => `Nie można połączyć z ${providerName} z powodu wygasłego połączenia.`,
             reconnect: 'Połącz ponownie',
             reconnectLink: 'Połącz ponownie.',
+            findIntegration: 'Znajdź integrację',
         },
         emptyDomain: {
             title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',
