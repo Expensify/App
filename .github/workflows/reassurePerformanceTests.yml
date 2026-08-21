@@ -19,7 +19,8 @@ jobs:
         run: |
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          git fetch origin "$BASELINE_BRANCH" --no-tags
+          # Reassure only needs the baseline commit's source tree, not its history.
+          git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git checkout --force --detach "origin/$BASELINE_BRANCH" --no-recurse-submodules
 
       - name: Setup NodeJS
