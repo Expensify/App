@@ -2,13 +2,9 @@
 # @pre    role="button" label="Open actions menu"
 # @post   text="Reports"
 # @post   role="button" label="Expenses"
-# @span   ManualCreateExpenseSubmit
-# @span   ManualSubmitToDestinationVisible
-# @span   ManualCreateExpenseServerResponse
 # @span   ManualConfirmationMount
 # @span   ManualConfirmationListReady
 # @span   ManualConfirmationReceiptLoad
-# @span   ManualGeolocationWait
 # @param  AMOUNT Whole-number amount to type into the Manual amount input (for example `22`).
 # @param  CURRENCY Currency symbol used by the submit CTA selector (for example `PLN` or `USD`).
 # @param  MERCHANT Merchant name to populate before submit.
