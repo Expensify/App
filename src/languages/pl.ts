@@ -43,6 +43,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Cofnij udostępnianie',
         yes: 'Tak',
         no: 'Nie',
+        dontChange: 'Nie zmieniaj',
         ok: 'OK',
         notNow: 'Nie teraz',
         noThanks: 'Nie, dziękuję',
@@ -968,7 +969,6 @@ const translations: TranslationDeepObject<typeof en> = {
             addVirtualCardPersonalDetails: {title: 'Dodaj swoje dane, aby wyświetlić i zacząć używać swojej Karty Expensify.', subtitle: 'Karta Expensify', cta: 'Dodaj szczegóły'},
             enterSignerInfo: {title: 'Wymagane dane podpisującego', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Konto bankowe ${bankAccountLastFour}`},
         },
-        announcements: 'Ogłoszenia',
         discoverSection: {
             title: 'Odkryj',
             menuItemTitleNonAdmin: 'Dowiedz się, jak tworzyć wydatki i wysyłać raporty.',
@@ -1527,7 +1527,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Maksymalna dozwolona liczba podziałów to ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Zakres dat nie może przekraczać ${CONST.IOU.SPLITS_LIMIT} dni.`,
             unableToSubmitReport: 'Nie można wysłać raportu',
+            unableToMarkAsDone: 'Nie można oznaczyć jako wykonane',
             allTransactionsPendingDescription: 'Nie możesz przesłać tego raportu, ponieważ wszystkie transakcje są w toku. Zaksięgowanie ich może zająć kilka dni.',
+            allTransactionsPendingMarkAsDoneDescription: 'Nie możesz oznaczyć tego raportu jako wykonanego, ponieważ wszystkie transakcje są w toku. Zaksięgowanie ich może zająć kilka dni.',
+            allExpensesOnHoldDescription: 'Nie możesz przesłać tego raportu, ponieważ wszystkie wydatki są wstrzymane. Usuń wstrzymanie, aby przesłać.',
+            allExpensesOnHoldMarkAsDoneDescription: 'Nie możesz oznaczyć tego raportu jako wykonanego, ponieważ wszystkie wydatki są wstrzymane. Usuń wstrzymanie, aby kontynuować.',
             stitchOdometerImagesFailed: 'Nie udało się połączyć zdjęć licznika kilometrów. Spróbuj ponownie później.',
             failedToSaveOdometerDraft: 'Nie udało się zapisać Twojego szkicu licznika przebiegu. Spróbuj ponownie.',
         },
@@ -1536,6 +1540,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `rozpoczął rozliczanie. Płatność jest wstrzymana, dopóki ${submitterDisplayName} nie włączy swojego portfela.`,
         enableWallet: 'Włącz portfel',
         hold: 'Wstrzymaj',
+        sendToSomeone: 'Wyślij do kogoś',
         unhold: 'Usuń blokadę',
         holdExpense: () => ({
             one: 'Wstrzymaj wydatek',
@@ -4469,6 +4474,10 @@ ${amount} dla ${merchant} - ${date}`,
             railCard:
                 'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Podróże są wyłączone',
+            message: 'Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej lub ustaw jako domyślną inną przestrzeń roboczą, w której podróże są włączone.',
+        },
     },
     workspace: {
         common: {
@@ -4552,7 +4561,7 @@ ${amount} dla ${merchant} - ${date}`,
             subscription: 'Subskrypcja',
             markAsEntered: 'Oznacz jako wprowadzone ręcznie',
             markAsExported: 'Oznacz jako wyeksportowane',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Eksportuj do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `Eksportuj do ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Sprawdźmy jeszcze raz, czy wszystko wygląda poprawnie.',
             lineItemLevel: 'Poziom pozycji liniowej',
             reportLevel: 'Poziom raportu',
@@ -5713,11 +5722,62 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             subsidiarySelectDescription: 'Wybierz jednostkę zależną w DualEntry, z której chcesz zaimportować dane.',
             noCompaniesFound: 'Nie znaleziono firm',
             noCompaniesFoundDescription: 'Dodaj proszę firmę w DualEntry i zsynchronizuj połączenie ponownie',
+            noVendorsFound: 'Nie znaleziono dostawców',
+            noVendorsFoundDescription: 'Dodaj proszę dostawców w DualEntry i zsynchronizuj połączenie ponownie',
+            noAccountsFound: 'Nie znaleziono kont',
+            noAccountsFoundDescription: 'Dodaj proszę konta w DualEntry i zsynchronizuj połączenie ponownie',
             accountTypesDescription: 'Twoje konta DualEntry zostaną zaimportowane jako kategorie.',
             enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
             enableNewAccountsDescription: 'Nowe konta DualEntry będą dostępne jako kategorie.',
             classificationsImport: 'Wszystkie klasyfikacje DualEntry są importowane jako tagi',
             importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z DualEntry.',
+            exportDescription: 'Skonfiguruj sposób eksportowania danych Expensify do DualEntry.',
+            exportReimbursable: {
+                label: 'Eksportuj wydatki podlegające zwrotowi jako',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Faktury od dostawców',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Data rachunku od dostawcy',
+                description: 'Użyj tej daty podczas eksportowania raportów do DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Data ostatniego wydatku',
+                        description: 'Data ostatniego wydatku w raporcie.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Data eksportu',
+                        description: 'Data wyeksportowania raportu do DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Data przesłania',
+                        description: 'Data przesłania raportu do zatwierdzenia.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Eksportuj wydatki z firmowej karty jako',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Wydatki bezpośrednie',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Domyślny dostawca karty firmowej',
+                description: 'Wybierz domyślnego dostawcę DualEntry dla wydatków, które nie dopasują się automatycznie.',
+            },
+            companyCardAccount: {
+                label: 'Konto karty firmowej',
+                description: 'Wybierz miejsce eksportu transakcji z kart firmowych.',
+            },
+            expensifyCardAccount: {
+                label: 'Konto karty Expensify',
+                description: 'Wybierz miejsce eksportu transakcji kartą Expensify.',
+            },
         },
         type: {
             free: 'Darmowy',
@@ -7113,6 +7173,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             startDate: 'Data rozpoczęcia',
             endDate: 'Data zakończenia',
             autoGeneratedRateTooltip: 'Ta stawka jest generowana automatycznie.',
+            autoUpdateGovernmentRate: 'Automatycznie aktualizuj stawki rządowe',
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Automatycznie twórz nowe stawki, gdy ${countryPhrase} publikuje nowe wytyczne.`,
+            governmentRateCountries: {US: 'Stany Zjednoczone', CA: 'Kanada', GB: 'Wielka Brytania', AU: 'Australia'},
         },
         editor: {
             descriptionInputLabel: 'Opis',
@@ -7206,10 +7269,11 @@ Jeśli chcesz przejąć rozliczenia za całą ich subskrypcję, poproś ich najp
         },
         exportAgainModal: {
             title: 'Uwaga!',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `Następujące raporty zostały już wyeksportowane do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Na pewno chcesz wyeksportować je ponownie?
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `Następujące raporty zostały już wyeksportowane do ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Na pewno chcesz wyeksportować je ponownie?
 
 ${reportName}`,
             confirmText: 'Tak, wyeksportuj ponownie',
@@ -7217,17 +7281,17 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: 'Uwaga!',
-            description: (connectionName: ConnectionName) =>
-                `Wybrane raporty są połączone z różnymi firmami ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, więc nie można ich wyeksportować razem. Wybierz raporty połączone z tą samą firmą i spróbuj ponownie.`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `Wybrane raporty są połączone z różnymi firmami ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, więc nie można ich wyeksportować razem. Wybierz raporty połączone z tą samą firmą i spróbuj ponownie.`,
             confirmText: 'Rozumiem',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `Wyeksportować ${exportableCount}/${selectedCount} raportów do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `Wyeksportować ${exportableCount}/${selectedCount} raportów do ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Wyeksportowane zostaną tylko raporty połączone z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                    reasons.push(`Wyeksportowane zostaną tylko raporty połączone z ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
                 }
                 if (hasIneligibleReports) {
                     reasons.push(`Wyeksportowane zostaną tylko raporty kwalifikujące się do eksportu.`);
@@ -7493,6 +7557,13 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Publiczna widoczność rachunków jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
+            governmentDistanceRates: {
+                title: 'Automatycznie aktualizuj stawki rządowe',
+                description:
+                    'Jeśli chcesz, żeby Expensify automatycznie aktualizował twoje stawki za przejazdy za każdym razem, gdy twój rząd opublikuje nowe wytyczne, ta funkcja jest dla ciebie.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Automatyczna aktualizacja stawek rządowych jest dostępna tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka za miesiąc.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7577,8 +7648,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 alwaysNonReimbursable: 'Zawsze niepodlegające zwrotowi',
                 alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
                 billableDefault: 'Domyślne obciążenie klienta',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Wybierz, czy wydatki gotówkowe i kartą kredytową mają być domyślnie fakturowalne. Fakturowanie wydatków jest włączane lub wyłączane w <a href="${tagsPageLink}">tagach</a>.</muted-text>`,
+                billableDefaultDescription: 'Wybierz, czy wydatki gotówkowe i kartą kredytową mają być domyślnie fakturowalne.',
                 billable: 'Fakturowalne',
                 billableDescription: 'Wydatki są najczęściej refakturowane klientom',
                 nonBillable: 'Nierozliczalne',
@@ -7866,6 +7936,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 restrictMerchantsBlockSubtitle: 'Obciążenia są zatwierdzane dla dozwolonych walut, które nie przekraczają maksymalnej kwoty, lub gdy pasuje sprzedawca albo typ sprzedawcy.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Dozwolone ${shownCount > 1 ? 'waluty' : 'waluta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
+                defaultRulesCannotBeDeleted: 'Domyślnych reguł nie można usunąć',
             },
             agentRules: {
                 title: 'Zasady agenta',
@@ -8157,6 +8228,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             authenticationError: (providerName: string) => `Nie można połączyć z ${providerName} z powodu wygasłego połączenia.`,
             reconnect: 'Połącz ponownie',
             reconnectLink: 'Połącz ponownie.',
+            findIntegration: 'Znajdź integrację',
         },
         emptyDomain: {
             title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',
@@ -8694,6 +8766,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `zaktualizował(a) regułę agenta „${title}” na: ${prompt}` : `zaktualizowano regułę agenta na: ${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `usunął(-ęła) regułę agenta „${title}”` : 'usunięto regułę agenta'),
         },
+        addedRule: 'dodano regułę',
+        updatedRule: 'zaktualizowano regułę',
+        removedRule: 'usunięto regułę',
         expensifyCardRule: {
             actionVerb: {block: 'zablokowane', allow: 'dozwolone'},
             amountOperator: {over: 'ponad', under: 'pod'},
@@ -8805,6 +8880,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg kategoryzacji wydatków`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg tagowania wydatków`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `zaktualizowano ustawienie opłaty za przewalutowanie na „${preferenceLabel}”`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `zmienił uczestników kategorii „${categoryName}” na ${newValue ? 'wymagane' : 'niewymagane'} (wcześniej ${newValue ? 'niewymagane' : 'wymagane'})`;
         },
@@ -10311,9 +10387,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nowe typy ról dla administratorów',
-                body: 'Daj swojemu zespołowi bardziej szczegółowe uprawnienia dzięki nowym rolom administratora kart, osób i płatności.',
+                heading: 'Ulepszone mapowanie dostawców',
+                body: 'Twórz dostawców i własne reguły, żeby łatwo mapować je do głównych pakietów księgowych.',
                 cta: 'Wypróbuj to',
+            },
+            member: {
+                heading: 'Gotowe agenty dla ciebie',
+                body: 'Korzystaj z gotowych lub niestandardowych agentów, aby automatycznie kodować, dzielić i przesyłać wydatki w Twoim imieniu.',
+                cta: 'Wypróbuj',
             },
         },
     },

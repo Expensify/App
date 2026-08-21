@@ -266,6 +266,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The old tax code of the tax rate when we edit the tax code */
     previousTaxCode?: string;
 
+    /** Every tax code this rate has previously used, oldest first, so expenses still referencing any old code can be resolved back to this rate */
+    previousTaxCodes?: string[];
+
     /** The old tax code kept only while a tax code edit is in flight, used to resolve the rate from the old code; cleared once the API resolves */
     optimisticPreviousTaxCode?: string;
 
@@ -2142,6 +2145,9 @@ type DualEntryExport = {
     /** Account used when exporting company card expenses. */
     creditCardAccountID: string;
 
+    /** Account used when exporting Expensify Card expenses. */
+    expensifyCardAccountID: string;
+
     /**
      * Whether card transactions should be exported to multiple
      * accounts based on card program mappings.
@@ -3166,6 +3172,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
+
+        /** Whether Expensify automatically copies newly published government distance rates onto this policy */
+        shouldAutoUpdateGovernmentDistanceRates?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
@@ -3281,4 +3290,8 @@ export type {
     DualEntryConnectionsConfig,
     DualEntryCompany,
     DualEntryCoding,
+    DualEntryExportDate,
+    DualEntryVendor,
+    DualEntryAccount,
+    DualEntryExport,
 };

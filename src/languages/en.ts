@@ -15,6 +15,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
+import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 type StateValue = {
@@ -42,6 +43,7 @@ const translations = {
         unshare: 'Unshare',
         yes: 'Yes',
         no: 'No',
+        dontChange: 'Don’t change',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
         ok: 'OK',
         notNow: 'Not now',
@@ -1056,7 +1058,6 @@ const translations = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `See ${count} more`,
-        announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
             menuItemTitleNonAdmin: 'Learn how to create expenses and submit reports.',
@@ -1585,7 +1586,11 @@ const translations = {
             odometerReadingTooLarge: (formattedMax: string) => `Odometer readings cannot exceed ${formattedMax}.`,
             stitchOdometerImagesFailed: 'Failed to combine odometer images. Please try again later.',
             unableToSubmitReport: 'Unable to submit report',
+            unableToMarkAsDone: 'Unable to mark as done',
             allTransactionsPendingDescription: "You can't submit this report because all transactions are pending. They may take a few days to post.",
+            allTransactionsPendingMarkAsDoneDescription: "You can't mark this report as done because all transactions are pending. They may take a few days to post.",
+            allExpensesOnHoldDescription: "You can't submit this report because all expenses are on hold. Remove the hold to submit.",
+            allExpensesOnHoldMarkAsDoneDescription: "You can't mark this report as done because all expenses are on hold. Remove the hold to continue.",
             failedToSaveOdometerDraft: "Couldn't save your odometer draft. Please try again.",
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
@@ -1625,6 +1630,7 @@ const translations = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
         hold: 'Hold',
+        sendToSomeone: 'Send to someone',
         unhold: 'Remove hold',
         holdExpense: () => ({
             one: 'Hold expense',
@@ -4550,6 +4556,10 @@ const translations = {
             title: 'Expensify Travel has been disabled',
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Travel is not enabled',
+            message: 'To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.',
+        },
         verifyCompany: {
             title: "We're reviewing your request...",
             message: `We're running a few checks on our end to verify your account is ready for Expensify Travel. We'll be in touch shortly!`,
@@ -4711,7 +4721,8 @@ const translations = {
             subscription: 'Subscription',
             markAsEntered: 'Mark as manually entered',
             markAsExported: 'Mark as exported',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}: ExportIntegrationSelectedParams) =>
+                `Export to ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
@@ -5867,11 +5878,62 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in DualEntry and sync the connection again',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add accounts in DualEntry and sync the connection again',
             accountTypesDescription: 'Your DualEntry accounts will import as categories.',
             enableNewAccountsTitle: 'Enable newly imported accounts',
             enableNewAccountsDescription: 'New DualEntry accounts will be available as categories.',
             classificationsImport: 'All DualEntry classifications import as tags',
             importDescription: 'Choose which coding configurations to import from DualEntry.',
+            exportDescription: 'Configure how Expensify data exports to DualEntry.',
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Vendor bills',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Export company card expenses as',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Direct expenses',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Default vendor for all company cards',
+                description: "Choose a default DualEntry vendor for expenses that don't match automatically.",
+            },
+            companyCardAccount: {
+                label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
+            },
+            expensifyCardAccount: {
+                label: 'Expensify Card account',
+                description: 'Choose where to export Expensify Card transactions.',
+            },
         },
         type: {
             free: 'Free',
@@ -7183,6 +7245,7 @@ const translations = {
                 "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
             connect: 'Connect',
+            findIntegration: 'Find integration',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
@@ -7369,6 +7432,14 @@ const translations = {
             startDate: 'Start date',
             endDate: 'End date',
             autoGeneratedRateTooltip: 'This rate is auto-generated.',
+            autoUpdateGovernmentRate: 'Auto-update government rates',
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Automatically create new rates when ${countryPhrase} publishes new guidance.`,
+            governmentRateCountries: {
+                US: 'the United States',
+                CA: 'Canada',
+                GB: 'Great Britain',
+                AU: 'Australia',
+            },
             errors: {
                 rateNameRequired: 'Rate name is required',
                 existingRateName: 'A distance rate with this name already exists',
@@ -7460,24 +7531,24 @@ const translations = {
         },
         exportAgainModal: {
             title: 'Careful!',
-            description: (reportName: string, connectionName: ConnectionName) =>
-                `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Are you sure you want to export them again?\n\n${reportName}`,
+            description: ({reportName, connectionName, connectionNameFriendly}: ExportAgainModalDescriptionParams) =>
+                `The following reports have already been exported to ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Are you sure you want to export them again?\n\n${reportName}`,
             confirmText: 'Yes, export again',
             cancelText: 'Cancel',
         },
         exportDifferentCompaniesModal: {
             title: 'Careful!',
-            description: (connectionName: ConnectionName) =>
-                `The selected reports are connected to different ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} companies, so they can't be exported together. Select reports connected to the same company and try again.`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `The selected reports are connected to different ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} companies, so they can't be exported together. Select reports connected to the same company and try again.`,
             confirmText: 'Got it',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `Export ${exportableCount}/${selectedCount} reports to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `Export ${exportableCount}/${selectedCount} reports to ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Only reports connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} will be exported.`);
+                    reasons.push(`Only reports connected to ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} will be exported.`);
                 }
                 if (hasIneligibleReports) {
                     reasons.push(`Only reports that are eligible to export will be exported.`);
@@ -7601,6 +7672,12 @@ const translations = {
                     `<muted-text>Rules are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
                 onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Unlimited access to rules is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            governmentDistanceRates: {
+                title: 'Auto-update government rates',
+                description: 'If you want Expensify to keep your mileage rates current whenever your government publishes new guidance, this feature is for you.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Auto-updating government rates is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             publicReceiptVisibility: {
                 title: 'Public receipt visibility',
@@ -7882,8 +7959,7 @@ const translations = {
                 alwaysNonReimbursable: 'Always non-reimbursable',
                 alwaysNonReimbursableDescription: 'Expenses are never paid back to employees',
                 billableDefault: 'Billable default',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in <a href="${tagsPageLink}">tags</a>.</muted-text>`,
+                billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default.',
                 billable: 'Billable',
                 billableDescription: 'Expenses are most often re-billed to clients',
                 nonBillable: 'Non-billable',
@@ -8136,6 +8212,7 @@ const translations = {
                 findRule: 'Find rule',
                 defaultSection: 'Default',
                 customRulesSection: 'Custom rules',
+                defaultRulesCannotBeDeleted: 'Default rules cannot be deleted',
                 tableColumnType: 'Type',
                 tableColumnCard: 'Card',
                 tableColumnRule: 'Rule',
@@ -8571,6 +8648,9 @@ const translations = {
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `removed the agent rule "${title}"` : 'removed an agent rule'),
         },
+        addedRule: 'added a rule',
+        updatedRule: 'updated a rule',
+        removedRule: 'removed a rule',
         expensifyCardRule: {
             actionVerb: {
                 block: 'blocked',
@@ -8847,6 +8927,7 @@ const translations = {
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the company card purchases requirement`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the expense categorization requirement`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the expense tagging requirement`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `updated the currency conversion fee setting to "${preferenceLabel}"`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} auto-pay approved reports`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `set the auto-pay approved reports threshold to "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
@@ -10558,8 +10639,13 @@ const translations = {
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'New role types for admins',
-                body: 'Give your team more granular permissions with new card, people, and payments admin roles.',
+                heading: 'Enhanced vendor mapping',
+                body: 'Create vendors and custom rules for easy mapping to major accounting packages.',
+                cta: 'Try it out',
+            },
+            member: {
+                heading: 'Pre-built agents for you',
+                body: 'Use pre-built or custom agents to code, split, and submit expenses automatically on your behalf.',
                 cta: 'Try it out',
             },
         },

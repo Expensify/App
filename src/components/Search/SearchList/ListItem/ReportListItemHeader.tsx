@@ -26,7 +26,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {handleActionButtonPress} from '@userActions/Search';
 
@@ -124,6 +125,9 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Parent chat report resolved from live Onyx with search snapshot fallback */
     chatReport?: OnyxEntry<Report>;
+
+    /** Whether a SUBMIT action should render the "Mark as done" copy instead of "Submit" */
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 function HeaderFirstRow<TItem extends ListItem>({
@@ -139,6 +143,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     isExpanded,
     shouldDisableActionPointerEvents = false,
     chatReport,
+    shouldShowMarkAsDoneCopy,
 }: FirstRowReportHeaderProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const styles = useThemeStyles();
@@ -215,6 +220,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         onButtonPress={handleOnButtonPress}
                         isSelected={isSelected}
                         isLoading={isActionLoading}
+                        shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
@@ -275,6 +281,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         return chatReportID ? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     }, [snapshot, snapshotReport?.chatReportID, reportItem.parentReportID]);
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.reportID ?? reportItem.reportID)}`);
     const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
     const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
     const chatReport = parentChatReport ?? snapshotChatReport;
@@ -282,6 +289,11 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy: parentPolicy,
+        report: parentReport,
+        isTrackIntentUser,
+    });
 
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
@@ -323,7 +335,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
-            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             introSelected,
@@ -363,6 +376,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
                 onDownArrowClick={onDownArrowClick}
                 isExpanded={isExpanded}
                 shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
+                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
         </View>
     ) : (
@@ -380,6 +394,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
                 isExpanded={isExpanded}
                 shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
                 chatReport={chatReport}
+                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
         </View>
     );
