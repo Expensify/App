@@ -57,7 +57,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	63
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	62
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -160,7 +160,6 @@
 "../../src/components/Form/InputWrapper.tsx"	"react-hooks/refs"	1
 "../../src/components/GPSInProgressModal/index.native.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/GPSTripStateChecker/index.native.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/components/GrowlNotification/GrowlNotificationContent.tsx"	"no-restricted-imports"	1
 "../../src/components/HTMLEngineProvider/BaseHTMLEngineProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/components/HTMLEngineProvider/HTMLRenderers/AccountManagerLinkRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/AnchorRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1093,7 +1092,6 @@
 "../../src/pages/settings/Wallet/InternationalDepositAccount/subPages/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
-"../../src/pages/settings/Wallet/PaymentMethodListItem.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/PersonalCardDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage/useFixPersonalCardConnection.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1108,7 +1106,6 @@
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/signin/ChooseSSOOrValidateCode.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/SAMLSignInPage/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/signin/SMSDeliveryFailurePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/signin/SignInPage.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1120,7 +1117,6 @@
 "../../src/pages/workspace/DynamicWorkspaceConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/WorkspaceInitialPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"react-hooks/refs"	1

@@ -133,7 +133,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
             {isTripStopped ? (
                 <View style={[styles.gap2, styles.flexRow]}>
                     <Button
-                        onPress={resumeGpsTrip}
+                        onPress={checkSettingsAndPermissions}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.flex1]}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
@@ -174,7 +174,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 startPermissionsFlow={startPermissionsFlow}
                 setStartPermissionsFlow={setStartPermissionsFlow}
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                onGrant={startGpsTrip}
+                onGrant={isTripStopped ? resumeGpsTrip : startGpsTrip}
                 onDeny={() => setShowLocationRequiredModal(true)}
             />
 

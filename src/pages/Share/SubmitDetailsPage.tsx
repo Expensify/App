@@ -38,7 +38,7 @@ import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
+import {getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -151,6 +151,8 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const {isOffline} = useNetwork();
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
 
     const hasEndedOpenSubmitFlowSpan = useRef(false);
     const endOpenSubmitFlowSpan = () => {
@@ -234,7 +236,6 @@ function SubmitDetailsPage({
     const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
     const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
     const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
-    const {isOffline} = useNetwork();
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     const defaultBillable = !!policy?.defaultBillable;
@@ -295,6 +296,7 @@ function SubmitDetailsPage({
         iouType,
         isCreatingTrackExpense,
         isSelfDMDestination: isSelfDM(report),
+        isLookingAroundUser,
         isMovingTransactionFromTrackExpense: false,
     });
 
@@ -475,6 +477,8 @@ function SubmitDetailsPage({
             optimisticChatReportID: routeReportID,
             navigationReportID: postSubmitNavigationReportID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+            isLookingAroundUser,
+            isSelfDMDestination: isSelfDM(report),
         };
 
         const runExpenseCreateAndCleanup = (shouldNavigate: boolean) => {
