@@ -699,17 +699,18 @@ describe('ReportUtils', () => {
             const passedCurrentUserAccountID = 50;
             const passedAccountID = 999;
 
-            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData(
-                passedAccountID,
-                1,
-                'taskReportID',
-                'assigneeChatReportID',
-                'parentReportID',
-                'Task title',
-                createMock<OnyxEntry<Report>>({}),
-                passedCurrentUserEmail,
-                passedCurrentUserAccountID,
-            );
+            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData({
+                accountID: passedAccountID,
+                assigneeAccountID: 1,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'assigneeChatReportID',
+                parentReportID: 'parentReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: passedCurrentUserEmail,
+                currentUserAccountID: passedCurrentUserAccountID,
+                delegateAccountID: undefined,
+            });
 
             expect(optimisticAssigneeAddComment).toBeDefined();
             const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
@@ -723,17 +724,18 @@ describe('ReportUtils', () => {
             const passedCurrentUserEmail = 'different-email@user.com';
             const passedCurrentUserAccountID = currentUserAccountID; // 5, which exists in `participantsPersonalDetails`
 
-            const result = getTaskAssigneeChatOnyxData(
-                1,
-                2,
-                'taskReportID',
-                'assigneeChatReportID',
-                'parentReportID',
-                'Task title',
-                createMock<OnyxEntry<Report>>({}),
-                passedCurrentUserEmail,
-                passedCurrentUserAccountID,
-            );
+            const result = getTaskAssigneeChatOnyxData({
+                accountID: 1,
+                assigneeAccountID: 2,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'assigneeChatReportID',
+                parentReportID: 'parentReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: passedCurrentUserEmail,
+                currentUserAccountID: passedCurrentUserAccountID,
+                delegateAccountID: undefined,
+            });
 
             const reportAction = result.optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
             expect(reportAction?.actorAccountID).toBe(passedCurrentUserAccountID);
@@ -743,9 +745,72 @@ describe('ReportUtils', () => {
         });
 
         it('does not create optimistic assignee comment when assigneeChatReportID equals parentReportID', () => {
-            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', createMock<OnyxEntry<Report>>({}), 'email@user.com', 50);
+            const result = getTaskAssigneeChatOnyxData({
+                accountID: 1,
+                assigneeAccountID: 2,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'sameReportID',
+                parentReportID: 'sameReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: 'email@user.com',
+                currentUserAccountID: 50,
+                delegateAccountID: undefined,
+            });
 
             expect(result.optimisticAssigneeAddComment).toBeUndefined();
+        });
+
+        describe('delegateAccountID', () => {
+            const MODULE_DELEGATE_EMAIL = 'module-delegate@vikings.net';
+            const MODULE_DELEGATE_ACCOUNT_ID = 900;
+            const PASSED_DELEGATE_ACCOUNT_ID = 901;
+
+            const buildAssigneeChatOnyxData = (delegateAccountID: number | undefined) =>
+                getTaskAssigneeChatOnyxData({
+                    accountID: 1,
+                    assigneeAccountID: 2,
+                    taskReportID: 'taskReportID',
+                    assigneeChatReportID: 'assigneeChatReportID',
+                    parentReportID: 'parentReportID',
+                    title: 'Task title',
+                    assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                    currentUserEmail: 'email@user.com',
+                    currentUserAccountID: 50,
+                    delegateAccountID,
+                });
+
+            beforeEach(async () => {
+                // The module-level delegate is what `buildOptimisticAddCommentReportAction` falls back to, so it has to
+                // differ from the passed value for these tests to prove which one wins.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [MODULE_DELEGATE_ACCOUNT_ID]: {accountID: MODULE_DELEGATE_ACCOUNT_ID, login: MODULE_DELEGATE_EMAIL, displayName: 'Module Delegate'},
+                });
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: MODULE_DELEGATE_EMAIL}});
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: null}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MODULE_DELEGATE_ACCOUNT_ID]: null});
+                await waitForBatchedUpdates();
+            });
+
+            it('uses the passed delegateAccountID instead of the module-level delegate', () => {
+                const {optimisticAssigneeAddComment} = buildAssigneeChatOnyxData(PASSED_DELEGATE_ACCOUNT_ID);
+
+                const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+                expect(reportAction?.delegateAccountID).toBe(PASSED_DELEGATE_ACCOUNT_ID);
+            });
+
+            // TODO: the fallback assertion below flips to `toBeUndefined()` once the module-level Onyx.connect is
+            // removed (https://github.com/Expensify/App/issues/66425).
+            it('falls back to the module-level delegate when no delegateAccountID is passed', () => {
+                const {optimisticAssigneeAddComment} = buildAssigneeChatOnyxData(undefined);
+
+                const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+                expect(reportAction?.delegateAccountID).toBe(MODULE_DELEGATE_ACCOUNT_ID);
+            });
         });
     });
 
@@ -784,6 +849,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
 
             expect(title).toHaveBeenCalledWith(
@@ -813,6 +879,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
 
             expect(description).toHaveBeenCalledWith(
@@ -838,6 +905,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
             // Tasks are sent to server via guidedSetupData; not added optimistically to avoid flash.
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
@@ -853,6 +921,7 @@ describe('ReportUtils', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 onboardingMessage: {message: 'This is a test', tasks: []},
                 companySize: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(result?.guidedSetupData.filter((d) => d.type === 'task').length).toBeGreaterThan(0);
@@ -865,6 +934,7 @@ describe('ReportUtils', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 onboardingMessage: {message: 'This is a test', tasks: []},
                 companySize: undefined,
+                delegateAccountID: undefined,
                 shouldSkipConciergeOnboarding: true,
             });
 
@@ -887,6 +957,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
@@ -906,6 +977,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
+                delegateAccountID: undefined,
             });
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
@@ -925,6 +997,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
+                delegateAccountID: undefined,
             });
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
@@ -944,6 +1017,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
+                delegateAccountID: undefined,
             });
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
@@ -963,6 +1037,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
                 userReportedIntegration: 'quickbooksOnline',
             });
             // Message content is now generated server-side; client only generates the deduplication ID.
@@ -982,6 +1057,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
             // MANAGE_TEAM: tasks sent to server via guidedSetupData but excluded from optimisticData to prevent flash.
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
@@ -1003,6 +1079,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
             // Tasks sent to server via guidedSetupData; no optimistic task actions added.
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
@@ -1021,6 +1098,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
@@ -1039,6 +1117,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             const messageEntries = result?.guidedSetupData.filter((d) => d.type === 'message');
@@ -1066,6 +1145,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -1114,6 +1194,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
 
             expect(title).toHaveBeenCalledWith(
@@ -1139,6 +1220,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             expect(result?.guidedSetupData).toHaveLength(0);
@@ -1154,6 +1236,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             // For LOOKING_AROUND with empty message and no tasks, guidedSetupData should be empty
@@ -1175,6 +1258,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             // Non-LOOKING_AROUND intents with a message should have guidedSetupData entries
@@ -1201,6 +1285,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
                 isSelfTourViewed: true,
             });
 
@@ -1228,6 +1313,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
                 isSelfTourViewed: false,
             });
 
@@ -1236,6 +1322,70 @@ describe('ReportUtils', () => {
             );
             expect(viewTourTask).toBeDefined();
             expect(viewTourTask?.completedTaskReportActionID).toBeUndefined();
+        });
+
+        it('sets the passed delegateAccountID on the optimistic onboarding comment actions', () => {
+            const DELEGATE_ACCOUNT_ID = 424242;
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
+                            title: () => 'Create a report',
+                            description: () => 'Report description',
+                            autoCompleted: false,
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: DELEGATE_ACCOUNT_ID,
+            });
+
+            const commentActions = (result?.optimisticData ?? [])
+                .filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+                .flatMap((update) => Object.values((update.value ?? {}) as Record<string, ReportAction>))
+                .filter((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+
+            expect(commentActions.length).toBeGreaterThan(0);
+            for (const commentAction of commentActions) {
+                expect(commentAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            }
+        });
+
+        it('leaves delegateAccountID unset on the optimistic onboarding comment actions when no delegate is passed', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
+                            title: () => 'Create a report',
+                            description: () => 'Report description',
+                            autoCompleted: false,
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
+            });
+
+            const commentActions = (result?.optimisticData ?? [])
+                .filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+                .flatMap((update) => Object.values((update.value ?? {}) as Record<string, ReportAction>))
+                .filter((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+
+            expect(commentActions.length).toBeGreaterThan(0);
+            for (const commentAction of commentActions) {
+                expect(commentAction.delegateAccountID).toBeUndefined();
+            }
         });
 
         it('should auto-complete VIEW_TOUR task when isSelfTourViewed is undefined but onboarding.selfTourViewed is true via Onyx', async () => {
@@ -1258,6 +1408,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
                 isSelfTourViewed: undefined,
             });
 

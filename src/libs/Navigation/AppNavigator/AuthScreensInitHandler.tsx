@@ -3,6 +3,7 @@ import {useInitialURLActions, useInitialURLState} from '@components/InitialURLCo
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -84,6 +85,7 @@ function AuthScreensInitHandler() {
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const reportAttributes = useReportAttributes();
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
@@ -199,6 +201,7 @@ function AuthScreensInitHandler() {
             lastWorkspaceNumber,
             translate,
             conciergeChat,
+            delegateAccountID,
         );
 
         Download.clearDownloads();

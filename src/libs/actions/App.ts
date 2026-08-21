@@ -613,6 +613,8 @@ type CreateWorkspaceWithPolicyDraftParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
     isAnnualSubscription?: boolean;
+    /** AccountID of the delegate acting on behalf of the current user */
+    delegateAccountID: number | undefined;
 };
 
 /**
@@ -641,6 +643,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         betas,
         hasActiveAdminPolicies,
         isAnnualSubscription = false,
+        delegateAccountID,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -681,6 +684,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             betas,
             hasActiveAdminPolicies,
             isAnnualSubscription,
+            delegateAccountID,
         });
 
         if (transitionFromOldDot) {
@@ -721,6 +725,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        delegateAccountID,
     } = params;
 
     createDraftInitialWorkspace({
@@ -751,6 +756,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        delegateAccountID,
     });
 }
 
@@ -774,6 +780,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
     isAnnualSubscription?: boolean;
+    delegateAccountID: number | undefined;
 };
 
 /**
@@ -799,6 +806,7 @@ function savePolicyDraftByNewWorkspace({
     betas,
     hasActiveAdminPolicies,
     isAnnualSubscription = false,
+    delegateAccountID,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -821,6 +829,7 @@ function savePolicyDraftByNewWorkspace({
         betas,
         hasActiveAdminPolicies,
         isAnnualSubscription,
+        delegateAccountID,
     });
 }
 
@@ -850,6 +859,7 @@ function setUpPoliciesAndNavigate(
     lastWorkspaceNumber: number | undefined,
     translate: LocalizedTranslate,
     conciergeChat: OnyxEntry<OnyxTypes.Report>,
+    delegateAccountID: number | undefined,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -885,6 +895,7 @@ function setUpPoliciesAndNavigate(
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            delegateAccountID,
         });
         return;
     }

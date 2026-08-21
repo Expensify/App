@@ -4,6 +4,7 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
 
@@ -33,6 +34,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
 
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const goBack = () => {
@@ -63,6 +65,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            delegateAccountID,
         });
         goBack();
     };

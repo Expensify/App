@@ -4,6 +4,7 @@ import ScrollView from '@components/ScrollView';
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -42,6 +43,7 @@ function PersonalCardUpgradePage() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {accountID, email = ''} = currentUserPersonalDetails;
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
@@ -65,6 +67,7 @@ function PersonalCardUpgradePage() {
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            delegateAccountID,
         });
         setIsUpgraded(true);
     };
