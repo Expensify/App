@@ -154,6 +154,13 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
      * */
     shouldEnableNewFocusManagement?: boolean;
 
+    /**
+     * Whether to return focus to the trigger when the menu is dismissed without navigating.
+     * Defaults to the inverse of `shouldEnableNewFocusManagement`, because that manager owns the restore when it is on.
+     * Set it explicitly for a trigger the manager cannot restore — it only tracks text inputs, so a button is left with nothing to return to.
+     */
+    shouldReturnFocus?: boolean;
+
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
 
@@ -233,17 +240,6 @@ function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, childre
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
-}
-
-function getAvailableHeightForAnchor(anchorVertical: number, verticalAlignment: AnchorAlignment['vertical'], windowHeight: number): number {
-    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
-        return windowHeight - anchorVertical;
-    }
-    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
-        return anchorVertical;
-    }
-    // CENTER alignment grows in both directions from the anchor, so the closer window edge bounds it.
-    return Math.min(anchorVertical, windowHeight - anchorVertical) * 2;
 }
 
 /**
@@ -337,6 +333,7 @@ function BasePopoverMenu({
     withoutOverlay = false,
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
+    shouldReturnFocus,
     restoreFocusType,
     shouldShowRadioButton = false,
     containerStyles,
@@ -646,23 +643,11 @@ function BasePopoverMenu({
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            const availableHeight = getAvailableHeightForAnchor(anchorPosition.vertical, anchorAlignment.vertical, windowHeight) - variables.compactPopoverMenuVerticalMargin;
-            const minHeight = Math.min(CONST.POPOVER_MENU_MAX_HEIGHT, windowHeight - variables.compactPopoverMenuVerticalMargin);
-            stylesArray.push({maxHeight: Math.max(availableHeight, minHeight)});
+            stylesArray.push({maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)});
         }
 
         return stylesArray;
-    }, [
-        isSmallScreenWidth,
-        shouldEnableMaxHeight,
-        styles.createMenuContainer,
-        styles.pv2,
-        shouldUseScrollView,
-        windowHeight,
-        isInLandscapeMode,
-        anchorPosition.vertical,
-        anchorAlignment.vertical,
-    ]);
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, styles.pv2, shouldUseScrollView, windowHeight, isInLandscapeMode]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
         (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : styles.pv2, scrollContainerStyle]) as ViewStyle) ?? {};
@@ -722,6 +707,7 @@ function BasePopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            shouldReturnFocus={shouldReturnFocus}
             restoreFocusType={restoreFocusType}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
@@ -732,7 +718,8 @@ function BasePopoverMenu({
         >
             <FocusTrapForModal
                 active={isVisible}
-                shouldReturnFocus={!shouldEnableNewFocusManagement}
+                shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
+                launcherRef={anchorRef}
             >
                 <CompactMenuContext.Provider value>
                     <View

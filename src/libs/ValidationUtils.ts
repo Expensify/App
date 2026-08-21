@@ -341,27 +341,6 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     return parsedPhoneNumber.possible && validUSRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
 }
 
-/**
- * Validates a phone number from the North American Numbering Plan (+1 calling code).
- * Accepts the US, US territories, and Canada. Canada shares the +1 calling code under NANP
- * but parses to its own ISO region code (CA), so isValidUSPhone rejects it.
- */
-function isValidNANPPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
-    const phone = phoneNumber || '';
-    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
-
-    // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
-    // so we need to check if it is a valid phone.
-    if (regionCode && !Str.isValidPhoneFormat(phone)) {
-        return false;
-    }
-
-    const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
-
-    const validNANPRegionCodes: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI, CONST.COUNTRY.AS, CONST.COUNTRY.MP, CONST.COUNTRY.CA];
-    return parsedPhoneNumber.possible && validNANPRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
-}
-
 function isValidPhoneNumber(phoneNumber: string): boolean {
     if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber)) {
         return false;
@@ -840,6 +819,14 @@ function isInvalidMerchantValue(merchant?: string): boolean {
 }
 
 /**
+ * Checks if a merchant is a placeholder the user never typed: the flow seeded the "Expense" / "(none)" value,
+ * so it should be treated as empty rather than as an invalid entry the user is responsible for.
+ */
+function isUntypedPlaceholderMerchant(isMerchantSet: boolean | undefined, merchant?: string): boolean {
+    return !isMerchantSet && isInvalidMerchantValue(merchant);
+}
+
+/**
  * Validates a 4-digit PIN for UK/EU Expensify Card.
  * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
  */
@@ -908,7 +895,6 @@ export {
     isRequiredFulfilled,
     getFieldRequiredErrors,
     isValidUSPhone,
-    isValidNANPPhone,
     isValidPhoneNumber,
     isValidWebsite,
     isValidTwoFactorCode,
@@ -948,6 +934,7 @@ export {
     isValidInputLength,
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
+    isUntypedPlaceholderMerchant,
     isValidPIN,
     containsHtmlTag,
 };
