@@ -318,9 +318,6 @@ type AddNewCardFeedData = {
     /** Identifier for the CSV layout template */
     layoutType?: string;
 
-    /** Whether to use advanced fields in the CSV layout */
-    useAdvancedFields?: boolean;
-
     /** Existing instance ID when editing a CSV feed */
     existingInstanceID?: string;
 
