@@ -106,19 +106,8 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.getRoute(contactMethod, backTo));
     }, [contactMethod, backTo]);
 
-    /**
-     * Determines whether the user's primary login switching is restricted
-     * by their domain security group.
-     *
-     * If:
-     * - The user does not belong to a private domain security group → NOT restricted.
-     * - The security group exists and has `enableRestrictedPrimaryLogin` enabled → restricted.
-     */
-    const isRestrictedDefaultContactMethodSwitch = useMemo(() => {
-        // Restrict the user from switching their default contact method if their domain security group
-        // restricts primary login switching. Defaults to NOT restricted when the user has no security group.
-        return !!securityGroup?.enableRestrictedPrimaryLogin;
-    }, [securityGroup?.enableRestrictedPrimaryLogin]);
+    // Restrict switching the default contact method if the user's domain security group restricts primary login switching.
+    const isRestrictedDefaultContactMethodSwitch = !!securityGroup?.enableRestrictedPrimaryLogin;
 
     /**
      * Checks if the user is allowed to change their default contact method.

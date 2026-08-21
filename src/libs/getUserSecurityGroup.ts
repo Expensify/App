@@ -28,20 +28,12 @@ function getUserSecurityGroup(
         return undefined;
     }
 
-    let securityGroup: OnyxEntry<SecurityGroup>;
-
+    // The security group is a sharedNVP owned by the domain account, keyed under SHARED_NVP_SECURITY_GROUP as `<securityGroupID>_<ownerAccountID>`.
     // A legacy string membership has no owner account ID, so there is no sharedNVP key to read.
-    if (ownerAccountID !== undefined) {
-        // The security group is a sharedNVP owned by the domain account, keyed under SHARED_NVP_SECURITY_GROUP as `<securityGroupID>_<ownerAccountID>`.
-        securityGroup = securityGroups?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}`];
-    }
+    const sharedNVPSecurityGroup = ownerAccountID === undefined ? undefined : securityGroups?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}`];
 
     // The backend writes both keys throughout the rollout, so fall back to the legacy collection.
-    if (!securityGroup) {
-        securityGroup = legacySecurityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`];
-    }
-
-    return securityGroup;
+    return sharedNVPSecurityGroup ?? legacySecurityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`];
 }
 
 export default getUserSecurityGroup;

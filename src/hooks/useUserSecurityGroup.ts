@@ -1,6 +1,7 @@
 import getUserSecurityGroup from '@libs/getUserSecurityGroup';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {emailSelector} from '@src/selectors/Session';
 import type SecurityGroup from '@src/types/onyx/SecurityGroup';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -26,11 +27,11 @@ function useUserSecurityGroup(): UseUserSecurityGroupResult {
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP);
     const [legacySecurityGroups, legacySecurityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
-    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
+    const [email, emailResult] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     return {
-        securityGroup: getUserSecurityGroup(session?.email, myDomainSecurityGroups, securityGroups, legacySecurityGroups),
-        isLoadingSecurityGroup: isLoadingOnyxValue(myDomainSecurityGroupsResult, securityGroupsResult, legacySecurityGroupsResult, sessionResult),
+        securityGroup: getUserSecurityGroup(email, myDomainSecurityGroups, securityGroups, legacySecurityGroups),
+        isLoadingSecurityGroup: isLoadingOnyxValue(myDomainSecurityGroupsResult, securityGroupsResult, legacySecurityGroupsResult, emailResult),
     };
 }
 
