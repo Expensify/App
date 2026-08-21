@@ -7,6 +7,7 @@ import useTheme from '@hooks/useTheme';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 
@@ -29,7 +30,7 @@ function AddShippingAddress({card}: AddShippingAddressProps) {
             subtitle={translate('homePage.timeSensitiveSection.addShippingAddress.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addShippingAddress.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID)))}
-            buttonProps={{success: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

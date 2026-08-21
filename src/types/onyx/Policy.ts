@@ -266,6 +266,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The old tax code of the tax rate when we edit the tax code */
     previousTaxCode?: string;
 
+    /** Every tax code this rate has previously used, oldest first, so expenses still referencing any old code can be resolved back to this rate */
+    previousTaxCodes?: string[];
+
     /** The old tax code kept only while a tax code edit is in flight, used to resolve the rate from the old code; cleared once the API resolves */
     optimisticPreviousTaxCode?: string;
 
@@ -465,6 +468,9 @@ type QBOConnectionData = {
     /** Collection of journal entry accounts  */
     journalEntryAccounts: Account[];
 
+    /** Profit and loss accounts, the only ones a currency conversion cost can be charged to */
+    expenseAccounts: Account[];
+
     /** Collection of bank accounts */
     bankAccounts: Account[];
 
@@ -554,6 +560,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** ID of the bill payment account */
     reimbursementAccountID?: string;
+
+    /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+    fxExpenseAccount?: string;
 
     /** Account that receives the reimbursable expenses */
     reimbursableExpensesAccount?: Account;
@@ -1154,7 +1163,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
 
-        /** Whether Travel Invoicing JEs post as individual entries per expense or a single grouped entry */
+        /** Whether Travel Billing JEs post as individual entries per expense or a single grouped entry */
         travelInvoicingJournalPostingPreference?: NetSuiteJournalPostingPreferences;
 
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
@@ -1882,10 +1891,10 @@ type RilletSync = {
     /** Bank account used for Expensify Card settlements. */
     settlementsBankAccountID: string;
 
-    /** Whether travel invoicing settlement transactions should be synchronized. */
+    /** Whether travel billing settlement transactions should be synchronized. */
     syncTravelInvoicingSettlements: boolean;
 
-    /** Bank account used for travel invoicing settlements. */
+    /** Bank account used for travel billing settlements. */
     travelInvoicingSettlementsBankAccountID: string;
 };
 
@@ -2142,6 +2151,9 @@ type DualEntryExport = {
     /** Account used when exporting company card expenses. */
     creditCardAccountID: string;
 
+    /** Account used when exporting Expensify Card expenses. */
+    expensifyCardAccountID: string;
+
     /**
      * Whether card transactions should be exported to multiple
      * accounts based on card program mappings.
@@ -2156,7 +2168,7 @@ type DualEntryExport = {
     /** Default vendor used when exporting transactions. */
     defaultVendorID: string;
 
-    /** Payable account used when exporting travel invoices. */
+    /** Payable account used when exporting travel billings. */
     travelInvoicingPayableAccountID: string;
 
     /** Accounting method used during export. */
@@ -2198,10 +2210,10 @@ type DualEntrySync = {
     /** Bank account used for Expensify Card settlements. */
     settlementsBankAccountID: string;
 
-    /** Whether travel invoicing settlement transactions should be synchronized. */
+    /** Whether travel billing settlement transactions should be synchronized. */
     syncTravelInvoicingSettlements: boolean;
 
-    /** Bank account used for travel invoicing settlements. */
+    /** Bank account used for travel billing settlements. */
     travelInvoicingSettlementsBankAccountID: string;
 };
 
@@ -2963,6 +2975,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
 
+        /** Whether to show category GL codes when selecting a category */
+        showCategoryGLCodes?: boolean;
+
         /**
          * Policy Receipt Partners
          */
@@ -3163,6 +3178,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
+
+        /** Whether Expensify automatically copies newly published government distance rates onto this policy */
+        shouldAutoUpdateGovernmentDistanceRates?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
@@ -3278,4 +3296,8 @@ export type {
     DualEntryConnectionsConfig,
     DualEntryCompany,
     DualEntryCoding,
+    DualEntryExportDate,
+    DualEntryVendor,
+    DualEntryAccount,
+    DualEntryExport,
 };
