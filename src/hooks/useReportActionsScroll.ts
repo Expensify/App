@@ -69,6 +69,9 @@ type UseReportActionsScrollParams = {
     /** The report action ID the unread marker is anchored to, if any */
     unreadMarkerReportActionID: string | null;
 
+    /** The rendered action ID to use when the unread marker's canonical action is hidden inside a collapsed run */
+    unreadMarkerReportActionIDForInitialScroll?: string | null;
+
     /** The index of the unread report action in the sorted visible actions list (-1 if none) */
     unreadMarkerReportActionIndex: number;
 
@@ -146,6 +149,7 @@ function useReportActionsScroll({
     markNewestActionAsRead,
     completeSkippedMarkAsRead,
     unreadMarkerReportActionID,
+    unreadMarkerReportActionIDForInitialScroll,
     unreadMarkerReportActionIndex,
     hasNewerActions,
     draftAutoScrollKey,
@@ -182,8 +186,9 @@ function useReportActionsScroll({
     // When the report is aligned to the top, only the linked action should drive the initial scroll position and the unread marker must be ignored.
     // Otherwise, prefer the linked action and fall back to the unread marker.
     let initialScrollKey = linkedReportActionID;
-    if (!shouldBeAlignedToTop && linkedReportActionID === undefined && unreadMarkerReportActionID) {
-        initialScrollKey = unreadMarkerReportActionID;
+    const unreadMarkerInitialScrollID = unreadMarkerReportActionIDForInitialScroll ?? unreadMarkerReportActionID;
+    if (!shouldBeAlignedToTop && linkedReportActionID === undefined && unreadMarkerInitialScrollID) {
+        initialScrollKey = unreadMarkerInitialScrollID;
     }
 
     // The CREATED action is the top anchor of an aligned-to-top report; scrolling to it is handled by shouldFocusToTopOnMount instead.
