@@ -156,19 +156,23 @@ function IOURequestStepDistanceOdometer({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const isFocused = useIsFocused();
-    // Forces a fresh KeyboardAvoidingView instance (fresh native view, fresh internal Reanimated keyboard-tracking
-    // state) on every focus change. Android's tab pager can recycle this screen's native view while it sits in the
-    // background (no `offscreenPageLimit` is set), which can knock the KeyboardAvoidingView's internal state out of
-    // sync with its own native view and strand the padding — a remount can't carry that staleness across, since nothing about
-    // the previous instance survives it. Keyed on `isFocused` rather than incremented every render so it only
-    // remounts on an actual tab-focus transition, not on unrelated re-renders while focused.
+    // Android can recycle this screen's native view while it's backgrounded, leaving KeyboardAvoidingView's internal
+    // state pointing at a stale view. Remounting is the only way to reset it. Keyed on `isFocused`, not a counter,
+    // so it only remounts on an actual focus transition.
     const keyboardAvoidingViewInstanceKey = isFocused ? 'focused' : 'unfocused';
+    // The remount above also resets this ScrollView's scroll position. These refs live outside the remounted
+    // subtree, so they survive it and can restore the offset once the fresh ScrollView mounts.
+    const scrollOffsetRef = useRef(0);
+    const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+    useEffect(() => {
+        if (scrollOffsetRef.current === 0) {
+            return;
+        }
+        scrollViewRef.current?.scrollTo({y: scrollOffsetRef.current, animated: false});
+    }, [keyboardAvoidingViewInstanceKey]);
     const contentRef = useRef<View>(null);
-    // How far this step's content sits below the screen's top edge (header + tab bar). KeyboardAvoidingView measures
-    // its own position relative to its immediate parent, not the screen, so without this it under-reserves space by
-    // exactly this amount and the buttons end up behind the keyboard. `automaticOffset` (the library's own native
-    // position query) was tried instead of this and reproducibly left the buttons entirely un-rendered, so this uses
-    // the same plain `measureInWindow` approach already proven reliable elsewhere in this file.
+    // KeyboardAvoidingView measures its position relative to its parent, not the screen, so without this it
+    // under-reserves space and the buttons end up behind the keyboard.
     const [headerOffset, setHeaderOffset] = useState(0);
 
     const shouldUseDefaultExpensePolicy = useMemo(
@@ -633,18 +637,7 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            {/*
-                The create flow renders this step without its own ScreenWrapper (`shouldShowWrapper` is false), and the
-                shared tab ScreenWrapper keeps keyboard avoidance off so its offset cannot leak into the other tabs
-                (that leakage, not keyboard avoidance itself, was the cause of the cropped Map tab). This
-                KeyboardAvoidingView is scoped to just this step's content, so it gives the same native, animated
-                avoidance the shared one used to provide, without being shared with the other tabs. It's remounted on
-                every focus change via `keyboardAvoidingViewInstanceKey` — see that declaration above for why. The
-                inner View (not the ScrollView) carries the position measurement for `headerOffset`, since
-                `ScrollView`'s ref isn't typed with `measureInWindow` even though a plain View's is. The ScrollView
-                itself makes the content scrollable so the buttons stay reachable when the screen is too short to fit
-                everything (e.g. landscape mode), independent of keyboard avoidance.
-            */}
+            {/* The create flow has no ScreenWrapper of its own (`shouldShowWrapper` is false), so this is what keeps the buttons above the keyboard here. */}
             <KeyboardAvoidingView
                 key={keyboardAvoidingViewInstanceKey}
                 testID="odometerKeyboardAvoidingView"
@@ -660,6 +653,11 @@ function IOURequestStepDistanceOdometer({
                     style={styles.flex1}
                 >
                     <ScrollView
+                        ref={scrollViewRef}
+                        onScroll={(e) => {
+                            scrollOffsetRef.current = e.nativeEvent.contentOffset.y;
+                        }}
+                        scrollEventThrottle={16}
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
                     >
