@@ -3,17 +3,18 @@
 /**
  * Applies App and Mobile-Expensify patches, failing on patch-package errors or warnings.
  */
-import {$, Glob} from 'bun';
+import {$, Glob, stripANSI} from 'bun';
 import {existsSync} from 'node:fs';
 import {mkdtemp, rm} from 'node:fs/promises';
-import {basename, join} from 'node:path';
+import {basename, join, relative} from 'node:path';
 
 import {error, info, success} from './utils/Logger';
 
 const projectRoot = join(import.meta.dir, '..');
 const mobileExpensifyRoot = join(projectRoot, 'Mobile-Expensify');
 const patchGlob = new Glob('**/*.patch');
-const ansiEscapePattern = new RegExp(`${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`, 'g');
+const patchWarningMessage =
+    'It looks like you upgraded a dependency without upgrading the patch. Please review the patch, determine if it is still needed, and port it to the new version of the dependency.';
 
 type PatchResult = {
     exitCode: number;
@@ -50,13 +51,13 @@ async function stagePatchFiles(destination: string, patchDirectories: string[]):
 
 async function runPatchPackage(patchDirectory: string): Promise<PatchResult> {
     const patchPackage = join(projectRoot, 'node_modules', '.bin', 'patch-package');
-    const result = await $`${patchPackage} --patch-dir ${basename(patchDirectory)} --error-on-fail --color=always 2>&1`.cwd(projectRoot).nothrow();
+    const result = await $`${patchPackage} --patch-dir ${relative(projectRoot, patchDirectory)} --error-on-fail --color=always 2>&1`.cwd(projectRoot).nothrow();
     return {exitCode: result.exitCode, output: result.stdout.toString()};
 }
 
 function getFailedPackages(output: string): string[] {
     const packages = new Set<string>();
-    for (const match of output.replaceAll(ansiEscapePattern, '').matchAll(/The patches for (\S+)/g)) {
+    for (const match of stripANSI(output).matchAll(/The patches for (\S+)/g)) {
         packages.add(match[1]);
     }
     return [...packages];
@@ -74,7 +75,8 @@ async function main(): Promise<number> {
 
     const patchDirectories = [join(projectRoot, 'patches')];
     const standaloneNewDot = process.env.STANDALONE_NEW_DOT;
-    if ((await isHybridAppRepo()) && (standaloneNewDot === undefined || standaloneNewDot === '' || standaloneNewDot === 'false')) {
+    const isStandaloneNewDot = standaloneNewDot !== undefined && standaloneNewDot !== '' && standaloneNewDot !== 'false';
+    if (!isStandaloneNewDot && (await isHybridAppRepo())) {
         patchDirectories.push(join(mobileExpensifyRoot, 'patches'));
     }
 
@@ -86,9 +88,7 @@ async function main(): Promise<number> {
         console.log();
         if (result.exitCode === 0) {
             if (hasWarnings(result.output)) {
-                error(
-                    'It looks like you upgraded a dependency without upgrading the patch. Please review the patch, determine if it is still needed, and port it to the new version of the dependency.',
-                );
+                error(patchWarningMessage);
                 return 1;
             }
 
@@ -120,9 +120,7 @@ async function main(): Promise<number> {
             return 1;
         }
         if (hasWarnings(retryResult.output)) {
-            error(
-                'It looks like you upgraded a dependency without upgrading the patch. Please review the patch, determine if it is still needed, and port it to the new version of the dependency.',
-            );
+            error(patchWarningMessage);
             return 1;
         }
 
