@@ -3,7 +3,7 @@ import {createContext, useContext} from 'react';
 type ListItemContextValue = {
     /**
      * Whether the row is logically focused (keyboard index). Legacy providers (UserListItemContent,
-     * InviteMemberListItem) still set only this; new providers set isFocusVisible instead.
+     * InviteMemberListItem) set only this; ListItemPressable provides both this and isFocusVisible.
      */
     isFocused?: boolean;
 
@@ -20,8 +20,18 @@ type ListItemContextValue = {
 
 const ListItemContext = createContext<ListItemContextValue>({isFocused: false, isFocusVisible: false, shouldShowTooltip: false});
 
+/**
+ * Whether the pointer is hovering the row's pressable (always false on devices without hover support).
+ * Separate from ListItemContext for perf.
+ */
+const ListItemHoverContext = createContext<boolean>(false);
+
 function useListItemContext() {
     return useContext(ListItemContext);
 }
 
-export {ListItemContext, useListItemContext};
+function useListItemHovered() {
+    return useContext(ListItemHoverContext);
+}
+
+export {ListItemContext, ListItemHoverContext, useListItemContext, useListItemHovered};

@@ -1,78 +1,125 @@
-import ListCheckbox from '@components/SelectionList/components/ListCheckbox';
-import ListRadioButton from '@components/SelectionList/components/ListRadioButton';
+import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import {useListItemHovered} from '@components/SelectionList/ListItemContext';
+import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {ReactElement} from 'react';
+
 import React from 'react';
+import {View} from 'react-native';
 
-import type {ListItem, SelectableListItemProps} from './types';
-
-import BaseListItem from './BaseListItem';
+import type {ListItem, ListItemProps, SelectableListItemProps} from './types';
 
 /**
- * Extends BaseListItem with a selection button (checkbox for multi-select, radio for single-select).
- * This is the layer used by all SelectionList items that show a visual selection indicator.
- * Items that never need a selection button (e.g. search result rows) use BaseListItem directly.
+ * Resolves BaseListItem-style render-prop children against the hover state provided by ListItemPressable
+ * through ListItemContext, so legacy callers keep receiving the hovered flag.
+ */
+function RowChildren<TItem extends ListItem>({children}: {children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>)}) {
+    const isHovered = useListItemHovered();
+    return typeof children === 'function' ? children(isHovered) : (children ?? null);
+}
+
+/**
+ * Extends the composed ListItem pressable with a selection button (checkbox for multi-select, radio for
+ * single-select). This is the layer used by all SelectionList items that show a visual selection
+ * indicator. Items that never need a selection button (e.g. search result rows) compose ListItem directly.
  */
 function SelectableListItem<TItem extends ListItem>({
+    item,
     canSelectMultiple = false,
     selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
-    item,
     onSelectionButtonPress,
     onSelectRow,
     isDisabled = false,
     children,
     rightHandSideComponent,
     isFocused,
-    ...baseProps
+    isSelected,
+    showTooltip,
+    wrapperStyle,
+    testID,
+    forwardedFSClass,
+    FooterComponent,
+    shouldDisplayRBR = true,
+    shouldShowRightCaret = false,
+    pressableStyle,
+    pressableWrapperStyle,
+    shouldPreventEnterKeySubmit,
+    onDismissError,
+    errorRowStyles,
+    isFocusVisible,
+    shouldSyncFocus,
+    onFocus,
+    hoverStyle,
+    onLongPressRow,
+    shouldHighlightSelectedItem,
+    shouldDisableHoverStyle,
+    accessible,
+    accessibilityLabel,
+    accessibilityRole,
+    shouldUseOptionRole,
 }: SelectableListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const ButtonComponent = canSelectMultiple ? ListCheckbox : ListRadioButton;
+
+    const isRowSelected = isListItemSelected(item, isSelected);
+    const shouldShowRBRIndicator = (!isRowSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
+
+    const selectionButton = !item.shouldHideSelectionButton && (
+        <ListSelectionButton
+            role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
+            item={item}
+            onSelectRow={onSelectionButtonPress ?? onSelectRow}
+            disabled={!!isDisabled || !!item.isDisabledCheckbox}
+            // Radio buttons are removed from the tab order - the row itself is the single-select tab stop.
+            tabIndex={canSelectMultiple ? undefined : -1}
+            style={selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT ? styles.ml3 : styles.mr3}
+        />
+    );
 
     return (
-        <BaseListItem
-            {...baseProps}
+        <ListItemComposed
             item={item}
-            isFocused={isFocused}
+            shouldShowTooltip={showTooltip}
+            onSelectRow={onSelectRow}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}
-            onSelectRow={onSelectRow}
-            rightHandSideComponent={
-                selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT ? (
-                    <>
-                        {!item.shouldHideSelectionButton && (
-                            <ButtonComponent
-                                item={item}
-                                onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                                disabled={!!isDisabled || !!item.isDisabledCheckbox}
-                                style={styles.ml3}
-                            />
-                        )}
-                        {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
-                    </>
-                ) : (
-                    rightHandSideComponent
-                )
-            }
+            isFocused={isFocused}
+            isSelected={isSelected}
+            pressableStyle={pressableStyle}
+            pressableWrapperStyle={pressableWrapperStyle}
+            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
+            onDismissError={onDismissError}
+            errorRowStyles={errorRowStyles}
+            isFocusVisible={isFocusVisible}
+            shouldSyncFocus={shouldSyncFocus}
+            onFocus={onFocus}
+            hoverStyle={hoverStyle}
+            onLongPressRow={onLongPressRow}
+            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
+            accessible={accessible}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityRole={accessibilityRole}
+            shouldUseOptionRole={shouldUseOptionRole}
         >
-            {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT
-                ? (hovered: boolean) => (
-                      <>
-                          {!item.shouldHideSelectionButton && (
-                              <ButtonComponent
-                                  item={item}
-                                  onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                                  disabled={!!isDisabled || item.isDisabledCheckbox}
-                                  style={styles.mr3}
-                              />
-                          )}
-                          {typeof children === 'function' ? children(hovered) : children}
-                      </>
-                  )
-                : children}
-        </BaseListItem>
+            <View
+                testID={testID}
+                style={wrapperStyle}
+                fsClass={forwardedFSClass}
+            >
+                {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
+                <RowChildren<TItem>>{children}</RowChildren>
+                {shouldShowRBRIndicator && !!item.brickRoadIndicator && <ListItemComposed.RBRIndicator brickRoadIndicator={item.brickRoadIndicator} />}
+                {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
+                {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
+                {shouldShowRightCaret && <ListItemComposed.RightCaret />}
+            </View>
+            {FooterComponent}
+        </ListItemComposed>
     );
 }
 

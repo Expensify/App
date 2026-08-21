@@ -7,7 +7,7 @@
  * ```tsx
  * import ListItem from '@components/SelectionList/ListItemComposed';
  *
- * <ListItem item={item} onSelectRow={onSelectRow} keyForList={item.keyForList} shouldShowTooltip>
+ * <ListItem item={item} onSelectRow={onSelectRow} shouldShowTooltip>
  *     <View style={[styles.flexRow, styles.flex1]}>
  *         <ListItem.Title text={name} />
  *         <ListItem.Subtitle text={subtitle} />
@@ -20,13 +20,17 @@
  */
 import ListItemPressable from './ListItemPressable';
 import ListItemRBRIndicator from './primitives/ListItemRBRIndicator';
+import ListItemRightCaret from './primitives/ListItemRightCaret';
 import ListItemSubtitle from './primitives/ListItemSubtitle';
+import ListItemTextColumn from './primitives/ListItemTextColumn';
 import ListItemTitle from './primitives/ListItemTitle';
 
 const ListItem = Object.assign(ListItemPressable, {
     Title: ListItemTitle,
     Subtitle: ListItemSubtitle,
     RBRIndicator: ListItemRBRIndicator,
+    TextColumn: ListItemTextColumn,
+    RightCaret: ListItemRightCaret,
 });
 
 export default ListItem;
