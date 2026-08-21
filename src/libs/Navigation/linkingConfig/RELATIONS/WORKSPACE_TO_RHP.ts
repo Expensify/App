@@ -30,7 +30,9 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         // OR Workflows depending on the confirmation screen it was opened from. Pinning it to a central pane here
         // would make getMatchingFullScreenRoute resolve that pane before reaching the dynamic base-path branch,
         // forcing Members underneath even when opened from Workflows. Leaving it out lets the base path decide.
-        SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+        // For the same reason, the dynamic company-card details/export screens are NOT listed here (or under
+        // Company cards): they are shared by Members and Company cards, so their background must be resolved from
+        // the URL by the dynamic base-path branch, not pinned to a single central pane.
     ],
     [SCREENS.WORKSPACE.ROOMS]: [SCREENS.WORKSPACE.ROOM_CREATE],
     [SCREENS.WORKSPACE.WORKFLOWS]: [
@@ -367,7 +369,6 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS,
         SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME,
         SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE,
-        SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
         SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE,
         SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION,
         SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE,
@@ -376,7 +377,6 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
         SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME,
         SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE,
-        SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT,
     ],
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: [
         SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
