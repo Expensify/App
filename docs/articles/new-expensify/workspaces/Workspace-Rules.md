@@ -22,6 +22,69 @@ To activate Rules for your workspace:
 3. Click **More Features**.
 4. Under the **Manage** section, toggle on **Rules**.
 
+**Note:** Expensify is rolling out an updated Rules experience. When it's enabled for your workspace, the **Rules** page is organized into tabs and category-based rules are created directly in the Rules hub. The **How the Rules hub is organized**, **How to create a rule in the Rules hub**, **How to configure Require fields rules**, and **How to configure Flag for review rules** sections below describe this updated experience. If your workspace still shows a single scrolling **Rules** page, the same options are available, grouped into sections instead of tabs.
+
+---
+
+# How the Rules hub is organized
+
+When the updated Rules experience is enabled, the **Rules** page is organized into these tabs:
+
+- **General** – Basic workspace-wide rules (receipt requirements, flag limits, cash and billable defaults) plus advanced report automation such as self-approvals, auto-approve, and auto-pay.
+- **Card restrictions** – Realtime rules that allow or block Expensify Card transactions at the point of sale. Only appears after the Expensify Card is enabled for the workspace.
+- **Expense defaults** – Merchant and merchant type rules that automatically code expenses.
+- **Require fields** – Rules that require specific fields for a category before an expense is submitted.
+- **Flag for review** – Rules that flag expenses for approver review when a category's amount limits are exceeded.
+
+---
+
+# How to create a rule in the Rules hub
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Rules**.
+4. Click **+ Rule**.
+5. On the **New rule** page, choose what you want to do:
+   - **Restrict card spend** – Block or limit spend at the point of sale.
+   - **Flag for review** – Notify approvers when expenses exceed category limits.
+   - **Require fields** – Make sure key fields are filled in before expenses are submitted.
+   - **Apply expense defaults** – Update fields without the submitter doing anything.
+6. Complete the creation flow for the option you selected, then click **Save rule**.
+
+---
+
+# How to configure Require fields rules
+
+Require fields rules make sure key fields are filled in for a specific category before an expense is submitted.
+
+To create one:
+
+1. On the **Rules** page, open the **Require fields** tab.
+2. Click **+ Rule**, then select **Require fields**. On an empty **Require fields** tab, you can also click **Create require rule**.
+3. Select the **Category** the rule applies to.
+4. Turn on the fields to require, such as **Require description**, **Require attendees**, or a receipt requirement (**Always require receipt** or **Require itemized receipt**, with an optional amount threshold).
+5. Click **Save rule**.
+
+Each category with a Require fields rule appears as a single row on the **Require fields** tab, showing the condition (`Category is "<name>"`) and the required fields. To edit a rule, click its row. To remove rules, select one or more rows and click **Delete**.
+
+---
+
+# How to configure Flag for review rules
+
+Flag for review rules alert approvers when expenses in a category exceed an amount limit.
+
+To create one:
+
+1. On the **Rules** page, open the **Flag for review** tab.
+2. Click **+ Rule**, then select **Flag for review**. On an empty **Flag for review** tab, you can also click **Create flag rule**.
+3. Select the **Category** the rule applies to.
+4. Set the amount, then choose the limit type:
+   - **Individual expense** – Flag individual expense amounts in this category.
+   - **Category total** – Flag the daily category total per expense report.
+5. Click **Save rule**.
+
+Each category with a Flag for review rule appears as a single row on the **Flag for review** tab. To edit a rule, click its row. To remove rules, select one or more rows and click **Delete**.
+
 ---
 
 # How to configure Expense Rules
@@ -133,6 +196,8 @@ Available options:
 # How to configure Category Rules
 
 Category Rules let you fine-tune how individual categories behave.
+
+**Note:** When the updated Rules experience is enabled, **Flag amounts over** and **Require fields** are created in the Rules hub instead of individual category settings. See **How to configure Flag for review rules** and **How to configure Require fields rules** above. The remaining category settings (Approver, Default tax rate, Description hint) stay in the category's settings.
 
 To manage them:
 
