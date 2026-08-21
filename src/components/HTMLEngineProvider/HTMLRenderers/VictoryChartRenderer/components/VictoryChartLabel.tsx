@@ -14,7 +14,7 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Color, SkFont} from '@shopify/react-native-skia';
 
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
-import React from 'react';
+import React, {useSyncExternalStore} from 'react';
 
 type VictoryChartLabelsProps = LabelItem & {
     timezone?: SelectedTimezone;
@@ -34,9 +34,11 @@ type ProcessedLine = {
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
 function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
+    // Not `useLocalize`, whose `LocaleContextProvider` import chain breaks the CLI renderer's standalone binary build.
+    const preferredLocale = useSyncExternalStore(IntlStore.subscribe, IntlStore.getCurrentLocale, IntlStore.getCurrentLocale);
     const typefaces = useChartTypefaces();
     const theme = useTheme();
-    const displayText = getLocalizedVictoryChartLabelText(text, timezone, IntlStore.getCurrentLocale());
+    const displayText = getLocalizedVictoryChartLabelText(text, timezone, preferredLocale);
     const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {
             const lineColor = resolveChartThemeColor(color?.[index], theme);
