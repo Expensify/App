@@ -89,12 +89,6 @@ App tests use Jest. Tests for `.github/` and `scripts/` live in `tests/tooling/`
 - **NewDot Help**: https://help.expensify.com/new-expensify/hubs/
 - **OldDot/Expensify Classic Help**: https://help.expensify.com/expensify-classic/hubs/
 
-## Development Setup Requirements
-
-### Sentry analysis
-
-Use Sentry skill whenever user wants to analyze any data from Sentry. It may be: spans, metrics, crashes, crash free rate etc.
-
 ## Development Environment
 
 ### Dev Server
@@ -111,3 +105,7 @@ Use the `/playwright-app-testing` skill to test and debug the App in a browser. 
 ### Mobile Device Testing
 
 Use the `/agent-device` skill to drive the App on iOS and Android (simulators or real devices) for interactive testing, performance profiling, bug reproduction, and device-specific debugging.
+
+### Sentry Analysis
+
+Use the Sentry skill whenever the user wants to analyze any data from Sentry: spans, metrics, crashes, crash free rate, etc.
