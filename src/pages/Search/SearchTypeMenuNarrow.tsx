@@ -32,7 +32,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
@@ -134,6 +134,22 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, ...SAVED_SEARCH_ICON_NAMES, 'Trashcan', 'LinkCopy', 'Checkmark']);
 
+    // Resolve each saved search's icon once per collection change, keyed only on `savedSearches`.
+    // getSavedSearchIconName parses the query with buildSearchQueryJSON, whose small FIFO cache thrashes
+    // when 50+ queries are parsed together in the same order. Deriving the map here (instead of parsing
+    // inline in the tab map below) keeps the parser from re-running on every unrelated Onyx update or state
+    // change in this frequently-rerendering component. Mirrors the same pattern in SavedSearchList.
+    const savedSearchIconNames = useMemo(() => {
+        const iconNames = new Map<string, ReturnType<typeof getSavedSearchIconName>>();
+        for (const item of Object.values(savedSearches ?? {})) {
+            if (iconNames.has(item.query)) {
+                continue;
+            }
+            iconNames.set(item.query, getSavedSearchIconName(item.query));
+        }
+        return iconNames;
+    }, [savedSearches]);
+
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
     const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
@@ -164,7 +180,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   return {
                       key,
-                      icon: expensifyIcons[getSavedSearchIconName(item.query)],
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? getSavedSearchIconName(item.query)],
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                       pendingAction: item.pendingAction,

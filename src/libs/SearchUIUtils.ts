@@ -5071,7 +5071,7 @@ const SAVED_SEARCH_ICON_NAMES: readonly SavedSearchIconName[] = [...Object.value
  * icon for queries that can't be parsed into a known data type - including queries whose type is present
  * but outside the supported set (e.g. a hand-edited `type:test` URL), which have no entry in the map.
  */
-function getSavedSearchIconName(query: string): SavedSearchIconName {
+function getSavedSearchIconName(query: string | undefined): SavedSearchIconName {
     // A missing/empty query resolves to the generic fallback for every caller: this keeps the static
     // twin (which coerces a missing query to '') and the interactive menus (which pass query untouched)
     // visually identical, and avoids passing an empty/undefined query into buildSearchQueryJSON - which
