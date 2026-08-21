@@ -55,11 +55,18 @@ type ReadOptions = {optimisticData: CapturedUpdate[]; finallyData: CapturedUpdat
 
 function getReadOptions(): ReadOptions {
     const options = mockRead.mock.calls.at(0)?.at(2);
-    if (!options || typeof options !== 'object') {
+    if (!options || typeof options !== 'object' || !('optimisticData' in options)) {
         throw new Error('read was not called with onyx options');
     }
 
-    const {optimisticData, finallyData} = options as {optimisticData?: CapturedUpdate[]; finallyData?: CapturedUpdate[]};
+    const {optimisticData, finallyData} = options;
+    if (optimisticData !== undefined && !Array.isArray(optimisticData)) {
+        throw new Error('optimisticData was not an update collection');
+    }
+    if (finallyData !== undefined && !Array.isArray(finallyData)) {
+        throw new Error('finallyData was not an update collection');
+    }
+
     return {
         optimisticData: optimisticData ?? [],
         finallyData: finallyData ?? [],
@@ -95,6 +102,8 @@ function getOptimisticAccountID(optimisticData: CapturedUpdate[]): number {
 
 const OWNER_ACCOUNT_ID = 999;
 const OWNER_LOGIN = 'owner@test.com';
+const STALE_OPTIMISTIC_ACCOUNT_ID = 111;
+const FRESH_OPTIMISTIC_ACCOUNT_ID = 222;
 
 describe('createAgent', () => {
     beforeEach(() => {
@@ -398,8 +407,8 @@ describe('createAgent', () => {
     it('prunes mapping entries older than 30 days, keeping fresher ones', () => {
         const now = Date.now();
         const existingCreatedAt = {
-            '111': now - 31 * 24 * 60 * 60 * 1000,
-            '222': now - 1 * 24 * 60 * 60 * 1000,
+            [STALE_OPTIMISTIC_ACCOUNT_ID]: now - 31 * 24 * 60 * 60 * 1000,
+            [FRESH_OPTIMISTIC_ACCOUNT_ID]: now - 1 * 24 * 60 * 60 * 1000,
         };
 
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, undefined, undefined, existingCreatedAt);
@@ -408,14 +417,14 @@ describe('createAgent', () => {
         const mappingPrune = getUpdateRecord(optimisticData, ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
         const timestampPrune = getUpdateRecord(optimisticData, ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
 
-        expect(mappingPrune['111']).toBeNull();
-        expect(mappingPrune['222']).toBeUndefined();
-        expect(timestampPrune['111']).toBeNull();
-        expect(timestampPrune['222']).toBeUndefined();
+        expect(mappingPrune[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeNull();
+        expect(mappingPrune[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
+        expect(timestampPrune[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeNull();
+        expect(timestampPrune[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
     });
 
     it('does not write mapping prune updates when nothing is stale', () => {
-        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, undefined, undefined, {'222': Date.now() - 24 * 60 * 60 * 1000});
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, undefined, undefined, {[FRESH_OPTIMISTIC_ACCOUNT_ID]: Date.now() - 24 * 60 * 60 * 1000});
 
         const {optimisticData} = getWriteOptions();
         expect(findUpdate(optimisticData, ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING)).toBeUndefined();
@@ -450,8 +459,8 @@ describe('openAgentsPage', () => {
     it('prunes mapping entries older than 30 days, keeping fresher ones', () => {
         const now = Date.now();
         const existingCreatedAt = {
-            '111': now - 31 * 24 * 60 * 60 * 1000,
-            '222': now - 1 * 24 * 60 * 60 * 1000,
+            [STALE_OPTIMISTIC_ACCOUNT_ID]: now - 31 * 24 * 60 * 60 * 1000,
+            [FRESH_OPTIMISTIC_ACCOUNT_ID]: now - 1 * 24 * 60 * 60 * 1000,
         };
 
         openAgentsPage(existingCreatedAt);
@@ -460,13 +469,13 @@ describe('openAgentsPage', () => {
         const mappingPrune = getUpdateRecord(optimisticData, ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
         const timestampPrune = getUpdateRecord(optimisticData, ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
 
-        expect(mappingPrune['111']).toBeNull();
-        expect(mappingPrune['222']).toBeUndefined();
-        expect(timestampPrune['111']).toBeNull();
+        expect(mappingPrune[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeNull();
+        expect(mappingPrune[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
+        expect(timestampPrune[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeNull();
     });
 
     it('does not write mapping prune updates when nothing is stale', () => {
-        openAgentsPage({'222': Date.now() - 24 * 60 * 60 * 1000});
+        openAgentsPage({[FRESH_OPTIMISTIC_ACCOUNT_ID]: Date.now() - 24 * 60 * 60 * 1000});
 
         const {optimisticData} = getReadOptions();
         expect(findUpdate(optimisticData, ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING)).toBeUndefined();

@@ -8,6 +8,11 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+const OPTIMISTIC_ACCOUNT_ID = 111;
+const REAL_ACCOUNT_ID = 222;
+const OTHER_OPTIMISTIC_ACCOUNT_ID = 999;
+const OTHER_REAL_ACCOUNT_ID = 888;
+
 describe('useResolvedAgentAccountID', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -23,47 +28,47 @@ describe('useResolvedAgentAccountID', () => {
     });
 
     it('returns the route accountID when there is no mapping entry', async () => {
-        const {result} = renderHook(() => useResolvedAgentAccountID(111));
+        const {result} = renderHook(() => useResolvedAgentAccountID(OPTIMISTIC_ACCOUNT_ID));
 
         await waitFor(() => {
-            expect(result.current).toEqual([111, true]);
+            expect(result.current).toEqual([OPTIMISTIC_ACCOUNT_ID, true]);
         });
     });
 
     it('resolves to the real accountID when a mapping entry exists', async () => {
-        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {111: 222});
+        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[OPTIMISTIC_ACCOUNT_ID]: REAL_ACCOUNT_ID});
         await waitForBatchedUpdates();
 
-        const {result} = renderHook(() => useResolvedAgentAccountID(111));
+        const {result} = renderHook(() => useResolvedAgentAccountID(OPTIMISTIC_ACCOUNT_ID));
 
         await waitFor(() => {
-            expect(result.current).toEqual([222, true]);
+            expect(result.current).toEqual([REAL_ACCOUNT_ID, true]);
         });
     });
 
     it('does not resolve when the mapping has entries for other accountIDs only', async () => {
-        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {999: 888});
+        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[OTHER_OPTIMISTIC_ACCOUNT_ID]: OTHER_REAL_ACCOUNT_ID});
         await waitForBatchedUpdates();
 
-        const {result} = renderHook(() => useResolvedAgentAccountID(111));
+        const {result} = renderHook(() => useResolvedAgentAccountID(OPTIMISTIC_ACCOUNT_ID));
 
         await waitFor(() => {
-            expect(result.current).toEqual([111, true]);
+            expect(result.current).toEqual([OPTIMISTIC_ACCOUNT_ID, true]);
         });
     });
 
     it('updates reactively once the mapping arrives after the hook has already mounted', async () => {
-        const {result} = renderHook(() => useResolvedAgentAccountID(111));
+        const {result} = renderHook(() => useResolvedAgentAccountID(OPTIMISTIC_ACCOUNT_ID));
 
         await waitFor(() => {
-            expect(result.current).toEqual([111, true]);
+            expect(result.current).toEqual([OPTIMISTIC_ACCOUNT_ID, true]);
         });
 
-        await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {111: 222});
+        await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[OPTIMISTIC_ACCOUNT_ID]: REAL_ACCOUNT_ID});
         await waitForBatchedUpdates();
 
         await waitFor(() => {
-            expect(result.current).toEqual([222, true]);
+            expect(result.current).toEqual([REAL_ACCOUNT_ID, true]);
         });
     });
 });
