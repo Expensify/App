@@ -10,12 +10,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getPlatform from '@libs/getPlatform';
+import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 
@@ -36,6 +38,7 @@ import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 import TableListHeader from './TableListHeader';
 import TableSemanticContainer from './TableSemanticContainer';
+import useDynamicColumnWidths from './useDynamicColumnWidths';
 
 type TableHeaderComponent = React.JSXElementConstructor<TableHeaderProps> & {
     type?: string;
@@ -234,6 +237,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     selectionEnabled,
     shouldPreserveSelectionOnSearch,
     shouldEnableSelectionInNarrowPaneModal,
+    shouldUseDynamicColumns = false,
     onRowSelectionChange,
     onSearchStringChange,
     ...listProps
@@ -295,6 +299,27 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // scrolling list (native only; the web variant of the hook is a no-op).
     const {isKeyboardShown} = useKeyboardState();
     const {containerRef: listContainerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
+
+    const [tableWidth, setTableWidth] = useState(0);
+
+    const handleTableLayout = (event: LayoutChangeEvent) => {
+        setTableWidth(event.nativeEvent.layout.width);
+    };
+
+    // Narrow and medium layouts render as cards with no columns to size, and native can't measure text, so both keep the
+    // static tracks and never measure the table.
+    const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
+
+    // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
+    // searches or filters instead of reflowing on every keystroke.
+    const {gridTemplateColumns: dynamicGridTemplateColumns, scrollWidth: dynamicScrollWidth} = useDynamicColumnWidths<DataType, ColumnKey>({
+        columns,
+        data,
+        tableWidth,
+        isEnabled: isDynamicSizingEnabled,
+        // In the wide layout the checkbox column is rendered whenever selection is enabled.
+        hasSelectionColumn: !!selectionEnabled,
+    });
 
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
         ...filterMethods,
@@ -397,6 +422,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         processedData,
         originalDataLength,
         columns,
+        dynamicGridTemplateColumns,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
@@ -433,6 +459,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                scrollWidth={dynamicScrollWidth}
+                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {renderedChildren}
             </TableSemanticContainer>

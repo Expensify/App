@@ -43,6 +43,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: '取消共享',
         yes: '是',
         no: '否',
+        dontChange: '不更改',
         ok: 'OK',
         notNow: '暂不处理',
         noThanks: '不用了，谢谢',
@@ -936,7 +937,6 @@ const translations: TranslationDeepObject<typeof en> = {
             addVirtualCardPersonalDetails: {title: '添加你的详细信息以查看并开始使用 Expensify 卡。', subtitle: 'Expensify 卡', cta: '添加详细信息'},
             enterSignerInfo: {title: '需要签署人信息', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `银行账户 ${bankAccountLastFour}`},
         },
-        announcements: '公告',
         discoverSection: {
             title: '发现',
             menuItemTitleNonAdmin: '了解如何创建报销和提交报表。',
@@ -1180,6 +1180,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '创建工时报销',
     },
     iou: {
+        expenseAdded: '已添加支出',
+        invoiceSent: '已发送发票',
         amount: '金额',
         percent: '百分比',
         date: '日期',
@@ -1477,8 +1479,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
             unableToSubmitReport: '无法提交报表',
+            unableToMarkAsDone: '无法标记为完成',
             allTransactionsPendingDescription: '您无法提交此报表，因为所有交易都在待处理。它们可能需要几天时间才会入账。',
+            allTransactionsPendingMarkAsDoneDescription: '您无法将此报表标记为完成，因为所有交易都在待处理。它们可能需要几天时间才会入账。',
             allExpensesOnHoldDescription: '你无法提交此报表，因为所有费用都已被暂挂。请取消暂挂后再提交。',
+            allExpensesOnHoldMarkAsDoneDescription: '你无法将此报表标记为完成，因为所有费用都已被暂挂。请取消暂挂后再继续。',
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
             failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
         },
@@ -1487,6 +1492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `已开始结算。在 ${submitterDisplayName} 启用其钱包之前，付款将被暂挂。`,
         enableWallet: '启用钱包',
         hold: '暂挂',
+        sendToSomeone: '发送给某人',
         unhold: '解除保留',
         holdExpense: () => ({
             one: '暂挂报销',
@@ -1985,8 +1991,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: '个人头像',
         customInstructions: '自定义指令',
         copilotIntoAccount: 'Copilot 到账户',
-        viewUserHistory: '查看用户历史记录',
-        viewAgentHistory: '查看代理历史记录',
         publicSection: {
             title: '公开',
             subtitle: '这些详细信息会显示在你的公开资料中，任何人都可以看到。',
@@ -4348,6 +4352,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
             railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
         },
+        defaultWorkspaceTravelDisabled: {title: '差旅功能未启用', message: '如需预订，请在您的默认工作区中启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。'},
     },
     workspace: {
         common: {
@@ -4430,7 +4435,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             subscription: '订阅',
             markAsEntered: '标记为手动输入',
             markAsExported: '标记为已导出',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `导出到 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: '我们再仔细检查一下，确保一切都正确。',
             lineItemLevel: '单行项目级别',
             reportLevel: '报表级别',
@@ -4748,6 +4753,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 qboInvoiceCollectionAccount: (integrationName = 'QuickBooks Online') => `${integrationName} 发票收款账户`,
                 accountSelectDescription: (integrationName = 'QuickBooks Online') => `选择用于支付账单的来源，我们会在 ${integrationName} 中创建这笔付款。`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') => `选择接收发票付款的账户，我们会在 ${integrationName} 中创建这笔付款。`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName} 货币转换手续费账户`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') => `当公司承担海外支付的货币兑换成本时，我们会在 ${integrationName} 中将该成本作为一条分录记入此科目。`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `我们会自动将借记卡交易中的商户名称与 ${integrationName} 中任何相应的供应商进行匹配。如果不存在对应供应商，我们会创建一个名为“Debit Card Misc.”的供应商以供关联。`,
@@ -5547,11 +5554,62 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subsidiarySelectDescription: '请选择要从中导入数据的 DualEntry 子公司。',
             noCompaniesFound: '未找到公司',
             noCompaniesFoundDescription: '请在 DualEntry 中添加一家公司，然后再次同步连接',
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 DualEntry 中添加供应商，然后再次同步连接',
+            noAccountsFound: '未找到账户',
+            noAccountsFoundDescription: '请在 DualEntry 中添加账户，然后再次同步连接',
             accountTypesDescription: '您的 DualEntry 账户将作为类别导入。',
             enableNewAccountsTitle: '启用新导入的账户',
             enableNewAccountsDescription: '新的 DualEntry 账户将作为类别提供。',
             classificationsImport: '所有 DualEntry 分类都会作为标签导入',
             importDescription: '选择要从 DualEntry 导入的编码配置。',
+            exportDescription: '配置 Expensify 数据导出到 DualEntry 的方式。',
+            exportReimbursable: {
+                label: '将可报销费用导出为',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: '供应商账单',
+                    },
+                },
+            },
+            exportDate: {
+                label: '供应商账单日期',
+                description: '将报表导出到 DualEntry 时使用此日期。',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最新支出日期',
+                        description: '报告中最近一次支出的日期。',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: '导出日期',
+                        description: '报告导出至 DualEntry 的日期。',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提交日期',
+                        description: '报告提交审批的日期。',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: '导出公司卡费用为',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: '直接费用',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: '所有公司卡的默认供应商',
+                description: '为未自动匹配的费用选择一个默认的 DualEntry 供应商。',
+            },
+            companyCardAccount: {
+                label: '公司卡账户',
+                description: '选择公司卡交易的导出位置。',
+            },
+            expensifyCardAccount: {
+                label: 'Expensify Card 账户',
+                description: '选择 Expensify Card 交易的导出位置。',
+            },
         },
         type: {
             free: '免费',
@@ -6468,8 +6526,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseLimitType: '选择限额类型',
                 smartLimit: '智能限额',
                 smartLimitDescription: '在需要审批前可支出至指定金额上限',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>在需要审批前可支出至指定金额上限。<a href="${workspaceWorkflowsLink}">启用审批</a>后即可选择此选项。</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>在需要审批前可支出至指定金额上限。${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">启用审批</a>` : '启用审批'}后即可选择此选项。</muted-text-label>`,
                 monthly: '每月',
                 monthlyDescription: '每月消费上限为特定金额',
                 fixedAmount: '固定金额',
@@ -6898,6 +6956,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             startDate: '开始日期',
             endDate: '结束日期',
             autoGeneratedRateTooltip: '此费率为自动生成。',
+            autoUpdateGovernmentRate: '自动更新政府费率',
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `当${countryPhrase}发布新指引时自动创建新费率。`,
+            governmentRateCountries: {US: '美国', CA: '加拿大', GB: '英国', AU: '澳大利亚'},
         },
         editor: {
             descriptionInputLabel: '描述',
@@ -6986,7 +7047,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         },
         exportAgainModal: {
             title: '小心！',
-            description: (reportName: string, connectionName: ConnectionName) => `以下报表已导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}。确定要再次导出吗？
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `以下报表已导出到 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}。确定要再次导出吗？
 
 ${reportName}`,
             confirmText: '是，再次导出',
@@ -6994,20 +7059,20 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: '小心！',
-            description: (connectionName: ConnectionName) =>
-                `所选报表连接到不同的 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 公司，因此无法一起导出。请选择连接到同一公司的报表，然后重试。`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `所选报表关联到不同的 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 公司，因此无法一起导出。请选择关联到同一公司的报表后重试。`,
             confirmText: '知道了',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `将 ${exportableCount}/${selectedCount} 份报表导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}？`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `将 ${exportableCount}/${selectedCount} 份报表导出到 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 吗？`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`只有连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 的报表会被导出。`);
+                    reasons.push(`只有与 ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 关联的报表会被导出。`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`只有符合导出条件的报表会被导出。`);
+                    reasons.push(`只有符合导出条件的报表才会被导出。`);
                 }
                 return `${reasons.join('\n\n')}\n\n将导出以下报表：`;
             },
@@ -7260,6 +7325,12 @@ ${reportName}`,
                 description: '如果你希望让你的收据链接对任何人可访问，例如客户或外部会计，那么这个功能就是为你准备的。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>公开收据可见性仅适用于 Control 方案，起价为<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            governmentDistanceRates: {
+                title: '自动更新政府费率',
+                description: '如果你希望在政府发布新的指引时，Expensify 自动为你更新里程费率，那么此功能正适合你。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>自动更新政府费率仅适用于 Control 方案，起价为<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
         },
         downgrade: {
@@ -7895,6 +7966,7 @@ ${reportName}`,
             authenticationError: (providerName: string) => `由于连接已过期，无法连接到 ${providerName}。`,
             reconnect: '重新连接',
             reconnectLink: '重新连接。',
+            findIntegration: '查找集成',
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
@@ -8410,6 +8482,9 @@ ${reportName}`,
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `已将代理规则“${title}”更新为：${prompt}` : `已将代理规则更新为：${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `已移除代理规则“${title}”` : '已移除代理规则'),
         },
+        addedRule: '已添加一条规则',
+        updatedRule: '更新了一条规则',
+        removedRule: '已删除一条规则',
         expensifyCardRule: {
             actionVerb: {block: '已阻止', allow: '允许'},
             amountOperator: {over: '结束', under: '在……之下'},
@@ -9984,9 +10059,14 @@ ${reportName}`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: '新的管理员角色类型',
-                body: '通过新增卡片、成员和付款管理员角色，为你的团队提供更精细的权限控制。',
-                cta: '试用一下',
+                heading: '增强型供应商映射',
+                body: '创建供应商和自定义规则，轻松映射到主流会计软件。',
+                cta: '试一试',
+            },
+            member: {
+                heading: '为你预构建的代理',
+                body: '使用预构建或自定义智能代理，代表你自动编写、拆分并提交报销费用。',
+                cta: '试用',
             },
         },
     },

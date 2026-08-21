@@ -86,6 +86,7 @@ export default function TableRow({
         isMobileSelectionEnabled,
         shouldEnableSelectionInNarrowPaneModal = false,
         tableListMetadata,
+        dynamicGridTemplateColumns,
     } = useTableContext();
     const semanticRowID = useTableRowSemanticID();
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
@@ -101,7 +102,9 @@ export default function TableRow({
     const item = processedData.at(rowIndex);
     const rowCount = processedData.length;
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
-    const gridTemplateColumns = getGridTemplateColumns(columns);
+    // The tracks resolved from the columns' content are shared by the header and every row, so they take precedence over
+    // the static ones. They're only ever set on wide web layouts.
+    const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
 
     const isDisabled = !!disabled || isAccessibilityHidden;

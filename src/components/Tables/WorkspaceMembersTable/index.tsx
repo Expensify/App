@@ -52,6 +52,9 @@ type WorkspaceMembersTableProps = {
     headerComponent?: React.ReactElement;
 };
 
+/** Width the member cell's avatar and the space after it take before the name and email start. */
+const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
+
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
     APPROVERS: 'approvers',
@@ -78,11 +81,20 @@ export default function WorkspaceMembersTable({
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey>> = [
+    const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
         {
             key: 'member',
             label: translate('common.member'),
             sortable: true,
+            dynamicSizing: {
+                // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
+                // column's width.
+                getContentToMeasure: (item) => [
+                    {text: item.name, fontSize: variables.fontSizeNormal},
+                    {text: item.email, fontSize: variables.fontSizeLabel},
+                ],
+                extraWidth: MEMBER_CELL_AVATAR_WIDTH,
+            },
         },
 
         ...(shouldShowCustomField1Column
@@ -91,6 +103,9 @@ export default function WorkspaceMembersTable({
                       sortable: true,
                       key: 'customField1' as const,
                       label: translate('workspace.common.customField1'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeeUserID ? [{text: item.employeeUserID, fontSize: variables.fontSizeNormal}] : []),
+                      },
                   },
               ]
             : []),
@@ -100,6 +115,9 @@ export default function WorkspaceMembersTable({
                       sortable: true,
                       key: 'customField2' as const,
                       label: translate('workspace.common.customField2'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeePayrollID ? [{text: item.employeePayrollID, fontSize: variables.fontSizeNormal}] : []),
+                      },
                   },
               ]
             : []),
@@ -107,7 +125,11 @@ export default function WorkspaceMembersTable({
             key: 'role',
             label: translate('common.role'),
             sortable: true,
-            width: variables.workspaceMembersRoleColumnWidth,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: variables.fontSizeNormal}],
+                // A role is one of a short, known set of labels, so the column always shows them in full.
+                shouldFitContent: true,
+            },
         },
         {
             label: '',
@@ -320,6 +342,7 @@ export default function WorkspaceMembersTable({
 
     return (
         <Table
+            shouldUseDynamicColumns
             ref={ref}
             data={members}
             filters={filterConfig}
