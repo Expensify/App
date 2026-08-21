@@ -48,6 +48,7 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
             }),
             achAuthorizationForm: enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM].at(0),
+            bankStatement: enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT]?.at(0),
             bankAccountID: Number(bankAccountID),
         });
     };
