@@ -139,7 +139,7 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         shouldHideHeader?: boolean;
     };
 
-function IOURequestStepConfirmation({
+function IOURequestStepConfirmationContent({
     report: reportReal,
     reportDraft,
     route,
@@ -891,7 +891,7 @@ function IOURequestStepConfirmation({
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
     const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
-    const content = (
+    return (
         <>
             <TelemetrySpanManager
                 iouType={iouType}
@@ -1073,27 +1073,23 @@ function IOURequestStepConfirmation({
             </DragAndDropProvider>
         </>
     );
+}
 
-    /*
-     * When this step is embedded on IOURequestStartPage (shouldHideHeader=true), that page already renders
-     * the ScreenWrapper for this screen and owns its focus trap - a trap whose containers are the parent
-     * header (holding the Back button), the tab bar and the active tab. Every ScreenWrapper mounts its own
-     * FocusTrapForScreen on the shared trap stack, so a second one here would activate on top of the parent's
-     * and pause it, confining Tab to the confirmation form and leaving the Back button unreachable.
-     * Render the content on its own instead, the same way StepScreenWrapper's `shouldShowWrapper` gate already
-     * keeps the Scan and Distance tabs from mounting a nested wrapper.
-     */
-    if (shouldHideHeader) {
-        return content;
-    }
-
+/**
+ * The standalone RHP route. It owns the chrome for this screen - the ScreenWrapper, its focus trap and its
+ * viewport sizing - and renders the same body inside it. IOURequestStartPage composes the body directly instead,
+ * because it already owns a trap whose containers are its header (with the Back button), its tab bar and the
+ * active tab; a second ScreenWrapper there would push another FocusTrapForScreen onto the shared trap stack,
+ * pause that one, and confine Tab to the confirmation form.
+ */
+function IOURequestStepConfirmation(props: IOURequestStepConfirmationProps) {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             testID="IOURequestStepConfirmation"
         >
-            {content}
+            <IOURequestStepConfirmationContent {...props} />
         </ScreenWrapper>
     );
 }
@@ -1102,4 +1098,11 @@ const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransact
 
 const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
 
+const IOURequestStepConfirmationContentWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationContent);
+
+const IOURequestStepConfirmationContentWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationContentWithFullTransactionOrNotFound);
+
 export default IOURequestStepConfirmationWithWritableReportOrNotFound;
+
+/** The body on its own, for a parent that already owns this screen's ScreenWrapper and focus trap. */
+export {IOURequestStepConfirmationContentWithWritableReportOrNotFound};

@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {startSplitBill} from '@libs/actions/IOU/Split';
 
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
+import {IOURequestStepConfirmationContentWithWritableReportOrNotFound} from '@pages/iou/request/step/IOURequestStepConfirmation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1666,6 +1667,11 @@ describe('IOURequestStepConfirmationPageTest', () => {
     describe('Embedded on IOURequestStartPage', () => {
         // IOURequestStartPage renders its own ScreenWrapper and hands it the focus trap containers for the
         // header (which holds the Back button), the tab bar and the active tab. This stands in for that wrapper.
+        //
+        // These assert on which component owns the ScreenWrapper, which is a proxy for the fix rather than a test of
+        // it: every ScreenWrapper mounts a FocusTrapForScreen, so no wrapper means no competing trap. The reported
+        // Tab-order behaviour itself cannot be exercised here, because FocusTrapForScreen is a pass-through on the
+        // native platform Jest resolves - a green run here is not coverage of the focus-trap regression.
         const PARENT_SCREEN_TEST_ID = 'IOURequestStartPage';
         const CONFIRMATION_SCREEN_TEST_ID = 'IOURequestStepConfirmation';
 
@@ -1678,10 +1684,10 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
 
         /**
-         * Renders the confirmation the way the manual tab does when `shouldHideHeader` is set (inside the start
-         * page's ScreenWrapper), or the way the standalone RHP route does when it isn't.
+         * Renders the body the way the manual tab composes it (inside the start page's ScreenWrapper), or the
+         * standalone RHP route, which brings its own.
          */
-        async function renderConfirmation({shouldHideHeader, iouType = 'submit'}: {shouldHideHeader: boolean; iouType?: 'submit' | 'split'}) {
+        async function renderConfirmation({isEmbedded, iouType = 'submit'}: {isEmbedded: boolean; iouType?: 'submit' | 'split'}) {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                     ...DEFAULT_SPLIT_TRANSACTION,
@@ -1690,8 +1696,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 });
             });
 
+            const Confirmation = isEmbedded ? IOURequestStepConfirmationContentWithWritableReportOrNotFound : IOURequestStepConfirmationWithWritableReportOrNotFound;
             const confirmation = (
-                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                <Confirmation
                     route={{
                         key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
                         name: 'Money_Request_Step_Confirmation',
@@ -1704,7 +1711,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     }}
                     // @ts-expect-error only setParams is used by the participant selection handler.
                     navigation={{setParams: jest.fn()}}
-                    shouldHideHeader={shouldHideHeader}
+                    shouldHideHeader={isEmbedded}
                 />
             );
 
@@ -1712,7 +1719,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 <OnyxListItemProvider>
                     <HTMLProviderWrapper>
                         <CurrentUserPersonalDetailsProvider>
-                            <LocaleContextProvider>{shouldHideHeader ? <ScreenWrapper testID={PARENT_SCREEN_TEST_ID}>{confirmation}</ScreenWrapper> : confirmation}</LocaleContextProvider>
+                            <LocaleContextProvider>{isEmbedded ? <ScreenWrapper testID={PARENT_SCREEN_TEST_ID}>{confirmation}</ScreenWrapper> : confirmation}</LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
                     </HTMLProviderWrapper>
                 </OnyxListItemProvider>,
@@ -1722,8 +1729,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         }
 
         it('mounts no ScreenWrapper of its own when embedded, so the start page keeps sole ownership of the focus trap', async () => {
-            // Given the confirmation rendered the way the manual tab renders it, inside the start page's ScreenWrapper
-            await renderConfirmation({shouldHideHeader: true});
+            // Given the body composed the way the manual tab composes it, inside the start page's ScreenWrapper
+            await renderConfirmation({isEmbedded: true});
 
             // Then the confirmation content is on the screen
             expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
@@ -1735,8 +1742,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
 
         it('mounts no ScreenWrapper of its own when embedded in the split expense flow either', async () => {
-            // Given the same embedded render for the split flow, which reuses the start page and this same component
-            await renderConfirmation({shouldHideHeader: true, iouType: 'split'});
+            // Given the same embedded composition for the split flow, which reuses the start page and this same body
+            await renderConfirmation({isEmbedded: true, iouType: 'split'});
 
             // Then the split manual tab is covered by the same fix
             expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
@@ -1745,8 +1752,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
 
         it('keeps its own ScreenWrapper - and therefore its own focus trap - on the standalone route', async () => {
-            // Given the confirmation rendered as the standalone RHP route, with no parent owning its trap
-            await renderConfirmation({shouldHideHeader: false});
+            // Given the standalone RHP route, with no parent owning its trap
+            await renderConfirmation({isEmbedded: false});
 
             // Then it still wraps itself, so the standalone screen keeps trapping focus exactly as before
             expect(await screen.findByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
