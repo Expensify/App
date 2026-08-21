@@ -4874,6 +4874,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 qboInvoiceCollectionAccount: (integrationName = 'QuickBooks Online') => `${integrationName} 請求書回収口座`,
                 accountSelectDescription: (integrationName = 'QuickBooks Online') => `請求書の支払元を選択すると、${integrationName} に支払いが作成されます。`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') => `請求書の入金先を選択すると、${integrationName} に支払いを作成します。`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName} 為替差損益勘定`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
+                    `会社が海外で行われた支払いに対する通貨換算コストを負担する場合、そのコストは仕訳として ${integrationName} のこの勘定科目に計上します。`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `デビットカード取引の加盟店名を、${integrationName} 内の対応する仕入先と自動的に照合します。該当する仕入先が存在しない場合は、関連付けのために「Debit Card Misc.」という仕入先を作成します。`,

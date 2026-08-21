@@ -3004,6 +3004,7 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_BILLING_VENDOR: 'travelInvoicingVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',

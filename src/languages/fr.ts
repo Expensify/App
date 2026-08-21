@@ -4953,6 +4953,9 @@ ${amount} pour ${merchant} - ${date}`,
                     `Choisissez l’endroit depuis lequel payer les factures et nous créerons le paiement dans ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') =>
                     `Choisissez où recevoir les paiements de factures et nous créerons le paiement dans ${integrationName}.`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `Compte de frais de conversion de devise ${integrationName}`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
+                    `Lorsque votre entreprise prend en charge les frais de conversion de devise pour un paiement effectué à l’étranger, nous comptabiliserons ces frais sur ce compte dans ${integrationName} sous forme d’écriture de journal.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Nous associerons automatiquement le nom du commerçant sur la transaction par carte de débit à tous les fournisseurs correspondants dans ${integrationName}. Si aucun fournisseur n’existe, nous créerons un fournisseur « Debit Card Misc. » pour l’association.`,

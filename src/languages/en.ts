@@ -5060,6 +5060,9 @@ const translations = {
                 qboInvoiceCollectionAccount: (integrationName = 'QuickBooks Online') => `${integrationName} invoice collections account`,
                 accountSelectDescription: (integrationName = 'QuickBooks Online') => `Choose where to pay bills from and we'll create the payment in ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') => `Choose where to receive invoice payments and we'll create the payment in ${integrationName}.`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName} currency conversion fee account`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
+                    `When your company covers the currency conversion cost on a payment made abroad, we'll post that cost to this account in ${integrationName} as a journal entry.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in ${integrationName}. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.`,

@@ -468,6 +468,9 @@ type QBOConnectionData = {
     /** Collection of journal entry accounts  */
     journalEntryAccounts: Account[];
 
+    /** Profit and loss accounts, the only ones a currency conversion cost can be charged to */
+    expenseAccounts: Account[];
+
     /** Collection of bank accounts */
     bankAccounts: Account[];
 
@@ -557,6 +560,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** ID of the bill payment account */
     reimbursementAccountID?: string;
+
+    /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+    fxExpenseAccount?: string;
 
     /** Account that receives the reimbursable expenses */
     reimbursableExpensesAccount?: Account;
