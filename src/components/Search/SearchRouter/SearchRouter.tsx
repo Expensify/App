@@ -447,16 +447,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
-                        navigateToAndOpenReport(
-                            item.login ? [item.login] : [],
+                        navigateToAndOpenReport({
+                            userLogins: item.login ? [item.login] : [],
                             personalDetails,
                             currentUserAccountID,
                             introSelected,
-                            guidedSetupAndTourStatus?.isSelfTourViewed,
-                            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                             betas,
-                            false,
-                        );
+                            shouldDismissModal: false,
+                        });
                     }
                 });
                 onRouterClose();
