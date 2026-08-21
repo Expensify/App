@@ -404,11 +404,12 @@ function useParticipantSubmission({
             return;
         }
 
-        // "Send to someone"/"Submit it to someone" converts a track expense (isFromGlobalCreate is false) and reaches this
-        // confirmation page by replacing the recipient picker in the RHP stack. Without an explicit backTo, the confirmation
-        // back button falls through to navigateToStartMoneyRequestStep, which for a SUBMIT action dismisses the whole RHP to
-        // the report instead of returning to the recipient list. Pass the picker route as backTo so back returns there. See #99145.
-        const shouldReturnToRecipientPicker = action === CONST.IOU.ACTION.SUBMIT && !splitTransaction?.isFromGlobalCreate;
+        // Both "Share with accountant" and "Send to someone"/"Submit it to someone" replace the picker in the RHP stack when
+        // moving a tracked expense, so the confirmation page needs an explicit backTo to return to it. Without it, the back
+        // button falls through to navigateToStartMoneyRequestStep, which for these actions dismisses the whole RHP to the report
+        // instead of returning to the picker. CATEGORIZE is excluded because it routes through the category step, which carries
+        // its own back path. See #99145.
+        const shouldReturnToParticipantPicker = isMovingTransactionFromTrackExpense && !isCategorizing;
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
@@ -417,7 +418,7 @@ function useParticipantSubmission({
             newReportID,
             undefined,
             undefined,
-            action === CONST.IOU.ACTION.SHARE || shouldReturnToRecipientPicker ? Navigation.getActiveRoute() : undefined,
+            shouldReturnToParticipantPicker ? Navigation.getActiveRoute() : undefined,
         );
 
         const route = isCategorizing
