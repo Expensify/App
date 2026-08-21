@@ -52,6 +52,7 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
     const onUnmount = () => {
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
     };
 
     const {
@@ -128,6 +129,14 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayoutRef.current?.width, viewfinderLayoutRef.current?.height, shouldAlignTop).then(({file, source}) => {
             endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            if (!isMultiScanEnabled) {
+                startSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE, {
+                    name: CONST.TELEMETRY.SPAN_RECEIPT_PREPARE,
+                    op: CONST.TELEMETRY.SPAN_RECEIPT_PREPARE,
+                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+                    attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+                });
+            }
             onCapture(file, source);
         });
     };
