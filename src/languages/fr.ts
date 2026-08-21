@@ -43,6 +43,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Arrêter le partage',
         yes: 'Oui',
         no: 'Non',
+        dontChange: 'Ne pas modifier',
         ok: 'OK',
         notNow: 'Pas maintenant',
         noThanks: 'Non merci',
@@ -974,7 +975,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
         },
-        announcements: 'Annonces',
         discoverSection: {
             title: 'Découvrir',
             menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des notes de frais.',
@@ -1542,9 +1542,14 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
             unableToSubmitReport: 'Impossible de soumettre la note de frais',
+            unableToMarkAsDone: 'Impossible de marquer comme terminé',
             allTransactionsPendingDescription:
                 'Vous ne pouvez pas soumettre cette note de frais, car toutes les transactions sont en attente. Leur comptabilisation peut prendre quelques jours.',
+            allTransactionsPendingMarkAsDoneDescription:
+                'Vous ne pouvez pas marquer cette note de frais comme terminée, car toutes les transactions sont en attente. Leur comptabilisation peut prendre quelques jours.',
             allExpensesOnHoldDescription: 'Vous ne pouvez pas soumettre cette note de frais, car toutes les dépenses sont en attente. Supprimez le blocage pour soumettre.',
+            allExpensesOnHoldMarkAsDoneDescription:
+                'Vous ne pouvez pas marquer cette note de frais comme terminée, car toutes les dépenses sont en attente. Supprimez le blocage pour continuer.',
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
             failedToSaveOdometerDraft: 'Impossible d’enregistrer votre brouillon de compteur kilométrique. Veuillez réessayer.',
         },
@@ -1553,6 +1558,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `a commencé à régler. Le paiement est en attente jusqu’à ce que ${submitterDisplayName} active son portefeuille.`,
         enableWallet: 'Activer le portefeuille',
         hold: 'En attente',
+        sendToSomeone: 'Envoyer à quelqu’un',
         unhold: 'Supprimer la mise en attente',
         holdExpense: () => ({
             one: 'Mettre la dépense en attente',
@@ -2070,8 +2076,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
-        viewUserHistory: 'Voir l’historique de l’utilisateur',
-        viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
             subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
@@ -5787,11 +5791,62 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             subsidiarySelectDescription: 'Choisissez la filiale dans DualEntry à partir de laquelle vous souhaitez importer des données.',
             noCompaniesFound: 'Aucune entreprise trouvée',
             noCompaniesFoundDescription: 'Veuillez ajouter une entreprise dans DualEntry et synchroniser à nouveau la connexion',
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans DualEntry et synchroniser à nouveau la connexion',
+            noAccountsFound: 'Aucun compte trouvé',
+            noAccountsFoundDescription: 'Veuillez ajouter des comptes dans DualEntry et synchroniser à nouveau la connexion',
             accountTypesDescription: 'Vos comptes DualEntry seront importés en tant que catégories.',
             enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
             enableNewAccountsDescription: 'Les nouveaux comptes DualEntry seront disponibles en tant que catégories.',
             classificationsImport: 'Toutes les classifications DualEntry sont importées en tant que tags',
             importDescription: 'Choisissez les configurations de codage à importer depuis DualEntry.',
+            exportDescription: 'Configurez comment les données Expensify sont exportées vers DualEntry.',
+            exportReimbursable: {
+                label: 'Exporter les dépenses remboursables en tant que',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Factures fournisseurs',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Date de la facture fournisseur',
+                description: 'Utiliser cette date lors de l’exportation des notes de frais vers DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date de la dernière dépense',
+                        description: 'Date de la dépense la plus récente figurant dans le rapport.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: "Date d'exportation",
+                        description: "Date d'exportation du rapport vers DualEntry.",
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Date de soumission',
+                        description: 'Date de soumission du rapport pour approbation.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Exporter les dépenses de carte d’entreprise en tant que',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Dépenses directes',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Fournisseur par défaut pour toutes les cartes d’entreprise',
+                description: 'Choisissez un fournisseur DualEntry par défaut pour les dépenses qui ne correspondent pas automatiquement.',
+            },
+            companyCardAccount: {
+                label: 'Compte de carte d’entreprise',
+                description: 'Choisissez où exporter les transactions de carte d’entreprise.',
+            },
+            expensifyCardAccount: {
+                label: 'Compte Expensify Card',
+                description: 'Choisissez où exporter les transactions Expensify Card.',
+            },
         },
         type: {
             free: 'Gratuit',

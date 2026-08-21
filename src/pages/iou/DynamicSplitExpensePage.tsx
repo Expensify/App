@@ -16,6 +16,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -49,10 +50,11 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateSplitAmountFromPercentage, calculateSplitPercentagesFromAmounts} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {getTransactionDetails, isReportApproved, isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -65,8 +67,8 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -82,16 +84,24 @@ import {View} from 'react-native';
 
 import SplitList from './SplitList';
 
-type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
+type DynamicSplitExpensePageProps = PlatformStackScreenProps<
+    MoneyRequestNavigatorParamList,
+    typeof SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE | typeof SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH
+>;
 
 const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding;
 
-function SplitExpensePage({route}: SplitExpensePageProps) {
+function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
-    const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
+    const {splitReportID: reportID, transactionID, splitExpenseTransactionID} = route.params;
+
+    // The search variant is a separate dynamic route, so the suffix to strip depends on which screen is rendered.
+    const dynamicRouteSuffix =
+        route.name === SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH ? DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.path : DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.path;
+    const backPath = useDynamicBackPath(dynamicRouteSuffix);
 
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
@@ -145,9 +155,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0 ||
         (shouldSelectPolicy && Object.values(allPolicies ?? {}).some((policyItem) => Object.keys(DistanceRequestUtils.getMileageRates(policyItem)).length > 0));
 
-    const normalizedBackTo = backTo?.replace(/^\//, '');
-    const isSearchBackToRoute = normalizedBackTo?.startsWith(ROUTES.SEARCH_ROOT.route) ?? false;
-    const activeGroupSearchHashes = isSearchBackToRoute ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
+    const isSearchBackPath = backPath.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route);
+    const activeGroupSearchHashes = isSearchBackPath ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
     const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
         const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`];
@@ -401,7 +410,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
-            searchContext: {currentSearchHash: isSearchBackToRoute ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
+            searchContext: {currentSearchHash: isSearchBackPath ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
@@ -569,7 +578,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitDatesTitle = DateUtils.getFormattedSplitDateRange(translate, splitStartDate, splitEndDate);
 
     const handleDatePress = () => {
-        Navigation.navigate(ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.getRoute(reportID, transactionID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path));
     };
 
     const headerDateContent = (
@@ -635,7 +644,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         <HeaderWithBackButton
                             title={headerTitle}
                             subtitle={translate('iou.splitExpenseSubtitle', convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency), draftTransaction?.merchant ?? '')}
-                            onBackButtonPress={() => Navigation.goBack(backTo)}
+                            onBackButtonPress={() => Navigation.goBack(backPath)}
                         />
                     </CollapsibleHeaderOnKeyboard>
 
@@ -716,4 +725,4 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     );
 }
 
-export default SplitExpensePage;
+export default DynamicSplitExpensePage;
