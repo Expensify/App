@@ -1,4 +1,4 @@
-import {useButtonContext} from '@components/ButtonComposed/context';
+import {useButtonState} from '@components/ButtonComposed/context';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +24,7 @@ type ButtonTextProps = {
 };
 
 function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonTextProps) {
-    const {variant, size, isHovered} = useButtonContext();
+    const {variant, size, isHovered} = useButtonState();
     const styles = useThemeStyles();
 
     const sizeTextStyles = {

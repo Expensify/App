@@ -8,7 +8,7 @@ import variables from '@styles/variables';
 
 import type {ButtonProps} from '@src/components/ButtonComposed';
 import Button from '@src/components/ButtonComposed';
-import {useButtonContext} from '@src/components/ButtonComposed/context';
+import {useButtonState} from '@src/components/ButtonComposed/context';
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -25,11 +25,11 @@ jest.mock('@libs/HapticFeedback', () => ({
 const LABEL = 'test-button';
 
 /**
- * Reads ButtonContext and exposes each value as a testID'd Text node so that
+ * Reads the Button state context and exposes each value as a testID'd Text node so that
  * assertions can verify exactly what Button propagates to its children.
  */
 function ContextReadout() {
-    const {variant, size, isHovered, isDisabled, isLoading} = useButtonContext();
+    const {variant, size, isHovered, isDisabled, isLoading} = useButtonState();
     return (
         <View>
             <Text testID="ctx-variant">{variant ?? 'none'}</Text>

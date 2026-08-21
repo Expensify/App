@@ -1,4 +1,4 @@
-import {useButtonContext} from '@components/ButtonComposed/context';
+import {useButtonState} from '@components/ButtonComposed/context';
 import Icon from '@components/Icon';
 
 import useTheme from '@hooks/useTheme';
@@ -30,7 +30,7 @@ type ButtonIconProps = {
 
 function ButtonIcon({src, style, hoverFill, fill, accessibilityLabel}: ButtonIconProps) {
     const theme = useTheme();
-    const {isHovered, variant, size} = useButtonContext();
+    const {isHovered, variant, size} = useButtonState();
 
     let defaultFill = theme.buttonIcon;
     if (variant === CONST.BUTTON_VARIANT.DANGER) {
