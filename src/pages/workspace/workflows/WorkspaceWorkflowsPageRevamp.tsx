@@ -41,7 +41,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsApprovalsTab from './tabs/WorkflowsApprovalsTab';
@@ -112,18 +112,29 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const persistedTab = WORKFLOWS_TABS_BY_KEY.get(lastSelectedTab ?? '') ?? WORKFLOWS_TAB.SUBMISSIONS;
     const requestedTab = routeTab ?? persistedTab;
 
+    const hasPersistedRouteTabRef = useRef(false);
+
     useEffect(() => {
         if (!routeTab) {
+            hasPersistedRouteTabRef.current = false;
             return;
         }
 
         // Persist the deep-linked tab first so reopening this page lands on it again.
         if (persistedTab !== routeTab) {
             Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, routeTab);
+            hasPersistedRouteTabRef.current = true;
             return;
         }
 
         // Onyx now holds the tab, so drop the param — `goBack` compares params, and a leftover one stops child flows returning here with the plain route from popping.
+        // Only clear the param this mount handed over: on a repeat visit Onyx already matches, so clearing it straight from mount
+        // rewrites the route while the navigation is still in flight and drops us out of the split navigator.
+        if (!hasPersistedRouteTabRef.current) {
+            return;
+        }
+
+        hasPersistedRouteTabRef.current = false;
         Navigation.setParams({tab: undefined});
     }, [routeTab, persistedTab]);
 
