@@ -140,6 +140,7 @@ import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
+import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -274,6 +275,7 @@ import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
+import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
@@ -408,6 +410,7 @@ const Expensicons = {
     Info,
     Invoice,
     InvoiceGeneric,
+    IntuitSquare,
     Key,
     Keyboard,
     Link,
@@ -507,6 +510,7 @@ const Expensicons = {
     Wallet,
     Workflows,
     Workspace,
+    Wrench,
     XeroSquare,
     GustoSquare,
     IntacctSquare: SageIntacctSquare,

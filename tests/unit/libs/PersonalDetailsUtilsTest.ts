@@ -16,7 +16,7 @@ import {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -69,7 +69,12 @@ describe('PersonalDetailsUtils', () => {
 
         test('should return displayName when login is empty or null but displayName exists', () => {
             const personalDetail1: PersonalDetails = {accountID: 123, displayName: 'John Doe', login: ''};
-            const personalDetail2: PersonalDetails = {accountID: 456, displayName: 'Jane Smith', login: null as unknown as string}; // Simulate null login
+            const personalDetail2: PersonalDetails = {
+                accountID: 456,
+                displayName: 'Jane Smith',
+                // @ts-expect-error -- deliberately null login exercises the display-name fallback.
+                login: null,
+            };
 
             let result = getEffectiveDisplayName(formatPhoneNumber, personalDetail1);
             expect(result).toBe('John Doe');
@@ -325,7 +330,7 @@ describe('PersonalDetailsUtils', () => {
     });
 
     describe('arePersonalDetailsMissing', () => {
-        it.each([
+        it.each<[string, Parameters<typeof arePersonalDetailsMissing>[0], boolean]>([
             [
                 'all required personal details are present',
                 {
@@ -387,11 +392,11 @@ describe('PersonalDetailsUtils', () => {
                 },
                 false,
             ],
-        ] as const)('should return false when %s', (_description, details, expected) => {
-            expect(arePersonalDetailsMissing(details as unknown as PrivatePersonalDetails)).toBe(expected);
+        ])('should return false when %s', (_description, details, expected) => {
+            expect(arePersonalDetailsMissing(details)).toBe(expected);
         });
 
-        it.each([
+        it.each<[string, Parameters<typeof arePersonalDetailsMissing>[0]]>([
             [
                 'legalFirstName is missing',
                 {
@@ -489,15 +494,19 @@ describe('PersonalDetailsUtils', () => {
             ],
             ['multiple required fields are missing', {legalFirstName: 'John'}],
             ['all fields are missing', {}],
-            ['null', null],
             ['undefined', undefined],
-        ] as const)('should return true when %s', (_description, details) => {
-            expect(arePersonalDetailsMissing(details as PrivatePersonalDetails)).toBe(true);
+        ])('should return true when %s', (_description, details) => {
+            expect(arePersonalDetailsMissing(details)).toBe(true);
+        });
+
+        it('should return true for null runtime input', () => {
+            // @ts-expect-error -- This test preserves runtime defensive behavior for null outside the static Onyx entry contract.
+            expect(arePersonalDetailsMissing(null)).toBe(true);
         });
     });
 
     describe('areTravelPersonalDetailsMissing', () => {
-        it.each([
+        it.each<[string, Parameters<typeof areTravelPersonalDetailsMissing>[0], boolean]>([
             [
                 'all required travel personal details are present',
                 {
@@ -537,10 +546,14 @@ describe('PersonalDetailsUtils', () => {
                 true,
             ],
             ['all fields are missing', {}, true],
-            ['null', null, true],
             ['undefined', undefined, true],
-        ] as const)('should return %s when %s', (_description, details, expected) => {
-            expect(areTravelPersonalDetailsMissing(details as PrivatePersonalDetails)).toBe(expected);
+        ])('should return %s when %s', (_description, details, expected) => {
+            expect(areTravelPersonalDetailsMissing(details)).toBe(expected);
+        });
+
+        it('should return true for null runtime input', () => {
+            // @ts-expect-error -- This test preserves runtime defensive behavior for null outside the static Onyx entry contract.
+            expect(areTravelPersonalDetailsMissing(null)).toBe(true);
         });
     });
 

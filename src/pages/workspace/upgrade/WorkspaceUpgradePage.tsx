@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -51,7 +52,7 @@ import {
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
@@ -87,7 +88,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     // A submit2026 policy can only be upgraded via the UpgradeSubmit command (the server rejects
     // UpgradeToCorporate for it with a 402), and its owner holds the editor role, so the upgrade
-    // flow below must key off the policy type rather than the SUBMIT_2026 beta or admin checks.
+    // flow below must key off the policy type rather than admin checks.
     const isUpgradingFromSubmitPolicy = isSubmitPolicy(policy);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
     const upgradingFromSubmitLatchPolicyIDRef = useRef<string | undefined>(undefined);
@@ -171,7 +172,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                // The Rules backTo can carry a tab, and comparing params would replace the mounted route instead of popping.
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID), {compareParams: false});
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
@@ -182,6 +184,16 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
     }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
+
+    const afterUpgradeAcknowledged = () => {
+        if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id && policyID) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, route.params.backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+                forceReplace: true,
+            });
+            return;
+        }
+        goBack();
+    };
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
@@ -249,7 +261,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                enablePolicyRules(policy, true, false, policyDataRef.current);
+                // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.
+                if (!policy?.areRulesEnabled) {
+                    enablePolicyRules(policy, true, false, policyDataRef.current);
+                }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
                 setPolicyReceiptVisibilityPublic(policyID, true, policy?.isReceiptVisibilityPublic);
@@ -364,7 +379,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
-                        afterUpgradeAcknowledged={goBack}
+                        afterUpgradeAcknowledged={afterUpgradeAcknowledged}
                         policyName={policy.name}
                         planName={getUserFriendlyWorkspaceType(policy.type, translate)}
                     />
