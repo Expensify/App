@@ -578,7 +578,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             {workspaceMenuItems.map((item) => (
                                 <HighlightableMenuItem
                                     key={item.translationKey}
-                                    disabled={hasPolicyCreationError || isExecuting}
+                                    disabled={hasPolicyCreationError || (isExecuting && !(item.screenName && activeRoute?.startsWith(item.screenName)))}
                                     interactive={!hasPolicyCreationError}
                                     title={translate(item.translationKey)}
                                     icon={item.icon}
@@ -591,6 +591,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     badgeText={item.badgeText}
                                     shouldIconUseAutoWidthStyle
                                     sentryLabel={item.sentryLabel}
+                                    shouldGreyOutWhenDisabled={false}
                                 />
                             ))}
                         </View>

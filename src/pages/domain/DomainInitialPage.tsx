@@ -155,7 +155,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                         {domainMenuItems.map((item) => (
                             <HighlightableMenuItem
                                 key={item.translationKey}
-                                disabled={isExecuting}
+                                disabled={isExecuting && !(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 title={translate(item.translationKey)}
                                 icon={item.icon}
                                 onPress={item.action}
@@ -165,6 +165,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 badgeText={item.badgeText}
                                 shouldIconUseAutoWidthStyle
+                                shouldGreyOutWhenDisabled={false}
                             />
                         ))}
                     </View>
