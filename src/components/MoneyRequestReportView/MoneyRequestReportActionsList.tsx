@@ -738,7 +738,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return null;
     }
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
@@ -756,7 +756,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToLatestMessages}
-                    isMarkAsDone={shouldUseMarkAsDoneCopy}
+                    shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                 />
                 {/* Exactly one of these two branches is active at a time:
                     1. showEmptyState — genuinely empty report
