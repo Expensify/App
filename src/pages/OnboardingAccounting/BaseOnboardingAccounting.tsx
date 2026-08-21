@@ -313,6 +313,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 contentContainerStyle={[styles.pt3, styles.pb5]}
                 onContentSizeChange={handleContentSizeChange}
+                keyboardShouldPersistTaps="handled"
             >
                 <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>
                     {accountingOptions.map(renderOption)}
