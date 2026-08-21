@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {setMoneyRequestAccountant} from '@libs/actions/IOU/MoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDraftWorkspaceAndNavigateToConfirmationScreen} from '@libs/ReportUtils';
 
@@ -13,7 +14,7 @@ import MoneyRequestAccountantSelector from '@pages/iou/request/MoneyRequestAccou
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
@@ -32,7 +33,7 @@ type DynamicIOURequestStepAccountantProps = WithWritableReportOrNotFoundProps<ty
 
 function DynamicIOURequestStepAccountant({
     route: {
-        params: {transactionID, reportID, iouType, action},
+        params: {transactionID, iouType, action},
     },
 }: DynamicIOURequestStepAccountantProps) {
     const {translate} = useLocalize();
@@ -63,7 +64,7 @@ function DynamicIOURequestStepAccountant({
             return;
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute(), action));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.path));
     };
 
     const navigateBack = () => {
