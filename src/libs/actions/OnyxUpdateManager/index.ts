@@ -79,11 +79,6 @@ function escalateIfFetchStalled(response: Awaited<ReturnType<typeof getMissingOn
         return false;
     }
 
-    // The client advanced, either through this response or through another path in the meantime
-    // (e.g. a parallel Pusher update applied mid-fetch). The fetches are making progress.
-    // Only the persisted watermark counts: a WRITE staged for the deferred flush moves `lastUpdateIDPendingFlush`
-    // without serving the requested range, and that marker sits above the persisted one in exactly the stuck
-    // state this guard exists to catch, so reading it here would hide the stall.
     if (getPersistedLastUpdateID() > lastUpdateIDFromClient) {
         return false;
     }
