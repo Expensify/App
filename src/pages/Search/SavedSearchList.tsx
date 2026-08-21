@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem, SearchKey} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getLastSearchQuery, getOverflowMenu as getOverflowMenuUtil, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -140,7 +140,7 @@ function SavedSearchList() {
     const savedSearchesMenuItems = savedSearches
         ? Object.entries(savedSearches)
               .map(([key, item], index) => {
-                  const itemQuery = getValidLastQuery(searchFilters?.[savedSearchIDToSearchKey(key)], item.query);
+                  const itemQuery = getValidLastQuery(getLastSearchQuery(searchFilters, savedSearchIDToSearchKey(key)), item.query);
                   return buildSavedSearchMenuItem({
                       item,
                       itemQuery,

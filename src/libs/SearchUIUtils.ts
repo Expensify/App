@@ -4811,6 +4811,16 @@ function savedSearchIDToSearchKey(id: string): SearchKey {
     return `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${id}`;
 }
 
+/**
+ * Returns the last query used for a search key.
+ *
+ * A filter can also be stored as a string, which is a legacy format, so it's treated as if there is no last query.
+ */
+function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey): string | undefined {
+    const searchFilter = searchFilters?.[searchKey];
+    return typeof searchFilter === 'object' ? searchFilter.query : undefined;
+}
+
 function searchKeyToSavedSearchID(key: SearchKey | undefined) {
     return key?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) ? key.replace(CONST.SEARCH.SAVED_SEARCH_PREFIX, '') : undefined;
 }
@@ -6940,6 +6950,7 @@ export {
     isReportActionListItemType,
     shouldShowYear,
     getOverflowMenu,
+    getLastSearchQuery,
     savedSearchIDToSearchKey,
     searchKeyToSavedSearchID,
     isCorrectSearchUserName,

@@ -165,7 +165,7 @@ describe('SearchActions', () => {
                 READ_COMMANDS.SEARCH,
                 expect.anything(),
                 expect.objectContaining({
-                    optimisticData: expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[searchKey]: queryJSON.inputQuery}}]),
+                    optimisticData: expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[searchKey]: {query: queryJSON.inputQuery}}}]),
                 }),
             );
         });

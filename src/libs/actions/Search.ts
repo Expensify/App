@@ -1230,7 +1230,9 @@ function search({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SEARCH_FILTERS,
             value: {
-                [searchKey]: query.inputQuery,
+                [searchKey]: {
+                    query: query.inputQuery,
+                },
             },
         });
     }

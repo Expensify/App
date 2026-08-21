@@ -8,7 +8,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString, doesQueryMatchDefaultFilterKeysAndType} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {getSuggestedSearches, savedSearchIDToSearchKey, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
+import {getLastSearchQuery, getSuggestedSearches, savedSearchIDToSearchKey, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,7 +69,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const getInitialCurrentSearchKey = (queryJSON = currentSearchQueryJSON) => {
         const suggestedSearchKey = Object.values(suggestedSearches).find((search) => {
-            const lastSearchFilterQuery = searchFilters?.[search.key];
+            const lastSearchFilterQuery = getLastSearchQuery(searchFilters, search.key);
             const lastSearchFilter = lastSearchFilterQuery ? buildSearchQueryJSON(lastSearchFilterQuery) : undefined;
             return search.similarSearchHash === queryJSON?.similarSearchHash || lastSearchFilter?.similarSearchHash === queryJSON?.similarSearchHash;
         })?.key;
@@ -79,7 +79,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
         const savedSearchID = Object.keys(savedSearches ?? {}).find((id) => {
             const savedSearchQuery = savedSearches?.[id].query;
-            const lastSavedSearchQuery = searchFilters?.[savedSearchIDToSearchKey(id)];
+            const lastSavedSearchQuery = getLastSearchQuery(searchFilters, savedSearchIDToSearchKey(id));
 
             return (
                 (savedSearchQuery ? buildSearchQueryJSON(savedSearchQuery)?.similarSearchHash === queryJSON?.similarSearchHash : false) ||

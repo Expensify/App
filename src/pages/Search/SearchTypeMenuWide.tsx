@@ -13,7 +13,7 @@ import type {TodoCounts} from '@hooks/useTodoCounts';
 
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchKey, SearchTypeMenuSection} from '@libs/SearchUIUtils';
-import {getItemBadgeText, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getLastSearchQuery, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -99,7 +99,7 @@ function SearchTypeMenuWide() {
     };
 
     const handleTypeMenuItemPress = singleExecution((searchKey: SearchKey, searchQuery: string) => {
-        navigateToCannedSpendSearch(searchKey, searchQuery, searchFilters?.[searchKey], currentSearchHash, clearSelectedTransactions, setCurrentSearchKey);
+        navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), currentSearchHash, clearSelectedTransactions, setCurrentSearchKey);
     });
 
     useLayoutEffect(() => {

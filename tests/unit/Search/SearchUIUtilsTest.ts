@@ -12829,3 +12829,34 @@ describe('splitGroupsIntoPairs', () => {
         expect(stickyHeaderIndices).toEqual([]);
     });
 });
+
+describe('getLastSearchQuery', () => {
+    const submitKey = CONST.SEARCH.SEARCH_KEYS.SUBMIT;
+    const savedSearchKey = SearchUIUtils.savedSearchIDToSearchKey('100');
+    const submitQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`;
+    const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`;
+
+    const searchFilters = {
+        [submitKey]: {query: submitQuery, timestamp: '2026-08-21 00:00:00.000'},
+        [savedSearchKey]: {query: savedSearchQuery, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`,
+    } as OnyxTypes.SearchFilters;
+
+    it('returns the query of the filter stored for the search key', () => {
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, submitKey)).toBe(submitQuery);
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, savedSearchKey)).toBe(savedSearchQuery);
+    });
+
+    it('returns undefined for a filter stored in the legacy string format', () => {
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.APPROVE)).toBeUndefined();
+    });
+
+    it('returns undefined when the search key has no filter', () => {
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.PAY)).toBeUndefined();
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, SearchUIUtils.savedSearchIDToSearchKey('200'))).toBeUndefined();
+    });
+
+    it('returns undefined when there are no filters at all', () => {
+        expect(SearchUIUtils.getLastSearchQuery(undefined, submitKey)).toBeUndefined();
+    });
+});

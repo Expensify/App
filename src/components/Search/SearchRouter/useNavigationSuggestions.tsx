@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import navigationRef from '@navigation/navigationRef';
@@ -164,7 +164,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         getItemText: (item) => translate(item.translationPath),
         getDestinationText: (destination) => getGoToText(translate, destination),
         onSelect: (searchKey, searchQuery) =>
-            navigateToCannedSpendSearch(searchKey, searchQuery, searchFilters?.[searchKey], currentSearchHash, clearSelectedTransactions, setCurrentSearchKey),
+            navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), currentSearchHash, clearSelectedTransactions, setCurrentSearchKey),
     });
 
     return buildNavigationSuggestions(query, [topLevelItems, spendItems, createItems], localeCompare);

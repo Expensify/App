@@ -24,7 +24,7 @@ import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
-import {getItemBadgeText, getOverflowMenu, savedSearchIDToSearchKey, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getLastSearchQuery, getOverflowMenu, savedSearchIDToSearchKey, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -206,7 +206,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
             return;
         }
         onTabPress?.();
-        const query = getValidLastQuery(searchFilters?.[tabKey], searchData.query);
+        const query = getValidLastQuery(getLastSearchQuery(searchFilters, tabKey), searchData.query);
         setCurrentSearchKey(tabKey, buildSearchQueryJSON(query)?.hash !== currentSearchHash);
         setSearchContext(false);
         navigation.dispatch({

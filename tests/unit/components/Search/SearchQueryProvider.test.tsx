@@ -60,6 +60,10 @@ function mockOnyx(data: Record<string, unknown> = {}) {
     mockUseOnyx.mockImplementation((key: string) => [data[key]]);
 }
 
+function mockSearchFilter(query: string) {
+    return {query, timestamp: '2026-08-21 00:00:00.000'};
+}
+
 function useSearchQuery() {
     return {...useContext(SearchQueryContext), ...useContext(SearchQueryActionsContext)};
 }
@@ -85,7 +89,7 @@ describe('SearchQueryProvider', () => {
         });
 
         it('matches a suggested search by its last (SEARCH_FILTERS) query', () => {
-            mockOnyx({[ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.SUBMIT]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`}});
+            mockOnyx({[ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.SUBMIT]: mockSearchFilter(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`)}});
             mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`);
 
             const {result} = renderProvider();
@@ -93,9 +97,18 @@ describe('SearchQueryProvider', () => {
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
         });
 
+        it('ignores a last query that is stored in the legacy string format', () => {
+            mockOnyx({[ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.SUBMIT]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`}});
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`);
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
         it('matches a suggested search by its default query even when the last query exists', () => {
             mockOnyx({
-                [ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: `${RECONCILIATION_QUERY} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}:123`},
+                [ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: mockSearchFilter(`${RECONCILIATION_QUERY} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}:123`)},
             });
             mockNavigationQuery(RECONCILIATION_QUERY);
 
@@ -117,7 +130,7 @@ describe('SearchQueryProvider', () => {
             const savedSearchKey = savedSearchIDToSearchKey(SAVED_SEARCH_ID);
             mockOnyx({
                 [ONYXKEYS.SAVED_SEARCHES]: {[SAVED_SEARCH_ID]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`, name: 'My search'}},
-                [ONYXKEYS.SEARCH_FILTERS]: {[savedSearchKey]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`},
+                [ONYXKEYS.SEARCH_FILTERS]: {[savedSearchKey]: mockSearchFilter(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`)},
             });
             mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`);
 
@@ -130,7 +143,7 @@ describe('SearchQueryProvider', () => {
             const savedSearchKey = savedSearchIDToSearchKey(SAVED_SEARCH_ID);
             mockOnyx({
                 [ONYXKEYS.SAVED_SEARCHES]: {[SAVED_SEARCH_ID]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`, name: 'My search'}},
-                [ONYXKEYS.SEARCH_FILTERS]: {[savedSearchKey]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`},
+                [ONYXKEYS.SEARCH_FILTERS]: {[savedSearchKey]: mockSearchFilter(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`)},
             });
             mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
 
