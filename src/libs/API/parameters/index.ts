@@ -602,3 +602,4 @@ export type {default as ClearExportDownloadParams} from './ClearExportDownloadPa
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
 export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';
+export type {default as DismissMarketingWindowParams} from './DismissMarketingWindow';
