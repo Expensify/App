@@ -81,7 +81,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const columnRoles: ColumnRole[] = useMemo(() => getCompanyCardImportColumnRoles(translate), [translate]);
+    const columnRoles: ColumnRole[] = getCompanyCardImportColumnRoles(translate);
 
     const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
     const hasAppliedSavedMappings = useRef(false);
