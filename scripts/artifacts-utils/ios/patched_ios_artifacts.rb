@@ -49,9 +49,7 @@ module PatchedIOSArtifacts
         ReactNativeCoreUtils.class_variable_set(:@@patched_github_token, resolution['githubToken'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_build_from_source, resolution['buildFromSource'])
 
-        # Content identity of this install's artifacts. Merged-dSYM tarballs are stamped apart
-        # from pristine ones: flipping the flag must count as a change, or symbols silently
-        # appear/disappear without the tarballs being rebuilt.
+        # Content identity of this install's artifacts; '+dsym' so flipping the flag counts as a change.
         @artifacts_stamp = @using_prebuilt ?
             "#{resolution['version']}#{ENV['RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'] == '1' ? '+dsym' : ''}" : nil
 
@@ -62,13 +60,10 @@ module PatchedIOSArtifacts
         File.join(Pod::Config.instance.project_pods_root, 'ReactNativeCore-artifacts', '.artifacts-version')
     end
 
-    # Our React-Core-prebuilt podspec is dynamic — its source comes from the resolver — but
-    # CocoaPods memoizes external :podspec sources as static and skips re-reading them on a
-    # warm sandbox (analyzer#dependencies_to_fetch). When the tarballs the last evaluation
-    # produced no longer match this install's resolution, drop the memoized copy through the
-    # sandbox API: a missing stored podspec forces CocoaPods to re-evaluate the file, which
-    # re-runs our download (and the dSYM merge). The re-evaluated podspec is byte-identical
-    # (the source path never changes), so the lockfile checksum — and Podfile.lock — stay put.
+    # CocoaPods memoizes external :podspec sources and may skip re-reading ours, whose source is
+    # resolved dynamically. When the tarballs in Pods don't match this install's resolution, drop
+    # the memoized copy so CocoaPods re-evaluates the podspec, re-running our download (and dSYM
+    # merge). The re-read podspec is byte-identical, so Podfile.lock stays put.
     def self.force_rncore_podspec_reevaluation
         return if File.exist?(artifacts_stamp_path) && File.read(artifacts_stamp_path) == @artifacts_stamp
 
@@ -76,19 +71,10 @@ module PatchedIOSArtifacts
         log("Artifacts changed to #{@artifacts_stamp}; the React-Core-prebuilt podspec will be re-evaluated.")
     end
 
-    # Post-install half of the sync: setup (above) guarantees the tarballs in Pods match this
-    # install's resolution; the build-time prelude added here guarantees the EXTRACTED
-    # framework follows. CocoaPods cannot do that part either — its download cache keys the
-    # extraction on our never-changing source URL. The prelude (sync-prebuilt-rncore.sh) only
-    # compares stamps and, on mismatch, invalidates react-native's config marker so
-    # replace-rncore-version.js, running right after it, re-extracts from the fresh tarballs.
-    #
-    # Prepended INTO react-native's '[RNCore] Replace ...' phase rather than added as a phase
-    # of its own: CocoaPods sorts build phases by name when saving the Pods project — after
-    # the post_install hooks (PodsProjectWriter#save_projects) — so a separate phase cannot
-    # be kept ahead of '[RNCore]'. Inside one phase the order is the script itself, and the
-    # marker is consumed in the same build that sets it. Re-applied each install because
-    # CocoaPods regenerates the Pods project.
+    # Prepends sync-prebuilt-rncore.sh to react-native's '[RNCore] Replace ...' build phase, so a
+    # build re-extracts the prebuilt React Core when the artifact version changed — CocoaPods won't,
+    # as its caches key on our never-changing source URL. Prepended into that phase (not added as
+    # its own) because CocoaPods sorts phases by name on save, which would push ours after [RNCore].
     def self.add_sync_prebuilt_script_phase(installer)
         return unless @using_prebuilt
 
@@ -278,9 +264,7 @@ class ReactNativeCoreUtils
             process_dsyms(release, download_stable_rncore(@@react_native_path, @@react_native_version, :release, true))
         end
 
-        # Content version of the flat tarballs, for the sync build phase — their names cannot
-        # carry it (replace-rncore-version.js hardcodes them), and merged-dSYM tarballs differ
-        # from the pristine ones the phase would otherwise copy over them from our cache.
+        # Content version of the flat tarballs — their names can't carry it, replace-rncore-version.js hardcodes them.
         File.write(File.join(File.dirname(debug), '.artifacts-version'),
                    "#{@@patched_version}#{@@download_dsyms ? '+dsym' : ''}")
 
