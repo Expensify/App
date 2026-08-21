@@ -626,9 +626,9 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        const {fromReportID: unreportedReportID} = parseMovedTransactionReportIDs(parentReportAction);
-        const reportName = unreportedReportID ? reportAttributes?.[unreportedReportID]?.reportName : undefined;
-        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, reportName));
+        const {fromReportID} = parseMovedTransactionReportIDs(parentReportAction);
+        const reportName = fromReportID ? reportAttributes?.[fromReportID]?.reportName : undefined;
+        return Parser.htmlToText(getUnreportedTransactionMessage({translate, fromReportID, derivedReportName: reportName}));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {

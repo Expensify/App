@@ -946,9 +946,13 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        const {fromReportID: unreportedFromReportID} = parseMovedTransactionReportIDs(lastReportAction);
+        const {fromReportID} = parseMovedTransactionReportIDs(lastReportAction);
         lastMessageTextFromReport = Parser.htmlToText(
-            getUnreportedTransactionMessage(translate, lastReportAction, unreportedFromReportID ? reportAttributesDerived?.[unreportedFromReportID]?.reportName : undefined),
+            getUnreportedTransactionMessage({
+                translate,
+                fromReportID,
+                derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
+            }),
         );
     } else if (isActionableMentionWhisper(lastReportAction)) {
         const targetAccountIDs = getOriginalMessage(lastReportAction)?.inviteeAccountIDs;
