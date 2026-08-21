@@ -633,4 +633,32 @@ describe('getBestMatchingPath', () => {
         // The pre-existing legacy participant-role redirect keeps winning over the new pattern.
         expect(getMatchingNewRoute('/r/123/participants/456/role')).toBe('/r/123/participants/participants-details/456/participants-role');
     });
+
+    it('redirects the legacy money request scan step to the new dynamic route (#83852)', () => {
+        expect(getMatchingNewRoute('/create/submit/scan/123/456')).toBe('/r/456/expense-scan?action=create&iouType=submit&transactionID=123&reportID=456');
+        expect(getMatchingNewRoute('/edit/submit/scan/123/456')).toBe('/r/456/expense-scan?action=edit&iouType=submit&transactionID=123&reportID=456');
+    });
+
+    it('redirects the legacy money request waypoint step onto the distance base (#83852)', () => {
+        // The waypoint suffix can only be opened from the distance page, so the redirect has to rebuild that base as well.
+        expect(getMatchingNewRoute('/create/submit/waypoint/123/456/0')).toBe(
+            '/r/456/expense-distance/expense-waypoint?action=create&iouType=submit&transactionID=123&reportID=456&pageIndex=0',
+        );
+        expect(getMatchingNewRoute('/edit/split-expense/waypoint/123/456/1')).toBe(
+            '/r/456/expense-distance/expense-waypoint?action=edit&iouType=split-expense&transactionID=123&reportID=456&pageIndex=1',
+        );
+    });
+
+    it('does not redirect the already-migrated money request scan and waypoint dynamic routes (#83852)', () => {
+        expect(getMatchingNewRoute('/r/456/expense-scan?action=create&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/expense-distance/expense-waypoint?action=edit&iouType=submit&transactionID=123&reportID=456&pageIndex=0')).toBe(undefined);
+    });
+
+    it('does not let the new scan and waypoint patterns swallow unrelated routes (#83852)', () => {
+        // The scan create tab keeps `scan` as its last segment, so the 5-segment scan pattern must not match it.
+        expect(getMatchingNewRoute('/create/submit/start/123/456/scan')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/submit/start/123/456/789/scan')).toBe(undefined);
+        // A 5-segment waypoint URL (no pageIndex) is not a valid legacy waypoint route either.
+        expect(getMatchingNewRoute('/create/submit/waypoint/123/456')).toBe(undefined);
+    });
 });
