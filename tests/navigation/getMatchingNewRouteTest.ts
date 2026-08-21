@@ -267,6 +267,30 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
     });
 
+    it('redirects old travel trip details path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/r/123/trip/456/PNR1/0')).toBe('/r/123/trip-details/123/456/PNR1/0');
+    });
+
+    it('preserves query params when redirecting old travel trip details routes', () => {
+        expect(getMatchingNewRoute('/r/123/trip/456/PNR1/0?backTo=/home')).toBe('/r/123/trip-details/123/456/PNR1/0?backTo=/home');
+    });
+
+    it('does not redirect the already-migrated travel trip details dynamic route', () => {
+        expect(getMatchingNewRoute('/r/123/trip-details/123/456/PNR1/0')).toBe(undefined);
+    });
+
+    it('redirects old travel trip summary path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/r/123/trip/456')).toBe('/r/123/trip-summary/123/456');
+    });
+
+    it('preserves query params when redirecting old travel trip summary routes', () => {
+        expect(getMatchingNewRoute('/r/123/trip/456?backTo=/home')).toBe('/r/123/trip-summary/123/456?backTo=/home');
+    });
+
+    it('does not redirect the already-migrated travel trip summary dynamic route', () => {
+        expect(getMatchingNewRoute('/r/123/trip-summary/123/456')).toBe(undefined);
+    });
+
     it('redirects legacy new task flat routes to the new nested dynamic routes', () => {
         expect(getMatchingNewRoute('/new/task/details')).toBe('/task-details');
         expect(getMatchingNewRoute('/new/task')).toBe('/task-details/task-confirm');
