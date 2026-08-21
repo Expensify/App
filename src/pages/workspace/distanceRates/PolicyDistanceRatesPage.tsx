@@ -265,18 +265,20 @@ function PolicyDistanceRatesPage({
         setSelectedDistanceRates([]);
     };
 
+    const customUnitCustomUnitID = customUnit?.customUnitID;
+
     const dismissErrorByID = useCallback(
         (rateID: string) => {
-            if (!customUnit?.customUnitID) {
+            if (!customUnitCustomUnitID) {
                 return;
             }
             if (customUnitRates[rateID]?.errors) {
-                clearDeleteDistanceRateError(policyID, customUnit.customUnitID, rateID);
+                clearDeleteDistanceRateError(policyID, customUnitCustomUnitID, rateID);
                 return;
             }
-            clearCreateDistanceRateItemAndError(policyID, customUnit.customUnitID, rateID);
+            clearCreateDistanceRateItemAndError(policyID, customUnitCustomUnitID, rateID);
         },
-        [customUnit?.customUnitID, customUnitRates, policyID],
+        [customUnitCustomUnitID, customUnitRates, policyID],
     );
 
     const openRateDetailsByID = useCallback(

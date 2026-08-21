@@ -30,6 +30,7 @@
     // deliberately not pulled in, as they conflict with the app's React types.
     "files": ["node_modules/bun-types/test.d.ts"],
     "include": [
+        "wdyr.ts",
         "src",
         "web",
         "website",

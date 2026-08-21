@@ -209,6 +209,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         });
     }, [showConfirmModal, translate]);
 
+    const policyCategoryName = policyCategory?.name;
+
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean) => {
             if (shouldPreventDisableOrDelete) {
@@ -217,7 +219,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             }
             setWorkspaceCategoryEnabled({
                 policyData,
-                categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+                categoriesToUpdate: {[policyCategoryName]: {name: policyCategoryName, enabled: value}},
                 isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
@@ -236,7 +238,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             showCannotDeleteOrDisableLastCategoryModal,
             shouldPreventDisableOrDelete,
             policyData,
-            policyCategory?.name,
+            policyCategoryName,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
