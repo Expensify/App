@@ -316,6 +316,60 @@ describe('useSearchHighlightAndScroll', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
+    it('should trigger search when a transaction moves into a report the results display', () => {
+        const movedTransaction = createMock<Transaction>({transactionID: '99', reportID: '5'});
+        const initialProps = createMock<UseSearchHighlightAndScroll>({
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    report_2: {reportID: '2'},
+                },
+            },
+            transactions: {transactions_99: movedTransaction},
+            previousTransactions: {transactions_99: movedTransaction},
+        });
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps,
+        });
+
+        const updatedProps = createMock<UseSearchHighlightAndScroll>({
+            ...initialProps,
+            transactions: {transactions_99: {transactionID: '99', reportID: '2'}},
+        });
+
+        rerender(updatedProps);
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+    });
+
+    it('should not trigger search when a transaction moves between reports the results do not display', () => {
+        const movedTransaction = createMock<Transaction>({transactionID: '99', reportID: '5'});
+        const initialProps = createMock<UseSearchHighlightAndScroll>({
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    report_2: {reportID: '2'},
+                },
+            },
+            transactions: {transactions_99: movedTransaction},
+            previousTransactions: {transactions_99: movedTransaction},
+        });
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps,
+        });
+
+        const updatedProps = createMock<UseSearchHighlightAndScroll>({
+            ...initialProps,
+            transactions: {transactions_99: {transactionID: '99', reportID: '7'}},
+        });
+
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
     it('should trigger the deferred search once Search is active again, after previousTransactions caught up', () => {
         const transaction = createMock<Transaction>({transactionID: '1', amount: 100});
         const editedTransaction = createMock<Transaction>({transactionID: '1', amount: 250});
