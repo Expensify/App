@@ -1,6 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -32,7 +32,6 @@ type SearchRejectReasonPageProps =
 function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
     const {currentSearchHash} = useSearchQueryContext();
-    const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -63,19 +62,18 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 return;
             }
 
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch({
-                hash: currentSearchHash,
-                selectedTransactions: selectedTransactionsForReject,
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch(
+                currentSearchHash,
+                selectedTransactionsForReject,
                 comment,
                 allPolicies,
                 allReports,
-                searchData: currentSearchResults?.data,
-                currentUserAccountIDParam: currentUserAccountID,
-                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID,
+                currentUserLogin ?? '',
                 betas,
                 delegateAccountID,
                 getCurrencyDecimals,
-            });
+            );
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
             } else {
@@ -92,7 +90,6 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             selectedTransactionsForReject,
             allPolicies,
             allReports,
-            currentSearchResults?.data,
             currentUserAccountID,
             currentUserLogin,
             betas,

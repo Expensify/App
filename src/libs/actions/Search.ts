@@ -1686,33 +1686,18 @@ type TransactionReportInfo = {
     reportID?: string;
 };
 
-type RejectMoneyRequestsOnSearchParams = {
-    hash: number;
-    selectedTransactions: Record<string, TransactionReportInfo>;
-    comment: string;
-    allPolicies: OnyxCollection<Policy>;
-    allReports: OnyxCollection<Report>;
-    searchData: SearchResultDataType | undefined;
-    currentUserAccountIDParam: number;
-    currentUserLogin: string;
-    betas: OnyxEntry<Beta[]>;
-    delegateAccountID: number | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-};
-
-function rejectMoneyRequestsOnSearch({
-    hash,
-    selectedTransactions,
-    comment,
-    allPolicies,
-    allReports,
-    searchData,
-    currentUserAccountIDParam,
-    currentUserLogin,
-    betas,
-    delegateAccountID,
-    getCurrencyDecimals,
-}: RejectMoneyRequestsOnSearchParams) {
+function rejectMoneyRequestsOnSearch(
+    hash: number,
+    selectedTransactions: Record<string, TransactionReportInfo>,
+    comment: string,
+    allPolicies: OnyxCollection<Policy>,
+    allReports: OnyxCollection<Report>,
+    currentUserAccountIDParam: number,
+    currentUserLogin: string,
+    betas: OnyxEntry<Beta[]>,
+    delegateAccountID: number | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
@@ -1734,7 +1719,10 @@ function rejectMoneyRequestsOnSearch({
     const isSingleReport = Object.keys(transactionsByReport).length === 1;
     let urlToNavigateBack;
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
-        const report = getReportFromSearchSnapshot(reportID, searchData, allReports);
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (!report) {
+            Log.info('[BulkReject] Report is missing from live Onyx', false, {reportID});
+        }
         const totalReportTransactions = report?.transactionCount ?? 0;
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
