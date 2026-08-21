@@ -50,20 +50,13 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
             },
         ],
         // Frozen value drives the pinned section, so the list doesn't reorder while selecting.
-        initiallySelectedOptions: [
-            {
-                keyForList: initialFieldValue,
-                searchText: initialFieldValue,
-                text: initialFieldValue,
-            },
-        ],
+        initiallySelectedValue: initialFieldValue,
         options: validFieldOptions,
         recentlyUsedOptions,
         translate,
     });
 
     const policyReportFieldData = sections.at(0)?.data ?? [];
-    const selectedOptionKey = policyReportFieldData.filter((option) => option.searchText === initialFieldValue)?.at(0)?.keyForList;
 
     const textInputOptions = {
         value: searchValue,
@@ -79,7 +72,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
             shouldShowTextInput
             textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
-            initiallyFocusedItemKey={selectedOptionKey}
+            initiallyFocusedItemKey={initialFieldValue}
             shouldUpdateFocusedIndex
         />
     );

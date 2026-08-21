@@ -27,14 +27,14 @@ function getReportFieldOptionsSection({
     options,
     recentlyUsedOptions,
     selectedOptions,
-    initiallySelectedOptions,
+    initiallySelectedValue,
     searchValue,
     translate,
 }: {
     options: string[];
     recentlyUsedOptions: string[];
     selectedOptions: Array<Partial<OptionData>>;
-    initiallySelectedOptions: Array<Partial<OptionData>>;
+    initiallySelectedValue: string;
     searchValue: string;
     translate: LocalizedTranslate;
 }) {
@@ -42,13 +42,18 @@ function getReportFieldOptionsSection({
     // The live selection drives the checkmark (isSelected)...
     const selectedKeySet = new Set(selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o));
     // ...while the frozen initial selection drives the pinned "Selected" section, so selecting a value marks it without reordering the list until reopen.
-    const pinnedOptionKeys = initiallySelectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
+    const pinnedOptionKeys = initiallySelectedValue ? [initiallySelectedValue] : [];
     const pinnedKeySet = new Set(pinnedOptionKeys);
 
     if (searchValue) {
         const searchOptions = tokenizedSearch(options, searchValue, (option) => [option]);
         // Keep the pinned option(s) at the top of the search results, matching the "Selected" section shown when not searching.
-        const orderedSearchOptions = [...searchOptions.filter((option) => pinnedKeySet.has(option)), ...searchOptions.filter((option) => !pinnedKeySet.has(option))];
+        const pinnedSearchOptions: string[] = [];
+        const otherSearchOptions: string[] = [];
+        for (const option of searchOptions) {
+            (pinnedKeySet.has(option) ? pinnedSearchOptions : otherSearchOptions).push(option);
+        }
+        const orderedSearchOptions = [...pinnedSearchOptions, ...otherSearchOptions];
 
         reportFieldOptionsSections.push({
             // "Search" section
