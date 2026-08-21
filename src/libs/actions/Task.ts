@@ -261,8 +261,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     > = [];
 
     if (assigneeChatReport && assigneeChatReportID) {
-        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
-            currentUserAccountID,
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData({
+            accountID: currentUserAccountID,
             assigneeAccountID,
             taskReportID,
             assigneeChatReportID,
@@ -272,7 +272,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             currentUserEmail,
             currentUserAccountID,
             delegateAccountID,
-        );
+        });
 
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
         successData.push(...assigneeChatReportOnyxData.successData);
@@ -912,19 +912,19 @@ function editTaskAssignee({
             },
         };
 
-        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
-            currentUserAccountID,
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData({
+            accountID: currentUserAccountID,
             assigneeAccountID,
-            report.reportID,
+            taskReportID: report.reportID,
             assigneeChatReportID,
-            report.parentReportID,
-            reportName ?? '',
+            parentReportID: report.parentReportID,
+            title: reportName ?? '',
             assigneeChatReport,
             currentUserEmail,
             currentUserAccountID,
             delegateAccountID,
-            isOptimisticReport,
-        );
+            isOptimisticAssigneeChatReport: isOptimisticReport,
+        });
 
         if (assigneeChatReportMetadata?.isOptimisticReport && assigneeChatReport.pendingFields?.createChat !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             // BE will send a different participant. We clear the optimistic one to avoid duplicated entries

@@ -950,6 +950,20 @@ type OnyxDataTaskAssigneeChat = {
     optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
 };
 
+type GetTaskAssigneeChatOnyxDataParams = {
+    accountID: number;
+    assigneeAccountID: number;
+    taskReportID: string;
+    assigneeChatReportID: string;
+    parentReportID: string | undefined;
+    title: string;
+    assigneeChatReport: OnyxEntry<Report>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    delegateAccountID: number | undefined;
+    isOptimisticAssigneeChatReport?: boolean;
+};
+
 type Ancestor = {
     report: Report;
     reportAction: ReportAction;
@@ -11043,19 +11057,19 @@ function canEditRoomVisibility(policy: OnyxEntry<Policy>, isReportArchived: bool
 /**
  * Returns the onyx data needed for the task assignee chat
  */
-function getTaskAssigneeChatOnyxData(
-    accountID: number,
-    assigneeAccountID: number,
-    taskReportID: string,
-    assigneeChatReportID: string,
-    parentReportID: string | undefined,
-    title: string,
-    assigneeChatReport: OnyxEntry<Report>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    delegateAccountID: number | undefined,
-    isOptimisticAssigneeChatReport?: boolean,
-): OnyxDataTaskAssigneeChat {
+function getTaskAssigneeChatOnyxData({
+    accountID,
+    assigneeAccountID,
+    taskReportID,
+    assigneeChatReportID,
+    parentReportID,
+    title,
+    assigneeChatReport,
+    currentUserEmail,
+    currentUserAccountID,
+    delegateAccountID,
+    isOptimisticAssigneeChatReport,
+}: GetTaskAssigneeChatOnyxDataParams): OnyxDataTaskAssigneeChat {
     // Set if we need to add a comment to the assignee chat notifying them that they have been assigned a task
     let optimisticAssigneeAddComment: OptimisticReportAction | undefined;
     // Set if this is a new chat that needs to be created for the assignee
