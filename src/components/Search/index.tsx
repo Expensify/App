@@ -406,9 +406,9 @@ function Search({
         // A failed search keeps whatever results it already had, so emptiness no longer tells us a retry is needed.
         // Coming back online after a failure has to retry on the error itself, otherwise the view sits on its error
         // page until the user presses Try again.
-        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && (isEmptyObject(searchResults?.data) || hasErrors);
+        const comingBackOnlineWithNoResultsOrError = prevIsOffline && !isOffline && (isEmptyObject(searchResults?.data) || hasErrors);
         const comingBackOnlineWithMissingAllMatchingTotals = prevIsOffline && !isOffline && isExpenseAllMatchingSelection && isAllMatchingItemsCountMissing;
-        const shouldRefreshOnReconnect = comingBackOnlineWithNoResults || comingBackOnlineWithMissingAllMatchingTotals;
+        const shouldRefreshOnReconnect = comingBackOnlineWithNoResultsOrError || comingBackOnlineWithMissingAllMatchingTotals;
         if (!shouldRefreshOnReconnect && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
             return;
         }

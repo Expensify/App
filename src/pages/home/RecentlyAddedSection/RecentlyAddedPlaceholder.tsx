@@ -111,13 +111,19 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
         <View
             testID="recentlyAddedSkeleton"
             style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-            onLayout={onLayout}
         >
-            <ItemListSkeletonView
-                itemViewHeight={ITEM_HEIGHT}
-                fixedNumItems={CONST.HOME.SECTION_VISIBLE_LIMIT}
-                renderSkeletonItem={renderSkeletonItem}
-            />
+            {/* The measured view carries no padding of its own. Measuring the padded parent would report a width that
+                includes the inset, and the right-aligned bars would then be drawn past the loader's svg and clipped. */}
+            <View
+                style={styles.flex1}
+                onLayout={onLayout}
+            >
+                <ItemListSkeletonView
+                    itemViewHeight={ITEM_HEIGHT}
+                    fixedNumItems={CONST.HOME.SECTION_VISIBLE_LIMIT}
+                    renderSkeletonItem={renderSkeletonItem}
+                />
+            </View>
         </View>
     );
 }
