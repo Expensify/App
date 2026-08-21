@@ -10163,6 +10163,9 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω προσωρινού προβλήματος της τράπεζας. Δοκιμάστε ξανά αργότερα.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';
@@ -10182,6 +10185,7 @@ ${reportName}`,
             return '';
         },
         brokenConnection530Error: 'Η απόδειξη εκκρεμεί λόγω αποσυνδεδεμένου τραπεζικού λογαριασμού',
+        brokenConnection531Error: 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω προσωρινού προβλήματος της τράπεζας. Δοκιμάστε ξανά αργότερα.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Η απόδειξη εκκρεμεί λόγω κατεστραμμένης σύνδεσης τράπεζας. Παρακαλώ επιλύστε το στις <a href="${workspaceCompanyCardRoute}">εταιρικές κάρτες</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Η απόδειξη εκκρεμεί λόγω προβλήματος στη σύνδεση με την τράπεζα. Παρακαλείστε να ζητήσετε από έναν διαχειριστή χώρου εργασίας να το επιλύσει.',
