@@ -71,7 +71,7 @@ function CancelSubscriptionPage() {
     const isAutomaticCancellation = resolvedCancellationType === CONST.CANCELLATION_TYPE.AUTOMATIC;
 
     if (isLoadingGuardData) {
-        return <FullscreenLoadingIndicator reasonAttributes={{context: 'CancelSubscriptionPage'}} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     return (
