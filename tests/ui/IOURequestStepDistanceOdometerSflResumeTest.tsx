@@ -34,17 +34,29 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const BOTTOM_SAFE_AREA_INSET = 24;
 
+// Controllable so the remount-on-focus tests can toggle it; other suites in this file leave it at the default `true`.
+const mockUseIsFocused = jest.fn(() => true);
+// A plain counter, not a jest mock, so `jest.clearAllMocks()` doesn't reset it — tests reset it themselves.
+const mockKeyboardAvoidingViewMountCount = {current: 0};
+
 // `KeyboardAvoidingView`'s real native behavior isn't observable in Jest — `react-native-keyboard-controller/jest`
 // maps it to a plain `View` with no avoidance logic, so testing the actual padding needs a device. This mock instead
 // forwards `enabled`/`testID` onto a plain View, so the gating logic (create vs edit flow) still has coverage. Props
 // pass through rather than a hardcoded testID because `ScreenWrapper` (rendered by `StepScreenWrapper` in the edit
-// flow) has its own separate `KeyboardAvoidingView` usage that would otherwise collide on the same testID.
+// flow) has its own separate `KeyboardAvoidingView` usage that would otherwise collide on the same testID. The mount
+// effect exists so the remount-on-focus tests can observe a fresh instance (React's `key` isn't visible via `.props`).
 jest.mock('@components/KeyboardAvoidingView', () => {
     const ReactActual = jest.requireActual<typeof React>('react');
     const {View: RNView} = jest.requireActual<{View: typeof View}>('react-native');
+    function MockKeyboardAvoidingView({children, ...rest}: {children?: React.ReactNode} & Record<string, unknown>) {
+        ReactActual.useEffect(() => {
+            mockKeyboardAvoidingViewMountCount.current += 1;
+        }, []);
+        return ReactActual.createElement(RNView, rest, children);
+    }
     return {
         __esModule: true,
-        default: ({children, ...rest}: {children?: React.ReactNode} & Record<string, unknown>) => ReactActual.createElement(RNView, rest, children),
+        default: MockKeyboardAvoidingView,
     };
 });
 
@@ -103,7 +115,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     createNavigationContainerRef: jest.fn(() => ({getCurrentRoute: jest.fn(() => ({name: 'Money_Request_Distance_Create', params: {}})), getState: jest.fn(() => ({}))})),
-    useIsFocused: () => true,
+    useIsFocused: () => mockUseIsFocused(),
     useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
     useFocusEffect: jest.fn(),
     usePreventRemove: jest.fn(),
@@ -176,8 +188,8 @@ function getKeyboardAvoidingViewEnabled(): boolean | undefined {
     return typeof enabled === 'boolean' ? enabled : undefined;
 }
 
-function renderOdometerStep(route: PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route']) {
-    return render(
+function odometerStepElement(route: PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route']) {
+    return (
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
                 <TabSwitchGuardContext.Provider value={() => () => {}}>
@@ -188,8 +200,12 @@ function renderOdometerStep(route: PlatformStackScreenProps<MoneyRequestNavigato
                     />
                 </TabSwitchGuardContext.Provider>
             </CurrentUserPersonalDetailsProvider>
-        </OnyxListItemProvider>,
+        </OnyxListItemProvider>
     );
+}
+
+function renderOdometerStep(route: PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route']) {
+    return render(odometerStepElement(route));
 }
 
 function renderCreateFlow(register: RegisterTabSwitchGuard) {
@@ -216,6 +232,7 @@ describe('IOURequestStepDistanceOdometer - create-flow discard guard (no stored 
     });
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockUseIsFocused.mockReturnValue(true);
         await Onyx.clear();
         await waitForBatchedUpdates();
         await signInWithTestUser(ACCOUNT_ID, 'test@user.com');
@@ -300,6 +317,8 @@ describe('IOURequestStepDistanceOdometer - keyboard avoidance', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockUseIsFocused.mockReturnValue(true);
+        mockKeyboardAvoidingViewMountCount.current = 0;
         await Onyx.clear();
         await waitForBatchedUpdates();
         await signInWithTestUser(ACCOUNT_ID, 'test@user.com');
@@ -318,6 +337,33 @@ describe('IOURequestStepDistanceOdometer - keyboard avoidance', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(getKeyboardAvoidingViewEnabled()).toBe(true);
+        unmount();
+    });
+
+    // Android can recycle this screen's native view while it sits in the background of another tab, so the
+    // KeyboardAvoidingView is remounted (via a `key` tied to focus) on every focus transition to shed any stale
+    // state. A mount counter stands in for React's `key`, which isn't observable via `.props`.
+    it('remounts KeyboardAvoidingView on a focus transition, not on an unrelated re-render', async () => {
+        const route = createDistanceCreateRoute();
+        const {rerender, unmount} = renderOdometerStep(route);
+        await waitForBatchedUpdatesWithAct();
+        expect(mockKeyboardAvoidingViewMountCount.current).toBe(1);
+
+        // Re-render while focus is unchanged: no remount.
+        mockUseIsFocused.mockReturnValue(true);
+        rerender(odometerStepElement(route));
+        expect(mockKeyboardAvoidingViewMountCount.current).toBe(1);
+
+        // Focus leaves the tab: remounts.
+        mockUseIsFocused.mockReturnValue(false);
+        rerender(odometerStepElement(route));
+        expect(mockKeyboardAvoidingViewMountCount.current).toBe(2);
+
+        // Focus returns: remounts again.
+        mockUseIsFocused.mockReturnValue(true);
+        rerender(odometerStepElement(route));
+        expect(mockKeyboardAvoidingViewMountCount.current).toBe(3);
+
         unmount();
     });
 
