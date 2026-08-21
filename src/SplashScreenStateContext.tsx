@@ -6,6 +6,7 @@ import type ChildrenProps from './types/utils/ChildrenProps';
 
 import CONFIG from './CONFIG';
 import CONST from './CONST';
+import {loadPaginationConfig} from './libs/Middleware/Pagination';
 import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
 import loadUnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater/load';
 
@@ -29,7 +30,7 @@ const SplashScreenActionsContext = React.createContext<SplashScreenActionsContex
 
 function loadPostSplashScreenModules() {
     import('./libs/actions/replaceOptimisticReportWithActualReport');
-    import('./libs/registerPaginationConfig');
+    loadPaginationConfig();
     loadUnreadIndicatorUpdater();
 }
 
