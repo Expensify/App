@@ -112,6 +112,7 @@ function ExpenseFlatSearchView({
                     canSelectMultiple={canSelectMultiple}
                     item={item}
                     columns={columns}
+                    isDateColumnCreated={type === CONST.SEARCH.DATA_TYPES.INVOICE}
                     isDisabled={isDisabled}
                     lastPaymentMethod={lastPaymentMethod}
                     personalPolicyID={personalPolicyID}

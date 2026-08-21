@@ -35,6 +35,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     columns,
+    isDateColumnCreated,
     isLoading,
     isActionLoading,
     isLastItem,
@@ -197,6 +198,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isDisabled={!!isDisabled}
                         shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
                         dateColumnSize={dateColumnSize}
+                        isDateColumnCreated={isDateColumnCreated}
                         submittedColumnSize={submittedColumnSize}
                         approvedColumnSize={approvedColumnSize}
                         postedColumnSize={postedColumnSize}
