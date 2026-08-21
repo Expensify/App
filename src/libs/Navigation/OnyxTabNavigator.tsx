@@ -220,11 +220,11 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         };
     };
 
+    // A function, not a cached value: each call site checks the keyboard's current state, not one captured earlier.
+    const hasKeyboardToDismiss = () => shouldDismissKeyboardBeforeTabSwitch && Keyboard.isVisible();
+
     const runAfterKeyboardDismiss = (callback: () => void) => {
-        // Only wait when there is actually a keyboard to wait for. `Keyboard.isVisible` is React Native's own tracking
-        // rather than the flag inside `KeyboardUtils`, so a stale flag there can't defer a jump that has nothing to wait
-        // on.
-        if (!shouldDismissKeyboardBeforeTabSwitch || !Keyboard.isVisible()) {
+        if (!hasKeyboardToDismiss()) {
             callback();
             return;
         }
@@ -291,7 +291,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
             });
         };
         if (!guard || !guard.getHasUnsavedChanges()) {
-            if (!shouldDismissKeyboardBeforeTabSwitch || !Keyboard.isVisible()) {
+            if (!hasKeyboardToDismiss()) {
                 // Nothing to wait for, so leave the jump to react-navigation and keep it synchronous.
                 return;
             }
