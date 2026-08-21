@@ -1,4 +1,5 @@
 import Checkbox from '@components/Checkbox';
+import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
@@ -90,6 +91,7 @@ function TransactionItemRowWide({
     columns,
     onButtonPress = () => {},
     style,
+    dataSet,
     isReportItemChild = false,
     isActionLoading,
     isInSingleTransactionReport = false,
@@ -318,7 +320,13 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
                     >
-                        <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
+                        <Text
+                            style={styles.userSelectText}
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}
+                        </Text>
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -327,7 +335,13 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
                     >
-                        <Text>{transactionItem.billable ? translate('common.yes') : translate('common.no')}</Text>
+                        <Text
+                            style={styles.userSelectText}
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {transactionItem.billable ? translate('common.yes') : translate('common.no')}
+                        </Text>
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
@@ -594,6 +608,8 @@ function TransactionItemRowWide({
                     <View
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}
+                        // Status badges are visual state, not copyable row values, so exclude their text from copied selections.
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
@@ -686,6 +702,7 @@ function TransactionItemRowWide({
                     styles.mw100,
                     style,
                 ]}
+                dataSet={dataSet}
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>

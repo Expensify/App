@@ -6067,6 +6067,7 @@ const CONST = {
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
+    COPYABLE_TEXT_ELEMENT: 'copyable-text',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',

@@ -1,5 +1,6 @@
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
+import {isMouseDownOnCopyableText, shouldSuppressCopyableTextPressOnMouseDown, useCopyableTextRowPress} from '@components/CopyableText/selection';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
@@ -207,6 +208,7 @@ function TransactionGroupListItemImpl({
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<View>(null);
+    const {handleCopyableTextRowPress, markMouseDownOnCopyableText} = useCopyableTextRowPress();
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {
@@ -265,13 +267,19 @@ function TransactionGroupListItemImpl({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
-        if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
-            onSelectRow(item, transactionPreviewData, event);
-        }
-        if (!isExpenseReportType) {
-            handleToggle();
-        }
+        handleCopyableTextRowPress(
+            () => {
+                const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
+                if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
+                    onSelectRow(item, transactionPreviewData, event);
+                }
+                if (!isExpenseReportType) {
+                    handleToggle();
+                }
+            },
+            true,
+            true,
+        );
     };
 
     const onLongPress = () => {
@@ -523,9 +531,20 @@ function TransactionGroupListItemImpl({
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
+                shouldAllowTextSelection
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    // Suppress grouped-row toggle only when the interaction starts on selectable text;
+                    // blank row space keeps expand/collapse behavior.
+                    const isCopyableTextMouseDown = isMouseDownOnCopyableText(e);
+                    const shouldSuppressTextPress = isCopyableTextMouseDown && shouldSuppressCopyableTextPressOnMouseDown(e);
+                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target, isCopyableTextMouseDown, shouldSuppressTextPress);
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
@@ -535,7 +554,6 @@ function TransactionGroupListItemImpl({
                 wrapperStyle={[
                     styles.mh5,
                     animatedHighlightStyle,
-                    styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
                         : [

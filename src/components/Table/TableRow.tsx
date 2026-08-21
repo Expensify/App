@@ -1,4 +1,5 @@
 import Checkbox from '@components/Checkbox';
+import {useCopyableTextRowPress} from '@components/CopyableText/selection';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -73,6 +74,7 @@ export default function TableRow({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal = false} = useTableContext();
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
     // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
     // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
@@ -107,7 +109,6 @@ export default function TableRow({
     const tableRowPressableStyles = [
         styles.mh5,
         styles.highlightBG,
-        styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
@@ -187,6 +188,10 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         if (isDisabled || !interactive) {
             return;
         }
@@ -225,6 +230,7 @@ export default function TableRow({
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
+                shouldAllowTextSelection
                 disabled={isDisabled}
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
@@ -232,6 +238,11 @@ export default function TableRow({
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex)}
                 onMouseDown={(e) => {
                     const target = e?.target;
+                    const isCopyableTarget = markMouseDownOnCopyableText(target);
+
+                    if (isCopyableTarget) {
+                        return;
+                    }
 
                     if (!(target instanceof HTMLElement)) {
                         e.preventDefault();

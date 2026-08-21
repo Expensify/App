@@ -10,7 +10,7 @@ import {View} from 'react-native';
 
 import type ReportSearchHeaderProps from './types';
 
-function ReportSearchHeader({report, style, transactions, avatarBorderColor}: ReportSearchHeaderProps) {
+function ReportSearchHeader({report, style, transactions, avatarBorderColor, isTitleCopyable = false}: ReportSearchHeaderProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
@@ -28,6 +28,8 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 shouldEnableDetailPageNavigation={false}
                 shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
+                // Keep this opt-in scoped to search rows instead of making all report headers selectable.
+                isDisplayNameCopyable={isTitleCopyable}
                 size={isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                 customDisplayNameStyle={styles.fontWeightNormal}
                 parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
@@ -38,6 +40,7 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
         report,
         transactions,
         avatarBorderColor,
+        isTitleCopyable,
         styles.fontWeightNormal,
         styles.textLineHeightNormal,
         styles.minHeight4,

@@ -4,6 +4,7 @@ import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Badge from '@components/Badge';
 import {useIsCompactMenu} from '@components/CompactMenuContext';
+import {COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress} from '@components/CopyableText/selection';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import DisplayNames from '@components/DisplayNames';
 import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
@@ -438,6 +439,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should enable copy to clipboard action */
         copyable?: boolean;
 
+        /** Whether the title text should be directly selectable */
+        isTitleSelectable?: boolean;
+
         /** Plaid image for the bank */
         plaidUrl?: string;
 
@@ -613,6 +617,7 @@ function MenuItem({
     plaidUrl,
     copyValue = title,
     copyable = false,
+    isTitleSelectable = false,
     hasSubMenuItems = false,
     forwardedFSClass,
     ref,
@@ -639,6 +644,7 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
     const pressableRef = useRef<View>(null);
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
     useRemoveNonInteractiveClickHandler(pressableRef, interactive);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();
@@ -683,6 +689,7 @@ function MenuItem({
             isDeleted ? styles.offlineFeedbackDeleted : {},
             shouldBreakWord ? styles.breakWord : {},
             styles.mw100,
+            isTitleSelectable ? styles.userSelectText : {},
         ],
         (titleStyle ?? {}) as TextStyle,
     );
@@ -803,6 +810,10 @@ function MenuItem({
             return;
         }
 
+        if (shouldSuppressCopyableTextRowPress(isTitleSelectable)) {
+            return;
+        }
+
         if (event?.type === 'click') {
             (event.currentTarget as HTMLElement).blur();
         }
@@ -869,6 +880,10 @@ function MenuItem({
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onMouseDown={(event) => {
+                                    markMouseDownOnCopyableText(event?.target, isTitleSelectable);
+                                }}
+                                shouldAllowTextSelection={isTitleSelectable}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -1046,7 +1061,15 @@ function MenuItem({
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                                    <View style={[styles.renderHTMLTitle, styles.textAlignLeft, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
+                                                                    <View
+                                                                        style={[
+                                                                            styles.renderHTMLTitle,
+                                                                            styles.textAlignLeft,
+                                                                            isTitleSelectable && styles.userSelectText,
+                                                                            shouldApplyIconPaddingToHTMLTitle && iconLeftPadding,
+                                                                        ]}
+                                                                        dataSet={isTitleSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
+                                                                    >
                                                                         {/* Use Text instead of RenderHTML when the title is plain text.
                                                                             Titles with shouldRenderAsHTML use baseFontStyle, which differs from combinedTitleTextStyle below.
                                                                         */}
@@ -1061,7 +1084,11 @@ function MenuItem({
                                                                     <Text
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
-                                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                        dataSet={{
+                                                                            [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
+                                                                            ...(isTitleSelectable ? COPYABLE_TEXT_DATA_SET : {}),
+                                                                        }}
+                                                                        selectable={isTitleSelectable}
                                                                         accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}
@@ -1120,7 +1147,13 @@ function MenuItem({
                                                     </View>
                                                 </View>
                                             </View>
-                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
+                                            <View
+                                                style={[
+                                                    styles.flexRow,
+                                                    StyleUtils.getMenuItemTextContainerStyle(isCompact),
+                                                    !hasPressableRightComponent && !isTitleSelectable && styles.pointerEventsNone,
+                                                ]}
+                                            >
                                                 {!!badgeText && !shouldShowBadgeInSeparateRow && !shouldShowBadgeBelow && (
                                                     <Badge
                                                         text={badgeText}

@@ -17,6 +17,9 @@ type TextWithTooltipProps = ForwardedFSClassProps & {
 
     /** TestID of the Text component */
     testID?: string;
+
+    /** Whether this value should be directly selectable/copyable inside pressable rows */
+    isCopyable?: boolean;
 };
 
 export default TextWithTooltipProps;

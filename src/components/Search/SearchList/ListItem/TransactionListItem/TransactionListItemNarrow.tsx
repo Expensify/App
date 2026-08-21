@@ -1,4 +1,5 @@
 import {getButtonRole} from '@components/Button/utils';
+import {useCopyableTextRowPress} from '@components/CopyableText/selection';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -52,12 +53,17 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
     const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
         if (isDeletedTransaction) {
             if (canSelectMultiple) {
@@ -117,6 +123,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
+                shouldAllowTextSelection
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
@@ -127,11 +134,17 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
+                onMouseDown={(event) => {
+                    const isCopyableTarget = markMouseDownOnCopyableText(event?.target);
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    event.preventDefault();
+                }}
                 wrapperStyle={[
                     styles.mh5,
                     styles.flex1,
                     animatedHighlightStyle,
-                    styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,
                     !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),

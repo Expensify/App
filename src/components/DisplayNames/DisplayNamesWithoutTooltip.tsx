@@ -1,3 +1,4 @@
+import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,16 +24,29 @@ type DisplayNamesWithoutTooltipProps = ForwardedFSClassProps & {
 
     /** Overrides the text read by screen readers. */
     accessibilityLabel?: string;
+
+    /** Whether this display name should be directly selectable/copyable inside pressable rows */
+    isCopyable?: boolean;
 };
 
-function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = '', renderAdditionalText, forwardedFSClass, accessibilityLabel}: DisplayNamesWithoutTooltipProps) {
+function DisplayNamesWithoutTooltip({
+    textStyles = [],
+    numberOfLines = 1,
+    fullTitle = '',
+    renderAdditionalText,
+    forwardedFSClass,
+    accessibilityLabel,
+    isCopyable = false,
+}: DisplayNamesWithoutTooltipProps) {
     const styles = useThemeStyles();
     return (
         <Text
             accessibilityLabel={accessibilityLabel}
-            style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
+            style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap, isCopyable && styles.userSelectText]}
             numberOfLines={numberOfLines}
             fsClass={forwardedFSClass}
+            selectable={isCopyable}
+            dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
         >
             {fullTitle}
             {renderAdditionalText?.()}
