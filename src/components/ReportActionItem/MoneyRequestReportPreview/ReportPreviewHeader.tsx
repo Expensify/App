@@ -66,9 +66,6 @@ function ReportPreviewHeader() {
         [translate, numberOfRequests],
     );
 
-    // A cancelled payment is a report level event and it isn't surfaced by the status badge, so we show it next to the expense count.
-    const supportingText = iouReport?.isCancelledIOU ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${expenseCount}` : expenseCount;
-
     const reportStateNum = iouReport?.stateNum ?? action?.childStateNum;
     const reportStatusNum = iouReport?.statusNum ?? action?.childStatusNum;
 
@@ -83,6 +80,11 @@ function ReportPreviewHeader() {
     );
 
     const shouldShowReportStatus = !!reportStatus && !!expenseCount;
+
+    // The badge can't express a cancelled payment, so it sits next to the expense count - unless the badge already reads "Approved",
+    // which is the state cancelling returns an approving workspace to.
+    const isApprovedReport = reportStateNum === CONST.REPORT.STATE_NUM.APPROVED && reportStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const supportingText = iouReport?.isCancelledIOU && !isApprovedReport ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${expenseCount}` : expenseCount;
 
     const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, reportStateNum, reportStatusNum), [reportStateNum, reportStatusNum, theme]);
 
