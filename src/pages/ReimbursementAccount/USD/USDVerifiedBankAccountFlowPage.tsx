@@ -52,10 +52,6 @@ function CountryPage({onBackButtonPress, onSubmit, stepNames, policyID}: USDPage
 }
 
 function BankInfoPage({onBackButtonPress, onSubmit, policyID}: USDPageProps) {
-    if (!policyID) {
-        return null;
-    }
-
     return (
         <BankInfo
             onBackButtonPress={onBackButtonPress}

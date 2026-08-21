@@ -45,7 +45,7 @@ jest.mocked(useOnyx).mockImplementation((key) => {
             return [undefined, {status: 'loaded'}];
     }
 });
-it('preserves filtering, defaults, saved selection, and save behavior', () => {
+it('filters unsupported saved columns, defaults invalid-only storage, and preserves save behavior', () => {
     const mixedProps = renderColumns(['invalid', CONST.SEARCH.TABLE_COLUMNS.MERCHANT, 'foreign', CONST.SEARCH.TABLE_COLUMNS.DATE]);
     expect(mixedProps.currentColumns).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.DATE]);
     const defaultProps = renderColumns(['invalid', 'foreign']);

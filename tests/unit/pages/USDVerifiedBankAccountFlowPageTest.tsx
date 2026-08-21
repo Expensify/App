@@ -1,6 +1,8 @@
 import {render} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 
 import BankInfo from '@pages/ReimbursementAccount/USD/BankInfo/BankInfo';
 import Country from '@pages/ReimbursementAccount/USD/Country';
@@ -8,8 +10,7 @@ import USDVerifiedBankAccountFlowPage from '@pages/ReimbursementAccount/USD/USDV
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-import React from 'react';
+import type SCREENS from '@src/SCREENS';
 
 import createMock from '../../utils/createMock';
 
@@ -20,20 +21,20 @@ jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: je
 jest.mock('@pages/ReimbursementAccount/USD/BankInfo/BankInfo', () => jest.fn(() => null));
 jest.mock('@pages/ReimbursementAccount/USD/Country', () => jest.fn(() => null));
 const [mockBankInfo, mockCountry] = [jest.mocked(BankInfo), jest.mocked(Country)];
-type PageProps = React.ComponentProps<typeof USDVerifiedBankAccountFlowPage>;
+type PageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD>;
 function renderPage(params: PageProps['route']['params']) {
     const props = {route: createMock<PageProps['route']>({params}), navigation: createMock<PageProps['navigation']>({})} satisfies PageProps;
-    return render(React.createElement(USDVerifiedBankAccountFlowPage, props));
+    return render(<USDVerifiedBankAccountFlowPage {...props} />);
 }
 it('preserves policy-less, valid-policy, and Country-to-Plaid routing behavior', () => {
-    const view = renderPage({page: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT});
-    expect([view.toJSON() === null, mockCountry.mock.calls.length, mockBankInfo.mock.calls.length]).toEqual([false, 0, 0]);
+    renderPage({page: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT});
+    renderPage({policyID: '', page: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT});
     renderPage({policyID: 'policy-1', page: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT});
-    const props = mockBankInfo.mock.calls.at(0)?.at(0);
+    const [{policyID: absent}, {policyID: empty}, props] = mockBankInfo.mock.calls.map(([callProps]) => callProps);
     if (!props) {
         throw new Error('Expected the selected BankInfo child to render');
     }
-    expect([props.policyID, typeof props.onSubmit, typeof props.onBackButtonPress]).toEqual(['policy-1', 'function', 'function']);
+    expect([absent, empty, props.policyID, typeof props.onSubmit, typeof props.onBackButtonPress]).toEqual([undefined, '', 'policy-1', 'function', 'function']);
     renderPage({policyID: 'policy-1'});
     const countryProps = mockCountry.mock.calls.at(0)?.at(0);
     if (!countryProps?.onSubmit) {

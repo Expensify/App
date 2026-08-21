@@ -1,8 +1,7 @@
 import {render} from '@testing-library/react-native';
 
 import Button from '@components/ButtonComposed';
-import type FixedFooter from '@components/FixedFooter';
-import type ScrollView from '@components/ScrollView';
+import type {ScrollViewProps} from '@components/ScrollView';
 import TextLink from '@components/TextLink';
 
 import useLocalize from '@hooks/useLocalize';
@@ -24,16 +23,15 @@ jest.mock('@components/ButtonComposed', () => ({
         {KeyboardShortcut: jest.fn(() => null), Text: jest.fn(() => null)},
     ),
 }));
-jest.mock('@components/FixedFooter', () => jest.fn((props: React.ComponentProps<typeof FixedFooter>) => props.children));
-jest.mock('@components/ScrollView', () => jest.fn((props: React.ComponentProps<typeof ScrollView>) => props.children));
+jest.mock('@components/FixedFooter', () => jest.fn((props: React.PropsWithChildren) => props.children));
+jest.mock('@components/ScrollView', () => jest.fn((props: ScrollViewProps) => props.children));
 jest.mock('@components/TextLink', () => jest.fn(() => null));
 jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
 jest.mock('@hooks/useLocalize', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({})));
 const mockLocalize = createMock<ReturnType<typeof useLocalize>>({translate: translateLocal});
-const mockTranslate = jest.spyOn(mockLocalize, 'translate');
-const [mockOnNext, mockOnConnect] = [jest.fn(), jest.fn()];
+const [mockTranslate, mockOnNext, mockOnConnect] = [jest.spyOn(mockLocalize, 'translate'), jest.fn(), jest.fn()];
 const baseProps = {isEditing: false, onNext: mockOnNext, onMove: jest.fn(), onConnect: mockOnConnect, isSandbox: true};
 function renderStep(currentPageName?: string) {
     render(React.createElement(CertiniaPrerequisitesStep, {...baseProps, currentPageName}));
@@ -46,7 +44,7 @@ function renderStep(currentPageName?: string) {
 jest.mocked(useLocalize).mockReturnValue(mockLocalize);
 jest.mocked(useNetwork).mockReturnValue({isOffline: false});
 beforeEach(() => jest.clearAllMocks());
-it.each([undefined, 'foreign', CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE])('uses complete install-bundle behavior for %s', (pageName) => {
+it.each([undefined, 'foreign', CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE])('uses the intentional complete install-bundle fallback for %s', (pageName) => {
     const button = renderStep(pageName);
     expect(mockTranslate).toHaveBeenCalledWith('workspace.certinia.prerequisites.installBundle');
     expect(mockTranslate).toHaveBeenCalledWith('workspace.certinia.prerequisites.installBundleDescription');

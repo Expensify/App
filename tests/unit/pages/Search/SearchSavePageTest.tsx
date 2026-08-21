@@ -6,6 +6,8 @@ import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValu
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import * as SearchUIUtils from '@libs/SearchUIUtils';
+
 import SearchSavePage from '@pages/Search/SearchSavePage';
 
 import CONST from '@src/CONST';
@@ -50,14 +52,22 @@ jest.mocked(useOnyx).mockImplementation((key) => {
     }
 });
 beforeEach(() => jest.clearAllMocks());
-it.each([[['12']], [['12', '23']]])('renders canonical card selection %j exactly', (cardID) => {
+it.each([[['12']], [['12', '23']], [['123']]])('renders canonical card selection %j exactly', (cardID) => {
     form = {cardID, feed: ['feed-a', 'feed-b'], taxRate: ['tax-a', 'tax-b'], merchant: 'Coffee Shop'};
     const output = JSON.stringify(render(<SearchSavePage />).toJSON());
-    expect(['Selected Alpha', 'Selected Beta', 'Unselected Overlap'].map((text) => output.includes(text))).toEqual([true, cardID.length === 2, false]);
+    const expectedDescriptions = cardID.at(0) === '123' ? [false, false, true] : [true, cardID.length === 2, false];
+    expect(['Selected Alpha', 'Selected Beta', 'Unselected Overlap'].map((text) => output.includes(text))).toEqual(expectedDescriptions);
     expect(['12', '23', '123'].map((rawID) => output.includes(rawID))).toEqual([false, false, false]);
-    expect([jest.mocked(useFilterFeedValue).mock.calls.at(0)?.at(0), jest.mocked(useFilterTaxRateValue).mock.calls.at(0)?.at(0)]).toEqual([
-        ['feed-a', 'feed-b'],
-        ['tax-a', 'tax-b'],
+    expect(jest.mocked(useFilterFeedValue)).toHaveBeenCalledWith(['feed-a', 'feed-b']);
+    expect(jest.mocked(useFilterTaxRateValue)).toHaveBeenCalledWith(['tax-a', 'tax-b']);
+    expect(['feed:feed-a|feed-b', 'tax:tax-a|tax-b', 'Coffee Shop'].every((text) => output.includes(text))).toBe(true);
+});
+it('renders scalar feed and tax values without calling array display hooks', () => {
+    jest.spyOn(SearchUIUtils, 'mapFiltersFormToLabelValueList').mockReturnValueOnce([
+        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, label: 'Feed', value: 'feed-scalar'},
+        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, label: 'Tax', value: 'tax-scalar'},
     ]);
-    expect(['feed:feed-a|feed-b', 'tax:tax-a|tax-b', 'Coffee Shop'].map((text) => output.includes(text))).toEqual([true, true, true]);
+    const output = JSON.stringify(render(<SearchSavePage />).toJSON());
+    expect(['feed-scalar', 'tax-scalar'].every((text) => output.includes(text))).toBe(true);
+    expect([jest.mocked(useFilterFeedValue).mock.calls.length, jest.mocked(useFilterTaxRateValue).mock.calls.length]).toEqual([0, 0]);
 });

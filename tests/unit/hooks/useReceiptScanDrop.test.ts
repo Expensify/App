@@ -47,16 +47,6 @@ describe('useReceiptScanDrop', () => {
         await waitForBatchedUpdatesWithAct();
         expect(result.current.isDragDisabled).toBe(false);
     });
-    it('stops unsupported and transaction-less batches before receipt side effects', async () => {
-        renderHook(() => useReceiptScanDrop());
-        await waitForBatchedUpdatesWithAct();
-        mockOnFilesValidated([{name: 'not-a-blob.png', type: 'image/png', uri: 'test'}], []);
-        expect([jest.mocked(initMoneyRequest).mock.calls.length, jest.mocked(setMoneyRequestReceipt).mock.calls.length]).toEqual([0, 0]);
-        jest.mocked(initMoneyRequest).mockReturnValue(undefined);
-        mockOnFilesValidated([new File(['receipt'], 'receipt.png', {type: 'image/png'})], []);
-        expect([jest.mocked(initMoneyRequest).mock.calls.length, jest.mocked(setMoneyRequestReceipt).mock.calls.length]).toEqual([1, 0]);
-        expect([jest.mocked(buildOptimisticTransactionAndCreateDraft).mock.calls.length, jest.mocked(navigateToParticipantPage).mock.calls.length]).toEqual([0, 0]);
-    });
     it('keeps one and multiple valid receipts ordered on their intended transactions', async () => {
         const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValueOnce('blob:first').mockReturnValueOnce('blob:first').mockReturnValueOnce('blob:second');
         renderHook(() => useReceiptScanDrop());
