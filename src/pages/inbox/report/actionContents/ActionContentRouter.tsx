@@ -21,6 +21,7 @@ import {
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getDelegateSubmitMessage,
+    getExportFailedMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -468,6 +469,13 @@ function ActionContentRouter({
                 policyID={policyID}
                 originalReport={originalReport}
             />
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORT_FAILED)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getExportFailedMessage(translate, action, policyID)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {

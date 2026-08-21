@@ -9634,6 +9634,8 @@ ${reportName}`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `παρουσιάστηκε πρόβλημα με το συγχρονισμό με ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Διορθώστε το ζήτημα στις <a href="${workspaceAccountingLink}">ρυθμίσεις του χώρου εργασίας</a>.`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Επαναλήφθηκε ${count} φορές.)`,
+                exportFailed: ({count, workspaceAccountingLink}: {count: number; workspaceAccountingLink: string}) =>
+                    `${count === 1 ? '1 αναφορά' : `${count} αναφορές`} απέτυχαν να εξαχθούν. Διορθώστε το ζήτημα στις <a href="${workspaceAccountingLink}">ρυθμίσεις του χώρου εργασίας</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Η σύνδεση ${feedName} δεν λειτουργεί. Για να επαναφέρετε τις εισαγωγές καρτών, <a href='${workspaceCompanyCardRoute}'>συνδεθείτε στην τράπεζά σας</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
