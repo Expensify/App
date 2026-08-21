@@ -9442,6 +9442,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `un problème est survenu lors de la synchronisation avec ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Veuillez corriger le problème dans les <a href="${workspaceAccountingLink}">paramètres de l’espace de travail</a>.`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Répété ${count} fois.)`,
+                exportFailed: ({count, workspaceAccountingLink}: {count: number; workspaceAccountingLink: string}) =>
+                    `${count === 1 ? '1 rapport' : `${count} rapports`} n’ont pas pu être exportés. Veuillez corriger le problème dans les <a href="${workspaceAccountingLink}">paramètres de l’espace de travail</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

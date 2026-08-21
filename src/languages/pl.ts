@@ -9327,6 +9327,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `wystąpił problem z synchronizacją z ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Napraw problem w <a href="${workspaceAccountingLink}">ustawieniach przestrzeni roboczej</a>.`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Powtórzono ${count} razy.)`,
+                exportFailed: ({count, workspaceAccountingLink}: {count: number; workspaceAccountingLink: string}) =>
+                    `${count === 1 ? '1 raportu' : `${count} raportów`} nie udało się wyeksportować. Napraw problem w <a href="${workspaceAccountingLink}">ustawieniach przestrzeni roboczej</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

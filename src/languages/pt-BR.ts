@@ -9347,6 +9347,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `houve um problema ao sincronizar com ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Corrija o problema em <a href="${workspaceAccountingLink}">configurações do workspace</a>.`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Repetido ${count} vezes.)`,
+                exportFailed: ({count, workspaceAccountingLink}: {count: number; workspaceAccountingLink: string}) =>
+                    `${count === 1 ? '1 relatório' : `${count} relatórios`} não puderam ser exportados. Corrija o problema em <a href="${workspaceAccountingLink}">configurações do workspace</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `A conexão de ${feedName} está interrompida. Para restaurar as importações do cartão, <a href='${workspaceCompanyCardRoute}'>faça login no seu banco</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
