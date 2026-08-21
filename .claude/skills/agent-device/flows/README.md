@@ -1,6 +1,6 @@
 # Flows
 
-This file is the reference for every `.ad` file in the repository: the metadata spec, selector rules, recording, and maintenance. Measurement flows live in [`measure-telemetry-span/flows/`](../../measure-telemetry-span/SKILL.md) and follow the same rules.
+This file is the reference for every `.ad` file in the repository: the metadata spec, selector rules, recording, and maintenance.
 
 ## Directory layout
 
@@ -38,8 +38,6 @@ Before manually navigating, use this human-in-the-loop loop:
 ## Replay lifecycle
 
 No flow in this repository owns application lifecycle, so none of them is a self-contained `agent-device test` input. `agent-device test` creates an isolated session per attempt; use it only for scripts that own `context`, `open`, and cleanup. Repository flows expect the caller to open the app and prepare a named session first.
-
-Tested Agent Device versions 0.20.1 through 0.20.6 accept `replay --timeout` but can leave the daemon request running until a selector timeout. For headless and measured runs, drive replay through [`measure-telemetry-span/scripts/replay-with-deadline.mjs`](../../measure-telemetry-span/SKILL.md), which enforces the wall-clock deadline outside the daemon and exits with code 124. Selector waits remain the per-step bounds and produce the useful divergence report.
 
 ## Metadata header spec
 
