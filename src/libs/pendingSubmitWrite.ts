@@ -2,23 +2,14 @@ import {SAFETY_TIMEOUT_MS} from './API/writeWhenReady';
 import Log from './Log';
 
 /**
- * Tracks "a submit-expense write is on its way to report X" for the two report-side consumers that
- * need it: the loading-skeleton decision in `MoneyRequestReportUtils.shouldWaitForTransactions` and the
- * empty-state-animation suppression in `ReportActionItemCreated`.
- *
- * Those two live in unrelated module/component trees with no props path between them, so the signal
- * needs somewhere to live. It is deliberately not the write-scheduling registry it replaces: this only
- * answers a question, it never decides where a write goes, so stale state here cannot send a
- * submission down the wrong path the way a stale channel reservation could.
- *
- * Both reads are non-reactive point-in-time checks by design (see `ReportActionItemCreated`), so no
- * subscription mechanism is provided.
+ * Tracks "a submit-expense write is on its way to report X", for callers to check via
+ * `hasPendingSubmitWriteForReport`. Meant for a one-off read; there's no onChange/listener API.
  */
 
 /** The report a submit write is currently pending for, if any. Only one submission is ever in flight. */
 let pendingReportID: string | undefined;
 
-/** Bumped on every mark so a stale clear from a superseded submission cannot clear a newer one. */
+/** ID of the current pending submission, bumped each time `markPendingSubmitWriteForReport` runs. */
 let generation = 0;
 
 let safetyTimeoutID: ReturnType<typeof setTimeout> | undefined;
@@ -41,14 +32,9 @@ function startSafetyTimeout(reportID: string, forGeneration: number) {
 }
 
 /**
- * Mark a submit write as pending for `reportID`, and return the function that clears it. Calling the
- * returned function more than once, or after a later submission replaced this one, is a no-op.
- *
- * The signal also clears itself after `SAFETY_TIMEOUT_MS` - the same bound `writeWhenReady` uses to
- * guarantee the write goes out - so a caller that never gets to clear cannot leave a report stuck
- * showing a loading skeleton. That timer starts here, at mark time, which is normally earlier than the
- * write itself is constructed - call `restartPendingSubmitWriteSafetyTimeout` once the write attaches
- * so the two windows stay aligned instead of this one expiring first.
+ * Marks `reportID` pending, returns a function to call once the write settles. Calling that returned
+ * function twice, or after a later submission replaced this one, is a no-op. Also self-clears after
+ * `SAFETY_TIMEOUT_MS` in case the caller never calls it.
  */
 function markPendingSubmitWriteForReport(reportID: string | undefined): () => void {
     if (!reportID) {
@@ -64,14 +50,7 @@ function markPendingSubmitWriteForReport(reportID: string | undefined): () => vo
     return () => clearPending(forGeneration);
 }
 
-/**
- * Restart the safety timeout from the point the actual write attaches, rather than from
- * `markPendingSubmitWriteForReport`'s call time. Without this, the two equal-length timers can start
- * several seconds apart, and this signal (loading skeleton / empty-state-animation suppression) can
- * clear well before the write it was guarding actually goes out.
- *
- * A no-op if `reportID` no longer matches the currently pending report (already cleared or superseded).
- */
+/** Call once the write attaches, restarting the safety timeout from there so it can't clear `pendingReportID` while that write is still in flight. */
 function restartPendingSubmitWriteSafetyTimeout(reportID: string | undefined) {
     if (!reportID || pendingReportID !== reportID) {
         return;
@@ -79,10 +58,7 @@ function restartPendingSubmitWriteSafetyTimeout(reportID: string | undefined) {
     startSafetyTimeout(reportID, generation);
 }
 
-/**
- * Whether a submit write is pending for this specific report. Scoped by report so an unrelated
- * submission mid-dismiss does not make every empty money-request report look like it is loading.
- */
+/** Whether a submit write is pending for this specific report, scoped so an unrelated submission can't affect it. */
 function hasPendingSubmitWriteForReport(reportID: string | undefined): boolean {
     if (!reportID) {
         return false;

@@ -11,11 +11,13 @@ import type {AppStateStatus} from 'react-native';
 
 import {AppState} from 'react-native';
 
-jest.mock('@libs/telemetry/submitFollowUpAction', () => ({addOptimization: jest.fn()}));
+jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
+    addOptimization: jest.fn(),
+}));
 
 const WATCH_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION}1` as const;
 
-/** Resolves once the barrier releases, so a test can tell "waits" from "goes out now". */
+/** Returns a getter that flips to true once `barrier` settles, so a test can poll whether a deferred write already went out. */
 function settled(barrier: WriteReadyBarrier) {
     let isSettled = false;
     Promise.resolve(barrier(new AbortController().signal)).then(() => {
@@ -61,7 +63,10 @@ describe('resolveWriteBarrier', () => {
             });
 
         // When a write barrier is resolved with both available
-        const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+        const barrier = resolveWriteBarrier({
+            writeBarrier,
+            optimisticWatchKey: WATCH_KEY,
+        });
         const isSettled = settled(barrier);
         await Promise.resolve();
 
@@ -89,7 +94,10 @@ describe('resolveWriteBarrier', () => {
                 releaseWriteBarrier = resolve;
             });
 
-        const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+        const barrier = resolveWriteBarrier({
+            writeBarrier,
+            optimisticWatchKey: WATCH_KEY,
+        });
         const barrierSettled = Promise.resolve(barrier(new AbortController().signal));
 
         // When Search flushes before the caller's barrier has released
@@ -116,12 +124,15 @@ describe('resolveWriteBarrier', () => {
 
             // When the write attaches to that barrier well into the mark-time safety-timeout window
             jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
-            const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+            const barrier = resolveWriteBarrier({
+                writeBarrier,
+                optimisticWatchKey: WATCH_KEY,
+            });
             barrier(new AbortController().signal);
 
             // Then advancing past where the original mark-time timer would have fired does not clear
-            // the signal - this write never actually waits on `pending.barrier`, so without a restart at
-            // attach time the signal would come down while the write is still blocked on its own barrier
+            // Search's pending write - this write never actually waits on Search's barrier, so without a
+            // restart at attach time it would come down while the write is still blocked on its own barrier
             jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
             expect(hasPendingSearchWrite()).toBe(true);
 
@@ -158,7 +169,10 @@ describe('resolveWriteBarrier', () => {
         // default TransitionTracker barrier, which leaves its promise permanently pending once aborted
         markPendingSearchWrite();
         const writeBarrier: WriteReadyBarrier = () => new Promise<void>(() => {});
-        const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+        const barrier = resolveWriteBarrier({
+            writeBarrier,
+            optimisticWatchKey: WATCH_KEY,
+        });
         const controller = new AbortController();
         barrier(controller.signal);
 
@@ -184,7 +198,10 @@ describe('resolveWriteBarrier', () => {
                 new Promise<void>((resolve) => {
                     releaseWriteBarrier = resolve;
                 });
-            const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+            const barrier = resolveWriteBarrier({
+                writeBarrier,
+                optimisticWatchKey: WATCH_KEY,
+            });
             const barrierSettled = Promise.resolve(barrier(new AbortController().signal));
 
             // When the first signal times out on its own, and a second, unrelated submission raises a
@@ -231,10 +248,13 @@ describe('resolveWriteBarrier', () => {
         // Given Search's signal is up
         markPendingSearchWrite();
 
-        // When a write barrier is resolved for a retry, with no explicit barrier
-        // A retry runs after the layout that would have released it, so waiting would strand the write
-        // until its safety timeout - and the flush that ends that wait is what triggered the retry.
-        const barrier = resolveWriteBarrier({isRetry: true, optimisticWatchKey: WATCH_KEY});
+        // When a write barrier is resolved for a retry, with no explicit barrier - a retry runs after
+        // the layout that would have released it, so waiting would strand it until its safety timeout,
+        // and the flush that ends that wait is what triggered the retry in the first place
+        const barrier = resolveWriteBarrier({
+            isRetry: true,
+            optimisticWatchKey: WATCH_KEY,
+        });
         const isSettled = settled(barrier);
         await Promise.resolve();
 
@@ -285,7 +305,11 @@ describe('resolveWriteBarrier', () => {
 
         // When two writes from the same submission (e.g. a split's receipts) each resolve a barrier
         const isFirstSettled = settled(resolveWriteBarrier({optimisticWatchKey: WATCH_KEY}));
-        const isSecondSettled = settled(resolveWriteBarrier({optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}2`}));
+        const isSecondSettled = settled(
+            resolveWriteBarrier({
+                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}2`,
+            }),
+        );
 
         // When Search flushes the signal
         flushPendingSearchWrite();

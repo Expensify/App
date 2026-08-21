@@ -15,39 +15,29 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import {AppState} from 'react-native';
 
-/**
- * An already-satisfied barrier: `API.writeWhenReady` with this behaves like `API.write`, one microtask
- * later. Used so a call site stays a single `API.writeWhenReady` call instead of branching between the
- * two APIs, which `no-multiple-api-calls` would flag.
- */
+/** `writeWhenReady` defaults to waiting on any transition (~2s) when no barrier is given,
+ *  so this lets no-barrier callers get immediate `write()` behavior without branching to `API.write`. */
 const IMMEDIATE: WriteReadyBarrier = () => Promise.resolve();
 
 type ResolveWriteBarrierParams = {
-    /**
-     * Barrier handed down by whichever view triggered the navigation (see `API.armTransitionBarrier`).
-     * Wins over Search's, because the view knows which transition this write is actually racing.
-     */
+    /** Barrier the caller wants this write to wait on before applying optimistic data (see `API.armTransitionBarrier`). */
     writeBarrier?: WriteReadyBarrier;
 
     /**
-     * An Onyx key the write creates via optimistic data. Published to Search so its placeholder knows
-     * when the optimistic updates landed. Ignored unless the write ends up waiting for Search.
+     * Onyx key of this write's optimistic data. Only used when this write also waits on Search's barrier: Search
+     * reads it back to tell when the optimistic item has landed in real search results.
      */
     optimisticWatchKey?: OnyxKey;
 
-    /**
-     * Retries must not wait for Search: the layout that would have released them already happened, so
-     * the write would sit until its safety timeout.
-     */
+    /** Retries must not wait for Search - the layout that would have released them already happened. */
     isRetry?: boolean;
 };
 
 /**
- * Picks what a submit write waits on before applying its optimistic data, and records the deferral for
- * the submit-expense telemetry span.
- *
- * Deliberately returns a barrier instead of performing the write: the decision stays visible at the
- * call site, and there is no shared registry deciding write timing behind the action's back.
+ * Picks what a submit write waits on before applying its optimistic data: an explicit barrier from the
+ * caller, Search's pending-write signal, or neither. Callers pass their own barrier or nothing; whether
+ * the write also has to wait on Search's signal is decided here. Records the deferral for the
+ * submit-expense telemetry span.
  */
 function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}: ResolveWriteBarrierParams = {}): WriteReadyBarrier {
     if (writeBarrier) {
@@ -58,34 +48,18 @@ function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}
             return writeBarrier;
         }
 
-        // writeWhenReady executes immediately, without ever invoking the barrier thunk, when the app is
-        // already backgrounded at call time - so the abort listener and `finally` below would never run.
-        // Consume now instead: the write is going out this tick regardless, so there's nothing to wait on.
+        // If the app is already in background, writeWhenReady executes immediately without invoking this
+        // barrier, so consume Search's pending-write signal now instead of relying on the abort listener below.
         if (AppState.currentState === CONST.APP_STATE.BACKGROUND) {
             consumePendingSearchWriteForGeneration(searchGeneration);
             return writeBarrier;
         }
 
-        // The explicit barrier wins over Search's, but the signal Search raised is still up. This write
-        // still has to count as the consumer it was waiting for - otherwise `flushPendingSearchWrite`
-        // keeps the signal pending for a consumer that will never arrive, and Search sits on its
-        // skeleton until its own safety timeout instead of releasing immediately.
-        //
-        // Captured by generation rather than re-checking `hasPendingSearchWrite()` at consume time: by
-        // the time this settles or aborts, a different submission could have raised its own signal, and
-        // consuming that one instead would clear a skeleton that has nothing to do with this write.
-        //
-        // Consumed on abort too, not only when the returned promise settles: writeWhenReady's own
-        // release paths (safety timeout, app background) abort `signal`, and the default
-        // TransitionTracker barrier responds to that by leaving its own promise permanently pending -
-        // so on that path the write goes out via the abort, and this promise never settles to run a
-        // `finally`. Guarded so the two paths can't double-consume. Not `acquireSearchWriteBarrier`:
-        // this write isn't waiting on Search's layout, so its watch key must not be published either.
-        return async (signal) => {
-            // This write never actually waits on `pending.barrier` - it waits on `writeBarrier` - so
-            // `clearPending`'s release can't reach it. Restart the signal's own safety timeout from here
-            // (attach time), not mark time, so it cannot expire - dropping Search's skeleton and query
-            // suppression - before this write's own, later-starting safety timeout even gets a chance to.
+        // Explicit barrier wins, but this write must still count as Search's consumer or its skeleton
+        // row stays up forever (`flushPendingSearchWrite` never gets a consumer to release).
+        return async (abortSignal) => {
+            // This write waits on `writeBarrier`, not `pending.barrier`, so restart Search's safety
+            // timeout from attach time - otherwise it can expire before this write's own timeout does.
             restartPendingSearchWriteSafetyTimeoutForGeneration(searchGeneration);
 
             let hasConsumed = false;
@@ -94,25 +68,27 @@ function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}
                     return;
                 }
                 hasConsumed = true;
+                // Consume by generation, not a live `hasPendingSearchWrite()` check, so a later
+                // submission's pending-write signal isn't cleared by mistake.
                 consumePendingSearchWriteForGeneration(searchGeneration);
             };
 
-            signal.addEventListener('abort', consumeOnce);
+            // writeWhenReady's early-release paths abort `abortSignal` without settling `writeBarrier`,
+            // so the abort listener is the only thing that consumes in those cases.
+            abortSignal.addEventListener('abort', consumeOnce);
             try {
-                return await writeBarrier(signal);
+                return await writeBarrier(abortSignal);
             } finally {
                 consumeOnce();
             }
         };
     }
 
-    // Search raises its signal when the submission starts, which can be several screens earlier than
-    // this call - so an action that was given no barrier still has to check for it.
+    // Search marks its pending-write signal earlier, before this write is even built (and possibly
+    // before a navigation away), so check for it even when no writeBarrier is passed.
     if (hasPendingSearchWrite()) {
         if (isRetry) {
-            // Still consume the signal even though the retry bypasses it - otherwise a retry that is the
-            // only write associated with a pending signal leaves `flushPendingSearchWrite` waiting for a
-            // consumer that will never arrive.
+            // Consume anyway - a retry bypassing the signal must not leave flushPendingSearchWrite waiting for it.
             consumePendingSearchWrite();
             return IMMEDIATE;
         }

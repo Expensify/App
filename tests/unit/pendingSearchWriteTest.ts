@@ -11,7 +11,7 @@ import {
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-/** Resolves once the barrier releases, so a test can assert release without an arbitrary wait. */
+/** Returns a getter that flips to true once `barrier` settles, so a test can assert release without an arbitrary wait. */
 function settled(barrier: ReturnType<typeof acquireSearchWriteBarrier>) {
     let isSettled = false;
     Promise.resolve(barrier(new AbortController().signal)).then(() => {
@@ -26,7 +26,7 @@ beforeEach(() => {
 
 describe('pendingSearchWrite', () => {
     it('raises and clears the signal', () => {
-        // Given no submission has started
+        // Given no submission has started, so nothing should be gating a write yet
         expect(hasPendingSearchWrite()).toBe(false);
 
         // When a submission marks the signal and a write acquires its barrier
@@ -34,10 +34,11 @@ describe('pendingSearchWrite', () => {
         acquireSearchWriteBarrier();
         expect(hasPendingSearchWrite()).toBe(true);
 
-        // When Search flushes it
+        // When Search flushes it, the normal release point for a real-content layout
         flushPendingSearchWrite();
 
-        // Then the signal comes back down
+        // Then the signal comes back down - a signal that outlived its flush would keep gating later,
+        // unrelated writes that have nothing to do with this submission
         expect(hasPendingSearchWrite()).toBe(false);
     });
 
@@ -172,11 +173,11 @@ describe('pendingSearchWrite', () => {
             flushPendingSearchWrite();
             markPendingSearchWrite();
 
-            // When the first mark's original timer would have fired
-            // The first mark's timer would fire here if flushing had not cancelled it.
+            // When the first mark's original timer would have fired, if flushing had not cancelled it
             jest.advanceTimersByTime(SAFETY_TIMEOUT_MS / 2);
 
-            // Then the current (second) signal is unaffected
+            // Then the current (second) signal is unaffected - a stale timer clearing the wrong
+            // generation would drop a live signal for a submission that hasn't even had a chance to release yet
             expect(hasPendingSearchWrite()).toBe(true);
         } finally {
             jest.useRealTimers();

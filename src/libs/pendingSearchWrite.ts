@@ -5,62 +5,42 @@ import type {WriteReadyBarrier} from './API';
 import {SAFETY_TIMEOUT_MS} from './API/writeWhenReady';
 
 /**
- * Search's own write-readiness signal.
+ * Search's own write-readiness signal: releases deferred writes on real-content layout, or a
+ * focus/unmount fallback. Call sites read `barrier` and pass it down themselves; nothing here calls
+ * `write()`/`writeWhenReady()`. State is module-level because mark (`markPendingWriteForSearchPage`) and consume (Search's
+ * mount effect) run independently, not one calling the other, and only one pending write exists at a time.
  *
- * Search does not release its deferred writes on a navigation transition - it releases them when the
- * real list content (not the skeleton) lays out, or from focus/unmount fallbacks. So it cannot use
- * `API.createTransitionBarrier`. It owns a barrier and resolves it from those lifecycle points.
- *
- * This is deliberately NOT a write registry: it never calls `write()`/`writeWhenReady()` and never
- * decides whether a write is deferred. Call sites decide, and pass `barrier` down to the action.
- *
- * The state is module-level rather than plumbed because the two moments are separated by a navigation:
- * a global-create submit marks the signal from the confirmation step (see
- * `markPendingSearchWriteIfGlobalCreate`), and the write is built later, in a different component tree,
- * after Search has mounted. There is no call chain to thread a barrier through.
- *
- * Note: Search has its own 10s timeout (`clearOptimisticTracking`) for the UI-level optimistic item
- * cache. The two timeouts serve different layers:
- *   - `SAFETY_TIMEOUT_MS` (here and in writeWhenReady): guarantees the API write executes.
- *   - 10s (Search): guarantees the skeleton/ghost-row UI clears if the optimistic item never reaches
- *     sortedData (e.g. empty list, API failure, offline).
+ * `SAFETY_TIMEOUT_MS` here guarantees the API write itself executes; Search's separate 10s
+ * `clearOptimisticTracking` timeout only clears the skeleton/ghost-row UI.
  */
 
 type PendingSearchWrite = {
-    /**
-     * Shared by every write marked under this signal, so a split's writes all release together.
-     *
-     * The promise is created here, at mark time, rather than when a write attaches: a flush can arrive
-     * before the write is even built (Search laying out faster than the dismiss transition), and a
-     * lazily-created promise would miss that release and sit until the safety timeout.
-     */
+    /** Resolves when `release` runs. Every write acquired before that shares this one instance. */
     barrier: WriteReadyBarrier;
 
-    /** Resolves `barrier`. */
+    /** Resolves `barrier`, unblocking every write waiting on it. */
     release: () => void;
 
-    /** Guards against a superseded signal's cleanup clearing a newer one. */
+    /**
+     * `generationCounter`'s value at the time this object was created.
+     * Timeouts/callbacks compare it against the current `pending.generation` before acting, to detect a newer object having replaced this one.
+     */
     generation: number;
 
-    /** How many writes have taken this barrier. */
+    /** How many writes have received this object's `barrier`. */
     consumerCount: number;
 
-    /** Set when a flush arrives before any write has taken the barrier. */
+    /** Set when a flush arrives before any write has received the barrier. */
     isFlushRequested: boolean;
 
+    /** Clears this object automatically if nothing releases it first. */
     safetyTimeoutID: ReturnType<typeof setTimeout>;
 };
 
 let pending: PendingSearchWrite | undefined;
 let generationCounter = 0;
 
-/**
- * An Onyx key the pending write creates via optimistic data. Search subscribes to it to know when the
- * optimistic updates landed.
- *
- * Kept after the signal clears, and only reset by the next `markPendingSearchWrite`, because Search
- * resolves it lazily (`resolveWatchKey`) - often after the write has already gone out.
- */
+/** Onyx key the pending write creates optimistically. Persists across reads, only cleared when the next pending write starts. */
 let watchKey: OnyxKey | undefined;
 
 function clearPending(generation: number) {
@@ -68,21 +48,16 @@ function clearPending(generation: number) {
         return;
     }
     clearTimeout(pending.safetyTimeoutID);
-    // Release any write already waiting on `pending.barrier` - otherwise it sits until its own
-    // writeWhenReady safety timeout instead of releasing here, alongside the signal coming down.
+    // Resolve now so a write already waiting on `pending.barrier` doesn't have to wait for its own separate timeout to fire.
     pending.release();
     pending = undefined;
 }
 
 /**
- * Raise the signal and open the barrier gate.
- *
- * Called at the point the submission starts, not when the write is built: `hasPendingSearchWrite` has
- * consumers that read it before any write exists (the skeleton, and `useSearchPageSetup`'s
- * `skipWaitForWrites`), so the signal has to be up from the moment the submission is committed to.
- *
- * Idempotent: a second call while a signal is up keeps the existing barrier, so concurrent writes
- * share one release point.
+ * Sets `pending` to a new object, unless one already exists. Called at submission start, not when the
+ * write is built, since `hasPendingSearchWrite` has consumers (the skeleton, `skipWaitForWrites`) that
+ * read it before any write exists. Calling it again while one is already pending does nothing, so
+ * multiple writes from the same submission end up sharing that one object.
  */
 function markPendingSearchWrite() {
     if (pending) {
@@ -98,8 +73,7 @@ function markPendingSearchWrite() {
         release = resolve;
     });
 
-    // Self-clearing so a submission that never reaches a Search release point cannot leave the
-    // skeleton up forever. Bounded by the same timeout writeWhenReady uses to force the write out.
+    // Self-clearing so a submission that never reaches a Search release point doesn't leave the skeleton up forever.
     const safetyTimeoutID = setTimeout(() => clearPending(generation), SAFETY_TIMEOUT_MS);
 
     pending = {
@@ -116,26 +90,11 @@ function hasPendingSearchWrite(): boolean {
     return !!pending;
 }
 
-/**
- * The generation of the currently pending signal, if any. For a caller that has to consume the signal
- * later - after an await, in a callback, on an abort listener - rather than right away: capturing the
- * generation up front and consuming through `consumePendingSearchWriteForGeneration` avoids accidentally
- * acting on a different (later) submission's signal if one replaces this one before that later point.
- */
 function getPendingSearchWriteGeneration(): number | undefined {
     return pending?.generation;
 }
 
-/**
- * The barrier a write should wait on.
- *
- * With nothing marked it returns an already-resolved barrier, so the write goes out immediately. That
- * keeps every call site down to a single `API.writeWhenReady`, instead of branching between it and
- * `API.write`.
- *
- * `optimisticWatchKey` is published only when a signal is actually up, since it exists for the
- * skeleton that the signal drives.
- */
+/** The barrier function a write should wait on before applying its optimistic data; an already-resolved one when nothing is pending. */
 function acquireSearchWriteBarrier(optimisticWatchKey?: OnyxKey): WriteReadyBarrier {
     if (!pending) {
         return () => Promise.resolve();
@@ -145,12 +104,7 @@ function acquireSearchWriteBarrier(optimisticWatchKey?: OnyxKey): WriteReadyBarr
     return consumePendingSearchWrite();
 }
 
-/**
- * Counts a write against the pending signal and returns its barrier, without touching the watch key -
- * split out of `acquireSearchWriteBarrier` so a write that bypasses Search's barrier (an explicit
- * barrier already won) can still be accounted for, without publishing a watch key for a signal it is
- * not actually waiting on.
- */
+/** Same as `acquireSearchWriteBarrier`, without recording a watch key, for writes that bypass Search's barrier. */
 function consumePendingSearchWrite(): WriteReadyBarrier {
     if (!pending) {
         return () => Promise.resolve();
@@ -159,9 +113,7 @@ function consumePendingSearchWrite(): WriteReadyBarrier {
     const {barrier, generation, isFlushRequested} = pending;
     pending.consumerCount += 1;
 
-    // Search flushed before this write existed, so it has nothing left to wait for. The signal was
-    // held up until now (see flushPendingSearchWrite) and comes down here, once there is a write to
-    // hand the release to.
+    // Search already flushed before this write existed; hand the held-up release down now.
     if (isFlushRequested) {
         clearPending(generation);
     }
@@ -169,10 +121,7 @@ function consumePendingSearchWrite(): WriteReadyBarrier {
     return barrier;
 }
 
-/**
- * Same as `consumePendingSearchWrite`, but only if the pending signal is still the one identified by
- * `generation` - a no-op otherwise. See `getPendingSearchWriteGeneration`.
- */
+/** Same as `consumePendingSearchWrite`, but a no-op if the pending signal is no longer `generation`. */
 function consumePendingSearchWriteForGeneration(generation: number) {
     if (pending?.generation !== generation) {
         return;
@@ -181,14 +130,12 @@ function consumePendingSearchWriteForGeneration(generation: number) {
 }
 
 /**
- * Restart the signal's own safety timeout from the point a write that bypasses `pending.barrier` (an
- * explicit barrier already won) actually attaches, rather than from mark time.
+ * Restarts the safety timeout for the current pending write, counting `SAFETY_TIMEOUT_MS` from now
+ * instead of from when `markPendingSearchWrite` first started it.
  *
- * Without this, a write gated on its own explicit barrier is never actually waiting on `pending.barrier`
- * - `clearPending`'s `release()` call cannot reach it - so this signal's mark-time safety timeout and
- * that write's construction-time safety timeout race independently. If this one fires first, Search's
- * skeleton and query suppression come down while the write is still blocked on its own barrier. A no-op
- * if the pending signal is no longer the one identified by `generation`. See `getPendingSearchWriteGeneration`.
+ * A write that waits on its own `writeBarrier` (see `resolveWriteBarrier`) can attach well after that
+ * point, so without this the timeout could fire, and clear the pending write, before that write is
+ * even done waiting.
  */
 function restartPendingSearchWriteSafetyTimeoutForGeneration(generation: number) {
     if (pending?.generation !== generation) {
@@ -198,14 +145,7 @@ function restartPendingSearchWriteSafetyTimeoutForGeneration(generation: number)
     pending.safetyTimeoutID = setTimeout(() => clearPending(generation), SAFETY_TIMEOUT_MS);
 }
 
-/**
- * Release the pending writes. Called by Search when real content lays out, and from its focus/unmount
- * fallbacks.
- *
- * The signal is cleared synchronously, before the barrier's consumers run: callers such as
- * `Search/index.tsx` check `hasPendingSearchWrite()` right after flushing to decide whether to issue
- * their own search, and would double-fire if the flag outlived the flush.
- */
+/** Resolves `pending.barrier`. Clears `pending` right away if a write already consumed it, otherwise flags `isFlushRequested` so the next one to consume it clears it instead. */
 function flushPendingSearchWrite() {
     if (!pending) {
         return;
@@ -214,9 +154,7 @@ function flushPendingSearchWrite() {
     const {release, generation, consumerCount} = pending;
     release();
 
-    // Nothing has taken the barrier yet, so the write this signal was raised for is still coming. The
-    // signal has to stay up until it arrives: it is what keeps the skeleton in place and what stops
-    // Search from issuing a redundant query for data the optimistic write is about to provide.
+    // No write has called consumePendingSearchWrite yet, so keep the signal up until one arrives to hand the release to.
     if (consumerCount === 0) {
         pending.isFlushRequested = true;
         return;
@@ -225,7 +163,7 @@ function flushPendingSearchWrite() {
     clearPending(generation);
 }
 
-/** Publish the Onyx key the pending write will create optimistically. */
+/** Record the Onyx key the pending write will create optimistically. */
 function setSearchWriteWatchKey(key: OnyxKey | undefined) {
     if (!key) {
         return;
@@ -237,11 +175,7 @@ function getSearchWriteWatchKey(): OnyxKey | undefined {
     return watchKey;
 }
 
-/**
- * Only for use in tests. Exported from production code (rather than a test helper) so jest.mock can
- * auto-resolve it alongside the other exports. Gated behind __DEV__ so it is a no-op in production
- * (the bundler dead-code eliminates the branch).
- */
+/** Test-only reset, gated on `__DEV__` so the bundler dead-code eliminates it in production. */
 function resetForTesting() {
     if (!__DEV__) {
         return;

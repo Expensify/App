@@ -52,14 +52,7 @@ function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
     return baseWrite(command, apiCommandParameters, onyxData, conflictResolver);
 }
 
-/**
- * `API.writeWhenReady()` - like `write()`, but deferred until a readiness barrier settles. See ./writeWhenReady
- * for the semantics.
- *
- * Re-declared here for the same reason as `write` above: a re-exported binding is a non-configurable getter,
- * so `jest.spyOn(API, 'writeWhenReady')` cannot replace it. Tests need to observe this one now that submit
- * writes go out through it rather than through `write`.
- */
+/** `API.writeWhenReady()` - like `write()` but deferred until a readiness barrier settles; re-declared here for the same spyOn reason as `write` above. */
 function writeWhenReady<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response<never>>;
 
 function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
@@ -107,7 +100,10 @@ function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteComm
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
 ): Promise<void | Response<TKey>> {
-    const incomingRequest: AnyRequest = {command, data: {updateIDFrom: readUpdateIDFrom(apiCommandParameters)}};
+    const incomingRequest: AnyRequest = {
+        command,
+        data: {updateIDFrom: readUpdateIDFrom(apiCommandParameters)},
+    };
     const conflictResolver = {
         checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveReconnectDuplicationConflictAction(persistedRequests, getOngoingRequest(), incomingRequest),
     };
