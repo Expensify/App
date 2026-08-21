@@ -77,7 +77,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
         >
             <View style={styles.flexGrow1}>
                 {!isRulesRevampEnabled && (
-                    <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                    <CollapsibleHeaderOnKeyboard>
                         <Text style={[styles.textHeadlineH1, styles.mv2]}>{translate('workspace.rules.agentRules.describeRuleHeadline')}</Text>
                         <Text style={[styles.textSupporting, styles.mb5]}>{translate('workspace.rules.agentRules.describeRuleForConcierge')}</Text>
                     </CollapsibleHeaderOnKeyboard>
