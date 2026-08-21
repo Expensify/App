@@ -1,6 +1,6 @@
 import Button from '@components/ButtonComposed';
 import LinkButton from '@components/ButtonComposed/composed/LinkButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
@@ -11,7 +11,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -31,7 +30,6 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -77,15 +75,13 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026;
+    const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
-        const shouldUseSubmitFlow = canUseSubmit2026 && policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
+        const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(policy.policyID);
@@ -123,7 +119,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     };
 
     const allPolicyIDItems = Object.values(joinablePolicies ?? {})
-        .filter((policyInfo) => policyInfo.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026)
         .sort((a, b) => b.employeeCount - a.employeeCount)
         .map((policyInfo) => ({
             text: policyInfo.policyName,
@@ -188,12 +183,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
-            <HeaderWithBackButton
+            <OnboardingHeader
                 shouldShowBackButton={!shouldHideBackButton}
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldDisplayHelpButton={false}
             />
             <SelectionList
                 data={policyIDItems}
