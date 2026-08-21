@@ -106,7 +106,7 @@ describe('navigateToWorkspaceSettingsRoute', () => {
         expect(Navigation.setParams).not.toHaveBeenCalled();
     });
 
-    it('updates the sidebar policy before replacing a different Workspace page', () => {
+    it('updates the sidebar policy before navigating to a different Workspace page', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
         jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a'));
         mockWorkspaceNavigationState('workspace-a');
@@ -114,7 +114,7 @@ describe('navigateToWorkspaceSettingsRoute', () => {
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
 
         expect(Navigation.setParams).toHaveBeenCalledWith({policyID: 'workspace-b'}, 'workspace-sidebar', 'split-state');
-        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute, {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
         expect(jest.mocked(Navigation.setParams).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
     });
 
@@ -126,7 +126,7 @@ describe('navigateToWorkspaceSettingsRoute', () => {
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
 
         expect(Navigation.setParams).toHaveBeenCalledWith({policyID: 'workspace-b'}, 'workspace-sidebar', 'split-state');
-        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute, {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
     });
 
     it('keeps the existing sidebar policy when changing pages in the same Workspace', () => {
@@ -137,6 +137,6 @@ describe('navigateToWorkspaceSettingsRoute', () => {
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-a', false);
 
         expect(Navigation.setParams).not.toHaveBeenCalled();
-        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute, {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
     });
 });

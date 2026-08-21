@@ -81,7 +81,7 @@ function navigateToWorkspaceSettingsRoute(targetRoute: Route, policyID: string, 
         Navigation.setParams({policyID}, workspaceSidebarRoute.sidebarRoute.key, workspaceSidebarRoute.splitStateKey);
     }
 
-    Navigation.navigate(targetRoute, {forceReplace: true});
+    Navigation.navigate(targetRoute);
 }
 
 export default navigateToWorkspaceSettingsRoute;
