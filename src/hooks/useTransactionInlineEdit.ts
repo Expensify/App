@@ -18,7 +18,7 @@ import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/Tr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -28,7 +28,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * than being duplicated across every surface that renders a transaction.
  */
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useCallback, useRef} from 'react';
+import {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
@@ -96,15 +96,11 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const linkedReportActionID = linkedReportAction?.reportActionID;
 
-    const parentReportActionSelector = useCallback(
-        (reportActions: ReportActions | undefined) =>
-            linkedReportActionID ? reportActions?.[linkedReportActionID] : getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID),
-        [linkedReportActionID, transactionID],
-    );
-    const [resolvedParentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`, {
-        selector: parentReportActionSelector,
-    });
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
+    const resolvedParentReportAction = linkedReportActionID
+        ? parentReportActions?.[linkedReportActionID]
+        : getIOUActionForTransactionID(Object.values(parentReportActions ?? {}), transactionID);
+
     const parentReportAction = resolvedParentReportAction ?? linkedReportAction;
 
     const transactionThreadReportID = linkedReportAction?.childReportID ?? parentReportAction?.childReportID ?? transaction?.transactionThreadReportID;

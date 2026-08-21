@@ -154,7 +154,7 @@ type TransactionEditPermissionsParams = {
     parentReport: OnyxEntry<Report>;
 
     /** Actions of the parent (money request) report, used by canEditMoneyRequest to check whether the report was forwarded since the last submit */
-    parentReportActions?: OnyxEntry<ReportActions>;
+    parentReportActions: OnyxEntry<ReportActions>;
 
     policy?: OnyxEntry<Policy>;
 

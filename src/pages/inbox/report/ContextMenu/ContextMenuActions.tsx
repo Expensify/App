@@ -285,7 +285,6 @@ function setClipboardMessageWithCleanedMentions(value: string) {
 type ShouldShow = (args: {
     type: string;
     reportAction: OnyxEntry<ReportAction>;
-    reportActions: OnyxEntry<ReportActions>;
     childReportActions: OnyxCollection<ReportAction>;
     isArchivedRoom: boolean;
     betas: OnyxEntry<Beta[]>;
@@ -613,10 +612,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
         icon: 'Pencil',
-        shouldShow: ({type, reportAction, reportActions, isArchivedRoom, isChronosReport, moneyRequestAction, iouTransaction}) =>
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, moneyRequestAction, iouTransaction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            // moneyRequestAction can belong to a different report than the menu's reportActions, so its call must not receive them
-            (canEditReportAction(reportAction, iouTransaction, reportActions) || canEditReportAction(moneyRequestAction, iouTransaction, undefined)) &&
+            (canEditReportAction(reportAction, iouTransaction) || canEditReportAction(moneyRequestAction, iouTransaction)) &&
             !isArchivedRoom &&
             !isChronosReport,
         onPress: (

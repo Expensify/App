@@ -53,7 +53,6 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
         selector: policyTypeSelector,
     });
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
-    // The parent (money request) report's actions, used by canEditMoneyRequest to check whether the report was forwarded since the last submit
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
