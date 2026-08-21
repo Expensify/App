@@ -269,7 +269,16 @@ function Expensify() {
             return;
         }
         updateLastRoute('');
-        Navigation.navigate(lastRoute as Route);
+
+        // On iOS, changing the Contacts permission in Settings forces the app to reload (see `goToSettings`).
+        // Restoring a deep RHP route (e.g. the money-request participant selector) directly on the boot frame
+        // kicks the react-navigation card's native-driver entering animation while the tree is still hydrating,
+        // which can crash with "Unable to find node on an unmounted component" when the card unmounts mid-transition.
+        // Defer the restore by one frame so the card is not mounted-then-unmounted mid-animation.
+        const restoreAnimationFrame = requestAnimationFrame(() => {
+            Navigation.navigate(lastRoute as Route);
+        });
+        return () => cancelAnimationFrame(restoreAnimationFrame);
         // Disabling this rule because we only want it to run on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isNavigationReady]);

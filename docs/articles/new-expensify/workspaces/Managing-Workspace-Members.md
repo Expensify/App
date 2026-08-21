@@ -66,6 +66,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 **Note:** Workspace admins and People admins can remove members. People admins can only remove **Members** and **Auditors** — they cannot remove admins or other scoped admin roles.
 
+**Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
+
 ## Remove a Single Member
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
