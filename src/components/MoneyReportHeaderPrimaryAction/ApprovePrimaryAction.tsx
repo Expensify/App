@@ -66,7 +66,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         isTrackIntentUser,
         report: iouReport,
         policy: expenseReportPolicy,
@@ -136,7 +136,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
             moneyRequestReport={iouReport}
             transactions={transactions}
             shouldShowPayButton={shouldShowPayButton}
-            shouldShowMarkAsDoneCopy={shouldUseMarkAsDoneCopy}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}
         />
     );

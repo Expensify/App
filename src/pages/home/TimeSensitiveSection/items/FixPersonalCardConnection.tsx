@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 
@@ -30,7 +31,7 @@ function FixPersonalCardConnection({card}: FixPersonalCardConnectionProps) {
             subtitle={translate('homePage.timeSensitiveSection.fixPersonalCardConnection.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))}
-            buttonProps={{danger: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }
