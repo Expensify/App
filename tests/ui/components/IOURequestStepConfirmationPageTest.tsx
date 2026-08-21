@@ -8,8 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
 
-import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
-import {IOURequestStepConfirmationContentWithWritableReportOrNotFound} from '@pages/iou/request/step/IOURequestStepConfirmation';
+import IOURequestStepConfirmationWithWritableReportOrNotFound, {IOURequestStepConfirmationContentWithWritableReportOrNotFound} from '@pages/iou/request/step/IOURequestStepConfirmation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
