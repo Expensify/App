@@ -109,7 +109,7 @@ function initSplitExpense(
                 selfDMContextReportID: isSelfDMReport ? reportID : undefined,
                 selfDMReportIDFallback: selfDMReportID,
             });
-            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: itemReportID});
+            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: itemReportID, policy: effectivePolicy});
         });
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
@@ -195,6 +195,7 @@ function initSplitExpense(
             customUnit: splitCustomUnits.at(0),
             merchant: splitMerchants.at(0),
             isManuallyEdited: false,
+            policy: effectivePolicy,
         }),
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(1) ?? 0,
@@ -204,6 +205,7 @@ function initSplitExpense(
             customUnit: splitCustomUnits.at(1),
             merchant: splitMerchants.at(1),
             isManuallyEdited: false,
+            policy: effectivePolicy,
         }),
     ];
 

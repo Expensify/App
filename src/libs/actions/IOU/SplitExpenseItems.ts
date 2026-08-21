@@ -14,6 +14,7 @@ import {
     getCurrency,
     getSelectedRouteKey,
     hasManualDistanceOverride,
+    hasTaxRateWithMatchingValue,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     calculateTaxAmount,
 } from '@libs/TransactionUtils';
@@ -234,6 +235,7 @@ function initSplitExpenseItemData(
         customUnit,
         isManuallyEdited,
         taxAmount,
+        policy,
     }: {
         amount?: number;
         transactionID?: string;
@@ -243,6 +245,7 @@ function initSplitExpenseItemData(
         customUnit?: TransactionCustomUnit;
         isManuallyEdited?: boolean;
         taxAmount?: number;
+        policy?: OnyxEntry<OnyxTypes.Policy>;
     } = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
@@ -253,6 +256,14 @@ function initSplitExpenseItemData(
         delete splitCustomUnit.reimbursableDistance;
         delete splitCustomUnit.commuterExclusionMethod;
     }
+
+    // If the parent expense's stored tax value is out of date relative to the live policy rate (for example, the
+    // rate's value was edited in workspace settings after the expense was created), its taxCode/taxAmount/taxValue
+    // no longer agree. The code resolves to the current rate while the stored amount and value are from the old rate.
+    // Seed the split without those stale tax fields so its tax is derived from the current rate the user picks,
+    // instead of persisting a label and amount that disagree. Only gate when a policy is available to compare
+    // against. Otherwise keep the existing behavior of inheriting the stored values.
+    const isStoredTaxValueStale = !!policy && !!transaction?.taxValue && !hasTaxRateWithMatchingValue(policy, transaction);
 
     return {
         transactionID: transactionID ?? transactionDetails?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -266,9 +277,9 @@ function initSplitExpenseItemData(
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
         billable: transactionDetails?.billable,
-        taxCode: transactionDetails?.taxCode,
-        taxAmount: taxAmount ?? transactionDetails?.taxAmount,
-        taxValue: transactionDetails?.taxValue,
+        taxCode: isStoredTaxValueStale ? undefined : transactionDetails?.taxCode,
+        taxAmount: isStoredTaxValueStale ? 0 : (taxAmount ?? transactionDetails?.taxAmount),
+        taxValue: isStoredTaxValueStale ? undefined : transactionDetails?.taxValue,
         customUnit: splitCustomUnit,
         waypoints: transaction?.comment?.waypoints ?? undefined,
         odometerStart: transaction?.comment?.odometerStart ?? undefined,
@@ -427,6 +438,7 @@ function addSplitExpenseField(
         customUnit,
         merchant,
         isManuallyEdited: false,
+        policy,
     });
 
     const existingSplits = draftTransaction.comment?.splitExpenses ?? [];
@@ -629,6 +641,7 @@ function resetSplitExpensesByDateRange({
             transactionID: rand64(),
             reportID: draftTransaction?.reportID,
             created: format(date, CONST.DATE.FNS_FORMAT_STRING),
+            policy,
         });
 
         // Update distance for distance transactions based on new amount and rate
