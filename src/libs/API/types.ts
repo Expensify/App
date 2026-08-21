@@ -370,6 +370,7 @@ const WRITE_COMMANDS = {
     REQUEST_WORKSPACE_OWNER_CHANGE: 'RequestWorkspaceOwnerChange',
     ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE: 'AddBillingCardAndRequestPolicyOwnerChange',
     SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
+    SET_WORKSPACE_DISTANCE_AUTO_UPDATE: 'SetWorkspaceDistanceAutoUpdate',
     SET_CUSTOM_UNIT_DEFAULT_CATEGORY: 'SetCustomUnitDefaultCategory',
     ENABLE_DISTANCE_REQUEST_TAX: 'EnableDistanceRequestTax',
     UPDATE_POLICY_DISTANCE_RATE: 'UpdatePolicyDistanceRate',
@@ -985,6 +986,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RENAME_POLICY_TAX]: Parameters.RenamePolicyTaxParams;
     [WRITE_COMMANDS.UPDATE_POLICY_TAX_CODE]: Parameters.UpdatePolicyTaxCodeParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE]: Parameters.SetWorkspaceDistanceAutoUpdateParams;
     [WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY]: Parameters.SetCustomUnitDefaultCategoryParams;
     [WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX]: Parameters.EnableDistanceRequestTaxParams;
     [WRITE_COMMANDS.REPORT_EXPORT]: Parameters.ReportExportParams;
