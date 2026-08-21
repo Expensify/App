@@ -471,6 +471,21 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
 }
 
 /**
+ * Formats a time with the same AM/PM marker the time picker shows, so the two never disagree in a language
+ * whose date-fns meridiem is not AM/PM.
+ * param {string} dateTimeString
+ * returns {string} example: 11:10 PM
+ */
+function getTime12HourWithTranslatedPeriod(translate: LocalizedTranslate, dateTimeString: string): string {
+    const time12Hour = extractTime12Hour(dateTimeString);
+    if (!time12Hour) {
+        return '';
+    }
+    const {hour, minute, period} = get12HourTimeObjectFromDate(time12Hour);
+    return `${hour}:${minute} ${translate(period === CONST.TIME_PERIOD.AM ? 'common.am' : 'common.pm')}`;
+}
+
+/**
  * param {string} dateTimeString
  * returns {string} example: 2023-05-16 11:10 PM
  */
@@ -1204,6 +1219,7 @@ const DateUtils = {
     extractDate,
     getStatusUntilDate,
     extractTime12Hour,
+    getTime12HourWithTranslatedPeriod,
     formatDateTimeTo12Hour,
     get12HourTimeObjectFromDate,
     getLocalizedTimePeriodDescription,
