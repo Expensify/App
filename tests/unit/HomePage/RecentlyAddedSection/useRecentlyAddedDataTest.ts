@@ -32,11 +32,10 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 const ACCOUNT_ID = 12345;
 const OTHER_ACCOUNT_ID = 67890;
 const SNAPSHOT_HASH = 1;
-/** A second hash, to prove remembered rows are never reused for a different query. */
+/** A second hash, so a change of account resolves to a different snapshot key. */
 const OTHER_SNAPSHOT_HASH = 2;
 /** Onyx keys error entries by microsecond timestamp; the exact value is irrelevant, only that an entry exists. */
 const ERROR_TIMESTAMP = '1787000000000000';
-/** The ordinary terminal state a resolved search writes. */
 const LOADED: Partial<SearchResults['search']> = {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED};
 
 // Module mocks
@@ -142,10 +141,7 @@ function setupSnapshot(transactions: Transaction[], reports: Report[], searchMet
     onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {data, search: searchMeta};
 }
 
-/**
- * Mirrors what `getOnyxLoadingData`'s failureData merges when a Search fails while online: an error marker plus a
- * response code, leaving any previously stored results untouched.
- */
+/** Mirrors failureData: an error marker and a response code, leaving any stored results untouched. */
 function failSearch() {
     const previous = onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`];
     const failed: {data?: Record<string, unknown>; search: Partial<SearchResults['search']>; errors: SearchResults['errors']} = {
@@ -177,8 +173,7 @@ beforeEach(() => {
     mockUseOnyx.mockClear();
     mockedBuildQueryStringFromFilterFormValues.mockClear();
     mockedUseNetwork.mockReturnValue({isOffline: false});
-    // Derive the query and its hash from the account being searched, so a change of accountID moves the hash exactly as
-    // it does in production. A fixed hash would make the hook's `queryJSON` memo hide the change.
+    // Hash follows the account, as in production. A fixed hash would let the hook's `queryJSON` memo hide the change.
     mockedBuildQueryStringFromFilterFormValues.mockImplementation((values) => `type:expense from:${values.from?.at(0) ?? ''}`);
     mockedBuildSearchQueryJSON.mockImplementation((query) => makeQueryJSON(query.includes(String(OTHER_ACCOUNT_ID)) ? OTHER_SNAPSHOT_HASH : SNAPSHOT_HASH));
     mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
@@ -544,7 +539,6 @@ describe('useRecentlyAddedData — surviving a failed search', () => {
         failSearch();
         rerender({});
 
-        // The failure records `errors` without touching `data`, so a transient failure never costs the user their rows.
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
     });
 
@@ -568,8 +562,7 @@ describe('useRecentlyAddedData — surviving a failed search', () => {
         const {result, rerender} = renderHook(() => useRecentlyAddedData());
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
 
-        // A delegate switch clears Onyx without unmounting Home, and the new accountID moves the query hash, so the
-        // slot reads a different snapshot key. Rows fetched for the previous account must not appear under the new one.
+        // A delegate switch clears Onyx without unmounting Home, so rows fetched for the previous account must not appear.
         mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: OTHER_ACCOUNT_ID, login: `${OTHER_ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
         rerender({});
 
@@ -590,8 +583,7 @@ describe('useRecentlyAddedData — awaiting the first result', () => {
     });
 
     it('stops waiting for a terminal response that carried no data at all', () => {
-        // What finallyData writes on a 460 no-op: `state: loaded` with no `data` key and no errors. Without the
-        // state clause this would shimmer forever.
+        // What finallyData writes on a 460 no-op. Without the `state` clause this would shimmer forever.
         onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {search: LOADED};
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -638,7 +630,7 @@ describe('useRecentlyAddedData — awaiting the first result', () => {
     });
 
     it('stops waiting for a snapshot written without a state field', () => {
-        // The IOU optimistic fan-out writes `data` plus a `search` object that carries no `state`.
+        // The IOU optimistic update writes `data` plus a `search` object that carries no `state`.
         setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], {hasResults: true, isLoading: false});
 
         const {result} = renderHook(() => useRecentlyAddedData());

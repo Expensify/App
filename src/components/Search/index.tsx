@@ -403,9 +403,7 @@ function Search({
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
 
-        // A failed search keeps whatever results it already had, so emptiness no longer tells us a retry is needed.
-        // Coming back online after a failure has to retry on the error itself, otherwise the view sits on its error
-        // page until the user presses Try again.
+        // A failed search keeps its previous results, so only the error tells us a retry is still needed.
         const comingBackOnlineWithNoResultsOrError = prevIsOffline && !isOffline && (isEmptyObject(searchResults?.data) || hasErrors);
         const comingBackOnlineWithMissingAllMatchingTotals = prevIsOffline && !isOffline && isExpenseAllMatchingSelection && isAllMatchingItemsCountMissing;
         const shouldRefreshOnReconnect = comingBackOnlineWithNoResultsOrError || comingBackOnlineWithMissingAllMatchingTotals;

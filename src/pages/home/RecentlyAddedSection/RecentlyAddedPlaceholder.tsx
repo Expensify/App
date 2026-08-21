@@ -13,26 +13,23 @@ import {View} from 'react-native';
 import EmptyState from './EmptyState';
 
 type RecentlyAddedPlaceholderProps = {
-    /** Whether a search result may still arrive, in which case the slot shimmers instead of claiming there are no expenses */
     shouldShowSkeleton: boolean;
 };
 
-// Mirrors RecentlyAddedRow so the widget does not resize when the real rows replace the shimmer. A row is a 36x40
-// receipt (the row pins ReceiptCell to its narrow size on both layouts) beside two stacked text lines, inside `pv3`.
+// Mirrors RecentlyAddedRow so the widget does not resize when the real rows land: a 36x40 receipt (the row pins
+// ReceiptCell to its narrow size on both layouts) beside two stacked text lines, inside `pv3`.
 const ROW_VERTICAL_PADDING = 24;
 const RECEIPT_WIDTH = 36;
 const RECEIPT_HEIGHT = 40;
 const TEXT_LINE_HEIGHT = 20;
 const TEXT_LINE_GAP = 4;
 const ITEM_HEIGHT = ROW_VERTICAL_PADDING + Math.max(RECEIPT_HEIGHT, TEXT_LINE_HEIGHT * 2 + TEXT_LINE_GAP);
-// `gap3` between the receipt and the text column, matching the row.
 const COLUMN_GAP = 12;
 const BAR_HEIGHT = 12;
 const AMOUNT_WIDTH = 56;
 const TYPE_WIDTH = 40;
 const DATE_WIDTH = 64;
-// ItemListSkeletonView renders every row with `mr5` (marginRight: 20), so the drawable width is the container minus it.
-// Without this offset the right-aligned bars are drawn past the SVG's edge and get clipped.
+// ItemListSkeletonView adds `mr5` to every row, so without this offset the right-aligned bars land past the svg and clip.
 const ROW_RIGHT_MARGIN = 20;
 
 /** Varying the merchant width per row keeps the shimmer from reading as a rigid block. */
@@ -48,9 +45,8 @@ function getMerchantSkeletonWidth(itemIndex: number) {
 }
 
 /**
- * What the slot shows in place of rows: a shimmer while a search may still land, and the empty state once the answer is
- * settled. Sized from its own container rather than the window, because it renders inside a Home widget rather than in
- * the full-width Search pane.
+ * Shimmer while a search may still land, empty state once the answer is settled. Measures its own container rather than
+ * the window, because it sits in a Home widget and not in the full-width Search pane.
  */
 function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholderProps) {
     const {onLayout, containerWidth} = useContainerWidth(ROW_RIGHT_MARGIN);
@@ -60,7 +56,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
     const renderSkeletonItem = (args: {itemIndex: number}) => {
         const textX = RECEIPT_WIDTH + COLUMN_GAP;
         const merchantWidth = getMerchantSkeletonWidth(args.itemIndex);
-        // The two lines are centred as a block against the taller receipt, as the row's flex column is.
+        // Centred as a block against the taller receipt, as the row's flex column is.
         const blockTop = (ITEM_HEIGHT - (TEXT_LINE_HEIGHT * 2 + TEXT_LINE_GAP)) / 2;
         const firstLineY = blockTop + (TEXT_LINE_HEIGHT - BAR_HEIGHT) / 2;
         const secondLineY = firstLineY + TEXT_LINE_HEIGHT + TEXT_LINE_GAP;
@@ -83,8 +79,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
                     width={DATE_WIDTH}
                     height={BAR_HEIGHT}
                 />
-                {/* The amount and the type sit at the right edge, so they can only be placed once the container has
-                    been measured. Drawing them at a guessed position first would visibly jump when the width lands. */}
+                {/* Right-aligned, so they can only be placed once measured; a guessed position would visibly jump. */}
                 {containerWidth > 0 && (
                     <>
                         <SkeletonRect
@@ -112,8 +107,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
             testID="recentlyAddedSkeleton"
             style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
         >
-            {/* The measured view carries no padding of its own. Measuring the padded parent would report a width that
-                includes the inset, and the right-aligned bars would then be drawn past the loader's svg and clipped. */}
+            {/* Measured without padding: the padded parent's width includes the inset, which pushes the right-aligned bars off the svg. */}
             <View
                 style={styles.flex1}
                 onLayout={onLayout}

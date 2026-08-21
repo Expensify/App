@@ -808,11 +808,8 @@ function getOnyxLoadingData(
         },
     ];
 
-    // Deliberately leaves `data` in place. The failure is already recorded by `errors` and `responseJsonCode`, and the
-    // consumers that must not show stale rows key off those: the Search view early-returns its error page on `errors`
-    // alone, before it renders any row or empty state. Deleting the results as well cost every consumer its last known
-    // data for a transient failure, with no way back until something refetched. The snapshot is the only copy that
-    // survives a reload, so a widget cannot compensate for losing it.
+    // Deliberately leaves `data` in place: `errors` already records the failure and the Search view early-returns on it.
+    // Deleting the results too cost every consumer its last known data, and the snapshot is the only copy that survives a reload.
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

@@ -67,15 +67,11 @@ const pendingTransactionIDsSelector = (transactions: OnyxCollection<Transaction>
 
 const getLocalTransaction = (localTransactions: OnyxCollection<Transaction>, transactionID: string) => localTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-/** What the Recently added slot needs to render itself. */
 type RecentlyAddedData = {
     /** The expenses to show, most recently inserted first, capped at CONST.HOME.SECTION_VISIBLE_LIMIT */
     transactions: RecentlyAddedExpense[];
 
-    /**
-     * Whether a search result may still arrive. False means the outcome is settled (loaded, failed, or offline so no
-     * request was made), so an empty `transactions` is the slot's real answer rather than a gap in its knowledge.
-     */
+    /** False means the outcome is settled, so an empty `transactions` is the real answer and not a gap in knowledge. */
     isAwaitingFirstResult: boolean;
 };
 
@@ -157,16 +153,11 @@ function useRecentlyAddedData(): RecentlyAddedData {
 
     const hasSearchErrors = Object.keys(searchResults?.errors ?? {}).length > 0;
 
-    // Whether a result may still arrive, which is the only situation where the slot should withhold its verdict.
-    // Everything below is terminal and must resolve to real rows or to the empty state, never to an endless skeleton:
-    //   - `state: loaded` is the ordinary terminal write, but it is also set for failures, so it can't be read alone
-    //   - snapshot data with no `state` is terminal too: the IOU optimistic update writes data without the state field
-    //   - errors mean the search failed and nothing will retry until Home is focused again
-    //   - offline, or no `queryJSON`, means `fireSearch` returned without issuing a request, so nothing is coming
-    //
-    // `SearchUIUtils.isSearchDataLoaded` answers the same question for the Search page and is deliberately not reused:
-    // it recomputes query hashes through `getQueryHashes` on every call to tolerate sort metadata round-tripping, which
-    // this fixed, unsorted query never does, so that reconciliation would be unneeded generality here.
+    // Every term below is terminal, so the slot resolves to rows or to the empty state rather than an endless skeleton.
+    // `state: loaded` cannot be read alone because failures reach it too, and snapshot data without `state` counts as
+    // terminal because the IOU optimistic update writes data without it.
+    // `SearchUIUtils.isSearchDataLoaded` is deliberately not reused: it recomputes hashes for sort round-tripping this
+    // fixed query never does.
     const hasResolved = searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || !!snapshotData;
     const isAwaitingFirstResult = !!queryJSON && !hasResolved && !hasSearchErrors && !isOffline;
 
