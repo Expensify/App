@@ -1,0 +1,174 @@
+diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+index 407ab37..cbd08b2 100644
+--- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+@@ -30,19 +30,29 @@ class WebGLRenderer {
+     _defineProperty(this, "grContext", null);
+     _defineProperty(this, "contextHandle", 0);
+     _defineProperty(this, "pd", 1);
++    _defineProperty(this, "isSoftware", false);
++    // Context creation fails when the browser cannot give us WebGL2 - hardware acceleration disabled,
++    // GPU blocklisted, or the per-page live context limit exhausted. Throwing here tears down the view
++    // tree, and the sibling throw in onResize escapes a ResizeObserver callback where no try/catch or
++    // React error boundary can reach it. Fall back to CanvasKit's software surface instead, matching how
++    // renderPictureToSurface below already treats a failed WebGL surface as recoverable.
+     this.contextHandle = CanvasKit.GetWebGLContext(canvas);
+-    if (!this.contextHandle) {
+-      throw new Error("Could not create a WebGL context");
+-    }
+-    this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
+-    if (!this.grContext) {
+-      CanvasKit.deleteContext(this.contextHandle);
+-      this.contextHandle = 0;
+-      throw new Error("Could not create a graphics context");
++    if (this.contextHandle) {
++      this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
+     }
+-    const ctx = canvas.getContext("webgl2");
+-    if (ctx) {
+-      ctx.drawingBufferColorSpace = "display-p3";
++    if (this.grContext) {
++      const ctx = canvas.getContext("webgl2");
++      if (ctx) {
++        ctx.drawingBufferColorSpace = "display-p3";
++      }
++    } else {
++      if (this.contextHandle) {
++        CanvasKit.deleteContext(this.contextHandle);
++        this.contextHandle = 0;
++      }
++      // Let onResize try the software surface. It can only succeed when GetWebGLContext failed, since a
++      // canvas that already holds a WebGL context can never hand back a 2D one.
++      this.isSoftware = true;
+     }
+     this.onResize();
+   }
+@@ -61,7 +71,7 @@ class WebGLRenderer {
+     const {
+       canvas
+     } = this;
+-    if (!this.grContext) {
++    if (!this.grContext && !this.isSoftware) {
+       return;
+     }
+     this.pd = window.devicePixelRatio;
+@@ -76,9 +86,30 @@ class WebGLRenderer {
+     }
+     // Reuse the existing WebGL context and GrDirectContext: only the surface
+     // needs to be recreated when the canvas is resized.
+-    const surface = CanvasKit.MakeOnScreenGLSurface(this.grContext, canvas.width, canvas.height, CanvasKit.ColorSpace.SRGB);
++    let surface = this.grContext ? CanvasKit.MakeOnScreenGLSurface(this.grContext, canvas.width, canvas.height, CanvasKit.ColorSpace.SRGB) : null;
+     if (!surface) {
+-      throw new Error("Could not create surface");
++      try {
++        // MakeSWCanvasSurface only stores the canvas and calls getContext("2d") later, when the surface
++        // is flushed. A canvas that already holds a WebGL context can never return a 2D context, so
++        // creating the surface anyway would defer the failure into an uncatchable putImageData error.
++        surface = canvas.getContext("2d") ? CanvasKit.MakeSWCanvasSurface(canvas) : null;
++      } catch (e) {
++        surface = null;
++      }
++      this.isSoftware = surface !== null;
++    }
++    if (!surface) {
++      this.surface = null;
++      // Let the host application know the chart cannot render, so it can show a fallback instead of a
++      // blank canvas. Without a listener this is a no-op. Deferred a frame so a listener attached in a
++      // React effect is registered before the event fires - the renderer is built in a layout effect,
++      // which runs first.
++      requestAnimationFrame(() => {
++        canvas.dispatchEvent(new CustomEvent("skia-surface-unavailable", {
++          bubbles: true
++        }));
++      });
++      return;
+     }
+     this.surface = new _JsiSkSurface.JsiSkSurface(CanvasKit, surface);
+   }
+diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+index 7a9ea19..c24ab14 100644
+--- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+@@ -24,19 +24,29 @@ class WebGLRenderer {
+     _defineProperty(this, "grContext", null);
+     _defineProperty(this, "contextHandle", 0);
+     _defineProperty(this, "pd", 1);
++    _defineProperty(this, "isSoftware", false);
++    // Context creation fails when the browser cannot give us WebGL2 - hardware acceleration disabled,
++    // GPU blocklisted, or the per-page live context limit exhausted. Throwing here tears down the view
++    // tree, and the sibling throw in onResize escapes a ResizeObserver callback where no try/catch or
++    // React error boundary can reach it. Fall back to CanvasKit's software surface instead, matching how
++    // renderPictureToSurface below already treats a failed WebGL surface as recoverable.
+     this.contextHandle = CanvasKit.GetWebGLContext(canvas);
+-    if (!this.contextHandle) {
+-      throw new Error("Could not create a WebGL context");
+-    }
+-    this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
+-    if (!this.grContext) {
+-      CanvasKit.deleteContext(this.contextHandle);
+-      this.contextHandle = 0;
+-      throw new Error("Could not create a graphics context");
++    if (this.contextHandle) {
++      this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
+     }
+-    const ctx = canvas.getContext("webgl2");
+-    if (ctx) {
+-      ctx.drawingBufferColorSpace = "display-p3";
++    if (this.grContext) {
++      const ctx = canvas.getContext("webgl2");
++      if (ctx) {
++        ctx.drawingBufferColorSpace = "display-p3";
++      }
++    } else {
++      if (this.contextHandle) {
++        CanvasKit.deleteContext(this.contextHandle);
++        this.contextHandle = 0;
++      }
++      // Let onResize try the software surface. It can only succeed when GetWebGLContext failed, since a
++      // canvas that already holds a WebGL context can never hand back a 2D one.
++      this.isSoftware = true;
+     }
+     this.onResize();
+   }
+@@ -55,7 +65,7 @@ class WebGLRenderer {
+     const {
+       canvas
+     } = this;
+-    if (!this.grContext) {
++    if (!this.grContext && !this.isSoftware) {
+       return;
+     }
+     this.pd = window.devicePixelRatio;
+@@ -70,9 +80,30 @@ class WebGLRenderer {
+     }
+     // Reuse the existing WebGL context and GrDirectContext: only the surface
+     // needs to be recreated when the canvas is resized.
+-    const surface = CanvasKit.MakeOnScreenGLSurface(this.grContext, canvas.width, canvas.height, CanvasKit.ColorSpace.SRGB);
++    let surface = this.grContext ? CanvasKit.MakeOnScreenGLSurface(this.grContext, canvas.width, canvas.height, CanvasKit.ColorSpace.SRGB) : null;
+     if (!surface) {
+-      throw new Error("Could not create surface");
++      try {
++        // MakeSWCanvasSurface only stores the canvas and calls getContext("2d") later, when the surface
++        // is flushed. A canvas that already holds a WebGL context can never return a 2D context, so
++        // creating the surface anyway would defer the failure into an uncatchable putImageData error.
++        surface = canvas.getContext("2d") ? CanvasKit.MakeSWCanvasSurface(canvas) : null;
++      } catch (e) {
++        surface = null;
++      }
++      this.isSoftware = surface !== null;
++    }
++    if (!surface) {
++      this.surface = null;
++      // Let the host application know the chart cannot render, so it can show a fallback instead of a
++      // blank canvas. Without a listener this is a no-op. Deferred a frame so a listener attached in a
++      // React effect is registered before the event fires - the renderer is built in a layout effect,
++      // which runs first.
++      requestAnimationFrame(() => {
++        canvas.dispatchEvent(new CustomEvent("skia-surface-unavailable", {
++          bubbles: true
++        }));
++      });
++      return;
+     }
+     this.surface = new JsiSkSurface(CanvasKit, surface);
+   }

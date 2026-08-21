@@ -1,16 +1,8 @@
 diff --git a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
-index 2b5f16b..f716161 100644
+index 18d68d3..e7d9bde 100644
 --- a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
 +++ b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
-@@ -3,6 +3,7 @@
- #include <jsi/jsi.h>
- 
- #include <memory>
-+#include <mutex>
- #include <unordered_map>
- #include <utility>
- 
-@@ -56,17 +57,37 @@ class RuntimeAwareCache : public BaseRuntimeAwareCache,
+@@ -60,7 +60,18 @@ class RuntimeAwareCache : public BaseRuntimeAwareCache,
  
  public:
    void onRuntimeDestroyed(jsi::Runtime *rt) override {
@@ -18,16 +10,19 @@ index 2b5f16b..f716161 100644
 +    if (getMainJsRuntime() == rt) {
 +      // Release the primary cache here, while the runtime is still valid, instead
 +      // of in ~RuntimeAwareCache which may run later (main queue) after the
-+      // runtime is freed -> UAF. See patches/@shopify/react-native-skia.
++      // runtime is freed -> UAF. Reset by move-assigning a fresh T: this is the
++      // same point in the runtime's lifecycle at which the secondary branch below
++      // erases its entries. See patches/@shopify/react-native-skia.
 +      std::lock_guard<std::mutex> lock(_primaryCacheMutex);
 +      if (!_primaryCacheHandled) {
-+        _primaryCache.clear();
++        _primaryCache = T{};
 +        _primaryCacheHandled = true;
 +      }
 +    } else {
-       // We are removing a secondary runtime
-       _secondaryRuntimeCaches.erase(rt);
-     }
+       // We are removing a secondary runtime. This is invoked by
+       // RuntimeLifecycleMonitor on the destroyed runtime's thread, which may
+       // run concurrently with get() on another runtime's thread.
+@@ -70,6 +81,17 @@ public:
    }
  
    ~RuntimeAwareCache() {
@@ -45,11 +40,7 @@ index 2b5f16b..f716161 100644
      for (auto &cache : _secondaryRuntimeCaches) {
        RuntimeLifecycleMonitor::removeListener(
            *static_cast<jsi::Runtime *>(cache.first), this);
-     }
-   }
- 
-   T &get(jsi::Runtime &rt) {
-@@ -74,6 +93,13 @@ public:
+@@ -81,6 +103,13 @@ public:
      // to avoid us having to lookup by runtime for caches that only has a single
      // runtime
      if (getMainJsRuntime() == &rt) {
@@ -62,11 +53,11 @@ index 2b5f16b..f716161 100644
 +      }
        return _primaryCache;
      } else {
-       if (_secondaryRuntimeCaches.count(&rt) == 0) {
-@@ -94,6 +120,10 @@ public:
-   }
+       // Guard the secondary map: it can be mutated concurrently by get()
+@@ -110,6 +139,10 @@ public:
  
  private:
+   std::mutex _secondaryCachesMutex;
 +  // Declared before _primaryCache so it outlives it during member destruction.
 +  std::mutex _primaryCacheMutex;
 +  jsi::Runtime *_primaryRuntime = nullptr;
