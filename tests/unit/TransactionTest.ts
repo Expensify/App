@@ -2120,7 +2120,6 @@ describe('Transaction', () => {
         });
 
         it('should create MOVED_TRANSACTION action when moving expenses from a non-Draft report', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
             const submittedReport = {
