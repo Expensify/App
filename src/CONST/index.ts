@@ -3004,6 +3004,7 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_BILLING_VENDOR: 'travelInvoicingVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
@@ -4632,6 +4633,20 @@ const CONST = {
         // Rate amounts are stored as `Number(value) * 100` cents, which can introduce tiny floating-point errors. Meaningful
         // amounts differ by at least 0.01 cents, so this tolerance safely absorbs the float noise when matching government rates.
         GOVERNMENT_RATE_MATCH_TOLERANCE: 0.001,
+        // Currencies we can auto-update government mileage rates for, mapped to the publishing country
+        GOVERNMENT_RATE_CURRENCY_TO_COUNTRY: {
+            USD: 'US',
+            CAD: 'CA',
+            GBP: 'GB',
+            AUD: 'AU',
+        },
+        // Unit each country publishes its rates in
+        GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
+            US: 'mi',
+            GB: 'mi',
+            CA: 'km',
+            AU: 'km',
+        },
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
@@ -8003,6 +8018,15 @@ const CONST = {
                 icon: 'ReportReceipt',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
+            governmentDistanceRates: {
+                id: 'governmentDistanceRates' as const,
+                alias: 'auto-update-government-rates',
+                name: 'Auto-update government rates',
+                title: 'workspace.upgrade.governmentDistanceRates.title' as const,
+                description: 'workspace.upgrade.governmentDistanceRates.description' as const,
+                icon: 'CarIce',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             perDiem: {
                 id: 'perDiem' as const,
                 alias: 'per-diem',
@@ -9569,6 +9593,9 @@ const COUNTRIES_US_BANK_FLOW: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CO
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
+/** A country whose government mileage rates Expensify can auto-update */
+type GovernmentRateCountry = ValueOf<typeof CONST.CUSTOM_UNITS.GOVERNMENT_RATE_CURRENCY_TO_COUNTRY>;
+
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -9590,6 +9617,7 @@ type EnablePaymentsSubPageType =
 
 export type {
     Country,
+    GovernmentRateCountry,
     IOUAction,
     IOUType,
     IOURequestType,
