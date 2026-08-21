@@ -136,6 +136,12 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
+
+    /** Styles for the container wrapping the submit button and footer content */
+    submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */
+    submitButtonInnerStyles?: StyleProp<ViewStyle>;
 };
 
 function FormProvider({
