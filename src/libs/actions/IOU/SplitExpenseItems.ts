@@ -257,12 +257,12 @@ function initSplitExpenseItemData(
         delete splitCustomUnit.commuterExclusionMethod;
     }
 
-    // If the parent expense's stored tax value is out of date relative to the live policy rate — e.g. the rate's
-    // value was edited in workspace settings after the expense was created — its taxCode/taxAmount/taxValue no
-    // longer agree (the code resolves to the current rate while the stored amount/value are from the old rate).
-    // Seed the split without those stale tax fields so its tax is derived fresh from the current rate the user
-    // picks, instead of persisting a label and amount that disagree. Only gate when a policy is available to
-    // compare against; otherwise keep the existing behavior of inheriting the stored values.
+    // If the parent expense's stored tax value is out of date relative to the live policy rate (for example, the
+    // rate's value was edited in workspace settings after the expense was created), its taxCode/taxAmount/taxValue
+    // no longer agree. The code resolves to the current rate while the stored amount and value are from the old rate.
+    // Seed the split without those stale tax fields so its tax is derived from the current rate the user picks,
+    // instead of persisting a label and amount that disagree. Only gate when a policy is available to compare
+    // against. Otherwise keep the existing behavior of inheriting the stored values.
     const isStoredTaxValueStale = !!policy && !!transaction?.taxValue && !hasTaxRateWithMatchingValue(policy, transaction);
 
     return {
