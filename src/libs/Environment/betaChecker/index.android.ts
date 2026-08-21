@@ -26,10 +26,8 @@ Onyx.connectWithoutView({
 });
 
 /**
- * Whether something other than the Play Store put this build on the device. Production builds only ever reach a
- * device through the Play Store, so any other installer means the build was sideloaded, i.e. downloaded from a
- * GitHub release. Unlike the version comparison below, the answer does not change once a production release catches
- * up with the build's version — though Android does rewrite the installer if a different one later updates the app.
+ * Whether something other than the Play Store put this build on the device, i.e. a tester installed it from a
+ * GitHub release.
  */
 function isSideloadedBuild(): boolean {
     try {
@@ -41,12 +39,14 @@ function isSideloadedBuild(): boolean {
 }
 
 /**
- * Check the GitHub releases to see if the current build is a beta build or production build
+ * Whether this build is a beta (staging) build.
+ *
+ * A sideloaded build is answered straight away, both because testers install those from GitHub prereleases and
+ * because it keeps them off the rate limited GitHub API. Anything the Play Store installed can still be on a
+ * tester track, which only a comparison against the newest production release recognizes.
  */
 function isBetaBuild(): IsBetaBuild {
     return new Promise((resolve) => {
-        // A sideloaded build is a beta build: testers install those from GitHub prereleases. Answering here also
-        // keeps them off the rate limited GitHub API, whose failures are what flips the environment mid-testing.
         if (isSideloadedBuild()) {
             AppUpdate.setIsAppInBeta(true);
             resolve(true);
@@ -59,12 +59,8 @@ function isBetaBuild(): IsBetaBuild {
             .then((json: GithubReleaseJSON) => {
                 const productionVersion = json.tag_name;
 
-                // A rate limited or malformed response carries no usable tag. Production is the safe answer when
-                // we cannot tell — the missing `return` here used to fall through into semver.gt(version, undefined),
-                // which threw and left the verdict to the catch below.
                 if (!productionVersion || !semver.valid(productionVersion)) {
-                    AppUpdate.setIsAppInBeta(false);
-                    resolve(false);
+                    resolve(isLastSavedBeta);
                     return;
                 }
 

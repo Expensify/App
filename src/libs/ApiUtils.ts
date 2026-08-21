@@ -34,9 +34,8 @@ getEnvironment().then((envName) => {
 /**
  * Whether requests should be sent to the staging API.
  *
- * Derived on demand rather than cached, so a value stored before the environment resolved is still applied
- * once it does — the cached-boolean version only ever read the preference through whatever ENV_NAME happened
- * to be at callback time.
+ * Derived on demand rather than cached, so that a preference stored before the environment resolved is still
+ * applied once it does.
  */
 function shouldUseStagingServer(): boolean {
     // Toggling between APIs is not allowed on production and internal dev environment

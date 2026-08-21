@@ -108,17 +108,17 @@ describe('betaChecker (android)', () => {
             await expect(getOnyxValue(ONYXKEYS.IS_BETA)).resolves.toBe(false);
         });
 
-        it('reports a production build when the response carries no usable tag', async () => {
-            // A rate limited or malformed response says nothing about this build, and production is the safe
-            // answer. Guards the missing `return` that used to fall through into semver.gt(version, undefined).
+        it.each([[true], [false]])('falls back to the last saved verdict of %s when the response carries no usable tag', async (lastSavedVerdict) => {
+            // A rate limited response arrives like this: a JSON body with no tag. It says nothing about this
+            // build, so the stored verdict has to survive it — the same treatment a failed request gets.
             global.fetch = jest.fn().mockResolvedValue({json: () => Promise.resolve({})});
-            await Onyx.set(ONYXKEYS.IS_BETA, true);
+            await Onyx.set(ONYXKEYS.IS_BETA, lastSavedVerdict);
             await waitForBatchedUpdates();
 
-            await expect(betaChecker.isBetaBuild()).resolves.toBe(false);
+            await expect(betaChecker.isBetaBuild()).resolves.toBe(lastSavedVerdict);
 
             await waitForBatchedUpdates();
-            await expect(getOnyxValue(ONYXKEYS.IS_BETA)).resolves.toBe(false);
+            await expect(getOnyxValue(ONYXKEYS.IS_BETA)).resolves.toBe(lastSavedVerdict);
         });
 
         it.each([[true], [false]])('falls back to the last saved verdict of %s when the request fails', async (lastSavedVerdict) => {

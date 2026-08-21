@@ -793,10 +793,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             ];
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
-                // `?? {}` used to stand in for a missing value, but these keys are not all objects —
-                // merging `{}` into SHOULD_USE_STAGING_SERVER leaves a truthy non-boolean behind. There is
-                // nothing to apply when OldDot sends nothing, so skip the key instead.
-                if (value === undefined || value === null) {
+                if (value === undefined) {
                     continue;
                 }
 
