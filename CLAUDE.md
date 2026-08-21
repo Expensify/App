@@ -57,16 +57,6 @@ Before either, prefer a **pure function** that receives the data as parameters: 
 
 Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
 
-The skill provides guidance on:
-
-- **Performance**: FPS optimization, virtualized lists (FlashList), memoization, atomic state, animations
-- **Bundle & App Size**: Barrel imports, tree shaking, bundle analysis, R8 shrinking
-- **Startup (TTI)**: Hermes bytecode optimization, native navigation, deferred work
-- **Native Modules**: Turbo Module development, threading model, Swift/Kotlin/C++ patterns
-- **Memory**: JS and native memory leak detection and patterns
-- **Build Compliance**: Android 16KB page alignment (Google Play requirement)
-- **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
-
 ### Memoization
 
 React Compiler auto-memoizes object literals, callbacks, JSX, and derived values inside components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native/Jest (see `babel.config.js`) and `oxc-transform-react` on web (see `config/rsbuild/`). They do not always agree, so a file can be memoized on one platform but not the other. The compliance check and the ESLint processor both run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
@@ -82,6 +72,10 @@ React Compiler auto-memoizes object literals, callbacks, JSX, and derived values
 1. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
 2. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
 3. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
+
+### Testing
+
+App tests use Jest. Tests for `.github/` and `scripts/` live in `tests/tooling/` and run under `bun:test` (`npm run test:bun`) — see `tests/tooling/README.md`.
 
 ## Special Considerations
 
