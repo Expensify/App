@@ -180,7 +180,6 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
         sortedVisibleReportActions: [makeAction('1')],
         renderedVisibleReportActions: [makeAction('1')],
         keyExtractor: (item: ReportAction) => item.reportActionID,
-        hasScrolledOverThreshold: false,
         markNewestActionAsRead: mockMarkNewestActionAsRead,
         completeSkippedMarkAsRead: mockCompleteSkippedMarkAsRead,
         unreadMarkerReportActionID: null,
@@ -252,7 +251,6 @@ describe('useReportActionsScroll', () => {
             const {result} = await renderScroll();
 
             expect(result.current.shouldBeAlignedToTop).toBe(false);
-            expect(result.current.shouldMaintainVisibleContentPosition).toBe(false);
         });
 
         it('is aligned to top and focuses to top on mount for a transaction thread report', async () => {
@@ -261,7 +259,6 @@ describe('useReportActionsScroll', () => {
             const {result} = await renderScroll();
 
             expect(result.current.shouldBeAlignedToTop).toBe(true);
-            expect(result.current.shouldMaintainVisibleContentPosition).toBe(true);
         });
 
         it('is aligned to top for a money request report', async () => {

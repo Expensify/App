@@ -198,8 +198,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
 
-    // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
-    const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
+    // OpenReport can first provide a tiny cached page and then replace it with the hydrated page. Remounting
+    // gives the complete dataset a fresh initial layout so initialScrollAtEnd targets its actual end.
+    const listID = [
+        reportID,
+        reportActionIDFromRoute,
+        hasOnceLoadedReportActions ? 'hydrated' : 'initial',
+        hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID,
+    ].join(':');
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
@@ -308,9 +314,21 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         return visibleReportActionsWithDraft;
     })();
 
+    const [initialReportActionsSnapshot, setInitialReportActionsSnapshot] = useState<{reportActions: OnyxTypes.ReportAction[]; reportID: string}>();
+    const hasInitialReportActionsSnapshot = initialReportActionsSnapshot?.reportID === reportID;
+
+    // OpenReport starts with a tiny cached page before replacing it with the hydrated page. Keep that
+    // already-visible page mounted until hydration finishes instead of exposing intermediate estimated
+    // layouts. The hydrated list then mounts from scratch using the full dataset.
+    if (!hasOnceLoadedReportActions && !hasInitialReportActionsSnapshot && renderedVisibleReportActions.length > 0) {
+        setInitialReportActionsSnapshot({reportActions: renderedVisibleReportActions, reportID});
+    }
+
+    const reportActionsToRender = !hasOnceLoadedReportActions && hasInitialReportActionsSnapshot ? initialReportActionsSnapshot.reportActions : renderedVisibleReportActions;
+
     // Report actions are stored newest-first. LegendList intentionally has no inverted mode, so
     // give it chronological data and use its normal start/end and scrolling semantics.
-    const listData = renderedVisibleReportActions.toReversed();
+    const listData = reportActionsToRender.toReversed();
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
@@ -349,7 +367,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         shouldBeAlignedToTop,
         initialScrollIndex,
         initialScrollIndexParams,
-        shouldMaintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
         reportID,
@@ -359,7 +376,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         sortedVisibleReportActions,
         renderedVisibleReportActions: listData,
         keyExtractor,
-        hasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
@@ -590,7 +606,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                     maintainScrollAtEnd={{animated: false}}
                     // Keyboard avoidance can shrink the viewport by almost a full screen before LegendList evaluates end proximity.
                     maintainScrollAtEndThreshold={1}
-                    maintainVisibleContentPosition={shouldMaintainVisibleContentPosition ? {data: true} : false}
+                    maintainVisibleContentPosition={{data: true}}
                     onLoad={onLoad}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);

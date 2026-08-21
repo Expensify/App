@@ -57,8 +57,6 @@ type UseReportActionsScrollParams = {
     keyExtractor: (item: OnyxTypes.ReportAction) => string;
 
     /** Whether the user has scrolled past the "visible" threshold */
-    hasScrolledOverThreshold: boolean;
-
     /** Marks the newest action as read and clears any pending skipped mark-as-read */
     markNewestActionAsRead: () => void;
 
@@ -114,9 +112,6 @@ type UseReportActionsScrollResult = {
     /** Whether the list should be pinned to the visual top (transaction thread / money request) */
     shouldBeAlignedToTop: boolean;
 
-    /** Whether the list should preserve the currently visible content when data changes */
-    shouldMaintainVisibleContentPosition: boolean;
-
     /** The index the list should scroll to on mount (undefined to keep default position) */
     initialScrollIndex: number | undefined;
 
@@ -135,7 +130,6 @@ function useReportActionsScroll({
     sortedVisibleReportActions,
     renderedVisibleReportActions,
     keyExtractor,
-    hasScrolledOverThreshold,
     markNewestActionAsRead,
     completeSkippedMarkAsRead,
     unreadMarkerReportActionID,
@@ -184,7 +178,6 @@ function useReportActionsScroll({
     }
 
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
     const [shouldDisablePillTracking, setShouldDisablePillTracking] = useState(!!initialScrollKey);
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged, updatePillVisibility} =
@@ -366,7 +359,6 @@ function useReportActionsScroll({
         scrollToActionBadgeTarget,
         flushPendingScrollToBottom,
         shouldBeAlignedToTop,
-        shouldMaintainVisibleContentPosition,
         initialScrollIndex,
         initialScrollIndexParams,
         onLoad,

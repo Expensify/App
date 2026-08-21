@@ -132,7 +132,22 @@ const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.
 // so they are stubbed here to isolate the skeleton logic. Because the guard only mounts the content when
 // the skeleton is not showing, these stubs double as a probe for dormancy: while a skeleton renders the
 // content is never mounted, so useMarkAsRead/useReportActionsScroll are never called.
-jest.mock('@legendapp/list/react-native', () => ({LegendList: jest.fn(() => null)}));
+const mockLegendListMount = jest.fn();
+const mockLegendListUnmount = jest.fn();
+jest.mock('@legendapp/list/react-native', () => {
+    const reactModule = jest.requireActual<typeof React>('react');
+    return {
+        LegendList: jest.fn(() => {
+            reactModule.useEffect(() => {
+                mockLegendListMount();
+                return () => {
+                    mockLegendListUnmount();
+                };
+            }, []);
+            return null;
+        }),
+    };
+});
 jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
 jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
 jest.mock('@hooks/useReportActionsScroll', () =>
@@ -148,7 +163,6 @@ jest.mock('@hooks/useReportActionsScroll', () =>
         shouldBeAlignedToTop: false,
         initialScrollIndex: undefined,
         initialScrollIndexParams: undefined,
-        shouldMaintainVisibleContentPosition: false,
         onLoad: jest.fn(),
     })),
 );
@@ -161,11 +175,13 @@ jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => nul
 jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
 
 type MockLegendListProps = {
+    alignItemsAtEnd?: boolean;
     data?: OnyxTypes.ReportAction[];
     drawDistance?: number;
     extraData?: unknown;
     getItemType?: (item: OnyxTypes.ReportAction) => string;
-    maintainScrollAtEnd?: {animated: boolean};
+    initialScrollAtEnd?: boolean;
+    maintainScrollAtEnd?: {animated: boolean} | false;
     maintainScrollAtEndThreshold?: number;
     recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
@@ -208,6 +224,7 @@ const getRenderedReportActionsListItemProps = (reportAction: OnyxTypes.ReportAct
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
 const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
+let mockHasOnceLoadedReportActions = true;
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
@@ -277,6 +294,7 @@ describe('ReportActionsList (body)', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockHasOnceLoadedReportActions = true;
         mockUseIsReportLoadPending.mockReturnValue(false);
 
         mockUseCurrentUserPersonalDetails.mockReturnValue({
@@ -339,7 +357,7 @@ describe('ReportActionsList (body)', () => {
                 return [false, {status: 'loaded'}];
             }
             if (key.includes('reportLoadingState')) {
-                return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
+                return [getMockReportLoadingState(options?.selector, mockHasOnceLoadedReportActions), {status: 'loaded'}];
             }
             if (key.includes('reportActions')) {
                 return [[], {status: 'loaded'}];
@@ -365,6 +383,76 @@ describe('ReportActionsList (body)', () => {
 
         expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
         expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(1);
+    });
+
+    it('initially aligns the seed page to the end', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        renderReportActionsList();
+
+        expect(getCapturedListProps()?.initialScrollAtEnd).toBe(true);
+        expect(getCapturedListProps()?.alignItemsAtEnd).toBe(true);
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
+    });
+
+    it('remounts the list when the initial report actions finish hydrating', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        const view = renderReportActionsList();
+
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+        expect(mockLegendListUnmount).not.toHaveBeenCalled();
+
+        mockHasOnceLoadedReportActions = true;
+        // The mocked Onyx hook does not own state, so changing its return value cannot schedule the
+        // rerender that the real Onyx subscription causes. Change a prop to trigger that render.
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockLegendListMount).toHaveBeenCalledTimes(2);
+        expect(mockLegendListUnmount).toHaveBeenCalledTimes(1);
+        expect(getCapturedListProps()?.initialScrollAtEnd).toBe(true);
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
+    });
+
+    it('keeps the initial actions visible until the hydrated page is complete', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        const view = renderReportActionsList();
+
+        expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length);
+
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [...mockReportActions, olderMockReportAction],
+        });
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length);
+        expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === olderMockReportAction.reportActionID)).toBe(false);
+
+        mockHasOnceLoadedReportActions = true;
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length + 1);
+        expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === olderMockReportAction.reportActionID)).toBe(true);
     });
 
     it('limits the render buffer and enables item recycling', () => {

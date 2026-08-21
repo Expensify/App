@@ -42,17 +42,14 @@ type CapturedListProps = {
     onScroll?: (event: ScrollEvent) => void;
 };
 
-// Capture the props the list is rendered with so we can observe `maintainVisibleContentPosition`. With no
-// deep-link, it is enabled exactly when `hasScrolledOverThreshold` is true.
+// Capture the props the list is rendered with so we can verify data anchoring remains enabled while the
+// list crosses the visible-action threshold.
 let capturedListProps: CapturedListProps = {};
-// Every value the maintain-visible-content-position flag has held, in render order. `[0]` is the
-// value on the list's very first render — the property that matters, since it must be right before any effect runs.
-let mockMvcpHistory: Array<boolean | undefined> = [];
 
-// Whether the captured LegendList configuration enables maintain-visible-content-position.
+// Whether the captured LegendList configuration enables data-based maintain-visible-content-position.
 function isMvcpEnabled() {
     const config = capturedListProps.maintainVisibleContentPosition;
-    return config === undefined ? undefined : config !== false;
+    return typeof config === 'object' && config.data;
 }
 
 jest.mock('@legendapp/list/react-native', () => {
@@ -62,7 +59,6 @@ jest.mock('@legendapp/list/react-native', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         LegendList: forwardRef<unknown, CapturedListProps>((props, ref) => {
             capturedListProps = props;
-            mockMvcpHistory.push(props.maintainVisibleContentPosition === undefined ? undefined : props.maintainVisibleContentPosition !== false);
             return null;
         }),
     };
@@ -135,7 +131,6 @@ async function renderList(initialOffset: number) {
 
 beforeEach(async () => {
     capturedListProps = {};
-    mockMvcpHistory = [];
     setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     await act(async () => {
@@ -160,25 +155,22 @@ afterEach(async () => {
     await waitForBatchedUpdates();
 });
 
-describe('ReportActionsList hasScrolledOverThreshold', () => {
-    it('enables maintainVisibleContentPosition on first render when mounted while scrolled past the threshold', async () => {
+describe('ReportActionsList maintainVisibleContentPosition', () => {
+    it('enables data anchoring on first render when mounted while scrolled past the threshold', async () => {
         await renderList(THRESHOLD + 50);
 
-        // Must be true on the FIRST render, not merely after an effect settles — deferring this to an effect
-        // would let the mount-time mark-as-read path observe a wrong `isScrolledToEnd`.
-        expect(mockMvcpHistory.at(0)).toBe(true);
         expect(isMvcpEnabled()).toBe(true);
     });
 
-    it('leaves maintainVisibleContentPosition off on first render when mounted at the bottom (offset below threshold)', async () => {
+    it('enables data anchoring at the bottom so initial hydration preserves the visible tail', async () => {
         await renderList(0);
 
-        expect(isMvcpEnabled()).toBe(false);
+        expect(isMvcpEnabled()).toBe(true);
     });
 
-    it('flips the flag as the user scrolls across the threshold', async () => {
+    it('keeps data anchoring enabled as the user scrolls across the threshold', async () => {
         await renderList(0);
-        expect(isMvcpEnabled()).toBe(false);
+        expect(isMvcpEnabled()).toBe(true);
 
         act(() => {
             capturedListProps.onScroll?.(createScrollEvent(THRESHOLD + 50));
@@ -188,6 +180,6 @@ describe('ReportActionsList hasScrolledOverThreshold', () => {
         act(() => {
             capturedListProps.onScroll?.(createScrollEvent(0));
         });
-        expect(isMvcpEnabled()).toBe(false);
+        expect(isMvcpEnabled()).toBe(true);
     });
 });
