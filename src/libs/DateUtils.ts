@@ -672,10 +672,7 @@ function getOneWeekFromNow(): string {
  * returns {string} example: 2023-05-16
  */
 function extractDate(dateTimeString: string): string {
-    if (!dateTimeString) {
-        return '';
-    }
-    if (dateTimeString === 'never') {
+    if (!dateTimeString || dateTimeString === 'never') {
         return '';
     }
     const date = toLocalDate(dateTimeString);
@@ -1234,20 +1231,20 @@ function getStablePerDiemMerchantDateRange(date1: Date, date2: Date): string {
     return `${format(date1, 'MMM d, yyyy', {locale: enUS})} - ${format(date2, 'MMM d, yyyy', {locale: enUS})}`;
 }
 
-/**
- * Returns a formatted date range with the number of days in the range.
- * Format: "YYYY-MM-DD to YYYY-MM-DD (X days)"
- */
-function getFormattedSplitDateRange(translateParam: LocaleContextProps['translate'], startDate: string | undefined, endDate: string | undefined): string {
+/** @returns Jan 10, 2024 to Jan 15, 2024 (6 days) (en) / 10 ene 2024 al 15 ene 2024 (6 días) (es) */
+function getFormattedSplitDateRange(translateParam: LocaleContextProps['translate'], startDate: string | undefined, endDate: string | undefined, locale: Locale): string {
     if (!startDate || !endDate) {
         return '';
     }
 
     const start = toLocalDate(startDate);
     const end = toLocalDate(endDate);
+    if (!isValid(start) || !isValid(end)) {
+        return '';
+    }
     const daysCount = differenceInDays(end, start) + 1;
 
-    return translateParam('iou.splitDateRange', startDate, endDate, daysCount);
+    return translateParam('iou.splitDateRange', formatToMediumDate(start, locale), formatToMediumDate(end, locale), daysCount);
 }
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;

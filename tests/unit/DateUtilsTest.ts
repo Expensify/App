@@ -699,50 +699,67 @@ describe('DateUtils', () => {
         const translateEN = <TPath extends TranslationPaths>(path: TPath, ...params: TranslationParameters<TPath>) => translate(LOCALE, path, ...params);
 
         it('should return empty string when startDate is undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, '2024-01-15');
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, '2024-01-15', LOCALE);
             expect(result).toBe('');
         });
 
         it('should return empty string when endDate is undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', undefined);
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', undefined, LOCALE);
             expect(result).toBe('');
         });
 
         it('should return empty string when both dates are undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, CONST.LOCALES.EN);
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, CONST.LOCALES.EN, LOCALE);
+            expect(result).toBe('');
+        });
+
+        it('should return empty string when a date is unparsable', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, 'not-a-date', '2024-01-15', LOCALE);
             expect(result).toBe('');
         });
 
         it('should return plural form for multiple days', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15');
-            expect(result).toContain('2024-01-10');
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15', LOCALE);
+            expect(result).toContain('Jan 10, 2024');
             expect(result).toContain('to');
-            expect(result).toContain('2024-01-15');
+            expect(result).toContain('Jan 15, 2024');
             expect(result).toContain('6 days');
         });
 
         it('should return correct format for 2 days', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-11');
-            expect(result).toContain('2024-01-10');
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-11', LOCALE);
+            expect(result).toContain('Jan 10, 2024');
             expect(result).toContain('to');
-            expect(result).toContain('2024-01-11');
+            expect(result).toContain('Jan 11, 2024');
             expect(result).toContain('2 days');
         });
 
         it('should handle cross-month date ranges', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-25', '2024-02-05');
-            expect(result).toContain('2024-01-25');
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-25', '2024-02-05', LOCALE);
+            expect(result).toContain('Jan 25, 2024');
             expect(result).toContain('to');
-            expect(result).toContain('2024-02-05');
+            expect(result).toContain('Feb 5, 2024');
             expect(result).toContain('12 days');
         });
 
         it('should handle cross-year date ranges', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2023-12-25', '2024-01-05');
-            expect(result).toContain('2023-12-25');
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2023-12-25', '2024-01-05', LOCALE);
+            expect(result).toContain('Dec 25, 2023');
             expect(result).toContain('to');
-            expect(result).toContain('2024-01-05');
+            expect(result).toContain('Jan 5, 2024');
             expect(result).toContain('12 days');
+        });
+
+        it('should localize the dates rather than emitting the wire shape', () => {
+            const result = DateUtils.getFormattedSplitDateRange(
+                <TPath extends TranslationPaths>(path: TPath, ...params: TranslationParameters<TPath>) => translate(CONST.LOCALES.ES, path, ...params),
+                '2024-01-10',
+                '2024-01-15',
+                CONST.LOCALES.ES,
+            );
+            expect(result).toContain('10 ene 2024');
+            expect(result).toContain('15 ene 2024');
+            expect(result).not.toContain('2024-01-10');
         });
     });
 
@@ -1046,7 +1063,6 @@ describe('DateUtils', () => {
         });
 
         it('extractDate returns empty rather than throwing on an unparsable value', () => {
-            expect(() => DateUtils.extractDate('not-a-date')).not.toThrow();
             expect(DateUtils.extractDate('not-a-date')).toBe('');
         });
 

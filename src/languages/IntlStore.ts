@@ -225,7 +225,7 @@ class IntlStore {
      */
     public static seedForTests(locale: Locale, translations: FlatTranslationsObject): void {
         IntlStore.cache.set(locale, translations);
-        // The splash gate reads the snapshot, not the Onyx flag, so notifying is enough to clear it.
+        // The splash gate reads the snapshot, not the Onyx flag.
         IntlStore.notifyListeners();
     }
 
@@ -303,7 +303,6 @@ class IntlStore {
                 }
                 // Same question the splash gate asks. A merely non-empty cache would skip the fallback and strand the boot.
                 if (IntlStore.loadToken !== token || IntlStore.cache.has(IntlStore.currentLocale) || locale === LOCALES.DEFAULT) {
-                    // Publishes only when the superseded load cached the committed locale, which is the case that unsticks the splash.
                     IntlStore.notifyListeners();
                     return;
                 }
