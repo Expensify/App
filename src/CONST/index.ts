@@ -2542,6 +2542,8 @@ const CONST = {
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
+        // Cloudflare Access rejects an expired bearer token at the HTTP layer, before any jsonCode body
+        UNAUTHORIZED: 401,
         // When Cloudflare throttles
         TOO_MANY_REQUESTS: 429,
         INTERNAL_SERVER_ERROR: 500,
@@ -6792,6 +6794,7 @@ const CONST = {
             WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
             SETTINGS_TAB: 'LAST_VISITED_PATH_SETTINGS_TAB',
         },
+        QA_AUTH_REDIRECT_FLOW: 'QA_AUTH_REDIRECT_FLOW',
     },
 
     RESERVATION_TYPE: {

@@ -1,3 +1,4 @@
+import {handleCloudflareAuthRedirectCallback} from '@libs/CloudflareAccess/handleAuthRedirectCallback';
 import intlPolyfill from '@libs/IntlPolyfill';
 
 import {setDeviceID} from '@userActions/Device';
@@ -91,6 +92,11 @@ export default function () {
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
+
+    // The QA auth callback arrives as a full page load, so no component is around to receive it: the code is
+    // picked up and the URL restored here, before React Navigation resolves the initial route. After
+    // Onyx.init() because a completed exchange persists the session. No-op on every other load.
+    handleCloudflareAuthRedirectCallback();
 
     initOnyxDerivedValues();
 
