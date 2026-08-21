@@ -20,6 +20,8 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     onLongPressRow?: (item: TItem) => void;
     shouldSyncFocus?: boolean;
     columns?: SearchColumnType[];
+    /** When true, the date column renders as the wider "Created" column (report-style Search: invoice/expense-report) */
+    isDateColumnCreated?: boolean;
     isLoading?: boolean;
     isActionLoading?: boolean;
     isLastItem?: boolean;

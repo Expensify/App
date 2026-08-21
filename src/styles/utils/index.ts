@@ -59,6 +59,7 @@ import splitPercentageInputStyles from './splitPercentageInputStyles';
 
 type GetReportTableColumnStylesParams = {
     isDateColumnWide?: boolean;
+    isDateColumnCreated?: boolean;
     isAmountColumnWide?: boolean;
     isTaxAmountColumnWide?: boolean;
     isSubmittedColumnWide?: boolean;
@@ -1936,6 +1937,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             isPostedColumnWide,
             isExportedColumnWide,
             isDateColumnWide,
+            isDateColumnCreated,
             isTaxAmountColumnWide,
             isAmountColumnWide,
             shouldRemoveTotalColumnFlex,
@@ -1994,11 +1996,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
                 columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
                 break;
-            case CONST.SEARCH.TABLE_COLUMNS.DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.DATE: {
+                // "Created" (expense-report) needs the wider w80. "Date" (expense/task/single report) keeps w62.
+                const normalDateWidth = isDateColumnCreated ? variables.w80 : variables.w62;
                 columnWidth = {
-                    ...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62),
+                    ...getWidthStyle(isDateColumnWide ? variables.w102 : normalDateWidth),
                 };
                 break;
+            }
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
                 columnWidth = {
