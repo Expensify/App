@@ -1,6 +1,6 @@
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -238,6 +238,7 @@ function initSplitExpenseItemData(
         isManuallyEdited,
         taxAmount,
         policy,
+        getCurrencyDecimals,
     }: {
         amount?: number;
         transactionID?: string;
@@ -248,7 +249,8 @@ function initSplitExpenseItemData(
         isManuallyEdited?: boolean;
         taxAmount?: number;
         policy?: OnyxEntry<OnyxTypes.Policy>;
-    } = {},
+        getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    },
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
     const sourceCustomUnit = customUnit ?? transaction?.comment?.customUnit;
@@ -475,6 +477,7 @@ function addSplitExpenseField(
         merchant,
         isManuallyEdited: false,
         policy,
+        getCurrencyDecimals,
     });
 
     const existingSplits = draftTransaction.comment?.splitExpenses ?? [];
@@ -678,6 +681,7 @@ function resetSplitExpensesByDateRange({
             reportID: draftTransaction?.reportID,
             created: format(date, CONST.DATE.FNS_FORMAT_STRING),
             policy,
+            getCurrencyDecimals,
         });
 
         // Update distance for distance transactions based on new amount and rate
