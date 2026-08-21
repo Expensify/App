@@ -1,5 +1,7 @@
 import type * as SelectionScraperModule from '@libs/SelectionScraper/index.native';
 
+import CONST from '@src/CONST';
+
 import {Document, Element} from 'domhandler';
 
 // cspell:ignore mtext
@@ -75,6 +77,12 @@ describe('SelectionScraper', () => {
         expect(last.parent).toBe(mtext);
         expect(last.prev).toBe(middle);
         expect(last.next).toBeNull();
+    });
+
+    it('preserves MathML serialization when an editor child div is collapsed', () => {
+        selectFixture(`<div data-testid="editor"><math><mtext><div><span></span></div></mtext></math></div><span data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}="true">selected</span>`);
+
+        expect(SelectionScraper.getCurrentSelection()).toBe('<div><math><mtext><span/></mtext></math></div>');
     });
 
     it('preserves ordinary HTML transformations', () => {
