@@ -891,21 +891,8 @@ function IOURequestStepConfirmation({
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
     const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
-    return (
-        <ScreenWrapper
-            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
-            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
-            /*
-             * When this step is embedded on IOURequestStartPage (shouldHideHeader=true), that page already owns
-             * this screen's focus trap - a trap whose containers are the parent header (holding the Back button),
-             * the tab bar and the active tab. A second active trap here takes the top of the shared trap stack and
-             * pauses that one, confining Tab to the confirmation form and leaving the Back button and the tab bar
-             * unreachable. Standalone keeps `undefined` rather than `{active: !shouldHideHeader}` so that
-             * FocusTrapForScreen still runs its own route-based activation logic.
-             */
-            focusTrapSettings={shouldHideHeader ? {active: false} : undefined}
-            testID="IOURequestStepConfirmation"
-        >
+    const content = (
+        <>
             <TelemetrySpanManager
                 iouType={iouType}
                 requestType={requestType}
@@ -1084,6 +1071,29 @@ function IOURequestStepConfirmation({
                     </View>
                 </View>
             </DragAndDropProvider>
+        </>
+    );
+
+    /*
+     * When this step is embedded on IOURequestStartPage (shouldHideHeader=true), that page already renders
+     * the ScreenWrapper for this screen and owns its focus trap - a trap whose containers are the parent
+     * header (holding the Back button), the tab bar and the active tab. Every ScreenWrapper mounts its own
+     * FocusTrapForScreen on the shared trap stack, so a second one here would activate on top of the parent's
+     * and pause it, confining Tab to the confirmation form and leaving the Back button unreachable.
+     * Render the content on its own instead, the same way StepScreenWrapper's `shouldShowWrapper` gate already
+     * keeps the Scan and Distance tabs from mounting a nested wrapper.
+     */
+    if (shouldHideHeader) {
+        return content;
+    }
+
+    return (
+        <ScreenWrapper
+            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
+            testID="IOURequestStepConfirmation"
+        >
+            {content}
         </ScreenWrapper>
     );
 }

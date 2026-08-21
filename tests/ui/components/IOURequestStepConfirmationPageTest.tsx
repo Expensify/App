@@ -115,18 +115,6 @@ jest.mock('@components/ParticipantPicker', () => {
             ),
     };
 });
-// Jest resolves the native FocusTrapForScreen, which is a pass-through. This keeps that behaviour and only records
-// what each ScreenWrapper on the screen asks of its own trap, which is the thing the embedded confirmation changes.
-type RecordedFocusTrapSettings = {active?: boolean; containerElements?: unknown[]} | undefined;
-const mockFocusTrapSettings: RecordedFocusTrapSettings[] = [];
-jest.mock('@components/FocusTrap/FocusTrapForScreen', () => ({
-    __esModule: true,
-    default: ({children, focusTrapSettings}: {children: React.ReactNode; focusTrapSettings?: {active?: boolean; containerElements?: unknown[]}}) => {
-        mockFocusTrapSettings.push(focusTrapSettings);
-        return children;
-    },
-}));
-
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
@@ -1678,14 +1666,11 @@ describe('IOURequestStepConfirmationPageTest', () => {
     describe('Embedded on IOURequestStartPage', () => {
         // IOURequestStartPage renders its own ScreenWrapper and hands it the focus trap containers for the
         // header (which holds the Back button), the tab bar and the active tab. This stands in for that wrapper.
-        // Both suites below pass with the fix reverted only if the trap assertions are dropped - the testID
-        // assertions alone do not discriminate, since the confirmation keeps its wrapper either way.
         const PARENT_SCREEN_TEST_ID = 'IOURequestStartPage';
         const CONFIRMATION_SCREEN_TEST_ID = 'IOURequestStepConfirmation';
 
         beforeEach(async () => {
             mockSelectedParticipants = [];
-            mockFocusTrapSettings.length = 0;
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
             await act(async () => {
                 await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
@@ -1727,18 +1712,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 <OnyxListItemProvider>
                     <HTMLProviderWrapper>
                         <CurrentUserPersonalDetailsProvider>
-                            <LocaleContextProvider>
-                                {shouldHideHeader ? (
-                                    <ScreenWrapper
-                                        testID={PARENT_SCREEN_TEST_ID}
-                                        focusTrapSettings={{containerElements: []}}
-                                    >
-                                        {confirmation}
-                                    </ScreenWrapper>
-                                ) : (
-                                    confirmation
-                                )}
-                            </LocaleContextProvider>
+                            <LocaleContextProvider>{shouldHideHeader ? <ScreenWrapper testID={PARENT_SCREEN_TEST_ID}>{confirmation}</ScreenWrapper> : confirmation}</LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
                     </HTMLProviderWrapper>
                 </OnyxListItemProvider>,
@@ -1747,40 +1721,35 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
         }
 
-        it('deactivates its own focus trap when embedded, leaving the start page trap in charge of the Tab cycle', async () => {
+        it('mounts no ScreenWrapper of its own when embedded, so the start page keeps sole ownership of the focus trap', async () => {
             // Given the confirmation rendered the way the manual tab renders it, inside the start page's ScreenWrapper
             await renderConfirmation({shouldHideHeader: true});
 
-            // Then the confirmation still renders inside its own ScreenWrapper, so nothing about its layout changes
+            // Then the confirmation content is on the screen
             expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
-            expect(screen.getByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
 
-            // And its screen trap is switched off. Without this it would activate on top of the start page's trap
-            // on the shared stack and pause it, dropping the Back button and the tab bar out of the Tab cycle.
-            expect(mockFocusTrapSettings).toContainEqual({active: false});
-
-            // And the start page's trap, the one holding the header and tab bar containers, is left alone
-            expect(mockFocusTrapSettings.some((settings) => !!settings?.containerElements)).toBe(true);
+            // And the only ScreenWrapper is the start page's, so no second FocusTrapForScreen is pushed onto the
+            // shared trap stack to pause the trap holding the Back button and the tab bar
+            expect(screen.getByTestId(PARENT_SCREEN_TEST_ID)).toBeOnTheScreen();
+            expect(screen.queryByTestId(CONFIRMATION_SCREEN_TEST_ID)).not.toBeOnTheScreen();
         });
 
-        it('deactivates its own focus trap when embedded in the split expense flow too', async () => {
+        it('mounts no ScreenWrapper of its own when embedded in the split expense flow either', async () => {
             // Given the same embedded render for the split flow, which reuses the start page and this same component
             await renderConfirmation({shouldHideHeader: true, iouType: 'split'});
 
             // Then the split manual tab is covered by the same fix
             expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
-            expect(mockFocusTrapSettings).toContainEqual({active: false});
-            expect(mockFocusTrapSettings.some((settings) => !!settings?.containerElements)).toBe(true);
+            expect(screen.getByTestId(PARENT_SCREEN_TEST_ID)).toBeOnTheScreen();
+            expect(screen.queryByTestId(CONFIRMATION_SCREEN_TEST_ID)).not.toBeOnTheScreen();
         });
 
-        it('leaves the standalone route to FocusTrapForScreen default activation logic', async () => {
+        it('keeps its own ScreenWrapper - and therefore its own focus trap - on the standalone route', async () => {
             // Given the confirmation rendered as the standalone RHP route, with no parent owning its trap
             await renderConfirmation({shouldHideHeader: false});
 
-            // Then it still owns its trap, and `active` is left undefined rather than hardcoded to true, so the
-            // sidebar / top-tab / wide-layout checks in FocusTrapForScreen still run for this screen
+            // Then it still wraps itself, so the standalone screen keeps trapping focus exactly as before
             expect(await screen.findByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
-            expect(mockFocusTrapSettings.some((settings) => settings?.active !== undefined)).toBe(false);
         });
     });
 });
