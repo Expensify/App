@@ -2,6 +2,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
+import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
@@ -6382,8 +6383,8 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
-function exportToIntegration(reportID: string, connectionName: ConnectionName) {
-    const action = buildOptimisticExportIntegrationAction(connectionName);
+function exportToIntegration(reportID: string, connectionName: ConnectionName, policy: OnyxEntry<Policy>) {
+    const action = buildOptimisticExportIntegrationAction(connectionName, false, getExportLabelForConnection(connectionName, policy));
     const optimisticReportActionID = action.reportActionID;
     const previousExportedValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.isExportedToIntegration;
 
@@ -6435,8 +6436,8 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData});
 }
 
-function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionName) {
-    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionName, policy: OnyxEntry<Policy>) {
+    const label = getExportLabelForConnection(connectionName, policy);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -6445,7 +6446,7 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
 
     // Process each report ID
     for (const reportID of reportIDs) {
-        const action = buildOptimisticExportIntegrationAction(connectionName, true);
+        const action = buildOptimisticExportIntegrationAction(connectionName, true, label);
         const optimisticReportActionID = action.reportActionID;
         const previousExportedValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.isExportedToIntegration;
 

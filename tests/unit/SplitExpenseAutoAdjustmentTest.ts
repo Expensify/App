@@ -41,11 +41,12 @@ describe('Split Expense Auto-Adjustment', () => {
         });
 
     // Helper to create a split expense
-    const createSplitExpense = (transactionID: string, amount: number, isManuallyEdited = false): SplitExpense => ({
+    const createSplitExpense = (transactionID: string, amount: number, isManuallyEdited = false, taxValue?: string): SplitExpense => ({
         transactionID,
         amount,
         created: '2024-01-01',
         isManuallyEdited,
+        taxValue,
     });
 
     beforeAll(() => {
@@ -516,6 +517,40 @@ describe('Split Expense Auto-Adjustment', () => {
             expect(totalAmount).toBe(1100);
         });
 
+        it('should recalculate the edited split tax amount from its own tax rate', async () => {
+            // Each split has its own 10% tax rate; editing a split's amount must recompute its tax from that rate.
+            const initialSplits = [createSplitExpense('split1', 500, false, '10%'), createSplitExpense('split2', 500, false, '10%')];
+            const mockTransaction = createMockDraftTransaction(initialSplits);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${ORIGINAL_TRANSACTION_ID}`,
+                createMock<Transaction>({transactionID: ORIGINAL_TRANSACTION_ID, amount: TOTAL_AMOUNT, currency: CURRENCY, taxAmount: 0}),
+            );
+            await waitForBatchedUpdates();
+
+            // Action: Edit split1 to $3.00
+            updateSplitExpenseAmountField(mockTransaction, 'split1', 300, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+
+            // Edited split's tax is computed from its own 10% rate on the new $3 amount (not from the 0 original tax)
+            const editedSplit = splitExpenses.find((s) => s.transactionID === 'split1');
+            expect(editedSplit?.amount).toBe(300);
+            expect(editedSplit?.taxAmount).toBeGreaterThan(0);
+        });
+
         it('should ignore NaN amount and preserve existing split values', async () => {
             // Setup: 2 unedited splits at $5/$5
             const initialSplits = [createSplitExpense('split1', 500, false), createSplitExpense('split2', 500, false)];
@@ -587,6 +622,43 @@ describe('Split Expense Auto-Adjustment', () => {
             // Should be distributed as $3.33/$3.33/$3.34
             const amounts = splitExpenses.map((s) => s.amount).sort((a, b) => a - b);
             expect(amounts).toEqual([333, 333, 334]);
+        });
+
+        it('should recalculate each split tax amount from its own tax rate when distributing evenly', async () => {
+            // Regression: original expense uses a 0% tax rate, but each split has its own rate (5% / 10%).
+            // "Make splits even" is not the initial split state, so it must recompute each split's tax from its
+            // own rate applied to the new amount, not from the (zero) original tax amount.
+            const initialSplits = [createSplitExpense('split1', 300, true, '5%'), createSplitExpense('split2', 700, true, '10%')];
+            const mockTransaction = createMockDraftTransaction(initialSplits);
+            // Original expense has a 0% tax rate -> taxAmount 0
+            const originalTransaction = createMock<Transaction>({transactionID: ORIGINAL_TRANSACTION_ID, amount: TOTAL_AMOUNT, currency: CURRENCY, taxAmount: 0});
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
+            await waitForBatchedUpdates();
+
+            // Action: Make splits even ($5/$5)
+            evenlyDistributeSplitExpenseAmounts(mockTransaction, originalTransaction, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+
+            // Tax must be computed from each split's own rate applied to its new $5 amount (not $0)
+            const split1Tax = splitExpenses.find((s) => s.transactionID === 'split1')?.taxAmount ?? 0;
+            const split2Tax = splitExpenses.find((s) => s.transactionID === 'split2')?.taxAmount ?? 0;
+            expect(split1Tax).toBeGreaterThan(0);
+            expect(split2Tax).toBeGreaterThan(0);
+            // The 10% split's tax must exceed the 5% split's tax for the same $5 amount
+            expect(split2Tax).toBeGreaterThan(split1Tax);
         });
     });
 });
