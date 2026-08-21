@@ -1,4 +1,5 @@
 import AttachmentPicker from '@components/AttachmentPicker';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -85,6 +86,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -196,6 +198,9 @@ function MoneyRequestReceiptView({
     // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
     const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
+    // The thumbnail only ever renders page 1 of a PDF, so a total sitting on a later page looks like it
+    // disagrees with the expense amount. Only multi-page receipts need the badge.
+    const receiptPageCount = displayedTransaction?.receipt?.pageCount ?? 0;
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
@@ -545,6 +550,12 @@ function MoneyRequestReceiptView({
 
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
+
+    // A page count only means anything for a PDF, and optimistic writers that swap the receipt with a
+    // merge can leave the replaced PDF's count behind, so the current file type decides this rather
+    // than the count alone. Held back until the receipt has loaded too: the container stretches while
+    // loading, which would strand the badge at the bottom of that taller box.
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -702,6 +713,12 @@ function MoneyRequestReceiptView({
                                     )}
                                 </ReceiptHoverZoom>
                             </View>
+                            {shouldShowReceiptPageCount && (
+                                <Badge
+                                    text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
+                                    badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
+                                />
+                            )}
                             {canShowReceiptActions && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>
                                     <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
