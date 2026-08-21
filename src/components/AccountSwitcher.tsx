@@ -80,7 +80,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const displayName = currentUserPersonalDetails?.displayName ?? '';
+    const displayName = currentUserPersonalDetails.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -266,8 +266,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
                     <UserAvatar
                         size={CONST.AVATAR_SIZE.DEFAULT}
-                        accountID={currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                        source={currentUserPersonalDetails?.avatar}
+                        accountID={currentUserPersonalDetails.accountID}
+                        source={currentUserPersonalDetails.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     />
                     <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
@@ -290,7 +290,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             numberOfLines={1}
                             style={[styles.colorMuted, styles.fontSizeLabel]}
                         >
-                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                            {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
                         </Text>
                         {!!isDebugModeEnabled && (
                             <Text

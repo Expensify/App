@@ -11,7 +11,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import UserAvatar from './Avatar/UserAvatar';
 import Button from './ButtonComposed';
 import {usePersonalDetails} from './OnyxListItemProvider';
-import Text from './Text';
 
 type BookCallButtonProps = {
     /** The calendar link to open when the button is pressed */

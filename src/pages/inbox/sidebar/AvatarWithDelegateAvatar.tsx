@@ -1,14 +1,13 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp} from 'react-native';
 import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
@@ -39,8 +38,8 @@ function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct avatar size
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const personalDetails = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const delegatePersonalDetail = Object.values(personalDetails?.[0] ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === delegateEmail);
+    const personalDetails = usePersonalDetails();
+    const delegatePersonalDetail = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === delegateEmail);
 
     return (
         <View style={[styles.sidebarStatusAvatarContainer, containerStyle]}>

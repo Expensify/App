@@ -59,7 +59,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
 
     // Attendee icons carry their own `displayName`, so sorting needs no personal-details subscription
     const icons = sortIconsByName(attendeeIcons, undefined, localeCompare);
-    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name));
+    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(getAccountIDFromAvatarID(icon.id), formatPhoneNumber, translate, icon.name));
 
     return (
         <View
@@ -70,7 +70,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                 <UserDetailsTooltip
                     // eslint-disable-next-line react/no-array-index-key
                     key={`stackedAvatars-${icon.id}-${index}`}
-                    accountID={Number(icon.id)}
+                    accountID={getAccountIDFromAvatarID(icon.id)}
                     icon={icon}
                     fallbackUserDetails={{
                         displayName: icon.name,

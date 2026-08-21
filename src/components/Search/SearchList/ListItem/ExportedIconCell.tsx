@@ -10,6 +10,7 @@ import {getOriginalMessage, isExportedToIntegrationAction} from '@libs/ReportAct
 
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -85,6 +86,19 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
         }
     }
 
+    const integrationIcons = [
+        isExportedToNetsuite && {name: 'NetSuiteSquare', src: icons.NetSuiteSquare},
+        isExportedToXero && {name: 'XeroSquare', src: icons.XeroSquare},
+        isExportedToIntacct && {name: 'IntacctSquare', src: icons.IntacctSquare},
+        (isExportedToQuickbooksOnline || isExportedToQuickbooksDesktop) && {name: 'QBOSquare', src: icons.QBOSquare},
+        isExportedToIntuitEnterpriseSuite && {name: 'IntuitSquare', src: icons.IntuitSquare},
+        isExportedToCertinia && {name: 'CertiniaSquare', src: icons.CertiniaSquare},
+        isExportedToRillet && {name: 'RilletSquare', src: icons.RilletSquare},
+        isExportedToDualEntry && {name: 'DualEntrySquare', src: icons.DualEntrySquare},
+        isExportedToBillCom && {name: 'BillComSquare', src: icons.BillComSquare},
+        isExportedToZenefits && {name: 'ZenefitsSquare', src: icons.ZenefitsSquare},
+    ].filter((icon): icon is {name: string; src: IconAsset} => !!icon);
+
     return (
         <View style={[styles.flexRow, styles.gap2]}>
             {isExportedToStandardTemplate && (
@@ -101,76 +115,14 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
                     size={CONST.ICON_SIZE.SMALL}
                 />
             )}
-            {isExportedToNetsuite && (
+            {integrationIcons.map(({name, src}) => (
                 <Icon
-                    src={icons.NetSuiteSquare}
+                    key={name}
+                    src={src}
                     size={CONST.ICON_SIZE.SMALL}
                     additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
                 />
-            )}
-            {isExportedToXero && (
-                <Icon
-                    src={icons.XeroSquare}
-                    size={CONST.ICON_SIZE.SMALL}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
-                />
-            )}
-            {isExportedToIntacct && (
-                <Icon
-                    src={icons.IntacctSquare}
-                    size={CONST.ICON_SIZE.SMALL}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
-                />
-            )}
-            {(isExportedToQuickbooksOnline || isExportedToQuickbooksDesktop) && (
-                <Icon
-                    src={icons.QBOSquare}
-                    size={CONST.ICON_SIZE.SMALL}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
-                />
-            )}
-            {isExportedToIntuitEnterpriseSuite && (
-                <Avatar
-                    source={icons.IntuitSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
-                />
-            )}
-            {isExportedToCertinia && (
-                <Icon
-                    src={icons.CertiniaSquare}
-                    size={CONST.ICON_SIZE.SMALL}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
-                />
-            )}
-            {isExportedToRillet && (
-                <Icon
-                    src={icons.RilletSquare}
-                    size={CONST.ICON_SIZE.SMALL}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
-                />
-            )}
-            {isExportedToDualEntry && (
-                <Icon
-                    src={icons.DualEntrySquare}
-                    size={CONST.ICON_SIZE.SMALL}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
-                />
-            )}
-            {isExportedToBillCom && (
-                <Icon
-                    src={icons.BillComSquare}
-                    size={CONST.ICON_SIZE.SMALL}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
-                />
-            )}
-            {isExportedToZenefits && (
-                <Icon
-                    src={icons.ZenefitsSquare}
-                    size={CONST.ICON_SIZE.SMALL}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
-                />
-            )}
+            ))}
         </View>
     );
 }

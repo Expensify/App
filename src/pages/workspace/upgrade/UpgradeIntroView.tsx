@@ -27,7 +27,7 @@ type UpgradeIntroViewProps = {
     /** Icon shown in the top-left of the card. When omitted, the icon is hidden. */
     iconSrc?: IconAsset;
 
-    /** Whether the icon should render as an illustration (Icon) rather than an Avatar. */
+    /** Whether the icon renders at illustration size (48) without avatar border styles. */
     isIllustration?: boolean;
 
     /** Extra styles applied to the illustration icon. */
@@ -86,26 +86,21 @@ function UpgradeIntroView({
 
     const subscriptionLink = subscriptionPlan ? `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute())}` : CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
 
+    const iconSize = isIllustration ? 48 : StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT);
+    const iconStyles = isIllustration ? iconAdditionalStyles : StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR);
+
     return (
         <View style={styles.p5}>
             <View style={[styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
-                    {!!iconSrc &&
-                        (!isIllustration ? (
-                            <Icon
-                                src={iconSrc}
-                                width={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)}
-                                height={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)}
-                                additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)}
-                            />
-                        ) : (
-                            <Icon
-                                src={iconSrc}
-                                width={48}
-                                height={48}
-                                additionalStyles={iconAdditionalStyles}
-                            />
-                        ))}
+                    {!!iconSrc && (
+                        <Icon
+                            src={iconSrc}
+                            width={iconSize}
+                            height={iconSize}
+                            additionalStyles={iconStyles}
+                        />
+                    )}
                     <Badge
                         icon={Unlock}
                         text={unlockBadgeText ?? translate('workspace.upgrade.upgradeToUnlock')}
