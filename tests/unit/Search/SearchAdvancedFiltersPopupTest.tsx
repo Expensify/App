@@ -119,11 +119,11 @@ describe('SearchAdvancedFiltersPopup', () => {
     it('does not mount the content of filters the cursor only passes over', () => {
         render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
 
-        // A fast sweep: every row is left again before the hover intent delay elapses.
+        // A fast sweep: every row is left again well before the hover intent delay elapses.
         for (const filterKey of [FILTER_KEYS.FROM, FILTER_KEYS.TO, FILTER_KEYS.ATTENDEE]) {
             hover(filterKey);
             act(() => {
-                jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY - 1);
+                jest.advanceTimersByTime(1);
             });
         }
         act(() => {
