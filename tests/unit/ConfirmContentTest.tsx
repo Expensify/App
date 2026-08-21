@@ -1,6 +1,7 @@
 import {render} from '@testing-library/react-native';
 
 import ConfirmContent from '@components/ConfirmContent';
+import type ImageSVGProps from '@components/ImageSVG/types';
 
 import CONST from '@src/CONST';
 
@@ -14,6 +15,7 @@ type ButtonProps = {
 };
 
 const mockButtonSpy = jest.fn<void, [ButtonProps]>();
+const mockImageSVGSpy = jest.fn<void, [ImageSVGProps]>();
 
 jest.mock('@components/ButtonComposed', () => {
     const ReactLib = jest.requireActual<typeof React>('react');
@@ -29,6 +31,11 @@ jest.mock('@components/ButtonComposed', () => {
             KeyboardShortcut: () => null,
         }),
     };
+});
+
+jest.mock('@components/ImageSVG', () => (props: ImageSVGProps) => {
+    mockImageSVGSpy(props);
+    return null;
 });
 
 jest.mock('@hooks/useLocalize', () =>
@@ -69,6 +76,7 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 describe('ConfirmContent', () => {
     beforeEach(() => {
         mockButtonSpy.mockClear();
+        mockImageSVGSpy.mockClear();
     });
 
     function getConfirmButtonProps(onConfirm: () => void): ButtonProps | undefined {
@@ -143,5 +151,20 @@ describe('ConfirmContent', () => {
                 expect(confirmProps?.variant).toBe(expectedVariant(danger, expectedSuccess));
             },
         );
+    });
+
+    it('uses custom image dimensions', () => {
+        render(
+            <ConfirmContent
+                title="Test"
+                onConfirm={jest.fn()}
+                isVisible
+                image={() => null}
+                imageWidth={160}
+                imageHeight={140}
+            />,
+        );
+
+        expect(mockImageSVGSpy).toHaveBeenCalledWith(expect.objectContaining({width: 160, height: 140}));
     });
 });

@@ -6535,7 +6535,6 @@ const staticStyles = (theme: ThemeColors) =>
         commuterExclusionStaticIllustration: {
             width: 160,
             height: 140,
-            alignSelf: 'center',
         },
         helpStaticIllustration: {
             width: 174,

@@ -8,7 +8,15 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockShowConfirmModal = jest.fn();
+type MockConfirmModalOptions = {
+    imageHeight?: number;
+    imageStyles?: unknown;
+    imageWidth?: number;
+    promptStyles?: unknown;
+    titleContainerStyles?: unknown;
+};
+
+const mockShowConfirmModal = jest.fn<void, [MockConfirmModalOptions]>();
 
 jest.mock('@hooks/useConfirmModal', () => () => ({
     showConfirmModal: mockShowConfirmModal,
@@ -54,6 +62,15 @@ describe('useCommuterExclusionGuard', () => {
 
         expect(result.current('policy_forced')).toBe(true);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                imageHeight: 140,
+                imageStyles: expect.arrayContaining([expect.objectContaining({marginTop: 20}), expect.objectContaining({marginHorizontal: 20})]),
+                imageWidth: 160,
+                promptStyles: expect.arrayContaining([expect.objectContaining({marginBottom: 16})]),
+                titleContainerStyles: expect.objectContaining({marginBottom: 8}),
+            }),
+        );
     });
 
     it('does not block selecting a workspace without commuter exclusions', async () => {

@@ -112,6 +112,12 @@ type ConfirmContentProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
+    /** Image width */
+    imageWidth?: number;
+
+    /** Image height */
+    imageHeight?: number;
+
     /** Whether to fit the image to the container */
     shouldFitImageToContainer?: boolean;
 
@@ -158,6 +164,8 @@ function ConfirmContent({
     shouldShowDismissIcon = false,
     image,
     imageStyles,
+    imageWidth,
+    imageHeight,
     shouldFitImageToContainer = false,
     titleContainerStyles,
     shouldReverseStackedButtons = false,
@@ -197,8 +205,8 @@ function ConfirmContent({
                     <ImageSVG
                         contentFit={shouldFitImageToContainer ? 'cover' : 'contain'}
                         src={image}
-                        height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
-                        width={shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        height={imageHeight ?? CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
+                        width={imageWidth ?? (shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH)}
                         preserveAspectRatio={shouldFitImageToContainer ? 'xMidYMid slice' : undefined}
                         style={styles.alignSelfCenter}
                     />

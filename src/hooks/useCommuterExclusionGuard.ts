@@ -64,14 +64,17 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
             showConfirmModal({
                 title: translate('distance.error.mapOrGpsDistanceRequired.title'),
                 titleStyles: styles.textHeadline,
+                titleContainerStyles: styles.mb2,
                 prompt: translate('distance.error.mapOrGpsDistanceRequired.description'),
-                promptStyles: styles.textSupporting,
+                promptStyles: [styles.textSupporting, styles.mb4],
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
                 image: illustrations.HouseWithMap,
                 shouldUseSuccessStyleForConfirm: true,
                 shouldFitImageToContainer: true,
-                imageStyles: styles.commuterExclusionStaticIllustration,
+                imageStyles: [styles.mt5, styles.mh5],
+                imageWidth: styles.commuterExclusionStaticIllustration.width,
+                imageHeight: styles.commuterExclusionStaticIllustration.height,
             });
 
             return true;
