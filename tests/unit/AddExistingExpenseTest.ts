@@ -1,4 +1,7 @@
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {createUnreportedExpenses} from '@libs/TransactionUtils';
+
+import canAddTransactionAmountToReport from '@pages/canAddTransactionAmountToReport';
 
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -25,6 +28,23 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 }
 
 describe('AddExistingExpense', () => {
+    describe('canAddTransactionAmountToReport', () => {
+        const getUnreportedTransactionAmount = (storedAmount: number) => getTransactionDetails(generateTransaction({amount: storedAmount}))?.amount ?? 0;
+
+        test.each([
+            {amountType: 'negative', storedAmount: 1000, isIOU: false, expected: true},
+            {amountType: 'zero', storedAmount: 0, isIOU: false, expected: true},
+            {amountType: 'positive', storedAmount: -1000, isIOU: false, expected: true},
+            {amountType: 'negative', storedAmount: 1000, isIOU: true, expected: false},
+            {amountType: 'zero', storedAmount: 0, isIOU: true, expected: false},
+            {amountType: 'positive', storedAmount: -1000, isIOU: true, expected: true},
+        ])('should handle a $amountType unreported expense with isIOU=$isIOU', ({storedAmount, isIOU, expected}) => {
+            const transactionAmount = getUnreportedTransactionAmount(storedAmount);
+
+            expect(canAddTransactionAmountToReport(transactionAmount, isIOU)).toBe(expected);
+        });
+    });
+
     describe('createUnreportedExpenses', () => {
         it('should mark transactions with DELETE pendingAction as disabled', () => {
             const normalTransaction = generateTransaction({
