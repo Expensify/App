@@ -168,6 +168,19 @@ function BaseSelectionListImpl({
         return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
     }, [canSelectMultiple, data, isDisabled, isItemSelected]);
 
+    // Whether an actually Enter-capable, enabled confirm control will take plain Enter instead of the list: either the
+    // built-in `showButton` confirm button (enabled unless `isDisabled`), or a custom `footerContent` that declares a
+    // confirm via `onConfirm`. A `footerContent` node is opaque (it may hold no Enter handler, e.g. a referral CTA), so
+    // its confirm counts as enabled only when at least one item is selected — the universal condition under which these
+    // footer confirm buttons render/enable across the invite pickers (NewChatPage, WorkspaceInvite, attendee/participant
+    // selectors, ...) — AND the owner has not explicitly disabled it (`isDisabled === true`). Owners that can compute
+    // their footer button's disabled state (e.g. ParticipantSearchResults' split-bill error) pass it through
+    // `confirmButtonOptions.isDisabled` so a disabled footer button surrenders Enter back to the list.
+    const hasSelectedItems = dataDetails.selectedOptions.length > 0;
+    const isCustomFooterConfirmEnabled = hasSelectedItems && confirmButtonOptions?.isDisabled !== true;
+    const hasEnabledEnterConfirm =
+        (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
+
     const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
         initialFocusedIndex,
         maxIndex: data.length - 1,
@@ -253,7 +266,9 @@ function BaseSelectionListImpl({
         getFocusedOption: () => focusedOption,
         confirmButtonOptions,
         isActive: isFocused,
-        focusedIndex,
+        // Keep the focused row's index (so plain Enter selects it) unless an enabled Enter-capable confirm control will
+        // take Enter instead; only then pass `-1` to disable the list's Enter shortcut and let the keypress reach it.
+        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasEnabledEnterConfirm || shouldStopPropagation ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: !focusedOption,
