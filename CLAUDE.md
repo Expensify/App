@@ -212,7 +212,7 @@ The skill provides guidance on:
 
 ### Memoization
 
-React Compiler auto-memoizes object literals, callbacks, JSX, and derived values inside components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native/Jest (see `babel.config.js`) and `oxc-transform` on web (see `config/rsbuild/`). They do not always agree, so a file can be memoized on one platform but not the other. The compliance check and the ESLint processor both run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
+React Compiler auto-memoizes object literals, callbacks, JSX, and derived values inside components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native/Jest (see `babel.config.js`) and `oxc-transform-react` on web (see `config/rsbuild/`). They do not always agree, so a file can be memoized on one platform but not the other. The compliance check and the ESLint processor both run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
 
 ### Code Quality
 
@@ -231,7 +231,8 @@ React Compiler auto-memoizes object literals, callbacks, JSX, and derived values
 
 ### Testing
 
-- **Unit Tests**: Jest with React Native Testing Library
+- **Unit Tests**: Jest with React Native Testing Library. Tests for `.github/` and `scripts/` live in
+  `tests/tooling/` and run under `bun:test` (`npm run test:bun`) — see `tests/tooling/README.md`.
 - **Performance Tests**: Reassure framework
 
 ## Special Considerations
@@ -292,6 +293,9 @@ npm run fmt
 
 # Testing
 npm run test
+
+# Bun tests: server/ plus the repo's own tooling (.github/ and scripts/)
+npm run test:bun
 ```
 
 ### Platform Builds
