@@ -171,11 +171,13 @@ function BaseSelectionListImpl({
     // Whether an actually Enter-capable, enabled confirm control will take plain Enter instead of the list: either the
     // built-in `showButton` confirm button (enabled unless `isDisabled`), or a custom `footerContent` that declares a
     // confirm via `onConfirm`. A `footerContent` node is opaque (it may hold no Enter handler, e.g. a referral CTA), so
-    // we treat its confirm as enabled only when the owner explicitly marks it (`isDisabled === false`) or, when the owner
-    // declares no disabled state, when at least one item is selected — the condition under which these footer confirm
-    // buttons render/enable across the invite pickers (NewChatPage, WorkspaceInvite, attendee/participant selectors, ...).
+    // its confirm counts as enabled only when at least one item is selected — the universal condition under which these
+    // footer confirm buttons render/enable across the invite pickers (NewChatPage, WorkspaceInvite, attendee/participant
+    // selectors, ...) — AND the owner has not explicitly disabled it (`isDisabled === true`). Owners that can compute
+    // their footer button's disabled state (e.g. ParticipantSearchResults' split-bill error) pass it through
+    // `confirmButtonOptions.isDisabled` so a disabled footer button surrenders Enter back to the list.
     const hasSelectedItems = dataDetails.selectedOptions.length > 0;
-    const isCustomFooterConfirmEnabled = confirmButtonOptions?.isDisabled === undefined ? hasSelectedItems : !confirmButtonOptions?.isDisabled;
+    const isCustomFooterConfirmEnabled = hasSelectedItems && confirmButtonOptions?.isDisabled !== true;
     const hasEnabledEnterConfirm =
         (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
 
