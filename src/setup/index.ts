@@ -17,7 +17,7 @@ import telemetry from './telemetry';
 
 const enableDevTools = Config?.USE_REDUX_DEVTOOLS === 'true';
 
-export default async function () {
+export default function () {
     telemetry();
 
     toSortedPolyfill.shim();
@@ -85,8 +85,6 @@ export default async function () {
         ],
     });
 
-    const paginationConfigPromise = import('@libs/registerPaginationConfig');
-
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
@@ -103,9 +101,6 @@ export default async function () {
 
     // Polyfill the Intl API if locale data is not as expected
     intlPolyfill();
-
-    // Report actions can be requested as soon as the app mounts, so pagination must be registered first.
-    await paginationConfigPromise;
 
     // Perform any other platform-specific setup
     platformSetup();
