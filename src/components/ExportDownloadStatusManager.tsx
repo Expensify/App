@@ -1,11 +1,11 @@
 import useOnyx from '@hooks/useOnyx';
 
-import {clearExportDownload, markExportDownloadSurfaced} from '@libs/actions/Export';
+import {clearExportDownload} from '@libs/actions/Export';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import ExportDownloadStatusModal from './ExportDownloadStatusModal';
 
@@ -18,44 +18,51 @@ import ExportDownloadStatusModal from './ExportDownloadStatusModal';
  */
 function ExportDownloadStatusManager() {
     const [exportDownloads] = useOnyx(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD);
+    const [openExportID, setOpenExportID] = useState<string | undefined>();
 
-    const activeEntry = Object.entries(exportDownloads ?? {}).find(([, exportDownload]) => {
+    const freshCandidate = Object.entries(exportDownloads ?? {}).find(([, exportDownload]) => {
         if (!exportDownload) {
             return false;
         }
         if (exportDownload.shouldSendFromConcierge) {
-            return !exportDownload.hasBeenSurfaced;
+            return false;
         }
-        return (
-            exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING ||
-            exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY ||
-            exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.FAILED
-        );
+        return exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     });
+    const freshExportID = freshCandidate?.[0].replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
 
-    if (!activeEntry) {
+    if (!openExportID && freshExportID) {
+        setOpenExportID(freshExportID);
+    }
+    if (openExportID && !exportDownloads?.[`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${openExportID}`]) {
+        setOpenExportID(undefined);
+    }
+
+    if (!openExportID) {
         return null;
     }
 
-    const exportID = activeEntry[0].replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
-    const exportDownload = activeEntry[1];
+    const exportDownload = exportDownloads?.[`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${openExportID}`];
+    if (!exportDownload) {
+        return null;
+    }
 
     const handleClose = () => {
-        if (exportDownload?.shouldSendFromConcierge) {
-            markExportDownloadSurfaced(exportID);
+        if (exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !exportDownload.shouldSendFromConcierge) {
             return;
         }
-        // The modal already blocks dismissal while preparing, so this is an extra guard.
-        if (exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
+        if (exportDownload.shouldSendFromConcierge) {
+            setOpenExportID(undefined);
             return;
         }
-        clearExportDownload(exportID, exportDownload);
+        clearExportDownload(openExportID, exportDownload);
+        setOpenExportID(undefined);
     };
 
     return (
         <ExportDownloadStatusModal
-            key={exportID}
-            exportID={exportID}
+            key={openExportID}
+            exportID={openExportID}
             isVisible
             onClose={handleClose}
         />

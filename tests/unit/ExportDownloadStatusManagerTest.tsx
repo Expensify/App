@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
 
-import {clearExportDownload, markExportDownloadSurfaced, sendExportFileFromConcierge} from '@userActions/Export';
+import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
 import type * as Modal from '@userActions/Modal';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,6 @@ jest.mock('@components/RenderHTML', () => {
 jest.mock('@userActions/Export', () => ({
     sendExportFileFromConcierge: jest.fn(),
     clearExportDownload: jest.fn(),
-    markExportDownloadSurfaced: jest.fn(),
 }));
 jest.mock('@userActions/Modal', () => ({
     ...jest.requireActual<typeof Modal>('@userActions/Modal'),
@@ -58,7 +57,6 @@ jest.mock('@libs/ActiveClientManager', () => ({
 }));
 
 const mockClearExportDownload = jest.mocked(clearExportDownload);
-const mockMarkExportDownloadSurfaced = jest.mocked(markExportDownloadSurfaced);
 const mockSendFromConcierge = jest.mocked(sendExportFileFromConcierge);
 
 const EXPORT_ID = 'test-export-123';
@@ -93,23 +91,23 @@ describe('ExportDownloadStatusManager', () => {
         expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
     });
 
-    it('renders the Concierge confirmation when shouldSendFromConcierge is set and it has not been surfaced', async () => {
+    it('renders nothing for a Concierge hand-off in any state (worker owns delivery and failure notice)', async () => {
         await Onyx.set(EXPORT_KEY, {state: 'preparing', shouldSendFromConcierge: true});
-
-        render(<ExportDownloadStatusManager />);
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.getByText('exportDownload.conciergeTitle')).toBeTruthy();
-    });
-
-    it('renders nothing for a Concierge record that has already been surfaced', async () => {
-        await Onyx.set(EXPORT_KEY, {state: 'preparing', shouldSendFromConcierge: true, hasBeenSurfaced: true});
 
         render(<ExportDownloadStatusManager />);
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByText('exportDownload.conciergeTitle')).toBeNull();
         expect(screen.queryByText('exportDownload.preparingTitle')).toBeNull();
+    });
+
+    it('renders nothing for a failed export (no dedicated UI for failed non-Concierge state)', async () => {
+        await Onyx.set(EXPORT_KEY, {state: 'failed'});
+
+        render(<ExportDownloadStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText('exportDownload.failedTitle')).toBeNull();
     });
 
     it('dismissing a preparing export is a no-op: does not clear the record or mark it surfaced', async () => {
@@ -120,19 +118,6 @@ describe('ExportDownloadStatusManager', () => {
 
         fireEvent.press(screen.getByText('exportDownload.sendFromConcierge'));
         expect(mockSendFromConcierge).toHaveBeenCalled();
-        expect(mockClearExportDownload).not.toHaveBeenCalled();
-        expect(mockMarkExportDownloadSurfaced).not.toHaveBeenCalled();
-    });
-
-    it('dismissing a Concierge record marks it surfaced and never clears the underlying export', async () => {
-        await Onyx.set(EXPORT_KEY, {state: 'preparing', shouldSendFromConcierge: true});
-
-        render(<ExportDownloadStatusManager />);
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByText('exportDownload.dismiss'));
-
-        expect(mockMarkExportDownloadSurfaced).toHaveBeenCalledWith(EXPORT_ID);
         expect(mockClearExportDownload).not.toHaveBeenCalled();
     });
 
@@ -145,6 +130,5 @@ describe('ExportDownloadStatusManager', () => {
         fireEvent.press(screen.getByText('exportDownload.downloadFile'));
 
         expect(mockClearExportDownload).toHaveBeenCalledWith(EXPORT_ID, expect.objectContaining({state: 'ready'}));
-        expect(mockMarkExportDownloadSurfaced).not.toHaveBeenCalled();
     });
 });
