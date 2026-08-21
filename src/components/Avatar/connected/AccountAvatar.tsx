@@ -2,6 +2,8 @@ import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 
+import withRenderTiming from '@libs/telemetry/renderTimings';
+
 import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -44,4 +46,4 @@ function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, fallbackDis
     );
 }
 
-export default AccountAvatar;
+export default withRenderTiming('AccountAvatar', AccountAvatar);

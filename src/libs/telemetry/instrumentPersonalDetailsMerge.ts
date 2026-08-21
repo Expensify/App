@@ -1,12 +1,15 @@
-/* eslint-disable no-console */
 // The Onyx write methods are wrapped for timing here, this module never writes data of its own.
 /* eslint-disable rulesdir/prefer-actions-set-data */
+import Log from '@libs/Log';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxMergeCollectionInput} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+
+import {notePersonalDetailsWrite} from './renderTimings';
 
 /**
  * Times every Onyx write that appends to `personalDetailsList` so we can correlate the merge duration
@@ -17,13 +20,19 @@ import Onyx from 'react-native-onyx';
  * the single-key and collection shapes can be compared on identical data. Nothing in the app reads the
  * mirror, so it cannot affect app behaviour.
  *
- * REQUIRES A COLD START: clear site data (or at least every `personalDetailsShadow_` key) before each
- * run. The mirror is deliberately *not* pre-seeded from the existing list — it accumulates only from the
- * writes it observes, so both shapes see the identical write sequence starting from empty. If stale
- * mirror data survives from a previous run, every mirror write finds the member already byte-identical,
- * `hasValueChanged` short-circuits it, and the collection posts near-zero durations against real
- * single-key writes. That is a silent failure, so every collection sample logs `changedMembers`: pair a
- * single-key line with a collection line only when their changed counts match.
+ * REQUIRES A COLD START when measuring writes: clear site data (or at least every `personalDetailsShadow_`
+ * key) before each run. For the write experiment the mirror must *not* be pre-seeded from the existing
+ * list — it accumulates only from the writes it observes, so both shapes see the identical write sequence
+ * starting from empty. If stale mirror data survives from a previous run, every mirror write finds the
+ * member already byte-identical, `hasValueChanged` short-circuits it, and the collection posts near-zero
+ * durations against real single-key writes. That is a silent failure, so every collection sample logs
+ * `changedMembers`: pair a single-key line with a collection line only when their changed counts match.
+ *
+ * The READ experiment needs the opposite: components reading `personalDetailsShadow_` need real data, and
+ * an unseeded mirror would hand them `undefined` forever — which reads as a huge render-count win purely
+ * because nothing ever changes. `SHOULD_SEED_MIRROR_FOR_READS` seeds it once from the live list for that
+ * case. A seeded run's write samples are meaningless, so every line carries `wasSeeded`: only trust a
+ * write duration when it is `false`.
  *
  * A synthetic subscriber fleet is attached to the mirror because the comparison is otherwise rigged:
  * the single key broadcasts every write to its ~300 real subscribers, and a mirror with none would
@@ -33,6 +42,9 @@ import Onyx from 'react-native-onyx';
  */
 
 const SHADOW_KEY = ONYXKEYS.COLLECTION.PERSONAL_DETAILS_SHADOW;
+
+/** Set to `false` to go back to measuring write cost, which requires an unseeded mirror. See the note above. */
+const SHOULD_SEED_MIRROR_FOR_READS = true;
 
 /**
  * Kept in the same order of magnitude as the real `personalDetailsList` subscriber count. Grep
@@ -69,16 +81,26 @@ function isPersonalDetailsChanges(value: unknown): value is PersonalDetailsList 
  */
 let inFlightWrites = 0;
 
-// console.log instead of Log.info: Log's client callback uses console.debug, which is hidden
-// behind the Verbose level in Chrome DevTools.
+/** True once the mirror was bulk-copied from the live list, which voids write durations for the rest of the run. */
+let hasSeededMirror = false;
+
+// Flushed immediately (`sendNow`) so samples are greppable in VictoriaLogs mid-run instead of waiting for
+// the 10-minute flush. The flush costs a serialise + request per sample, which lands after the write it
+// times but before later ones — read `comparable`/`concurrentWrites` before trusting a duration.
 function measure<T>(source: string, existingKeys: number, incomingKeys: number, extraParams: Record<string, unknown>, promise: Promise<T>): Promise<T> {
     const startTime = performance.now();
     const concurrentWrites = inFlightWrites;
     inFlightWrites++;
 
+    // Only the single-key write can re-render a component reading `personalDetailsList`. Counting the mirror
+    // write too would double the denominator and halve every `updatesPerWrite`.
+    if (source === 'single-key') {
+        notePersonalDetailsWrite();
+    }
+
     return promise.finally(() => {
         inFlightWrites--;
-        console.log('[PersonalDetailsListPerf] write', {
+        Log.info('[PersonalDetailsListPerf] write', true, {
             source,
             existingKeys,
             incomingKeys,
@@ -89,6 +111,8 @@ function measure<T>(source: string, existingKeys: number, incomingKeys: number, 
             // between the two sources for that.
             comparable: concurrentWrites === 0,
             concurrentWrites,
+            // A seeded mirror short-circuits unchanged members, so a `true` here voids this sample's duration.
+            wasSeeded: hasSeededMirror,
             ...extraParams,
         });
     });
@@ -183,12 +207,35 @@ function mirrorAfter<T>(promise: Promise<T>, changes: PersonalDetailsList, extra
     });
 }
 
+/**
+ * Copies the live list into the mirror once, so components reading the collection get real data instead of
+ * `undefined`. Untimed on purpose: it is setup for the read experiment, not a sample of it.
+ */
+function seedMirror(value: PersonalDetailsList | undefined) {
+    if (!SHOULD_SEED_MIRROR_FOR_READS || hasSeededMirror || !value || Object.keys(value).length === 0) {
+        return;
+    }
+    hasSeededMirror = true;
+
+    const collection: OnyxMergeCollectionInput<typeof SHADOW_KEY> = {};
+    for (const [accountID, member] of Object.entries(value)) {
+        if (!member) {
+            continue;
+        }
+        mirroredMembers.set(accountID, JSON.stringify(member));
+        collection[`${SHADOW_KEY}${accountID}`] = member;
+    }
+
+    Log.info('[PersonalDetailsListPerf] mirror seeded for read comparison', true, {members: mirroredMembers.size});
+    Onyx.mergeCollection(SHADOW_KEY, collection).then(attachShadowSubscribers);
+}
+
 // Tracks how many members the single key already holds, so each sample can be correlated with N.
-// The mirror is intentionally not seeded from this value — see the cold-start note at the top.
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         existingKeyCount = value ? Object.keys(value).length : 0;
+        seedMirror(value);
     },
 });
 
@@ -200,7 +247,7 @@ export default function instrumentPersonalDetailsMerge() {
         return;
     }
     isInstrumented = true;
-    console.log('[PersonalDetailsListPerf] instrumentation installed');
+    Log.info('[PersonalDetailsListPerf] instrumentation installed', true);
 
     const originalMerge = Onyx.merge;
     const originalUpdate = Onyx.update;

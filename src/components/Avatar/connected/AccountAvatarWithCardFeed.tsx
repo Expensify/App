@@ -1,5 +1,7 @@
 import SubscriptCardFeedAvatar from '@components/Avatar/layouts/SubscriptCardFeedAvatar';
 
+import withRenderTiming from '@libs/telemetry/renderTimings';
+
 import CONST from '@src/CONST';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 
@@ -61,4 +63,4 @@ function AccountAvatarWithCardFeed({
     );
 }
 
-export default AccountAvatarWithCardFeed;
+export default withRenderTiming('AccountAvatarWithCardFeed', AccountAvatarWithCardFeed);
