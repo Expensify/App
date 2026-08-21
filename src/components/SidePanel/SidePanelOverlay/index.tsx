@@ -35,6 +35,7 @@ function SidePanelOverlay({shouldBeVisible, onBackdropPress}: SidePanelOverlayPr
                 accessibilityLabel={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}
                 style={styles.flex1}
+                sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.BACKDROP}
             />
         </Animated.View>
     );
