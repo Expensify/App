@@ -130,7 +130,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [onboardingFeaturesMap] = useOnyx(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP);
-    const {keyboardActiveHeight} = useKeyboardState();
+    const {isKeyboardActive} = useKeyboardState();
 
     const isKnownIntegration = isIntegrationKey(onboardingUserReportedIntegration);
     let initialSelectedIntegration: AccountingOptionKey | undefined;
@@ -265,7 +265,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         );
     }
 
-    const shouldContinueButtonBeFixed = keyboardActiveHeight === 0 || !isInLandscapeMode;
+    const shouldContinueButtonBeFixed = !isKeyboardActive || !isInLandscapeMode;
     const continueButton = (
         <>
             {!!error && (
