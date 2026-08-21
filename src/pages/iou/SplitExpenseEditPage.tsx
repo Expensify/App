@@ -52,7 +52,7 @@ import {
     getRateID,
     getTag,
     getTagForDisplay,
-    getTaxName,
+    getTaxRateTitle,
     isDistanceRequest,
     isManagedCardTransaction,
     isManualDistanceRequest,
@@ -207,7 +207,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const shouldShowTaxDisabledAlert = !isTaxEnabled && !!splitExpenseDraftTransaction?.taxCode;
     const shouldShowTax = isTaxEnabled || shouldShowTaxDisabledAlert;
     const taxRatesDescription = effectivePolicy?.taxRates?.name;
-    const taxRateTitle = getTaxName(effectivePolicy, splitExpenseDraftTransaction);
+    // Use getTaxRateTitle (not getTaxName) so the field falls back to the transaction's stored taxValue when it
+    // differs from the policy's current rate, matching how the tax rate picker resolves the selected rate. Otherwise
+    // the field would show the live policy rate while the picker highlights the stored one after a rate edit.
+    const taxRateTitle = getTaxRateTitle(effectivePolicy, splitExpenseDraftTransaction, false);
 
     const showTaxDisabledAlert = () => {
         showConfirmModal({
