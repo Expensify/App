@@ -1821,9 +1821,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT]: ROUTES.MONEY_REQUEST_STEP_HOURS_EDIT.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
-                            path: ROUTES.SPLIT_EXPENSE.route,
-                            exact: true,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE]: {
+                            path: DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.path,
                             screens: {
                                 [CONST.TAB.SPLIT.AMOUNT]: {
                                     path: CONST.TAB.SPLIT.AMOUNT,
@@ -1836,9 +1835,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH]: {
-                            path: ROUTES.SPLIT_EXPENSE_SEARCH.route,
-                            exact: true,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH]: {
+                            path: DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.path,
                             screens: {
                                 [CONST.TAB.SPLIT.AMOUNT]: {
                                     path: CONST.TAB.SPLIT.AMOUNT,
@@ -1851,10 +1849,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
-                            path: ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE]: DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path,
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
                             path: ROUTES.SPLIT_EXPENSE_EDIT.route,
                             exact: true,
