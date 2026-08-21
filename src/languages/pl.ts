@@ -7633,7 +7633,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 alwaysReimbursableDescription: 'Wydatki są zawsze zwracane pracownikom',
                 alwaysNonReimbursable: 'Zawsze niepodlegające zwrotowi',
                 alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
-                billableDefault: 'Domyślne obciążenie klienta',
                 billableDefaultDescription: 'Wybierz, czy wydatki gotówkowe i kartą kredytową mają być domyślnie fakturowalne.',
                 billable: 'Fakturowalne',
                 billableDescription: 'Wydatki są najczęściej refakturowane klientom',

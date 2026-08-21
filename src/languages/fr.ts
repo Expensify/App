@@ -7724,7 +7724,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 alwaysReimbursableDescription: 'Les dépenses sont toujours remboursées aux employés',
                 alwaysNonReimbursable: 'Toujours non remboursable',
                 alwaysNonReimbursableDescription: 'Les dépenses ne sont jamais remboursées aux employés',
-                billableDefault: 'Facturable par défaut',
                 billableDefaultDescription: 'Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut.',
                 billable: 'Facturable',
                 billableDescription: 'Les dépenses sont le plus souvent refacturées aux clients',

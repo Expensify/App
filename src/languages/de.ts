@@ -7701,7 +7701,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 alwaysReimbursableDescription: 'Spesen werden immer an Mitarbeitende zurückgezahlt',
                 alwaysNonReimbursable: 'Immer nicht erstattungsfähig',
                 alwaysNonReimbursableDescription: 'Auslagen werden Mitarbeitenden nie erstattet',
-                billableDefault: 'Standardmäßig verrechenbar',
                 billableDefaultDescription: 'Wähle, ob Bar- und Kreditkartenausgaben standardmäßig verrechenbar sein sollen.',
                 billable: 'Abrechenbar',
                 billableDescription: 'Spesen werden meist an Kund:innen weiterberechnet',

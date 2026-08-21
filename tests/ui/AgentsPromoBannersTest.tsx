@@ -4,7 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import PolicyRulesPage from '@pages/workspace/rules/PolicyRulesPage';
+import PolicyRulesPageRevamp from '@pages/workspace/rules/PolicyRulesPageRevamp';
 
 import CONST from '@src/CONST';
 import en from '@src/languages/en';
@@ -96,7 +96,7 @@ function buildPolicy(): Policy {
     } as Policy;
 }
 
-const rulesRoute: React.ComponentProps<typeof PolicyRulesPage>['route'] = {
+const rulesRoute: React.ComponentProps<typeof PolicyRulesPageRevamp>['route'] = {
     key: 'rules-route',
     name: SCREENS.WORKSPACE.RULES,
     params: {policyID: POLICY_ID},
@@ -106,7 +106,7 @@ const renderRulesPage = () =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             {/* @ts-expect-error - navigation prop is not used by the page in tests */}
-            <PolicyRulesPage route={rulesRoute} />
+            <PolicyRulesPageRevamp route={rulesRoute} />
         </ComposeProviders>,
     );
 
@@ -137,7 +137,7 @@ describe('Agents promo banners', () => {
         });
     });
 
-    it('renders agentsRulesBanner above IndividualExpenseRulesSection when customAgent beta is active, and hides it after dismissal', async () => {
+    it('renders agentsRulesBanner on the General tab when customAgent beta is active, and hides it after dismissal', async () => {
         await act(async () => {
             await setupOnyxBaseline({withCustomAgentBeta: true});
             await waitForBatchedUpdatesWithAct();
@@ -148,8 +148,6 @@ describe('Agents promo banners', () => {
 
         // Title includes a nested "New" badge, so match on subtitle instead of the full title string.
         expect(screen.getByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeTruthy();
-        // Section title for IndividualExpenseRulesSection sits below the banner.
-        expect(screen.getByText(en.workspace.rules.individualExpenseRules.title)).toBeTruthy();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {

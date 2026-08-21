@@ -7938,7 +7938,6 @@ const translations = {
                 alwaysReimbursableDescription: 'Expenses are always paid back to employees',
                 alwaysNonReimbursable: 'Always non-reimbursable',
                 alwaysNonReimbursableDescription: 'Expenses are never paid back to employees',
-                billableDefault: 'Billable default',
                 billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default.',
                 billable: 'Billable',
                 billableDescription: 'Expenses are most often re-billed to clients',

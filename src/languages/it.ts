@@ -7668,7 +7668,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 alwaysReimbursableDescription: 'Le spese sono sempre rimborsate ai dipendenti',
                 alwaysNonReimbursable: 'Sempre non rimborsabile',
                 alwaysNonReimbursableDescription: 'Le spese non vengono mai rimborsate ai dipendenti',
-                billableDefault: 'Fatturabile predefinito',
                 billableDefaultDescription: 'Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita.',
                 billable: 'Fatturabile',
                 billableDescription: 'Le spese sono più spesso rifatturate ai clienti',

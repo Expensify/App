@@ -7651,7 +7651,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 alwaysReimbursableDescription: 'As despesas são sempre reembolsadas aos funcionários',
                 alwaysNonReimbursable: 'Sempre não reembolsável',
                 alwaysNonReimbursableDescription: 'Despesas nunca são reembolsadas aos funcionários',
-                billableDefault: 'Cobrável por padrão',
                 billableDefaultDescription: 'Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão.',
                 billable: 'Faturável',
                 billableDescription: 'As despesas são mais frequentemente refaturadas aos clientes',

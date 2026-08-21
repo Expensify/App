@@ -7649,7 +7649,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 alwaysReimbursableDescription: 'Onkosten worden altijd terugbetaald aan medewerkers',
                 alwaysNonReimbursable: 'Altijd niet-declarabel',
                 alwaysNonReimbursableDescription: 'Onkosten worden nooit aan medewerkers terugbetaald',
-                billableDefault: 'Factureerbaar als standaard',
                 billableDefaultDescription: 'Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn.',
                 billable: 'Factureerbaar',
                 billableDescription: 'Uitgaven worden meestal doorbelast aan klanten',
