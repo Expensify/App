@@ -10,7 +10,6 @@ const baseParams = {
     cutoffDate: CUTOFF,
     isOnboardingCompleted: true as boolean | undefined,
     isOnboardingStatusKnown: true,
-    isNewDotOnboardedUser: false,
 };
 
 describe('shouldHideForYouSection', () => {
@@ -27,11 +26,11 @@ describe('shouldHideForYouSection', () => {
     });
 
     it('keeps the section for an old/migrated user when the trial start date is missing', () => {
-        expect(shouldHideForYouSection({...baseParams, firstDayFreeTrial: undefined, isNewDotOnboardedUser: false})).toBe(false);
+        expect(shouldHideForYouSection({...baseParams, firstDayFreeTrial: undefined})).toBe(false);
     });
 
-    it('hides the section for a NewDot-onboarded user with no workspace (no trial start date)', () => {
-        expect(shouldHideForYouSection({...baseParams, firstDayFreeTrial: undefined, isNewDotOnboardedUser: true})).toBe(true);
+    it('keeps the empty section for a NewDot-onboarded user with no workspace (no trial start date)', () => {
+        expect(shouldHideForYouSection({...baseParams, firstDayFreeTrial: undefined})).toBe(false);
     });
 
     it('keeps the section when the trial start date cannot be parsed', () => {

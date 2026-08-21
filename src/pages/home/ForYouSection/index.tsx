@@ -25,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
@@ -58,13 +57,10 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
     // The onboarding NVP defaults to "completed" before it loads, so only trust it once the value is present.
     const isOnboardingStatusKnown = onboarding !== undefined;
-    // Old/migrated accounts have an empty onboarding NVP; a non-empty record marks a NewDot-onboarded (new) user.
-    const isNewDotOnboardedUser = !isEmptyObject(onboarding);
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
     // "Time sensitive" now lives inside this card as a group above the "For you" todos (chat input stays on top).
     const timeSensitiveItems = useTimeSensitiveItems();
-    const hasTimeSensitiveContent = timeSensitiveItems.length > 0;
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
@@ -215,15 +211,10 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
         cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
         isOnboardingCompleted,
         isOnboardingStatusKnown,
-        isNewDotOnboardedUser,
     });
 
-    // Keep the card (and its Concierge input) visible when the "For you" part is hidden but there's time-sensitive
-    // content, so those alerts aren't lost for users who wouldn't otherwise see the "For you" section.
-    if (hideForYou && !hasTimeSensitiveContent) {
-        return null;
-    }
-
+    // The card always renders so the Concierge input stays on the home page. `hideForYou` only gates the "For you"
+    // heading and todos or empty-state below it. When hidden with no time-sensitive content, the card is just the box.
     return (
         <WidgetContainer
             titleContent={
