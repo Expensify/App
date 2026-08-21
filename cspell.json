@@ -1140,6 +1140,7 @@
         "Refetched"
     ],
     "ignorePaths": [
+        ".github/actions/javascript/checkAndroidStatus/index.js",
         ".gitignore",
         "src/languages/de.ts",
         "src/languages/el.ts",
