@@ -139,9 +139,17 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
-    // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain. Only redirect
-    // validated accounts; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale.
-    if (isUserFromPublicDomain && isAccountValidated && initialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
+    // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for an unvalidated user still confirming their
+    // work email; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale. Once the
+    // account is validated, BaseOnboardingPrivateDomain redirects forward off this screen, so the router must agree and also
+    // resolve forward — otherwise it keeps resetting back onto private-domain and the two ping-pong, spamming
+    // history.replaceState until Safari throws a SecurityError (its 100-calls-per-10s rate limit). See Expensify/App#97473.
+    if (isAccountValidated && initialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
+        // A validated private-domain user with accessible policies is sent to the Workspaces ("join a workspace") screen by
+        // the page effect — mirror that so the router doesn't send them back to private-domain.
+        if (!isUserFromPublicDomain && hasAccessiblePolicies) {
+            return `/${ROUTES.ONBOARDING_WORKSPACES.route}`;
+        }
         if (isVsbOrSmb) {
             return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
         }

@@ -173,6 +173,98 @@ describe('OnboardingFlow', () => {
             expect(path).toBe('/onboarding/purpose');
         });
 
+        it('should resolve a validated private-domain user with accessible policies forward to the workspaces step', () => {
+            // Regression test for Expensify/App#97473: the router must not return the stale private-domain path for a
+            // validated private-domain user, otherwise it ping-pongs with the screen's own forward redirect and spams
+            // history.replaceState past Safari's rate limit.
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/private-domain',
+                onboardingValues: undefined,
+                isAccountValidated: true,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/join-workspaces');
+        });
+
+        it('should resolve a validated private-domain user without accessible policies forward to the purpose step', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/private-domain',
+                onboardingValues: undefined,
+                isAccountValidated: true,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/purpose');
+        });
+
+        it('should resolve a validated private-domain SMB user forward to the employees step', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/private-domain',
+                onboardingValues: undefined,
+                isAccountValidated: true,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/employees');
+        });
+
+        it('should not redirect a private-domain unvalidated user with accessible policies away from private-domain', () => {
+            // An unvalidated private-domain user is still confirming their code on the screen; the router must keep them there.
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/private-domain',
+                onboardingValues: undefined,
+                isAccountValidated: false,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/private-domain');
+        });
+
         it('should not redirect away from a private-domain URL for a public-domain unvalidated user', () => {
             // Mirrors the BaseOnboardingPrivateDomain screen-level guard: an unvalidated public-domain user who just
             // submitted a work email may land here while isFromPublicDomain is stale. They must keep the private-domain step.
