@@ -5,7 +5,6 @@ import useNetwork from '@hooks/useNetwork';
 
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
-import {canReauthenticateSilently} from '@libs/Reauthentication';
 
 import CONST from '@src/CONST';
 
@@ -129,7 +128,6 @@ function Image({
             session,
             isAuthTokenRequired,
             isOffline,
-            canReauthenticateSilently: canReauthenticateSilently(),
         });
 
         if (resolvedImageSource.shouldReauthenticate && session) {

@@ -26,7 +26,6 @@ describe('getImageSource', () => {
                 session: undefined,
                 isAuthTokenRequired: false,
                 isOffline: false,
-                canReauthenticateSilently: true,
             }),
         ).toEqual({source, shouldReauthenticate: false});
     });
@@ -44,7 +43,6 @@ describe('getImageSource', () => {
                 session,
                 isAuthTokenRequired: true,
                 isOffline: false,
-                canReauthenticateSilently: true,
             }),
         ).toEqual({
             source: {
@@ -71,7 +69,6 @@ describe('getImageSource', () => {
                 session,
                 isAuthTokenRequired: true,
                 isOffline: true,
-                canReauthenticateSilently: true,
             }),
         ).toEqual({
             source: {
@@ -97,36 +94,8 @@ describe('getImageSource', () => {
                 session,
                 isAuthTokenRequired: true,
                 isOffline: false,
-                canReauthenticateSilently: true,
             }),
         ).toEqual({source: undefined, shouldReauthenticate: true});
-    });
-
-    it('keeps serving the token on an expired-looking session when a background refresh is not possible', () => {
-        const propsSource = {uri: MOCK_URI};
-        const session: Session = {
-            encryptedAuthToken: MOCK_TOKEN,
-            creationDate: NOW.getTime() - CONST.SESSION_EXPIRATION_TIME_MS - 1,
-        };
-
-        expect(
-            getImageSource({
-                propsSource,
-                session,
-                isAuthTokenRequired: true,
-                isOffline: false,
-                canReauthenticateSilently: false,
-            }),
-        ).toEqual({
-            source: {
-                ...propsSource,
-                cacheKey: MOCK_URI,
-                headers: {
-                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: MOCK_TOKEN,
-                },
-            },
-            shouldReauthenticate: false,
-        });
     });
 
     it('preserves numeric image sources', () => {
@@ -139,7 +108,6 @@ describe('getImageSource', () => {
                 session: undefined,
                 isAuthTokenRequired: true,
                 isOffline: false,
-                canReauthenticateSilently: true,
             }),
         ).toEqual({source: 42, shouldReauthenticate: false});
     });

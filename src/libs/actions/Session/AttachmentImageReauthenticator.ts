@@ -1,6 +1,6 @@
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
-import reauthenticate, {canReauthenticateSilently} from '@libs/Reauthentication';
+import reauthenticate from '@libs/Reauthentication';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Session from '@src/types/onyx/Session';
@@ -54,7 +54,7 @@ function activate(session: Session) {
 }
 
 function tryReauthenticate() {
-    if (getIsOffline() || !active || !canReauthenticateSilently()) {
+    if (getIsOffline() || !active) {
         return;
     }
     reauthenticate().catch((error) => {

@@ -10,9 +10,6 @@ type GetImageSourceParams = {
     session: Session | undefined;
     isAuthTokenRequired: boolean;
     isOffline: boolean;
-
-    /** Whether the auth token can still be refreshed in the background */
-    canReauthenticateSilently: boolean;
 };
 
 type GetImageSourceReturn = {
@@ -20,7 +17,7 @@ type GetImageSourceReturn = {
     shouldReauthenticate: boolean;
 };
 
-export default function getImageSource({propsSource, session, isAuthTokenRequired, isOffline, canReauthenticateSilently}: GetImageSourceParams): GetImageSourceReturn {
+export default function getImageSource({propsSource, session, isAuthTokenRequired, isOffline}: GetImageSourceParams): GetImageSourceReturn {
     if (typeof propsSource === 'object' && propsSource !== null && 'uri' in propsSource) {
         if (typeof propsSource.uri === 'number') {
             return {source: propsSource.uri, shouldReauthenticate: false};
@@ -28,9 +25,7 @@ export default function getImageSource({propsSource, session, isAuthTokenRequire
 
         const authToken = session?.encryptedAuthToken ?? null;
         if (isAuthTokenRequired && authToken) {
-            // The age check is a client-side guess, not proof the token is dead. Without a way to refresh it,
-            // blanking the image only loses a working attachment, so keep serving the token we already have.
-            if (isOffline || !canReauthenticateSilently || (!!session?.creationDate && !isExpiredSession(session.creationDate))) {
+            if (isOffline || (!!session?.creationDate && !isExpiredSession(session.creationDate))) {
                 return {
                     source: {
                         ...propsSource,
