@@ -43,6 +43,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Delen stoppen',
         yes: 'Ja',
         no: 'Nee',
+        dontChange: 'Niet wijzigen',
         ok: 'OK',
         notNow: 'Nu niet',
         noThanks: 'Nee, dank je',
@@ -970,7 +971,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             enterSignerInfo: {title: 'Ondertekenaargegevens vereist', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankrekening ${bankAccountLastFour}`},
         },
-        announcements: 'Aankondigingen',
         discoverSection: {
             title: 'Ontdekken',
             menuItemTitleNonAdmin: 'Leer hoe je uitgaven maakt en rapporten indient.',
@@ -1531,8 +1531,12 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Het maximale aantal toegestane splitsingen is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Het datumbereik mag niet meer dan ${CONST.IOU.SPLITS_LIMIT} dagen zijn.`,
             unableToSubmitReport: 'Rapport kan niet worden ingediend',
+            unableToMarkAsDone: 'Kan niet worden gemarkeerd als voltooid',
             allTransactionsPendingDescription: 'Je kunt dit rapport niet indienen omdat alle transacties in behandeling zijn. Het kan een paar dagen duren voordat ze worden verwerkt.',
+            allTransactionsPendingMarkAsDoneDescription:
+                'Je kunt dit rapport niet markeren als voltooid omdat alle transacties in behandeling zijn. Het kan een paar dagen duren voordat ze worden verwerkt.',
             allExpensesOnHoldDescription: 'Je kunt dit rapport niet indienen omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om het in te dienen.',
+            allExpensesOnHoldMarkAsDoneDescription: 'Je kunt dit rapport niet markeren als voltooid omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om door te gaan.',
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
             failedToSaveOdometerDraft: 'De conceptkilometerstand kon niet worden opgeslagen. Probeer het opnieuw.',
         },
@@ -1541,6 +1545,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `is begonnen met afrekenen. Betaling wordt vastgehouden totdat ${submitterDisplayName} hun wallet inschakelt.`,
         enableWallet: 'Portemonnee inschakelen',
         hold: 'Vasthouden',
+        sendToSomeone: 'Naar iemand sturen',
         unhold: 'Blokkering opheffen',
         holdExpense: () => ({
             one: 'Uitgave vasthouden',
@@ -2055,8 +2060,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profielavatar',
         customInstructions: 'Aangepaste instructies',
         copilotIntoAccount: 'Copilot naar account',
-        viewUserHistory: 'Gebruikersgeschiedenis bekijken',
-        viewAgentHistory: 'Agentgeschiedenis bekijken',
         publicSection: {
             title: 'Openbaar',
             subtitle: 'Deze gegevens worden weergegeven op je openbare profiel. Iedereen kan ze zien.',
@@ -4487,6 +4490,10 @@ ${amount} voor ${merchant} - ${date}`,
             railCard:
                 'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Reizen is niet ingeschakeld',
+            message: 'Om te boeken, schakel reizen in op je standaardwerkruimte of stel een standaardwerkruimte in die reizen ondersteunt.',
+        },
     },
     workspace: {
         common: {
@@ -4570,7 +4577,8 @@ ${amount} voor ${merchant} - ${date}`,
             subscription: 'Abonnement',
             markAsEntered: 'Markeren als handmatig ingevoerd',
             markAsExported: 'Markeren als geëxporteerd',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Exporteren naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) =>
+                `Exporteren naar ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Laten we nog even controleren of alles er goed uitziet.',
             lineItemLevel: 'Op regelniveau',
             reportLevel: 'Rapportniveau',
@@ -5732,11 +5740,62 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             subsidiarySelectDescription: 'Kies de dochteronderneming in DualEntry waarvan je gegevens wilt importeren.',
             noCompaniesFound: 'Geen bedrijven gevonden',
             noCompaniesFoundDescription: 'Voeg een bedrijf toe in DualEntry en synchroniseer de verbinding opnieuw',
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in DualEntry en synchroniseer de verbinding opnieuw',
+            noAccountsFound: 'Geen accounts gevonden',
+            noAccountsFoundDescription: 'Voeg accounts toe in DualEntry en synchroniseer de verbinding opnieuw',
             accountTypesDescription: 'Je DualEntry-accounts worden als categorieën geïmporteerd.',
             enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
             enableNewAccountsDescription: 'Nieuwe DualEntry-accounts zullen beschikbaar zijn als categorieën.',
             classificationsImport: 'Alle DualEntry-classificaties worden geïmporteerd als tags',
             importDescription: 'Kies welke coderingsconfiguraties je uit DualEntry wilt importeren.',
+            exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar DualEntry.',
+            exportReimbursable: {
+                label: 'Vergoedbare uitgaven exporteren als',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Leveranciersfacturen',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Factuurdatum leverancier',
+                description: 'Gebruik deze datum bij het exporteren van rapporten naar DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Datum van de laatste uitgave',
+                        description: 'Datum van de meest recente uitgave op het rapport.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Exportdatum',
+                        description: 'Datum waarop het rapport naar DualEntry is geëxporteerd.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Inleverdatum',
+                        description: 'Datum waarop het rapport ter goedkeuring is ingediend.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Bedrijfspaskosten exporteren als',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Directe uitgaven',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Standaard leverancier voor alle bedrijfspassen',
+                description: 'Kies een standaard DualEntry-leverancier voor uitgaven die niet automatisch worden gekoppeld.',
+            },
+            companyCardAccount: {
+                label: 'Bedrijfskaartrekening',
+                description: 'Kies waar je transacties van bedrijfskaarten naartoe wilt exporteren.',
+            },
+            expensifyCardAccount: {
+                label: 'Expensify Card-account',
+                description: 'Kies waar je Expensify Card-transacties naartoe wilt exporteren.',
+            },
         },
         type: {
             free: 'Gratis',
@@ -7228,10 +7287,11 @@ Als je de facturering voor hun volledige abonnement wilt overnemen, laat hen je 
         },
         exportAgainModal: {
             title: 'Voorzichtig!',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `De volgende rapporten zijn al geëxporteerd naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Weet je zeker dat je ze opnieuw wilt exporteren?
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `De volgende rapporten zijn al geëxporteerd naar ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Weet je zeker dat je ze opnieuw wilt exporteren?
 
 ${reportName}`,
             confirmText: 'Ja, opnieuw exporteren',
@@ -7239,20 +7299,20 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: 'Voorzichtig!',
-            description: (connectionName: ConnectionName) =>
-                `De geselecteerde rapporten zijn verbonden met verschillende ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-bedrijven en kunnen daarom niet samen worden geëxporteerd. Selecteer rapporten die met hetzelfde bedrijf zijn verbonden en probeer het opnieuw.`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `De geselecteerde rapporten zijn gekoppeld aan verschillende ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-bedrijven, waardoor ze niet samen kunnen worden geëxporteerd. Selecteer rapporten die aan hetzelfde bedrijf zijn gekoppeld en probeer het opnieuw.`,
             confirmText: 'Begrepen',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `${exportableCount}/${selectedCount} rapporten exporteren naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `Wil je ${exportableCount}/${selectedCount} rapporten exporteren naar ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Alleen rapporten die zijn verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} worden geëxporteerd.`);
+                    reasons.push(`Alleen rapporten die zijn gekoppeld aan ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} worden geëxporteerd.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Alleen rapporten die in aanmerking komen voor export worden geëxporteerd.`);
+                    reasons.push(`Alleen rapporten die in aanmerking komen om te exporteren, worden geëxporteerd.`);
                 }
                 return `${reasons.join('\n\n')}\n\nDe volgende rapporten worden geëxporteerd:`;
             },
@@ -8717,6 +8777,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 title ? `heeft de agentregel ‘${title}’ bijgewerkt naar: ${prompt}` : `heeft een agentregel bijgewerkt naar: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `heeft de agentregel ‘${title}’ verwijderd` : 'heeft een agentregel verwijderd'),
         },
+        addedRule: 'heeft een regel toegevoegd',
+        updatedRule: 'heeft een regel bijgewerkt',
+        removedRule: 'heeft een regel verwijderd',
         expensifyCardRule: {
             actionVerb: {block: 'geblokkeerd', allow: 'toegestaan'},
             amountOperator: {over: 'over', under: 'onder'},
@@ -10340,8 +10403,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nieuwe roltypen voor beheerders',
-                body: 'Geef je team meer gedetailleerde toegangsrechten met nieuwe kaart-, personen- en betalingsbeheerrollen.',
+                heading: 'Verbeterde leverancierskoppeling',
+                body: 'Maak leveranciers en aangepaste regels aan voor eenvoudige koppeling met grote boekhoudpakketten.',
+                cta: 'Probeer het uit',
+            },
+            member: {
+                heading: 'Vooraf gebouwde agents voor jou',
+                body: 'Gebruik vooraf gebouwde of aangepaste agents om automatisch namens jou uitgaven te coderen, te splitsen en in te dienen.',
                 cta: 'Probeer het uit',
             },
         },
