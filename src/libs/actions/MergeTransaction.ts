@@ -663,6 +663,20 @@ function mergeTransactionRequest({
             sourceTransactionOptimisticData.push(...optimisticData);
             sourceTransactionSuccessData.push(...successData);
             sourceTransactionFailureData.push(...failureData);
+
+            // With a Self-DM destination the surviving expense's optimistic action is written to this same report,
+            // so leaving the source's action in a pending-delete state renders two cards side by side while offline.
+            // Remove it outright instead, which is what the server's response does once it lands. The rollback is
+            // already covered by the failureData above, which restores the whole action.
+            if (mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                sourceTransactionOptimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                    value: {
+                        [sourceIouAction.reportActionID]: null,
+                    },
+                });
+            }
         }
     }
     // Optimistic delete the merge transaction
