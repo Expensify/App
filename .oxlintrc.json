@@ -1112,10 +1112,12 @@
                 "typescript/no-redundant-type-constituents": "error",
                 "typescript/no-require-imports": "error",
                 "typescript/no-this-alias": "error",
-                // OFF, coverage gap, not a rejection: tsgolint implements the rule, but tsgo's TS7
-                // inference disagrees with the repo's TS 6.0.2 on which assertions are unnecessary.
-                // Revisit on the TS 7 upgrade; ESLint keeps covering it until then.
-                "typescript/no-unnecessary-type-assertion": "off",
+                // ON although ESLint reports 0: tsgolint's TS7 inference disagrees with the repo's
+                // TS 6.0.2 about which assertions are unnecessary, so this is 685 findings ESLint
+                // does not show. Kept because it costs 3 s of a 78 s run, loses no finding on the
+                // other side, and has nothing to migrate: the seatbelt holds no rows for it and the
+                // repo carries one disable comment, which oxlint honors natively.
+                "typescript/no-unnecessary-type-assertion": "error",
                 "typescript/no-unnecessary-type-constraint": "error",
                 "typescript/no-unsafe-declaration-merging": "error",
                 "typescript/no-unsafe-enum-comparison": "error",
