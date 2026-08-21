@@ -129,27 +129,33 @@ function initSplitExpense(
         Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
         if (navigateToEditSplitExpense) {
             const splitExpenseOverviewRoute = isSearchTopmostFullScreenRoute()
-                ? ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute())
-                : ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute());
+                ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID))
+                : createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(reportID, originalTransactionID));
             initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
             Navigation.navigate(splitExpenseOverviewRoute);
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, transaction.transactionID), splitExpenseOverviewRoute));
             return;
         }
         if (isSearchTopmostFullScreenRoute()) {
-            Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID)));
         } else {
-            Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID)));
         }
         return;
     }
 
     const transactionDetails = getTransactionDetails(transaction);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+    const transactionDetailsCurrency = transactionDetails?.currency ?? '';
+    const transactionTaxAmount = transactionDetails?.taxAmount ?? 0;
 
     const splitAmounts = [
-        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false, false, getCurrencyDecimals),
-        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true, false, getCurrencyDecimals),
+        calculateAmount(1, transactionDetailsAmount, transactionDetailsCurrency, false, false, getCurrencyDecimals),
+        calculateAmount(1, transactionDetailsAmount, transactionDetailsCurrency, true, false, getCurrencyDecimals),
+    ];
+    const splitTaxAmounts = [
+        calculateAmount(1, transactionTaxAmount, transactionDetailsCurrency, false, false, getCurrencyDecimals),
+        calculateAmount(1, transactionTaxAmount, transactionDetailsCurrency, true, false, getCurrencyDecimals),
     ];
     const splitCustomUnits: Array<TransactionCustomUnit | undefined> = [undefined, undefined];
     const splitMerchants: Array<string | undefined> = [undefined, undefined];
@@ -184,6 +190,7 @@ function initSplitExpense(
     const splitExpenses = [
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(0) ?? 0,
+            taxAmount: splitTaxAmounts.at(0) ?? 0,
             transactionID: rand64(),
             reportID,
             customUnit: splitCustomUnits.at(0),
@@ -192,6 +199,7 @@ function initSplitExpense(
         }),
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(1) ?? 0,
+            taxAmount: splitTaxAmounts.at(1) ?? 0,
             transactionID: rand64(),
             reportID,
             customUnit: splitCustomUnits.at(1),
@@ -222,9 +230,9 @@ function initSplitExpense(
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
 
     if (isSearchTopmostFullScreenRoute()) {
-        Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.getRoute(reportID, transaction.transactionID)));
     } else {
-        Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(reportID, transaction.transactionID)));
     }
 }
 
