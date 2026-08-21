@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import React, {useRef, useState} from 'react';
@@ -14,7 +15,7 @@ import {View} from 'react-native';
 import type {SearchCustomColumnIds} from './Search/types';
 import type {ListItem} from './SelectionList/types';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import DraggableList from './DraggableList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -312,12 +313,13 @@ function ColumnsSettingsList({
             </View>
             <View style={[styles.ph5, styles.pb5]}>
                 <Button
-                    large
-                    success
-                    pressOnEnter
-                    text={translate('common.save')}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleSave}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );

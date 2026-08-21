@@ -3,6 +3,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -206,7 +207,7 @@ function IOURequestStepDistanceOdometer({
         initialStartImageRef,
         initialEndImageRef,
         resetOdometerLocalState,
-        hasInitializedRefs,
+        readingsBaseline,
     } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft, userHasUnsavedTypingRef});
 
     useEffect(() => {
@@ -395,11 +396,10 @@ function IOURequestStepDistanceOdometer({
                         odometerStart: start,
                         odometerEnd: end,
                     },
-                    policy,
-                    personalPolicy?.outputCurrency,
-                    undefined,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    policy,
+                    personalPolicy?.outputCurrency,
                 );
                 Navigation.goBack();
                 return;
@@ -526,7 +526,7 @@ function IOURequestStepDistanceOdometer({
     const getHasUnsavedChanges = () =>
         getOdometerHasUnsavedChanges({
             isGuardActive:
-                hasInitializedRefs.current &&
+                readingsBaseline.hasInitialized &&
                 isFocused &&
                 !isEditing &&
                 !shouldBypassDiscardConfirmationRef.current &&
@@ -539,7 +539,7 @@ function IOURequestStepDistanceOdometer({
             transactionEndImageUri: getOdometerImageIdentity(transaction?.comment?.odometerEndImage),
             baselineStartImageUri: getOdometerImageIdentity(initialStartImageRef.current),
             baselineEndImageUri: getOdometerImageIdentity(initialEndImageRef.current),
-            hasReadingChanges: startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current,
+            hasReadingChanges: startReading !== readingsBaseline.start || endReading !== readingsBaseline.end,
         });
 
     const handleTabSwitchDiscard = () => {
@@ -618,7 +618,10 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+            >
                 <View>
                     {/* Start Reading */}
                     <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
@@ -753,7 +756,7 @@ function IOURequestStepDistanceOdometer({
                         <Button.Text>{buttonText}</Button.Text>
                     </Button>
                 </View>
-            </View>
+            </ScrollView>
         </StepScreenWrapper>
     );
 }

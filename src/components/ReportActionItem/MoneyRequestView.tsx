@@ -74,6 +74,7 @@ import {
     isPerDiemEnabled,
     isPolicyAccessible,
     isTaxTrackingEnabled,
+    resolveCurrentTaxCode,
     isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -116,7 +117,6 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDistanceTypeRequest,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
-    isFailedScanAmountPlaceholder,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -331,7 +331,6 @@ function MoneyRequestView({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isMapDistanceRequestTransactionUtils(transaction) || isDistanceTypeRequest(transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
-    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
     const rawActualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
@@ -365,7 +364,8 @@ function MoneyRequestView({
     const {taxCode, taxValue} = baseTransaction ?? {};
 
     const taxRateTitle = getTaxName(policy, baseTransaction, isExpenseUnreported);
-    const selectedPolicyTaxValue = taxCode ? policy?.taxRates?.taxes?.[taxCode]?.value : undefined;
+    const resolvedTaxCode = taxCode ? resolveCurrentTaxCode(policy, taxCode) : undefined;
+    const selectedPolicyTaxValue = resolvedTaxCode ? policy?.taxRates?.taxes?.[resolvedTaxCode]?.value : undefined;
     const hasTaxValueChanged = taxCode && taxValue !== undefined ? selectedPolicyTaxValue !== taxValue : false;
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
@@ -382,7 +382,8 @@ function MoneyRequestView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(transactionThreadReport?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(transactionThreadReport, isReportArchived) && !readonly;
-    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, moneyRequestReport, policy) && isEditable;
+    const canEdit =
+        isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, moneyRequestReport, policy, parentReportActions) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -627,8 +628,6 @@ function MoneyRequestView({
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
-    } else if (hasFailedScanAmountPlaceholder) {
-        amountTitle = '';
     }
 
     const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
@@ -697,6 +696,8 @@ function MoneyRequestView({
             delegateAccountID,
             reportPolicyTags,
             isTrackIntentUser,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
     };
 
@@ -721,6 +722,8 @@ function MoneyRequestView({
             delegateAccountID,
             reportPolicyTags,
             isTrackIntentUser,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
     };
 
@@ -786,10 +789,6 @@ function MoneyRequestView({
             date: {
                 isError: transactionDate === '',
                 translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
-            },
-            amount: {
-                isError: !isSettled && !isCancelled && hasFailedScanAmountPlaceholder,
-                translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
             },
         };
 
@@ -867,6 +866,8 @@ function MoneyRequestView({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
         });
     };
@@ -903,6 +904,7 @@ function MoneyRequestView({
                 reportPolicyTags,
                 isTrackIntentUser,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
         });
     };
@@ -941,6 +943,8 @@ function MoneyRequestView({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
         });
     };
@@ -1021,13 +1025,15 @@ function MoneyRequestView({
                         if (isTrackExpense) {
                             if (shouldNavigateToUpgradePath && transactionThreadReport) {
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                        action: CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transactionID: transaction.transactionID,
-                                        reportID: transactionThreadReport?.reportID,
-                                        upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                    }),
+                                    createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                            action: CONST.IOU.ACTION.EDIT,
+                                            iouType,
+                                            transactionID: transaction.transactionID,
+                                            reportID: transactionThreadReport?.reportID,
+                                            upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                        }),
+                                    ),
                                 );
                                 return;
                             }
@@ -1250,12 +1256,8 @@ function MoneyRequestView({
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction.transactionID,
-                                        transactionThreadReport?.reportID,
-                                        getReportRHPActiveRoute(),
+                                    createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
                                     ),
                                 );
                             }}
@@ -1280,12 +1282,8 @@ function MoneyRequestView({
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction.transactionID,
-                                        transactionThreadReport?.reportID,
-                                        getReportRHPActiveRoute(),
+                                    createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
                                     ),
                                 );
                             }}
@@ -1309,12 +1307,8 @@ function MoneyRequestView({
                         titleStyle={styles.flex1}
                         onPress={() => {
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport?.reportID,
-                                    getReportRHPActiveRoute(),
+                                createDynamicRoute(
+                                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
                                 ),
                             );
                         }}
@@ -1341,21 +1335,23 @@ function MoneyRequestView({
 
                                 if (shouldNavigateToUpgradePath && transactionThreadReport) {
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                            action: CONST.IOU.ACTION.EDIT,
-                                            iouType,
-                                            transactionID: transaction.transactionID,
-                                            reportID: transactionThreadReport?.reportID,
-                                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                            backTo: createDynamicRoute(
-                                                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                                                    action: CONST.IOU.ACTION.EDIT,
-                                                    iouType,
-                                                    transactionID: transaction.transactionID,
-                                                    reportID: transactionThreadReport?.reportID,
-                                                }),
-                                            ),
-                                        }),
+                                        createDynamicRoute(
+                                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                action: CONST.IOU.ACTION.EDIT,
+                                                iouType,
+                                                transactionID: transaction.transactionID,
+                                                reportID: transactionThreadReport?.reportID,
+                                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                                upgradeBackTo: createDynamicRoute(
+                                                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                                        action: CONST.IOU.ACTION.EDIT,
+                                                        iouType,
+                                                        transactionID: transaction.transactionID,
+                                                        reportID: transactionThreadReport?.reportID,
+                                                    }),
+                                                ),
+                                            }),
+                                        ),
                                     );
                                 } else if (!policy && shouldSelectPolicy) {
                                     Navigation.navigate(
@@ -1598,13 +1594,15 @@ function MoneyRequestView({
                                 }
                                 if (shouldNavigateToUpgradePath) {
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                            iouType,
-                                            action: CONST.IOU.ACTION.EDIT,
-                                            transactionID: transaction?.transactionID,
-                                            reportID: transactionThreadReport?.reportID,
-                                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                        }),
+                                        createDynamicRoute(
+                                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                iouType,
+                                                action: CONST.IOU.ACTION.EDIT,
+                                                transactionID: transaction?.transactionID,
+                                                reportID: transactionThreadReport?.reportID,
+                                                upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                            }),
+                                        ),
                                     );
                                     return;
                                 }
