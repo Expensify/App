@@ -6,7 +6,6 @@ import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -45,7 +44,6 @@ type CompanyOwnersListUBOProps = {
 const REQUESTOR_PERSONAL_INFO_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 
 function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmation, beneficialOwnerKeys, handleUBOEdit}: CompanyOwnersListUBOProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -90,10 +88,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                     <MenuItem.Root>
                         <MenuItem.Row>
                             <MenuItem.Leading>
-                                <UserAvatar
-                                    source={icons.FallbackAvatar}
-                                    accountID={CONST.DEFAULT_NUMBER_ID}
-                                />
+                                <UserAvatar accountID={CONST.DEFAULT_NUMBER_ID} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>{`${requestorData.firstName} ${requestorData.lastName}`}</MenuItem.Title>
