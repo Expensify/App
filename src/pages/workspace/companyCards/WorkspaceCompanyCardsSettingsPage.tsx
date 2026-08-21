@@ -180,10 +180,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
                         {isDirectFeedType && (
-                            <MenuItem
-                                icon={icons.Sync}
-                                title={translate('workspace.companyCards.assignNewCards.title')}
-                                description={translate('workspace.companyCards.assignNewCards.description')}
+                            <MenuItem.Root
                                 onPress={() => {
                                     if (!selectedFeed) {
                                         return;
@@ -194,7 +191,17 @@ function WorkspaceCompanyCardsSettingsPage({
                                     }
                                     startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
                                 }}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={icons.Sync} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('workspace.companyCards.assignNewCards.title')}</MenuItem.Title>
+                                        <MenuItem.Description>{translate('workspace.companyCards.assignNewCards.description')}</MenuItem.Description>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         )}
                         {isCsvFeed && (
                             <MenuItemAction

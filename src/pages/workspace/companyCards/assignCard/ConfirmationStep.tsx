@@ -1,6 +1,6 @@
 import Button from '@components/ButtonComposed';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItem from '@components/MenuItem';
+import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -22,7 +22,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -191,13 +190,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                     </View>
-                    <MenuItem
+                    <MenuItemEntity
                         title={cardholderName}
                         description={cardholderEmail}
-                        icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        shouldShowRightIcon
-                        pressableTestID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
+                        avatarSource={cardholder?.avatar}
+                        accountID={cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID}
+                        testID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
                     <MenuItemWithTopDescription

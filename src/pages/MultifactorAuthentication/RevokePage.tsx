@@ -31,6 +31,42 @@ const confirmPromptKeys = {
     all: 'multifactorAuthentication.revoke.confirmationPromptAll',
 } as const;
 
+type RevokeRowProps = {
+    /** Which set of devices this row revokes */
+    title: string;
+
+    /** Whether this row's revoke request is in flight */
+    isLoading: boolean;
+
+    /** Opens the confirmation modal for this row's set of devices */
+    onPress: () => void;
+};
+
+/** A non-interactive row naming a set of registered devices, with a `Revoke` button in the trailing cell */
+function RevokeRow({title, isLoading, onPress}: RevokeRowProps) {
+    const {translate} = useLocalize();
+
+    return (
+        <MenuItem.Root>
+            <MenuItem.Row>
+                <MenuItem.Content>
+                    <MenuItem.Title>{title}</MenuItem.Title>
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.DANGER}
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        isLoading={isLoading}
+                        onPress={onPress}
+                    >
+                        <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
+                    </Button>
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItem.Root>
+    );
+}
+
 /**
  * Revoke page for multifactor authentication (biometric/passkey) credentials.
  *
@@ -188,48 +224,24 @@ function MultifactorAuthenticationRevokePage() {
                             {/* The isCurrentDeviceRegistered guard guarantees localCredentialID is
                                truthy here. Do not remove this guard without updating the non-null assertion on localCredentialID below. */}
                             {isCurrentDeviceRegistered && (
-                                <MenuItem
+                                <RevokeRow
                                     title={translate('multifactorAuthentication.revoke.thisDevice')}
-                                    interactive={false}
-                                    shouldShowRightComponent
-                                    rightComponent={
-                                        <View style={styles.justifyContentCenter}>
-                                            <Button
-                                                variant={CONST.BUTTON_VARIANT.DANGER}
-                                                size={CONST.BUTTON_SIZE.SMALL}
-                                                isLoading={isThisDeviceLoading}
-                                                onPress={() => {
-                                                    if (!localCredentialID) {
-                                                        return;
-                                                    }
-                                                    showConfirmModal('thisDevice');
-                                                }}
-                                            >
-                                                <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
-                                            </Button>
-                                        </View>
-                                    }
+                                    isLoading={isThisDeviceLoading}
+                                    onPress={() => {
+                                        if (!localCredentialID) {
+                                            return;
+                                        }
+                                        showConfirmModal('thisDevice');
+                                    }}
                                 />
                             )}
                             {otherDeviceCount > 0 && (
-                                <MenuItem
+                                <RevokeRow
                                     title={translate('multifactorAuthentication.revoke.otherDevices', otherDeviceCount)}
-                                    interactive={false}
-                                    shouldShowRightComponent
-                                    rightComponent={
-                                        <View style={styles.justifyContentCenter}>
-                                            <Button
-                                                variant={CONST.BUTTON_VARIANT.DANGER}
-                                                size={CONST.BUTTON_SIZE.SMALL}
-                                                isLoading={isOtherDevicesLoading}
-                                                onPress={() => {
-                                                    showConfirmModal(otherDevicesConfirmMode());
-                                                }}
-                                            >
-                                                <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
-                                            </Button>
-                                        </View>
-                                    }
+                                    isLoading={isOtherDevicesLoading}
+                                    onPress={() => {
+                                        showConfirmModal(otherDevicesConfirmMode());
+                                    }}
                                 />
                             )}
                         </View>

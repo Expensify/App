@@ -1,28 +1,79 @@
+/* eslint-disable rulesdir/prefer-actions-set-data -- stories seed Onyx directly so the ID-driven avatar cases render real data */
+import UserAvatar from '@components/Avatar/UserAvatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
+import Button from '@components/ButtonComposed';
 import CompactMenuContext from '@components/CompactMenuContext';
+import DisplayNames from '@components/DisplayNames';
+import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
 import MenuItem from '@components/MenuItem';
+import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/MenuItemDescription';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {Meta} from 'storybook-react-rsbuild';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 /**
  * Grid comparison of the legacy `MenuItem` monolith, the new composable
  * `MenuItem.Root`/`Row`/... API, and the `MenuItemAction`/`MenuItemNavigation` presets.
  * Each card shows the same visual case built with every API that can currently express it.
+ *
+ * The "Phase 2" avatar sections lead, because those rows are what is under review, and they carry no
+ * prose — they are there purely to compare renders. Cards the compound API cannot express yet show
+ * the legacy render only. The Phase 1 icon rows come last as the already-settled baseline.
  */
 const story: Meta<typeof MenuItem> = {
     title: 'Components/MenuItemComparison',
     component: MenuItem,
+    // Storybook awaits loaders before the first render, so the ID-driven avatar cases always see the seeded data,
+    // and the writes only happen while this story is open.
+    loaders: [seedStoryOnyxData],
 };
 
 const CARD_WIDTH = 360;
+
+/** Account and report the ID-driven (`iconAccountID`/`iconReportID`) avatar cases resolve against */
+const STORY_ACCOUNT_ID = 90210;
+const STORY_REPORT_ID = 'menuItemComparisonStoryReport';
+const STORY_POLICY_ID = 'menuItemComparisonStoryPolicy';
+
+/** Seeds the personal details, policy and report the ID-driven avatar cases read from */
+async function seedStoryOnyxData() {
+    await Promise.all([
+        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [STORY_ACCOUNT_ID]: {
+                accountID: STORY_ACCOUNT_ID,
+                displayName: 'Alex Reed',
+                login: 'alex@example.com',
+            },
+        }),
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${STORY_POLICY_ID}`, {
+            id: STORY_POLICY_ID,
+            name: 'Expensify Inc',
+        }),
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${STORY_REPORT_ID}`, {
+            reportID: STORY_REPORT_ID,
+            reportName: '#announce',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: STORY_POLICY_ID,
+        }),
+    ]);
+}
+
+const STORY_TOOLTIP_DETAILS: DisplayNameWithTooltip[] = [{displayName: 'Alex Reed', accountID: STORY_ACCOUNT_ID, login: 'alex@example.com'}];
 
 function noop() {}
 
@@ -31,20 +82,25 @@ function Label({children}: {children: string}) {
     return <Text style={[styles.textMicroBold, styles.textSupporting, styles.mb1]}>{children}</Text>;
 }
 
-function Card({title, legacy, composable, preset}: {title: string; legacy: React.ReactNode; composable: React.ReactNode; preset?: React.ReactNode}) {
+function Card({title, note, legacy, composable, preset}: {title: string; note?: string; legacy: React.ReactNode; composable?: React.ReactNode; preset?: React.ReactNode}) {
     const styles = useThemeStyles();
 
     return (
         <View style={[{width: CARD_WIDTH}, styles.border, styles.br3, styles.p3, styles.gap3]}>
-            <Text style={[styles.textLabelSupportingNormal, styles.textStrong]}>{title}</Text>
+            <View>
+                <Text style={[styles.textLabelSupportingNormal, styles.textStrong]}>{title}</Text>
+                {!!note && <Text style={[styles.textMicroSupporting, styles.mt1]}>{note}</Text>}
+            </View>
             <View>
                 <Label>Legacy</Label>
                 {legacy}
             </View>
-            <View>
-                <Label>Composable</Label>
-                {composable}
-            </View>
+            {!!composable && (
+                <View>
+                    <Label>Composable</Label>
+                    {composable}
+                </View>
+            )}
             {!!preset && (
                 <View>
                     <Label>Preset</Label>
@@ -55,16 +111,518 @@ function Card({title, legacy, composable, preset}: {title: string; legacy: React
     );
 }
 
+/** A labelled row inside a card, for cases that need several variants side by side */
+function Variant({label, children}: {label: string; children: React.ReactNode}) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={styles.mb2}>
+            <Text style={[styles.textMicroSupporting, styles.mb1]}>{label}</Text>
+            {children}
+        </View>
+    );
+}
+
+function SectionHeading({title, children}: {title: string; children?: string}) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.w100, styles.mt4]}>
+            <Text style={styles.textHeadlineH1}>{title}</Text>
+            {!!children && <Text style={[styles.textLabelSupporting, styles.mt1]}>{children}</Text>}
+        </View>
+    );
+}
+
 function Comparison() {
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'FallbackAvatar']);
 
-    if (!icons.Gear) {
+    if (!icons.Gear || !icons.FallbackAvatar) {
         return null;
     }
 
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
+            <SectionHeading title="Phase 2 — avatars" />
+
+            <Card
+                title="Avatar + label + tooltip title + description + chevron"
+                legacy={
+                    <MenuItem
+                        label="Assignee"
+                        avatarID={STORY_ACCOUNT_ID}
+                        iconType={CONST.ICON_TYPE_AVATAR}
+                        icon={icons.FallbackAvatar}
+                        title="Alex Reed"
+                        description="alex@example.com"
+                        titleWithTooltips={STORY_TOOLTIP_DETAILS}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Label>Assignee</MenuItem.Label>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <UserAvatar
+                                    source={icons.FallbackAvatar}
+                                    accountID={STORY_ACCOUNT_ID}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title accessibilityLabel="Alex Reed">
+                                    <DisplayNames
+                                        fullTitle="Alex Reed"
+                                        displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
+                                        tooltipEnabled
+                                        numberOfLines={1}
+                                    />
+                                </MenuItem.Title>
+                                <MenuItem.Description>alex@example.com</MenuItem.Description>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="Avatar + title + 1-line description"
+                legacy={
+                    <MenuItem
+                        title="Alexandra Reed-Fitzgerald"
+                        description="alexandra.reed.fitzgerald.with.a.very.long.address@example.com"
+                        avatarID={STORY_ACCOUNT_ID}
+                        icon={icons.FallbackAvatar}
+                        iconType={CONST.ICON_TYPE_AVATAR}
+                        numberOfLinesDescription={1}
+                        containerStyle={[styles.pr2, styles.mt1]}
+                        interactive={false}
+                    />
+                }
+                composable={
+                    <View style={styles.mt1}>
+                        <MenuItem.Root>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <UserAvatar
+                                        source={icons.FallbackAvatar}
+                                        accountID={STORY_ACCOUNT_ID}
+                                    />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>Alexandra Reed-Fitzgerald</MenuItem.Title>
+                                    <MenuItem.Description numberOfLines={1}>alexandra.reed.fitzgerald.with.a.very.long.address@example.com</MenuItem.Description>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    </View>
+                }
+            />
+
+            <Card
+                title="Avatar + title + description + chevron"
+                legacy={
+                    <MenuItem
+                        title="Alex Reed"
+                        description="alex@example.com"
+                        avatarID={STORY_ACCOUNT_ID}
+                        icon={icons.FallbackAvatar}
+                        iconType={CONST.ICON_TYPE_AVATAR}
+                        numberOfLinesDescription={1}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <UserAvatar
+                                    source={icons.FallbackAvatar}
+                                    accountID={STORY_ACCOUNT_ID}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>Alex Reed</MenuItem.Title>
+                                <MenuItem.Description>alex@example.com</MenuItem.Description>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemEntity
+                        title="Alex Reed"
+                        description="alex@example.com"
+                        avatarSource={icons.FallbackAvatar}
+                        accountID={STORY_ACCOUNT_ID}
+                        onPress={noop}
+                    />
+                }
+            />
+
+            <Card
+                title="MenuItemEntity — avatar source variants and disabled"
+                legacy={
+                    <>
+                        <Variant label="icon={FallbackAvatar} + displayInDefaultIconColor">
+                            <MenuItem
+                                title="Jane Doe"
+                                description="123 Main St, Springfield, IL 62704"
+                                icon={icons.FallbackAvatar}
+                                iconType={CONST.ICON_TYPE_AVATAR}
+                                iconWidth={40}
+                                iconHeight={40}
+                                displayInDefaultIconColor
+                                shouldShowRightIcon
+                                onPress={noop}
+                            />
+                        </Variant>
+                        <Variant label="disabled">
+                            <MenuItem
+                                title="Jane Doe"
+                                description="123 Main St, Springfield, IL 62704"
+                                icon={icons.FallbackAvatar}
+                                iconType={CONST.ICON_TYPE_AVATAR}
+                                shouldShowRightIcon
+                                disabled
+                                onPress={noop}
+                            />
+                        </Variant>
+                    </>
+                }
+                preset={
+                    <>
+                        <Variant label="no avatarSource (default avatar for accountID)">
+                            <MenuItemEntity
+                                title="Jane Doe"
+                                description="123 Main St, Springfield, IL 62704"
+                                accountID={CONST.DEFAULT_NUMBER_ID}
+                                onPress={noop}
+                            />
+                        </Variant>
+                        <Variant label="isDisabled">
+                            <MenuItemEntity
+                                title="Jane Doe"
+                                description="123 Main St, Springfield, IL 62704"
+                                accountID={CONST.DEFAULT_NUMBER_ID}
+                                isDisabled
+                                onPress={noop}
+                            />
+                        </Variant>
+                    </>
+                }
+            />
+
+            <Card
+                title="Description only — no avatar, no title"
+                legacy={
+                    <>
+                        <Variant label="No title (legacy bumps the font size)">
+                            <MenuItem
+                                description="Vacation delegate"
+                                shouldShowRightIcon
+                                onPress={noop}
+                            />
+                        </Variant>
+                        <Variant label="With title (supporting-size description)">
+                            <MenuItem
+                                title="Alex Reed"
+                                description="Vacation delegate"
+                                shouldShowRightIcon
+                                onPress={noop}
+                            />
+                        </Variant>
+                    </>
+                }
+                composable={
+                    <>
+                        <Variant label="variant='placeholder'">
+                            <MenuItem.Root onPress={noop}>
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.Description variant={MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>Vacation delegate</MenuItem.Description>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </Variant>
+                        <Variant label="default variant, with a title">
+                            <MenuItem.Root onPress={noop}>
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>Alex Reed</MenuItem.Title>
+                                        <MenuItem.Description>Vacation delegate</MenuItem.Description>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </Variant>
+                    </>
+                }
+            />
+
+            <Card
+                title="Avatar sizes — leading cell width"
+                legacy={
+                    <>
+                        <Variant label="DEFAULT (40)">
+                            <MenuItem
+                                title="Alex Reed"
+                                description="alex@example.com"
+                                avatarID={STORY_ACCOUNT_ID}
+                                icon={icons.FallbackAvatar}
+                                iconType={CONST.ICON_TYPE_AVATAR}
+                                onPress={noop}
+                            />
+                        </Variant>
+                        <Variant label="SMALL (28)">
+                            <MenuItem
+                                title="Alex Reed"
+                                description="alex@example.com"
+                                avatarID={STORY_ACCOUNT_ID}
+                                icon={icons.FallbackAvatar}
+                                iconType={CONST.ICON_TYPE_AVATAR}
+                                avatarSize={CONST.AVATAR_SIZE.SMALL}
+                                onPress={noop}
+                            />
+                        </Variant>
+                        <Variant label="X_SMALL (24)">
+                            <MenuItem
+                                title="Alex Reed"
+                                description="alex@example.com"
+                                avatarID={STORY_ACCOUNT_ID}
+                                icon={icons.FallbackAvatar}
+                                iconType={CONST.ICON_TYPE_AVATAR}
+                                avatarSize={CONST.AVATAR_SIZE.X_SMALL}
+                                onPress={noop}
+                            />
+                        </Variant>
+                    </>
+                }
+                composable={
+                    <>
+                        <Variant label="DEFAULT (40)">
+                            <MenuItem.Root onPress={noop}>
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <UserAvatar
+                                            source={icons.FallbackAvatar}
+                                            accountID={STORY_ACCOUNT_ID}
+                                        />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>Alex Reed</MenuItem.Title>
+                                        <MenuItem.Description>alex@example.com</MenuItem.Description>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </Variant>
+                        <Variant label="SMALL (28)">
+                            <MenuItem.Root onPress={noop}>
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <UserAvatar
+                                            source={icons.FallbackAvatar}
+                                            accountID={STORY_ACCOUNT_ID}
+                                            size={CONST.AVATAR_SIZE.SMALL}
+                                        />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>Alex Reed</MenuItem.Title>
+                                        <MenuItem.Description>alex@example.com</MenuItem.Description>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </Variant>
+                        <Variant label="X_SMALL (24)">
+                            <MenuItem.Root onPress={noop}>
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <UserAvatar
+                                            source={icons.FallbackAvatar}
+                                            accountID={STORY_ACCOUNT_ID}
+                                            size={CONST.AVATAR_SIZE.X_SMALL}
+                                        />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>Alex Reed</MenuItem.Title>
+                                        <MenuItem.Description>alex@example.com</MenuItem.Description>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </Variant>
+                    </>
+                }
+            />
+
+            <Card
+                title="Workspace avatar + label + title + description"
+                legacy={
+                    <MenuItem
+                        avatarID={STORY_POLICY_ID}
+                        iconType={CONST.ICON_TYPE_WORKSPACE}
+                        title="Expensify Inc"
+                        description="Workspace"
+                        label="Send from"
+                        isLabelHoverable={false}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <>
+                        {/* Outside Root the label loses the row's paddingHorizontal: 20, so the call site restores it */}
+                        <View style={[styles.ph5, styles.mt2]}>
+                            <MenuItem.Label>Send from</MenuItem.Label>
+                        </View>
+                        <MenuItem.Root onPress={noop}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <WorkspaceAvatar
+                                        name="Expensify Inc"
+                                        avatarID={STORY_POLICY_ID}
+                                    />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>Expensify Inc</MenuItem.Title>
+                                    <MenuItem.Description>Workspace</MenuItem.Description>
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    </>
+                }
+            />
+
+            <Card
+                title="accountID avatar + tooltip title + description"
+                legacy={
+                    <MenuItem
+                        label="Assignee"
+                        title="Alex Reed"
+                        description="alex@example.com"
+                        iconAccountID={STORY_ACCOUNT_ID}
+                        titleWithTooltips={STORY_TOOLTIP_DETAILS}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <View style={styles.mb2}>
+                            <MenuItem.Label>Assignee</MenuItem.Label>
+                        </View>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <ReportActionAvatars
+                                    singleAvatarContainerStyle={[styles.actionAvatar]}
+                                    accountIDs={[STORY_ACCOUNT_ID]}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title accessibilityLabel="Alex Reed">
+                                    <DisplayNames
+                                        fullTitle="Alex Reed"
+                                        displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
+                                        tooltipEnabled
+                                        numberOfLines={1}
+                                    />
+                                </MenuItem.Title>
+                                <MenuItem.Description>alex@example.com</MenuItem.Description>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="reportID avatar + right label"
+                legacy={
+                    <MenuItem
+                        label="Share"
+                        description="Expensify Inc"
+                        iconReportID={STORY_REPORT_ID}
+                        rightLabel="Required"
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <View style={styles.mb2}>
+                            <MenuItem.Label>Share</MenuItem.Label>
+                        </View>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <ReportActionAvatars
+                                    singleAvatarContainerStyle={[styles.actionAvatar]}
+                                    reportID={STORY_REPORT_ID}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Description>Expensify Inc</MenuItem.Description>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <Text style={styles.rightLabelMenuItem}>Required</Text>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="Disabled — greyed out"
+                legacy={
+                    <MenuItem
+                        label="Assignee"
+                        title="Alex Reed"
+                        iconAccountID={STORY_ACCOUNT_ID}
+                        avatarSize={CONST.AVATAR_SIZE.X_SMALL}
+                        disabled
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root
+                        isDisabled
+                        onPress={noop}
+                    >
+                        <MenuItem.Label>Assignee</MenuItem.Label>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <UserAvatar
+                                    accountID={STORY_ACCOUNT_ID}
+                                    size={CONST.AVATAR_SIZE.X_SMALL}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>Alex Reed</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <SectionHeading title="Phase 1 — icon rows">Cases the compound API and the Action/Navigation presets already cover.</SectionHeading>
+
             <Card
                 title="Title only"
                 legacy={
@@ -96,7 +654,9 @@ function Comparison() {
                 composable={
                     <MenuItem.Root onPress={noop}>
                         <MenuItem.Row>
-                            <MenuItem.Icon src={icons.Gear} />
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Gear} />
+                            </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
@@ -125,7 +685,9 @@ function Comparison() {
                 composable={
                     <MenuItem.Root onPress={noop}>
                         <MenuItem.Row>
-                            <MenuItem.Icon src={icons.Gear} />
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Gear} />
+                            </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
@@ -158,13 +720,82 @@ function Comparison() {
                 composable={
                     <MenuItem.Root onPress={noop}>
                         <MenuItem.Row>
-                            <MenuItem.Icon src={icons.Gear} />
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Gear} />
+                            </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>Settings</MenuItem.Title>
                                 <MenuItem.Description>Manage your preferences</MenuItem.Description>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="Icon + title + description — no chevron"
+                note="IOURequestEditReportCommon:312 and WorkspaceCompanyCardsSettingsPage:183. Interactive but with no trailing cell — pressing it acts in place, so composition simply omits Trailing."
+                legacy={
+                    <MenuItem
+                        title="Create report"
+                        description="Expensify Inc"
+                        icon={icons.Gear}
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Gear} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>Create report</MenuItem.Title>
+                                <MenuItem.Description>Expensify Inc</MenuItem.Description>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="Trailing — arbitrary right component"
+                note="RevokePage:191. Legacy needs shouldShowRightComponent + rightComponent + a wrapping View; in composition the button is just a child of MenuItem.Trailing, which already centers it."
+                legacy={
+                    <MenuItem
+                        title="This device"
+                        interactive={false}
+                        shouldShowRightComponent
+                        rightComponent={
+                            <View style={styles.justifyContentCenter}>
+                                <Button
+                                    variant={CONST.BUTTON_VARIANT.DANGER}
+                                    size={CONST.BUTTON_SIZE.SMALL}
+                                    onPress={noop}
+                                >
+                                    <Button.Text>Revoke</Button.Text>
+                                </Button>
+                            </View>
+                        }
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Title>This device</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <Button
+                                    variant={CONST.BUTTON_VARIANT.DANGER}
+                                    size={CONST.BUTTON_SIZE.SMALL}
+                                    onPress={noop}
+                                >
+                                    <Button.Text>Revoke</Button.Text>
+                                </Button>
                             </MenuItem.Trailing>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -204,7 +835,9 @@ function Comparison() {
                 composable={
                     <MenuItem.Root>
                         <MenuItem.Row>
-                            <MenuItem.Icon src={icons.Gear} />
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Gear} />
+                            </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
@@ -230,7 +863,9 @@ function Comparison() {
                         isDisabled
                     >
                         <MenuItem.Row>
-                            <MenuItem.Icon src={icons.Gear} />
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Gear} />
+                            </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
@@ -265,7 +900,9 @@ function Comparison() {
                         accessibilityLabel="Settings"
                     >
                         <MenuItem.Row>
-                            <MenuItem.Icon src={icons.Gear} />
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Gear} />
+                            </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
@@ -295,7 +932,9 @@ function Comparison() {
                     composable={
                         <MenuItem.Root onPress={noop}>
                             <MenuItem.Row>
-                                <MenuItem.Icon src={icons.Gear} />
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Gear} />
+                                </MenuItem.Leading>
                                 <MenuItem.Content>
                                     <MenuItem.Title>Edit columns</MenuItem.Title>
                                 </MenuItem.Content>
@@ -330,7 +969,9 @@ function Comparison() {
                     composable={
                         <MenuItem.Root onPress={noop}>
                             <MenuItem.Row>
-                                <MenuItem.Icon src={icons.Gear} />
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Gear} />
+                                </MenuItem.Leading>
                                 <MenuItem.Content>
                                     <MenuItem.Title>Edit columns</MenuItem.Title>
                                     <MenuItem.Description>Choose what to display</MenuItem.Description>
