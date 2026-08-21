@@ -30,6 +30,7 @@ import {
     getCardHintText,
     getCardsByCardholderName,
     getCardSettings,
+    getCommercialFeedCardDescription,
     getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
@@ -3439,6 +3440,49 @@ describe('CardUtils', () => {
         it("should return 'Travel invoicing' for another member's travel card that isn't in the viewer's card list", () => {
             const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, undefined, CONST.TRAVEL.PROGRAM_TRAVEL_US);
             expect(description).toBe('Travel invoicing');
+        });
+    });
+
+    describe('getCommercialFeedCardDescription', () => {
+        beforeAll(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
+        });
+
+        const commercialFeedCard: Card = createMock<Card>({
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            cardID: 21310091,
+            cardName: '480801XXXXXX2554',
+            lastFourPAN: '2554',
+        });
+
+        it('returns the feed name and last four for a commercial feed card instead of the masked PAN', () => {
+            const description = getCommercialFeedCardDescription(translateLocal, commercialFeedCard, undefined);
+            expect(description).toBe('Visa cards - 2554');
+        });
+
+        it('prefers the custom feed nickname when the admin has set one on the feed', () => {
+            const description = getCommercialFeedCardDescription(translateLocal, commercialFeedCard, cardFeedsCollection);
+            expect(description).toBe(`${customFeedName} - 2554`);
+        });
+
+        it('returns undefined for a direct feed card so the caller falls back to the existing description', () => {
+            const directFeedCard: Card = createMock<Card>({
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                cardName: 'CREDIT CARD...5501',
+                lastFourPAN: '5501',
+            });
+            const description = getCommercialFeedCardDescription(translateLocal, directFeedCard, cardFeedsCollection);
+            expect(description).toBe(undefined);
+        });
+
+        it('returns undefined when the card has no lastFourPAN', () => {
+            const cardWithoutLastFour: Card = createMock<Card>({
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardName: '480801XXXXXX2554',
+            });
+            const description = getCommercialFeedCardDescription(translateLocal, cardWithoutLastFour, cardFeedsCollection);
+            expect(description).toBe(undefined);
         });
     });
 

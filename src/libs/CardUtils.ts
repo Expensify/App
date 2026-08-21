@@ -290,6 +290,20 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
     return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
 }
 
+/**
+ * Returns `{feed name} - {last4}` for a card on a commercial feed (VCF/CDF/GL1025), e.g. "Visa cards - 1234".
+ * Direct feeds already carry this format in `card.cardName`, so this only applies to commercial feeds and
+ * returns undefined otherwise, letting the caller fall back to the existing masked-PAN description.
+ */
+function getCommercialFeedCardDescription(translate: LocalizedTranslate, card: Card | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): string | undefined {
+    if (!card?.lastFourPAN || !isCustomFeed(card.bank)) {
+        return undefined;
+    }
+
+    const customFeedName = getCustomFeedNameFromFeeds(cardFeeds, card.bank as CompanyCardFeed);
+    return `${getCustomOrFormattedFeedName(translate, card.bank, customFeedName)} - ${card.lastFourPAN}`;
+}
+
 function isCard(item: Card | Record<string, string>): item is Card {
     return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
@@ -2242,6 +2256,7 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
+    getCommercialFeedCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
