@@ -1808,10 +1808,14 @@ function updateSplitTransactions({
         for (const searchHash of forwardSplitSnapshotHashes) {
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}` as const;
             const previousSnapshotData = allSnapshots?.[snapshotKey]?.data;
-            const isCurrentSearchSnapshot = searchHash === searchContext?.currentSearchHash;
 
-            // Only patch a grouped snapshot that actually contains the original transaction's group.
-            if (!isCurrentSearchSnapshot && (!previousSnapshotData || !Object.hasOwn(previousSnapshotData, originalTransactionSnapshotKey))) {
+            // Only patch a snapshot that actually contains the original transaction (creation) or one of its
+            // splits (editing an existing split), else `currentSearchHash` (which can be stale/unrelated) would
+            // pollute a search the user isn't actually splitting from.
+            const containsRelevantTransaction =
+                !!previousSnapshotData &&
+                (Object.hasOwn(previousSnapshotData, originalTransactionSnapshotKey) || optimisticChildSnapshotKeys.some((childKey) => Object.hasOwn(previousSnapshotData, childKey)));
+            if (!containsRelevantTransaction) {
                 continue;
             }
 

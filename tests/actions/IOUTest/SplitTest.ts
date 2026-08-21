@@ -2043,6 +2043,157 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(searchSnapshot?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]).toBe(undefined);
     });
 
+    it('should not patch a search snapshot that does not contain the split transaction', async () => {
+        // Given a single expense
+        const expenseReport: Report = {
+            ...createRandomReport(501, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const transaction: Transaction = {
+            amount: 100,
+            currency: 'USD',
+            transactionID: '501',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+        };
+        const transactionThread: Report = {
+            ...createRandomReport(502, undefined),
+        };
+        const iouAction: ReportAction = {
+            ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            }),
+            childReportID: transactionThread.reportID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+            [iouAction.reportActionID]: iouAction,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+        const splitTransactionID1 = '503';
+        const splitTransactionID2 = '504';
+        const draftTransaction: OnyxEntry<Transaction> = {
+            ...transaction,
+            comment: {
+                originalTransactionID: transaction.transactionID,
+                splitExpenses: [
+                    {amount: transaction.amount / 2, transactionID: splitTransactionID1, created: ''},
+                    {amount: transaction.amount / 2, transactionID: splitTransactionID2, created: ''},
+                ],
+            },
+        };
+
+        // Given a search snapshot for an unrelated search - it does not contain this transaction at all
+        const unrelatedSearchHash = 999999;
+        const unrelatedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}999888` as const;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unrelatedSearchHash}`, {
+            search: {hash: unrelatedSearchHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hasResults: true, isLoading: false},
+            data: {
+                [unrelatedTransactionKey]: {...createRandomTransaction(999888), transactionID: '999888'},
+            },
+        });
+
+        // When splitting the expense while `currentSearchHash` points at that unrelated snapshot
+        // (this can happen when it's a stale hash left over from a search the user isn't splitting from)
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allSnapshots: OnyxCollection<SearchResults>;
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (value) => {
+                allReports = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            callback: (value) => {
+                allReportNameValuePairs = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.SNAPSHOT,
+            callback: (value) => {
+                allSnapshots = value;
+            },
+        });
+
+        const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const allPolicyTags = await getAllPolicyTags();
+        const reports = getTransactionAndExpenseReports(reportID);
+
+        updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: undefined,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            transactionData: {
+                reportID,
+                originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+            },
+            searchContext: {
+                currentSearchHash: unrelatedSearchHash,
+            },
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then the unrelated search snapshot should be untouched - no split transactions or
+        // null-ed original transaction key leaked into a search the user isn't splitting from
+        const unrelatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${unrelatedSearchHash}`,
+                callback: (val) => {
+                    Onyx.disconnect(connection);
+                    resolve(val);
+                },
+            });
+        });
+        expect(unrelatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}999888`]).toBeDefined();
+        expect(unrelatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]).toBe(undefined);
+        expect(unrelatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`]).toBe(undefined);
+        expect(unrelatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`]).toBe(undefined);
+    });
+
     it('should add split transactions optimistically on search snapshot when current search filter is on unapprovedCash', async () => {
         const chatReport: Report = createRandomReport(7, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         // Given a single expense
