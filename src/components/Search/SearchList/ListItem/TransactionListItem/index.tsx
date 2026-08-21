@@ -24,7 +24,7 @@ import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/acti
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
     isDeletedTransaction as isDeletedTransactionUtil,
     isViolationDismissed,
@@ -176,6 +176,11 @@ function TransactionListItemInner<TItem extends ListItem>({
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
     const reportForViolations = parentReport ?? snapshotReport;
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy: rowPolicy ?? liveTransactionItem.policy,
+        report: liveTransactionItem.report,
+        isTrackIntentUser,
+    });
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
@@ -229,8 +234,8 @@ function TransactionListItemInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
-            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
-            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             introSelected,
