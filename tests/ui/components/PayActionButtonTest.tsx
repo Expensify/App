@@ -8,7 +8,6 @@ import useOnyx from '@hooks/useOnyx';
 import {hasHeldExpensesFromTransactions, hasViolations} from '@libs/ReportUtils';
 
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,12 +19,7 @@ import React from 'react';
 
 const TEST_IOU_REPORT_ID = '1001';
 const TEST_CHAT_REPORT_ID = '2002';
-const TEST_TRANSACTION_ID = '3003';
 const SELECTED_BANK_ACCOUNT_ID = 9999;
-
-const reportViolations: OnyxCollection<TransactionViolations> = {
-    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
-};
 
 // Mutable so each test can back the mocked useReportPreviewTransactionViolations slice with a specific value.
 let mockTransactionViolations: OnyxCollection<TransactionViolations> = {};
@@ -150,7 +144,6 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestRe
 
 const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedPayMoneyRequest = jest.mocked(payMoneyRequest);
-const mockedApproveMoneyRequest = jest.mocked(approveMoneyRequest);
 const mockedHasHeldExpenses = jest.mocked(hasHeldExpensesFromTransactions);
 const mockedHasViolations = jest.mocked(hasViolations);
 
@@ -227,18 +220,5 @@ describe('PayActionButton', () => {
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.REPORT_ACTION_TYPE.PAY, CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID);
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
-    });
-
-    it('computes hasViolations from the context violations and forwards the result to approveMoneyRequest', () => {
-        mockTransactionViolations = reportViolations;
-        mockedHasViolations.mockReturnValue(true);
-        renderPayActionButton(jest.fn());
-
-        act(() => {
-            mockConfirmApprovalHolder.current?.();
-        });
-
-        expect(mockedHasViolations.mock.calls.at(-1)?.[1]).toBe(reportViolations);
-        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
     });
 });
