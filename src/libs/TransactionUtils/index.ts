@@ -302,7 +302,6 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
 }
 
 /**
-/**
  * Returns the corresponding translation key for card type
  */
 function getDetailedExpenseTypeTranslationKey(transaction: OnyxEntry<Transaction>, card?: Card): TranslationPaths {
