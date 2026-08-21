@@ -12515,7 +12515,8 @@ function prepareOnboardingOnyxData({
 
     // Text message
     const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
-    // delegateAccountIDParam: will be threaded in PR 15b; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+    // delegateAccountIDParam: will be threaded in PR 15b
+    // buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
     const textComment = buildOptimisticAddCommentReportAction({text: message, actorAccountID, createdOffset: 1, delegateAccountIDParam: undefined});
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textMessage: AddCommentOrAttachmentParams = {
@@ -12568,7 +12569,8 @@ function prepareOnboardingOnyxData({
             );
             const emailCreatingAction = CONST.EMAIL.CONCIERGE;
             const taskCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
-            // delegateAccountID: will be threaded in PR 15b; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            // delegateAccountID: will be threaded in PR 15b
+            // buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             const taskReportAction = buildOptimisticTaskCommentReportAction(
                 currentTask.reportID,
                 taskTitle,
@@ -12594,7 +12596,8 @@ function prepareOnboardingOnyxData({
             }
 
             const completedTaskReportAction = isTaskAutoCompleted
-                ? // delegateEmailParam: will be threaded in PR 17; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+                ? // delegateEmailParam: will be threaded in PR 17
+                  //  buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
                   buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, undefined, 'marked as complete', actorAccountID, 2)
                 : null;
             if (task.type === CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE) {
@@ -12623,7 +12626,8 @@ function prepareOnboardingOnyxData({
     // Sign-off welcome message
     const welcomeSignOffText =
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
-    // delegateAccountIDParam: will be threaded in PR 15b; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+    // delegateAccountIDParam: will be threaded in PR 15b
+    // buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
     const welcomeSignOffComment = buildOptimisticAddCommentReportAction({text: welcomeSignOffText, actorAccountID, createdOffset: tasksData.length + 3, delegateAccountIDParam: undefined});
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {
