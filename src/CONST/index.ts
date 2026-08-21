@@ -1580,6 +1580,7 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
+            SEND_TO_SOMEONE: 'sendToSomeone',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',

@@ -1628,6 +1628,7 @@ const translations = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
         hold: 'Hold',
+        sendToSomeone: 'Send to someone',
         unhold: 'Remove hold',
         holdExpense: () => ({
             one: 'Hold expense',
@@ -2157,8 +2158,6 @@ const translations = {
         profileAvatar: 'Profile avatar',
         customInstructions: 'Custom instructions',
         copilotIntoAccount: 'Copilot into account',
-        viewUserHistory: 'View user history',
-        viewAgentHistory: 'View agent history',
         publicSection: {
             title: 'Public',
             subtitle: 'These details are displayed on your public profile. Anyone can see them.',

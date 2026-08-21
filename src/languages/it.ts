@@ -1548,6 +1548,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ha iniziato a saldare il conto. Il pagamento è in sospeso finché ${submitterDisplayName} non abilita il proprio portafoglio.`,
         enableWallet: 'Abilita portafoglio',
         hold: 'Metti in attesa',
+        sendToSomeone: 'Invia a qualcuno',
         unhold: 'Rimuovi blocco',
         holdExpense: () => ({
             one: 'Metti in sospeso la spesa',
@@ -2063,8 +2064,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar profilo',
         customInstructions: 'Istruzioni personalizzate',
         copilotIntoAccount: "Copilot nell'account",
-        viewUserHistory: 'Visualizza cronologia utente',
-        viewAgentHistory: 'Visualizza cronologia agente',
         publicSection: {
             title: 'Pubblico',
             subtitle: 'Questi dettagli vengono visualizzati nel tuo profilo pubblico. Chiunque può vederli.',

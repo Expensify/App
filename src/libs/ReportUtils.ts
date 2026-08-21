@@ -12204,7 +12204,18 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
 
         // Multiple accessible workspaces: show the destination picker limited to workspaces only (no individual recipients).
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName, true));
+        Navigation.navigate(
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    isWorkspacesOnly: true,
+                }),
+                ROUTES.REPORT_WITH_ID.getRoute(reportID),
+            ),
+        );
         return;
     }
 
@@ -12223,7 +12234,12 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             }
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
+        Navigation.navigate(
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID}),
+                ROUTES.REPORT_WITH_ID.getRoute(reportID),
+            ),
+        );
         return;
     }
 

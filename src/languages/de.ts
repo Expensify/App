@@ -1549,6 +1549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `hat mit dem Ausgleich begonnen. Die Zahlung ist ausgesetzt, bis ${submitterDisplayName} das Wallet aktiviert.`,
         enableWallet: 'Wallet aktivieren',
         hold: 'Warteschleife',
+        sendToSomeone: 'An jemanden senden',
         unhold: 'Zurückhalten aufheben',
         holdExpense: () => ({
             one: 'Ausgabe zurückhalten',
@@ -2066,8 +2067,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profil-Avatar',
         customInstructions: 'Benutzerdefinierte Anweisungen',
         copilotIntoAccount: 'Copilot in Konto',
-        viewUserHistory: 'Nutzerverlauf anzeigen',
-        viewAgentHistory: 'Agentenverlauf anzeigen',
         publicSection: {
             title: 'Öffentlich',
             subtitle: 'Diese Angaben werden in deinem öffentlichen Profil angezeigt. Jede:r kann sie sehen.',

@@ -19343,7 +19343,15 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the participant selector step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                            action: CONST.IOU.ACTION.SUBMIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
+                    ),
                 );
             });
 
@@ -19375,7 +19383,15 @@ describe('ReportUtils', () => {
 
                 // Then it should still navigate to participant selector since action is SUBMIT (SUBMIT always goes to participants)
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                            action: CONST.IOU.ACTION.SUBMIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
+                    ),
                 );
             });
         });

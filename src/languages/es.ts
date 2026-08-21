@@ -1601,6 +1601,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Retener',
+        sendToSomeone: 'Enviar a alguien',
         unhold: 'Desbloquear',
         holdEducationalTitle: '¿Deberías retener este gasto?',
         whatIsHoldExplain: 'Retener es como presionar "pausa" en un gasto hasta que estés listo para enviarlo.',
@@ -1986,8 +1987,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Perfil avatar',
         customInstructions: 'Instrucciones personalizadas',
         copilotIntoAccount: 'Copilot a la cuenta',
-        viewUserHistory: 'Ver historial del usuario',
-        viewAgentHistory: 'Ver historial del agente',
         publicSection: {
             title: 'Público',
             subtitle: 'Estos detalles se muestran en tu perfil público, a disposición de los demás.',

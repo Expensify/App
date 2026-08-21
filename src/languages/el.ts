@@ -1609,6 +1609,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ξεκίνησε τη διαδικασία τακτοποίησης. Η πληρωμή έχει τεθεί σε αναμονή μέχρι ο/η ${submitterDisplayName} να ενεργοποιήσει το πορτοφόλι του/της.`,
         enableWallet: 'Ενεργοποίηση πορτοφολιού',
         hold: 'Σε αναμονή',
+        sendToSomeone: 'Αποστολή σε κάποιον',
         unhold: 'Αφαίρεση κράτησης',
         holdExpense: () => ({
             one: 'Αναστολή δαπάνης',
@@ -2118,8 +2119,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Εικόνα προφίλ',
         customInstructions: 'Προσαρμοσμένες οδηγίες',
         copilotIntoAccount: 'Οδηγός εντός λογαριασμού',
-        viewUserHistory: 'Προβολή ιστορικού χρήστη',
-        viewAgentHistory: 'Προβολή ιστορικού αντιπροσώπου',
         publicSection: {
             title: 'Δημόσιο',
             subtitle: 'Αυτές οι πληροφορίες εμφανίζονται στο δημόσιο προφίλ σας. Μπορεί να τις δει οποιοσδήποτε.',

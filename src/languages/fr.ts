@@ -1555,6 +1555,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `a commencé à régler. Le paiement est en attente jusqu’à ce que ${submitterDisplayName} active son portefeuille.`,
         enableWallet: 'Activer le portefeuille',
         hold: 'En attente',
+        sendToSomeone: 'Envoyer à quelqu’un',
         unhold: 'Supprimer la mise en attente',
         holdExpense: () => ({
             one: 'Mettre la dépense en attente',
@@ -2072,8 +2073,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
-        viewUserHistory: 'Voir l’historique de l’utilisateur',
-        viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
             subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
