@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
@@ -19,7 +19,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import {merchantStateSelector} from './selectors';
@@ -62,8 +62,28 @@ function MerchantField({
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
 
     const merchantValue = merchantState?.merchant ?? '';
-    const displayMerchantValue = !merchantState?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
+    const displayMerchantValue = isUntypedPlaceholderMerchant(merchantState?.isMerchantSet, merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
+
+    // Mirror the persisted merchant in local state so the controlled input updates synchronously as the user types;
+    // feeding the async Onyx value straight to `value` snaps the caret to the end on every keystroke (see #98647).
+    const [isMerchantInputFocused, setIsMerchantInputFocused] = useState(false);
+    const [merchantInput, setMerchantInput] = useState(displayMerchantValue);
+    const [prevDisplayValue, setPrevDisplayValue] = useState(displayMerchantValue);
+    const [prevTransactionID, setPrevTransactionID] = useState(transactionID);
+
+    // Sync the mirror during render (not in an effect) to avoid an extra render pass. Reset on transaction change
+    // even while focused; otherwise sync external updates (SmartScan, drafts) only when the field isn't being edited.
+    if (transactionID !== prevTransactionID) {
+        setPrevTransactionID(transactionID);
+        setPrevDisplayValue(displayMerchantValue);
+        setMerchantInput(displayMerchantValue);
+    } else if (displayMerchantValue !== prevDisplayValue) {
+        setPrevDisplayValue(displayMerchantValue);
+        if (!isMerchantInputFocused) {
+            setMerchantInput(displayMerchantValue);
+        }
+    }
 
     // Determine if the merchant error should be displayed
     const merchantErrorText = (() => {
@@ -87,6 +107,8 @@ function MerchantField({
     const shouldDisplayMerchantError = !!merchantErrorText;
 
     const handleMerchantInputChange = (newMerchant: string) => {
+        setMerchantInput(newMerchant);
+
         if (!transactionID) {
             return;
         }
@@ -114,9 +136,15 @@ function MerchantField({
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput
-                    value={displayMerchantValue}
+                    value={merchantInput}
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
+                    onFocus={() => {
+                        setIsMerchantInputFocused(true);
+                    }}
+                    onBlur={() => {
+                        setIsMerchantInputFocused(false);
+                    }}
                     label={translate('common.merchant')}
                     accessibilityLabel={translate('common.merchant')}
                     errorText={merchantErrorText}
