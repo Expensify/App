@@ -30,14 +30,25 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
+// Controls the simulated focus state of the guarded screen for both useFocusEffect (which only runs
+// while focused) and useIsFocused. Defaults to focused; set to false to simulate a mounted-but-unfocused
+// central pane (e.g. a guarded pane sitting behind an unguarded RHP).
+let mockIsScreenFocused = true;
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     const react = jest.requireActual<typeof React>('react');
     return {
         ...actualNav,
         useFocusEffect: (effect: React.EffectCallback) => {
-            react.useEffect(effect, [effect]);
+            react.useEffect(() => {
+                if (!mockIsScreenFocused) {
+                    return;
+                }
+                return effect();
+            }, [effect]);
         },
+        useIsFocused: () => mockIsScreenFocused,
     };
 });
 
@@ -86,6 +97,7 @@ describe('withAgentAccessDenied', () => {
     });
 
     beforeEach(() => {
+        mockIsScreenFocused = true;
         jest.mocked(Navigation.navigate).mockClear();
         jest.mocked(Navigation.dismissModal).mockClear();
         jest.mocked(Navigation.isActiveRoute).mockReturnValue(false);
@@ -128,6 +140,30 @@ describe('withAgentAccessDenied', () => {
 
         // Invoking the afterTransition callback (fired once the modal closes) performs the Profile redirect,
         // guaranteeing the agent lands on Profile even when the revealed pane is not itself guarded.
+        const afterTransition = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition;
+        act(() => afterTransition?.());
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.getRoute(), {forceReplace: true});
+    });
+
+    it('redirects a mounted-but-unfocused guarded pane when the session flips to an agent (copilot from an unguarded RHP)', async () => {
+        // Reproduces the deploy blocker: the owner taps "Copilot into account" from the agent DM, which lives in
+        // an unguarded RHP sitting over the guarded Agents central pane. That pane is mounted but NOT focused, so
+        // useFocusEffect never fires and it would render null (blank background). The focus-independent effect must
+        // still redirect. The agent DM RHP is the topmost modal, so it is dismissed first and the redirect deferred.
+        mockIsScreenFocused = false;
+        jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(true);
+        await signInAsAgent();
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('protected-content')).toBeNull();
+            expect(Navigation.dismissModal).toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
         const afterTransition = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition;
         act(() => afterTransition?.());
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.getRoute(), {forceReplace: true});
@@ -180,5 +216,30 @@ describe('withAgentAccessDenied', () => {
         await waitFor(() => {
             expect(screen.getByTestId('protected-content')).toBeDefined();
         });
+    });
+
+    it('keeps rendering the wrapped component when a mid-session OpenApp sets isLoadingApp back to true', async () => {
+        // enabling 2FA runs OpenApp again while
+        // the user is already deep in the app. Agent identity is known by then, so the guarded screen must stay
+        // mounted instead of blanking out for the length of that request.
+        await TestHelper.signInWithTestUser(1, 'user@expensify.com');
+        await Onyx.multiSet({
+            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.HAS_LOADED_APP]: true,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('protected-content')).toBeDefined();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('protected-content')).toBeDefined();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });
