@@ -40,8 +40,7 @@ function GPSTripStateChecker() {
     useUpdateGpsTripOnReconnect({gpsPoints: getGpsPoints(gpsDraftDetails)});
     useUpdateGpsNotification();
 
-    // A trip kept across a forced re-auth belongs to whoever started it. Wait for the session to load before
-    // judging that, otherwise a trip would be discarded just because the accountID had not arrived yet.
+    // Wait for the session to load, otherwise the trip is dropped before the current accountID arrives.
     const isTripFromDifferentUser = isSessionLoaded && !!gpsDraftDetails && gpsDraftDetails.accountID !== currentAccountID;
 
     useEffect(() => {
