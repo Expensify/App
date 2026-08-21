@@ -72,7 +72,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             testID={EditPromptPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={shouldUseScrollableLayout}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('editAgentPromptPage.title')}
