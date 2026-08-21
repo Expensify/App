@@ -1,13 +1,14 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 
 import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
+import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
@@ -26,6 +27,7 @@ import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receip
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useIsFocused} from '@react-navigation/core';
@@ -38,15 +40,15 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
+type DynamicIOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS>;
 
-function IOURequestStepParticipants({
+function DynamicIOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo, isWorkspacesOnly: isWorkspacesOnlyParam},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, isWorkspacesOnly: isWorkspacesOnlyParam},
     },
     transaction: initialTransaction,
-}: IOURequestStepParticipantsProps) {
+}: DynamicIOURequestStepParticipantsProps) {
     // "Submit to my employer" with multiple submit-enabled workspaces passes isWorkspacesOnly=true to limit the picker to workspaces.
     const isWorkspacesOnlyFromRoute = isWorkspacesOnlyParam === 'true';
     const participants = initialTransaction?.participants;
@@ -54,6 +56,7 @@ function IOURequestStepParticipants({
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.path);
 
     const iouRequestType = getRequestType(initialTransaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -84,7 +87,6 @@ function IOURequestStepParticipants({
         participants,
         iouType,
         action,
-        backTo,
         isSplitRequest,
         isMovingTransactionFromTrackExpense,
         isFocused,
@@ -126,17 +128,9 @@ function IOURequestStepParticipants({
         isMovingTransactionFromTrackExpense,
     ]);
 
+    // Params are not compared because the picker may have changed the transaction's report and participants.
     const navigateBack = () => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-
-        const shouldForceIOUType =
-            action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.SUBMIT && (iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN);
-        const iouTypeValue = shouldForceIOUType ? CONST.IOU.TYPE.CREATE : iouType;
-
-        navigateToStartMoneyRequestStep(iouRequestType, iouTypeValue, initialTransactionID, reportID, action);
+        Navigation.goBack(backPath, {compareParams: false});
     };
 
     // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
@@ -157,7 +151,7 @@ function IOURequestStepParticipants({
             headerTitle={headerTitle}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="IOURequestStepParticipants"
+            testID="DynamicIOURequestStepParticipants"
         >
             {!!skipConfirmation && (
                 <FormHelpMessage
@@ -186,4 +180,4 @@ function IOURequestStepParticipants({
     );
 }
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(DynamicIOURequestStepParticipants));

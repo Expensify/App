@@ -449,6 +449,26 @@ const DYNAMIC_ROUTES = {
             getUrlWithParams('expense-date', {action, iouType, transactionID, reportID, reportActionID}),
         queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
     },
+    MONEY_REQUEST_STEP_PARTICIPANTS: {
+        path: 'expense-participants',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string | undefined; reportID: string | undefined; isWorkspacesOnly?: boolean}) => {
+            const {action, iouType, transactionID, reportID, isWorkspacesOnly} = params;
+            // `getUrlWithParams` drops falsy values, so the flag is only sent when it is on.
+            return getUrlWithParams('expense-participants', {action, iouType, transactionID, reportID, isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly'],
+    },
     MONEY_REQUEST_STEP_DESTINATION: {
         path: 'per-diem-destination',
         entryScreens: [SCREENS.MONEY_REQUEST.CREATE],
@@ -1654,6 +1674,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('taxRate', {action, iouType, transactionID, reportID}),
         queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
@@ -1690,7 +1711,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
             SCREENS.MONEY_REQUEST.CREATE,
-            SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS,
+            SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS,
             SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
             SCREENS.REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
@@ -2573,13 +2594,6 @@ const ROUTES = {
             }
 
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/distanceRate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
-        },
-    },
-    MONEY_REQUEST_STEP_PARTICIPANTS: {
-        route: ':action/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', action: IOUAction = 'create', isWorkspacesOnly = false) => {
-            const queryParams = isWorkspacesOnly ? '?isWorkspacesOnly=true' : '';
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}${queryParams}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_SCAN: {
@@ -4597,6 +4611,30 @@ const ROUTES = {
     POLICY_ACCOUNTING_DUALENTRY_IMPORT: {
         route: 'workspaces/:policyID/accounting/dualentry/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/import` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPORT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/expensify-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/expensify-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/default-company-card-vendor` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
