@@ -40,8 +40,8 @@ function GPSTripStateChecker() {
     useUpdateGpsTripOnReconnect({gpsPoints: getGpsPoints(gpsDraftDetails)});
     useUpdateGpsNotification();
 
-    // Wait for the session to load, otherwise the trip is dropped before the current accountID arrives.
-    const isTripFromDifferentUser = isSessionLoaded && !!gpsDraftDetails && gpsDraftDetails.accountID !== currentAccountID;
+    // A trip started before this shipped records no accountID, so only a different one means another user.
+    const isTripFromDifferentUser = isSessionLoaded && !!gpsDraftDetails?.accountID && gpsDraftDetails.accountID !== currentAccountID;
 
     useEffect(() => {
         if (!isTripFromDifferentUser) {
