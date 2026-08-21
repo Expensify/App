@@ -34,11 +34,7 @@
 Onyx (`react-native-onyx`) is our custom offline-first key-value store; keys are defined in `src/ONYXKEYS.ts`.
 
 ### Reading Onyx data (`useOnyx` vs `Onyx.connectWithoutView`)
-There are only two ways to read Onyx data:
-1. **`useOnyx`** (`@hooks/useOnyx`) — the default for anything a component renders.
-2. **`Onyx.connectWithoutView`** — only for non-render logic (module-level state in actions/libraries) that genuinely can't use `useOnyx`.
-
-Before either, prefer a **pure function** that receives the data as parameters: it does not read Onyx itself — the caller reads (with `useOnyx` or `Onyx.connectWithoutView`) and passes the data in. Do not add a new `Onyx.connectWithoutView` by copying existing usage — justify each one on its own with a comment explaining why it is needed. Using it in a component for performance requires `@frontend-performance` approval on Slack (link it in the PR description). See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview).
+Prefer pure functions taking data as params over direct Onyx reads — callers read and pass data in. When a read is needed, use **`useOnyx`** (`@hooks/useOnyx`) by default; reach for **`Onyx.connectWithoutView`** only for non-render logic (actions/libraries) that genuinely can't use `useOnyx`. Don't copy-paste `Onyx.connectWithoutView` usages — justify each with a comment. Using it in components for perf needs `@frontend-performance` Slack approval linked in PR description. See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview).
 
 ## Related Repositories
 
