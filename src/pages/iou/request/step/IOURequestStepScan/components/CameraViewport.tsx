@@ -11,8 +11,8 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {RefObject} from 'react';
-import type {ViewStyle} from 'react-native';
+import type {ReactNode, RefObject} from 'react';
+import type {LayoutChangeEvent, ViewStyle} from 'react-native';
 import type {GestureType} from 'react-native-gesture-handler';
 import type {PermissionStatus} from 'react-native-permissions';
 import type {AnimatedStyle} from 'react-native-reanimated';
@@ -37,13 +37,16 @@ type CameraViewportProps = {
     format: CameraDeviceFormat | undefined;
 
     /** Target frames-per-second for the camera preview */
-    fps: number;
+    fps?: number;
 
     /** Aspect ratio used to size the camera viewfinder */
     cameraAspectRatio: number | undefined;
 
     /** Whether the device is currently in landscape orientation */
     isInLandscapeMode: boolean;
+
+    /** Whether a portrait viewfinder should overflow the container to fill the screen (cropping the preview) */
+    shouldFillPortraitViewport?: boolean;
 
     /** Gesture handler for tap-to-focus */
     tapGesture: GestureType;
@@ -58,13 +61,19 @@ type CameraViewportProps = {
     isAttachmentPickerActive: boolean;
 
     /** Whether a photo has been captured (forces camera inactive) */
-    didCapturePhoto: boolean;
+    didCapturePhoto?: boolean;
 
     /** Callback fired when the camera finishes initializing */
-    onInitialized: () => void;
+    onInitialized?: () => void;
 
-    /** Whether the multi-scan feature is available */
-    canUseMultiScan: boolean;
+    /** Callback fired when the camera preview is laid out */
+    onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Whether the flash button is rendered on top of the viewfinder */
+    shouldShowFlashButton: boolean;
+
+    /** Sentry label for the flash button */
+    flashSentryLabel?: string;
 
     /** Current camera permission status; used to disable the flash button until granted */
     cameraPermissionStatus: PermissionStatus | null;
@@ -77,6 +86,9 @@ type CameraViewportProps = {
 
     /** Updater function to toggle flash state */
     setFlash: (updater: (prev: boolean) => boolean) => void;
+
+    /** Extra content rendered below the viewfinder, inside the camera view */
+    children?: ReactNode;
 };
 
 function CameraViewport({
@@ -86,17 +98,21 @@ function CameraViewport({
     fps,
     cameraAspectRatio,
     isInLandscapeMode,
+    shouldFillPortraitViewport = true,
     tapGesture,
     cameraFocusIndicatorAnimatedStyle,
     blinkStyle,
     isAttachmentPickerActive,
-    didCapturePhoto,
+    didCapturePhoto = false,
     onInitialized,
-    canUseMultiScan,
+    onLayout,
+    shouldShowFlashButton,
+    flashSentryLabel = CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH,
     cameraPermissionStatus,
     flash,
     hasFlash,
     setFlash,
+    children,
 }: CameraViewportProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -107,7 +123,7 @@ function CameraViewport({
     return (
         <View style={[styles.cameraView, styles.alignItemsCenter]}>
             <GestureDetector gesture={tapGesture}>
-                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isInLandscapeMode)}>
+                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isInLandscapeMode, shouldFillPortraitViewport)}>
                     <NavigationAwareCamera
                         ref={camera}
                         device={device}
@@ -119,6 +135,7 @@ function CameraViewport({
                         cameraTabIndex={1}
                         forceInactive={isAttachmentPickerActive || didCapturePhoto}
                         onInitialized={onInitialized}
+                        onLayout={onLayout}
                         // Use TextureView on Android to fix partially blank images for takeSnapshot()
                         androidPreviewViewType="texture-view"
                     />
@@ -129,12 +146,12 @@ function CameraViewport({
                     />
                 </View>
             </GestureDetector>
-            {canUseMultiScan ? (
+            {shouldShowFlashButton ? (
                 <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.flash')}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                        sentryLabel={flashSentryLabel}
                         disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                         onPress={() => setFlash((prevFlash) => !prevFlash)}
                     >
@@ -147,6 +164,7 @@ function CameraViewport({
                     </PressableWithFeedback>
                 </View>
             ) : null}
+            {children}
         </View>
     );
 }

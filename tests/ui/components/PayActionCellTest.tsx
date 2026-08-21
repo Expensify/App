@@ -151,6 +151,7 @@ describe('PayActionCell', () => {
     });
 
     it('calls payInvoice with the chatReport supplied as a prop (the flat `type:invoice columns:...` transaction row now resolves and passes it)', () => {
+        // Given an invoice report row whose invoice chat is resolved and passed down as a prop
         render(
             <PayActionCell
                 isLoading={false}
@@ -162,6 +163,7 @@ describe('PayActionCell', () => {
             />,
         );
 
+        // When the user confirms the payment from the cell's settlement button
         act(() => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -169,6 +171,7 @@ describe('PayActionCell', () => {
             });
         });
 
+        // Then the invoice payment should use the supplied chat report because paying an invoice needs the real invoice chat data
         expect(mockedPayInvoice).toHaveBeenCalledWith(
             expect.objectContaining({
                 paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -179,6 +182,7 @@ describe('PayActionCell', () => {
     });
 
     it('does not call payInvoice when no chatReport prop is supplied', () => {
+        // Given an invoice report row whose invoice chat is not loaded (no chatReport prop)
         render(
             <PayActionCell
                 isLoading={false}
@@ -190,6 +194,7 @@ describe('PayActionCell', () => {
             />,
         );
 
+        // When the user confirms the payment from the cell's settlement button
         act(() => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -197,11 +202,13 @@ describe('PayActionCell', () => {
             });
         });
 
+        // Then no invoice payment should happen and the drop should be logged because a fallback chat report is not safe for invoices
         expect(mockedPayInvoice).not.toHaveBeenCalled();
         expect(mockLogInfo).toHaveBeenCalledWith('[SearchPay] Dropping invoice row pay: chat report is not loaded', false, {reportID: TEST_INVOICE_REPORT_ID});
     });
 
     it('pays a money request with a fallback chat report when no chatReport prop is supplied', () => {
+        // Given an expense report row whose chat report is not loaded (no chatReport prop) while the report itself carries a chatReportID
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
 
@@ -216,6 +223,7 @@ describe('PayActionCell', () => {
             />,
         );
 
+        // When the user confirms the payment from the cell's settlement button
         act(() => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -223,6 +231,7 @@ describe('PayActionCell', () => {
             });
         });
 
+        // Then the payment should proceed with a minimal fallback chat report built from the known IDs
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
                 chatReport: {reportID: TEST_CHAT_REPORT_ID, policyID: 'policy1'},
@@ -232,6 +241,7 @@ describe('PayActionCell', () => {
     });
 
     it('pays a money request with the loaded chat report when it is supplied', () => {
+        // Given an expense report row whose chat report is loaded and passed down as a prop
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
 
@@ -246,6 +256,7 @@ describe('PayActionCell', () => {
             />,
         );
 
+        // When the user confirms the payment from the cell's settlement button
         act(() => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -253,6 +264,7 @@ describe('PayActionCell', () => {
             });
         });
 
+        // Then the payment should use the loaded chat report
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
                 chatReport,
@@ -262,6 +274,7 @@ describe('PayActionCell', () => {
     });
 
     it('does not pay a money request and logs the reason when the chat is not loaded and no chatReportID is available', () => {
+        // Given an expense report row whose chat report is not loaded and which has no chatReportID to build a fallback from
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([{...expenseReport, chatReportID: undefined, parentReportID: undefined}, [], undefined]);
 
@@ -276,6 +289,7 @@ describe('PayActionCell', () => {
             />,
         );
 
+        // When the user confirms the payment from the cell's settlement button
         act(() => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -283,6 +297,7 @@ describe('PayActionCell', () => {
             });
         });
 
+        // Then no payment should happen and the drop should be logged because there is no way to resolve any chat report
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
         expect(mockLogInfo).toHaveBeenCalledWith('[SearchPay] Dropping row pay: chat report is not loaded and no chatReportID is available', false, {reportID: TEST_EXPENSE_REPORT_ID});
     });

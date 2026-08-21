@@ -102,6 +102,7 @@ import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} fro
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
 
+import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {unholdRequest} from './actions/IOU/Hold';
 import {
@@ -173,6 +174,7 @@ import {
     isPolicyOwner,
     isSubmitAndClose,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    resolveCurrentTaxCode,
     shouldShowPolicy,
 } from './PolicyUtils';
 import {
@@ -2063,7 +2065,13 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report, getLoginByAccountID(report.ownerAccountID, allPersonalDetails));
+    const policy = getPolicy(report.policyID);
+
+    if (isExpenseReport(report) && hasDynamicExternalWorkflow(policy)) {
+        return false;
+    }
+
+    const submitsToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report.ownerAccountID, allPersonalDetails));
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report);
 }
@@ -2845,6 +2853,26 @@ function isOneOnOneChat(report: OnyxEntry<Report>, currentUserAccountID?: number
         isDM(report) &&
         !isIOUReport(report)
     );
+}
+
+/**
+ * Returns the other participant of a cached 1:1 DM as OpenReport participant info, so the server can
+ * resolve a stale/optimistic reportID to the real chat (returned as preexistingReportID) instead of
+ * failing with "Report not found". Returns an empty list for any report that is not a 1:1 DM.
+ */
+function getOneOnOneChatParticipants(
+    report: OnyxEntry<Report>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    currentUserAccountID: number | undefined,
+): Array<{login: string; accountID: number}> {
+    if (!currentUserAccountID || !isOneOnOneChat(report, currentUserAccountID)) {
+        return [];
+    }
+    return Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== currentUserAccountID)
+        .map((accountID) => ({login: personalDetails?.[accountID]?.login ?? '', accountID}))
+        .filter((participant) => !!participant.login);
 }
 
 /**
@@ -4013,7 +4041,12 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
 /**
  * Helper function to get the icons for a group chat. Only to be used in getIcons().
  */
-function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], translate: LocalizedTranslate): Icon[] {
+function getIconsForGroupChat(
+    report: OnyxInputOrEntry<Report>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
+    pendingDeleteMemberAccountIDs?: string[],
+): Icon[] {
     if (!report) {
         return [];
     }
@@ -4022,7 +4055,7 @@ function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumbe
         source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
         id: -1,
         type: CONST.ICON_TYPE_AVATAR,
-        name: getGroupChatName(formatPhoneNumber, translate, undefined, true, report),
+        name: getGroupChatName(formatPhoneNumber, translate, undefined, true, report, pendingDeleteMemberAccountIDs),
     };
     return [groupChatIcon];
 }
@@ -4087,7 +4120,11 @@ function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, poli
 /**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
+ *
+ * TODO: Make `pendingDeleteMemberAccountIDs` a required param once https://github.com/Expensify/App/issues/66421 is done
  */
+// TODO: Refactor to use options object parameter to reduce parameter count https://github.com/Expensify/App/issues/66421
+// eslint-disable-next-line @typescript-eslint/max-params
 function getIcons(
     report: OnyxInputOrEntry<Report>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -4099,6 +4136,7 @@ function getIcons(
     policy?: OnyxInputOrEntry<Policy>,
     invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>,
     isReportArchived = false,
+    pendingDeleteMemberAccountIDs?: string[],
 ): Icon[] {
     if (isEmptyObject(report)) {
         return [
@@ -4147,7 +4185,7 @@ function getIcons(
         return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
     }
     if (isGroupChat(report)) {
-        return getIconsForGroupChat(report, formatPhoneNumber, translate);
+        return getIconsForGroupChat(report, formatPhoneNumber, translate, pendingDeleteMemberAccountIDs);
     }
     if (isOneOnOneChat(report)) {
         const otherParticipantsAccountIDs = Object.keys(report.participants ?? {})
@@ -6302,8 +6340,8 @@ function getModifiedExpenseOriginalMessage(
     // Tax rate can change as a result of currency update. In such cases, we want to skip displaying a system message, as discussed.
     const didTaxCodeChange = 'taxCode' in transactionChanges;
     if (didTaxCodeChange && !didAmountOrCurrencyChange) {
-        originalMessage.oldTaxRate = policy?.taxRates?.taxes[getTaxCode(oldTransaction)]?.value;
-        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode]?.value;
+        originalMessage.oldTaxRate = policy?.taxRates?.taxes[resolveCurrentTaxCode(policy, getTaxCode(oldTransaction))]?.value;
+        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[resolveCurrentTaxCode(policy, transactionChanges.taxCode)]?.value;
     }
 
     // We only want to display a tax amount update system message when tax amount is updated by user.
@@ -9264,9 +9302,13 @@ function buildOptimisticTaskReport(
  *
  * @param integration - The connectionName of the integration
  * @param markedManually - Whether the integration was marked as manually exported
+ * @param exportLabel - The canonical label stored in the export action
  */
-function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false): OptimisticExportIntegrationAction {
-    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];
+function buildOptimisticExportIntegrationAction(
+    integration: ConnectionName,
+    markedManually = false,
+    exportLabel: string = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
+): OptimisticExportIntegrationAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
@@ -9285,7 +9327,7 @@ function buildOptimisticExportIntegrationAction(integration: ConnectionName, mar
         created: DateUtils.getDBTime(),
         shouldShow: true,
         originalMessage: {
-            label,
+            label: exportLabel,
             lastModified: DateUtils.getDBTime(),
             markedManually,
             inProgress: true,
@@ -12185,7 +12227,18 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
 
         // Multiple accessible workspaces: show the destination picker limited to workspaces only (no individual recipients).
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName, true));
+        Navigation.navigate(
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    isWorkspacesOnly: true,
+                }),
+                ROUTES.REPORT_WITH_ID.getRoute(reportID),
+            ),
+        );
         return;
     }
 
@@ -12204,7 +12257,12 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             }
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
+        Navigation.navigate(
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID}),
+                ROUTES.REPORT_WITH_ID.getRoute(reportID),
+            ),
+        );
         return;
     }
 
@@ -13143,13 +13201,22 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
 function getIntegrationIcon(
     connectionName?: ConnectionName,
     expensifyIcons?:
-        | Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'GustoSquare', IconAsset>
+        | Partial<
+              Record<
+                  'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'GustoSquare' | 'IntuitSquare',
+                  IconAsset
+              >
+          >
         | undefined,
+    policy?: OnyxEntry<Policy>,
 ) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         return expensifyIcons?.XeroSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        if (isIntuitEnterpriseSuiteConnection(policy)) {
+            return expensifyIcons?.IntuitSquare;
+        }
         return expensifyIcons?.QBOSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
@@ -14269,6 +14336,7 @@ export {
     getNonHeldAndFullAmount,
     getReimbursableTotal,
     getUnheldReimbursableTotal,
+    getOneOnOneChatParticipants,
     getOptimisticDataForAncestors,
     getOriginalReportID,
     getOutstandingChildRequest,
