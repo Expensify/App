@@ -198,6 +198,7 @@ function AgentsPage() {
             text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
             value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
             icon: icons.Trashcan,
+            shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
         },
     ];
@@ -232,6 +233,17 @@ function AgentsPage() {
         newAgentButton
     );
 
+    const agentsTableHeaderComponent = (
+        <>
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
+            {hasAgents && (
+                <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
+                    <RenderHTML html={translate('agentsPage.subtitle')} />
+                </View>
+            )}
+        </>
+    );
+
     if (!isCustomAgentEnabled) {
         return <NotFoundPage />;
     }
@@ -262,15 +274,10 @@ function AgentsPage() {
             >
                 {!shouldDisplayButtonsInSeparateLine && headerButtons}
             </HeaderWithBackButton>
-            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
-            {hasAgents && (
-                <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
-                    <RenderHTML html={translate('agentsPage.subtitle')} />
-                </View>
-            )}
             <AgentsTable
                 ref={tableRef}
                 agents={agents}
+                headerComponent={agentsTableHeaderComponent}
                 canSelectAgents
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}
