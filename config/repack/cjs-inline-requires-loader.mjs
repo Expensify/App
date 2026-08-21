@@ -79,17 +79,13 @@ export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
     const callback = this.async();
     try {
         const options = this.getOptions() || {};
-        // On prebuilt bundles SWC can emit a multi-source map, which remapping() below rejects
-        // ("Transformation map 0 must have exactly one source file"). The node_modules rule passes
-        // `sourcemap: false` to skip maps entirely, like babel-swc-loader does for node_modules.
+        // On prebuilt bundles SWC can emit a multi-source map, which remapping() below rejects —
+        // the node_modules rule passes `sourcemap: false` to skip maps entirely.
         const sourceMaps = options.sourcemap !== undefined ? options.sourcemap : !!this.sourceMap;
 
-        // App source only needs block-scoping (Hermes shares one binding across loop iterations,
-        // see the sign-in bug). node_modules packages additionally ship async generators, which
-        // Hermes cannot parse ("async generators are unsupported"), so the node_modules rule opts
-        // into lowering those too. Everything else modern (classes, private fields, optional
-        // chaining, spread) Hermes handles natively — the full RN-preset lowering set costs +3.5%
-        // minified JS for nothing.
+        // App source only needs block-scoping (Hermes shares one binding across loop iterations).
+        // node_modules also ship async generators, which Hermes cannot parse, so the node_modules
+        // rule opts into lowering those too; everything else modern Hermes handles natively.
         const envInclude = options.hermesLowering ? ['transform-block-scoping', 'transform-async-to-generator', 'transform-async-generator-functions'] : ['transform-block-scoping'];
 
         const swcResult = await rspack.experiments.swc.transform(source, {
