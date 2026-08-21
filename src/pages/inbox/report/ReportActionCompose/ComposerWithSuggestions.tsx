@@ -319,8 +319,8 @@ function ComposerWithSuggestions({
         cancelSaveReportActionDraft();
     }, [editingState, cancelSaveReportActionDraft]);
 
-    // Switching from one edit target straight to another never passes through OFF, so it needs its own cancellation
-    // — otherwise the first message's pending save can overwrite the draft of the message just switched to.
+    // Switching from one edit target straight to another never passes through OFF, so it needs its own cancellation.
+    // Otherwise the first message's pending save can overwrite the draft of the message just switched to.
     useEffect(() => {
         cancelSaveReportActionDraft();
     }, [editingReportID, editingReportAction?.reportActionID, cancelSaveReportActionDraft]);
