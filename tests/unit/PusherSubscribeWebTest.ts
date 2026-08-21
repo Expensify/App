@@ -149,6 +149,8 @@ jest.mock('pusher-js/with-encryption', () => {
         }
 
         disconnect() {}
+
+        connect() {}
     }
 
     return {__esModule: true, default: FakePusher};
@@ -456,5 +458,71 @@ describe('Pusher.subscribe on web', () => {
 
         // Then the sync is not repeated, so one outage costs one ReconnectApp
         expect(reconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger one reconnect when the app forces the socket to reconnect', async () => {
+        // Given a private user channel on a socket that the app tears down itself, which pusher-js takes
+        // through `disconnected` and never through `unavailable`
+        const accountID = '1';
+        const userChannel = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
+
+        PusherUtils.onPrivateUserChannelResubscribe(accountID);
+        PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, accountID, () => {});
+        await jest.runAllTimersAsync();
+
+        const channel = mockChannels.get(userChannel);
+        channel?.completeHandshake();
+        await jest.runAllTimersAsync();
+
+        // When an expired authToken or a Channels 1006 error forces the reconnect
+        Pusher.reconnect();
+
+        channel?.dropConnection();
+        channel?.startSubscription();
+        channel?.completeHandshake();
+
+        // Then the sync still runs, because the app only forces a reconnect once the socket is already broken
+        expect(reconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger no reconnect on a later socket for an outage the session left behind', async () => {
+        // Given an outage that no resubscribe ever read, because a sign out or a delegate switch replaced
+        // the socket while it was still down
+        const accountID = '1';
+        const userChannel = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
+
+        PusherUtils.onPrivateUserChannelResubscribe(accountID);
+        PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, accountID, () => {});
+        await jest.runAllTimersAsync();
+
+        mockChannels.get(userChannel)?.completeHandshake();
+        await jest.runAllTimersAsync();
+
+        goUnavailable();
+        Pusher.disconnect();
+
+        // When the next session opens its own socket and that one only blips
+        mockChannels.clear();
+        mockConnectionHandlers.clear();
+        await Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
+        });
+
+        PusherUtils.onPrivateUserChannelResubscribe(accountID);
+        PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, accountID, () => {});
+        await jest.runAllTimersAsync();
+
+        const channel = mockChannels.get(userChannel);
+        channel?.completeHandshake();
+        await jest.runAllTimersAsync();
+
+        channel?.dropConnection();
+        channel?.startSubscription();
+        channel?.completeHandshake();
+
+        // Then the outage the previous socket saw costs no sync on this one
+        expect(reconnect).not.toHaveBeenCalled();
     });
 });

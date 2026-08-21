@@ -482,6 +482,7 @@ function disconnect() {
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
+    didSocketGoUnavailable = false;
     eventsBoundToChannels.clear();
     initPromise = new Promise((resolve) => {
         resolveInitPromise = resolve;
@@ -498,6 +499,9 @@ function reconnect() {
     }
 
     Log.info('[Pusher] Reconnecting to Pusher');
+
+    // pusher-js takes a manual disconnect through `disconnected`, never `unavailable`, so latch the outage here.
+    didSocketGoUnavailable = true;
     socket.disconnect();
     socket.connect();
 }
