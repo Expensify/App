@@ -3462,8 +3462,24 @@ describe('CardUtils', () => {
         });
 
         it('prefers the custom feed nickname when the admin has set one on the feed', () => {
-            const description = getCommercialFeedCardDescription(translateLocal, commercialFeedCard, cardFeedsCollection);
+            const description = getCommercialFeedCardDescription(translateLocal, commercialFeedCard, cardFeedsCollection.FAKE_ID_1);
             expect(description).toBe(`${customFeedName} - 2554`);
+        });
+
+        it("only reads the nickname from the card's own domain, not other domains sharing the same feed key", () => {
+            // Two different domains can each have a VISA feed with their own nickname. Passing the wrong
+            // domain's CardFeeds entry must never leak that domain's nickname onto this card.
+            const otherDomainNickname = 'Other domain Visa';
+            const otherDomainCardFeeds: CardFeeds = {
+                settings: {
+                    companyCardNicknames: {
+                        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: otherDomainNickname,
+                    },
+                },
+            };
+
+            expect(getCommercialFeedCardDescription(translateLocal, commercialFeedCard, cardFeedsCollection.FAKE_ID_1)).toBe(`${customFeedName} - 2554`);
+            expect(getCommercialFeedCardDescription(translateLocal, commercialFeedCard, otherDomainCardFeeds)).toBe(`${otherDomainNickname} - 2554`);
         });
 
         it('returns undefined for a direct feed card so the caller falls back to the existing description', () => {
@@ -3472,7 +3488,7 @@ describe('CardUtils', () => {
                 cardName: 'CREDIT CARD...5501',
                 lastFourPAN: '5501',
             });
-            const description = getCommercialFeedCardDescription(translateLocal, directFeedCard, cardFeedsCollection);
+            const description = getCommercialFeedCardDescription(translateLocal, directFeedCard, cardFeedsCollection.FAKE_ID_1);
             expect(description).toBe(undefined);
         });
 
@@ -3481,7 +3497,7 @@ describe('CardUtils', () => {
                 bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
                 cardName: '480801XXXXXX2554',
             });
-            const description = getCommercialFeedCardDescription(translateLocal, cardWithoutLastFour, cardFeedsCollection);
+            const description = getCommercialFeedCardDescription(translateLocal, cardWithoutLastFour, cardFeedsCollection.FAKE_ID_1);
             expect(description).toBe(undefined);
         });
     });

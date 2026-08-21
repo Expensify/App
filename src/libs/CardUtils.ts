@@ -294,13 +294,17 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
  * Returns `{feed name} - {last4}` for a card on a commercial feed (VCF/CDF/GL1025), e.g. "Visa cards - 1234".
  * Direct feeds already carry this format in `card.cardName`, so this only applies to commercial feeds and
  * returns undefined otherwise, letting the caller fall back to the existing masked-PAN description.
+ *
+ * `cardFeedsForDomain` must already be scoped to the card's own domain (`SHARED_NVP_PRIVATE_DOMAIN_MEMBER` keyed
+ * by `card.fundID`), not the full cross-domain collection: a user in multiple domains can have the same feed key
+ * (e.g. `vcf`) with a different nickname in each, so scanning every domain can surface the wrong one.
  */
-function getCommercialFeedCardDescription(translate: LocalizedTranslate, card: Card | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): string | undefined {
+function getCommercialFeedCardDescription(translate: LocalizedTranslate, card: Card | undefined, cardFeedsForDomain: OnyxEntry<CardFeeds>): string | undefined {
     if (!card?.lastFourPAN || !isCustomFeed(card.bank)) {
         return undefined;
     }
 
-    const customFeedName = getCustomFeedNameFromFeeds(cardFeeds, card.bank as CompanyCardFeed);
+    const customFeedName = cardFeedsForDomain?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];
     return `${getCustomOrFormattedFeedName(translate, card.bank, customFeedName)} - ${card.lastFourPAN}`;
 }
 

@@ -351,8 +351,11 @@ function MoneyRequestView({
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isFromCardImport = isCardTransactionTransactionUtils(transaction);
     const transactionCard = transaction?.cardID ? nonPersonalAndWorkspaceCards?.[transaction.cardID] : undefined;
+    const cardFeedsForTransactionCard = transactionCard?.fundID
+        ? cardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${getNonEmptyStringOnyxID(transactionCard.fundID)}`]
+        : undefined;
     const cardProgramName =
-        getCommercialFeedCardDescription(translate, transactionCard, cardFeeds) ??
+        getCommercialFeedCardDescription(translate, transactionCard, cardFeedsForTransactionCard) ??
         getCompanyCardDescription(translate, transaction?.cardName, transaction?.cardID, nonPersonalAndWorkspaceCards);
     const shouldShowCard = isFromCardImport && cardProgramName;
     const transactionType = getTransactionType(transaction, transactionCard);
