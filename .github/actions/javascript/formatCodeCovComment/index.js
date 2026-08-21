@@ -26017,7 +26017,6 @@ var GithubUtils_default = GithubUtils;
 var context2 = new Context();
 
 // .github/actions/javascript/formatCodeCovComment/formatCodeCovComment.ts
-import { pathToFileURL } from "url";
 function extractCoverageDeltaTable(body) {
   const tableHeaderRegex = /[|\s]*\[?Files with missing lines\]?(?:\([^)]*\))?[|\s]*Coverage Δ[|\s]*/i;
   const tableMatch = body.match(tableHeaderRegex);
@@ -26165,7 +26164,7 @@ async function run() {
     }
   }
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var formatCodeCovComment_default = run;

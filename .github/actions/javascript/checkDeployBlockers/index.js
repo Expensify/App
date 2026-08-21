@@ -26055,7 +26055,6 @@ function isEmptyObject(obj) {
 }
 
 // .github/actions/javascript/checkDeployBlockers/checkDeployBlockers.ts
-import { pathToFileURL } from "url";
 var run = function() {
   const issueNumber = Number(getInput("ISSUE_NUMBER", { required: true }));
   console.log(`Fetching issue number ${issueNumber}`);
@@ -26102,7 +26101,7 @@ var run = function() {
     setFailed(error2);
   });
 };
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var checkDeployBlockers_default = run;

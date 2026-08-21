@@ -52428,7 +52428,6 @@ function getDeployChecklistData(issue2) {
 }
 
 // .github/actions/javascript/isDeployChecklistLocked/isDeployChecklistLocked.ts
-import { pathToFileURL } from "url";
 var run = function() {
   return getDeployChecklist().then(({ labels, number }) => {
     const labelNames = (labels ?? []).map((label) => typeof label === "string" ? label : label.name ?? "");
@@ -52447,7 +52446,7 @@ var run = function() {
     setFailed(`Could not resolve deploy checklist; blocking deploy: ${message}`);
   });
 };
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var isDeployChecklistLocked_default = run;

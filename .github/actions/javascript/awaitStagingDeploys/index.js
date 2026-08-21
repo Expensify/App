@@ -26361,7 +26361,6 @@ function promiseDoWhile(condition, action) {
 
 // .github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys.ts
 var import_throttle = __toESM(require_throttle(), 1);
-import { pathToFileURL } from "url";
 function run() {
   const tag = getStringInput("TAG", { required: false });
   let currentStagingDeploys = [];
@@ -26401,7 +26400,7 @@ function run() {
     )
   );
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var awaitStagingDeploys_default = run;

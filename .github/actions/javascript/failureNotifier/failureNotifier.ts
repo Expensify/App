@@ -3,7 +3,6 @@ import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-method
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import {pathToFileURL} from 'url';
 
 type WorkflowRun = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response']['data']['workflow_runs'][number];
 
@@ -141,7 +140,7 @@ ${errorMessage}
     }
 }
 
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
+if (import.meta.main) {
     run().catch((error: Error) => {
         console.error('Failed to process workflow failure:', error);
         core.setFailed(error.message);

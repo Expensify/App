@@ -23968,7 +23968,6 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 
 // .github/actions/javascript/failureNotifier/failureNotifier.ts
-import { pathToFileURL } from "url";
 function getMergedPR(associatedPRs, targetBranch = "main") {
   return associatedPRs.find((pr) => pr.merged_at !== null && pr.base.ref === targetBranch);
 }
@@ -24071,7 +24070,7 @@ ${errorMessage}
     console.log(`Created issue for failed job: ${job.name}`);
   }
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run().catch((error2) => {
     console.error("Failed to process workflow failure:", error2);
     setFailed(error2.message);

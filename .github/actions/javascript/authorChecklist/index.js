@@ -69582,7 +69582,6 @@ var context2 = new Context();
 
 // .github/actions/javascript/authorChecklist/authorChecklist.ts
 var import_escapeRegExp = __toESM(require_escapeRegExp(), 1);
-import { pathToFileURL } from "url";
 
 // .github/libs/promiseSome.ts
 function promiseSome(promises3, callbackFn) {
@@ -69809,7 +69808,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     }
   }
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   generateDynamicChecksAndCheckForCompletion();
 }
 var authorChecklist_default = generateDynamicChecksAndCheckForCompletion;

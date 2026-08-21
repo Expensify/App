@@ -65914,7 +65914,6 @@ function toZonedTime(date, timeZone, options) {
 }
 
 // .github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts
-import { pathToFileURL } from "url";
 var PROPOSAL_POLICE_MODEL = "gpt-5.6-luna";
 var DUPLICATE_SIMILARITY_THRESHOLD = 90;
 function isCommentCreatedEvent(payload) {
@@ -66113,7 +66112,7 @@ ${payload.comment?.body}`
     await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment?.user.login ?? "", payload.comment?.body ?? "");
   }
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run().catch((error2) => {
     console.error(error2);
     process.exit(0);

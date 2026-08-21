@@ -26335,7 +26335,6 @@ async function run(mode, options) {
 var compressSvg_default = run;
 
 // .github/actions/javascript/checkSVGCompression/checkSVGCompression.ts
-import { pathToFileURL } from "url";
 async function run2() {
   try {
     const token = getInput("GITHUB_TOKEN", { required: true });
@@ -26351,7 +26350,7 @@ async function run2() {
     setFailed("An unknown error occurred.");
   }
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run2();
 }
 var checkSVGCompression_default = run2;

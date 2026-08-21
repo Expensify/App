@@ -5,7 +5,6 @@ import GitUtils from '@github/libs/GitUtils';
 
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import {pathToFileURL} from 'url';
 
 async function run() {
     try {
@@ -90,7 +89,7 @@ async function run() {
     }
 }
 
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
+if (import.meta.main) {
     run();
 }
 

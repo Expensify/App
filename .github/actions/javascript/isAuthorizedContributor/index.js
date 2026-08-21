@@ -26073,7 +26073,6 @@ var isTeamMember_default = isTeamMember;
 var context2 = new Context();
 
 // .github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor.ts
-import { pathToFileURL } from "url";
 var AUTHORIZED_ASSOCIATIONS = /* @__PURE__ */ new Set(["MEMBER", "OWNER", "CONTRIBUTOR", "COLLABORATOR"]);
 var CONTRIBUTOR_PLUS_TEAM_SLUG = "contributor-plus";
 var ENGINEERING_TEAM_SLUG = "engineering";
@@ -26174,7 +26173,7 @@ async function run() {
   const isInternal = await isInternalExpensifyEngineer(actor, orgToken);
   setOutput("IS_INTERNAL", isInternal);
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run().catch((error2) => {
     const message = error2 instanceof Error ? error2.message : String(error2);
     setFailed(message);

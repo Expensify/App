@@ -10,7 +10,6 @@ import type {PullRequestEvent, PullRequestSynchronizeEvent} from '@octokit/webho
 import * as core from '@actions/core';
 import {context} from '@actions/github';
 import {RequestError} from '@octokit/request-error';
-import {pathToFileURL} from 'url';
 
 /**
  * Main function to check all specified files
@@ -167,7 +166,7 @@ async function run(): Promise<void> {
     core.setOutput('HAS_CHANGES', changedFiles.length > 0);
 }
 
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
+if (import.meta.main) {
     run().catch((error) => {
         console.error('Action failed:', error);
         core.setFailed(error instanceof Error ? error.message : String(error));

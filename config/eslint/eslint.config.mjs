@@ -617,8 +617,7 @@ const config = defineConfig([
                 'error',
                 {
                     name: 'module',
-                    message:
-                        "This file is bundled as ESM. For an entry-point guard use `import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href` instead of `require.main === module`.",
+                    message: 'This file is bundled as ESM and runs on Node 24. For an entry-point guard use `import.meta.main` instead of `require.main === module`.',
                 },
                 {
                     name: '__dirname',

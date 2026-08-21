@@ -26050,7 +26050,6 @@ var GithubUtils = class {
 var GithubUtils_default = GithubUtils;
 
 // .github/actions/javascript/getArtifactInfo/getArtifactInfo.ts
-import { pathToFileURL } from "url";
 var run = function() {
   const artifactName = getInput("ARTIFACT_NAME", { required: true });
   return GithubUtils_default.getArtifactByName(artifactName).then((artifact) => {
@@ -26068,7 +26067,7 @@ var run = function() {
     setFailed(error2);
   });
 };
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var getArtifactInfo_default = run;

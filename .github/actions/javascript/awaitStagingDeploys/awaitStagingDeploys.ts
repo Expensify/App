@@ -5,7 +5,6 @@ import {promiseDoWhile} from '@github/libs/promiseWhile';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import lodashThrottle from 'lodash/throttle';
-import {pathToFileURL} from 'url';
 
 type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actions.listWorkflowRuns>>['data']['workflow_runs'];
 
@@ -61,7 +60,7 @@ function run() {
     );
 }
 
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
+if (import.meta.main) {
     run();
 }
 

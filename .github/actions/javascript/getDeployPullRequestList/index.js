@@ -26214,7 +26214,6 @@ var GitUtils_default = {
 var context2 = new Context();
 
 // .github/actions/javascript/getDeployPullRequestList/getDeployPullRequestList.ts
-import { pathToFileURL } from "url";
 async function run() {
   try {
     const inputTag = getInput("TAG", { required: true });
@@ -26276,7 +26275,7 @@ async function run() {
     setFailed(error2);
   }
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var getDeployPullRequestList_default = run;

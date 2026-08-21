@@ -26561,7 +26561,6 @@ var Git = class _Git {
 var Git_default = Git;
 
 // .github/actions/javascript/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges.ts
-import { pathToFileURL } from "url";
 async function run() {
   const filePathsInput = getJSONInput("FILE_PATHS", { required: false });
   const pullRequestNumberInput = getJSONInput("PULL_REQUEST_NUMBER", { required: false });
@@ -26666,7 +26665,7 @@ async function run() {
   setOutput("CHANGED_FILES", JSON.stringify(changedFiles));
   setOutput("HAS_CHANGES", changedFiles.length > 0);
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run().catch((error3) => {
     console.error("Action failed:", error3);
     setFailed(error3 instanceof Error ? error3.message : String(error3));

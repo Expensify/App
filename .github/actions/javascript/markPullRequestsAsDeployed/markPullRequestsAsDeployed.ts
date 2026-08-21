@@ -10,7 +10,6 @@ import type {RequestError} from '@octokit/types';
 import * as core from '@actions/core';
 import {context} from '@actions/github';
 import memoize from 'lodash/memoize';
-import {pathToFileURL} from 'url';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
@@ -216,7 +215,7 @@ async function run() {
     }
 }
 
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
+if (import.meta.main) {
     run();
 }
 

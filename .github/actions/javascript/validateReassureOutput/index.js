@@ -19074,7 +19074,6 @@ function error(message, properties = {}) {
 
 // .github/actions/javascript/validateReassureOutput/validateReassureOutput.ts
 import fs2 from "fs";
-import { pathToFileURL } from "url";
 var run = () => {
   const regressionOutput = JSON.parse(fs2.readFileSync(".reassure/output.json", "utf8"));
   const countDeviation = Number(getInput("COUNT_DEVIATION", { required: true }));
@@ -19109,7 +19108,7 @@ var run = () => {
   }
   return true;
 };
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var validateReassureOutput_default = run;

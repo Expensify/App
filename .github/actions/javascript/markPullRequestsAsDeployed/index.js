@@ -26657,7 +26657,6 @@ var context2 = new Context();
 
 // .github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts
 var import_memoize = __toESM(require_memoize(), 1);
-import { pathToFileURL } from "url";
 function getDeployTableMessage(platformResult) {
   switch (platformResult) {
     case "success":
@@ -26831,7 +26830,7 @@ _Note:_ ${note}`;
     console.log(`\u2705 Completed staging deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
   }
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var markPullRequestsAsDeployed_default = run;

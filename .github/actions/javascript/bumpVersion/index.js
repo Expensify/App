@@ -19746,7 +19746,6 @@ function notice(message, properties = {}) {
 }
 
 // .github/actions/javascript/bumpVersion/bumpVersion.ts
-import { pathToFileURL } from "url";
 async function run2() {
   try {
     const semverLevel = getInput("SEMVER_LEVEL", { required: true });
@@ -19764,7 +19763,7 @@ async function run2() {
     setFailed("An unknown error occurred.");
   }
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run2();
 }
 var bumpVersion_default2 = run2;

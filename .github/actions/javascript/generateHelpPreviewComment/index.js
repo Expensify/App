@@ -23996,7 +23996,6 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 
 // .github/actions/javascript/generateHelpPreviewComment/generateHelpPreviewComment.ts
-import { pathToFileURL } from "url";
 var DOCS_DIRECTORY_PREFIX = "docs/";
 var MARKDOWN_EXTENSION = ".md";
 var INCLUDED_STATUSES = /* @__PURE__ */ new Set(["added", "modified", "renamed"]);
@@ -24058,7 +24057,7 @@ ${listItems}`;
   endGroup();
   console.log(`Generated preview comment with ${routes.length} updated article(s)`);
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var generateHelpPreviewComment_default = run;

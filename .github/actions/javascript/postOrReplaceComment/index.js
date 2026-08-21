@@ -26017,7 +26017,6 @@ var GithubUtils_default = GithubUtils;
 var context2 = new Context();
 
 // .github/actions/javascript/postOrReplaceComment/postOrReplaceComment.ts
-import { pathToFileURL } from "url";
 function getTestBuildMessage(appPr, mobileExpensifyPr) {
   const inputs = ["ANDROID", "IOS", "WEB"];
   const names = {
@@ -26135,7 +26134,7 @@ async function run() {
   await hidePreviousComment(REPO, destinationPRNumber, COMMENT_PREFIX);
   await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
+if (import.meta.main) {
   run();
 }
 var postOrReplaceComment_default = run;

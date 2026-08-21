@@ -10,7 +10,6 @@ import type {MergedPR, SubmoduleUpdate} from '@github/libs/GitUtils';
 import * as core from '@actions/core';
 import {format} from 'date-fns/format';
 import fs from 'fs';
-import {pathToFileURL} from 'url';
 
 type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
 
@@ -335,7 +334,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
     }
 }
 
-if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
+if (import.meta.main) {
     run();
 }
 
