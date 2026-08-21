@@ -265,7 +265,7 @@ function MultifactorAuthenticationRevokePage() {
                 </View>
             </FullPageOfflineBlockingView>
             <ConfirmModal
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                 title={translate(confirmMode === 'all' ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
                 prompt={translate(confirmPromptKey)}
                 confirmText={translate(confirmMode === 'all' ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}

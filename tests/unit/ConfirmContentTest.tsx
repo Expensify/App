@@ -77,30 +77,16 @@ describe('ConfirmContent', () => {
     }
 
     const testCases = [
-        {shouldShowCancelButton: false, danger: false, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: false, danger: false, success: true, expectedSuccess: false},
-        {shouldShowCancelButton: false, danger: true, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: false, danger: true, success: true, expectedSuccess: false},
-        {shouldShowCancelButton: true, danger: false, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: true, danger: false, success: true, expectedSuccess: true},
-        {shouldShowCancelButton: true, danger: true, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: true, danger: true, success: true, expectedSuccess: false},
+        {shouldShowCancelButton: false, buttonVariant: CONST.BUTTON_VARIANT.SUCCESS, expectedVariant: undefined},
+        {shouldShowCancelButton: false, buttonVariant: CONST.BUTTON_VARIANT.DANGER, expectedVariant: CONST.BUTTON_VARIANT.DANGER},
+        {shouldShowCancelButton: true, buttonVariant: CONST.BUTTON_VARIANT.SUCCESS, expectedVariant: CONST.BUTTON_VARIANT.SUCCESS},
+        {shouldShowCancelButton: true, buttonVariant: CONST.BUTTON_VARIANT.DANGER, expectedVariant: CONST.BUTTON_VARIANT.DANGER},
     ];
-
-    function expectedVariant(danger: boolean, expectedSuccess: boolean): string | undefined {
-        if (danger) {
-            return CONST.BUTTON_VARIANT.DANGER;
-        }
-        if (expectedSuccess) {
-            return CONST.BUTTON_VARIANT.SUCCESS;
-        }
-        return undefined;
-    }
 
     describe('stacked buttons (shouldStackButtons=true)', () => {
         it.each(testCases)(
-            'confirm button variant=$expectedSuccess when shouldShowCancelButton=$shouldShowCancelButton, danger=$danger, success=$success',
-            ({shouldShowCancelButton, danger, success, expectedSuccess}) => {
+            'confirm button variant=$expectedVariant when shouldShowCancelButton=$shouldShowCancelButton, buttonVariant=$buttonVariant',
+            ({shouldShowCancelButton, buttonVariant, expectedVariant}) => {
                 mockButtonSpy.mockClear();
                 const onConfirm = jest.fn();
                 render(
@@ -110,21 +96,20 @@ describe('ConfirmContent', () => {
                         isVisible
                         shouldStackButtons
                         shouldShowCancelButton={shouldShowCancelButton}
-                        danger={danger}
-                        success={success}
+                        buttonVariant={buttonVariant}
                     />,
                 );
 
                 const confirmProps = getConfirmButtonProps(onConfirm);
-                expect(confirmProps?.variant).toBe(expectedVariant(danger, expectedSuccess));
+                expect(confirmProps?.variant).toBe(expectedVariant);
             },
         );
     });
 
     describe('side-by-side buttons (shouldStackButtons=false)', () => {
         it.each(testCases)(
-            'confirm button variant=$expectedSuccess when shouldShowCancelButton=$shouldShowCancelButton, danger=$danger, success=$success',
-            ({shouldShowCancelButton, danger, success, expectedSuccess}) => {
+            'confirm button variant=$expectedVariant when shouldShowCancelButton=$shouldShowCancelButton, buttonVariant=$buttonVariant',
+            ({shouldShowCancelButton, buttonVariant, expectedVariant}) => {
                 mockButtonSpy.mockClear();
                 const onConfirm = jest.fn();
                 render(
@@ -134,13 +119,12 @@ describe('ConfirmContent', () => {
                         isVisible
                         shouldStackButtons={false}
                         shouldShowCancelButton={shouldShowCancelButton}
-                        danger={danger}
-                        success={success}
+                        buttonVariant={buttonVariant}
                     />,
                 );
 
                 const confirmProps = getConfirmButtonProps(onConfirm);
-                expect(confirmProps?.variant).toBe(expectedVariant(danger, expectedSuccess));
+                expect(confirmProps?.variant).toBe(expectedVariant);
             },
         );
     });

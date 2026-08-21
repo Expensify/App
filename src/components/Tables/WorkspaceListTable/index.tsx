@@ -16,7 +16,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 
 import variables from '@styles/variables';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -132,7 +132,7 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
     const emptyStateButtons = !isRestrictedPolicyCreation
         ? [
               {
-                  success: true,
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route))),
                   buttonText: translate('workspace.new.newWorkspace'),
               },

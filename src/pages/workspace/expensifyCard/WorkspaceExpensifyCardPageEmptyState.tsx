@@ -131,7 +131,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
             confirmText: translate('workspace.bankAccount.updateToUSD'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         isCurrencyModalOpen.current = false;
         if (result.action !== ModalActions.CONFIRM || !policy) {

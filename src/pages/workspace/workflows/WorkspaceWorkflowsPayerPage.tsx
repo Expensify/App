@@ -252,7 +252,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         }
         showConfirmModal({
             title: translate('workflowsPayerPage.shareBankAccount.shareTitle'),
-            success: true,
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             confirmText: translate('common.share'),
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
@@ -358,7 +358,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 onConfirm={() => {
                     setShowValidationModal(false);
                 }}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
                 onCancel={() => setShowValidationModal(false)}
                 prompt={
                     <View style={[styles.renderHTML, styles.flexRow]}>
@@ -383,7 +383,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 onConfirm={() => {
                     setShowErrorModal(false);
                 }}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
                 prompt={
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML

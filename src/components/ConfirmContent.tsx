@@ -49,11 +49,8 @@ type ConfirmContentProps = {
     /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
     subtitle?: string | ReactNode;
 
-    /** Whether we should use the success button color */
-    success?: boolean;
-
-    /** Whether we should use the danger button color. Use if the action is destructive */
-    danger?: boolean;
+    /** Button variant */
+    buttonVariant?: ButtonVariant;
 
     /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
@@ -140,8 +137,7 @@ function ConfirmContent({
     prompt = '',
     subtitle,
     subtitleStyles,
-    success = true,
-    danger = false,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
     iconSource,
@@ -177,9 +173,9 @@ function ConfirmContent({
     const isCentered = shouldCenterContent;
 
     let confirmButtonVariant: ButtonVariant | undefined;
-    if (danger) {
+    if (buttonVariant === CONST.BUTTON_VARIANT.DANGER) {
         confirmButtonVariant = CONST.BUTTON_VARIANT.DANGER;
-    } else if ((shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger)) && success) {
+    } else if ((shouldUseSuccessStyleForConfirm || shouldShowCancelButton) && buttonVariant === CONST.BUTTON_VARIANT.SUCCESS) {
         confirmButtonVariant = CONST.BUTTON_VARIANT.SUCCESS;
     }
 

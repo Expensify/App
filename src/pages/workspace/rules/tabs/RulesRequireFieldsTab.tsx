@@ -17,6 +17,7 @@ import {getRequireFieldsTableData} from '@libs/RequireFieldsRulesUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -72,7 +73,7 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
         containerStyles: [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)],
         buttons: [
             {
-                success: true,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                 isDisabled: !canWriteRules,
                 buttonText: translate('workspace.rules.requireFieldsEmptyState.cta'),
                 buttonAction: handleNewRequireFieldsRule,

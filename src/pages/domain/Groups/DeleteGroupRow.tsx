@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {deleteDomainSecurityGroup} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -50,7 +51,7 @@ function DeleteGroupRow({domainAccountID, groupID}: DeleteGroupRowProps) {
             confirmText: translate('domain.groups.deleteGroup'),
             cancelText: translate('domain.groups.neverMind'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (result.action !== ModalActions.CONFIRM) {

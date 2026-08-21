@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -75,7 +76,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
                         {
                             buttonText: translate('workspace.rules.agentRulesEmptyState.cta'),
                             buttonAction: handleAddAgentRule,
-                            success: true,
+                            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                             icon: icons.Plus,
                             isDisabled: !canWriteRules,
                         },

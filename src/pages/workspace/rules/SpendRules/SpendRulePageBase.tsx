@@ -259,7 +259,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
             prompt: translate('workspace.rules.spendRules.deleteRuleConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
