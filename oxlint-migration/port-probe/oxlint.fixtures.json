@@ -37,6 +37,7 @@
             {"selector": ["parameter", "method"], "format": ["camelCase", "PascalCase"], "leadingUnderscore": "allow"}
         ],
         "rulesdir/no-inline-useOnyx-selector": "error",
+        "rulesdir/require-locale-for-localized-date-format": "error",
         "hosted/jsx-no-constructed-context-values": "error",
         "core/no-restricted-syntax": [
             "error",

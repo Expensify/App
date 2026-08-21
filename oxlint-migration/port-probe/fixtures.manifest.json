@@ -37,6 +37,12 @@
         "expected": 6,
         "why": "tsgolint lists it unimplemented, but our options never query types -- hosted with stubbed parser services. The 6th finding is the quoted 'foo-bar' property: our options define no requiresQuotes entry, so it is checked like any other property. Both tools agree, which is what proves the stubbed compilerOptions.target is harmless"
     },
+    "rulesdir/require-locale-for-localized-date-format": {
+        "fixture": "fixtures/requireLocaleForLocalizedDateFormat.ts",
+        "oxlintRule": "rulesdir/require-locale-for-localized-date-format",
+        "expected": 1,
+        "why": "WIRED 2026-08-21; ESLint enabled it and .oxlintrc.json did not, which no findings comparison could surface because the rule reports 0 on this repo"
+    },
     "rulesdir/no-inline-useOnyx-selector": {
         "fixture": "fixtures/inlineUseOnyxSelector.ts",
         "oxlintRule": "rulesdir/no-inline-useOnyx-selector",

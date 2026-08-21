@@ -17,6 +17,8 @@ const lodashUnderscore = fromRepo('node_modules/eslint-plugin-you-dont-need-loda
 const reactNativeA11y = fromRepo('node_modules/eslint-plugin-react-native-a11y');
 // package-relative resolution of this one is blocked by the package's "exports" field
 const noInlineUseOnyxSelector = fromRepo('node_modules/eslint-config-expensify/eslint-plugin-expensify/no-inline-useOnyx-selector.js');
+// an in-repo local rule; require() of an ESM module returns its namespace, which is {name, meta, create}
+const requireLocaleForLocalizedDateFormat = fromRepo('eslint-plugin-local-rules/require-locale-for-localized-date-format.js');
 // the same nested copy oxlint's rh-plugin.mjs loads, so both tools run one plugin instance
 const reactHooks = fromRepo('node_modules/eslint-config-expensify/node_modules/eslint-plugin-react-hooks');
 
@@ -43,7 +45,7 @@ export default [
             'testing-library': plugin(testingLibrary),
             'you-dont-need-lodash-underscore': plugin(lodashUnderscore),
             'react-native-a11y': plugin(reactNativeA11y),
-            rulesdir: {rules: {'no-inline-useOnyx-selector': noInlineUseOnyxSelector}},
+            rulesdir: {rules: {'no-inline-useOnyx-selector': noInlineUseOnyxSelector, 'require-locale-for-localized-date-format': requireLocaleForLocalizedDateFormat}},
         },
         // propWrapperFunctions mirrors the repo config plus one entry the repo does not have, the
         // object form {property: 'exact', exact: true}. See oxlint.fixtures.json for why: the repo's
@@ -69,6 +71,7 @@ export default [
                 {selector: ['parameter', 'method'], format: ['camelCase', 'PascalCase'], leadingUnderscore: 'allow'},
             ],
             'rulesdir/no-inline-useOnyx-selector': 'error',
+            'rulesdir/require-locale-for-localized-date-format': 'error',
             // wired 2026-08-11: ESLint core and plugin rules oxlint has no native port for, hosted
             // through the core/ and hosted/ aliases. Options copied from eslint-config-expensify.
             // the full nine-selector array from eslint-config-expensify, because the selectors are the
