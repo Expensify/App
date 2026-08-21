@@ -153,7 +153,7 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            productFlavors.production.signingConfig signingConfigs.release
+            productFlavors.production.signingConfig signingConfigs.debug
             shrinkResources enableProguardInReleaseBuilds
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
@@ -162,7 +162,7 @@ android {
             // so we need to manually set the signing config per flavor in release mode.
             signingConfig null
             productFlavors.all { flavor ->
-                flavor.signingConfig signingConfigs.release
+                flavor.signingConfig signingConfigs.debug
             }
         }
     }

@@ -1,4 +1,5 @@
 import intlPolyfill from '@libs/IntlPolyfill';
+import instrumentPersonalDetailsMerge from '@libs/telemetry/instrumentPersonalDetailsMerge';
 
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -84,6 +85,8 @@ export default function () {
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
         ],
     });
+
+    instrumentPersonalDetailsMerge();
 
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.

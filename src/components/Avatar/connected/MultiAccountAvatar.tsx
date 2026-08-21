@@ -5,6 +5,7 @@ import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import useLocalize from '@hooks/useLocalize';
 
 import {sortIconsByName} from '@libs/ReportUtils';
+import withRenderTiming from '@libs/telemetry/renderTimings';
 
 import CONST from '@src/CONST';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
@@ -113,4 +114,4 @@ function MultiAccountAvatar({
     );
 }
 
-export default MultiAccountAvatar;
+export default withRenderTiming('MultiAccountAvatar', MultiAccountAvatar);
