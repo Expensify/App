@@ -42,7 +42,12 @@ function TrackedFilterBar() {
 
 function renderContainer(
     children: React.ReactNode,
-    {isEnabled = true, rowCount = 3, rendersBodyWhenEmpty = false}: {isEnabled?: boolean; rowCount?: number; rendersBodyWhenEmpty?: boolean} = {},
+    {
+        isEnabled = true,
+        rowCount = 3,
+        rendersBodyWhenEmpty = false,
+        onLayout,
+    }: {isEnabled?: boolean; rowCount?: number; rendersBodyWhenEmpty?: boolean; onLayout?: React.ComponentProps<typeof TableSemanticContainer>['onLayout']} = {},
 ) {
     render(
         <TableSemanticContainer
@@ -52,7 +57,7 @@ function renderContainer(
             columnCount={4}
             rendersBodyWhenEmpty={rendersBodyWhenEmpty}
             scrollWidth={undefined}
-            onLayout={undefined}
+            onLayout={onLayout}
         >
             {children}
         </TableSemanticContainer>,
@@ -67,6 +72,23 @@ describe('TableSemanticContainer', () => {
         expect(screen.queryByLabelText('Members')).toBeNull();
         expect(screen.getByTestId('stub-header')).toBeTruthy();
         expect(screen.getByTestId('stub-body')).toBeTruthy();
+    });
+
+    it('keeps the measurement wrapper when semantics are disabled', () => {
+        const onLayout = jest.fn();
+        renderContainer([React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})], {isEnabled: false, onLayout});
+
+        // A table with a synthetic page header owns its semantics elsewhere, but dynamic columns still need this
+        // wrapper's layout measurement. No ARIA table semantics should leak onto the measurement-only wrapper.
+        expect(screen.queryByLabelText('Members')).toBeNull();
+        const measurementWrapper = screen.UNSAFE_getAllByType(View).find((view) => view.props.onLayout === onLayout);
+        expect(measurementWrapper).toBeDefined();
+        if (!measurementWrapper) {
+            throw new Error('Measurement wrapper not found');
+        }
+        expect(measurementWrapper.props.role).toBeUndefined();
+        expect(within(measurementWrapper).getByTestId('stub-header')).toBeTruthy();
+        expect(within(measurementWrapper).getByTestId('stub-body')).toBeTruthy();
     });
 
     it('wraps the header/body run in a single role="table" container carrying the counts', () => {
