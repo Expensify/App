@@ -20,6 +20,7 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -131,7 +132,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         label: translate('homePage.gettingStartedSection.createWorkspace'),
         subText: translate('homePage.gettingStartedSection.createWorkspaceSubText'),
         isComplete: true,
-        route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
+        route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, ROUTES.HOME) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
 
     if (intent === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
@@ -185,6 +186,16 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 subText: translate('homePage.gettingStartedSection.linkCompanyCardsSubText'),
                 isComplete: hasCompanyCardFeeds(allCardFeeds),
                 route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
+            });
+        }
+
+        if (policy.isTravelEnabled) {
+            items.push({
+                key: 'setupTravel',
+                label: translate('homePage.gettingStartedSection.setupTravel'),
+                subText: translate('homePage.gettingStartedSection.setupTravelSubText'),
+                isComplete: isWorkspaceProvisionedForTravel(policy.travelSettings),
+                route: ROUTES.WORKSPACE_TRAVEL.getRoute(activePolicyID),
             });
         }
 
@@ -248,13 +259,23 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         });
     }
 
+    if (policy.isTravelEnabled) {
+        items.push({
+            key: 'setupTravel',
+            label: translate('homePage.gettingStartedSection.setupTravel'),
+            subText: translate('homePage.gettingStartedSection.setupTravelSubText'),
+            isComplete: isWorkspaceProvisionedForTravel(policy.travelSettings),
+            route: ROUTES.WORKSPACE_TRAVEL.getRoute(activePolicyID),
+        });
+    }
+
     if (policy.areWorkflowsEnabled) {
         items.push({
             key: 'configureApprovals',
             label: translate('homePage.gettingStartedSection.configureApprovals'),
             subText: translate('homePage.gettingStartedSection.configureApprovalsSubText'),
             isComplete: hasCustomApprovalWorkflow(policy),
-            route: ROUTES.WORKSPACE_WORKFLOWS.getRoute(activePolicyID),
+            route: ROUTES.WORKSPACE_WORKFLOWS.getRoute(activePolicyID, CONST.TAB.WORKFLOWS.APPROVALS),
         });
     }
 

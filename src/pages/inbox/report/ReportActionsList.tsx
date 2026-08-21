@@ -66,20 +66,22 @@ import React, {useEffect, useRef, useState} from 'react';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
+import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
-import ReportActionsListTailIndicator from './ReportActionsListTailIndicator';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
 
-type ReportActionsListProps = {
+type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
     /** Callback executed on list layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
+
+type ReportActionsListProps = ReportActionsListContentProps;
 
 /**
  * Create a unique key for each action in the FlatList.
@@ -100,7 +102,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
  * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
  * mounts it only once content is ready, so those hooks never run while a skeleton shows.
  */
-function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) {
+function ReportActionsListContent({reportID, onLayout}: ReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -324,7 +326,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         reportID,
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,
-        actionBadge: reportAttributes?.actionBadge,
         renderedVisibleReportActions,
         scrollToActionBadgeTarget,
     });
@@ -354,7 +355,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     })();
 
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-        const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
+        const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         return (
             <ReportActionIndexContext.Provider value={index}>
@@ -393,10 +394,16 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML];
+    const extraData = [
+        shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
+        isArchivedNonExpenseReport(report, isReportArchived),
+        draftReportActionID,
+        draftMessageHTML,
+        isDraftPendingCompletion,
+    ];
 
     const listHeaderComponent = (
-        <ReportActionsListTailIndicator
+        <ReportActionsListHeader
             reportID={reportID}
             isDraftPendingCompletion={isDraftPendingCompletion}
         />
@@ -406,7 +413,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
@@ -423,9 +430,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
         didLayout.current = true;
 
-        if (report) {
-            markOpenReportEnd(report, {warm: true});
-        }
+        markOpenReportEnd(reportID, report, {warm: true});
     };
 
     // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
@@ -444,7 +449,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
                 actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
                 onActionBadgePress={scrollToActionBadgeTarget}
-                isMarkAsDone={shouldUseMarkAsDoneCopy}
+                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
             <ReportActionsListPaddingView
                 report={report}

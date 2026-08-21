@@ -12,7 +12,7 @@ import type Report from '@src/types/onyx/Report';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
-import {getReportChatType} from '@selectors/Report';
+import {getReportChatType, getReportParentReportID} from '@selectors/Report';
 import {getNewestReportActionSelector} from '@selectors/ReportAction';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
@@ -36,6 +36,7 @@ type AgentZeroStatusActions = {
 type ReportMeta = {
     chatType: Report['chatType'];
     isDM: boolean;
+    parentReportID: Report['parentReportID'];
     participantAccountIDs: number[];
 };
 
@@ -43,6 +44,7 @@ function reportMetaSelector(report: OnyxEntry<Report>): ReportMeta {
     return {
         chatType: getReportChatType(report),
         isDM: isDM(report),
+        parentReportID: getReportParentReportID(report),
         participantAccountIDs: getReportParticipantAccountIDs(report),
     };
 }
@@ -59,38 +61,53 @@ const AgentZeroStatusStateContext = createContext<AgentZeroStatusState>(defaultS
 const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defaultActions);
 
 /**
- * Cheap outer guard — subscribes to scalar report metadata plus this report's processing-indicator
- * NVP. For non-AgentZero reports with no server-driven indicator (the common case), returns
- * children directly.
+ * Cheap outer guard — subscribes to the scalar CONCIERGE_REPORT_ID, the report's chat metadata,
+ * and this report's processing-indicator NVP, then decides whether the gate below it does any
+ * work. For non-AgentZero reports (the common case) the gate stays inert: no reasoning
+ * subscription, no report-actions subscription, and an empty candidate list.
  *
- * AgentZero chats include Concierge DMs, policy #admins rooms, and custom-agent chats (any
- * report with a participant whose personalDetails carries `isCustomAgent: true`, stamped
- * server-side in `Account::formatNewDotPersonalDetails`).
+ * A report qualifies either because the server is *already* processing for an agent in it, or
+ * because it's one of the chat types where an agent responds by default: Concierge DMs, policy
+ * #admins rooms, and custom-agent chats (any report with a participant whose personalDetails
+ * carries `isCustomAgent: true`, stamped server-side in `Account::formatNewDotPersonalDetails`).
+ *
+ * The NVP arm is what makes this work outside those chat types — expense reports, threads,
+ * anywhere else Auth decides to run an agent. Auth owns the rule for where agents respond
+ * (`shouldEmitConciergeStatusUpdates`), so keying off the indicator it writes keeps the client
+ * from re-deriving that rule and drifting from it.
+ *
+ * The chat-type arm still matters: it mounts the gate *before* the first NVP lands, so the
+ * reasoning Pusher subscription is live from the start of a Concierge run.
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [reportMeta] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportMetaSelector});
-    const {chatType, isDM: isDMReport = false, participantAccountIDs} = reportMeta ?? {};
+    const {chatType, isDM: isDMReport = false, parentReportID, participantAccountIDs} = reportMeta ?? {};
     const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    // Read once here and hand it to the gate rather than subscribing again inside it — the
+    // selector narrows to a short accountID list, so this only re-renders when the set of
+    // actively-processing agents changes.
     const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
 
-    const isConciergeChat = reportID === conciergeReportID;
+    // Concierge answers each question in a thread off the Concierge DM, so those threads carry its indicator too.
+    const isConciergeChat = !!conciergeReportID && (reportID === conciergeReportID || parentReportID === conciergeReportID);
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
-    const hasServerDrivenStatus = (serverAgentIDs?.length ?? 0) > 0;
     const otherParticipantCount = currentUserAccountID === undefined ? 0 : (participantAccountIDs ?? []).filter((accountID) => accountID !== currentUserAccountID).length;
     const customAgentDMAccountID = isCustomAgentChat && isDMReport && otherParticipantCount === 1 ? agentParticipantAccountID : undefined;
-    const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat || hasServerDrivenStatus;
+    const isServerProcessing = (serverAgentIDs ?? []).length > 0;
+    const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat || isServerProcessing;
 
-    if (!reportID || !isAgentZeroChat) {
-        return children;
-    }
-
+    // Mounted for every report, inert ones included, so `children` keep a stable position. A report
+    // becomes an AgentZero chat mid-session, and wrapping it only then would remount the whole feed.
     return (
         <AgentZeroStatusGate
             key={reportID}
             reportID={reportID}
+            isActive={!!reportID && isAgentZeroChat}
+            serverAgentIDs={serverAgentIDs}
             includeConcierge={isConciergeChat || isAdmin}
             customAgentDMAccountID={customAgentDMAccountID}
         >
@@ -101,27 +118,34 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 
 function AgentZeroStatusGate({
     reportID,
+    isActive,
+    serverAgentIDs,
     includeConcierge,
     customAgentDMAccountID,
     children,
-}: React.PropsWithChildren<{reportID: string; includeConcierge: boolean; customAgentDMAccountID?: number}>) {
+}: React.PropsWithChildren<{reportID: string | undefined; isActive: boolean; serverAgentIDs: number[] | undefined; includeConcierge: boolean; customAgentDMAccountID?: number}>) {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
 
     // When the agent's reply (ADDCOMMENT) lands before the server's indicator-clear NVP update,
     // the thinking bubble would remain visible briefly. Suppress any agent whose reply is already
     // the newest action in the report so the bubble hides as soon as the reply renders.
-    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getNewestReportActionSelector});
+    //
+    // Keyed on the report only while an agent responds here: the gate mounts for every report, and
+    // this selector re-runs on every report-action change.
+    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isActive ? reportID : undefined}`, {selector: getNewestReportActionSelector});
 
     // One reasoning Pusher subscription per report (not per agent). The handler in Report
     // actions routes each event to the right agent's reasoning history by its actorAccountID.
     // Cleanup clears the report's reasoning history and the Pusher subscription.
     useEffect(() => {
+        if (!isActive || !reportID) {
+            return;
+        }
         subscribeToReportReasoningEvents(reportID);
         return () => {
             unsubscribeFromReportReasoningChannel(reportID);
         };
-    }, [reportID]);
+    }, [reportID, isActive]);
 
     const optimisticAgentAccountID = includeConcierge ? CONST.ACCOUNT_ID.CONCIERGE : customAgentDMAccountID;
 
@@ -129,7 +153,7 @@ function AgentZeroStatusGate({
     // custom-agent DMs both use the same per-agent optimistic store; other custom-agent contexts
     // remain server-driven so report-activity agents don't appear before Auth decides to run them.
     const kickoffWaitingIndicator = () => {
-        if (optimisticAgentAccountID === undefined) {
+        if (optimisticAgentAccountID === undefined || !reportID) {
             return;
         }
         AgentZeroOptimisticStore.increment(reportID, optimisticAgentAccountID, newestReportAction?.reportActionID ?? null);
@@ -143,10 +167,10 @@ function AgentZeroStatusGate({
         kickoffWaitingIndicator();
     }, [shouldKickoff, includeConcierge, kickoffWaitingIndicator]);
 
-    const candidateIDs = new Set<number>(serverAgentIDs ?? []);
-    if (includeConcierge) {
+    const candidateIDs = new Set<number>(isActive ? (serverAgentIDs ?? []) : []);
+    if (isActive && includeConcierge) {
         candidateIDs.add(CONST.ACCOUNT_ID.CONCIERGE);
-    } else if (customAgentDMAccountID !== undefined) {
+    } else if (isActive && customAgentDMAccountID !== undefined) {
         candidateIDs.add(customAgentDMAccountID);
     }
     if (currentUserAccountID !== undefined) {

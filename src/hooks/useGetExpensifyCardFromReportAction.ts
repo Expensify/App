@@ -2,6 +2,7 @@ import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvide
 
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isCardIssuedAction} from '@libs/ReportActionsUtils';
+import {getTravelBillingFeedID} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,10 +23,10 @@ function useGetExpensifyCardFromReportAction({reportAction, policyID}: {reportAc
     }
 
     // Issued Expensify Cards live on one of two Onyx keys: regular cards on the 2-segment key,
-    // Travel Invoicing cards on the `_TRAVEL_US` variant. Check both.
+    // Travel Billing cards on the `_TRAVEL_US` variant. Check both.
     return (
         allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]?.[cardID] ??
-        allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`]?.[cardID] ??
+        allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`]?.[cardID] ??
         allUserCards?.[cardID]
     );
 }

@@ -11,7 +11,6 @@ import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 
@@ -177,14 +176,15 @@ const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequest
     );
 };
 
-const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
+const getTransactionDisplayAmountAndMetadataText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
-    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
-    const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
-    const transactionDisplayAmount = convertToDisplayString(-transaction.amount, transaction.currency);
-    return {transactionHeaderText, transactionDisplayAmount};
+    // The date leads the supporting line, which can also carry the category and the report status.
+    const transactionSupportingText = new RegExp(`^${date}`);
+    const transactionTypeText = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
+    const transactionDisplayAmount = TestHelper.convertToDisplayString(-transaction.amount, transaction.currency);
+    return {transactionSupportingText, transactionTypeText, transactionDisplayAmount};
 };
 
 const setCurrentWidth = () => {
@@ -274,10 +274,11 @@ describe('MoneyRequestReportPreview', () => {
         expect(screen.getByText(getReportName(mockIOUReport))).toBeOnTheScreen();
 
         for (const transaction of arrayOfTransactions) {
-            const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
+            const {transactionDisplayAmount, transactionSupportingText, transactionTypeText} = getTransactionDisplayAmountAndMetadataText(transaction);
 
             expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThan(0);
-            expect(screen.getAllByText(transactionHeaderText)).toHaveLength(arrayOfTransactions.length);
+            expect(screen.getAllByText(transactionSupportingText)).toHaveLength(arrayOfTransactions.length);
+            expect(screen.getAllByText(transactionTypeText)).toHaveLength(arrayOfTransactions.length);
             expect(screen.getAllByText(transaction.merchant)).toHaveLength(arrayOfTransactions.length);
         }
     });
@@ -294,7 +295,7 @@ describe('MoneyRequestReportPreview', () => {
 
         const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(mockIOUReport);
         expect(screen.getByText(TestHelper.translateLocal('common.total'))).toBeOnTheScreen();
-        expect(screen.getAllByText(convertToDisplayString(totalDisplaySpend, mockIOUReport.currency)).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(TestHelper.convertToDisplayString(totalDisplaySpend, mockIOUReport.currency)).length).toBeGreaterThan(0);
     });
 
     it('hides the report total when the preview has a single transaction', async () => {

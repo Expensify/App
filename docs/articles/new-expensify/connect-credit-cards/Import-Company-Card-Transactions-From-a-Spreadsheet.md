@@ -30,9 +30,11 @@ Only **Workspace Admins** can import transactions for company cards.
 5. Choose **Import transactions from file**.
 6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 7. Enter a name for the card feed.
-8. Set your field mappings (e.g., Card Number, Date, Amount, Merchant).
+8. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
 9. Assign cards to users based on the transactions in the file.
 10. Click **Import**.
+
+You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
 **Note:** Download the [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for an example of the recommended column structure and formatting for company card transaction imports.
 
@@ -84,12 +86,15 @@ You can upload CSV, TXT, XLS, and XLSX files when importing company card transac
 
 ## What columns are required to import company card transactions?
 
-Your file should include the following required columns:
-- Card Number (or last 4 digits of the card number)
+Your file must include a way to identify each card so transactions can be matched to it — map either a **Card number** column or a **Card name** column. At least one is required, and you can map both. It should also include the following columns:
 - Date
-- Amount
 - Merchant
+- Amount
 - Currency (optional but recommended)
+
+## How does matching transactions by card name work?
+
+Instead of a **Card number**, you can map a **Card name** column, and Expensify groups each transaction under the card identified by that name. After you upload the file, those cards appear as entries you can assign to users — the name doesn't need to match a card you've already assigned. You only need one card-identity column, so map a **Card number** column instead if you'd rather identify cards by number.
 
 ## What happens if I map the same spreadsheet column twice?
 
@@ -97,7 +102,7 @@ You’ll see an error message and won’t be able to proceed until the issue is 
 
 ## Why am I seeing an "Oops!" error about empty values? 
 
-If you map a required field such as **Card Number**, **Date**, **Amount**, or **Merchant** to a column that contains one or more empty cells, you'll see an "Oops!" error and won't be able to continue. Review the column you mapped, fill in any missing values, and then try importing again.
+If you map a required field such as **Date**, **Merchant**, or **Amount** — or the **Card number** or **Card name** column you're using to identify each card — to a column that contains one or more empty cells, you'll see an "Oops!" error and won't be able to continue. Review the column you mapped, fill in any missing values, and then try importing again.
 
 ## Can I change field mappings after importing transactions?
 

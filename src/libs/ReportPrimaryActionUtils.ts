@@ -82,6 +82,8 @@ type GetReportPrimaryActionParams = {
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
     ownerLogin: string | undefined;
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean;
 };
 
 type IsPrimaryPayActionParams = {
@@ -220,9 +222,12 @@ function isPrimaryPayAction({
         return false;
     }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
+
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
     const canPayReport =
         isReportPayer ||
         (canNonPayerAdminPay &&
+            isGroupPolicy(policy) &&
             policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
             canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
@@ -318,7 +323,8 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     return false;
 }
 
-function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[]) {
+/** TODO: isOffline should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], isOffline?: boolean) {
     const isClosedReport = isClosedReportUtils(report);
     if (isClosedReport) {
         return false;
@@ -331,7 +337,7 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     }
 
     const reportActions = getAllReportActions(report.reportID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, isOffline);
 
     if (!transactionThreadReportID) {
         return false;
@@ -483,6 +489,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         chatReport,
         invoiceReceiverPolicy,
         ownerLogin,
+        isOffline,
     } = params;
 
     // The expense report of personal policy shouldn't have any action
@@ -522,7 +529,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions) || (isPayActionWithAllExpensesHeld && expensesToHold.length)) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions, isOffline) || (isPayActionWithAllExpensesHeld && expensesToHold.length)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
@@ -574,7 +581,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
  * Offered for any draft report the current user submits on a Submit workspace. The "Submit via PDF" flow itself
  * submits the report to the submitter (managerID = submitter), which is what makes the backend generate the PDF, so
  * this does not require the report to already be configured to submit to self. The caller is responsible for
- * additionally gating this on the SUBMIT_2026 beta and on Submit already being the primary action.
+ * additionally gating this on Submit already being the primary action.
  */
 function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, policy?: Policy): boolean {
     return isSubmitPolicy(policy) && isCurrentUserSubmitter(report, currentUserAccountID);

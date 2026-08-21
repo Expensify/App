@@ -15,7 +15,6 @@ import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessa
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Message} from '@src/types/onyx/ReportAction';
 
 import type * as NativeNavigation from '@react-navigation/native';
 import type {PropsWithChildren} from 'react';
@@ -172,7 +171,10 @@ describe('ReportActionCompose Integration Tests', () => {
             const videoSource = 'https://example.com/video.mp4';
             const videoHtml = `<video src="${videoSource}" data-expensify-source="${videoSource}" data-name="video.mp4" data-expensify-height="100" data-expensify-width="200">video.mp4</video>`;
 
-            const messages = defaultReportAction.message as Message[];
+            const messages = defaultReportAction.message;
+            if (!Array.isArray(messages)) {
+                throw new Error('Expected the default report action message to be an array');
+            }
 
             renderReportActionItemMessageEdit({
                 action: {
