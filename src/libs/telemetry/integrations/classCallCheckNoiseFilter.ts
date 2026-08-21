@@ -11,7 +11,7 @@ const THIRD_PARTY_CODE_TAG = 'third_party_code';
  *
  * `app:///` is the spelling this noise arrives with: `createReactNativeRewriteFrames` produces it from any URL
  * with no basename, most notably `webkit-masked-url://hidden/` (WebKit's stand-in for a URL it withholds).
- * `''` is a frame the parser gave no filename; `[native code]`/`native` are native markers the rewrite leaves
+ * `''` is a frame the parser gave no filename. `[native code]`/`native` are native markers the rewrite leaves
  * untouched. The bare `<anonymous>` and `webkit-masked-url://hidden/` entries are guards in case the SDK ever
  * stops rewriting frames - today the rewrite always runs first, so neither can match.
  */
@@ -57,7 +57,7 @@ function isClassCallCheckNoise(event: Event): boolean {
  * Drops the GH #93837 noise the way the SDK's own `inboundFiltersIntegration` drops `ignoreErrors` matches: an
  * event processor, so the decision sits next to `thirdPartyErrorFilterIntegration` whose tag it consumes. It
  * must run after `createReactNativeRewriteFrames`, which deletes `abs_path` and strips the scheme from
- * `filename`; default integrations are set up before ours, so no `webkit-masked-url://` scheme is left by then.
+ * `filename`. Default integrations are set up before ours, so no `webkit-masked-url://` scheme is left by then.
  *
  * Drops leave no trace, same as `ignoreErrors`. To check the predicate has not gone inert, watch total
  * `third_party_code:True` volume per release (Discover query in GH #93837): zero means the tag or the frame
