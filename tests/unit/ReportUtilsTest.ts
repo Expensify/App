@@ -20394,11 +20394,10 @@ describe('ReportUtils', () => {
 
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
-        const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus' | 'Transfer', IconAsset>>({
+        const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({
             Location: jest.fn(),
             ReceiptPlus: jest.fn(),
             Plus: jest.fn(),
-            Transfer: jest.fn(),
         });
         const mockIouReportID = '12345';
 
@@ -20621,7 +20620,7 @@ describe('ReportUtils', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
         });
 
-        it('should show only SPLIT_EXPENSE for a Teachers Unite report', () => {
+        it('should hide CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE for a Teachers Unite report', () => {
             const mockPolicy = createRandomPolicy(0);
             mockPolicy.id = CONST.TEACHERS_UNITE.TEST_POLICY_ID;
 
@@ -20638,7 +20637,7 @@ describe('ReportUtils', () => {
             });
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.SPLIT_EXPENSE);
+            expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE);
         });
     });
     describe('GBR: draft report with delayed submission off then on (issue #69891)', () => {
@@ -21030,11 +21029,10 @@ describe('ReportUtils', () => {
 
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
-        const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus' | 'Transfer', IconAsset>>({
+        const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({
             Location: jest.fn(),
             ReceiptPlus: jest.fn(),
             Plus: jest.fn(),
-            Transfer: jest.fn(),
         });
         const policyID = '5001';
         const iouReportID = 'reportABC';

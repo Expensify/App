@@ -297,7 +297,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
         translate,
-        icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight', 'Transfer']),
+        icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
         iouReportID: moneyRequestReport?.reportID,
         policy,
         userBillingGracePeriodEnds,
