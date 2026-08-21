@@ -122,7 +122,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
         const routeParams = {policyID, feed, cardID};
 
-        console.log('submitting', assignee.login, assignCard?.cardToAssign);
         if (assignee?.login === assignCard?.cardToAssign?.email) {
             if (assignCard?.cardToAssign?.encryptedCardNumber) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
