@@ -45,7 +45,7 @@ import type {TextInputKeyPressEvent} from 'react-native';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE, COLLAPSIBLE_HEADER_OFFSET} from './const';
+import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
 import scrollToMultilineInput from './scrollToMultilineInput';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
@@ -177,7 +177,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET}>
+            <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('addAgentPage.title')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}

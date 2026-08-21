@@ -21,7 +21,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {COLLAPSIBLE_HEADER_OFFSET} from '@pages/settings/Agents/const';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
@@ -40,9 +39,6 @@ import useAgentPromptInputStyles from './useAgentPromptInputStyles';
 
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
 type EditAgentRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
-
-const BUTTONS_TOP_MARGIN = 20;
-const DISCLAIMER_TOP_MARGIN = 8;
 
 function EditAgentRulePage({
     route: {
@@ -130,7 +126,7 @@ function EditAgentRulePage({
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight={shouldUseExpandedRevampFormLayout}
             >
-                <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET + BUTTONS_TOP_MARGIN + DISCLAIMER_TOP_MARGIN}>
+                <CollapsibleHeaderOnKeyboard>
                     <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
                 </CollapsibleHeaderOnKeyboard>
                 <FormProvider
