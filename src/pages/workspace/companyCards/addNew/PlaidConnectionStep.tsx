@@ -15,6 +15,7 @@ import {splitCardFeedWithDomainID} from '@libs/CardUtils';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import getPlaidInstitutionID from '@libs/PlaidUtils';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -130,10 +131,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                         Log.info('[PlaidLink] Success!');
 
                         const institution = metadata.institution;
-                        let plaidConnectedFeed: string | undefined;
-                        if (institution) {
-                            plaidConnectedFeed = 'institution_id' in institution ? institution.institution_id : institution.id;
-                        }
+                        const plaidConnectedFeed = getPlaidInstitutionID(institution);
                         const plaidConnectedFeedName = institution?.name;
 
                         if (feed) {
@@ -147,7 +145,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     plaidConnectedFeedName,
                                     addNewCard.data.selectedCountry,
                                     getDomainNameForPolicy(policyID),
-                                    JSON.stringify(metadata?.accounts),
+                                    JSON.stringify(metadata.accounts),
                                     '',
                                     splitCardFeedWithDomainID(feed)?.domainID,
                                 );
@@ -157,7 +155,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     plaidAccessToken: publicToken,
                                     institutionId: plaidConnectedFeed,
                                     plaidConnectedFeedName,
-                                    plaidAccounts: metadata?.accounts,
+                                    plaidAccounts: metadata.accounts,
                                 },
                                 currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                             });
@@ -170,7 +168,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                 publicToken,
                                 plaidConnectedFeed,
                                 plaidConnectedFeedName,
-                                plaidAccounts: metadata?.accounts,
+                                plaidAccounts: metadata.accounts,
                             },
                         });
                     }}
