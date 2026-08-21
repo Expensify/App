@@ -58,7 +58,8 @@ describe('actions/Domain', () => {
 
     it('createDomain', () => {
         const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-        createDomain('test.com');
+        const domainKeysBeforeCreation = new Set([`${ONYXKEYS.COLLECTION.DOMAIN}123`]);
+        createDomain('test.com', domainKeysBeforeCreation);
 
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.CREATE_DOMAIN,
@@ -66,7 +67,7 @@ describe('actions/Domain', () => {
             {
                 successData: [expect.objectContaining({value: {hasCreationSucceeded: true, isLoading: null}})],
                 optimisticData: [expect.objectContaining({value: {hasCreationSucceeded: null, isLoading: true, errors: null, domainAccountID: null}})],
-                failureData: [expect.objectContaining({value: {isLoading: null}})],
+                failureData: [expect.objectContaining({value: {isLoading: null, domainKeysBeforeCreation: [...domainKeysBeforeCreation]}})],
             },
         );
 
