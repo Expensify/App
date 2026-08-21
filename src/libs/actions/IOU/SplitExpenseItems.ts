@@ -263,20 +263,20 @@ function initSplitExpenseItemData(
 
     // If the parent expense's stored tax value is out of date relative to the live policy rate (for example, the
     // rate's value was edited or the rate was deleted in workspace settings after the expense was created), its
-    // stored taxAmount/taxValue no longer agree with the taxCode — the code resolves to the current rate while the
-    // stored amount and value are from the old rate. Rather than persisting those stale fields (or clearing only
-    // some of them, which lets the optimistic transaction fall back to the parent's old code/value while a zero
+    // stored taxAmount and taxValue no longer agree with the taxCode. The code resolves to the current rate while
+    // the stored amount and value are from the old rate. Rather than persisting those stale fields (or clearing only
+    // some of them, which lets the optimistic transaction fall back to the parent's old code and value while a zero
     // amount is sent to the server), resolve the tax fresh against the live policy so all three fields stay
-    // consistent:
+    // consistent.
     //   - rate updated: keep the transaction's own taxCode and read its current value from the policy.
     //   - rate deleted: fall back to the policy's default tax code and its value.
-    //   - neither resolves (no default / tax tracking off): keep the parent's stored trio untouched. It is
-    //     internally consistent (code/value/amount all from the same old rate), and the save path in
-    //     SplitTransactionUpdate falls back to those same parent values via `splitExpense.taxX ?? original`, so
-    //     emitting an `undefined` code/value here would only be overwritten by the parent's deleted values while a
-    //     recomputed amount stuck — recreating the very mismatch this path avoids.
+    //   - neither resolves (no default or tax tracking off): keep the parent's stored trio untouched. It is
+    //     internally consistent because code, value and amount all come from the same old rate. The save path in
+    //     SplitTransactionUpdate also falls back to those same parent values via splitExpense.taxX ?? original, so
+    //     emitting an undefined code or value here would only be overwritten by the parent's deleted values while a
+    //     recomputed amount stuck. That would recreate the very mismatch this path avoids.
     // The amount is recalculated from the resolved live value against this split's amount. Only gate when a policy
-    // is available to compare against; otherwise keep inheriting the stored values.
+    // is available to compare against. Otherwise keep inheriting the stored values.
     const isStoredTaxValueStale = !!policy && !!transaction?.taxValue && !hasTaxRateWithMatchingValue(policy, transaction);
 
     let resolvedTaxCode = transactionDetails?.taxCode;
@@ -285,7 +285,7 @@ function initSplitExpenseItemData(
     if (isStoredTaxValueStale) {
         let liveTaxCode = resolvedTaxCode;
         let liveTaxValue = liveTaxCode ? getTaxValue(policy, transaction, liveTaxCode) : undefined;
-        // The stored taxCode no longer resolves to a live value (the rate was deleted) — fall back to the policy default.
+        // The stored taxCode no longer resolves to a live value because the rate was deleted, so fall back to the policy default.
         if (liveTaxValue === undefined) {
             const defaultTaxCode = getDefaultTaxCode(policy, transaction);
             const defaultTaxValue = defaultTaxCode ? getTaxValue(policy, transaction, defaultTaxCode) : undefined;

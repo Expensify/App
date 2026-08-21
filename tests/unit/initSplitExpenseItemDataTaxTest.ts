@@ -37,7 +37,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             },
         }) as Policy;
 
-    // The originally selected tax code no longer exists in the policy; a different code is now the default.
+    // The originally selected tax code no longer exists in the policy. A different code is now the default.
     const buildPolicyWithDeletedRate = (defaultRateValue: string): Policy =>
         ({
             id: '200',
@@ -95,9 +95,9 @@ describe('initSplitExpenseItemData stale tax handling', () => {
     const transactionReport = {reportID: 'report-100', statusNum: 0} as Report;
 
     it('refreshes the tax with the live rate when the stored value is out of date', () => {
-        // Policy rate is now 20% while the transaction stored 5% -> stale. Keep the code, use the live value and a
-        // recalculated amount (20% of 100 -> 100 * 20 / 120 = 16.67).
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicy('20%')});
+        // Policy rate is now 20% while the transaction stored 5%, so it is stale. Keep the code, use the live value
+        // and a recalculated amount (20% of 100 gives 100 * 20 / 120 = 16.67).
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicy('20%'), getCurrencyDecimals: () => 2});
 
         expect(splitExpense.taxCode).toBe(TAX_CODE);
         expect(splitExpense.taxValue).toBe('20%');
@@ -105,8 +105,8 @@ describe('initSplitExpenseItemData stale tax handling', () => {
     });
 
     it('falls back to the policy default rate when the stored tax rate was deleted', () => {
-        // The stored code no longer exists; the policy default is now a 10% rate (100 * 10 / 110 = 9.09).
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithDeletedRate('10%')});
+        // The stored code no longer exists. The policy default is now a 10% rate (100 * 10 / 110 = 9.09).
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithDeletedRate('10%'), getCurrencyDecimals: () => 2});
 
         expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
         expect(splitExpense.taxValue).toBe('10%');
@@ -117,7 +117,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
         // The rate was deleted and there is no default to fall back to. Rather than emitting an undefined code/value
         // (which the save path would overwrite with the parent's deleted values while keeping a recomputed amount),
         // leave the parent's internally-consistent stored trio in place.
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithoutRates()});
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithoutRates(), getCurrencyDecimals: () => 2});
 
         expect(splitExpense.taxCode).toBe(TAX_CODE);
         expect(splitExpense.taxValue).toBe('5%');
@@ -125,8 +125,8 @@ describe('initSplitExpenseItemData stale tax handling', () => {
     });
 
     it('keeps the stored tax fields when the stored value still matches the policy rate', () => {
-        // Policy rate matches the transaction's stored 5% -> not stale.
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicy('5%')});
+        // Policy rate matches the transaction's stored 5%, so it is not stale.
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicy('5%'), getCurrencyDecimals: () => 2});
 
         expect(splitExpense.taxCode).toBe(TAX_CODE);
         expect(splitExpense.taxValue).toBe('5%');
@@ -134,7 +134,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
     });
 
     it('keeps the stored tax fields when no policy is provided (existing behavior)', () => {
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {getCurrencyDecimals: () => 2});
 
         expect(splitExpense.taxCode).toBe(TAX_CODE);
         expect(splitExpense.taxValue).toBe('5%');
