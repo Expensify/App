@@ -365,7 +365,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        if (canWriteCategories && !isRulesRevampEnabled) {
+        // Under the revamp the other settings moved to Rules, so this is only worth showing for the GL codes toggle.
+        if (canWriteCategories && (!isRulesRevampEnabled || !!policy?.glCodes)) {
             menuItems.push({
                 icon: icons.Gear,
                 text: translate('common.settings'),
@@ -414,6 +415,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         navigateToCategoriesSettings,
         canWriteCategories,
         isRulesRevampEnabled,
+        policy?.glCodes,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,
