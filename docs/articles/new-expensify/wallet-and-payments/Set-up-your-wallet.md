@@ -44,6 +44,8 @@ You’ll be asked to enter the following:
 
 Click **Save & Continue** to proceed.
 
+**Note:** If you enter a phone number that is different from the one already saved on your account, you’ll be asked to verify the change with a security code before continuing. A prompt titled **Let's make sure it's you** appears—enter the security code sent to your primary contact method to proceed.
+
 ---
 
 # Complete Identity Verification with Onfido

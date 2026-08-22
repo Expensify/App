@@ -23,6 +23,7 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
+import shouldForceKeyboardIfAlreadyFocused from '@libs/shouldForceKeyboardIfAlreadyFocused';
 import {hasReceipt} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -181,7 +182,7 @@ function DynamicIOURequestStepDescription({
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            focusComposerWithDelay(inputRef.current)(true, undefined, true);
+            focusComposerWithDelay(inputRef.current)(true, undefined, shouldForceKeyboardIfAlreadyFocused());
         },
         getHasUnsavedChanges: () => {
             if (isSaved) {
