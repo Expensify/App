@@ -6,21 +6,24 @@ import useSidePanelReportID from '@hooks/useSidePanelReportID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
-import {addComment} from '@userActions/Report';
+import {addAttachmentWithComment, addComment} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 /**
  * Returns a callback that opens the side panel (or Concierge chat on native)
  * and sends the provided search query as a message.
  * Also returns a flag indicating whether the Ask Concierge item is ready to be displayed.
+ *
+ * @param forceConcierge Always target the Concierge report, ignoring the report the side panel currently maps to.
  */
-function useAskConcierge() {
+function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = {}) {
     const sidePanelReportID = useSidePanelReportID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {openConciergeAnywhere, isInSidePanel} = useOpenConciergeAnywhere();
-    const targetReportID = (isInSidePanel ? sidePanelReportID : undefined) ?? conciergeReportID;
+    const targetReportID = !forceConcierge && isInSidePanel && sidePanelReportID ? sidePanelReportID : conciergeReportID;
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetReportID)}`);
     const {timezone, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -31,7 +34,7 @@ function useAskConcierge() {
         if (!trimmedQuery || !shouldShowAskConcierge) {
             return;
         }
-        openConciergeAnywhere();
+        openConciergeAnywhere({forceConcierge});
         addComment({
             report: targetReport,
             notifyReportID: targetReportID,
@@ -46,7 +49,27 @@ function useAskConcierge() {
         });
     };
 
-    return {askConcierge, shouldShowAskConcierge};
+    const askConciergeWithAttachment = (attachments: FileObject | FileObject[], searchQuery: string) => {
+        if (!shouldShowAskConcierge) {
+            return;
+        }
+        openConciergeAnywhere({forceConcierge});
+        addAttachmentWithComment({
+            report: targetReport,
+            notifyReportID: targetReportID,
+            ancestors: [],
+            attachments,
+            currentUserAccountID,
+            text: searchQuery.trim(),
+            timezone: timezone ?? CONST.DEFAULT_TIME_ZONE,
+            shouldPlaySound: true,
+            isInSidePanel,
+            delegateAccountID,
+            conciergeReportID,
+        });
+    };
+
+    return {askConcierge, askConciergeWithAttachment, shouldShowAskConcierge, conciergeTargetReportID: targetReportID};
 }
 
 export default useAskConcierge;

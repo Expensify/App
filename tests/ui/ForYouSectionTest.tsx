@@ -57,6 +57,16 @@ jest.mock('@pages/home/ForYouSection/ForYouSkeleton', () => () => {
     return ReactModule.createElement('View', {testID: 'for-you-skeleton'});
 });
 
+jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    return ReactModule.createElement('View', {testID: 'concierge-prompt-box'});
+});
+
+// The "Time sensitive" group is exercised in its own tests; stub it out here so these tests stay focused on "For you"
+// (and so it doesn't pull in useFocusEffect, which needs a NavigationContainer this harness doesn't provide).
+jest.mock('@pages/home/TimeSensitiveSection/useTimeSensitiveItems', () => jest.fn(() => []));
+jest.mock('@pages/home/TimeSensitiveSection/TimeSensitiveGroup', () => () => null);
+
 // ForYouSection calls useIsFocused() to freeze useTodoCounts when unfocused; this test renders it outside a
 // NavigationContainer, so stub the focus hook (useTodoCounts is mocked, so the focus value itself is irrelevant).
 jest.mock('@react-navigation/native', () => {
@@ -197,8 +207,11 @@ function setTodoCounts(todos: TodoFixture) {
     });
 }
 
+// ConciergePromptBox is mocked, so these props are inert here. They only satisfy ForYouSection's required prop types.
+const conciergeMenuProps = {isConciergeMenuVisible: false, setIsConciergeMenuVisible: () => {}};
+
 function renderForYouSection() {
-    return render(<ForYouSection />);
+    return render(<ForYouSection {...conciergeMenuProps} />);
 }
 
 function pressFirstBeginButton() {
@@ -490,7 +503,7 @@ describe('ForYouSection', () => {
 
             // Clearing the to-dos must not unmount the section; it should stay visible (now empty).
             setTodoCounts(BASE_TODOS);
-            rerender(<ForYouSection />);
+            rerender(<ForYouSection {...conciergeMenuProps} />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
@@ -651,7 +664,7 @@ describe('ForYouSection', () => {
             // While the Home tab is blurred the scan is skipped, but the hook retains the last computed count
             // in state, so the row keeps its count instead of flashing back to the empty state.
             mockIsFocused = false;
-            rerender(<ForYouSection />);
+            rerender(<ForYouSection {...conciergeMenuProps} />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();
