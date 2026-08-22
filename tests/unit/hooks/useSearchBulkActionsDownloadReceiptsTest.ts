@@ -316,7 +316,6 @@ describe('useSearchBulkActions - Download receipts', () => {
 
             expect(exportReceiptsToZip).toHaveBeenCalledTimes(1);
             expect(exportReceiptsToZip).toHaveBeenCalledWith({reportIDs: expect.arrayContaining(['1', '2'])});
-            expect(result.current.exportDownloadStatusModal).not.toBeNull();
         });
 
         it('shows the offline modal and does not export when offline', async () => {

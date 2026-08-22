@@ -7,6 +7,7 @@ import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -14,6 +15,7 @@ import fileDownload from '@libs/fileDownload';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
 
 import {sendExportFileFromConcierge} from '@userActions/Export';
+import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,6 +56,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
+    const wasRecordCleared = !exportDownload && !!displayedExport;
 
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
@@ -71,7 +74,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
     // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
-    // via the encryptedAuthToken — no separate OldDot sign-in needed.
+    // via the encryptedAuthToken, so no separate OldDot sign-in is needed.
     const downloadFile = () => {
         if (!fileName || !currentUserLogin) {
             return;
@@ -84,7 +87,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     };
 
     useEffect(() => {
-        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts) {
+        // Only the leader tab auto-downloads, so a ready export isn't downloaded once per open tab.
+        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts || !isClientTheLeader()) {
             return;
         }
         downloadFile();
@@ -96,9 +100,12 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     };
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
+    if (wasRecordCleared) {
+        return null;
+    }
+
     const handleGoToConcierge = () => {
-        onClose();
-        openConciergeAnywhere({forceConcierge: true});
+        close(() => openConciergeAnywhere({forceConcierge: true}));
     };
 
     const handleDownloadFile = () => {

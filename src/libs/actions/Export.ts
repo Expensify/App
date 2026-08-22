@@ -67,7 +67,15 @@ function clearStaleExportDownloads() {
             }
             for (const key of Object.keys(exportDownloads)) {
                 const exportDownload = exportDownloads[key];
-                if (!exportDownload || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
+                if (!exportDownload) {
+                    continue;
+                }
+                // Never clear a Concierge hand-off: the worker owns the record and deletes it once delivered.
+                if (exportDownload.shouldSendFromConcierge) {
+                    continue;
+                }
+                // Keep preparing and ready exports so the manager can re-surface them. Only failed leftovers are cleared here.
+                if (exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY) {
                     continue;
                 }
                 const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
