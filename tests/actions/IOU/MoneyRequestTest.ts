@@ -365,6 +365,7 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {
                     [draftTransaction.transactionID]: draftTransaction,
                 },
+                linkedTrackedExpenseTransactionDrafts: [draftTransaction],
                 delegateAccountID: undefined,
             });
 
