@@ -399,7 +399,7 @@ function getExportOptionTexts(headerButtonsOptions: ReturnType<typeof useSearchB
     return exportOption?.subMenuItems?.map((item) => item.text) ?? (exportOption ? [exportOption.text] : []);
 }
 
-/** The export menu collapses into a single top-level option when it holds only one item, so look in both shapes. */
+/** Export options live inside the Export submenu, but tolerate a flat top-level shape too so callers stay robust. */
 function getExportOptionByText(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions'], text: string) {
     const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
     if (!exportOption) {
@@ -1143,6 +1143,28 @@ describe('useSearchBulkActions - export options', () => {
         });
 
         expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.basicExport');
+    });
+
+    it('keeps the Export entry as a submenu even when only one export option is available', async () => {
+        // Regression test for https://github.com/Expensify/App/issues/98779: a full group selection offers a single
+        // export option ('export.currentView'). The Export entry must still open the Export submenu (keeping its
+        // generic label and subMenuItems) rather than collapsing straight into that single option.
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({
+                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
+                isSelectedViaGroup: true,
+            }),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        expect(exportOption?.subMenuItems).toHaveLength(1);
+        expect(exportOption?.text).toBe('common.export');
     });
 
     it('exports the current view of a grouped search with the default expense columns', async () => {
