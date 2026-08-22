@@ -8,6 +8,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
@@ -27,7 +28,7 @@ import {removeWaypoint, saveWaypoint} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {RecentWaypoint, Transaction} from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
@@ -66,17 +67,18 @@ function recentWaypointsSelector(waypoints: RecentWaypoint[] = []): PredefinedPl
         }));
 }
 
-type IOURequestStepWaypointProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
+type DynamicIOURequestStepWaypointProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_WAYPOINT> & {
     transaction: OnyxEntry<Transaction>;
 };
 
-function IOURequestStepWaypoint({
+function DynamicIOURequestStepWaypoint({
     route: {
-        params: {action, backTo, iouType, pageIndex, reportID, transactionID},
+        params: {action, iouType, pageIndex, transactionID},
     },
     transaction,
-}: IOURequestStepWaypointProps) {
+}: DynamicIOURequestStepWaypointProps) {
     const styles = useThemeStyles();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.path);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
@@ -117,11 +119,7 @@ function IOURequestStepWaypoint({
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
     const goBack = () => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        Navigation.goBack(backPath);
     };
 
     const validate = (values: FormOnyxValues<'waypointForm'>): Partial<Record<string, TranslationPaths>> => {
@@ -217,7 +215,7 @@ function IOURequestStepWaypoint({
             includeSafeAreaPaddingBottom
             onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
-            testID="IOURequestStepWaypoint"
+            testID="DynamicIOURequestStepWaypoint"
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -292,4 +290,4 @@ function IOURequestStepWaypoint({
     );
 }
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepWaypoint), true);
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(DynamicIOURequestStepWaypoint), true);

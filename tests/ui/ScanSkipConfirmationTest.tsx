@@ -8,6 +8,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
 import IOURequestStepScan from '@pages/iou/request/step/IOURequestStepScan';
+import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -157,18 +158,17 @@ describe('ScanSkipConfirmation submit orchestration', () => {
                 <LocaleContextProvider>
                     <NavigationContainer>
                         <IOURequestStepScan
-                            route={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['route']>({
+                            route={createMock<ScanRoute>({
                                 key: 'StepScanSkip',
-                                name: SCREENS.MONEY_REQUEST.STEP_SCAN,
+                                name: SCREENS.MONEY_REQUEST.CREATE,
                                 params: {
                                     action: CONST.IOU.ACTION.CREATE,
                                     iouType: CONST.IOU.TYPE.SUBMIT,
                                     reportID: REPORT_ID,
                                     transactionID: TRANSACTION_ID,
-                                    pageIndex: 0,
                                 },
                             })}
-                            navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['navigation']>({})}
+                            navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']>({})}
                         />
                     </NavigationContainer>
                 </LocaleContextProvider>
