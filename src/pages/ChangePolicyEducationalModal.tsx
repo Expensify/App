@@ -1,6 +1,6 @@
 import CenteredModalLayout from '@components/CenteredModalLayout';
 import ChangeWorkspaceMenuSectionList from '@components/ChangeWorkspaceMenuSectionList';
-import FeatureTrainingContent from '@components/FeatureTrainingContent';
+import FeatureTraining from '@components/FeatureTraining';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -40,24 +40,30 @@ function ChangePolicyEducationalModal() {
             width={variables.changePolicyEducationModalWidth}
             contentStyle={[styles.pt0, styles.pb0]}
         >
-            <FeatureTrainingContent
-                title={translate('iou.changePolicyEducational.title')}
-                description={translate('iou.changePolicyEducational.description')}
-                confirmText={translate('common.buttonConfirm')}
-                image={illustrations.ReceiptFairy}
-                imageWidth={variables.changePolicyEducationModalIconWidth}
-                imageHeight={variables.changePolicyEducationModalIconHeight}
-                contentFitImage="cover"
-                width={variables.changePolicyEducationModalWidth}
-                illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
-                illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.blue700)]}
-                illustrationOuterContainerStyle={styles.p0}
-                contentInnerContainerStyles={[styles.mb5, styles.gap2]}
+            <FeatureTraining
+                onConfirm={handleClose}
                 onClose={handleClose}
+                width={variables.changePolicyEducationModalWidth}
                 shouldUseScrollView
             >
-                <ChangeWorkspaceMenuSectionList />
-            </FeatureTrainingContent>
+                <FeatureTraining.Illustration
+                    image={illustrations.ReceiptFairy}
+                    imageWidth={variables.changePolicyEducationModalIconWidth}
+                    imageHeight={variables.changePolicyEducationModalIconHeight}
+                    contentFitImage="cover"
+                    aspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
+                    innerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.blue700)]}
+                    outerContainerStyle={styles.p0}
+                />
+                <FeatureTraining.Body>
+                    <FeatureTraining.BodyText style={[styles.mb5, styles.gap2]}>
+                        <FeatureTraining.Title>{translate('iou.changePolicyEducational.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description>{translate('iou.changePolicyEducational.description')}</FeatureTraining.Description>
+                        <ChangeWorkspaceMenuSectionList />
+                    </FeatureTraining.BodyText>
+                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                </FeatureTraining.Body>
+            </FeatureTraining>
         </CenteredModalLayout>
     );
 }

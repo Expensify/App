@@ -1,6 +1,8 @@
 import ImageSVG from '@components/ImageSVG';
+import type ImageSVGProps from '@components/ImageSVG/types';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import VideoPlayer from '@components/VideoPlayer';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -17,49 +19,60 @@ import {getIsOffline} from '@libs/NetworkState';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ImageContentFit} from 'expo-image';
 import type {SourceLoadEventPayload} from 'expo-video';
 import type LottieView from 'lottie-react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {MergeExclusive} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
-import type {FeatureTrainingContentIllustrationProps as BaseFeatureTrainingContentIllustrationProps, BaseFeatureTrainingContentProps} from './types';
-
-// Aspect ratio and height of the video.
-// Useful before video loads to reserve space.
 const VIDEO_ASPECT_RATIO = 1280 / 960;
-
 const CONTENT_PADDING = variables.spacing2;
-
 const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
 
 type VideoStatus = 'video' | 'animation';
 
-type FeatureTrainingContentIllustrationProps = Pick<BaseFeatureTrainingContentProps, 'illustrationAspectRatio' | 'illustrationInnerContainerStyle' | 'illustrationOuterContainerStyle'> &
-    BaseFeatureTrainingContentIllustrationProps & {
-        /** Whether this illustration belongs to the currently-visible carousel page */
-        isFocused?: boolean;
+type VideoOrAnimationProps = {
+    animation?: DotLottieAnimation;
+    animationStyle?: StyleProp<ViewStyle>;
+    videoURL?: string;
+};
 
-        /** Whether this illustration is part of a carousel */
-        isCarousel?: boolean;
-    };
+type ImageProps = {
+    image: IconAsset;
+    contentFitImage?: ImageContentFit;
+    imageWidth?: ImageSVGProps['width'];
+    imageHeight?: ImageSVGProps['height'];
+};
 
-/**
- * Once the device has been online, lock to 'video' permanently.
- * While it has never been online, show 'animation' as a fallback.
- */
+type IllustrationMediaProps = MergeExclusive<VideoOrAnimationProps, ImageProps>;
+
+type IllustrationProps = IllustrationMediaProps & {
+    aspectRatio?: number;
+    innerContainerStyle?: StyleProp<ViewStyle>;
+    outerContainerStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether this illustration is the currently-focused page in a carousel. Injected by FeatureTraining.Carousel
+     * via cloneElement — consumers should not set this directly. Defaults to true (always play) for single-page use.
+     */
+    isFocused?: boolean;
+};
+
 function useVideoStatus(): VideoStatus {
     const [isLockedToVideo, setIsLockedToVideo] = useState(() => !getIsOffline());
     const {isOffline} = useNetwork({
         onReconnect: () => setIsLockedToVideo(true),
     });
-
     return isLockedToVideo || !isOffline ? 'video' : 'animation';
 }
 
-function FeatureTrainingContentIllustration({
+function Illustration({
     animation,
     animationStyle,
     videoURL,
@@ -67,24 +80,23 @@ function FeatureTrainingContentIllustration({
     contentFitImage,
     imageWidth,
     imageHeight,
-    illustrationAspectRatio: illustrationAspectRatioProp,
-    illustrationInnerContainerStyle,
-    illustrationOuterContainerStyle,
+    aspectRatio: aspectRatioProp,
+    innerContainerStyle,
+    outerContainerStyle,
     isFocused = true,
-    isCarousel = false,
-}: FeatureTrainingContentIllustrationProps) {
+}: IllustrationProps) {
     const styles = useThemeStyles();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Hands']);
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const videoStatus = useVideoStatus();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
+    const [measuredAspectRatio, setMeasuredAspectRatio] = useState(aspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     const animationRef = useRef<LottieView | null>(null);
     useEffect(() => {
-        if (isMobile() || !isCarousel || !animationRef.current || isReduceMotionEnabled) {
+        if (isMobile() || !animationRef.current || isReduceMotionEnabled) {
             return;
         }
         if (isFocused) {
@@ -92,35 +104,27 @@ function FeatureTrainingContentIllustration({
         } else {
             animationRef.current.pause();
         }
-    }, [isFocused, isCarousel, isReduceMotionEnabled]);
+    }, [isFocused, isReduceMotionEnabled]);
 
     const setAspectRatio = (event: SourceLoadEventPayload) => {
         const track = event.availableVideoTracks.at(0);
         if (!track) {
             return;
         }
-        setIllustrationAspectRatio(track.size.width / track.size.height);
+        setMeasuredAspectRatio(track.size.width / track.size.height);
     };
 
-    const aspectRatio = illustrationAspectRatio || VIDEO_ASPECT_RATIO;
+    const aspectRatio = measuredAspectRatio || VIDEO_ASPECT_RATIO;
 
     return (
         <View
             style={[
                 onboardingIsMediumOrLargerScreenWidth ? {padding: CONTENT_PADDING} : {paddingHorizontal: CONTENT_PADDING},
-                illustrationOuterContainerStyle,
+                outerContainerStyle,
                 isInLandscapeMode ? [{maxHeight: windowHeight * LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO}, styles.alignSelfCenter] : undefined,
             ]}
         >
-            <View
-                style={[
-                    isInLandscapeMode ? styles.h100 : styles.w100,
-                    // Prevent layout jumps by reserving height for the video until it loads.
-                    // When videoStatus === 'animation' it preserves the same aspect ratio.
-                    illustrationInnerContainerStyle,
-                    (!!videoURL || !!image || (!!animation && !!illustrationAspectRatioProp)) && {aspectRatio},
-                ]}
-            >
+            <View style={[isInLandscapeMode ? styles.h100 : styles.w100, innerContainerStyle, (!!videoURL || !!image || (!!animation && !!aspectRatioProp)) && {aspectRatio}]}>
                 {!!image && (
                     <ImageSVG
                         src={image}
@@ -167,4 +171,7 @@ function FeatureTrainingContentIllustration({
     );
 }
 
-export default FeatureTrainingContentIllustration;
+Illustration.displayName = 'FeatureTraining.Illustration';
+
+export default Illustration;
+export type {IllustrationProps};
