@@ -264,6 +264,17 @@ type PersonalAndWorkspaceCardListDerivedValue = CardList;
  */
 type LoginToAccountIDMapDerivedValue = Record<string, number>;
 
+/**
+ * The accountIDs of every Expensify Guide known to the personal details list, sorted ascending.
+ *
+ * Guides are identified by their login's email domain. Deriving the list once means callers can answer
+ * "does this report have a guide participant?" with a cheap membership check instead of re-scanning the
+ * whole personal details list per subscriber (see issue #66413). The IDs are emitted sorted so that two
+ * recomputes of the same guide set are shallowEqual, which is what stops `useOnyx` handing subscribers a new
+ * reference on every unrelated personal-details change.
+ */
+type GuideAccountIDsDerivedValue = number[];
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -276,6 +287,7 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
+    GuideAccountIDsDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

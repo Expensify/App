@@ -177,6 +177,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             });
 
@@ -235,6 +236,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             });
 
