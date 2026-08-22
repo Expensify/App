@@ -178,6 +178,7 @@ type TransactionEditPermissionsParams = {
 
 type GetIouParamsInput = {
     transactionID: string;
+    transaction: OnyxEntry<Transaction>;
     parentReport: OnyxEntry<Report>;
     parentReportAction: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
@@ -212,6 +213,7 @@ type TransactionInlineEditParams = GetIouParamsInput & {
  */
 function getIouParamsForTransaction({
     transactionID,
+    transaction: transactionFromView,
     parentReport,
     parentReportAction,
     transactionThreadReport,
@@ -230,7 +232,7 @@ function getIouParamsForTransaction({
     getCurrencyDecimals,
     getCurrencySymbol,
 }: GetIouParamsInput) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? transactionFromView;
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const isUnreportedExpense = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
