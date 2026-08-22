@@ -230,10 +230,14 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         [StyleUtils, isSmallScreenWidth, popoverContainerStyle, viewportOffsetTop, windowHeight],
     );
 
+    // This is the single owner of the popover height in portrait. Using a fixed `height` (not `minHeight`) keeps the
+    // popover a constant size whether the recipient list is full or collapsed to the empty state, so searching a
+    // non-matching string no longer shrinks it. The content below fills this height via `flex1` and the list scrolls
+    // inside it. `pt4` (wide only) is applied to the inner wrapper as padding within this height, not added on top.
     const innerContainerStyle = useMemo(
         () => ({
             ...popoverContainerStyle,
-            ...(isInLandscapeMode ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
+            ...(isInLandscapeMode ? styles.getPopoverMaxHeight(windowHeight, true) : {height: popoverDimensions.minHeight}),
         }),
         [popoverContainerStyle, isInLandscapeMode, windowHeight, styles],
     );
@@ -265,9 +269,16 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             >
                 <View
                     collapsable={false}
-                    // Drop the extra top padding on the narrow bottom-docked mobile modal so the search input sits
-                    // closer to the top; the wide/desktop popover keeps `pt4`.
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, !isInLandscapeMode && styles.flex1, styles.w100, !isSmallScreenWidth && styles.pt4]}
+                    // In portrait the height is owned by `innerContainerStyle` above, so the wrapper just fills it with
+                    // `flex1`; only landscape still needs an explicit measured height. Dropping the extra top padding on
+                    // the narrow bottom-docked mobile modal keeps the search input close to the top; the wide/desktop
+                    // popover keeps `pt4` (as padding within the fixed height, not added on top of it).
+                    style={[
+                        isInLandscapeMode ? StyleUtils.getHeight(submitToPopoverContentHeight) : styles.flex1,
+                        styles.flexColumn,
+                        styles.w100,
+                        !isSmallScreenWidth && styles.pt4,
+                    ]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}

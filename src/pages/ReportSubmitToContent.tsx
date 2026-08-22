@@ -19,7 +19,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {search} from '@libs/actions/Search';
@@ -80,7 +79,6 @@ function ReportSubmitToContent({
     canSubmitRef,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -460,15 +458,12 @@ function ReportSubmitToContent({
         [handleSubmit, translate, keyboardActiveHeight, isInLandscapeMode, shouldUseNarrowLayout],
     );
 
-    const containerStyle = useMemo(() => {
-        // `FixedFooter` already pads 20px below the Confirm button, so no extra bottom padding is added here.
-        const baseStyle = [styles.w100, styles.flex1, styles.pt3];
-        if (isInLandscapeMode) {
-            return baseStyle;
-        }
-
-        return [...baseStyle, StyleUtils.getMinimumHeight(CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT)];
-    }, [StyleUtils, isInLandscapeMode, styles.flex1, styles.pt3, styles.w100]);
+    // The popover height is owned in a single place (`innerContainerStyle` in `useReportSubmitToPopover`); this
+    // content just fills whatever height the popover gives it via `flex1`. Dropping the old `getMinimumHeight` floor
+    // here is what lets the recipient list scroll inside a constant-size popover instead of resizing the popover when
+    // the list collapses to the empty / "No results found" state. `FixedFooter` already pads 20px below the Confirm
+    // button, so no extra bottom padding is added here.
+    const containerStyle = useMemo(() => [styles.w100, styles.flex1, styles.pt3], [styles.flex1, styles.pt3, styles.w100]);
 
     if (shouldShowNotFoundView) {
         return (
