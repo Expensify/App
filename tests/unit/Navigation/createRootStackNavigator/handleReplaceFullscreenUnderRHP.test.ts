@@ -181,14 +181,14 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
     it('preserves Inbox and the focused report without its key, then appends the destination report', () => {
         mockStubbedParsedState = makeReportsParsedState('B');
         const result = handleReplaceFullscreenUnderRHP(
-            makeExistingReportsState([makeRoute(SCREENS.HOME, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
+            makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
             makeReportsAction('B'),
             CONFIG_OPTIONS,
             stackRouter,
         );
 
         const routes = getReportsRoutes(result);
-        expect(routes?.map((route) => route.name)).toEqual([SCREENS.HOME, SCREENS.REPORT, SCREENS.REPORT]);
+        expect(routes?.map((route) => route.name)).toEqual([SCREENS.INBOX, SCREENS.REPORT, SCREENS.REPORT]);
         expect(routes?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual([undefined, 'A', 'B']);
         expect(getReportsIndex(result)).toBe(2);
         expect(routes?.at(0)?.key).toBe('inbox-key');
@@ -215,7 +215,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         const result = handleReplaceFullscreenUnderRHP(
             makeExistingReportsState(
                 [
-                    makeRoute(SCREENS.HOME, undefined, undefined, 'inbox-key'),
+                    makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
                     makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key'),
                     makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, 'report-b-key'),
                 ],
@@ -234,7 +234,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         const result = handleReplaceFullscreenUnderRHP(
             makeExistingReportsState(
                 [
-                    makeRoute(SCREENS.HOME, undefined, undefined, 'inbox-key'),
+                    makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
                     makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key'),
                     makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, 'report-b-key'),
                 ],
@@ -253,7 +253,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
     it('does not preserve the Reports stack when another tab is focused', () => {
         mockStubbedParsedState = makeReportsParsedState('B');
         const result = handleReplaceFullscreenUnderRHP(
-            makeExistingReportsState([makeRoute(SCREENS.HOME, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1, false),
+            makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1, false),
             makeReportsAction('B'),
             CONFIG_OPTIONS,
             stackRouter,
@@ -266,7 +266,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         mockStubbedParsedState = makeReportsParsedState('B');
         const result = handleReplaceFullscreenUnderRHP(
-            makeExistingReportsState([makeRoute(SCREENS.HOME, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
+            makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
             makeReportsAction('B'),
             CONFIG_OPTIONS,
             stackRouter,
@@ -278,7 +278,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
     it('restores the untouched original Reports stack when the user cancels', () => {
         mockStubbedParsedState = makeReportsParsedState('B');
         const originalState = makeExistingReportsState(
-            [makeRoute(SCREENS.HOME, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')],
+            [makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')],
             1,
         );
         const preInsertedState = handleReplaceFullscreenUnderRHP(originalState, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
