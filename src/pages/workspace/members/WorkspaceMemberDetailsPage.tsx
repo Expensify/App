@@ -144,9 +144,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const phoneNumber = getPhoneNumber(details);
     const reimburserEmail = getReimburserEmail(policy);
     const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
-    // The Authorized Payer (reimburser) is intentionally NOT locked out here: they can still be promoted/changed to another
-    // valid payer role (Admin or Payments Admin). WorkspaceMemberDetailsRolePage restricts the offered roles accordingly.
-    const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole;
+    // The Authorized Payer (reimburser) may only hold a role that can pay (Admin or Payments Admin), so they can only be
+    // changed to one of those roles. Keep the Role row interactive for them only when there is another payer role they can
+    // actually move to, for example promoting a non-admin payer to Admin, or switching between Admin and Payments Admin on a
+    // Control workspace. Otherwise, such as an Admin payer on a non-Control workspace where Payments Admin is unavailable,
+    // there is no valid change to make, so the row stays read-only.
+    const assignablePayerRoles = [CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN].filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
+    const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
+    const canEditSelectedMemberRole =
+        !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 

@@ -273,6 +273,34 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should keep the Role field read-only for an admin Authorized Payer on a non-Control workspace where no other payer role is available', async () => {
+        // On a Team (non-Control) workspace, Payments Admin is not an assignable role, so an admin payer has no other valid
+        // payer role to switch to. The Role row must stay read-only instead of opening a page with no actionable option.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                type: CONST.POLICY.TYPE.TEAM,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: adminPayerEmail,
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(adminPayerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+
+        const roleItem = await screen.findByTestId('member-role-menu-item');
+
+        // There is no valid role change to make, so the row is disabled and shows no caret.
+        expect(roleItem).toBeDisabled();
+        expect(within(roleItem).queryByTestId('ArrowRight Icon')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should show the not found page when the accountID matches no workspace member', async () => {
         const {unmount} = renderPage({policyID: policy.id, accountID: '999999'});
         await waitForBatchedUpdatesWithAct();
