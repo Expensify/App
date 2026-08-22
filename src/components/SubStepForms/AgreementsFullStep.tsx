@@ -10,7 +10,7 @@ import UploadFile from '@components/UploadFile';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
 
@@ -52,10 +52,10 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
 
     /** Input IDs for field in the form */
     inputIDs: {
-        provideTruthfulInformation: FormOnyxKeys<TFormID>;
-        agreeToTermsAndConditions: FormOnyxKeys<TFormID>;
-        consentToPrivacyNotice: FormOnyxKeys<TFormID>;
-        authorizedToBindClientToAgreement: FormOnyxKeys<TFormID>;
+        provideTruthfulInformation: Extract<FormOnyxKeys<TFormID>, string>;
+        agreeToTermsAndConditions: Extract<FormOnyxKeys<TFormID>, string>;
+        consentToPrivacyNotice: Extract<FormOnyxKeys<TFormID>, string>;
+        authorizedToBindClientToAgreement: Extract<FormOnyxKeys<TFormID>, string>;
     };
 
     /** Indicates that action is being processed */
@@ -104,7 +104,12 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const isDocusignStepRequired = requiresDocusignStep(currency);
     const stepFields = useMemo(() => {
-        const fields = [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice];
+        const fields: Array<FormOnyxKeys<TFormID>> = [
+            inputIDs.authorizedToBindClientToAgreement,
+            inputIDs.provideTruthfulInformation,
+            inputIDs.agreeToTermsAndConditions,
+            inputIDs.consentToPrivacyNotice,
+        ];
         if (bankStatementInputID) {
             fields.push(bankStatementInputID);
         }
@@ -150,19 +155,19 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            if (!isRequiredFulfilled(values[inputIDs.authorizedToBindClientToAgreement] as string)) {
+            if (Object.hasOwn(errors, inputIDs.authorizedToBindClientToAgreement)) {
                 errors[inputIDs.authorizedToBindClientToAgreement] = translate('agreementsStep.error.authorized');
             }
 
-            if (!isRequiredFulfilled(values[inputIDs.provideTruthfulInformation] as string)) {
+            if (Object.hasOwn(errors, inputIDs.provideTruthfulInformation)) {
                 errors[inputIDs.provideTruthfulInformation] = translate('agreementsStep.error.certify');
             }
 
-            if (!isRequiredFulfilled(values[inputIDs.agreeToTermsAndConditions] as string)) {
+            if (Object.hasOwn(errors, inputIDs.agreeToTermsAndConditions)) {
                 errors[inputIDs.agreeToTermsAndConditions] = translate('common.error.acceptTerms');
             }
 
-            if (!isRequiredFulfilled(values[inputIDs.consentToPrivacyNotice] as string)) {
+            if (Object.hasOwn(errors, inputIDs.consentToPrivacyNotice)) {
                 errors[inputIDs.consentToPrivacyNotice] = translate('agreementsStep.error.consent');
             }
 
@@ -194,7 +199,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('agreementsStep.iAmAuthorized')}
-                    inputID={inputIDs.authorizedToBindClientToAgreement as string}
+                    inputID={inputIDs.authorizedToBindClientToAgreement}
                     style={styles.mt6}
                     LabelComponent={IsAuthorizedToUseBankAccountLabel}
                     defaultValue={defaultValues[inputIDs.authorizedToBindClientToAgreement]}
@@ -203,7 +208,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('agreementsStep.iCertify')}
-                    inputID={inputIDs.provideTruthfulInformation as string}
+                    inputID={inputIDs.provideTruthfulInformation}
                     style={styles.mt6}
                     LabelComponent={CertifyTrueAndAccurateLabel}
                     defaultValue={defaultValues[inputIDs.provideTruthfulInformation]}
@@ -212,7 +217,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('agreementsStep.iAcceptTheTermsAndConditionsAccessibility')}
-                    inputID={inputIDs.agreeToTermsAndConditions as string}
+                    inputID={inputIDs.agreeToTermsAndConditions}
                     style={styles.mt6}
                     LabelComponent={TermsAndConditionsLabel}
                     defaultValue={defaultValues[inputIDs.agreeToTermsAndConditions]}
@@ -221,7 +226,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('agreementsStep.iConsentToThePrivacyNoticeAccessibility')}
-                    inputID={inputIDs.consentToPrivacyNotice as string}
+                    inputID={inputIDs.consentToPrivacyNotice}
                     style={styles.mt6}
                     LabelComponent={ConsentToPrivacyNoticeLabel}
                     defaultValue={defaultValues[inputIDs.consentToPrivacyNotice]}
