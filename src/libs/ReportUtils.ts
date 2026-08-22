@@ -7200,11 +7200,15 @@ function computeOptimisticReportNameWithMetadata(
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy) ?? {});
+    const submitterPersonalDetails = report.ownerAccountID ? (allPersonalDetails?.[report.ownerAccountID] ?? undefined) : undefined;
+    const managerPersonalDetails = report.managerID ? (allPersonalDetails?.[report.managerID] ?? undefined) : undefined;
     const formulaContext: FormulaContext = {
         report,
         policy,
         getCurrencyDecimals,
         allTransactions: reportTransactions,
+        submitterPersonalDetails,
+        managerPersonalDetails,
     };
 
     // Runtime require breaks the value-level circular; the `typeof` casts keep drift a compile error.
