@@ -1,6 +1,6 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getCombinedReportActions, getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
@@ -48,6 +48,16 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
+    // Resolve whether the linked action lives in the one-transaction thread that gets merged into this report. Only in that
+    // case should usePaginatedReportActions drop the pagination anchor — dropping it merely because the action is absent from
+    // this report's cache would break the initial scroll-to for a valid linked action that simply hasn't been fetched into
+    // this report yet (e.g. an older message). A non-one-transaction report resolves to undefined here, so its anchor is kept.
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const [reportActionsForThreadCheck] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
+    const linkedActionTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsForThreadCheck ?? {}, isOffline);
+    const [linkedActionTransactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(linkedActionTransactionThreadReportID)}`);
+    const isLinkedActionInMergedTransactionThread = !!reportActionIDFromRoute && !!linkedActionTransactionThreadActions?.[reportActionIDFromRoute];
+
     const {
         reportActions: unfilteredReportActions,
         hasOlderActions,
@@ -60,6 +70,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         // Scope the first-defined lastReadTime snapshot to Concierge so the cold-open unread anchor resolves
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
         shouldSnapshotInitialLastReadTime: isConciergeChat,
+        isLinkedActionInMergedTransactionThread,
     });
     const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
