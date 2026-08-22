@@ -2,6 +2,8 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useResolvedAgentAccountID from '@hooks/useResolvedAgentAccountID';
 
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -28,6 +30,8 @@ function getMappingCreatedAt(): Promise<Record<string, number> | undefined> {
 describe('useResolvedAgentAccountID', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+        return waitForBatchedUpdates();
     });
 
     beforeEach(async () => {
