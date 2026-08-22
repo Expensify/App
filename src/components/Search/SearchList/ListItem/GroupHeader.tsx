@@ -6,7 +6,6 @@ import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -183,13 +182,6 @@ function GroupHeader({
     const withOriginalKey = <T extends SearchListItem>(rowItem: T): T => ({
         ...rowItem,
         keyForList: item.groupKeyForList,
-    });
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: false,
     });
 
     const handleSelectionButtonPress = () => {
@@ -374,7 +366,7 @@ function GroupHeader({
                 ]}
                 wrapperStyle={[
                     styles.mh5,
-                    animatedHighlightStyle,
+                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItemCollapsed, isItemSelected), isLastItemCollapsed && styles.overflowHidden]
