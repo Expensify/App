@@ -90,4 +90,3 @@ function useExpandedChartLayout(availableSize: Dimensions): ExpandedChartLayout 
 }
 
 export default useExpandedChartLayout;
-export type {ExpandedChartLayout};

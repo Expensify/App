@@ -3,7 +3,7 @@ import MultiGestureCanvas from '@components/MultiGestureCanvas';
 import React from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 
-import type {VictoryChartExpandedContentProps} from './types';
+import type VictoryChartExpandedContentProps from './types';
 
 import ExpandedChartBox from './ExpandedChartBox';
 import useExpandedChartLayout from './useExpandedChartLayout';

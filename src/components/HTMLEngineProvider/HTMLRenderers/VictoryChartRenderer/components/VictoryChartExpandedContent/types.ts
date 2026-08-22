@@ -8,4 +8,4 @@ type VictoryChartExpandedContentProps = {
     isVisible: boolean;
 };
 
-export type {VictoryChartExpandedContentProps};
+export default VictoryChartExpandedContentProps;

@@ -14,7 +14,7 @@ import type {GestureResponderEvent, View as RNView} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import type {VictoryChartExpandedContentProps} from './types';
+import type VictoryChartExpandedContentProps from './types';
 
 import BaseVictoryChartExpandedContent from './BaseVictoryChartExpandedContent';
 import ExpandedChartBox from './ExpandedChartBox';
@@ -80,7 +80,7 @@ function DesktopVictoryChartExpandedContent({availableSize, isVisible}: VictoryC
     const trackPointerPosition = useCallback(
         (event: MouseEvent) => {
             // Whether the pointer is released inside the scrollable chart area
-            const isInsideChartView = scrollableRef.current?.contains(event.target as Node);
+            const isInsideChartView = event.target instanceof Node && scrollableRef.current?.contains(event.target);
             if (!isInsideChartView && isZoomed && isDragging && isMouseDown) {
                 setIsDragging(false);
                 setIsMouseDown(false);
@@ -132,7 +132,7 @@ function DesktopVictoryChartExpandedContent({availableSize, isVisible}: VictoryC
             style={[styles.flex1, styles.w100, styles.overflowAuto, styles.pRelative]}
         >
             {/* Fills the viewport so the fitted chart centers. Centering is dropped while zoomed:
-                flex-centering content larger than the scrollport pushes its start edges before the
+                flex-centering content larger than the scroll viewport pushes its start edges before the
                 scroll origin, making the top/left of the chart unreachable. */}
             <View style={[styles.mnw100, styles.mnh100, !isZoomed && styles.justifyContentCenter, !isZoomed && styles.alignItemsCenter]}>
                 <PressableWithoutFeedback
@@ -167,10 +167,8 @@ DesktopVictoryChartExpandedContent.displayName = 'DesktopVictoryChartExpandedCon
  */
 function VictoryChartExpandedContent(props: VictoryChartExpandedContentProps) {
     if (canUseTouchScreenUtil()) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return <BaseVictoryChartExpandedContent {...props} />;
     }
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <DesktopVictoryChartExpandedContent {...props} />;
 }
 

@@ -1,3 +1,4 @@
+import VictoryChartContent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartContent';
 import {VictoryChartScaledProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -7,8 +8,6 @@ import type {ColorValue} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
-
-import VictoryChartContent from '../VictoryChartContent';
 
 type ExpandedChartBoxProps = {
     /** Rendered chart width in pixels */

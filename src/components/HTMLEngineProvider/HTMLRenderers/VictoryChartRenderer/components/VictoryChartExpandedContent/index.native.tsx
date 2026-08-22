@@ -1,1 +1,3 @@
-export {default} from './BaseVictoryChartExpandedContent';
+import BaseVictoryChartExpandedContent from './BaseVictoryChartExpandedContent';
+
+export default BaseVictoryChartExpandedContent;
