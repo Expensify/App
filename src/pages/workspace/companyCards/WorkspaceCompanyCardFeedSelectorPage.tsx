@@ -24,6 +24,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
@@ -51,7 +52,6 @@ import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-import {isUserValidatedSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -65,7 +65,6 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const styles = useThemeStyles();
@@ -119,11 +118,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         };
     });
 
-    const onAddCardsPress = () => {
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID));
-            return;
-        }
+    const continueAddCardsFlow = () => {
         clearAddNewCardFlow();
         if (isBlockedToAddNewFeeds) {
             Navigation.navigate(
@@ -131,7 +126,18 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             );
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path));
+        // Pass an explicit base path: this also runs as the verify-account resume callback, when the active route is whatever the verify page navigated back to.
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
+    };
+
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => continueAddCardsFlow());
+
+    const onAddCardsPress = () => {
+        if (!isUserValidated) {
+            verifyAccountAndResume(undefined);
+            return;
+        }
+        continueAddCardsFlow();
     };
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
