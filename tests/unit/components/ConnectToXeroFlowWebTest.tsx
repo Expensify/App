@@ -92,7 +92,7 @@ describe('ConnectToXeroFlow (web)', () => {
             render(<ConnectToXeroFlow policyID={POLICY_ID} />);
 
             expect(mockedGetXeroSetupLink).toHaveBeenCalledWith(POLICY_ID);
-            expect(mockedOpenLink).toHaveBeenCalledWith(`https://xero-setup.example/${POLICY_ID}`, ENVIRONMENT_URL);
+            expect(mockedOpenLink).toHaveBeenCalledWith(`https://xero-setup.example/${POLICY_ID}`, ENVIRONMENT_URL, false, undefined);
             expect(screen.queryByTestId('require-2fa-modal')).toBeNull();
         });
 

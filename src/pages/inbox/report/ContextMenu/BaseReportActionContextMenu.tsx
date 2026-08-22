@@ -342,7 +342,7 @@ function BaseReportActionContextMenu({
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
         if (isAnonymousUser() && !isAnonymousAction) {
             hideContextMenu(false, () => {
-                signOutAndRedirectToSignIn();
+                signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session);
             });
         } else {
             callback();

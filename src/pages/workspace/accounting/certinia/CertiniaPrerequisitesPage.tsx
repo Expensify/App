@@ -43,12 +43,13 @@ function CertiniaPrerequisitesPage({route}: CertiniaPrerequisitesPageProps) {
     const {environmentURL} = useEnvironment();
     const policyID: string = route.params.policyID;
     const isSandbox = route.params.isSandbox === 'true';
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const config = policy?.connections?.financialforce?.config;
     const shouldBeBlocked = !!config?.isConfigured && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
 
     const handleConnect = () => {
-        connectPolicyToFinancialForce(policyID, isSandbox, environmentURL);
+        connectPolicyToFinancialForce(policyID, isSandbox, environmentURL, session);
         Navigation.dismissModal();
     };
 

@@ -161,7 +161,7 @@ describe('NetSuiteTokenInputForm', () => {
             renderForm();
             submitForm();
 
-            expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL);
+            expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, undefined);
         });
 
         it('does not write the token-based credentials', () => {

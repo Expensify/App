@@ -6,6 +6,7 @@ import TextLink from '@components/TextLink';
 
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,6 +15,7 @@ import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
@@ -36,6 +38,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const StyleUtils = useStyleUtils();
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {hovered, bind} = useHover();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
@@ -60,11 +63,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
     const onLinkPress = useMemo(() => {
         if (internalNewExpensifyPath || internalExpensifyPath) {
-            return () => openLink(attrHref, environmentURL, isAttachment);
+            return () => openLink(attrHref, environmentURL, isAttachment, session);
         }
 
         return undefined;
-    }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment]);
+    }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment, session]);
 
     // The table row already navigates to this link's destination, so the cell shows the link text as plain content
     // rather than a second target styled as a link.
@@ -123,7 +126,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         return (
             <TextLink
                 style={linkStyle}
-                onPress={() => openLink(attrHref, environmentURL, isAttachment)}
+                onPress={() => openLink(attrHref, environmentURL, isAttachment, session)}
                 suppressDefaultStyle
             >
                 <TNodeChildrenRenderer tnode={tnode} />

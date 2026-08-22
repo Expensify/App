@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,6 +41,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
     const {isBetaEnabled} = usePermissions();
     const {environmentURL} = useEnvironment();
     const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const isOAuthFlow = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
@@ -72,7 +74,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                     setIsRequire2FAModalOpen(true);
                     return;
                 }
-                connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL);
+                connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL, session);
                 return;
             }
 
@@ -83,7 +85,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
             }
             onNext();
         },
-        [onNext, policyID, policy, isOAuthFlow, is2FAEnabled, environmentURL],
+        [onNext, policyID, policy, isOAuthFlow, is2FAEnabled, environmentURL, session],
     );
 
     return (

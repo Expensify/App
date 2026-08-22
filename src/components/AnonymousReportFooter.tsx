@@ -32,6 +32,7 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint || isInSidePanel;
 
     return (
@@ -54,7 +55,7 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {
-                            signOutAndRedirectToSignIn();
+                            signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session);
                         }}
                     >
                         <Button.Text>{translate('common.signIn')}</Button.Text>

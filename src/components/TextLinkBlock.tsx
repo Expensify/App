@@ -1,9 +1,11 @@
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openLink as openLinkUtil} from '@userActions/Link';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
@@ -36,12 +38,13 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
 
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const openLink = () => {
         if (!rest.href) {
             return;
         }
-        openLinkUtil(rest.href, environmentURL);
+        openLinkUtil(rest.href, environmentURL, false, session);
     };
 
     return (

@@ -43,6 +43,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isUSDBankAccountFlow = focusedRoute?.name === SCREENS.REIMBURSEMENT_ACCOUNT;
     const isSecuritySettingsFlow = focusedRoute?.name === SCREENS.SETTINGS.SECURITY;
 
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -121,7 +122,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
                 // new browser tab (within this button's gesture), on native navigate to the in-app WebView setup
                 // screen. Calling openLink on native would open the external browser instead of the WebView.
                 if (getPlatform() === CONST.PLATFORM.WEB) {
-                    openLink(getXeroSetupLink(policyID), environmentURL);
+                    openLink(getXeroSetupLink(policyID), environmentURL, false, session);
                 } else {
                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(policyID));
                 }
