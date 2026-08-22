@@ -21696,6 +21696,34 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
         });
 
+        it('should NOT flag a report-preview action when its linked transaction is pending deletion', async () => {
+            // Mirrors the split/track guard for the report-preview path (getReportActionWithMissingSmartscanFields).
+            // Same missing-merchant shape as the positive test above, but the transaction is queued for deletion,
+            // so the RBR red-dot must clear instead of persisting until the server confirms removal (#96967).
+            const transactionMissingMerchant: Transaction = {
+                ...transaction,
+                merchant: '',
+                modifiedMerchant: '',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionMissingMerchant);
+            await waitForBatchedUpdates();
+
+            const reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transactionMissingMerchant,
+            };
+
+            expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBe(false);
+            expect(getReportActionWithSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBeUndefined();
+
+            // Restore original transaction for subsequent tests
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+        });
+
         it('should NOT flag settled (reimbursed) expense reports even with missing fields', async () => {
             const settledExpenseReport: Report = {
                 ...expenseReport,
