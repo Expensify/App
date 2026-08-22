@@ -41,6 +41,7 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 const APPROVER_TYPE = {
     ADD_APPROVER: 'addApprover',
     BYPASS_APPROVER: 'bypassApprover',
+    REASSIGN_APPROVER: 'reassignApprover',
 } as const;
 
 type ApproverType = ValueOf<typeof APPROVER_TYPE>;
@@ -67,6 +68,24 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         Navigation.goBack(backPath);
     };
 
+    const shouldNativeToUpgradePage = useCallback(
+        (selectedApproverOption: ApproverType) => {
+            if (policy && !isControlPolicy(policy)) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(
+                        policy.id,
+                        CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias,
+                        // Add new route for reassign approver
+                        selectedApproverOption === APPROVER_TYPE.ADD_APPROVER ? ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID) : '',
+                    ),
+                );
+                return true;
+            }
+            return false;
+        },
+        [policy, report.reportID],
+    );
+
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
             setHasError(true);
@@ -74,22 +93,32 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         }
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
             hasNavigatedToAddApproverRef.current = true;
-            if (policy && !isControlPolicy(policy)) {
-                Navigation.navigate(
-                    ROUTES.WORKSPACE_UPGRADE.getRoute(
-                        policy.id,
-                        CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias,
-                        ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID),
-                    ),
-                );
+            if (shouldNativeToUpgradePage(selectedApproverType)) {
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
+        if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+            if (shouldNativeToUpgradePage(selectedApproverType)) {
+                return;
+            }
+        }
+
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
         Navigation.dismissToPreviousRHP();
-    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber]);
+    }, [
+        selectedApproverType,
+        report,
+        currentUserDetails.accountID,
+        currentUserDetails.email,
+        policy,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
+        formatPhoneNumber,
+        shouldNativeToUpgradePage,
+    ]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
@@ -108,6 +137,15 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
                 isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
+            });
+        }
+
+        if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy) && isPolicyAdmin(policy)) {
+            data.push({
+                text: translate('iou.changeApprover.actions.reassignApprover'),
+                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
+                isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
             });
         }
 
