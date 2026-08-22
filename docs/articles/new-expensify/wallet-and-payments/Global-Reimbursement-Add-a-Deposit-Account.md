@@ -8,6 +8,8 @@ keywords: [New Expensify, global reimbursement, deposit account, non-US bank acc
 
 You can add a personal bank account to receive reimbursements in over **190 countries**. All personal accounts are managed under **Account > Wallet > Bank Accounts**. The steps differ depending on whether you're connecting a **US** or **non-US** account.
 
+Your deposit account currency must match the currency your Workspace uses for direct reimbursement. For example, a Workspace that reimburses directly from a **USD** business bank account can only pay out to a **USD** deposit account. If your current deposit account uses another currency, add a deposit account in the required currency.
+
 # Add a Non-U.S. Bank Account
 
 You can add a non-U.S. bank account by manually entering your bank details. The fields vary depending on your country and currency.
@@ -46,6 +48,10 @@ To connect a non-U.S. bank account:
 ## Can I add more than one personal bank account?
 
 Yes. You can add multiple accounts, but only one can be selected as the default for reimbursements.
+
+## What if my deposit account is in a different currency than my reimbursement?
+
+Add a deposit account in the currency that your Workspace requires. For example, if your Workspace reimburses directly from a USD business bank account, add a USD deposit account.
 
 ## Can I delete a bank account?
 

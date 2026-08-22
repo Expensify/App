@@ -93,6 +93,16 @@ For Canadian banks, ensure the account number matches the format required for yo
 
 ---
 
+## Why the deposit account currency must match the Workspace reimbursement currency
+
+The member's deposit account is in a different currency than the Workspace uses for reimbursement, so the reimbursement cannot be sent. Instead of bouncing, the report stays unpaid and the next step shows a message such as *"Waiting for [member] to add a USD bank account."*
+
+This happens when a Workspace reimburses directly from a **USD** business bank account but the member's only deposit account is in another currency (for example CAD). Direct USD reimbursement can only pay out to a USD deposit account.
+
+**How to fix it:** The member [adds a deposit account](/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Add-a-Deposit-Account) in the required currency. After the account is added, a Workspace Admin retries the payment.
+
+---
+
 ## Account Has Been Switched
 
 The bank account has been migrated, closed, or transferred to a new account number.
