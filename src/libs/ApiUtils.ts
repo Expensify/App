@@ -14,27 +14,38 @@ import getEnvironment from './Environment/getEnvironment';
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
 let ENV_NAME: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
-let shouldUseStagingServer = false;
+let storedShouldUseStagingServer: boolean | undefined;
+
+// Subscribed synchronously, and storing the value verbatim, so that the stored preference and the environment
+// can arrive in either order without one discarding the other. Note this does not cover the window before
+// getEnvironment() settles: ENV_NAME is PRODUCTION until then, which forces the production root regardless of
+// what is stored. Since it isn't connected to a UI anywhere, it's OK to use connectWithoutView()
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    callback: (value) => {
+        storedShouldUseStagingServer = value;
+    },
+});
+
 getEnvironment().then((envName) => {
     ENV_NAME = envName;
-
-    // We connect here, so we have the updated ENV_NAME when Onyx callback runs
-    // We only use the value of shouldUseStagingServer to determine which server we should point to.
-    // Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
-        callback: (value) => {
-            // Toggling between APIs is not allowed on production and internal dev environment
-            if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB) {
-                shouldUseStagingServer = false;
-                return;
-            }
-
-            const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING || ENV_NAME === CONST.ENVIRONMENT.ADHOC;
-            shouldUseStagingServer = value ?? defaultToggleState;
-        },
-    });
 });
+
+/**
+ * Whether requests should be sent to the staging API.
+ *
+ * Derived on demand rather than cached, so that a preference stored before the environment resolved is still
+ * applied once it does.
+ */
+function shouldUseStagingServer(): boolean {
+    // Toggling between APIs is not allowed on production and internal dev environment
+    if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB) {
+        return false;
+    }
+
+    const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING || ENV_NAME === CONST.ENVIRONMENT.ADHOC;
+    return storedShouldUseStagingServer ?? defaultToggleState;
+}
 
 /**
  * Get the currently used API endpoint, unless forceProduction is set to true
@@ -43,7 +54,7 @@ getEnvironment().then((envName) => {
 function getApiRoot<TKey extends OnyxKey = never>(request?: Partial<Pick<Request<TKey>, 'shouldUseSecure' | 'shouldSkipWebProxy' | 'command'>>, forceProduction = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
 
-    if (shouldUseStagingServer && forceProduction !== true) {
+    if (shouldUseStagingServer() && forceProduction !== true) {
         if (CONFIG.IS_USING_WEB_PROXY && !request?.shouldSkipWebProxy) {
             return shouldUseSecure ? proxyConfig.STAGING_SECURE : proxyConfig.STAGING;
         }
@@ -68,7 +79,7 @@ function getCommandURL<TKey extends OnyxKey>(request: Request<TKey>): string {
  * Check if we're currently using the staging API root
  */
 function isUsingStagingApi(): boolean {
-    return shouldUseStagingServer;
+    return shouldUseStagingServer();
 }
 
 export {getApiRoot, getCommandURL, isUsingStagingApi};

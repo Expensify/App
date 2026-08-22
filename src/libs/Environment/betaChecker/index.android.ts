@@ -3,6 +3,7 @@ import * as AppUpdate from '@libs/actions/AppUpdate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import DeviceInfo from 'react-native-device-info';
 import Onyx from 'react-native-onyx';
 import semver from 'semver';
 
@@ -25,17 +26,41 @@ Onyx.connectWithoutView({
 });
 
 /**
- * Check the GitHub releases to see if the current build is a beta build or production build
+ * Whether the Play Store put this build on the device. Anything else means a tester installed it from a GitHub
+ * release.
+ */
+function isPlayStoreInstall(): boolean | undefined {
+    try {
+        return DeviceInfo.getInstallerPackageNameSync() === CONST.PLAY_STORE_INSTALLER_PACKAGE_NAME;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Whether this build is a beta (staging) build.
+ *
+ * A sideloaded build is answered straight away, both because testers install those from GitHub prereleases and
+ * because it keeps them off the rate limited GitHub API. Anything the Play Store installed can still be on a
+ * tester track, which only a comparison against the newest production release recognizes.
  */
 function isBetaBuild(): IsBetaBuild {
     return new Promise((resolve) => {
+        if (isPlayStoreInstall() === false) {
+            AppUpdate.setIsAppInBeta(true);
+            resolve(true);
+            return;
+        }
+
+        // Otherwise compare our version against the latest production release
         fetch(CONST.GITHUB_RELEASE_URL)
             .then((res) => res.json())
             .then((json: GithubReleaseJSON) => {
                 const productionVersion = json.tag_name;
-                if (!productionVersion) {
-                    AppUpdate.setIsAppInBeta(false);
-                    resolve(false);
+
+                if (!productionVersion || !semver.valid(productionVersion)) {
+                    resolve(isLastSavedBeta);
+                    return;
                 }
 
                 // If the current version we are running is greater than the production version, we are on a beta version of Android
@@ -44,7 +69,6 @@ function isBetaBuild(): IsBetaBuild {
                 resolve(isBeta);
             })
             .catch(() => {
-                // Use isLastSavedBeta in case we fail to fetch the new one, e.g. when we are offline
                 resolve(isLastSavedBeta);
             });
     });
