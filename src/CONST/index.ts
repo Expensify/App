@@ -143,6 +143,12 @@ const createExpenseOnboardingChoices = {
     SUBMIT: backendOnboardingChoices.SUBMIT,
 } as const;
 
+// Values accepted by the `intent` param on the onboarding deeplink. Kept separate from the internal onboarding
+// choice strings because they are embedded in emails we can't redeploy.
+const onboardingIntents = {
+    SUBMIT: 'submit',
+} as const;
+
 const signupQualifiers = {
     INDIVIDUAL: 'individual',
     VSB: 'vsb',
@@ -6689,6 +6695,7 @@ const CONST = {
     EXPENSIFY_ICON_NAME: 'Expensify',
 
     ONBOARDING_CHOICES: {...onboardingChoices},
+    ONBOARDING_INTENTS: {...onboardingIntents},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     CREATE_EXPENSE_ONBOARDING_CHOICES: {...createExpenseOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
@@ -9614,6 +9621,9 @@ type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
+/** Valid values for the `intent` param on the onboarding deeplink */
+type OnboardingIntent = ValueOf<typeof CONST.ONBOARDING_INTENTS>;
+
 /** Valid `page` values for the Enable Payments flow */
 type EnablePaymentsPageType = ValueOf<typeof CONST.ENABLE_PAYMENTS.PAGE_NAMES>;
 
@@ -9635,6 +9645,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    OnboardingIntent,
     IOUActionParams,
     EnablePaymentsPageType,
     EnablePaymentsSubPageType,
