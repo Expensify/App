@@ -34,6 +34,7 @@ import {
     isDistanceRequest,
     isOnHold,
     isSplitChildTransaction,
+    shouldShowAttendees,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
@@ -46,9 +47,45 @@ import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {deepEqual} from 'fast-equals';
+// lodashUnionBy de-dupes recent attendees by email/displayName in one pass; no lodash-free equivalent is used here
+// eslint-disable-next-line you-dont-need-lodash-underscore/union-by
+import lodashUnionBy from 'lodash/unionBy';
 import Onyx from 'react-native-onyx';
 
+import {getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
+
+type BulkEditWriteOnyxData = {
+    optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.NVP_RECENT_ATTENDEES
+        >
+    >;
+    successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        >
+    >;
+    failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        >
+    >;
+};
 
 function removeUnchangedBulkEditFields(
     transactionChanges: TransactionChanges,
@@ -74,7 +111,8 @@ function removeUnchangedBulkEditFields(
         const nextValue = transactionChanges[field];
         const currentValue = currentDetails[field as keyof TransactionDetails];
 
-        if (nextValue !== currentValue) {
+        const hasChanged = field === CONST.EDIT_REQUEST_FIELD.ATTENDEES ? !deepEqual(nextValue, currentValue) : nextValue !== currentValue;
+        if (hasChanged) {
             filteredChanges = {
                 ...filteredChanges,
                 [field]: nextValue,
@@ -105,6 +143,29 @@ type UpdateMultipleMoneyRequestsParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
+
+function writeBulkEditMoneyRequest(
+    params: {
+        transactionID: string;
+        reportActionID: string;
+        updates: string;
+    },
+    onyxData?: BulkEditWriteOnyxData,
+) {
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, params, onyxData);
+}
+
+function writeBulkEditMoneyRequestAttendees(
+    params: {
+        transactionID: string;
+        attendees: string;
+        reportActionID?: string;
+        reportID?: string;
+    },
+    onyxData?: BulkEditWriteOnyxData,
+) {
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
+}
 
 function updateMultipleMoneyRequests({
     transactionIDs,
@@ -257,6 +318,9 @@ function updateMultipleMoneyRequests({
         if (changes.reimbursable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
             transactionChanges.reimbursable = changes.reimbursable;
         }
+        if (changes.attendees && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.ATTENDEES) && shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, transactionPolicy)) {
+            transactionChanges.attendees = changes.attendees;
+        }
 
         transactionChanges = removeUnchangedBulkEditFields(transactionChanges, transaction, baseIouReport, transactionPolicy);
 
@@ -298,8 +362,18 @@ function updateMultipleMoneyRequests({
             updates.reimbursable = transactionChanges.reimbursable;
         }
 
+        const serializedAttendees = transactionChanges.attendees
+            ? JSON.stringify(
+                  transactionChanges.attendees.map(({avatarUrl, displayName, email}) => ({
+                      avatarUrl,
+                      displayName,
+                      ...(email ? {email} : {}),
+                  })),
+              )
+            : undefined;
+
         // Skip if no updates
-        if (Object.keys(updates).length === 0) {
+        if (Object.keys(updates).length === 0 && !serializedAttendees) {
             continue;
         }
 
@@ -308,7 +382,11 @@ function updateMultipleMoneyRequests({
 
         const optimisticData: Array<
             OnyxUpdate<
-                typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+                | typeof ONYXKEYS.COLLECTION.TRANSACTION
+                | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+                | typeof ONYXKEYS.COLLECTION.REPORT
+                | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+                | typeof ONYXKEYS.NVP_RECENT_ATTENDEES
             >
         > = [];
         const successData: Array<
@@ -415,6 +493,33 @@ function updateMultipleMoneyRequests({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
                 value: currentTransactionViolations,
+            });
+        }
+
+        if ('attendees' in transactionChanges) {
+            // Clear overLimit when new attendee count pushes the expense past the per-attendee limit.
+            const overLimitViolation = currentTransactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+            if (overLimitViolation) {
+                const limitForSingleAttendee = overLimitViolation.data?.amount ?? 0;
+                if (limitForSingleAttendee * (transactionChanges.attendees?.length ?? 1) > Math.abs(getAmount(transaction))) {
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                        value: currentTransactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.OVER_LIMIT) ?? [],
+                    });
+                }
+            }
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_RECENT_ATTENDEES,
+                value: lodashUnionBy(
+                    transactionChanges.attendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, ...(email ? {email} : {})})) ?? [],
+                    getRecentAttendees(),
+                    // Use || so empty-string emails fall back to displayName for the union key
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    (attendee) => attendee.email || attendee.displayName,
+                ).slice(0, CONST.IOU.MAX_RECENT_ATTENDEES),
             });
         }
 
@@ -642,41 +747,38 @@ function updateMultipleMoneyRequests({
             });
         }
 
-        const params = {
-            transactionID,
-            reportActionID: modifiedExpenseReportActionID,
-            updates: JSON.stringify(updates),
+        const onyxData: BulkEditWriteOnyxData = {
+            optimisticData: [...optimisticData, ...snapshotOptimisticData],
+            successData: [...successData, ...snapshotSuccessData],
+            failureData: [...failureData, ...snapshotFailureData],
         };
 
-        API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, params, {
-            optimisticData: [...optimisticData, ...snapshotOptimisticData] as Array<
-                OnyxUpdate<
-                    | typeof ONYXKEYS.COLLECTION.TRANSACTION
-                    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-                    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-                    | typeof ONYXKEYS.COLLECTION.REPORT
-                    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-                >
-            >,
-            successData: [...successData, ...snapshotSuccessData] as Array<
-                OnyxUpdate<
-                    | typeof ONYXKEYS.COLLECTION.TRANSACTION
-                    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-                    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-                    | typeof ONYXKEYS.COLLECTION.REPORT
-                    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-                >
-            >,
-            failureData: [...failureData, ...snapshotFailureData] as Array<
-                OnyxUpdate<
-                    | typeof ONYXKEYS.COLLECTION.TRANSACTION
-                    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-                    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-                    | typeof ONYXKEYS.COLLECTION.REPORT
-                    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-                >
-            >,
-        });
+        const hasGenericUpdates = Object.keys(updates).length > 0;
+
+        if (hasGenericUpdates) {
+            writeBulkEditMoneyRequest(
+                {
+                    transactionID,
+                    reportActionID: modifiedExpenseReportActionID,
+                    updates: JSON.stringify(updates),
+                },
+                onyxData,
+            );
+        }
+
+        if (serializedAttendees) {
+            writeBulkEditMoneyRequestAttendees(
+                {
+                    transactionID,
+                    reportID: iouReport?.reportID,
+                    // UpdateMoneyRequestAttendees does not create transaction threads. Only attach
+                    // reportActionID when a real thread already exists (not one we just seeded locally).
+                    ...(!hasGenericUpdates && !didCreateThreadInThisIteration ? {reportActionID: modifiedExpenseReportActionID} : {}),
+                    attendees: serializedAttendees,
+                },
+                hasGenericUpdates ? undefined : onyxData,
+            );
+        }
     }
 }
 
