@@ -273,12 +273,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                     // `flex1`; only landscape still needs an explicit measured height. Dropping the extra top padding on
                     // the narrow bottom-docked mobile modal keeps the search input close to the top; the wide/desktop
                     // popover keeps `pt4` (as padding within the fixed height, not added on top of it).
-                    style={[
-                        isInLandscapeMode ? StyleUtils.getHeight(submitToPopoverContentHeight) : styles.flex1,
-                        styles.flexColumn,
-                        styles.w100,
-                        !isSmallScreenWidth && styles.pt4,
-                    ]}
+                    style={[isInLandscapeMode ? StyleUtils.getHeight(submitToPopoverContentHeight) : styles.flex1, styles.flexColumn, styles.w100, !isSmallScreenWidth && styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
