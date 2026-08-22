@@ -1,4 +1,5 @@
 import {getButtonRole} from '@components/Button/utils';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
@@ -79,6 +80,7 @@ function MoneyRequestReportPreviewBody({
     const {isTransitionPending, isScanning, reportPreviewStyles} = useReportPreviewUIState();
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isRejectedReport = iouReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && iouReport?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
 
     return (
@@ -133,6 +135,12 @@ function MoneyRequestReportPreviewBody({
                                 <View style={[reportPreviewStyles.contentContainerStyle, styles.gap4]}>
                                     <ReportPreviewHeader />
                                     <TransactionReportCarousel />
+                                    {isRejectedReport && (
+                                        <DotIndicatorMessage
+                                            type="error"
+                                            messages={{rejectedReport: translate('iou.rejectReport.rejectedReportMessage')}}
+                                        />
+                                    )}
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
                                         <View style={[totalAmountStyle, styles.justifyContentBetween, styles.gap4, StyleUtils.getMinimumHeight(variables.h28)]}>
                                             <ReportPreviewActionButton />
