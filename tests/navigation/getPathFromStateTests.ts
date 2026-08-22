@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 
 import type {NavigationState, PartialState} from '@react-navigation/routers';
@@ -7,6 +8,8 @@ import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 jest.mock('@react-navigation/native', () => ({
     getPathFromState: jest.fn(),
 }));
+
+const mockLogAlert = jest.spyOn(Log, 'alert').mockImplementation(() => {});
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     config: {},
@@ -83,15 +86,17 @@ describe('getPathFromState', () => {
         expect(result).toBe('/settings/wallet/test-dynamic');
     });
 
-    it('root base path does not produce a doubled leading slash', () => {
-        // A base screen that resolves to root ('/') must not be concatenated with a leading slash,
-        // otherwise the result is a '//'-prefixed protocol-relative URL that makes history.pushState
-        // throw a SecurityError. Regression test for the AI Features Promo crash (issue #97470).
+    it('normalizes a doubled leading slash to a single slash', () => {
+        // A base screen that resolves to root ('/') is concatenated with the suffix, which would otherwise
+        // produce a '//'-prefixed protocol-relative URL that makes history.pushState throw a SecurityError.
+        // getPathFromState collapses any repeated slashes to a single one. Regression test for the AI Features
+        // Promo crash (issue #97470).
         mockRNGetPathFromState.mockReturnValue('/');
 
         const state = buildState([{name: 'StandardScreen'}, {name: 'TestDynamicScreen'}]);
 
         expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/test-dynamic');
+        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('malformed path'), expect.objectContaining({rawPath: '//test-dynamic'}));
     });
 
     it('should use RN getPathFromState for standard screens', () => {
