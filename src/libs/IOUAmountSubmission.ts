@@ -247,7 +247,19 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
 }
 
 function buildReportParticipants(args: SubmitAmountArgs) {
-    const {report, policy, currentUserPersonalDetails, reportAttributesDerivedValue, allReportDrafts, allReportNVPs, allPersonalDetails, conciergeReportID, translate, dateFnsLocale} = args;
+    const {
+        report,
+        policy,
+        currentUserPersonalDetails,
+        reportAttributesDerivedValue,
+        allReportDrafts,
+        allReportNVPs,
+        allPersonalDetails,
+        conciergeReportID,
+        translate,
+        dateFnsLocale,
+        formatPhoneNumber,
+    } = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesReports = reportAttributesDerivedValue?.reports;
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -256,10 +268,11 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
-            ? getParticipantsOption(participant, allPersonalDetails, translate)
+            ? getParticipantsOption(participant, allPersonalDetails, translate, formatPhoneNumber)
             : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
                   dateFnsLocale,
+                  formatPhoneNumber,
               });
     });
 }

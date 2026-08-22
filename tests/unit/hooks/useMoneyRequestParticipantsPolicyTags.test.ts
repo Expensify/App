@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
+import {formatPhoneNumber} from 'tests/utils/TestHelper';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -51,12 +52,17 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived,
                 reportDraft,
                 translate,
+                formatPhoneNumber,
             }),
         );
 
         await waitFor(() => expect(result.current.participants).toEqual(mockParticipants));
 
-        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(999, report, policy, personalDetails, 'concierge1', false, reportAttributesDerived, reportDraft, translate, undefined);
+        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(999, report, policy, personalDetails, 'concierge1', false, reportAttributesDerived, reportDraft, {
+            translate,
+            dateFnsLocale: undefined,
+            formatPhoneNumber,
+        });
     });
 
     it('derives participantsPolicyTags from Onyx policy tags keyed by each participant policyID', async () => {
@@ -97,6 +103,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate,
+                formatPhoneNumber,
             }),
         );
 
@@ -120,6 +127,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate,
+                formatPhoneNumber,
             }),
         );
 
