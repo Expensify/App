@@ -24,33 +24,78 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
+/** Settings screens that can be opened as top-level RHP destinations. */
 type SettingsTopLevelScreens = keyof typeof SETTINGS_TO_RHP;
 
+/** Shared descriptor for a Settings menu row. */
 type MenuData = WithSentryLabel & {
+    /** Translation key used for the row label. */
     translationKey: TranslationPaths;
+
+    /** Icon shown with the row. */
     icon: IconAsset;
+
+    /** Top-level Settings screen opened by the row. */
     screenName?: SettingsTopLevelScreens;
+
+    /** Status indicator shown when the destination needs attention. */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+
+    /** Action performed when the row is selected. */
     action: () => void;
+
+    /** External link associated with the row. */
     link?: string | (() => Promise<string>);
+
+    /** Visual type used to render the icon. */
     iconType?: typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+
+    /** Additional styles applied to the icon. */
     iconStyles?: StyleProp<ViewStyle>;
+
+    /** Icon used when the primary icon cannot be displayed. */
     fallbackIcon?: IconAsset;
+
+    /** Whether the row contents should use a horizontal layout. */
     shouldStackHorizontally?: boolean;
+
+    /** Size used when the icon is rendered as an avatar. */
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+
+    /** Avatars displayed at the end of the row. */
     floatRightAvatars?: TIcon[];
+
+    /** Optional pre-localized row title. */
     title?: string;
+
+    /** Whether to display the trailing icon. */
     shouldShowRightIcon?: boolean;
+
+    /** Icon displayed at the end of the row. */
     iconRight?: IconAsset;
+
+    /** Text displayed in the row badge. */
     badgeText?: string;
+
+    /** Additional styles applied to the badge. */
     badgeStyle?: ViewStyle;
+
+    /** Whether the badge uses success styling. */
     isBadgeSuccess?: boolean;
+
+    /** Whether the badge uses emphasized styling. */
     isBadgeStrong?: boolean;
+
+    /** Whether the badge uses the condensed layout. */
     isBadgeCondensed?: boolean;
 };
 
+/** Group of Settings menu rows displayed under one translated heading. */
 type MenuSection = {
+    /** Translation key used for the section heading. */
     sectionTranslationKey: TranslationPaths;
+
+    /** Rows displayed in the section. */
     items: MenuData[];
 };
 

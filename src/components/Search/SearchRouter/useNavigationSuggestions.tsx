@@ -71,9 +71,16 @@ type BuildSpendNavigationItemsParams = {
 };
 
 type BuildAccountNavigationItemsParams = {
+    /** Settings menu sections to expose as navigation suggestions. */
     sections: MenuSection[];
+
+    /** Context shown on the right side of each suggestion row. */
     rightElement: ReactNode;
+
+    /** Resolves a localized label for a Settings menu item. */
     getItemText: (item: MenuData) => string;
+
+    /** Formats a Settings label as navigation destination text. */
     getDestinationText: (destination: string) => string;
 };
 
