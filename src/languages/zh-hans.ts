@@ -1493,6 +1493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: '启用钱包',
         hold: '暂挂',
         sendToSomeone: '发送给某人',
+        sendToEmployer: '发送给我的雇主',
         unhold: '解除保留',
         holdExpense: () => ({
             one: '暂挂报销',

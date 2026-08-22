@@ -4998,6 +4998,22 @@ describe('getSecondaryTransactionThreadActions', () => {
         it('hides SEND_TO_SOMEONE on an archived self-DM (no write access)', () => {
             expect(getSendToSomeoneResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         });
+
+        it('includes SEND_TO_EMPLOYER for an unreported self-tracked expense that is not a split', () => {
+            expect(getSendToSomeoneResult(false, false)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+        });
+
+        it('hides SEND_TO_EMPLOYER for a self-DM split expense when the user has no workspace to submit to', () => {
+            expect(getSendToSomeoneResult(true, false)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+        });
+
+        it('includes SEND_TO_EMPLOYER for a self-DM split expense when the user has a workspace to submit to', () => {
+            expect(getSendToSomeoneResult(true, true)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+        });
+
+        it('hides SEND_TO_EMPLOYER on an archived self-DM (no write access)', () => {
+            expect(getSendToSomeoneResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+        });
     });
 
     it('includes the SPLIT option when grandParentReport is a selfDM report (transaction thread inside selfDM)', () => {

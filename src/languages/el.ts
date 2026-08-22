@@ -1613,6 +1613,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Ενεργοποίηση πορτοφολιού',
         hold: 'Σε αναμονή',
         sendToSomeone: 'Αποστολή σε κάποιον',
+        sendToEmployer: 'Αποστολή στον εργοδότη μου',
         unhold: 'Αφαίρεση κράτησης',
         holdExpense: () => ({
             one: 'Αναστολή δαπάνης',

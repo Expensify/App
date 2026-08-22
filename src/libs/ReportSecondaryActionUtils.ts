@@ -1252,10 +1252,11 @@ function getSecondaryTransactionThreadActions({
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
-    // Show "Send to someone" only for an unreported self-tracked expense in personal space, reusing the track-expense
-    // whisper's convert-from-track flow (once submitted, parentReport is no longer a self-DM so this hides).
-    // A self-DM split can only go to a workspace, so hide it for a split unless the user has one; also require write
-    // access (like MOVE_EXPENSE) so the row hides on an archived self-DM.
+    // Show "Send to someone" and "Send to my employer" only for an unreported self-tracked expense in personal space,
+    // reusing the track-expense whisper's convert-from-track flow (once submitted, parentReport is no longer a self-DM
+    // so these hide). A self-DM split can only go to a workspace: for a split we still surface both rows when the user
+    // has a workspace (the participant selector routes the split into it), and hide both otherwise. Also require write
+    // access (like MOVE_EXPENSE) so the rows hide on an archived self-DM.
     const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
     if (
         isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) &&
@@ -1263,6 +1264,7 @@ function getSecondaryTransactionThreadActions({
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
