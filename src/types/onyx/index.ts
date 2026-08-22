@@ -169,6 +169,7 @@ import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchContext from './SearchContext';
+import type SearchFilters from './SearchFilters';
 import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
@@ -389,6 +390,7 @@ export type {
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
+    SearchFilters,
     RecentSearchItem,
     SearchContext,
     SearchFooterConversion,

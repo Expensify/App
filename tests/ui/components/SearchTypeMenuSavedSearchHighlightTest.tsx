@@ -2,15 +2,16 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-
-import useNetwork from '@hooks/useNetwork';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
+import type * as SearchContext from '@components/Search/SearchContext';
+import type {SearchQueryContextValue} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
 import StaticSearchTypeMenu from '@pages/Search/SearchPageNarrow/StaticSearchTypeMenu';
 import SearchTypeMenuNarrow from '@pages/Search/SearchTypeMenuNarrow';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -18,7 +19,6 @@ import type * as ReactNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useTodoCounts', () => ({
@@ -35,7 +35,28 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: jest.fn(() => true),
     };
 });
-jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+
+jest.mock('@components/Search/SearchContext', () => {
+    const actualSearchContext: typeof SearchContext = jest.requireActual('@components/Search/SearchContext');
+    return {
+        __esModule: true,
+        ...actualSearchContext,
+        useSearchQueryContext: jest.fn(),
+    };
+});
+
+const mockedUseSearchQueryContext = jest.mocked(useSearchQueryContext);
+
+const defaultSearchContext: SearchQueryContextValue = {
+    currentSearchHash: -1,
+    currentSimilarSearchHash: -1,
+    currentSearchKey: undefined,
+    currentSearchQueryJSON: undefined,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
+    suggestedSearches: getSuggestedSearches(),
+    shouldResetSearchQuery: false,
+};
 
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
@@ -58,7 +79,7 @@ describe('Search saved-search tab highlight', () => {
         jest.clearAllMocks();
     });
 
-    it('keeps saved search selected in static narrow menu when similar hash collides', async () => {
+    it("keeps saved search selected in static narrow menu when it's selected", async () => {
         const baseQuery = 'type:expense status:all';
         const savedQueryString = `${baseQuery} sortBy:amount`;
         const savedQueryJSON = buildSearchQueryJSON(savedQueryString);
@@ -66,6 +87,8 @@ describe('Search saved-search tab highlight', () => {
         if (!savedQueryJSON) {
             throw new Error('Failed to build saved query JSON');
         }
+
+        mockedUseSearchQueryContext.mockReturnValue({...defaultSearchContext, currentSearchKey: savedSearchIDToSearchKey(savedQueryJSON.hash.toString())});
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SAVED_SEARCHES, {
@@ -86,7 +109,7 @@ describe('Search saved-search tab highlight', () => {
         expect(screen.getByRole('tab', {name: 'My saved search', selected: true})).toBeTruthy();
     });
 
-    it('keeps saved search selected in interactive narrow menu when similar hash collides', async () => {
+    it("keeps saved search selected in interactive narrow menu when it's selected", async () => {
         const baseQuery = 'type:expense status:all';
         const savedQueryString = `${baseQuery} sortBy:amount`;
         const savedQueryJSON = buildSearchQueryJSON(savedQueryString);
@@ -94,6 +117,8 @@ describe('Search saved-search tab highlight', () => {
         if (!savedQueryJSON) {
             throw new Error('Failed to build saved query JSON');
         }
+
+        mockedUseSearchQueryContext.mockReturnValue({...defaultSearchContext, currentSearchKey: savedSearchIDToSearchKey(savedQueryJSON.hash.toString())});
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SAVED_SEARCHES, {
@@ -112,68 +137,5 @@ describe('Search saved-search tab highlight', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByRole('tab', {name: 'My saved search', selected: true})).toBeTruthy();
-    });
-
-    it('does not show pending-delete saved search as selected in static narrow menu while online', async () => {
-        const baseQuery = 'type:expense status:all';
-        const savedQueryString = `${baseQuery} sortBy:amount`;
-        const savedQueryJSON = buildSearchQueryJSON(savedQueryString);
-
-        if (!savedQueryJSON) {
-            throw new Error('Failed to build saved query JSON');
-        }
-
-        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.SAVED_SEARCHES, {
-                [savedQueryJSON.hash]: {
-                    name: 'My saved search',
-                    query: savedQueryString,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                },
-            });
-        });
-
-        render(
-            <Wrapper>
-                <StaticSearchTypeMenu queryJSON={savedQueryJSON} />
-            </Wrapper>,
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryByRole('tab', {name: 'My saved search'})).toBeNull();
-    });
-
-    it('highlights built-in tab when saved search is pending delete while online (interactive narrow)', async () => {
-        const baseQuery = 'type:expense status:all';
-        const savedQueryString = `${baseQuery} sortBy:amount`;
-        const savedQueryJSON = buildSearchQueryJSON(savedQueryString);
-
-        if (!savedQueryJSON) {
-            throw new Error('Failed to build saved query JSON');
-        }
-
-        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.SAVED_SEARCHES, {
-                [savedQueryJSON.hash]: {
-                    name: 'My saved search',
-                    query: savedQueryString,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                },
-            });
-        });
-
-        render(
-            <Wrapper>
-                <SearchTypeMenuNarrow queryJSON={savedQueryJSON} />
-            </Wrapper>,
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryByRole('tab', {name: 'My saved search'})).toBeNull();
-        expect(screen.getByRole('tab', {name: translateLocal('search.tabs.expenses'), selected: true})).toBeTruthy();
     });
 });

@@ -14,7 +14,7 @@ const MENU_CLOSE_DELAY_MS = 800;
 
 function useShareSavedSearch() {
     const {environmentURL} = useEnvironment();
-    const [copiedHash, setCopiedHash] = useState<number | null>(null);
+    const [copiedID, setCopiedID] = useState<string | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
@@ -23,21 +23,21 @@ function useShareSavedSearch() {
         };
     }, []);
 
-    const handleShare = (itemHash: number, itemQuery: string) => {
+    const handleShare = (itemID: string, itemQuery: string) => {
         const url = `${environmentURL}/${ROUTES.SEARCH_ROOT.getRoute({query: itemQuery})}`;
         Clipboard.setString(url);
-        setCopiedHash(itemHash);
+        setCopiedID(itemID);
 
         if (timeoutRef.current !== null) {
             clearTimeout(timeoutRef.current);
         }
         timeoutRef.current = setTimeout(() => {
-            setCopiedHash((prev) => (prev === itemHash ? null : prev));
+            setCopiedID((prev) => (prev === itemID ? null : prev));
             timeoutRef.current = null;
         }, SHARE_FEEDBACK_DURATION_MS);
     };
 
-    return {copiedHash, handleShare};
+    return {copiedID, handleShare};
 }
 
 export {MENU_CLOSE_DELAY_MS};

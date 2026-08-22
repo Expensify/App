@@ -105,7 +105,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
     const activePolicy = useActivePolicy();
     // The server converts search figures to the active policy's currency when the query carries no explicit target.
