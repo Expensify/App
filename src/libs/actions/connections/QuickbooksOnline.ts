@@ -34,7 +34,7 @@ function getQuickbooksOnlineSetupLink(policyID: string, isIntuitEnterpriseSuite 
     return commandURL + params.toString();
 }
 
-function selectIntuitEnterpriseSuiteEntity(policyID: string, entity: IntuitEnterpriseSuiteEntity, currentEntity: IntuitEnterpriseSuiteEntity) {
+function selectIntuitEnterpriseSuiteEntity(policyID: string, entity: IntuitEnterpriseSuiteEntity, currentEntity: IntuitEnterpriseSuiteEntity | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -77,8 +77,8 @@ function selectIntuitEnterpriseSuiteEntity(policyID: string, entity: IntuitEnter
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
-                            realmId: currentEntity.realmId,
-                            companyName: currentEntity.companyName,
+                            realmId: currentEntity?.realmId ?? '',
+                            companyName: currentEntity?.companyName ?? '',
                             pendingFields: {realmId: null},
                             errorFields: {realmId: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         },
