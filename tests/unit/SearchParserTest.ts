@@ -999,6 +999,50 @@ const tests = [
 
 const keywordTests = [
     {
+        query: '-merchant*:Uber',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['-merchant*:Uber'],
+            },
+        },
+    },
+    {
+        // The "contains" operator is only supported for the merchant field
+        query: 'category*:travel',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['category*:travel'],
+            },
+        },
+    },
+    {
+        // The "contains" operator is not supported for default keys
+        query: 'type*:expense',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['type*:expense'],
+            },
+        },
+    },
+    {
         query: '" " "  "', // Multiple whitespaces wrapped in quotes
         expected: {
             type: 'expense',

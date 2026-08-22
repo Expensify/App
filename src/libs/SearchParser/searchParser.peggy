@@ -214,6 +214,10 @@ filter = @(standardFilter / defaultFilter / freeTextFilter)
 
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
+      // The "contains" operator is only supported for the merchant field
+      if (op === "contains") {
+        return buildFilter("eq", "keyword", text().trim());
+      }
       updateDefaultValues(key, value);
       return {...buildFilter(op, key, value), isDefault: true};
     }
@@ -236,6 +240,11 @@ standardFilter
 
       const key = field;
       let operator = op;
+
+      // The "contains" operator is only supported for the merchant field
+      if (operator === "contains" && (neg || key !== "merchant")) {
+        return buildFilter("eq", "keyword", text().trim());
+      }
 
       // Apply negation only when "-" is present and the key can be negated
       if (neg && !nonNegatableKeys.has(key)) {
