@@ -932,6 +932,7 @@ describe('ImportTransactions', () => {
             expect(params.cardName).toBe('Imported Card');
             expect(params.currency).toBe(CONST.CURRENCY.USD);
             expect(params.reimbursable).toBe(true);
+            expect(JSON.parse(String(params.columnMappings))).toEqual(expect.objectContaining({flipAmountSign: false}));
             expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: 550}), expect.objectContaining({amount: 2500})]);
         });
 
