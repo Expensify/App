@@ -1635,6 +1635,85 @@ describe('generateTranslations', () => {
             expect(translateSpy).toHaveBeenCalledTimes(2);
         });
 
+        it('does not retranslate a sibling key that only shares a prefix with a changed function key', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                Str.dedent(`
+                const strings = {
+                    iou: {
+                        deleteReport: 'Delete report',
+                        deleteReportConfirmation: () => ({
+                            one: 'Are you sure you want to delete this report?',
+                            other: (count: number) => \`Are you sure you want to delete these \${count} reports?\`,
+                        }),
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            fs.writeFileSync(
+                IT_PATH,
+                Str.dedent(`
+                import type en from './en';
+
+                const strings = {
+                    iou: {
+                        deleteReport: '[it] Delete report',
+                        deleteReportConfirmation: () => ({
+                            one: '[it] Are you sure you want to delete this report?',
+                            other: (count: number) => \`[it] Are you sure you want to delete these \${count} reports?\`,
+                        }),
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
+                        hunks: [],
+                        addedLines: new Set(),
+                        removedLines: new Set(),
+                        modifiedLines: new Set([3]),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            mockShow.mockReturnValue(
+                Str.dedent(`
+                const strings = {
+                    iou: {
+                        deleteReport: 'Remove report',
+                        deleteReportConfirmation: () => ({
+                            one: 'Are you sure you want to delete this report?',
+                            other: (count: number) => \`Are you sure you want to delete these \${count} reports?\`,
+                        }),
+                    },
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Delete report', undefined, expect.anything());
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Are you sure you want to delete this report?', undefined, expect.anything());
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Are you sure you want to delete these ${count} reports?', undefined, expect.anything());
+        });
+
         it('handles modifying existing string values with --compare-ref', async () => {
             // Create English source with a modified string value
             fs.writeFileSync(
