@@ -361,6 +361,18 @@ describe('PolicyUtils', () => {
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
         });
 
+        it('treats a stale control-only role on a Collect policy as a user', () => {
+            const policy = {
+                ...buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN),
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+
+            expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+            expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS)).toBe(true);
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS)).toBe(false);
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)).toBe(false);
+        });
+
         it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
             const policy = {
                 ...buildPolicy(CONST.POLICY.ROLE.EDITOR),
