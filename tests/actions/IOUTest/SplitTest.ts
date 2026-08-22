@@ -11,7 +11,9 @@ import {addComment, notifyNewAction} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import type * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {createTransitionBarrier, writeWhenReady} from '@libs/API/writeWhenReady';
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -35,6 +37,7 @@ import {
     updateSplitExpenseAmountField,
     updateSplitExpenseField,
 } from '@userActions/IOU/SplitExpenseItems';
+import type {UpdateSplitTransactionsParams} from '@userActions/IOU/SplitTransactionUpdate';
 import {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow} from '@userActions/IOU/SplitTransactionUpdate';
 
 import CONST from '@src/CONST';
@@ -121,6 +124,7 @@ jest.mock('@src/libs/actions/Report', () => {
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@libs/API/writeWhenReady');
 jest.mock('@libs/deferredLayoutWrite', () => ({
     registerDeferredWrite: (_key: string, callback: () => void) => callback(),
     flushDeferredWrite: jest.fn(),
@@ -10297,6 +10301,182 @@ describe('startSplitBill delegateAccountID forwarding', () => {
 
         expect(splitTransactionID).toBeTruthy();
         expect(splitIOUAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+    });
+});
+
+/**
+ * Minimal fixture for the split-expenses save flow: one expense report holding one transaction,
+ * with a draft that splits it in two.
+ *
+ * `withExistingSplitChildren` additionally seeds those two splits in Onyx, which is what makes a
+ * one-item `splitExpenses` read as a reverse split (collapsing an existing split back to one
+ * expense) rather than as a fresh one-way split.
+ */
+const buildSplitFlowParams = async ({withExistingSplitChildren = false} = {}) => {
+    const expenseReport: Report = {
+        ...createRandomReport(9001, undefined),
+        type: CONST.REPORT.TYPE.EXPENSE,
+    };
+    const transaction: Transaction = {
+        amount: 100,
+        currency: 'USD',
+        transactionID: '9001',
+        reportID: expenseReport.reportID,
+        created: DateUtils.getDBTime(),
+        merchant: 'test',
+    };
+    const transactionThread: Report = {...createRandomReport(9002, undefined)};
+    const iouAction: ReportAction = {
+        ...buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            comment: '',
+            participants: [],
+            transactionID: transaction.transactionID,
+            iouReportID: expenseReport.reportID,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+        }),
+        childReportID: transactionThread.reportID,
+    };
+
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[iouAction.reportActionID]: iouAction});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+    if (withExistingSplitChildren) {
+        for (const childTransactionID of ['9003', '9004']) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID}`, {
+                ...transaction,
+                transactionID: childTransactionID,
+                amount: 50,
+                comment: {originalTransactionID: transaction.transactionID, source: CONST.IOU.TYPE.SPLIT},
+            });
+        }
+    }
+    await waitForBatchedUpdates();
+
+    let allTransactions: OnyxCollection<Transaction>;
+    let allReports: OnyxCollection<Report>;
+    await getOnyxData({
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
+        callback: (value) => {
+            allTransactions = value;
+        },
+    });
+    await getOnyxData({
+        key: ONYXKEYS.COLLECTION.REPORT,
+        callback: (value) => {
+            allReports = value;
+        },
+    });
+
+    const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+    const params: UpdateSplitTransactionsParams = {
+        allTransactionsList: allTransactions,
+        allReportsList: allReports,
+        allReportActionsList: undefined,
+        allReportNameValuePairsList: undefined,
+        transactionData: {
+            reportID: expenseReport.reportID,
+            originalTransactionID: transaction.transactionID,
+            splitExpenses: [
+                {transactionID: '9003', amount: 50, description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
+                {transactionID: '9004', amount: 50, description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
+            ],
+            splitExpensesTotal: 100,
+        },
+        searchContext: {currentSearchHash: -2},
+        policyCategories: undefined,
+        policy: undefined,
+        policyRecentlyUsedCategories: [],
+        iouReport: expenseReport,
+        firstIOU: iouAction,
+        isASAPSubmitBetaEnabled: false,
+        currentUserPersonalDetails,
+        transactionViolations: {},
+        policyRecentlyUsedCurrencies: [],
+        quickAction: undefined,
+        betas: [CONST.BETAS.ALL],
+        allPolicyTags: undefined,
+        personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+        transactionReport: reports.transactionReport,
+        expenseReport: reports.expenseReport,
+        isOffline: false,
+        delegateAccountID: undefined,
+        isTrackIntentUser: false,
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
+        formatPhoneNumber,
+        getCurrencySymbol: getCurrencySymbolLocal,
+    };
+
+    return {expenseReport, iouAction, params};
+};
+
+describe('split save deferred write', () => {
+    beforeEach(() => {
+        jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(false);
+    });
+
+    it('defers the write behind a navigation barrier when saving from the split-expenses flow', async () => {
+        // Given a split saved through the split-expenses flow
+        const {params} = await buildSplitFlowParams();
+
+        // When the split is saved
+        updateSplitTransactionsFromSplitExpensesFlow(params);
+        await waitForBatchedUpdates();
+
+        // Then the write goes through writeWhenReady gated on a screen transition specifically, so its
+        // optimistic data does not land while the press is still trying to paint, and a stray modal or
+        // keyboard blip cannot release it early
+        expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
+        expect(writeWhenReady).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything(), expect.any(Function));
+    });
+
+    it('defers the write the same way when saving from the Search page', async () => {
+        // Given the Search page is the topmost full screen route
+        jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+        const {params} = await buildSplitFlowParams();
+
+        // When the split is saved
+        updateSplitTransactionsFromSplitExpensesFlow(params);
+        await waitForBatchedUpdates();
+
+        // Then the same barrier-gated path is used - the barrier is route agnostic, so the Search
+        // branch needs no special casing
+        expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
+        expect(writeWhenReady).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything(), expect.any(Function));
+    });
+
+    it('defers the reverse-split write behind the same barrier', async () => {
+        // Given an existing two-way split being collapsed back to a single expense
+        const {params} = await buildSplitFlowParams({withExistingSplitChildren: true});
+        const remainingSplit = params.transactionData.splitExpenses.at(0);
+
+        // When the reverse split is saved from the split-expenses flow
+        updateSplitTransactions({
+            ...params,
+            transactionData: {...params.transactionData, splitExpenses: remainingSplit ? [remainingSplit] : []},
+            isFromSplitExpensesFlow: true,
+        });
+        await waitForBatchedUpdates();
+
+        // Then REVERT_SPLIT_TRANSACTION goes through the same fork as the creation path
+        expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
+        expect(writeWhenReady).toHaveBeenCalledWith(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, expect.anything(), expect.anything(), expect.any(Function));
+    });
+
+    it('writes immediately when the caller is not the split-expenses flow', async () => {
+        // Given a direct updateSplitTransactions call, as useDeleteTransactions makes
+        const {params} = await buildSplitFlowParams();
+
+        // When it runs outside the split-expenses flow
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: false});
+        await waitForBatchedUpdates();
+
+        // Then there is no navigation to wait on, so neither the write nor the barrier it would need is deferred
+        expect(writeWhenReady).not.toHaveBeenCalled();
+        expect(createTransitionBarrier).not.toHaveBeenCalled();
     });
 });
 
