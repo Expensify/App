@@ -441,9 +441,7 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
     }
 
     const patchedRoutes = [...tabState.routes];
-    const routeWithoutKey = {...focusedRoute};
-    delete (routeWithoutKey as Partial<Pick<typeof routeWithoutKey, 'key'>>).key;
-    patchedRoutes[tabState.index] = routeWithoutKey as TabRouteForReplacement;
+    patchedRoutes[tabState.index] = getKeylessRoute(focusedRoute) as TabRouteForReplacement;
 
     return toStaleTabState(existingTabState, {
         routes: patchedRoutes,
