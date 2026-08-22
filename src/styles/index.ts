@@ -2567,6 +2567,15 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        messageEditCancelButtonWrapper: {
+            justifyContent: 'flex-end',
+            // The edit cancel button dropped its marginVertical so the compose box stops rounding up past the
+            // main composer (see https://github.com/Expensify/App/issues/99143). Restore the same 3px of inner
+            // spacing as paddingBottom here — on the wrapper it keeps the button visually centered on a single
+            // line without contributing to the compose box's intrinsic min-height. Matches composerSizeButton.marginHorizontal.
+            paddingBottom: 3,
+        },
+
         chatItemPDFAttachmentLoading: {
             backgroundColor: 'transparent',
             borderColor: theme.border,

@@ -30,10 +30,11 @@ function MessageEditCancelButton({onCancel, testID, ...restProps}: MessageEditCa
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
-    // Match the main composer's action button: rely on composerSizeButton's alignSelf to center the
-    // button within the compose box (minHeight componentSizeMedium) instead of adding vertical margin.
-    // The extra marginVertical left zero slack once composerSizeButton grew to 40px, which let the edit
-    // compose box round up past the main composer's height. See https://github.com/Expensify/App/issues/99143
+    // Drop the extra marginVertical the cancel button used to add: once composerSizeButton grew to 40px it
+    // left zero slack, so the edit compose box rounded up past the main composer's height. See
+    // https://github.com/Expensify/App/issues/99143. The 3px of vertical spacing now lives on the wrapper's
+    // paddingBottom (messageEditCancelButtonWrapper), which keeps the button centered on a single line
+    // without feeding the compose box's intrinsic min-height.
     const closeButtonStyles = [styles.composerSizeButton];
 
     return (
