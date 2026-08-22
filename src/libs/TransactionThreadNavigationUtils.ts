@@ -33,6 +33,7 @@ type ResolveReportContext = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number;
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergeChat: OnyxEntry<Report>;
 };
 
 /**
@@ -71,6 +72,7 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
 
     const transactionThreadReport = createTransactionThreadReport({
         introSelected: context.introSelected,
+        conciergeChat: context.conciergeChat,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
         betas: context.betas,
@@ -123,6 +125,7 @@ function getOrCreateTransactionThreadReportID(
     // No thread yet, so create it.
     const transactionThreadReport = createTransactionThreadReport({
         introSelected: context.introSelected,
+        conciergeChat: context.conciergeChat,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
         betas: context.betas,
