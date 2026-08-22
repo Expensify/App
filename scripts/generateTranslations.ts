@@ -1083,6 +1083,9 @@ class TranslationGenerator {
                 }
             }
 
+            TSCompilerUtils.removeDescendantPaths(this.pathsToModify);
+            TSCompilerUtils.removeDescendantPaths(this.pathsToAdd);
+
             if (this.verbose) {
                 console.log(`🔄 Paths to modify: ${Array.from(this.pathsToModify).join(', ')}`);
                 console.log(`➕ Paths to add: ${Array.from(this.pathsToAdd).join(', ')}`);
