@@ -507,13 +507,11 @@ function SearchAutocompleteList({
                     customHeader: skeletonHeader,
                 });
             }
-        } else {
+        } else if (nextStyledRecentReports.length > 0 || !isLoadingOptions) {
             // Active search: render the results as a single list in the order recentReportsOptions provides.
-            if (nextStyledRecentReports.length > 0 || !isLoadingOptions) {
-                pushSection({title: translate('search.serverResults'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
-            } else {
-                pushSection({title: undefined, data: [], sectionIndex: sectionIndex++, customHeader: skeletonHeader});
-            }
+            pushSection({title: translate('search.serverResults'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
+        } else {
+            pushSection({title: undefined, data: [], sectionIndex: sectionIndex++, customHeader: skeletonHeader});
         }
 
         if (autocompleteSuggestions.length > 0) {
@@ -552,7 +550,6 @@ function SearchAutocompleteList({
         recentSearchesData,
         searchOptions,
         searchQueryItems,
-        searchResultReportIDs,
         styles,
         translate,
         isLoadingOptions,

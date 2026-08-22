@@ -190,15 +190,14 @@ describe('SearchAutocompleteList', () => {
         expect(mockHtmlToText).toHaveBeenCalled();
     });
 
-    it('keeps a known DM in "Recent chats" after its report loads from search', async () => {
-        const mockUseFilteredOptions = jest.mocked(useFilteredOptions);
+    it('renders active-search results as a single "Search results" list ordered by the server order', async () => {
         const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
 
-        // Before the report loads, the DM is just a personal detail keyed by accountID.
-        const dmAsPersonalDetail: OptionData = {reportID: '', keyForList: '123', accountID: 123, text: 'Alice', alternateText: '', lastMessageText: ''};
-        mockCombineOrdering.mockReturnValue({recentReports: [dmAsPersonalDetail], personalDetails: []});
+        const alice: OptionData = {reportID: '456', keyForList: '456', accountID: 123, isDM: true, text: 'Alice', alternateText: '', lastMessageText: ''};
+        const bob: OptionData = {reportID: '789', keyForList: '789', accountID: 0, text: 'Bob', alternateText: '', lastMessageText: ''};
+        mockCombineOrdering.mockReturnValue({recentReports: [alice, bob], personalDetails: []});
 
-        const {rerender, toJSON} = render(
+        const {toJSON} = render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <SearchAutocompleteList
@@ -212,66 +211,13 @@ describe('SearchAutocompleteList', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // The DM shows up under "Recent chats" and its position is now frozen.
-        const treeAfterFreeze = JSON.stringify(toJSON());
-        expect(treeAfterFreeze).toContain('Recent chats');
-        expect(treeAfterFreeze).toContain('Alice');
-        expect(treeAfterFreeze.indexOf('Recent chats')).toBeLessThan(treeAfterFreeze.indexOf('Alice'));
-
-        // Now the search results come back. The DM's report loads, so its keyForList flips to the reportID
-        // (accountID stays the same). We hand back a new options reference so the list recomputes without
-        // touching the query, otherwise the frozen ranks would be rebuilt.
-        const dmAsReport: OptionData = {reportID: '456', keyForList: '456', accountID: 123, isDM: true, text: 'Alice', alternateText: '', lastMessageText: ''};
-        // Alice also has a task report. It carries her accountID too, but it isn't the DM, so it should end up
-        // in the server section rather than pinned under "Recent chats".
-        const aliceTaskReport: OptionData = {reportID: '999', keyForList: '999', accountID: 123, isDM: false, isTaskReport: true, text: 'Alice Task', alternateText: '', lastMessageText: ''};
-        const brandNewServerReport: OptionData = {reportID: '789', keyForList: '789', accountID: 0, text: 'Bob', alternateText: '', lastMessageText: ''};
-        mockUseFilteredOptions.mockReturnValue({
-            options: {reports: [], personalDetails: []},
-            isLoading: false,
-            loadMore: jest.fn(),
-            loadAll: jest.fn(),
-            hasMore: false,
-            isLoadingMore: false,
-        });
-        mockCombineOrdering.mockReturnValue({recentReports: [dmAsReport, aliceTaskReport, brandNewServerReport], personalDetails: []});
-
-        rerender(
-            <OnyxListItemProvider>
-                <LocaleContextProvider>
-                    <SearchAutocompleteList
-                        autocompleteQueryValue="te"
-                        handleSearch={jest.fn()}
-                        onListItemPress={jest.fn()}
-                    />
-                </LocaleContextProvider>
-            </OnyxListItemProvider>,
-        );
-
-        await waitForBatchedUpdatesWithAct();
-
-        const treeAfterServer = JSON.stringify(toJSON());
-        const recentChatsIndex = treeAfterServer.indexOf('Recent chats');
-        // The first "Alice" is the DM row under "Recent chats".
-        const aliceDMIndex = treeAfterServer.indexOf('Alice');
-        const serverResultsIndex = treeAfterServer.indexOf('Search results');
-        const aliceTaskIndex = treeAfterServer.indexOf('Alice Task');
-        const bobIndex = treeAfterServer.indexOf('Bob');
-
-        // Both section headers and all three rows rendered.
-        expect(recentChatsIndex).toBeGreaterThanOrEqual(0);
-        expect(serverResultsIndex).toBeGreaterThan(recentChatsIndex);
-        expect(aliceDMIndex).toBeGreaterThanOrEqual(0);
-        expect(aliceTaskIndex).toBeGreaterThanOrEqual(0);
-        expect(bobIndex).toBeGreaterThanOrEqual(0);
-
-        // The DM stayed under "Recent chats" (before the "Search results" header) despite the keyForList flip.
-        expect(aliceDMIndex).toBeGreaterThan(recentChatsIndex);
-        expect(aliceDMIndex).toBeLessThan(serverResultsIndex);
-
-        // Alice's task report and Bob's report are in the server section - the task wasn't pinned just
-        // because it shares Alice's accountID.
-        expect(aliceTaskIndex).toBeGreaterThan(serverResultsIndex);
-        expect(bobIndex).toBeGreaterThan(serverResultsIndex);
+        const tree = JSON.stringify(toJSON());
+        // Active search renders one "Search results" section, not a separate "Recent chats" section.
+        expect(tree).toContain('Search results');
+        expect(tree).not.toContain('Recent chats');
+        expect(tree).toContain('Alice');
+        expect(tree).toContain('Bob');
+        // Rows follow the order recentReportsOptions provides.
+        expect(tree.indexOf('Alice')).toBeLessThan(tree.indexOf('Bob'));
     });
 });
