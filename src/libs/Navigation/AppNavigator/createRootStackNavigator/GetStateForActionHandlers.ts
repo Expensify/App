@@ -190,8 +190,7 @@ function getRehydratedTabNavigatorStateAfterPush(rehydratedState: StackNavigatio
 }
 
 /**
- * Returns the focused child route from a navigator `state` (respects `index`).
- * Using `routes.at(-1)` is wrong for TabNavigator: tab order follows TAB_SCREENS, not selection.
+ * Returns the focused route index, falling back to the first route for partial states.
  */
 function getFocusedRouteIndex(navState: NavigationState | PartialState<NavigationState> | undefined): number | undefined {
     if (!navState?.routes?.length) {
@@ -202,6 +201,10 @@ function getFocusedRouteIndex(navState: NavigationState | PartialState<Navigatio
     return typeof navState.index === 'number' && navState.routes[navState.index] !== undefined ? navState.index : 0;
 }
 
+/**
+ * Returns the focused child route from a navigator `state` (respects `index`).
+ * Using `routes.at(-1)` is wrong for TabNavigator: tab order follows TAB_SCREENS, not selection.
+ */
 function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialState<NavigationState> | undefined): NavigationPartialRoute | undefined {
     const focusedRouteIndex = getFocusedRouteIndex(navState);
     return focusedRouteIndex === undefined ? undefined : (navState?.routes[focusedRouteIndex] as NavigationPartialRoute);
