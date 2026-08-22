@@ -122,6 +122,7 @@ import {
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
+    getParentReport,
     getParsedComment,
     getParticipantsList,
     getPendingDeleteMemberAccountIDs,
@@ -137,6 +138,7 @@ import {
     getReimbursementQueuedActionMessage,
     getReportActionWithSmartscanError,
     getReportFieldsByPolicyID,
+    getReportForHeader,
     getReportIDFromLink,
     getReportNotificationPreference,
     getReportOrDraftReport,
@@ -21221,7 +21223,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -21235,7 +21237,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, regularReport, undefined, conciergeReportID, [], translateLocal, undefined);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -21245,11 +21247,26 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
             expect(result).toBe('Custom Action Name');
         });
 
+        it('should return Concierge display name when conciergeReportID is passed explicitly', () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const action = {...createRandomReportAction(4)};
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
         it('should compute the invoice report name through the provided translate function', () => {
+            const parentChatReport: Report = {
+                reportID: 'invoice-chat-123',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
             const invoiceReport: Report = {
                 reportID: 'invoice-report-789',
                 type: CONST.REPORT.TYPE.INVOICE,
@@ -21261,12 +21278,17 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             const action = {...createRandomReportAction(5)};
-            const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateWithMarker, undefined);
+            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateWithMarker, undefined);
 
             expect(result).toBe('PayerOwesMarker');
         });
 
         it('should return the stored reportName for OldDot invoice reports', () => {
+            const parentChatReport: Report = {
+                reportID: 'invoice-chat-124',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
             const invoiceReport: Report = {
                 reportID: 'invoice-report-790',
                 type: CONST.REPORT.TYPE.INVOICE,
@@ -21276,27 +21298,32 @@ describe('ReportUtils', () => {
             };
 
             const action = {...createRandomReportAction(6)};
-            const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateLocal, undefined);
 
             expect(result).toBe('Invoice #42');
         });
 
         describe('NewDot invoice reports', () => {
             const invoiceRoomID = 'invoice-room-500';
+            const invoiceRoom: Report = {
+                reportID: invoiceRoomID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
             // An invoice report without transactions has a total of zero, so its name resolves to the
             // "payer owes" message, which must come from the translate function passed by the caller.
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             beforeEach(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, {
-                    reportID: invoiceRoomID,
-                    type: CONST.REPORT.TYPE.CHAT,
-                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
                 await waitForBatchedUpdates();
             });
 
             it('should use chatReportID when it is set, instead of falling back to parentReportID', () => {
+                const nonInvoiceParent: Report = {
+                    reportID: 'not-an-invoice-room-501',
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
                 const invoiceReport: Report = {
                     reportID: 'invoice-report-791',
                     type: CONST.REPORT.TYPE.INVOICE,
@@ -21309,7 +21336,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(7)};
-                const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceReport, nonInvoiceParent, undefined, [], translateWithMarker, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -21324,7 +21351,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(8)};
-                const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -21338,20 +21365,21 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(9)};
-                getChatListItemReportName(action, invoiceReport, undefined, [], translateWithMarker, undefined);
+                getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, undefined);
 
                 expect(invoiceReport.chatReportID).toBeUndefined();
             });
 
             it('should use the parent invoice report name for a chat thread inside an invoice report', async () => {
                 const invoiceReportID = 'invoice-report-794';
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
+                const parentInvoiceReport: Report = {
                     reportID: invoiceReportID,
                     type: CONST.REPORT.TYPE.INVOICE,
                     chatReportID: invoiceRoomID,
                     reportName: 'Invoice #45',
                     currency: 'USD',
-                });
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, parentInvoiceReport);
                 await waitForBatchedUpdates();
 
                 const invoiceThread: Report = {
@@ -21363,7 +21391,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(10)};
-                const result = getChatListItemReportName(action, invoiceThread, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceThread, parentInvoiceReport, undefined, [], translateWithMarker, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -23054,6 +23082,63 @@ describe('getTransactionsWithReceipts', () => {
     it('returns an empty array when no transactions have receipts', () => {
         const withoutReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {}};
         expect(getTransactionsWithReceipts(undefined, [withoutReceipt])).toEqual([]);
+    });
+});
+
+describe('getParentReport', () => {
+    it('returns undefined when report is undefined', () => {
+        expect(getParentReport(undefined)).toBeUndefined();
+    });
+
+    it('returns undefined when report has no parentReportID', () => {
+        expect(getParentReport({reportID: '1'} as Report)).toBeUndefined();
+    });
+
+    it('returns parentReport from Onyx when not passed explicitly', async () => {
+        const parentReport = {reportID: '2'} as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, parentReport);
+        const report = {reportID: '1', parentReportID: '2'} as Report;
+        const result = getParentReport(report);
+        expect(result?.reportID).toBe('2');
+    });
+});
+
+describe('getReportForHeader', () => {
+    it('returns the report itself when it is not a chat thread', () => {
+        const report = {reportID: '1', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, undefined)).toBe(report);
+    });
+
+    it('returns the report itself when parent is not an invoice report', () => {
+        const parentReport = {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE} as Report;
+        const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, parentReport)).toBe(report);
+    });
+
+    it('returns the parent invoice report when report is a chat thread of an invoice', () => {
+        const parentReport = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, parentReport)).toBe(parentReport);
+    });
+
+    it('returns undefined when report is undefined', () => {
+        expect(getReportForHeader(undefined, undefined)).toBeUndefined();
+    });
+
+    it('returns the parent invoice report when parentReport is invoice and report is a chat thread, even if a different report exists in Onyx for the same ID', async () => {
+        const onyxParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE} as Report;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, onyxParentReport);
+
+        const passedParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
+
+        expect(getReportForHeader(report, passedParentReport)).toBe(passedParentReport);
+    });
+
+    it('returns the report when parent is an invoice but report is not a thread', () => {
+        const parentReport = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const report = {reportID: '1', parentReportID: '2', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, parentReport)).toBe(report);
     });
 });
 
