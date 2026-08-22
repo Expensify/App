@@ -12,14 +12,14 @@ import {Line} from 'victory-native';
 type VictoryChartLineProps = {tnode: TNode};
 
 function VictoryChartLine({tnode}: VictoryChartLineProps) {
-    const {points} = useVictoryChartRenderArgs();
+    const {points, pixelScale} = useVictoryChartRenderArgs();
     const yKey = getYKey(tnode);
     const {nodeStyles} = parseStyles(tnode);
     return (
         <Line
             points={points[yKey]}
             color={nodeStyles.stroke ?? VictoryTheme.colors.default}
-            strokeWidth={nodeStyles.strokeWidth !== undefined ? Number(nodeStyles.strokeWidth) : undefined}
+            strokeWidth={nodeStyles.strokeWidth !== undefined ? Number(nodeStyles.strokeWidth) * pixelScale : undefined}
             curveType={parseCurveType(tnode.attributes.interpolation)}
         />
     );

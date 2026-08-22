@@ -14,17 +14,18 @@ import {Bar} from 'victory-native';
 type VictoryChartBarProps = {tnode: TNode};
 
 function VictoryChartBar({tnode}: VictoryChartBarProps) {
-    const {points, chartBounds} = useVictoryChartRenderArgs();
+    const {points, chartBounds, pixelScale} = useVictoryChartRenderArgs();
     const yKey = getYKey(tnode);
     const {nodeStyles} = parseStyles(tnode);
+    const barWidth = parseAttributeAsNumber(tnode.attributes.barwidth);
     return (
         <Bar
             points={points[yKey]}
             chartBounds={chartBounds}
             color={nodeStyles.fill ?? VictoryTheme.colors.default}
             innerPadding={BAR_INNER_PADDING}
-            roundedCorners={parseCornerRadius(tnode.attributes.cornerradius)}
-            barWidth={parseAttributeAsNumber(tnode.attributes.barwidth)}
+            roundedCorners={parseCornerRadius(tnode.attributes.cornerradius, pixelScale)}
+            barWidth={barWidth === undefined ? undefined : barWidth * pixelScale}
         />
     );
 }
