@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,7 +20,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -50,6 +50,7 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
 
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
     const workspaceMembers: MemberForList[] = [];
@@ -71,7 +72,7 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
                 continue;
             }
 
-            const personalDetail = getPersonalDetailByEmail(email);
+            const personalDetail = employeePersonalDetails[email ?? ''];
             if (personalDetail) {
                 workspaceMembers.push(
                     formatMemberForList({
