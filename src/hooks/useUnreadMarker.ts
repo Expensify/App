@@ -4,6 +4,7 @@ import Visibility from '@libs/Visibility';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {unconfirmedReadWindowSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import {useEffect, useState} from 'react';
@@ -63,6 +64,9 @@ function useUnreadMarker({
         selector: lastReadTimeSelector,
     });
     const reportLastReadTime = reportLastReadTimeValue ?? '';
+    const [unconfirmedReadWindow] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
+        selector: unconfirmedReadWindowSelector,
+    });
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
 
@@ -110,12 +114,21 @@ function useUnreadMarker({
         }
     }
 
+    // SequentialQueue can bump report.lastReadTime forward over an offline replay window that may contain
+    // another user's unseen message (see unconfirmedReadWindow in ReportMetadata). LHN unread state accounts
+    // for that via isUnread(), but the NEW divider is computed from lastReadTime alone — so while a window is
+    // active, seed the scan from the window's stale lower bound to keep the divider pointing at the unseen
+    // message. A window is ignored once lastReadTime has advanced past its upper bound (a newer read from any
+    // path supersedes it); it's cleared entirely by a genuine online read.
+    const isUnconfirmedReadWindowActive = !!unconfirmedReadWindow && reportLastReadTime <= unconfirmedReadWindow.to;
+    const effectiveUnreadMarkerTime = isUnconfirmedReadWindowActive && unconfirmedReadWindow.from < unreadMarkerTime ? unconfirmedReadWindow.from : unreadMarkerTime;
+
     const scanned = getUnreadMarkerReportAction({
         visibleReportActions: sortedVisibleReportActions,
         earliestReceivedOfflineMessageIndex,
         currentUserAccountID,
         prevSortedVisibleReportActionsObjects,
-        unreadMarkerTime,
+        unreadMarkerTime: effectiveUnreadMarkerTime,
         isScrolledOverThreshold,
         isOffline,
         isReversed: false,

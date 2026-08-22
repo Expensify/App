@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isChatThread} from '@libs/ReportUtils';
+import {hasUnseenActionInUnconfirmedReadWindow, isChatThread} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
@@ -24,8 +24,14 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
-const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
-    lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
+const isReportUnread = ({reportID, lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
+    lastReadTime < lastVisibleActionCreated ||
+    lastReadTime < (lastMentionedTime ?? '') ||
+    // A queued offline read can be bumped forward over a window that contains another user's unseen message
+    // (see unconfirmedReadWindow in ReportMetadata). The bumped lastReadTime then covers that message, so the
+    // timestamp comparisons above read as "read" — mirror the same carve-out ReportUtils.isUnread() applies so
+    // this bubble agrees with the LHN instead of dropping the unread indicator for that message.
+    hasUnseenActionInUnconfirmedReadWindow(reportID, lastReadTime);
 
 function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionReport}: {transaction: Transaction; containerStyles?: ViewStyle[]; isInSingleTransactionReport?: boolean}) {
     const theme = useTheme();
