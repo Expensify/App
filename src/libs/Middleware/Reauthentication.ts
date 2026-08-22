@@ -6,7 +6,7 @@ import {replay as replayMainQueue} from '@libs/Network/MainQueue';
 import {isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
-import reauthenticateLibs from '@libs/Reauthentication';
+import reauthenticateLibs, {hasRestoredDelegateSessionOnLastReauthentication} from '@libs/Reauthentication';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 
@@ -120,8 +120,10 @@ function handleExpiredSession<TKey extends OnyxKey>(
                 }
 
                 // Reauth already handled the sign-in redirect, so do not briefly show the failed request UI before sign-in.
-                request.failureData = undefined;
-                request.finallyData = undefined;
+                if (!hasRestoredDelegateSessionOnLastReauthentication()) {
+                    request.failureData = undefined;
+                    request.finallyData = undefined;
+                }
                 return data;
             }
 
