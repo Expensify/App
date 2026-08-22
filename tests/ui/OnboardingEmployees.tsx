@@ -8,6 +8,8 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {OnboardingHeaderContextProvider, OnboardingStickyHeader} from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigatorContentWrapper/OnboardingHeaderContext';
+
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
 
 import OnboardingEmployees from '@pages/OnboardingEmployees';
@@ -47,13 +49,16 @@ const renderOnboardingEmployeesPage = (initialRouteName: typeof SCREENS.ONBOARDI
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
-                    <Stack.Navigator initialRouteName={initialRouteName}>
-                        <Stack.Screen
-                            name={SCREENS.ONBOARDING.EMPLOYEES}
-                            component={OnboardingEmployees}
-                            initialParams={initialParams}
-                        />
-                    </Stack.Navigator>
+                    <OnboardingHeaderContextProvider>
+                        <OnboardingStickyHeader />
+                        <Stack.Navigator initialRouteName={initialRouteName}>
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.EMPLOYEES}
+                                component={OnboardingEmployees}
+                                initialParams={initialParams}
+                            />
+                        </Stack.Navigator>
+                    </OnboardingHeaderContextProvider>
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,

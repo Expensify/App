@@ -14,17 +14,23 @@ import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
 
-type OnboardingHeaderProps = {
+type CaretBackHeaderProps = {
+    /** Callback fired when the back link is pressed */
     onBackButtonPress?: () => void;
 
+    /** Whether to render the back caret + label */
     shouldShowBackButton?: boolean;
+
+    /** Label rendered next to the caret (defaults to the localized "Back") */
+    label?: string;
 };
 
 /**
- * Popover-style back link: caret + "Back" label.
- * Matches the submenu back row used by PopoverMenu.
+ * Popover-style back link: caret + label (defaults to "Back").
+ * Matches the submenu back row used by PopoverMenu. Not onboarding-specific — it can be
+ * rendered anywhere a lightweight "back caret" modal header is needed.
  */
-function OnboardingHeader({onBackButtonPress, shouldShowBackButton = true}: OnboardingHeaderProps) {
+function CaretBackHeader({onBackButtonPress, shouldShowBackButton = true, label}: CaretBackHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -38,7 +44,7 @@ function OnboardingHeader({onBackButtonPress, shouldShowBackButton = true}: Onbo
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.back')}
-                    sentryLabel="OnboardingHeader-Back"
+                    sentryLabel="CaretBackHeader-Back"
                 >
                     <Icon
                         src={icons.BackArrow}
@@ -46,11 +52,13 @@ function OnboardingHeader({onBackButtonPress, shouldShowBackButton = true}: Onbo
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />
-                    <Text style={styles.createMenuHeaderText}>{translate('common.back')}</Text>
+                    <Text style={styles.createMenuHeaderText}>{label ?? translate('common.back')}</Text>
                 </PressableWithoutFeedback>
             ) : null}
         </View>
     );
 }
 
-export default OnboardingHeader;
+CaretBackHeader.displayName = 'CaretBackHeader';
+
+export default CaretBackHeader;

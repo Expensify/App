@@ -1,6 +1,5 @@
 import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
-import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -15,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
 import {getPreviousOnboardingRoute} from '@libs/getOnboardingStepCounter';
+import {useOnboardingHeaderConfig} from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigatorContentWrapper/OnboardingHeaderContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -141,15 +141,16 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         </>
     );
 
+    useOnboardingHeaderConfig({
+        shouldShowBackButton: !isEmployeesFirstStep,
+        onBackButtonPress: handleBackButtonPress,
+    });
+
     return (
         <ScreenWrapper
             testID="BaseOnboardingEmployees"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <OnboardingHeader
-                shouldShowBackButton={!isEmployeesFirstStep}
-                onBackButtonPress={handleBackButtonPress}
-            />
             <Text
                 style={[styles.textHeadlineH1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 accessibilityRole={CONST.ROLE.HEADER}

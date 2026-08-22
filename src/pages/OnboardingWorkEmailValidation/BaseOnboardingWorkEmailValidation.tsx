@@ -1,4 +1,3 @@
-import OnboardingHeader from '@components/OnboardingHeader';
 import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -12,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {useOnboardingHeaderConfig} from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigatorContentWrapper/OnboardingHeaderContext';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
@@ -80,18 +80,19 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
     };
 
+    useOnboardingHeaderConfig({
+        shouldShowBackButton: !onboardingValues?.isMergingAccountBlocked,
+        onBackButtonPress: () => {
+            updateOnboardingValuesAndNavigation(onboardingValues);
+        },
+    });
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID="BaseOnboardingWorkEmailValidation"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <OnboardingHeader
-                shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
-                onBackButtonPress={() => {
-                    updateOnboardingValuesAndNavigation(onboardingValues);
-                }}
-            />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                     <OnboardingMergingAccountBlockedView

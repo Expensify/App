@@ -2,7 +2,6 @@ import Button from '@components/ButtonComposed';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
-import OnboardingHeader from '@components/OnboardingHeader';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -26,6 +25,7 @@ import {
 } from '@libs/actions/Welcome';
 import {ONBOARDING_FEATURES} from '@libs/actions/Welcome/OnboardingFeatures';
 import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
+import {useOnboardingHeaderConfig} from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigatorContentWrapper/OnboardingHeaderContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
@@ -235,13 +235,17 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         [styles, renderItem, translate],
     );
 
+    useOnboardingHeaderConfig({
+        shouldShowBackButton: true,
+        onBackButtonPress: () => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute()),
+    });
+
     return (
         <ScreenWrapper
             testID="BaseOnboardingInterestedFeatures"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldEnableMaxHeight
         >
-            <OnboardingHeader onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())} />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text
                     style={[styles.textHeadlineH1, styles.mb5]}
