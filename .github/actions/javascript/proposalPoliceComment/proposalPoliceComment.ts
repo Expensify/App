@@ -358,8 +358,8 @@ async function run() {
 }
 
 // Consistent with every other action in .github/actions/javascript/*: only auto-invoke when this file is
-// the actual entry point, not when Jest imports it as a module to unit test `run` directly.
-if (require.main === module) {
+// the actual entry point, not when a test imports it as a module to unit test `run` directly.
+if (import.meta.main) {
     run().catch((error) => {
         console.error(error);
         // Zero status ensures that the action is marked as successful regardless the outcome
