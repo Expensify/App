@@ -97,6 +97,9 @@ function ProfilePage({route}: ProfilePageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone', 'UserPlus']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+
+    // Read here (rather than inside openAgentsPage()) so the action stays a pure function of its params.
+    const [optimisticAgentAccountIDMappingCreatedAt] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
@@ -189,7 +192,11 @@ function ProfilePage({route}: ProfilePageProps) {
         if (isCurrentUser || !isCustomAgent) {
             return;
         }
-        openAgentsPage();
+        openAgentsPage(optimisticAgentAccountIDMappingCreatedAt);
+
+        // Only re-fire OPEN_AGENTS_PAGE when isCurrentUser/isCustomAgent change, not on every mapping update
+        // (which happens after each agent creation) — the mapping is read fresh whenever this does run.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isCurrentUser, isCustomAgent]);
 
     const promotedActions: PromotedAction[] = [];
