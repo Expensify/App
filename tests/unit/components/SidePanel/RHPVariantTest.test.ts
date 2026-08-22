@@ -6,7 +6,7 @@ import ROUTES from '@src/ROUTES';
 
 import type * as RHPVariantTest from '../../../../src/components/SidePanel/RHPVariantTest/index';
 
-const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
+const mockIsReportRevealedInTopmostSplitNavigator = jest.fn<boolean, []>(() => false);
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
@@ -35,9 +35,9 @@ jest.mock('react-native-onyx', () => ({
     },
 }));
 
-jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
+jest.mock('@libs/Navigation/helpers/isReportRevealedInTopmostSplitNavigator', () => ({
     __esModule: true,
-    default: () => mockIsReportTopmostSplitNavigator(),
+    default: () => mockIsReportRevealedInTopmostSplitNavigator(),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -59,11 +59,11 @@ const {handleRHPVariantNavigation} = jest.requireActual<typeof RHPVariantTest>('
 describe('handleRHPVariantNavigation', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockIsReportTopmostSplitNavigator.mockReturnValue(false);
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(false);
     });
 
-    it('preserves the topmost report for the rhpHomePage variant', () => {
-        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+    it('preserves the revealed report for the rhpHomePage variant', () => {
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(true);
 
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
@@ -71,15 +71,15 @@ describe('handleRHPVariantNavigation', () => {
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
     });
 
-    it('navigates home for the rhpHomePage variant when no report is topmost', () => {
+    it('navigates home for the rhpHomePage variant when no report is revealed', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
     });
 
-    it('preserves the topmost report for the trackExpensesWithConcierge variant and opens the side panel on top of it', () => {
-        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+    it('preserves the revealed report for the trackExpensesWithConcierge variant and opens the side panel on top of it', () => {
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(true);
 
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
@@ -87,7 +87,7 @@ describe('handleRHPVariantNavigation', () => {
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
     });
 
-    it('navigates home for the trackExpensesWithConcierge variant when no report is topmost', () => {
+    it('navigates home for the trackExpensesWithConcierge variant when the Inbox tab is topmost but no report is revealed', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);

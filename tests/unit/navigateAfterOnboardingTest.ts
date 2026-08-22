@@ -21,7 +21,7 @@ const REPORT_ID = '3';
 const USER_ID = '4';
 const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn(() => false);
-const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
+const mockIsReportRevealedInTopmostSplitNavigator = jest.fn<boolean, []>(() => false);
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
@@ -74,9 +74,9 @@ jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     default: () => mockShouldOpenOnAdminRoom(),
 }));
 
-jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
+jest.mock('@libs/Navigation/helpers/isReportRevealedInTopmostSplitNavigator', () => ({
     __esModule: true,
-    default: () => mockIsReportTopmostSplitNavigator(),
+    default: () => mockIsReportRevealedInTopmostSplitNavigator(),
 }));
 
 describe('navigateAfterOnboarding', () => {
@@ -88,7 +88,7 @@ describe('navigateAfterOnboarding', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockIsReportTopmostSplitNavigator.mockReturnValue(false);
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(false);
         return Onyx.clear();
     });
 
@@ -109,12 +109,20 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
-    it('should preserve the topmost report if onboardingAdminsChatReportID is not provided on larger screens', () => {
+    it('should preserve the revealed report if onboardingAdminsChatReportID is not provided on larger screens', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
-        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(true);
 
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
         expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('should navigate to home when the Inbox tab is topmost but no report is revealed on larger screens', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(false);
+
+        navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
     it('should not navigate to last accessed report if it is a concierge chat on small screens', async () => {
