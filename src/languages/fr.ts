@@ -1728,6 +1728,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 bypassApproversSubtitle: 'Vous désigner comme approbateur final et ignorer tous les approbateurs restants.',
                 reassignApprover: 'Réattribuer l’approbateur',
                 reassignApproverSubtitle: 'Ignorer l’approbateur actuel et désigner un nouvel approbateur.',
+                reassignApproverPageHeader: 'Choisissez un approbateur remplaçant, puis suivez le reste du circuit d’approbation.',
             },
             addApprover: {
                 subtitle: 'Choisissez un approbateur supplémentaire pour cette note de frais avant que nous la fassions passer par le reste du flux d’approbation.',

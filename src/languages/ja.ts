@@ -1701,6 +1701,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 bypassApproversSubtitle: '自分を最終承認者として割り当て、残りの承認者をすべてスキップする。',
                 reassignApprover: '承認者を再割り当て',
                 reassignApproverSubtitle: '現在の承認者をスキップし、新しい承認者を割り当てます。',
+                reassignApproverPageHeader: '代わりの承認者を選択し、残りの承認ワークフローに従ってください。',
             },
             addApprover: {
                 subtitle: '残りの承認ワークフローへ回付する前に、このレポートの追加承認者を選択してください。',

@@ -1719,6 +1719,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 bypassApproversSubtitle: 'Asígnate como aprobador final y omite a los aprobadores restantes.',
                 reassignApprover: 'Reasignar aprobador',
                 reassignApproverSubtitle: 'Omite al aprobador actual y asigna un nuevo aprobador.',
+                reassignApproverPageHeader: 'Elige un aprobador sustituto y luego sigue el resto del flujo de aprobación.',
             },
             addApprover: {
                 subtitle: 'Elige un aprobador adicional para este informe antes de que lo enviemos por el resto del flujo de aprobación.',
