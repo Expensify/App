@@ -137,22 +137,29 @@ function makeReportsAction(reportID: string): ReplaceFullscreenUnderRHPActionTyp
     };
 }
 
-function makeExistingReportsState(reportRoutes: TestRoute[], reportIndex: number, isReportsTabFocused = true): StackNavigationState<ParamListBase> {
+function makeRemoveAction(): RemoveFullscreenUnderRHPActionType {
+    return {
+        type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
+        payload: {expectedRouteName: NAVIGATORS.TAB_NAVIGATOR},
+    };
+}
+
+function makeExistingReportsState(reportRoutes: TestRoute[], reportIndex: number, isReportsTabFocused = true, rootRoutesBeforeTab: TestRoute[] = []): StackNavigationState<ParamListBase> {
     const reportsTabRoute = makeRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, undefined, {index: reportIndex, routes: reportRoutes}, 'reports-split-key');
     const searchTabRoute = makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'search-tab-key');
     const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, {index: isReportsTabFocused ? 0 : 1, routes: [reportsTabRoute, searchTabRoute]}, 'tab-nav-key');
 
-    return makeStackState([tabNavRoute, makeRHPRoute()]);
+    return makeStackState([...rootRoutesBeforeTab, tabNavRoute, makeRHPRoute()]);
 }
 
 function getReportsRoutes(result: StackNavigationState<ParamListBase> | null) {
-    const tabRoute = result?.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const tabRoute = result?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
     const reportsSplitRoute = tabRoute?.state?.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     return reportsSplitRoute?.state?.routes;
 }
 
 function getReportsIndex(result: StackNavigationState<ParamListBase> | null) {
-    const tabRoute = result?.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const tabRoute = result?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
     const reportsSplitRoute = tabRoute?.state?.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     return reportsSplitRoute?.state?.index;
 }
@@ -197,17 +204,26 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
 
     it('handles the no-sidebar shape when the focused report is at index zero', () => {
         mockStubbedParsedState = makeReportsParsedState('B');
-        const result = handleReplaceFullscreenUnderRHP(
-            makeExistingReportsState([makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 0),
-            makeReportsAction('B'),
-            CONFIG_OPTIONS,
-            stackRouter,
+        const earlierTabRoute = makeRoute(
+            NAVIGATORS.TAB_NAVIGATOR,
+            undefined,
+            {index: 0, routes: [makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'earlier-search-key')]},
+            'earlier-tab-key',
         );
+        const originalState = makeExistingReportsState([makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 0, true, [earlierTabRoute]);
+        const result = handleReplaceFullscreenUnderRHP(originalState, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
 
         const routes = getReportsRoutes(result);
+        expect(result?.routes.filter((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)).toHaveLength(2);
+        expect(result?.routes.at(0)).toEqual(earlierTabRoute);
         expect(routes?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual(['A', 'B']);
         expect(getReportsIndex(result)).toBe(1);
         expect(routes?.at(0)?.key).toBeUndefined();
+
+        const restoredState = handleRemoveFullscreenUnderRHP(result as StackNavigationState<ParamListBase>, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
+        expect(restoredState?.routes.at(0)).toEqual(earlierTabRoute);
+        expect(getReportsRoutes(restoredState)?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual(['A']);
+        expect(getReportsRoutes(restoredState)?.at(0)?.key).toBe('report-a-key');
     });
 
     it('drops forward history above the focused report', () => {
@@ -282,12 +298,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
             1,
         );
         const preInsertedState = handleReplaceFullscreenUnderRHP(originalState, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
-        const removeAction: RemoveFullscreenUnderRHPActionType = {
-            type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
-            payload: {expectedRouteName: NAVIGATORS.TAB_NAVIGATOR},
-        };
-
-        const restoredState = handleRemoveFullscreenUnderRHP(preInsertedState as StackNavigationState<ParamListBase>, removeAction, CONFIG_OPTIONS, stackRouter);
+        const restoredState = handleRemoveFullscreenUnderRHP(preInsertedState as StackNavigationState<ParamListBase>, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
         const routes = getReportsRoutes(restoredState);
         expect(routes?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual([undefined, 'A']);
         expect(routes?.at(0)?.key).toBe('inbox-key');
