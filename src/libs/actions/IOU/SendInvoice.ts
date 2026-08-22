@@ -44,8 +44,8 @@ import type BasePolicyParams from './types/BasePolicyParams';
 
 import {getAllPersonalDetails} from '.';
 import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;
@@ -892,7 +892,9 @@ function sendInvoice({
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
+    if (isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
+    }
 
     notifyNewAction(invoiceRoom.reportID, undefined, true);
 }
