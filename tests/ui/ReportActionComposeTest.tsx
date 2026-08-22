@@ -201,6 +201,40 @@ describe('ReportActionCompose Integration Tests', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
+        it('should not add another space when an emoji is inserted before a leading space', async () => {
+            const {unmount} = renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
+            const composer = screen.getByTestId('composer');
+            fireEvent.changeText(composer, ' world');
+            await waitFor(() => expect(screen.getByTestId('composer').props.value).toBe(' world'));
+
+            simulateSelection(composer, 0, 0);
+            fireEvent.changeText(composer, '😄 world');
+
+            await waitFor(() => expect(screen.getByTestId('composer').props.value).toBe('😄 world'));
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should not add another space when an emoji is inserted between two spaces', async () => {
+            const {unmount} = renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
+            const composer = screen.getByTestId('composer');
+            fireEvent.changeText(composer, 'Hello  world');
+            await waitFor(() => expect(screen.getByTestId('composer').props.value).toBe('Hello  world'));
+
+            simulateSelection(composer, 6, 6);
+            fireEvent.changeText(composer, 'Hello 😄 world');
+
+            await waitFor(() => expect(screen.getByTestId('composer').props.value).toBe('Hello 😄 world'));
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
         it('should format pasted URL as Markdown link when replacing entire selected text', async () => {
             const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();

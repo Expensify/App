@@ -154,6 +154,53 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.replaceEmojis(text).cursorPosition).toBe(undefined);
     });
 
+    describe('convertEmojiShortcodesToUnicode', () => {
+        it('converts emoji shortcodes outside code ranges', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :smile:')).toBe('Hi 😄 ');
+        });
+
+        it('adds a separator when pasted shortcode is followed by text', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :smile:there')).toBe('Hi 😄 there');
+        });
+
+        it('can convert pasted shortcodes without adding a separator', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {shouldAddSeparators: false})).toBe('😄');
+        });
+
+        it('does not add separators before punctuation or between adjacent emoji', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:,:tada:')).toBe('😄,🎉 ');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:,:tada:!')).toBe('😄,🎉!');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile::tada:')).toBe('😄🎉 ');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:\nhello')).toBe('😄\nhello');
+        });
+
+        it('adds separators between every converted emoji and following text', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:hello :tada:world')).toBe('😄 hello 🎉 world');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:𝕥est')).toBe('😄 𝕥est');
+        });
+
+        it('uses the destination text to avoid duplicate separators', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {textAfterPaste: ' world'})).toBe('😄');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {textAfterPaste: ', world'})).toBe('😄');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {textAfterPaste: '🎉'})).toBe('😄');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {textAfterPaste: 'world'})).toBe('😄 ');
+        });
+
+        it('uses preferred skin tone when converting pasted shortcodes', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :+1:', 2)).toBe('Hi 👍🏽 ');
+        });
+
+        it('converts Slack skin tone shortcodes', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :raised_hands::skin-tone-5:')).toBe('Hi 🙌🏾 ');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':raised_hands::skin-tone-5:,hello')).toBe('🙌🏾,hello');
+        });
+
+        it('preserves emoji shortcodes inside inline code and code fences', () => {
+            const text = 'Hi :smile: and `:wave:`\n```\n:joy:\n```';
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(text)).toBe('Hi 😄 and `:wave:`\n```\n:joy:\n```');
+        });
+    });
+
     describe('code block handling', () => {
         it('should not replace emoji shortcode inside inline code block', () => {
             const text = '`:smile:`';
