@@ -60,6 +60,10 @@ let unregisterPrivateUserChannelResubscribe: (() => void) | undefined;
 function onPrivateUserChannelResubscribe(accountID: string) {
     unregisterPrivateUserChannelResubscribe?.();
     unregisterPrivateUserChannelResubscribe = Pusher.onChannelResubscribe(getUserChannelName(accountID), () => {
+        if (!Pusher.claimOutageSync()) {
+            Log.info('[PusherUtils] Skipping reconnect, socket recovered without going unavailable');
+            return;
+        }
         Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
         reconnect();
     });
