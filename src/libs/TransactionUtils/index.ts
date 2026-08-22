@@ -561,11 +561,16 @@ function isPartialMerchant(merchant: string): boolean {
 function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>) {
     // OPEN is included since editing another field (e.g. merchant) optimistically flips receipt.state to OPEN,
     // which would otherwise flicker the amount back to "$0.00" until the server confirms it's still missing.
+    // isAmountSet is exclusively a draft-transaction concept (set by setMoneyRequestAmount during the
+    // create/confirmation flow, before the transaction has a modifiedAmount). It's never set on an already-created
+    // transaction, so this only affects drafts and leaves every other caller (editing an existing transaction)
+    // unaffected — the true signal for those remains hasValidModifiedAmount.
     return (
         isScanRequest(transaction) &&
         (transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED || transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.OPEN) &&
         (transaction?.amount === 0 || transaction?.amount === undefined) &&
-        !hasValidModifiedAmount(transaction)
+        !hasValidModifiedAmount(transaction) &&
+        !transaction?.isAmountSet
     );
 }
 
