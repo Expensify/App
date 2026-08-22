@@ -100,6 +100,9 @@ jest.mock('@libs/EmojiTrie', () => ({
 
 // Override IDs so we control Onyx keys and can use evictableKeys for REPORT_ACTIONS
 const TEST_PARENT_REPORT_ID = 'testParentReportID';
+const TEST_CHAT_REPORT_ID = 'testChatReportID';
+const TEST_OWNER_ACCOUNT_ID = 1;
+const TEST_OTHER_ACCOUNT_ID = 2;
 const TEST_REPORT_ID = 'testReportID';
 const TEST_ACTION_ID = 'testActionID';
 const TEST_TRANSACTION_ID = 'testTransactionID';
@@ -220,6 +223,20 @@ const transactionWithOdometerDistanceReceipt: Transaction = {
     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
 };
 
+// The expense's own report, whose parent is the conversation the expense was created in.
+const testMoneyRequestReport: Report = {
+    ...testReport,
+    reportID: TEST_PARENT_REPORT_ID,
+    parentReportID: TEST_CHAT_REPORT_ID,
+    chatReportID: TEST_CHAT_REPORT_ID,
+};
+
+const testChatReport: Report = {
+    ...testReport,
+    reportID: TEST_CHAT_REPORT_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -241,6 +258,11 @@ describe('MoneyRequestReceiptView', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithoutReceipt);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {id: TEST_POLICY_ID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
+            // Signed in as the person who raised the expense unless a test says otherwise. Who the viewer is decides
+            // the add button, so with no session nobody qualifies and every expense would look uneditable.
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_OWNER_ACCOUNT_ID, email: 'owner@test.com'});
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -339,6 +361,42 @@ describe('MoneyRequestReceiptView', () => {
 
             expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides the add button but keeps the expand button for someone who may not edit the expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // Invited to look at an expense somebody else raised, as in the reported flow.
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_OTHER_ACCOUNT_ID, email: 'invited@test.com'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('shows action buttons to the person who raised the expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
         });
 
         it('shows both action buttons for a map distance receipt', async () => {
