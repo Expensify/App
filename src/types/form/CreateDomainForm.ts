@@ -16,6 +16,10 @@ type CreateDomainForm = Form<
 > & {
     /** Whether domain creation has succeeded */
     hasCreationSucceeded?: boolean;
+    /** The domain accountID of the existing domain, set when creation fails because the domain already exists */
+    domainAccountID?: number;
+    /** Domain Onyx keys present before submitting, used to distinguish an existing entry from the response-only failure entry */
+    domainKeysBeforeCreation?: string[];
 };
 
 export type {CreateDomainForm};

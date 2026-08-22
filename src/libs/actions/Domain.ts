@@ -354,13 +354,18 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
     }
 }
 
-/** Sends request for claiming a domain */
-function createDomain(domainName: string) {
+/**
+ * Sends request for claiming a domain.
+ *
+ * When the domain is already taken the request fails with a generic error and the BE attaches `domainAccountID` of the existing
+ * domain plus a minimal `domain_<accountID>` entry, which is what the add domain page keys the "domain already exists" flow off.
+ */
+function createDomain(domainName: string, domainKeysBeforeCreation?: ReadonlySet<string>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {hasCreationSucceeded: null, isLoading: true},
+            value: {hasCreationSucceeded: null, isLoading: true, errors: null, domainAccountID: null},
         },
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
@@ -370,11 +375,11 @@ function createDomain(domainName: string) {
             value: {hasCreationSucceeded: true, isLoading: null},
         },
     ];
-    const failureData = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {isLoading: null},
+            value: {isLoading: null, domainKeysBeforeCreation: domainKeysBeforeCreation ? [...domainKeysBeforeCreation] : null},
         },
     ];
 
@@ -387,6 +392,34 @@ function createDomain(domainName: string) {
  */
 function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
+}
+
+/**
+ * Surfaces an inline error on the create-domain form when the domain already exists AND the current user already has access to it.
+ * Clearing the accountID also stops the navigation effect on the add domain page from re-firing. No server call is performed.
+ */
+function setCreateDomainAlreadyHaveAccessError() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {
+        domainAccountID: null,
+        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.addDomain.alreadyHaveAccessError'),
+    });
+}
+
+/** Clears the domain account ID so the hidden backend error can be displayed. No server call is performed. */
+function clearCreateDomainAccountID() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null});
+}
+
+/** Drops the domain entry that came with the failure, keeping a domain the user has no access to out of the domains list. No server call is performed. */
+function clearDomainFromFailedCreation(domainAccountID: number) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, null);
+}
+
+/** Clears a response-only domain after the add-domain page has already unmounted, then removes its persisted failure context. */
+function clearStaleDomainFromFailedCreation(domainAccountID: number) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, null).then(() => {
+        Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null, domainKeysBeforeCreation: null});
+    });
 }
 
 function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
@@ -2378,6 +2411,10 @@ export {
     getScimToken,
     createDomain,
     resetCreateDomainForm,
+    setCreateDomainAlreadyHaveAccessError,
+    clearCreateDomainAccountID,
+    clearDomainFromFailedCreation,
+    clearStaleDomainFromFailedCreation,
     setPrimaryContact,
     clearSetPrimaryContactError,
     toggleConsolidatedDomainBilling,

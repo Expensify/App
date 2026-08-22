@@ -49,6 +49,9 @@ type ConfirmationPageProps = {
     /** Whether we should show a primary confirmation button */
     shouldShowButton?: boolean;
 
+    /** Whether the primary confirmation button should be disabled */
+    isButtonDisabled?: boolean;
+
     /** The text for the secondary button label */
     secondaryButtonText?: string;
 
@@ -90,6 +93,7 @@ function ConfirmationPage({
     buttonText = '',
     onButtonPress = () => {},
     shouldShowButton = false,
+    isButtonDisabled = false,
     secondaryButtonText = '',
     onSecondaryButtonPress = () => {},
     shouldShowSecondaryButton = false,
@@ -168,6 +172,7 @@ function ConfirmationPage({
                             size={CONST.BUTTON_SIZE.LARGE}
                             testID="confirmation-primary-button"
                             style={styles.mt3}
+                            isDisabled={isButtonDisabled}
                             onPress={onButtonPress}
                         >
                             <Button.KeyboardShortcut />

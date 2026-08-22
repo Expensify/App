@@ -201,7 +201,7 @@ function selectRestrictedPrimaryPolicyID(groupID?: string) {
  * @param accountID - The account ID to check admin status for
  * @returns A selector function that takes a domain and returns boolean
  */
-function isAdminSelector(accountID: number) {
+function isAdminSelector(accountID: number | undefined) {
     return (domain: OnyxEntry<Domain>): boolean => {
         if (!domain || !accountID) {
             return false;
