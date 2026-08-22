@@ -31,6 +31,7 @@ type AmountFilterContentProps = {
     largeButton?: boolean;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
+    buttonText?: string;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
@@ -152,7 +153,7 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     );
 }
 
-function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, style, onChange}: AmountFilterContentProps) {
+function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, style, buttonText, onChange}: AmountFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -251,7 +252,7 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
                 onPress={updateAmountFilter}
             >
                 <Button.KeyboardShortcut />
-                <Button.Text>{translate('common.confirm')}</Button.Text>
+                <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
             </Button>
         </View>
     );
