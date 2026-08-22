@@ -6,12 +6,13 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import React from 'react';
@@ -167,7 +168,7 @@ describe('BookTravelButton', () => {
             // forward-navigate back to once validated (this avoids a URL blink from double-navigating through the
             // stepper, which would otherwise immediately redirect to this same verify-account page anyway)
             expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, POLICY_ID, ''));
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(POLICY_ID)));
             expect(Navigation.navigate).not.toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
         });
     });
