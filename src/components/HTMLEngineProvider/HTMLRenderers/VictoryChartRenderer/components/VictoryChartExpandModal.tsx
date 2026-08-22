@@ -1,9 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import {useVictoryChartContext, VictoryChartScaledProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import Modal from '@components/Modal';
-import MultiGestureCanvas from '@components/MultiGestureCanvas';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -17,9 +15,9 @@ import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 
 import VictoryChartContent from './VictoryChartContent';
+import VictoryChartExpandedContent from './VictoryChartExpandedContent';
 
 type VictoryChartExpandModalProps = {
     /** Whether the modal is visible */
@@ -30,16 +28,10 @@ type VictoryChartExpandModalProps = {
 };
 
 /**
- * Centered full-screen modal that presents the current chart scaled up to the viewport, with the
- * same pinch/double-tap zoom and pan gestures as the image attachment viewer.
- * Must be rendered inside a VictoryChartProvider so VictoryChartContent can read the parsed chart context.
- *
- * This mirrors the Lightbox pattern exactly: the chart is rendered ONCE at a fixed high resolution
- * (like a high-res image asset — via VictoryChartScaledProvider, which scales every pixel-space
- * value uniformly) and handed to MultiGestureCanvas at that intrinsic size. The canvas computes the
- * fit scale itself and owns the single transform for fitting, centering, and zooming — no manual
- * transforms of our own, since nested transforms rasterize the inner layer and blur it on native.
- * Zooming in reveals the native resolution, so the chart stays sharp up to the headroom factor.
+ * Centered full-screen modal that presents the current chart scaled up to the viewport, with
+ * platform-appropriate zoom mirroring the image attachment viewer: pinch/double-tap on touch
+ * devices, click + scroll on desktop web.
+ * Must be rendered inside a VictoryChartProvider so the chart can read the parsed chart context.
  */
 function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalProps) {
     const styles = useThemeStyles();
@@ -47,10 +39,8 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {chartContentStyles, chartContainerStyles, type} = useVictoryChartContext();
+    const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     const [availableSize, setAvailableSize] = useState({width: 0, height: 0});
-    // No pager wraps this canvas, so scrolling never needs to be handed back to one.
-    const isPagerScrollEnabled = useSharedValue(false);
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
         // Ignore layout changes while the modal is closing — re-measuring mid-animation
@@ -63,38 +53,10 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
         setAvailableSize((prev) => (prev.width === width && prev.height === height ? prev : {width, height}));
     };
 
-    const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
-    const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
-    const hasDesignDimensions = !!designWidth && !!designHeight;
+    const hasDesignDimensions = typeof chartContentStyles.width === 'number' && typeof chartContentStyles.height === 'number';
     const isMeasured = availableSize.width > 0 && availableSize.height > 0;
 
-    // Match the inline container: polar charts are clipped to hide the dead space at the
-    // bottom of their design canvas, so the expanded chart centers the same way inline does.
-    const isPolar = type === CHART_TYPE.POLAR;
-    const effectiveDesignHeight = designHeight !== undefined && isPolar ? designHeight * POLAR_CONTAINER_HEIGHT_RATIO : designHeight;
-
-    // Uniform scale that fits the chart's (clipped) design box inside the available modal area (may be > 1).
-    const scale = hasDesignDimensions && effectiveDesignHeight !== undefined && isMeasured ? Math.min(availableSize.width / designWidth, availableSize.height / effectiveDesignHeight) : 1;
-
-    // The fitted (displayed) size of the chart inside the modal.
-    const targetWidth = (designWidth ?? 0) * scale;
-    const targetHeight = (designHeight ?? 0) * scale;
-    const clippedTargetHeight = (effectiveDesignHeight ?? 0) * scale;
-
-    // The chart's intrinsic render size: drawn larger than the fitted size (like a 2x image asset)
-    // so that pinch-zooming reveals native resolution instead of magnified raster pixels.
-    // Capped so the canvas never exceeds a safe texture size.
-    const MAX_CANVAS_DIMENSION = 2048;
-    // 2x headroom covers typical pinch-zoom depth without paying for a larger render surface.
-    const MAX_ZOOM_HEADROOM = 2;
-    const zoomHeadroom = Math.max(1, Math.min(MAX_ZOOM_HEADROOM, MAX_CANVAS_DIMENSION / Math.max(targetWidth, targetHeight, 1)));
-    const renderWidth = targetWidth * zoomHeadroom;
-    const renderHeight = targetHeight * zoomHeadroom;
-    const clippedRenderHeight = clippedTargetHeight * zoomHeadroom;
-
-    // Visual styles parsed from the chart HTML — resolved and applied the same way
-    // VictoryChartContainerFixed does inline, so the expanded chart keeps the same
-    // (theme-aware) background and rounding.
+    // Visual styles for the fluid fallback, resolved the same way the inline container resolves them.
     const backgroundColor = resolveChartContainerBgColor(chartContainerStyles.backgroundColor, theme);
     const borderRadius = chartContainerStyles.borderRadius;
 
@@ -125,46 +87,11 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                         onLayout={onContainerLayout}
                     >
                         {isMeasured &&
-                            (hasDesignDimensions && effectiveDesignHeight !== undefined ? (
-                                // Pinch/double-tap zoom and pan, matching the image attachment viewer. The canvas
-                                // receives the chart at its intrinsic (high-res) size and fits it itself.
-                                <MultiGestureCanvas
-                                    isActive={isVisible}
-                                    canvasSize={availableSize}
-                                    contentSize={{width: renderWidth, height: clippedRenderHeight}}
-                                    isUsedInCarousel={false}
-                                    isPagerScrollEnabled={isPagerScrollEnabled}
-                                >
-                                    {/* Clip the container (not the content) so polar dead space is hidden while the chart renders at full fidelity. */}
-                                    <View
-                                        style={[
-                                            StyleUtils.getWidthAndHeightStyle(renderWidth, clippedRenderHeight),
-                                            typeof borderRadius === 'number' && isPolar && StyleUtils.getBorderRadiusStyle(borderRadius),
-                                            styles.overflowHidden,
-                                        ]}
-                                    >
-                                        <View
-                                            style={[
-                                                StyleUtils.getWidthAndHeightStyle(renderWidth, renderHeight),
-                                                backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(backgroundColor),
-                                                typeof borderRadius === 'number' && StyleUtils.getBorderRadiusStyle(borderRadius),
-                                                styles.overflowHidden,
-                                            ]}
-                                        >
-                                            {/* The Skia canvas is removed as soon as closing starts: WebGL canvases can
-                                            flash white when re-composited during the close animation (visible on dark
-                                            themes). The card box stays so the modal animates out looking intact. */}
-                                            {isVisible && (
-                                                <VictoryChartScaledProvider scale={scale * zoomHeadroom}>
-                                                    <VictoryChartContent
-                                                        explicitSize={{width: renderWidth, height: renderHeight}}
-                                                        headless={false}
-                                                    />
-                                                </VictoryChartScaledProvider>
-                                            )}
-                                        </View>
-                                    </View>
-                                </MultiGestureCanvas>
+                            (hasDesignDimensions ? (
+                                <VictoryChartExpandedContent
+                                    availableSize={availableSize}
+                                    isVisible={isVisible}
+                                />
                             ) : (
                                 // Charts without design dimensions have no design-based label coordinates, so fluid
                                 // rendering is safe. Background/rounding are still applied so the expanded chart
