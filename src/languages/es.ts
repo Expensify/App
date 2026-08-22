@@ -2449,6 +2449,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `La conexión de tu tarjeta ${cardName} se ha interrumpido. <a href="${connectionLink}">Inicia sesión en tu banco</a> para arreglarla.`
                 : `La conexión de tu tarjeta ${cardName} se ha interrumpido. Inicia sesión en tu banco para arreglarla.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `La conexión de tu tarjeta ${cardName} lleva 30 días interrumpida. <a href="${connectionLink}">Inicia sesión en tu banco</a> para arreglarla o <a href="${connectionLink}">elimina la tarjeta</a> si ya no la usas. No perderás ningún gasto enviado si la eliminas.`
+                : `La conexión de tu tarjeta ${cardName} lleva 30 días interrumpida. Inicia sesión en tu banco para arreglarla o elimina la tarjeta si ya no la usas. No perderás ningún gasto enviado si la eliminas.`,
         addAdditionalCards: 'Añadir más tarjetas',
         upgradeDescription: '¿Necesitas añadir más tarjetas? Crea un espacio de trabajo para añadir tarjetas personales o asignar tarjetas de empresa a todo el equipo.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -9262,6 +9266,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Repetido ${count} veces.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `La conexión ${feedName} lleva 30 días rota. <a href='${workspaceCompanyCardRoute}'>Inicia sesión en tu banco</a> para arreglarla o <a href='${workspaceCompanyCardSettingsRoute}'>elimina la conexión</a> si ya no la usas. No perderás ningún gasto enviado si la eliminas.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
