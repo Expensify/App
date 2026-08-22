@@ -699,17 +699,18 @@ describe('ReportUtils', () => {
             const passedCurrentUserAccountID = 50;
             const passedAccountID = 999;
 
-            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData(
-                passedAccountID,
-                1,
-                'taskReportID',
-                'assigneeChatReportID',
-                'parentReportID',
-                'Task title',
-                createMock<OnyxEntry<Report>>({}),
-                passedCurrentUserEmail,
-                passedCurrentUserAccountID,
-            );
+            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData({
+                accountID: passedAccountID,
+                assigneeAccountID: 1,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'assigneeChatReportID',
+                parentReportID: 'parentReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: passedCurrentUserEmail,
+                currentUserAccountID: passedCurrentUserAccountID,
+                delegateAccountID: undefined,
+            });
 
             expect(optimisticAssigneeAddComment).toBeDefined();
             const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
@@ -723,17 +724,18 @@ describe('ReportUtils', () => {
             const passedCurrentUserEmail = 'different-email@user.com';
             const passedCurrentUserAccountID = currentUserAccountID; // 5, which exists in `participantsPersonalDetails`
 
-            const result = getTaskAssigneeChatOnyxData(
-                1,
-                2,
-                'taskReportID',
-                'assigneeChatReportID',
-                'parentReportID',
-                'Task title',
-                createMock<OnyxEntry<Report>>({}),
-                passedCurrentUserEmail,
-                passedCurrentUserAccountID,
-            );
+            const result = getTaskAssigneeChatOnyxData({
+                accountID: 1,
+                assigneeAccountID: 2,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'assigneeChatReportID',
+                parentReportID: 'parentReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: passedCurrentUserEmail,
+                currentUserAccountID: passedCurrentUserAccountID,
+                delegateAccountID: undefined,
+            });
 
             const reportAction = result.optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
             expect(reportAction?.actorAccountID).toBe(passedCurrentUserAccountID);
@@ -743,9 +745,72 @@ describe('ReportUtils', () => {
         });
 
         it('does not create optimistic assignee comment when assigneeChatReportID equals parentReportID', () => {
-            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', createMock<OnyxEntry<Report>>({}), 'email@user.com', 50);
+            const result = getTaskAssigneeChatOnyxData({
+                accountID: 1,
+                assigneeAccountID: 2,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'sameReportID',
+                parentReportID: 'sameReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: 'email@user.com',
+                currentUserAccountID: 50,
+                delegateAccountID: undefined,
+            });
 
             expect(result.optimisticAssigneeAddComment).toBeUndefined();
+        });
+
+        describe('delegateAccountID', () => {
+            const MODULE_DELEGATE_EMAIL = 'module-delegate@vikings.net';
+            const MODULE_DELEGATE_ACCOUNT_ID = 900;
+            const PASSED_DELEGATE_ACCOUNT_ID = 901;
+
+            const buildAssigneeChatOnyxData = (delegateAccountID: number | undefined) =>
+                getTaskAssigneeChatOnyxData({
+                    accountID: 1,
+                    assigneeAccountID: 2,
+                    taskReportID: 'taskReportID',
+                    assigneeChatReportID: 'assigneeChatReportID',
+                    parentReportID: 'parentReportID',
+                    title: 'Task title',
+                    assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                    currentUserEmail: 'email@user.com',
+                    currentUserAccountID: 50,
+                    delegateAccountID,
+                });
+
+            beforeEach(async () => {
+                // The module-level delegate is what `buildOptimisticAddCommentReportAction` falls back to, so it has to
+                // differ from the passed value for these tests to prove which one wins.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [MODULE_DELEGATE_ACCOUNT_ID]: {accountID: MODULE_DELEGATE_ACCOUNT_ID, login: MODULE_DELEGATE_EMAIL, displayName: 'Module Delegate'},
+                });
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: MODULE_DELEGATE_EMAIL}});
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: null}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MODULE_DELEGATE_ACCOUNT_ID]: null});
+                await waitForBatchedUpdates();
+            });
+
+            it('uses the passed delegateAccountID instead of the module-level delegate', () => {
+                const {optimisticAssigneeAddComment} = buildAssigneeChatOnyxData(PASSED_DELEGATE_ACCOUNT_ID);
+
+                const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+                expect(reportAction?.delegateAccountID).toBe(PASSED_DELEGATE_ACCOUNT_ID);
+            });
+
+            // TODO: the fallback assertion below flips to `toBeUndefined()` once the module-level Onyx.connect is
+            // removed (https://github.com/Expensify/App/issues/66425).
+            it('falls back to the module-level delegate when no delegateAccountID is passed', () => {
+                const {optimisticAssigneeAddComment} = buildAssigneeChatOnyxData(undefined);
+
+                const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+                expect(reportAction?.delegateAccountID).toBe(MODULE_DELEGATE_ACCOUNT_ID);
+            });
         });
     });
 

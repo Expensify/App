@@ -479,6 +479,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -528,6 +529,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -559,6 +561,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -594,6 +597,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: undefined,
                 policyID: mockPolicyID,
@@ -656,6 +660,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -697,6 +702,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
@@ -745,6 +751,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockCurrentUserAccountID, // assignee is current user
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -806,6 +813,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -844,6 +852,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -886,6 +895,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -915,6 +925,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: undefined,
                 currentUserAvatar: undefined,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -944,6 +955,7 @@ describe('actions/Task', () => {
                 currentUserEmail: '',
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -975,6 +987,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -994,6 +1007,66 @@ describe('actions/Task', () => {
                 expect.objectContaining({
                     currentUserAccountID: overrideUserAccountID,
                 }),
+            );
+        });
+
+        it('should set the passed delegateAccountID on the optimistic task comment in the parent report', () => {
+            const DELEGATE_ACCOUNT_ID = 999;
+
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: DELEGATE_ACCOUNT_ID,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            // `buildOptimisticTaskCommentReportAction` is spied on in this suite, so assert on the forwarded argument
+            // rather than the emitted action. The builder itself is covered in ReportUtilsTest.
+            expect(mockBuildOptimisticTaskCommentReportAction).toHaveBeenCalledWith(
+                'task_report_123',
+                mockTitle,
+                mockAssigneeAccountID,
+                `task for ${mockTitle}`,
+                mockParentReportID,
+                DELEGATE_ACCOUNT_ID,
+            );
+        });
+
+        it('should leave delegateAccountID unset on the optimistic task comment when no delegate is passed', () => {
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            expect(mockBuildOptimisticTaskCommentReportAction).toHaveBeenCalledWith(
+                'task_report_123',
+                mockTitle,
+                mockAssigneeAccountID,
+                `task for ${mockTitle}`,
+                mockParentReportID,
+                undefined,
             );
         });
     });
@@ -1383,6 +1456,7 @@ describe('actions/Task', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasOutstandingChildTask: false,
                 delegateEmail: DELEGATE_EMAIL,
+                delegateAccountID: undefined,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
                 formatPhoneNumber,
             });
@@ -1414,6 +1488,7 @@ describe('actions/Task', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasOutstandingChildTask: false,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
                 formatPhoneNumber,
             });
