@@ -57,6 +57,7 @@ jest.mock('@hooks/useFilesValidation', () => {
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
+    useCameraDevices: jest.fn(() => []),
     useCameraFormat: jest.fn(() => null),
 }));
 
