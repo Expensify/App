@@ -126,6 +126,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getSubmitToAccountID,
     getTagGLCode,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
@@ -2540,10 +2541,8 @@ function getActions(
     }
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
-    const isIOUReportArchived = isArchivedReport(reportNVP);
 
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
-    const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
@@ -2598,7 +2597,7 @@ function getActions(
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
     if (
-        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserLogin, currentUserAccountID) &&
+        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
         isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);

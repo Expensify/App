@@ -25,6 +25,7 @@ import {
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isInstantSubmitEnabled,
     isPolicyAdmin,
@@ -194,10 +195,8 @@ function isSubmitAction({
     report,
     reportTransactions,
     policy,
-    reportNameValuePairs,
     reportActions,
     reportMetadata,
-    isChatReportArchived = false,
     primaryAction,
     violations,
     currentUserLogin,
@@ -207,17 +206,17 @@ function isSubmitAction({
     report: Report;
     reportTransactions: Transaction[];
     policy?: Policy;
-    reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
     reportMetadata?: OnyxEntry<ReportMetadata>;
-    isChatReportArchived?: boolean;
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     violations?: OnyxCollection<TransactionViolation[]>;
     currentUserLogin?: string;
     currentUserAccountID: number;
     ownerLogin: string | undefined;
 }): boolean {
-    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -308,6 +307,10 @@ function isApproveAction(
     reportMetadata: OnyxEntry<ReportMetadata>,
     policy?: Policy,
 ): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -375,6 +378,10 @@ function isApproveAction(
 }
 
 function isUnapproveAction(currentUserLogin: string, currentUserAccountID: number, report: Report, policy?: Policy): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
@@ -428,6 +435,10 @@ function isCancelPaymentAction(
     const isIOUReport = isIOUReportUtils(report);
 
     if (!isExpenseReport && !isIOUReport) {
+        return false;
+    }
+
+    if (isExpenseReport && isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -730,6 +741,10 @@ function shouldShowEditSplitInDeleteAction(
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     // This should be removed after we change how instant submit works
@@ -753,6 +768,10 @@ function isRetractAction(report: Report, policy?: Policy): boolean {
 }
 
 function isReopenAction(report: Report, policy?: Policy): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     if (!isExpenseReport) {
         return false;
@@ -1033,10 +1052,8 @@ function getSecondaryReportActions({
             report,
             reportTransactions,
             policy,
-            reportNameValuePairs,
             reportActions,
             reportMetadata,
-            isChatReportArchived,
             primaryAction,
             violations,
             currentUserLogin,
@@ -1079,7 +1096,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(report, currentUserAccountID)) {
+    if (canRejectReportAction(report, currentUserAccountID, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
@@ -1217,7 +1234,7 @@ function getSecondaryTransactionThreadActions({
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(parentReport, currentUserAccountID)) {
+    if (canRejectReportAction(parentReport, currentUserAccountID, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
