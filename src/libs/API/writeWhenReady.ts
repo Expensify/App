@@ -24,6 +24,24 @@ type WriteReadyBarrier = (signal: AbortSignal) => PromiseLike<unknown>;
 
 type ReleaseReason = 'success' | 'rejected' | 'safetyTimeout' | 'appBackground';
 
+type WriteWhenReadyOptions = {
+    safetyTimeoutMs?: number;
+
+    /**
+     * Fires exactly once, on every release path (including the already-backgrounded-at-call-time
+     * path, and a barrier that throws synchronously), BEFORE `write()` is invoked. A throwing
+     * `onRelease` is logged and does not block the write.
+     */
+    onRelease?: (reason: ReleaseReason) => void;
+
+    /**
+     * Fires only after `write()` has been called and returned without throwing - for bundling a
+     * side effect (e.g. a notification) that today runs synchronously right after `API.write()`.
+     * A throwing `onWriteStarted` is logged and does not affect the write's outcome.
+     */
+    onWriteStarted?: () => void;
+};
+
 // How long writeWhenReady waits for the barrier before executing, so the write happens even if the promise never settles.
 // Must stay longer than the default barrier's worst case (CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS); a unit test pins that against drift.
 // Exported for that test so it asserts on the real value rather than a copy of the formula.
@@ -94,6 +112,49 @@ function createTransitionBarrier(waitFor: true | 'navigation' = true): WriteRead
 const waitForTransition = createTransitionBarrier();
 
 /**
+ * A transition barrier that was attached to `TransitionTracker` before the write it gates exists.
+ * `barrier` is passed to `writeWhenReady`. `cancel` drops the registration if the write never happens.
+ */
+type ArmedTransitionBarrier = {
+    barrier: WriteReadyBarrier;
+    cancel: () => void;
+};
+
+/**
+ * Attach a transition barrier now, use it later.
+ *
+ * The default barrier only takes its fast path when `TransitionTracker` already knows a transition is
+ * active or imminent at the moment the barrier is attached. A caller that navigates first and issues
+ * the write from the navigation's own completion callback would attach after that transition ended,
+ * so the barrier would wait for an unrelated future transition and fall through to the safety timeout.
+ *
+ * Arming splits the two moments: register with `TransitionTracker` at the point the navigation is
+ * triggered, then hand the resulting barrier to `writeWhenReady` whenever the write is actually built.
+ * If the transition already finished by then, the barrier is already resolved and the write runs
+ * immediately.
+ *
+ * The same armed barrier can gate several writes from one interaction (e.g. one write per receipt in a
+ * split). They all release at the same point rather than racing separate barriers. Consumers can attach
+ * at different times - nothing but `cancel()` ever drops the `TransitionTracker` registration early, so
+ * a write that attaches after an earlier one already hit its own safety timeout still gets the real
+ * transition-completion release instead of being pushed onto its own safety timeout too.
+ *
+ * `cancel()` is for the abandoned path - the code armed a barrier and then decided not to write. It
+ * leaves the barrier permanently pending, matching `createTransitionBarrier`'s abort contract, so a
+ * cancelled barrier that is passed to `writeWhenReady` anyway still writes at the safety timeout
+ * rather than never.
+ */
+function armTransitionBarrier(waitFor: true | 'navigation' = true): ArmedTransitionBarrier {
+    const armController = new AbortController();
+    const armed = createTransitionBarrier(waitFor)(armController.signal);
+
+    return {
+        barrier: () => armed,
+        cancel: () => armController.abort(),
+    };
+}
+
+/**
  * Like `write()`, but deferred until a readiness signal (barrier) is fired.
  *   - Optimistic updates are intentionally deferred, as well as the API request itself.
  *   - Once ready, it delegates to the normal `write()` pipeline.
@@ -124,16 +185,19 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData?: OnyxData<TKey>,
     barrier?: WriteReadyBarrier,
-    safetyTimeoutMs?: number,
+    options?: number | WriteWhenReadyOptions,
 ): Promise<void | Response<TKey>>;
 function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
     barrier: WriteReadyBarrier = waitForTransition,
-    safetyTimeoutMs: number = SAFETY_TIMEOUT_MS,
+    options: number | WriteWhenReadyOptions = {},
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API writeWhenReady', false, buildLogParams(command, apiCommandParameters ?? {}));
+
+    // Back-compat: the fifth parameter used to be a bare safetyTimeoutMs number.
+    const {safetyTimeoutMs = SAFETY_TIMEOUT_MS, onRelease, onWriteStarted} = typeof options === 'number' ? {safetyTimeoutMs: options} : options;
 
     return new Promise((resolve, reject) => {
         let hasExecuted = false;
@@ -165,7 +229,22 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
                     });
                 }
 
+                // onRelease must never block or fail the write - isolate it in its own try/catch.
+                try {
+                    onRelease?.(reason);
+                } catch (error) {
+                    Log.warn('[API] writeWhenReady onRelease threw', {command, error});
+                }
+
                 write(command, apiCommandParameters, onyxData).then(resolve, reject);
+
+                // Fires only after write() has been called and returned without throwing. Isolated so a
+                // throwing side effect can't be mistaken for a failed write or surface as an unhandled rejection.
+                try {
+                    onWriteStarted?.();
+                } catch (error) {
+                    Log.warn('[API] writeWhenReady onWriteStarted threw', {command, error});
+                }
             } catch (error) {
                 reject(error);
             }
@@ -203,5 +282,5 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     });
 }
 
-export {writeWhenReady, createTransitionBarrier, SAFETY_TIMEOUT_MS};
-export type {WriteReadyBarrier};
+export {writeWhenReady, createTransitionBarrier, armTransitionBarrier, SAFETY_TIMEOUT_MS};
+export type {WriteReadyBarrier, WriteWhenReadyOptions};
