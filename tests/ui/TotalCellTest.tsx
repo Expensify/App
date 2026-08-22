@@ -46,7 +46,7 @@ jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
 }));
 
 // EditableCell only shows/enables the edit-pencil button while the cell is hovered (isCellHovered from Hoverable),
-// which jsdom can't simulate reliably. Force it hovered so the wrapping View's pointerEvents isn't "none" — RNTL
+// which jsdom can't simulate reliably. Force it hovered so the wrapping View's pointerEvents isn't "none". RNTL
 // v13's fireEvent.press respects pointerEvents and silently no-ops when a "none" ancestor blocks the target.
 jest.mock('@components/Hoverable', () => ({
     __esModule: true,
