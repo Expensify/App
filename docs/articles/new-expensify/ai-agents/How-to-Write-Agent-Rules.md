@@ -129,3 +129,12 @@ As a general rule, the more specific the instruction, the more predictable the r
 ## Can Agent Rules make mistakes?
 
 Yes. Agent Rules are evaluated by an LLM and may occasionally behave unexpectedly. Review AI-generated actions and instructions carefully.
+
+---
+
+## Related articles
+
+When writing Agent Rules, these references help you match your instructions to what your Agent can actually do:
+
+ - [Agent Capability Reference](/articles/new-expensify/ai-agents/AI-Agent-Capabilities) — every action your Agent can take, with ready-to-copy instruction phrases.
+ - [Agent Trigger Reference](/articles/new-expensify/ai-agents/AI-Agent-Triggers) — every event your Agent can react to, with ready-to-copy instruction phrases.
