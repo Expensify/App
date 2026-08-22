@@ -152,8 +152,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     // there is no valid change to make, so the row stays read-only.
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
-    const canEditSelectedMemberRole =
-        !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
+    const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
