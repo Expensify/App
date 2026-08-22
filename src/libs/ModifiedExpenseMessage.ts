@@ -309,8 +309,11 @@ function getForReportAction({
     const changeFragments: string[] = [];
 
     const isReportActionOriginalMessageAnObject = reportActionOriginalMessage && typeof reportActionOriginalMessage === 'object';
-    const hasModifiedAmount =
-        isReportActionOriginalMessageAnObject && 'oldCurrency' in reportActionOriginalMessage && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
+    // oldCurrency isn't required here: confirming a failed-scan placeholder amount (e.g. re-entering 0 to clear the
+    // scan error) has no real previous value, so neither the optimistic message nor the server's confirmed action
+    // include oldAmount/oldCurrency for it. Falling through to hasModifiedAmount=false would otherwise hide the
+    // amount entirely and render the generic "changed the expense" fallback instead of "set the amount to X".
+    const hasModifiedAmount = isReportActionOriginalMessageAnObject && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
 
