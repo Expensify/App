@@ -8,6 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type Pages from '@src/types/onyx/Pages';
 import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
+import retryDynamicImport from '@src/utils/retryDynamicImport';
 
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 
@@ -47,6 +49,28 @@ const resources = new Map<OnyxCollectionKey, OnyxCollection<OnyxValues[OnyxColle
 // Local cache of Onyx pages objects
 const pages = new Map<OnyxPagesKey, OnyxCollection<OnyxValues[OnyxPagesKey]>>();
 
+const PAGINATION_CONFIG_RETRY_KEY = 'paginationConfig';
+let paginationConfigLoadingPromise: Promise<void> | undefined;
+
+/**
+ * Preloads the pagination config after the splash screen, or on demand when a paginated request
+ * arrives first. All callers share one import. A failed import can be retried by a later request.
+ */
+function loadPaginationConfig(): Promise<void> {
+    if (paginationConfigLoadingPromise) {
+        return paginationConfigLoadingPromise;
+    }
+
+    paginationConfigLoadingPromise = retryDynamicImport(() => import('@libs/registerPaginationConfig'), PAGINATION_CONFIG_RETRY_KEY)
+        .then(() => undefined)
+        .catch((error: unknown) => {
+            paginationConfigLoadingPromise = undefined;
+            Log.hmmm('[Pagination] Failed to load pagination config', {error});
+        });
+
+    return paginationConfigLoadingPromise;
+}
+
 function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>({
     initialCommand,
     previousCommand,
@@ -83,23 +107,7 @@ function isPaginatedRequest<TKey extends OnyxKey>(request: Request<TKey> | Pagin
     return 'isPaginated' in request && request.isPaginated;
 }
 
-/**
- * This middleware handles paginated requests marked with isPaginated: true. It works by:
- *
- * 1. Extracting the paginated resources from the response
- * 2. Sorting them
- * 3. Merging the new page of resources with any preexisting pages it overlaps with
- * 4. Updating the saved pages in Onyx for that resource.
- *
- * It does this to keep track of what it's fetched via pagination and what may have showed up from other sources,
- * so it can keep track of and fill any potential gaps in paginated lists.
- */
-const Pagination: Middleware = (requestResponse, request) => {
-    const paginationConfig = paginationConfigs.get(request.command);
-    if (!paginationConfig || !isPaginatedRequest(request)) {
-        return requestResponse;
-    }
-
+function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: PaginatedRequest<TKey>, paginationConfig: PaginationConfigMapValue) {
     const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, type} = paginationConfig;
     const {resourceID, cursorID} = request;
     return requestResponse.then((response) => {
@@ -179,6 +187,33 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         return Promise.resolve(response);
     });
+}
+
+/**
+ * This middleware handles paginated requests marked with isPaginated: true. It works by:
+ *
+ * 1. Extracting the paginated resources from the response
+ * 2. Sorting them
+ * 3. Merging the new page of resources with any preexisting pages it overlaps with
+ * 4. Updating the saved pages in Onyx for that resource.
+ *
+ * It does this to keep track of what it's fetched via pagination and what may have showed up from other sources,
+ * so it can keep track of and fill any potential gaps in paginated lists.
+ */
+const Pagination: Middleware = (requestResponse, request) => {
+    if (!isPaginatedRequest(request)) {
+        return requestResponse;
+    }
+
+    const paginationConfig = paginationConfigs.get(request.command);
+    if (paginationConfig) {
+        return processResponse(requestResponse, request, paginationConfig);
+    }
+
+    return loadPaginationConfig().then(() => {
+        const loadedPaginationConfig = paginationConfigs.get(request.command);
+        return loadedPaginationConfig ? processResponse(requestResponse, request, loadedPaginationConfig) : requestResponse;
+    });
 };
 
-export {Pagination, registerPaginationConfig};
+export {loadPaginationConfig, Pagination, registerPaginationConfig};
