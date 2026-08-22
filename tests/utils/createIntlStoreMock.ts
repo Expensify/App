@@ -28,7 +28,7 @@ export default function createIntlStoreMock(locale: Locale = 'en'): MockedIntlSt
     return {
         getCurrentLocale: () => locale,
         load: () => Promise.resolve(),
-        get: <TPath extends TranslationPaths>(key: TPath, requestedLocale?: Locale) => cache.get(requestedLocale ?? locale)?.[key] ?? null,
+        get: <TPath extends TranslationPaths>(key: TPath, requestedLocale?: Locale) => cache.get(requestedLocale && cache.has(requestedLocale) ? requestedLocale : locale)?.[key] ?? null,
         subscribe: () => () => {},
         getSnapshot: () => snapshot,
         hasLocale: (requestedLocale: Locale) => cache.has(requestedLocale),

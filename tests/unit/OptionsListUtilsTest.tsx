@@ -2127,7 +2127,7 @@ describe('OptionsListUtils', () => {
             const {maxRecentReports, includeP2P, deferContactsUntilSearch} = SEARCH_ROUTER_OPTIONS_CONFIG;
             const options = {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 conciergeReportID: undefined,
                 maxRecentReports,
                 includeP2P,
