@@ -6284,6 +6284,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         spend: 'Ausgabenkontrollen und benutzerdefinierte Limits',
                     },
                     ctaTitle: 'Neue Karte ausstellen',
+                    existingFeedTitle: 'Verwalten Sie Ihre Expensify Karten',
+                    viewCards: 'Karten anzeigen',
                 },
             },
             companyCards: {
