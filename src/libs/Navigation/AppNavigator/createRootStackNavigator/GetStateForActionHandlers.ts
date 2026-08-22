@@ -1,4 +1,4 @@
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
@@ -312,9 +312,11 @@ function getTabStateWithExistingFocusedTarget(existingTabState: NavigationState,
         return undefined;
     }
 
-    // C+ requested that this behavior remain narrow-only, since wide/desktop browser
-    // history is not updated for this nested-stack preservation.
-    const shouldPreserveFocusedReportsStack = getIsNarrowLayout() && targetTabIndex === existingTabState.index;
+    const platform = getPlatform();
+    const isNativePlatform = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+    // Browser history does not receive an entry for the preserved nested report, so applying
+    // this on web would make browser Back skip that report while React Navigation keeps it.
+    const shouldPreserveFocusedReportsStack = isNativePlatform && targetTabIndex === existingTabState.index;
 
     const updatedTabRoutes = existingTabState.routes.map((route, index) => {
         if (index !== targetTabIndex) {

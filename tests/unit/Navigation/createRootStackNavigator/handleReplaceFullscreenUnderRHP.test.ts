@@ -1,4 +1,4 @@
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getPlatform from '@libs/getPlatform';
 import {
     clearPreInsertedOriginalTabRoute,
     handleRemoveFullscreenUnderRHP,
@@ -23,9 +23,9 @@ jest.mock('@libs/Navigation/helpers/getStateFromPath', () => ({
     __esModule: true,
     default: jest.fn(() => mockStubbedParsedState),
 }));
-jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => true));
+jest.mock('@libs/getPlatform', () => jest.fn());
 
-const mockGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
+const mockGetPlatform = jest.mocked(getPlatform);
 
 type TestRoute = NavigationPartialRoute & Pick<NavigationStateRoute, 'key'>;
 
@@ -172,12 +172,12 @@ function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> 
     };
 }
 
-describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation', () => {
-    beforeEach(() => {
-        clearPreInsertedOriginalTabRoute();
-        mockGetIsNarrowLayout.mockReturnValue(true);
-    });
+beforeEach(() => {
+    clearPreInsertedOriginalTabRoute();
+    mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
+});
 
+describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation', () => {
     it('preserves Inbox and the focused report, then appends the destination report keylessly', () => {
         mockStubbedParsedState = makeReportsParsedState('B');
         const result = handleReplaceFullscreenUnderRHP(
@@ -262,8 +262,8 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportsRoutes(result)?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual([undefined, 'B']);
     });
 
-    it('keeps wide-layout behavior unchanged', () => {
-        mockGetIsNarrowLayout.mockReturnValue(false);
+    it('keeps web behavior unchanged', () => {
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         mockStubbedParsedState = makeReportsParsedState('B');
         const result = handleReplaceFullscreenUnderRHP(
             makeExistingReportsState([makeRoute(SCREENS.HOME, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
