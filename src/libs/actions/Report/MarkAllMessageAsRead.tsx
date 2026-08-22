@@ -27,7 +27,16 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
-function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
+// Read report NVPs imperatively (like the reports/actions above) so callers don't have to subscribe to the whole
+// REPORT_NAME_VALUE_PAIRS collection just to feed this action, and so the archived state is always read fresh at fire
+// time rather than from a stale render-time snapshot.
+let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    callback: (value) => (allReportNameValuePairs = value),
+});
+
+function markAllMessagesAsRead() {
     if (isAnonymousUser()) {
         return;
     }
@@ -50,7 +59,7 @@ function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameVa
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+        const isReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         if (!isUnread(report, oneTransactionThreadReport, isReportArchived)) {
             continue;
         }

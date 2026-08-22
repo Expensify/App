@@ -1,26 +1,16 @@
-import useOnyx from '@hooks/useOnyx';
-
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 
 function MarkAllMessagesAsReadHandler() {
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const reportNameValuePairsRef = useRef(reportNameValuePairs);
-
-    useEffect(() => {
-        reportNameValuePairsRef.current = reportNameValuePairs;
-    }, [reportNameValuePairs]);
-
     useEffect(() => {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.MARK_ALL_MESSAGES_AS_READ;
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
-            () => markAllMessagesAsRead(reportNameValuePairsRef.current),
+            () => markAllMessagesAsRead(),
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,
             true,
