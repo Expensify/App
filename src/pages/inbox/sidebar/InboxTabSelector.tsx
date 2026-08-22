@@ -8,6 +8,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,9 @@ import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import type {AnchorPosition} from '@styles/index';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
+import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -31,6 +34,7 @@ function InboxTabSelector() {
     const styles = useThemeStyles();
     const {activeTab, inboxTabCounts} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {showConfirmModal} = useConfirmModal();
 
@@ -64,7 +68,7 @@ function InboxTabSelector() {
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            markAllMessagesAsRead();
+            markAllMessagesAsRead(reportNameValuePairs);
         });
     };
 

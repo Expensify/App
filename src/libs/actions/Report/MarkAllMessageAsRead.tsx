@@ -7,8 +7,9 @@ import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isUnread} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
 
+import type {ReportNameValuePairsArchivedState} from '@selectors/ReportNameValuePairs';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -27,16 +28,10 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
-// Read report NVPs imperatively (like the reports/actions above) so callers don't have to subscribe to the whole
-// REPORT_NAME_VALUE_PAIRS collection just to feed this action, and so the archived state is always read fresh at fire
-// time rather than from a stale render-time snapshot.
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    callback: (value) => (allReportNameValuePairs = value),
-});
-
-function markAllMessagesAsRead() {
+// The archived state is passed in by the caller (read via useOnyx with reportNameValuePairsArchivedSelector) rather
+// than subscribed to here, so this action stays a plain function and callers only re-render when the archived flags
+// actually change.
+function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>) {
     if (isAnonymousUser()) {
         return;
     }
@@ -59,7 +54,7 @@ function markAllMessagesAsRead() {
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        const isReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+        const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         if (!isUnread(report, oneTransactionThreadReport, isReportArchived)) {
             continue;
         }
