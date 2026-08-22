@@ -98,9 +98,9 @@ If you don't hold one of these roles, or your workspace doesn't have expenses ac
 
 ## How the Getting started section works on Home
 
-The **Getting started** section shows a checklist of key steps to set up your Expensify account. 
+The **Getting started** section shows a checklist of key setup tasks and appears only under certain conditions during onboarding.
 
-This section appears only if you have setup tasks to complete. 
+The checklist items vary based on the intent selected when setting up your Expensify account.
 
 ---
 
