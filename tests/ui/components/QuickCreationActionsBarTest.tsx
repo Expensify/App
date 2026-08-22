@@ -211,7 +211,7 @@ describe('QuickCreationActionsBar - travel', () => {
         expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_POLICY_ID);
     });
 
-    it('does not show travel for an unprovisioned workspace with a stale enabled flag', async () => {
+    it('does not show travel for a workspace that is not provisioned and has a stale enabled flag', async () => {
         await seedTravelWorkspaces(TRAVEL_POLICY_ID, false);
         renderComponent();
         await waitForBatchedUpdatesWithAct();
