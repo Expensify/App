@@ -537,8 +537,9 @@ function computeReportNameBasedOnReportAction({
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
         return translate('iou.heldExpense');
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
-        return getExportIntegrationLastMessageText(translate, parentReportAction);
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
+        const integrationName = getOriginalMessage(parentReportAction)?.label;
+        return getExportIntegrationLastMessageText(translate, parentReportAction, integrationName);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translate('iou.unheldExpense');
