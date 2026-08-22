@@ -33,7 +33,7 @@ import {translateLocal} from './Localize';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
-import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -836,7 +836,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionableJoinRequest(parentReportAction)) {
-        return getJoinRequestMessage(translate, reportPolicy, parentReportAction);
+        return getJoinRequestMessage(translate, reportPolicy?.name ?? '', parentReportAction, getPersonalDetailsByID(getOriginalMessage(parentReportAction)?.accountID, personalDetailsList));
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
@@ -959,6 +959,7 @@ function computeChatThreadReportName(
     isArchived: boolean,
     report: Report,
     reports: OnyxCollection<Report>,
+    currentUserAccountID: number | undefined,
     currentUserLogin: string,
     transactions: OnyxCollection<Transaction>,
     parentReportAction?: ReportAction,
@@ -1029,6 +1030,7 @@ function computeChatThreadReportName(
             movedToReport,
             policyTags,
             policy,
+            currentUserAccountID,
             currentUserLogin,
         });
         // Strip HTML tags for plain text display in report previews
@@ -1133,6 +1135,7 @@ function computeReportName({
         privateIsArchivedValue,
         report,
         reports ?? {},
+        currentUserAccountID,
         currentUserLogin ?? '',
         transactions,
         parentReportAction,

@@ -12,6 +12,8 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
+import {policyNameSelector} from '@src/selectors/Policy';
 import type {ReportAction} from '@src/types/onyx';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 
@@ -26,13 +28,16 @@ type JoinRequestContentProps = {
 
 function JoinRequestContent({action, actionOwnerReportID, policyID}: JoinRequestContentProps) {
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyName = ''] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyNameSelector});
 
-    const isJoinRequestUnresolved = getOriginalMessage(action)?.choice === ('' as JoinWorkspaceResolution);
+    const originalMessage = getOriginalMessage(action);
+    const [requesterDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(originalMessage?.accountID)});
+
+    const isJoinRequestUnresolved = originalMessage?.choice === ('' as JoinWorkspaceResolution);
 
     return (
         <View>
-            <ReportActionItemBasicMessage message={getJoinRequestMessage(translate, policy, action)} />
+            <ReportActionItemBasicMessage message={getJoinRequestMessage(translate, policyName, action, requesterDetails)} />
             {isJoinRequestUnresolved && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
