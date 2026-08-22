@@ -4,6 +4,7 @@ import type {AnchorPosition} from '@components/TransactionItemRow/types';
 
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalReceiptThumbnail from '@hooks/useLocalReceiptThumbnail';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,7 +68,11 @@ function ReceiptCell({
     const filename = receiptURIs.filename ?? '';
 
     // Use 320px thumbnail for the receipt cell image
-    const source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail320 ?? receiptURIs.thumbnail ?? receiptURIs.image ?? '');
+    const serverThumbnail = receiptURIs.thumbnail320 ?? receiptURIs.thumbnail;
+    const localImageUri = typeof receiptURIs.image === 'string' ? receiptURIs.image : undefined;
+    const isLocalReceipt = !!(receiptURIs.isLocalFile && localImageUri && !serverThumbnail && Str.isImage(filename));
+    const {thumbnailUri: localThumbnail} = useLocalReceiptThumbnail(isLocalReceipt ? localImageUri : undefined, isLocalReceipt);
+    const source = isLocalReceipt ? (localThumbnail ?? '') : tryResolveUrlFromApiRoot(serverThumbnail ?? receiptURIs.image ?? '');
 
     // Use full size receipt image for the hovered preview
     const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail;
