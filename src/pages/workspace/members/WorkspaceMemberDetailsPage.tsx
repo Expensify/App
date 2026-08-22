@@ -40,6 +40,7 @@ import {
     getReimburserEmail,
     isControlPolicy,
     isPolicyApprover,
+    PAYER_ROLES,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
@@ -149,7 +150,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     // actually move to, for example promoting a non-admin payer to Admin, or switching between Admin and Payments Admin on a
     // Control workspace. Otherwise, such as an Admin payer on a non-Control workspace where Payments Admin is unavailable,
     // there is no valid change to make, so the row stays read-only.
-    const assignablePayerRoles = [CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN].filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
+    const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
     const canEditSelectedMemberRole =
         !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
