@@ -3067,7 +3067,13 @@ ${amount} voor ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Blijf op de hoogte door alleen ongelezen chats of chats te zien die je aandacht nodig hebben. Geen zorgen, je kunt dit op elk moment wijzigen in de <a href="${priorityModePageUrl}">instellingen</a>.`,
     },
-    inboxTabs: {all: 'Alles', todo: 'Te doen', unread: 'Ongelezen'},
+    inboxTabs: {
+        all: 'Alles',
+        todo: 'Te doen',
+        unread: 'Ongelezen',
+        markAllAsRead: 'Alles als gelezen markeren',
+        markAllAsReadConfirmationPrompt: 'Weet je zeker dat je alle chats als gelezen wilt markeren?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'PDF genereren',

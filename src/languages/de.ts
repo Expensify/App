@@ -3075,7 +3075,13 @@ ${amount} für ${merchant} – ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Behalten Sie den Überblick, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in den <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
     },
-    inboxTabs: {all: 'Alle', todo: 'Aufgaben', unread: 'Ungelesen'},
+    inboxTabs: {
+        all: 'Alle',
+        todo: 'Aufgaben',
+        unread: 'Ungelesen',
+        markAllAsRead: 'Alle als gelesen markieren',
+        markAllAsReadConfirmationPrompt: 'Möchtest du wirklich alle Chats als gelesen markieren?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'PDF erstellen',

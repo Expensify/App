@@ -3053,7 +3053,13 @@ ${amount} dla ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
-    inboxTabs: {all: 'Wszystko', todo: 'Zadania do wykonania', unread: 'Nieprzeczytane'},
+    inboxTabs: {
+        all: 'Wszystko',
+        todo: 'Zadania do wykonania',
+        unread: 'Nieprzeczytane',
+        markAllAsRead: 'Oznacz wszystkie jako przeczytane',
+        markAllAsReadConfirmationPrompt: 'Czy na pewno chcesz oznaczyć wszystkie czaty jako przeczytane?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
         generatingPDF: 'Wygeneruj PDF',
