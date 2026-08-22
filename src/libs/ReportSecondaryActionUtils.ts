@@ -6,6 +6,7 @@ import type {
     Policy,
     Report,
     ReportAction,
+    ReportCancelReimbursementStatus,
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
@@ -14,6 +15,8 @@ import type {
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+
+import {fromZonedTime} from 'date-fns-tz';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {
@@ -423,6 +426,7 @@ function isCancelPaymentAction(
     reportTransactions: Transaction[],
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
+    reimbursementCancellableStatus?: ReportCancelReimbursementStatus,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
@@ -461,25 +465,23 @@ function isCancelPaymentAction(
         return true;
     }
 
-    // Bank payment is processing when:
-    // 1. In BILLING state (ACH batch submitted), OR
-    // 2. In APPROVED + REIMBURSED state (immediately after paying via bank, before batch is sent), OR
-    // 3. In AUTOREIMBURSED state (automatically reimbursed)
-    const isInBillingState = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isApprovedAndReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isAutoReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isBankProcessing = isPaidViaBankAccount && (isInBillingState || isApprovedAndReimbursed || isAutoReimbursed);
-    const isPaymentProcessing = (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || isBankProcessing;
-
     const hasDailyNachaCutoffPassed = payActions.some((action) => {
         const now = new Date();
-        const paymentDatetime = new Date(action.created);
+        const paymentDatetime = fromZonedTime(action.created, 'UTC');
         const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
         return nowUTC.getTime() > cutoffTimeUTC.getTime();
     });
 
-    return isPaymentProcessing && !hasDailyNachaCutoffPassed;
+    // A queued payment only goes out in the daily batch, so it stays cancellable until the cutoff.
+    if (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
+        return !hasDailyNachaCutoffPassed;
+    }
+
+    // Only Auth knows whether the money has moved (fast ACH posts the credit right away), and it only allows cancelling in BILLING + REIMBURSED.
+    const isReimbursementSubmitted = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+
+    return isPaidViaBankAccount && isReimbursementSubmitted && !!reimbursementCancellableStatus?.canCancel;
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
@@ -957,6 +959,7 @@ function getSecondaryReportActions({
     isChatReportArchived = false,
     parentReport,
     isProduction,
+    reimbursementCancellableStatus,
     isOffline,
 }: {
     currentUserLogin: string;
@@ -978,6 +981,7 @@ function getSecondaryReportActions({
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
     isProduction: boolean;
+    reimbursementCancellableStatus?: ReportCancelReimbursementStatus;
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
@@ -1059,7 +1063,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(currentUserAccountID, currentUserLogin, report, reportTransactions, bankAccountList, policy)) {
+    if (isCancelPaymentAction(currentUserAccountID, currentUserLogin, report, reportTransactions, bankAccountList, policy, reimbursementCancellableStatus)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 

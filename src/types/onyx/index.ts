@@ -151,6 +151,7 @@ import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
+import type ReportCancelReimbursementStatus from './ReportCancelReimbursementStatus';
 import type ReportLastVisitTimes from './ReportLastVisitTimes';
 import type {GroupedTransactions, ReportLayoutGroupBy, ReportLayoutOption, ReportLayoutSelection} from './ReportLayout';
 import type ReportLoadingState from './ReportLoadingState';
@@ -322,6 +323,7 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    ReportCancelReimbursementStatus,
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,
