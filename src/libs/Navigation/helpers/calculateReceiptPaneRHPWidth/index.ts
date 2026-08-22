@@ -1,6 +1,6 @@
 import variables from '@styles/variables';
 
-const singleRHPWidth = variables.sideBarWidth;
+const singleRHPWidth = variables.rhpWidth;
 const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
 
 /**

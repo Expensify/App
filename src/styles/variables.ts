@@ -123,6 +123,17 @@ export default {
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
+    // Floating RHP card experiment (wide layout / web+desktop only): inset from the screen edges.
+    rhpFloatingCardMargin: 12,
+    // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
+    rhpWidth: 440,
+    // RHP scrim opacity. Scoped to the RHP overlay so other modal backdrops keep the default overlayOpacity.
+    rhpOverlayOpacity: 0.5,
+    // RHP gradient-scrim fade: px over which appBG fades to transparent, starting at the RHP's left edge
+    // (solid region = rhpWidth + rhpFloatingCardMargin). Only content directly behind the RHP is obscured.
+    rhpScrimFade: 100,
+    // Peak opacity of the RHP gradient scrim (the solid appBG region), so content behind stays faintly visible.
+    rhpGradientOpacity: 0.8,
     searchSidebarExpandedWidth: 320,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,

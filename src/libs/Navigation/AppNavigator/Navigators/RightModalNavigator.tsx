@@ -58,8 +58,8 @@ type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, t
 
 const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
-const singleRHPWidth = variables.sideBarWidth;
-const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
+const singleRHPWidth = variables.rhpWidth;
+const getWideRHPWidth = (windowWidth: number) => variables.rhpWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
@@ -95,7 +95,7 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                positionRightValue={Animated.add(sidePanelOffset.current, variables.rhpWidth)}
                 onPress={Navigation.dismissToPreviousRHP}
             />
         );
@@ -105,7 +105,7 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                positionRightValue={Animated.add(sidePanelOffset.current, variables.rhpWidth)}
                 onPress={Navigation.dismissToSuperWideRHP}
             />
         );
@@ -273,6 +273,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Overlay
                         positionLeftValue={overlayPositionLeft}
                         onPress={handleOverlayPress}
+                        // appBG gradient fade only for skinny single RHPs; wide/super-wide keep the dimming scrim.
+                        gradientFade={wideRHPRouteKeys.length === 0 && superWideRHPRouteKeys.length === 0}
                     />
                 )}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
@@ -284,7 +286,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <RightModalDialogFrame
                         hasDialogSemantics={!isSmallScreenWidth}
                         onContainerRef={setContainerNodeFromRef}
-                        style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                        style={[
+                            styles.pAbsolute,
+                            styles.overflowHidden,
+                            // Floating card only for skinny single RHPs on wide layout. Wide/super-wide RHPs
+                            // (expense report / expense views) and narrow/native stay full-bleed.
+                            shouldUseNarrowLayout || wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0 ? [styles.r0, styles.h100] : styles.RHPFloatingCard,
+                            animatedWidthStyle,
+                        ]}
                     >
                         <Stack.Navigator
                             parentRoute={route}
@@ -540,7 +549,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
                     <Overlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                        positionRightValue={Animated.add(sidePanelOffset.current, variables.rhpWidth)}
                         onPress={Navigation.dismissToPreviousRHP}
                     />
                 )}
