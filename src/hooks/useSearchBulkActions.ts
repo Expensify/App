@@ -572,14 +572,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [selectedReports, selectedTransactions, policies]);
 
     const selectedPolicyIDs = useMemo(
-        () => [
-            ...new Set(
-                Object.values(selectedTransactions)
-                    .map((transaction) => transaction.policyID)
-                    .filter(Boolean),
-            ),
-        ],
-        [selectedTransactions],
+        () => [...new Set([...Object.values(selectedTransactions).map((transaction) => transaction.policyID), ...selectedReports.map((report) => report.policyID)].filter(Boolean))],
+        [selectedTransactions, selectedReports],
     );
 
     // A bulk selection can span several workspaces, so the Canadian Multiple Tax Export template is only offered when every selected item belongs to a workspace that outputs in CAD.
