@@ -1,8 +1,10 @@
-import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileSafariOnIos26, IsMobileWebKit, IsSafari} from './types';
+import type {GetBrowser, IsIPadInDesktopMode, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileSafariOnIos26, IsMobileWebKit, IsSafari} from './types';
 
 const getBrowser: GetBrowser = () => '';
 
 const isMobile: IsMobile = () => false;
+
+const isIPadInDesktopMode: IsIPadInDesktopMode = () => false;
 
 const isMobileIOS: IsMobileIOS = () => false;
 
@@ -16,4 +18,4 @@ const isSafari: IsSafari = () => false;
 
 const isMobileSafariOnIos26: IsMobileSafariOnIos26 = () => false;
 
-export {getBrowser, isMobile, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isMobileSafariOnIos26, isMobileChrome};
+export {getBrowser, isMobile, isIPadInDesktopMode, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isMobileSafariOnIos26, isMobileChrome};
