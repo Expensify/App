@@ -96,7 +96,7 @@
     "@expensify/nitro-utils": "file:./modules/ExpensifyNitroUtils",
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
-    "@expensify/react-native-live-markdown": "0.1.334",
+    "@expensify/react-native-live-markdown": "git+https://github.com/staszekscp/react-native-live-markdown#7a6f52403b23521dab1f120a995c5922db0af860",
     "@expensify/react-native-wallet": "0.1.22",
     "@expo/metro-config": "57.0.7",
     "@expo/metro-runtime": "57.0.7",
