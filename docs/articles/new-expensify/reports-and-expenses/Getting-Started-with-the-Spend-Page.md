@@ -83,7 +83,7 @@ Each row represents an expense and includes:
 
 ## How to add a new expense to the table
 - The expense appears in the table.  
-- Its row is briefly highlighted as new.  
+- An **Expense added** confirmation appears with a **View** button that opens the new expense.  
 - Once added, the **Submit** button appears in the header (replacing **Add expense**, which moves to the **More** menu).
 
 ---
