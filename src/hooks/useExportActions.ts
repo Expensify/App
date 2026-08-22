@@ -2,6 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {exportReceiptsToZip} from '@libs/actions/Export';
 import {openOldDotLink} from '@libs/actions/Link';
 import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
@@ -64,6 +65,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
+    const connectionNameFriendly = connectedIntegrationFallback ? getAccountingIntegrationDisplayName(policy, connectedIntegrationFallback, translate) : undefined;
 
     // Archiving a workspace removes its policy from Onyx, so its output currency is no longer readable. An expense report's
     // currency is the workspace's output currency, so keep currency-specific export options after archiving.
@@ -93,6 +95,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'Printer',
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
@@ -171,10 +174,13 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
         },
         [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
-            // connectedIntegrationFallback is guaranteed when this export option is offered
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            text: translate('workspace.common.exportIntegrationSelected', connectedIntegrationFallback!),
-            icon: getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons),
+            text: translate('workspace.common.exportIntegrationSelected', {
+                // connectedIntegrationFallback is guaranteed when this export option is offered
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                connectionName: connectedIntegrationFallback!,
+                connectionNameFriendly,
+            }),
+            icon: getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons, policy),
             displayInDefaultIconColor: true,
             additionalIconStyles: styles.integrationIcon,
             value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
@@ -187,12 +193,12 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                     triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                     return;
                 }
-                exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
+                exportToIntegration(moneyRequestReport.reportID, connectedIntegration, policy);
             },
         },
         [CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED]: {
             text: translate('workspace.common.markAsExported'),
-            icon: getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons),
+            icon: getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons, policy),
             additionalIconStyles: styles.integrationIcon,
             displayInDefaultIconColor: true,
             value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
@@ -205,7 +211,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                     triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                     return;
                 }
-                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegrationFallback);
+                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegrationFallback, policy);
             },
         },
     };

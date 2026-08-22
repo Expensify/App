@@ -106,6 +106,7 @@ function MoneyRequestAmountForm({
     policyID = '',
     onCurrencyButtonPress,
     onSubmitButtonPress,
+    onAmountChange,
     selectedTab = CONST.TAB_REQUEST.MANUAL,
     shouldKeepUserInput = false,
     chatReportID,
@@ -155,8 +156,12 @@ function MoneyRequestAmountForm({
     );
 
     const toggleNegative = useCallback(() => {
-        setIsNegative(!isNegative);
-    }, [isNegative]);
+        const nextIsNegative = !isNegative;
+        setIsNegative(nextIsNegative);
+        // The sign flip bypasses the input's change handler, so report the newly signed value like a keystroke would
+        const currentNumber = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+        onAmountChange?.(currentNumber && nextIsNegative ? `-${currentNumber}` : currentNumber);
+    }, [isNegative, onAmountChange]);
 
     const clearNegative = useCallback(() => {
         setIsNegative(false);
@@ -298,7 +303,9 @@ function MoneyRequestAmountForm({
                 isCurrencyPressable={isCurrencyPressable}
                 onCurrencyButtonPress={onCurrencyButtonPress}
                 onFormatAmount={onFormatAmount}
-                onAmountChange={() => {
+                onAmountChange={(newAmount) => {
+                    // Signed the same way `getNumber` composes it, so the parent compares like-for-like
+                    onAmountChange?.(newAmount && isNegative ? `-${newAmount}` : newAmount);
                     if (!formError) {
                         return;
                     }
