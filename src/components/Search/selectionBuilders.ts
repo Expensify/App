@@ -1,6 +1,6 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isCashBackWithdrawalGroup, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -133,6 +133,7 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
     }
 
     const currency = item.currency ?? '';
+    const isCashBack = isCashBackWithdrawalGroup(item);
 
     return [
         item.keyForList ?? '',
@@ -151,6 +152,8 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
             policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
             amount: item.total ?? 0,
             currency,
+            // Without groupAmount the footer falls back to -Math.abs(amount), flipping the credit's sign.
+            ...(isCashBack ? {groupAmount: Math.abs(item.total ?? 0)} : {}),
             ...(currency ? {groupCurrency: currency} : {}),
         },
     ];
