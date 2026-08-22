@@ -365,7 +365,7 @@ const SCREENS = {
         DYNAMIC_SPLIT_EXPENSE: 'Dynamic_Money_Request_Split_Expense',
         DYNAMIC_SPLIT_EXPENSE_SEARCH: 'Dynamic_Money_Request_Split_Expense_Search',
         DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE: 'Dynamic_Money_Request_Split_Expense_Create_Date_Range',
-        SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
+        DYNAMIC_SPLIT_EXPENSE_EDIT: 'Dynamic_Money_Request_Split_Expense_Edit',
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         DYNAMIC_STEP_DISTANCE_MANUAL: 'Dynamic_Money_Request_Step_Distance_Manual',
