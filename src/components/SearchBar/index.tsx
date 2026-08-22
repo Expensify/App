@@ -12,9 +12,12 @@ import BaseSearchBar from './BaseSearchBar';
 type SearchBarProps = SharedSearchBarProps & {
     /** Icon shown inside the input while it is empty. Defaults to the magnifying glass. */
     icon?: IconAsset;
+
+    /** Whether to show the icon while the input is empty */
+    shouldShowIcon?: boolean;
 };
 
-function SearchBar({ref, label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
+function SearchBar({ref, label, style, icon, shouldShowIcon = true, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
@@ -30,7 +33,7 @@ function SearchBar({ref, label, style, icon, inputValue, onChangeText, onSubmitE
             emptyStateContainerStyle={emptyStateContainerStyle}
             textInputProps={{
                 label,
-                icon: inputValue?.length ? undefined : (icon ?? expensifyIcons.MagnifyingGlass),
+                icon: inputValue?.length || !shouldShowIcon ? undefined : (icon ?? expensifyIcons.MagnifyingGlass),
                 iconContainerStyle: styles.p0,
             }}
         />
