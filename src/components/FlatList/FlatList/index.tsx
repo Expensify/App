@@ -193,8 +193,6 @@ function MVCPFlatList<T>({
         };
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
-    const setMergedRef = useCallback((newRef: FlatList) => mergeRefs<FlatList>(listRef, ref)(newRef), [ref]);
-
     const onRef = useCallback(
         (newRef: FlatList) => {
             // Make sure to only call refs and re-attach listeners if the node changed.
@@ -202,11 +200,11 @@ function MVCPFlatList<T>({
                 return;
             }
 
-            setMergedRef(newRef);
+            mergeRefs<FlatList>(listRef, ref)(newRef);
             prepareForMaintainVisibleContentPosition();
             setupMutationObserver();
         },
-        [prepareForMaintainVisibleContentPosition, setMergedRef, setupMutationObserver],
+        [prepareForMaintainVisibleContentPosition, ref, setupMutationObserver],
     );
 
     useFlatListHandle<T>({

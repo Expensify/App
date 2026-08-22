@@ -43,6 +43,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Deixar de compartilhar',
         yes: 'Sim',
         no: 'Não',
+        dontChange: 'Não alterar',
         ok: 'OK',
         notNow: 'Agora não',
         noThanks: 'Não, obrigado',
@@ -970,7 +971,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             enterSignerInfo: {title: 'Informações do signatário necessárias', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conta bancária ${bankAccountLastFour}`},
         },
-        announcements: 'Comunicados',
         discoverSection: {
             title: 'Descobrir',
             menuItemTitleNonAdmin: 'Aprenda a criar despesas e enviar relatórios.',
@@ -1229,6 +1229,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Criar despesa de tempo',
     },
     iou: {
+        expenseAdded: 'Despesa adicionada',
+        invoiceSent: 'Fatura enviada',
         amount: 'Valor',
         percent: 'Porcentagem',
         date: 'Data',
@@ -1530,7 +1532,12 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `O número máximo de divisões permitido é ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
             unableToSubmitReport: 'Não foi possível enviar o relatório',
+            unableToMarkAsDone: 'Não foi possível marcar como concluído',
             allTransactionsPendingDescription: 'Você não pode enviar este relatório porque todas as transações estão pendentes. Elas podem levar alguns dias para serem lançadas.',
+            allTransactionsPendingMarkAsDoneDescription:
+                'Você não pode marcar este relatório como concluído porque todas as transações estão pendentes. Elas podem levar alguns dias para serem lançadas.',
+            allExpensesOnHoldDescription: 'Você não pode enviar este relatório porque todas as despesas estão em espera. Remova a espera para enviar.',
+            allExpensesOnHoldMarkAsDoneDescription: 'Você não pode marcar este relatório como concluído porque todas as despesas estão em espera. Remova a espera para continuar.',
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
             failedToSaveOdometerDraft: 'Não foi possível salvar seu rascunho do hodômetro. Tente novamente.',
         },
@@ -1539,6 +1546,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `começou a acertar as contas. O pagamento está em espera até ${submitterDisplayName} ativar a carteira.`,
         enableWallet: 'Ativar carteira',
         hold: 'Reter',
+        sendToSomeone: 'Enviar para alguém',
         unhold: 'Remover bloqueio',
         holdExpense: () => ({
             one: 'Reter despesa',
@@ -1690,8 +1698,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Os relatórios são limitados a ${CONST.REPORT.MAX_TRANSACTIONS} despesas. Mova algumas para outro relatório.`,
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
         submitReportTo: {
-            sendExpense: 'Envie sua despesa para qualquer pessoa',
+            sendExpense: 'Envie para qualquer pessoa',
             sendExpenseSubtitle: 'Convide qualquer pessoa para o Expensify usando o endereço de e-mail ou número de telefone.',
+            selectRecipientError: 'Selecione ou insira um destinatário para continuar.',
         },
         changeApprover: {
             title: 'Alterar aprovador',
@@ -2049,8 +2058,6 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar do perfil',
         customInstructions: 'Instruções personalizadas',
         copilotIntoAccount: 'Copilot na conta',
-        viewUserHistory: 'Ver histórico do usuário',
-        viewAgentHistory: 'Ver histórico do agente',
         publicSection: {
             title: 'Público',
             subtitle: 'Esses detalhes são exibidos no seu perfil público. Qualquer pessoa pode vê-los.',
@@ -4480,6 +4487,10 @@ ${amount} para ${merchant} - ${date}`,
             railCard:
                 'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Viagem não está ativada',
+            message: 'Para fazer uma reserva, ative viagens no seu espaço de trabalho padrão ou altere seu espaço de trabalho padrão para um que tenha viagens ativadas.',
+        },
     },
     workspace: {
         common: {
@@ -4563,7 +4574,7 @@ ${amount} para ${merchant} - ${date}`,
             subscription: 'Assinatura',
             markAsEntered: 'Marcar como inserido manualmente',
             markAsExported: 'Marcar como exportado',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Exportar para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `Exportar para ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vamos conferir se está tudo certo.',
             lineItemLevel: 'Nível de item de linha',
             reportLevel: 'Nível do relatório',
@@ -4899,6 +4910,9 @@ ${amount} para ${merchant} - ${date}`,
                 accountSelectDescription: (integrationName = 'QuickBooks Online') => `Escolha de onde pagar as contas e nós criaremos o pagamento no ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') =>
                     `Escolha onde receber os pagamentos de fatura e nós criaremos o pagamento no ${integrationName}.`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `Conta de taxa de conversão de moeda do ${integrationName}`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
+                    `Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, vamos lançar esse custo nesta conta em ${integrationName} como um lançamento de diário.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Vamos combinar automaticamente o nome do comerciante na transação do cartão de débito com quaisquer fornecedores correspondentes no ${integrationName}. Se não houver fornecedores existentes, criaremos um fornecedor "Despesas diversas – cartão de débito" para associação.`,
@@ -5732,11 +5746,62 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subsidiarySelectDescription: 'Escolha a subsidiária no DualEntry da qual você gostaria de importar dados.',
             noCompaniesFound: 'Nenhuma empresa encontrada',
             noCompaniesFoundDescription: 'Adicione uma empresa no DualEntry e sincronize a conexão novamente',
+            noVendorsFound: 'Nenhum fornecedor encontrado',
+            noVendorsFoundDescription: 'Adicione fornecedores no DualEntry e sincronize a conexão novamente',
+            noAccountsFound: 'Nenhuma conta encontrada',
+            noAccountsFoundDescription: 'Adicione contas no DualEntry e sincronize a conexão novamente',
             accountTypesDescription: 'Suas contas DualEntry serão importadas como categorias.',
             enableNewAccountsTitle: 'Ativar contas recém-importadas',
             enableNewAccountsDescription: 'Novas contas DualEntry estarão disponíveis como categorias.',
             classificationsImport: 'Todas as classificações DualEntry são importadas como etiquetas',
             importDescription: 'Escolha quais configurações de codificação importar do DualEntry.',
+            exportDescription: 'Configure como os dados do Expensify são exportados para o DualEntry.',
+            exportReimbursable: {
+                label: 'Exportar despesas reembolsáveis como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Faturas de fornecedores',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Data da fatura do fornecedor',
+                description: 'Use esta data ao exportar relatórios para o DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Data da última despesa',
+                        description: 'Data da despesa mais recente no relatório.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Data de exportação',
+                        description: 'Data em que o relatório foi exportado para o DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Data de envio',
+                        description: 'Data em que o relatório foi enviado para aprovação.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Exportar despesas de cartão corporativo como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Despesas diretas',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Fornecedor padrão para todos os cartões corporativos',
+                description: 'Escolha um fornecedor DualEntry padrão para despesas que não forem correspondidas automaticamente.',
+            },
+            companyCardAccount: {
+                label: 'Conta de cartão corporativo',
+                description: 'Escolha para onde exportar as transações do cartão corporativo.',
+            },
+            expensifyCardAccount: {
+                label: 'Conta do Expensify Card',
+                description: 'Escolha para onde exportar as transações do Expensify Card.',
+            },
         },
         type: {
             free: 'Grátis',
@@ -6699,8 +6764,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 chooseLimitType: 'Escolha um tipo de limite',
                 smartLimit: 'Limite Inteligente',
                 smartLimitDescription: 'Gaste até um determinado valor antes de exigir aprovação',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Gaste até um determinado valor antes de exigir aprovação. <a href="${workspaceWorkflowsLink}">Ative as aprovações</a> para selecionar esta opção.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Gaste até um determinado valor antes de exigir aprovação. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Ative as aprovações</a>` : 'Ative as aprovações'} para selecionar esta opção.</muted-text-label>`,
                 monthly: 'Mensal',
                 monthlyDescription: 'Gastar até um determinado valor por mês',
                 fixedAmount: 'Valor fixo',
@@ -7137,6 +7202,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             startDate: 'Data de início',
             endDate: 'Data de término',
             autoGeneratedRateTooltip: 'Essa tarifa é gerada automaticamente.',
+            autoUpdateGovernmentRate: 'Atualizar automaticamente taxas governamentais',
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Crie automaticamente novas taxas quando ${countryPhrase} publicar novas orientações.`,
+            governmentRateCountries: {US: 'Estados Unidos', CA: 'Canadá', GB: 'Grã-Bretanha', AU: 'Austrália'},
         },
         editor: {
             descriptionInputLabel: 'Descrição',
@@ -7229,10 +7297,11 @@ Se você quiser assumir a cobrança de toda a assinatura deles, peça para que a
         },
         exportAgainModal: {
             title: 'Cuidado!',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `Os seguintes relatórios já foram exportados para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Tem certeza de que quer exportá-los novamente?
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `Os seguintes relatórios já foram exportados para ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Tem certeza de que quer exportá-los novamente?
 
 ${reportName}`,
             confirmText: 'Sim, exportar novamente',
@@ -7240,20 +7309,20 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: 'Cuidado!',
-            description: (connectionName: ConnectionName) =>
-                `Os relatórios selecionados estão conectados a empresas ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} diferentes, portanto não podem ser exportados juntos. Selecione relatórios conectados à mesma empresa e tente novamente.`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `Os relatórios selecionados estão conectados a diferentes empresas ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, então não podem ser exportados juntos. Selecione relatórios conectados à mesma empresa e tente novamente.`,
             confirmText: 'Entendi',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `Exportar ${exportableCount}/${selectedCount} relatórios para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `Exportar ${exportableCount}/${selectedCount} relatórios para ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Somente os relatórios conectados a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} serão exportados.`);
+                    reasons.push(`Somente relatórios conectados a ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} serão exportados.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Somente os relatórios elegíveis para exportação serão exportados.`);
+                    reasons.push(`Somente relatórios que forem elegíveis para exportação serão exportados.`);
                 }
                 return `${reasons.join('\n\n')}\n\nOs seguintes relatórios serão exportados:`;
             },
@@ -7512,6 +7581,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 description: 'Se você quer tornar os links dos seus recibos acessíveis para qualquer pessoa, como um cliente ou contador externo, este recurso é para você.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>A visibilidade pública de recibos está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            governmentDistanceRates: {
+                title: 'Atualizar automaticamente taxas governamentais',
+                description:
+                    'Se você quer que o Expensify mantenha suas tarifas de quilometragem sempre atualizadas sempre que o governo publicar novas orientações, este recurso é para você.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>A atualização automática de taxas governamentais só está disponível no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -7888,6 +7964,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     'As cobranças são aprovadas para moedas permitidas que não ultrapassem um valor máximo ou quando o comerciante ou o tipo de comerciante correspondem.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'moedas' : 'moeda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
+                defaultRulesCannotBeDeleted: 'Regras padrão não podem ser excluídas',
             },
             agentRules: {
                 title: 'Regras do agente',
@@ -8179,6 +8256,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             authenticationError: (providerName: string) => `Não é possível conectar a ${providerName} devido a uma conexão expirada.`,
             reconnect: 'Reconectar',
             reconnectLink: 'Reconectar.',
+            findIntegration: 'Encontrar integração',
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
@@ -8712,6 +8790,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 title ? `atualizou a regra do agente "${title}" para: ${prompt}` : `atualizou uma regra de agente para: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `removeu a regra de agente "${title}"` : 'removeu uma regra de agente'),
         },
+        addedRule: 'adicionou uma regra',
+        updatedRule: 'atualizou uma regra',
+        removedRule: 'removeu uma regra',
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'acima', under: 'abaixo'},
@@ -8824,6 +8905,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de categorização de despesas`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de marcação de despesas`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `atualizou a configuração da taxa de conversão de moeda para "${preferenceLabel}"`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `alterou os participantes da categoria "${categoryName}" para ${newValue ? 'obrigatório' : 'não obrigatório'} (antes ${newValue ? 'não obrigatório' : 'obrigatório'})`;
         },
@@ -10333,8 +10415,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Novos tipos de função para administradores',
-                body: 'Dê à sua equipe permissões mais granulares com novos papéis de administrador para cartões, pessoas e pagamentos.',
+                heading: 'Mapeamento de fornecedor aprimorado',
+                body: 'Crie fornecedores e regras personalizadas para facilitar o mapeamento para os principais pacotes de contabilidade.',
+                cta: 'Experimente',
+            },
+            member: {
+                heading: 'Agentes pré-configurados para você',
+                body: 'Use agentes prontos ou personalizados para codificar, dividir e enviar despesas automaticamente em seu nome.',
                 cta: 'Experimente',
             },
         },

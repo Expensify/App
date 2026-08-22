@@ -94,7 +94,11 @@ async function commentOnDeployChecklistPRs(
                 const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
                 await commentPR(prNumber, deployMessage, repoName);
             } catch (error) {
-                if (typeof error === 'object' && error !== null && 'status' in error && error.status === 404) {
+                // Preserve the former direct `.status` access ordering for nullish rejections.
+                if (error === null || error === undefined) {
+                    throw new TypeError(`Cannot read properties of ${String(error)} (reading 'status')`);
+                }
+                if ((typeof error === 'object' || typeof error === 'function') && 'status' in error && error.status === 404) {
                     console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
                 } else if (repoName === CONST.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
                     console.warn(`Unable to comment on ${repoName} PR #${prNumber} from forked repository. This is expected.`);
@@ -219,7 +223,7 @@ async function run() {
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 
