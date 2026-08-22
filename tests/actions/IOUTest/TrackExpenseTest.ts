@@ -2520,16 +2520,15 @@ describe('actions/IOU/TrackExpense', () => {
             expect(createIOUAction).toBeTruthy();
 
             // When deleting expense
-            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
-                selfDMReport,
-                transaction?.transactionID,
+            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation({
+                chatReport: selfDMReport,
+                transactionID: transaction?.transactionID,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                createIOUAction!,
-                false,
-                RORY_ACCOUNT_ID,
-                undefined,
-                undefined,
-            );
+                reportAction: createIOUAction!,
+                isChatReportArchived: false,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActions: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then the transaction thread report should be ready to be deleted
@@ -2589,16 +2588,16 @@ describe('actions/IOU/TrackExpense', () => {
             });
 
             // When deleting expense
-            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
-                selfDMReport,
-                transaction?.transactionID,
+            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation({
+                chatReport: selfDMReport,
+                transactionID: transaction?.transactionID,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                createIOUAction!,
-                false,
-                RORY_ACCOUNT_ID,
-                undefined,
-                true,
-            );
+                reportAction: createIOUAction!,
+                isChatReportArchived: false,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActions: undefined,
+                isMovingTransactionFromTrackExpense: true,
+            });
             await waitForBatchedUpdates();
 
             // Then the transaction thread report should be ready to be deleted
@@ -2723,6 +2722,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             const result = deleteTrackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionThreadReportActions: undefined,
                 chatReportID: selfDMReport.reportID,
                 chatReport: selfDMReport,
                 chatReportActions: undefined,
