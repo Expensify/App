@@ -101,21 +101,6 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
-const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
-
-// A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
-// row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
-// account-backed option though: task/expense reports also carry an accountID, and keying them by it would let them
-// masquerade as the DM row for the same person. So only DMs and personal details use the accountID; everything else
-// keeps its reportID/keyForList. The `account-` prefix keeps accountIDs from clashing with reportIDs.
-function getStableRankKey(option: {accountID?: number | null; keyForList?: string; reportID?: string; isDM?: boolean}): string | undefined {
-    const isDMOrPersonalDetail = !!option.isDM || !option.reportID;
-    if (isDMOrPersonalDetail && option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID) {
-        return `account-${option.accountID}`;
-    }
-    return option.keyForList ?? option.reportID ?? undefined;
-}
-
 const emptyOptionList = {
     reports: [],
     personalDetails: [],
@@ -201,6 +186,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [searchResultReportIDs] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -250,7 +236,7 @@ function SearchAutocompleteList({
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
-            maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
+            maxResults: searchResultReportIDs && searchResultReportIDs.length > 0 ? listOptions.reports.length : CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
             includeUserToInvite: true,
             includeRecentReports: true,
             includeCurrentUser: true,
@@ -283,6 +269,7 @@ function SearchAutocompleteList({
         sortedActions,
         conciergeReportID,
         isTrackIntentUser,
+        searchResultReportIDs,
         translate,
         dateFnsLocale,
     ]);
@@ -430,37 +417,19 @@ function SearchAutocompleteList({
             reportOptions.push(searchOptions.userToInvite);
         }
 
+        if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+            const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
+            const rankOf = (option: OptionData) => {
+                if (option.isSelfDM) {
+                    return -1;
+                }
+                return option.reportID === undefined ? Number.MAX_SAFE_INTEGER : (rankByReportID.get(option.reportID) ?? Number.MAX_SAFE_INTEGER);
+            };
+            reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
+        }
+
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
-
-    // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
-    // results at the moment the query changes. Recomputed only when the query changes, so server
-    // reports merged into Onyx later do not shift the rows already visible in the top section.
-    const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
-    const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
-
-    const buildRankMap = (options: OptionData[]): Map<string, number> => {
-        const rank = new Map<string, number>();
-        for (const [index, option] of options.entries()) {
-            const key = getStableRankKey(option);
-            if (key) {
-                rank.set(key, index);
-            }
-        }
-        return rank;
-    };
-
-    if (prevAutocompleteQuery !== autocompleteQueryValue) {
-        setPrevAutocompleteQuery(autocompleteQueryValue);
-        if (autocompleteQueryValue.trim() === '') {
-            setFrozenLocalRank(EMPTY_RANK_MAP);
-        } else {
-            setFrozenLocalRank(buildRankMap(recentReportsOptions));
-        }
-    } else if (autocompleteQueryValue.trim() !== '' && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
-        // Options hydrated after the rank was snapshotted as empty — recompute.
-        setFrozenLocalRank(buildRankMap(recentReportsOptions));
-    }
+    }, [autocompleteQueryValue, searchOptions, searchResultReportIDs]);
 
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
@@ -538,42 +507,11 @@ function SearchAutocompleteList({
                     customHeader: skeletonHeader,
                 });
             }
+        } else if (nextStyledRecentReports.length > 0 || !isLoadingOptions) {
+            // Active search: render the results as a single list in the order recentReportsOptions provides.
+            pushSection({title: translate('search.serverResults'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
         } else {
-            // Active search: split rows into local (frozen order) and server sections.
-            const localRows: AutocompleteListItem[] = [];
-            const serverRows: AutocompleteListItem[] = [];
-            for (const item of nextStyledRecentReports) {
-                const stableKey = getStableRankKey(item);
-                if (stableKey && frozenLocalRank.has(stableKey)) {
-                    localRows.push(item);
-                } else {
-                    serverRows.push(item);
-                }
-            }
-            // Sort the local section by the rank captured at query-change time so it cannot
-            // reorder when the API returns.
-            localRows.sort((a, b) => (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0));
-
-            if (localRows.length > 0 || !isLoadingOptions) {
-                pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
-            } else {
-                // Options are still loading and no local results matched — show a skeleton so the
-                // user sees feedback instead of a bare section header.
-                pushSection({
-                    title: undefined,
-                    data: [],
-                    sectionIndex: sectionIndex++,
-                    customHeader: skeletonHeader,
-                });
-            }
-
-            if (serverRows.length > 0) {
-                pushSection({
-                    title: translate('search.serverResults'),
-                    data: serverRows,
-                    sectionIndex: sectionIndex++,
-                });
-            }
+            pushSection({title: undefined, data: [], sectionIndex: sectionIndex++, customHeader: skeletonHeader});
         }
 
         if (autocompleteSuggestions.length > 0) {
@@ -607,7 +545,6 @@ function SearchAutocompleteList({
         autocompleteQueryValue,
         autocompleteSuggestions,
         expensifyIcons,
-        frozenLocalRank,
         getAdditionalSections,
         recentReportsOptions,
         recentSearchesData,
