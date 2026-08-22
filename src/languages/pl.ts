@@ -7077,6 +7077,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     `Upewnij się, że to konto jest takie samo jak konto rozliczeniowe Consolidated Travel Billing (kończące się na ${lastFourPAN}), żeby Continuous Reconciliation działało poprawnie.`,
             },
             syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia skonsolidowanego rozliczania podróży',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Ustaw konto dla eksportów, aby odblokować.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Włącz automatyczną synchronizację, aby odblokować.',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',

@@ -7231,6 +7231,8 @@ const translations = {
             reconciliationAccount: 'Reconciliation account',
             continuousReconciliation: 'Continuous Reconciliation',
             syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Set an account for your exports to unlock.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Enable auto-sync to unlock.',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>

@@ -9,6 +9,7 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 
 import Navigation from '@navigation/Navigation';
 
+import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
 import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -66,6 +67,12 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
                     brickRoadIndicator={areSettingsInErrorFields(payableAccount, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
+            <TravelBillingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+                isAutoSyncEnabled={!!qboConfig?.autoSync?.enabled}
+                isPayableAccountSet={!!qboConfig?.travelInvoicingPayableAccountID}
+            />
         </ConnectionLayout>
     );
 }

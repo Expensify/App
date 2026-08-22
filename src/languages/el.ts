@@ -7276,6 +7276,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             reconciliationAccount: 'Λογαριασμός συμφιλίωσης',
             continuousReconciliation: 'Συνεχής συμφωνία',
             syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Ορίστε έναν λογαριασμό για τις εξαγωγές σας για να το ξεκλειδώσετε.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Ενεργοποιήστε τον αυτόματο συγχρονισμό για να το ξεκλειδώσετε.',
             saveHoursOnReconciliation:
                 'Εξοικονομήστε ώρες σε κάθε λογιστική περίοδο στην συμφωνία λογαριασμών, αφήνοντας το Expensify να συμφωνίζει συνεχώς για εσάς τις καταστάσεις και τους διακανονισμούς της Κάρτας Expensify.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
