@@ -210,7 +210,7 @@ function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialSt
     return focusedRouteIndex === undefined ? undefined : (navState?.routes[focusedRouteIndex] as NavigationPartialRoute);
 }
 
-function getKeylessRoute<R extends NavigationPartialRoute>(route: R): R {
+function getKeylessRoute<R extends {key?: string}>(route: R): Omit<R, 'key'> {
     const routeWithoutKey = {...route};
     delete (routeWithoutKey as Partial<Pick<typeof routeWithoutKey, 'key'>>).key;
     return routeWithoutKey;
