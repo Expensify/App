@@ -322,8 +322,23 @@ function getArticleTocLinks() {
     return document.querySelectorAll(`${ARTICLE_TOC_SELECTOR} .${TOC_LINK_CLASS}`);
 }
 
+/**
+ * decodeURIComponent throws on a stray %, which would skip search and header-menu setup.
+ * Keep the raw fragment so a bad hash only fails to highlight.
+ *
+ * @param {String} value
+ * @returns {String}
+ */
+function decodeHashFragment(value) {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}
+
 function getHeadingForTocLink(link) {
-    const headingID = decodeURIComponent(link.href.split('#').pop());
+    const headingID = decodeHashFragment(link.href.split('#').pop());
     return headingID ? document.getElementById(headingID) : null;
 }
 
@@ -339,7 +354,7 @@ function highlightTocLinkForHash() {
     if (!window.location.hash) {
         return;
     }
-    const headingID = decodeURIComponent(window.location.hash.slice(1)).toLowerCase();
+    const headingID = decodeHashFragment(window.location.hash.slice(1)).toLowerCase();
     const link = Array.from(getArticleTocLinks()).find((tocLink) => getHeadingForTocLink(tocLink)?.id.toLowerCase() === headingID);
     if (!link) {
         return;
