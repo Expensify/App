@@ -321,3 +321,10 @@
 - Upstream PR/issue: [facebook/react-native#57425](https://github.com/facebook/react-native/pull/57425) / [d2ac1904118](https://github.com/facebook/react-native/commit/d2ac190411877e7a1bc94ffac346c5fd35b65a7c)
 - E/App issue: N/A
 - PR introducing patch: https://github.com/Expensify/Mobile-Expensify/pull/14058
+
+### [react-native+0.86.0+040+ios-responder-ignore-scroll.patch](react-native+0.86.0+040+ios-responder-ignore-scroll.patch)
+
+- Reason: Fixes taps being silently cancelled on iOS when a relayout-driven scroll lands mid-press. The responder plugin starts a negotiation on every `topScroll` event whose payload lacks `responderIgnoreScroll`, and `ScrollView._handleScrollShouldSetResponder` accepts whenever a finger is down. iOS never set the key, so a scroll that moved nothing could take the responder from a live press and terminate it, giving `onPressIn` and `onPressOut` with no `onPress`. Android sends `true` because `shouldTriggerResponderTransferOnScrollAndroid` defaults to `false`, which is why the defect is iOS only. The patch adds the field to `ScrollEvent` and sets it on iOS from `_isUserTriggeredScrolling`, so a real drag still transfers the responder and still cancels the press. It also carries the flag on `TextInputEventEmitter`, the only other emitter of this event on Fabric iOS, computed from whether the text view's own scroll is user driven. The upstream PR additionally updates a TypeScript declaration under `types_DEPRECATED/`, omitted here because that directory is not shipped in the npm package.
+- Upstream PR/issue: https://github.com/react/react-native/pull/57546
+- E/App issue: https://github.com/Expensify/App/issues/97127
+- PR introducing patch: https://github.com/Expensify/App/pull/98095
