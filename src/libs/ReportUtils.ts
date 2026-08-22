@@ -147,7 +147,14 @@ import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
-import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {
+    getAccountIDsByLogins,
+    getDisplayNameOrDefault,
+    getDisplayNameOrDefaultEnLocale,
+    getLoginByAccountID,
+    getPersonalDetailByEmail,
+    temporaryGetDisplayNameOrDefault,
+} from './PersonalDetailsUtils';
 import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
@@ -3598,6 +3605,7 @@ function getDisplayNameForParticipant({
     shouldRemoveDomain = false,
     formatPhoneNumber,
     translate,
+    shouldUseEnLocale = false,
 }: {
     accountID?: number;
     shouldUseShortForm?: boolean;
@@ -3607,6 +3615,12 @@ function getDisplayNameForParticipant({
     shouldRemoveDomain?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     translate?: LocalizedTranslate;
+    /**
+     * Resolve the `Hidden` fallback and the `(you)` postfix in English instead of the viewer's locale. Set this
+     * for names that end up in text stored on a report action, which is English only. See
+     * {@link getReportPreviewReportActionMessage}.
+     */
+    shouldUseEnLocale?: boolean;
 }): string {
     if (!accountID) {
         return '';
@@ -3639,23 +3653,31 @@ function getDisplayNameForParticipant({
     // For selfDM, we display the user's displayName followed by '(you)' as a postfix
     const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID === deprecatedCurrentUserAccountID;
 
-    let longName = translate
-        ? temporaryGetDisplayNameOrDefault({
-              passedPersonalDetails: personalDetails,
-              defaultValue: formattedLogin,
-              shouldFallbackToHidden,
-              shouldAddCurrentUserPostfix: shouldAddPostfix,
-              translate,
-              formatPhoneNumber,
-          })
-        : getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
+    const displayNameParams = {
+        passedPersonalDetails: personalDetails,
+        defaultValue: formattedLogin,
+        shouldFallbackToHidden,
+        shouldAddCurrentUserPostfix: shouldAddPostfix,
+        formatPhoneNumber,
+    };
+
+    let longName: string;
+    if (shouldUseEnLocale) {
+        longName = getDisplayNameOrDefaultEnLocale(displayNameParams);
+    } else if (translate) {
+        longName = temporaryGetDisplayNameOrDefault({...displayNameParams, translate});
+    } else {
+        longName = getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
+    }
 
     if (shouldRemoveDomain && longName === formattedLogin) {
         longName = longName.split('@').at(0) ?? '';
     }
 
+    const hiddenText = shouldUseEnLocale ? CONST.EN_LOCALE_TEXT.HIDDEN : (translate?.('common.hidden') ?? hiddenTranslation);
+
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === (translate ? translate('common.hidden') : hiddenTranslation)) {
+    if (shouldFallbackToHidden && longName === hiddenText) {
         return longName;
     }
 
@@ -6045,6 +6067,9 @@ function getReportPreviewMessage(
  * avoids depending on the async-loaded locale bundles. For a localized preview shown in the UI, call
  * {@link getReportPreviewMessage} with the caller's `translate`.
  *
+ * Participant names go through `getDisplayNameForParticipant` with `shouldUseEnLocale`, so the `Hidden` fallback
+ * stays English here too rather than following the viewer's locale.
+ *
  * IMPORTANT: keep the English strings here in sync with the `iou.*` entries in `en.ts` and with the branching
  * in {@link getReportPreviewMessage}.
  */
@@ -6128,7 +6153,12 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
     const policyName = getPolicyName({report: parentReport ?? report, policy});
     const payerName = isExpenseReport(report)
         ? policyName
-        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        : getDisplayNameForParticipant({
+              accountID: report.managerID,
+              shouldUseShortForm: !isPreviewMessageForParentChatReport,
+              formatPhoneNumber: formatPhoneNumberPhoneUtils,
+              shouldUseEnLocale: true,
+          });
 
     const formattedAmount = convertToDisplayStringEnLocale(totalAmount, report.currency, getCurrencyDecimals);
 
@@ -6185,7 +6215,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
         let actualPayerName =
             report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
                 ? ''
-                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, shouldUseEnLocale: true});
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
@@ -6218,7 +6248,8 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
     }
 
     if (report.isWaitingOnBankAccount) {
-        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        const submitterDisplayName =
+            getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, shouldUseEnLocale: true}) ?? '';
         return `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`;
     }
 
@@ -6247,13 +6278,18 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== deprecatedCurrentUserAccountID
-                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                ? getDisplayNameForParticipant({
+                      accountID: lastActorID,
+                      shouldUseShortForm: !isPreviewMessageForParentChatReport,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      shouldUseEnLocale: true,
+                  })
                 : '';
         return `${requestorName ? `${requestorName}: ` : ''}${amountToDisplay}${comment ? ` for ${comment}` : ''}`;
     }
 
     if (containsNonReimbursable) {
-        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, shouldUseEnLocale: true}) ?? '';
         return `${ownerName} spent ${formattedAmount}`;
     }
     return `${payerName ?? ''} owes ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
