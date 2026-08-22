@@ -1711,8 +1711,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
         submitReportTo: {
-            sendExpense: 'Envoyez votre dépense à n’importe qui',
+            sendExpense: 'Soumettez à n’importe qui',
             sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
+            selectRecipientError: 'Sélectionnez ou saisissez un destinataire pour continuer.',
         },
         changeApprover: {
             title: 'Modifier l’approbateur',
