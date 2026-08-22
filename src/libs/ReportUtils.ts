@@ -7200,8 +7200,7 @@ function computeOptimisticReportNameWithMetadata(
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy) ?? {});
-    // Resolve submitter/manager personal details so `{report:submit:from:*}` / `{report:submit:to:*}` tokens
-    // resolve to real names optimistically, matching what the BE returns and avoiding a name flash on creation.
+    // Populate submitter/manager details so `{report:submit:from|to:*}` tokens resolve optimistically, avoiding a name flash on creation.
     const submitterPersonalDetails = report.ownerAccountID ? (allPersonalDetails?.[report.ownerAccountID] ?? undefined) : undefined;
     const managerPersonalDetails = report.managerID ? (allPersonalDetails?.[report.managerID] ?? undefined) : undefined;
     const formulaContext: FormulaContext = {
