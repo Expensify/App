@@ -637,3 +637,65 @@ describe('Go back on the wide layout', () => {
         });
     });
 });
+
+describe('Go back with nothing to pop', () => {
+    beforeEach(() => {
+        mockedGetIsNarrowLayout.mockReturnValue(false);
+        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
+    });
+
+    it('Should stay put when the only root route is already the tab navigator', () => {
+        // Given a stack whose only route is the tab navigator, which is the public sign in root
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [{name: NAVIGATORS.TAB_NAVIGATOR}],
+                }}
+            />,
+        );
+
+        // The key identifies the mounted screen. A reset assigns a new one, which remounts SignInPage.
+        const keyBefore = navigationRef.current?.getRootState().routes.at(0)?.key;
+        const navigationContainer = navigationRef.current;
+        if (!navigationContainer) {
+            throw new Error('Navigation container is not ready');
+        }
+        const resetSpy = jest.spyOn(navigationContainer, 'reset');
+
+        // When going back without a fallback route
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then the same route instance is still mounted, so SignInPage keeps the email and magic code the user entered
+        const rootState = navigationRef.current?.getRootState();
+        expect(rootState?.routes.length).toBe(1);
+        expect(rootState?.routes.at(0)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        expect(rootState?.routes.at(0)?.key).toBe(keyBefore);
+        expect(resetSpy).not.toHaveBeenCalled();
+        resetSpy.mockRestore();
+    });
+
+    it('Should reset to the tab navigator when the only root route is reachable by link', () => {
+        // Given a stack whose only route is a link entry screen, which is how /v/ and /u/ are opened
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [{name: SCREENS.VALIDATE_LOGIN, params: {accountID: '1', validateCode: '1'}}],
+                }}
+            />,
+        );
+
+        // When going back without a fallback route
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then the stranded route is replaced by the app root instead of the press doing nothing
+        const rootState = navigationRef.current?.getRootState();
+        expect(rootState?.routes.length).toBe(1);
+        expect(rootState?.routes.at(0)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+    });
+});

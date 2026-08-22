@@ -561,7 +561,27 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     TransitionTracker.runAfterTransitions({
         callback: () => {
             if (!backToRoute && !shouldPopToSidebar && !navigationRef.current?.canGoBack()) {
-                Log.hmmm('[Navigation] Unable to go back');
+                // This branch used to call openDrawer(). With the LHN drawer as the app root, a goBack() with no history
+                // still landed the user somewhere. That fallback was dropped along with the drawer and was never replaced,
+                // so routes that are only reachable by link now dead-end silently. TAB_NAVIGATOR is the modern equivalent
+                // of the drawer root. It is the tab navigator in AuthScreens and the sign-in page in PublicScreens.
+                // resetToHome() is deliberately not reused here. It seeds an INBOX split navigator state, which assumes
+                // an authenticated stack, and this branch must also serve PublicScreens. NavigationRoot uses the same
+                // bare payload as its post logout fallback for the same reason.
+                const rootState = navigationRef.current?.getRootState();
+                const isAlreadyAtRoot = rootState?.routes.length === 1 && rootState.routes.at(0)?.name === NAVIGATORS.TAB_NAVIGATOR;
+
+                // Nothing is stranded when the root already is the tab navigator, so keep the historical no-op.
+                // SignInPage depends on it. At the public sign-in root it calls goBack() expecting nothing to
+                // happen, then returns false so Android backgrounds the app. Resetting there would remount the
+                // sign-in page and discard the email and magic code the user already entered. Without a root state
+                // there is nothing to reset either, so log and stay put rather than falling through.
+                if (!rootState || isAlreadyAtRoot) {
+                    Log.hmmm('[Navigation] Unable to go back');
+                    return;
+                }
+
+                navigationRef.current?.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
                 return;
             }
 
