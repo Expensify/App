@@ -10661,14 +10661,12 @@ function getMoneyRequestOptions(
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Expense option.
     // Your own expense chats will have the split expense option.
-    // Only show Split Expense for TU policy: either in the member's own policy expense chat, or in their own
-    // Teachers Unite expense report (e.g. when adding an expense from the report page rather than the chat).
+    // Only show Split Expense for TU policy
     if (
         (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && otherParticipants.length > 0) ||
         (isGroupChat(report) && otherParticipants.length > 0) ||
-        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && isTeachersUniteReportValue) ||
-        (isExpenseReport(report) && isTeachersUniteReportValue && report?.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID))
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && isTeachersUniteReportValue)
     ) {
         options = [...options, CONST.IOU.TYPE.SPLIT];
     }
