@@ -9859,6 +9859,20 @@ describe('actions/Report', () => {
             currency: CONST.CURRENCY.USD,
         });
 
+        const allReports: OnyxCollection<OnyxTypes.Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
+            [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
+        };
+        const allReportActions: Record<string, OnyxEntry<OnyxTypes.ReportActions>> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_1_ID}`]: sourceReport1Actions,
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_2_ID}`]: sourceReport2Actions,
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${WORKSPACE_CHAT_REPORT_ID}`]: {
+                [REPORT_PREVIEW_ACTION_1_ID]: reportPreviewAction1,
+                [REPORT_PREVIEW_ACTION_2_ID]: reportPreviewAction2,
+            },
+        };
+
         let mockFetch: MockFetch;
         beforeEach(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {
@@ -9902,19 +9916,8 @@ describe('actions/Report', () => {
                 email: currentUserEmail,
                 policy,
                 policyTagList: {},
-                allReports: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
-                },
-                sourceReportActions: {
-                    [SOURCE_REPORT_1_ID]: sourceReport1Actions,
-                    [SOURCE_REPORT_2_ID]: sourceReport2Actions,
-                },
-                sourceParentReportActions: {
-                    [SOURCE_REPORT_1_ID]: reportPreviewAction1,
-                    [SOURCE_REPORT_2_ID]: reportPreviewAction2,
-                },
+                allReports,
+                allReportActions,
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
@@ -9979,19 +9982,8 @@ describe('actions/Report', () => {
                 email: currentUserEmail,
                 policy,
                 policyTagList: {},
-                allReports: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
-                },
-                sourceReportActions: {
-                    [SOURCE_REPORT_1_ID]: sourceReport1Actions,
-                    [SOURCE_REPORT_2_ID]: sourceReport2Actions,
-                },
-                sourceParentReportActions: {
-                    [SOURCE_REPORT_1_ID]: reportPreviewAction1,
-                    [SOURCE_REPORT_2_ID]: reportPreviewAction2,
-                },
+                allReports,
+                allReportActions,
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
@@ -10045,19 +10037,8 @@ describe('actions/Report', () => {
                 email: currentUserEmail,
                 policy,
                 policyTagList: {},
-                allReports: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
-                },
-                sourceReportActions: {
-                    [SOURCE_REPORT_1_ID]: sourceReport1Actions,
-                    [SOURCE_REPORT_2_ID]: sourceReport2Actions,
-                },
-                sourceParentReportActions: {
-                    [SOURCE_REPORT_1_ID]: reportPreviewAction1,
-                    [SOURCE_REPORT_2_ID]: reportPreviewAction2,
-                },
+                allReports,
+                allReportActions,
                 hash: SNAPSHOT_HASH,
                 bankAccountList: undefined,
                 isTrackIntentUser: false,

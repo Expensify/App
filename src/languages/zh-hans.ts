@@ -8917,6 +8917,7 @@ ${reportName}`,
             topCategories: '热门类别',
             topMerchants: '热门商家',
         },
+        mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
