@@ -1,5 +1,6 @@
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {
     getActiveAdminWorkspaces,
     getActivePoliciesWithExpenseChat,
@@ -255,7 +256,7 @@ const createFilteredPoliciesInfoSelector =
         let filteredPoliciesCount = 0;
         let firstPolicyID: string | undefined;
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, false, email)) {
+            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
