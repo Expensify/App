@@ -45,7 +45,7 @@ function LockAccountPageBase({
     const [isLoading, setIsLoading] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
 
     const handleReportSuspiciousActivity = async () => {
         if (!accountID && !currentUserPersonalDetails.accountID) {
@@ -69,6 +69,9 @@ function LockAccountPageBase({
         setIsLoading(true);
         const response = await lockAccount(currentUserPersonalDetails.accountID, accountID, domainAccountID, domainName);
         setIsLoading(false);
+
+        // Passing isConfirmLoading keeps the modal open on confirm, so it has to be closed here.
+        closeModal();
 
         handleLockRequestFinish(response);
     };
