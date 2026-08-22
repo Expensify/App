@@ -91,6 +91,12 @@ const ONYXKEYS = {
     /** Contains all the personalDetails the user has access to, keyed by accountID */
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
+    /** Maps an agent's optimistic accountID to the real one CreateAgent assigns, so an agent screen opened on the optimistic ID resolves to the real agent. Persisted so it survives a reload (the mapping is sent only once). */
+    OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING: 'optimisticAgentAccountIDMapping',
+
+    /** When each OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING entry was written locally, so stale entries can be pruned. */
+    OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT: 'optimisticAgentAccountIDMappingCreatedAt',
+
     /** Contains all the private personal details of the user */
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
@@ -1309,6 +1315,7 @@ const ONYXKEYS = {
         CARD_FEED_ERRORS: 'cardFeedErrors',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
+        OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_ENTRIES: 'optimisticAgentAccountIDMappingEntries',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1580,6 +1587,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE]: string;
     [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
+    [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: OnyxTypes.OptimisticAgentAccountIDMapping;
+    [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT]: OnyxTypes.OptimisticAgentAccountIDMappingCreatedAt;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
@@ -1838,6 +1847,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
+    [ONYXKEYS.DERIVED.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_ENTRIES]: OnyxTypes.OptimisticAgentAccountIDMappingEntriesDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

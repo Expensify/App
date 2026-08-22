@@ -12,17 +12,38 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {OptimisticAgentAccountIDMappingCreatedAt, Policy} from '@src/types/onyx';
 import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-function openAgentsPage() {
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
+const OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+// Called from both createAgent() and openAgentsPage() (the two points that have this data on hand) instead of a
+// boot-time sweep, to avoid adding a new Onyx.connectWithoutView subscription.
+function getStaleOptimisticAccountIDMappingUpdates(existingOptimisticAccountIDMappingCreatedAt: OnyxEntry<OptimisticAgentAccountIDMappingCreatedAt>): AnyOnyxUpdate[] {
+    const now = Date.now();
+    const staleOptimisticAccountIDs = Object.entries(existingOptimisticAccountIDMappingCreatedAt ?? {})
+        .filter(([, createdAt]) => now - createdAt > OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_MS)
+        .map(([staleOptimisticAccountID]) => staleOptimisticAccountID);
+
+    if (staleOptimisticAccountIDs.length === 0) {
+        return [];
+    }
+
+    const staleEntries = Object.fromEntries(staleOptimisticAccountIDs.map((id) => [id, null]));
+    return [
+        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, value: staleEntries},
+        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, value: staleEntries},
+    ];
+}
+
+function openAgentsPage(existingOptimisticAccountIDMappingCreatedAt?: OnyxEntry<OptimisticAgentAccountIDMappingCreatedAt>) {
+    const finallyData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ARE_AGENTS_LOADED,
@@ -30,7 +51,9 @@ function openAgentsPage() {
         },
     ];
 
-    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {finallyData});
+    const optimisticData = getStaleOptimisticAccountIDMappingUpdates(existingOptimisticAccountIDMappingCreatedAt);
+
+    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {optimisticData, finallyData});
 }
 
 function openProfilePage() {
@@ -46,6 +69,7 @@ function createAgent(
     file?: File | CustomRNImageManipulatorResult,
     optimisticAvatarURI?: string,
     policyID?: string,
+    existingOptimisticAccountIDMappingCreatedAt?: OnyxEntry<OptimisticAgentAccountIDMappingCreatedAt>,
 ) {
     const optimisticAccountID = Number(generateReportID());
 
@@ -106,6 +130,7 @@ function createAgent(
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
             value: {isOptimisticReport: true},
         },
+        ...getStaleOptimisticAccountIDMappingUpdates(existingOptimisticAccountIDMappingCreatedAt),
     ];
 
     const successData: AnyOnyxUpdate[] = [
@@ -128,6 +153,13 @@ function createAgent(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
             value: {isOptimisticReport: false},
+        },
+
+        // Stamped here, not where the mapping itself arrives, since that onyxData is backend-owned.
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT,
+            value: {[optimisticAccountID]: Date.now()},
         },
     ];
 
@@ -172,6 +204,15 @@ function createAgent(
     );
 
     return {optimisticAccountID, avatarURI, optimisticReportID};
+}
+
+/**
+ * Backfills a createdAt timestamp for a mapping entry this device notices without one — e.g. one that arrived via
+ * sync from another device/tab that resolved it first, so this device never got the chance to stamp it itself.
+ * Without a timestamp an entry is invisible to createAgent()'s pruning and never expires.
+ */
+function backfillOptimisticAccountIDMappingCreatedAt(optimisticAccountID: number) {
+    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, {[optimisticAccountID]: Date.now()});
 }
 
 /**
@@ -462,6 +503,7 @@ export {
     openAgentsPage,
     openProfilePage,
     createAgent,
+    backfillOptimisticAccountIDMappingCreatedAt,
     setNewAgentTemplate,
     clearNewAgentTemplate,
     clearAgentError,

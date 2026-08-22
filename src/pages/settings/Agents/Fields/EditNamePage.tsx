@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResolvedAgentAccountID from '@hooks/useResolvedAgentAccountID';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateAgentName} from '@libs/actions/Agent';
@@ -28,14 +29,16 @@ type EditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, ty
 function EditNamePage({route}: EditNamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const accountID = route.params.accountID;
+
+    // Resolve the optimistic accountID to the real one so opening this page mid-CreateAgent (or after a reload) doesn't 404.
+    const [accountID] = useResolvedAgentAccountID(route.params.accountID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
 
     const {inputCallbackRef} = useAutoFocusInput();
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM>) => {
         updateAgentName(accountID, values[INPUT_IDS.FIRST_NAME].trim(), personalDetails?.displayName ?? '');
-        Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
+        Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(route.params.accountID));
     };
 
     return (
@@ -47,7 +50,7 @@ function EditNamePage({route}: EditNamePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('editAgentNamePage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(route.params.accountID))}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM}

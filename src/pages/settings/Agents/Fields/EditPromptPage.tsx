@@ -10,6 +10,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResolvedAgentAccountID from '@hooks/useResolvedAgentAccountID';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateAgentPrompt} from '@libs/actions/Agent';
@@ -32,7 +33,9 @@ function EditPromptPage({route}: EditPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const shouldUseScrollableLayout = useIsInLandscapeMode();
-    const accountID = route.params.accountID;
+
+    // Resolve the optimistic accountID to the real one so opening this page mid-CreateAgent (or after a reload) doesn't 404.
+    const [accountID] = useResolvedAgentAccountID(route.params.accountID);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> => {

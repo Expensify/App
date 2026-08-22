@@ -58,6 +58,7 @@ import type {
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    OptimisticAgentAccountIDMappingEntriesDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
@@ -117,6 +118,8 @@ import type Onboarding from './Onboarding';
 import type OnboardingRHPVariant from './OnboardingRHPVariant';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
+import type OptimisticAgentAccountIDMapping from './OptimisticAgentAccountIDMapping';
+import type OptimisticAgentAccountIDMappingCreatedAt from './OptimisticAgentAccountIDMappingCreatedAt';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
@@ -284,6 +287,8 @@ export type {
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
     AnyOnyxUpdatesFromServer,
+    OptimisticAgentAccountIDMapping,
+    OptimisticAgentAccountIDMappingCreatedAt,
     OdometerDraft,
     Pages,
     ConciergePendingFollowupList,
@@ -420,6 +425,7 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
+    OptimisticAgentAccountIDMappingEntriesDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
