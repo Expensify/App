@@ -47,9 +47,8 @@ function InboxTabSelector() {
     const getBadgeText = (count: number) => (count > 0 ? count.toString() : undefined);
 
     const openMarkAllAsReadMenu = (key: string) => {
-        // The bulk "mark all as read" affordance only makes sense on the Unread tab, and only when there is
-        // at least one unread chat to clear.
-        if (key !== CONST.INBOX_TAB.UNREAD || inboxTabCounts[CONST.INBOX_TAB.UNREAD] <= 0) {
+        // The bulk "mark all as read" affordance only makes sense on the Unread tab.
+        if (key !== CONST.INBOX_TAB.UNREAD) {
             return;
         }
         calculatePopoverPosition(unreadTabRef, anchorAlignment).then((position) => {
