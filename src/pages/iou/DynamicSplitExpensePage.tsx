@@ -239,10 +239,10 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             selfDMContextReportID: isDraftSelfDMContext ? draftTransactionReport?.reportID : undefined,
             selfDMReportIDFallback: selfDMReportID,
         });
-        return initSplitExpenseItemData(childTransaction, childTransactionReport, {isManuallyEdited: true, reportID: itemReportID});
+        return initSplitExpenseItemData(childTransaction, childTransactionReport, {isManuallyEdited: true, reportID: itemReportID, policy: effectivePolicy, getCurrencyDecimals});
     });
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport, {isManuallyEdited: true});
+    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport, {isManuallyEdited: true, policy: effectivePolicy, getCurrencyDecimals});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
