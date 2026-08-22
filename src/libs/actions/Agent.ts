@@ -112,7 +112,7 @@ function createAgent(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[optimisticAccountID]: null},
+            value: {[optimisticAccountID]: {isOptimisticPersonalDetail: null}},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
