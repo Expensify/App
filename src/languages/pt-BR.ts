@@ -1713,6 +1713,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 addApproverSubtitle: 'Adicione um aprovador adicional ao fluxo de aprovação existente.',
                 bypassApprovers: 'Ignorar aprovadores',
                 bypassApproversSubtitle: 'Atribua a si mesmo como aprovador final e ignore quaisquer aprovadores restantes.',
+                reassignApprover: 'Reatribuir aprovador',
+                reassignApproverSubtitle: 'Ignore o aprovador atual e atribua um novo aprovador.',
             },
             addApprover: {
                 subtitle: 'Escolha um aprovador adicional para este relatório antes de seguirmos pelo restante do fluxo de aprovação.',

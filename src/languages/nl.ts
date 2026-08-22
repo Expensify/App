@@ -1714,6 +1714,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 addApproverSubtitle: 'Voeg een extra fiatteur toe aan de bestaande workflow.',
                 bypassApprovers: 'Fiatteurs overslaan',
                 bypassApproversSubtitle: 'Wijs jezelf aan als laatste fiatteur en sla alle resterende fiatteurs over.',
+                reassignApprover: 'Fiatteur opnieuw toewijzen',
+                reassignApproverSubtitle: 'Sla de huidige fiatteur over en wijs een nieuwe fiatteur aan.',
             },
             addApprover: {
                 subtitle: 'Kies een extra fiatteur voor dit rapport voordat we het door de rest van de fiatteringsworkflow sturen.',
