@@ -178,7 +178,7 @@ beforeEach(() => {
 });
 
 describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation', () => {
-    it('preserves Inbox and the focused report, then appends the destination report keylessly', () => {
+    it('preserves Inbox and the focused report without its key, then appends the destination report', () => {
         mockStubbedParsedState = makeReportsParsedState('B');
         const result = handleReplaceFullscreenUnderRHP(
             makeExistingReportsState([makeRoute(SCREENS.HOME, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
