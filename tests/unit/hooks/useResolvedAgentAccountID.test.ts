@@ -7,6 +7,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -16,15 +17,7 @@ const OTHER_OPTIMISTIC_ACCOUNT_ID = 999;
 const OTHER_REAL_ACCOUNT_ID = 888;
 
 function getMappingCreatedAt(): Promise<Record<string, number> | undefined> {
-    return new Promise((resolve) => {
-        const connection = Onyx.connectWithoutView({
-            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT,
-            callback: (value) => {
-                Onyx.disconnect(connection);
-                resolve(value ?? undefined);
-            },
-        });
-    });
+    return OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
 }
 
 describe('useResolvedAgentAccountID', () => {
