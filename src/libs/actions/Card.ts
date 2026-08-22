@@ -3,6 +3,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
+    ApproveDigitalWalletCardAdditionParams,
     CardDeactivateParams,
     CreateExpensifyCardParams,
     DeletePersonalCardParams,
@@ -243,6 +244,63 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
     };
 
     API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
+ * Confirms or denies a digital wallet addition the cardholder verified over the phone with the card network.
+ *
+ * Confirming needs a magic code because it lets the card be used from the wallet. Denying doesn't, so a cardholder who
+ * didn't make the request can shut it down right away.
+ */
+function approveDigitalWalletCardAddition(cardID: number, isApproved: boolean, validateCode?: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    errors: null,
+                    isLoading: true,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
+    const parameters: ApproveDigitalWalletCardAdditionParams = {
+        cardID,
+        isApproved,
+        validateCode,
+    };
+
+    API.write(WRITE_COMMANDS.APPROVE_DIGITAL_WALLET_CARD_ADDITION, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -1557,6 +1615,14 @@ function issueExpensifyCard(
     );
 }
 
+/**
+ * Refreshes whether any of the user's Expensify Cards has a digital wallet addition waiting to be confirmed. The backend
+ * only asks the card provider for users who verified an addition over the phone, so this is cheap for everyone else.
+ */
+function getExpensifyCardPendingWalletApproval() {
+    API.read(READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL, null);
+}
+
 function openCardDetailsPage(cardID: number) {
     const parameters: OpenCardDetailsPageParams = {
         cardID,
@@ -2015,6 +2081,8 @@ export {
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
+    getExpensifyCardPendingWalletApproval,
+    approveDigitalWalletCardAddition,
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
     setPersonalCardReimbursable,

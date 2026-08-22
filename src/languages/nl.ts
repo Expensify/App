@@ -935,6 +935,14 @@ const translations: TranslationDeepObject<typeof en> = {
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `Het toevoegen van de kaart aan ${walletName} vereist jouw goedkeuring`,
+                subtitle: 'Expensify Card',
+                cta: 'Bekijken',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Digital wallet',
+            },
             reviewCardFraud: {
                 title: 'Controleer mogelijk misbruik van je Expensify Kaart',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Controleer ${amount} aan mogelijke fraude bij ${merchant}`,
@@ -2621,6 +2629,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'je digitale wallet',
+        confirmHeading: 'Bevestig je verzoek',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `Wil je je Expensify Card (eindigend op ${lastFourDigits}) toevoegen aan ${walletName}?`,
+        deny: 'Weigeren',
+        confirm: 'Bevestigen',
+        verifyTitle: 'Laten we verifiëren dat het jij bent',
+        enterSecurityCode: (contactMethod: string) =>
+            `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om dit verzoek te bevestigen. Deze komt binnen een minuut of twee aan.`,
+        successHeading: 'Gelukt!',
+        successDescription: ({walletName}: {walletName: string}) => `Je kaart is nu actief in ${walletName}.`,
+        deniedHeading: 'Verzoek geweigerd',
+        deniedDescription: ({walletName}: {walletName: string}) => `Je kaart is niet toegevoegd aan ${walletName}.`,
     },
     cardPage: {
         expensifyCard: 'Expensify Kaart',

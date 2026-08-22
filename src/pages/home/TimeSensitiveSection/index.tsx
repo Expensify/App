@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getExpensifyCardPendingWalletApproval} from '@libs/actions/Card';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import {getConnectedHRProvider} from '@libs/HRUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
@@ -25,7 +26,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
@@ -40,6 +41,7 @@ import AddBankAccount from './items/AddBankAccount';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import AddVirtualCardPersonalDetails from './items/AddVirtualCardPersonalDetails';
+import ConfirmDigitalWalletAddition from './items/ConfirmDigitalWalletAddition';
 import EnterSignerInfo from './items/EnterSignerInfo';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
@@ -90,11 +92,19 @@ function TimeSensitiveSection() {
         shouldShowActivateCard,
         shouldShowReviewCardFraud,
         shouldShowAddVirtualCardPersonalDetails,
+        shouldShowConfirmDigitalWalletAddition,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,
         virtualCardsNeedingPersonalDetails,
+        cardsPendingDigitalWalletApproval,
     } = useTimeSensitiveCards();
+
+    // Whether a digital wallet addition is still waiting on the cardholder is only knowable by asking the card provider,
+    // so refresh it whenever this section renders rather than on every app open
+    useEffect(() => {
+        getExpensifyCardPendingWalletApproval();
+    }, []);
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
 
     // Selector for filtering admin policies (Release 4)
@@ -176,7 +186,8 @@ function TimeSensitiveSection() {
         hasBrokenPolicyConnections ||
         shouldShowAddShippingAddress ||
         shouldShowActivateCard ||
-        shouldShowAddVirtualCardPersonalDetails;
+        shouldShowAddVirtualCardPersonalDetails ||
+        shouldShowConfirmDigitalWalletAddition;
 
     if (!hasAnyTimeSensitiveContent) {
         return null;
@@ -196,6 +207,7 @@ function TimeSensitiveSection() {
     // 11. Expensify card shipping
     // 12. Expensify card activation
     // 13. Virtual Expensify card needs personal details
+    // 14. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
     // Priority 1: Validate account
@@ -317,6 +329,17 @@ function TimeSensitiveSection() {
             items.push(
                 <AddVirtualCardPersonalDetails
                     key={`virtual-card-details-${card.cardID}`}
+                    card={card}
+                />,
+            );
+        }
+    }
+    // Priority 14: A digital wallet addition the cardholder verified over the phone is waiting on them
+    if (shouldShowConfirmDigitalWalletAddition) {
+        for (const card of cardsPendingDigitalWalletApproval) {
+            items.push(
+                <ConfirmDigitalWalletAddition
+                    key={`confirm-digital-wallet-${card.cardID}`}
                     card={card}
                 />,
             );
