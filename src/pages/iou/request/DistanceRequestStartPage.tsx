@@ -140,8 +140,9 @@ function DistanceRequestStartPage({
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
         >
+            {/* IOURequestStepDistanceOdometer handles keyboard avoidance without resizing the shared tab layout. */}
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={selectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER}
+                shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="DistanceRequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
@@ -164,6 +165,9 @@ function DistanceRequestStartPage({
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                         onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                         lazyLoadEnabled
+                        // The Odometer tab has text inputs, and Android keeps the keyboard up after the focused input
+                        // goes away, so without this the next tab lays out while the keyboard still occupies the screen.
+                        shouldDismissKeyboardBeforeTabSwitch
                     >
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>
                             {() => (
