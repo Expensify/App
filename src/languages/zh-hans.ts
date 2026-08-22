@@ -1656,6 +1656,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 addApproverSubtitle: '向现有工作流程添加额外审批人。',
                 bypassApprovers: '跳过审批人',
                 bypassApproversSubtitle: '将自己设为最终批准人并跳过所有剩余批准人。',
+                reassignApprover: '重新指派审批人',
+                reassignApproverSubtitle: '跳过当前审批人并指派新的审批人。',
+                reassignApproverPageHeader: '选择一位替代审批人，然后按剩余的审批流程进行。',
             },
             addApprover: {
                 subtitle: '在将此报表提交到其余审批流程之前，请选择一位额外的审批人。',
