@@ -5420,6 +5420,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         typeFiltersPopupContainer: {
+            width: CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
             borderRightWidth: 1,
             borderRightColor: theme.border,
             paddingVertical: 8,
