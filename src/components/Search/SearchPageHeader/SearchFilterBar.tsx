@@ -60,6 +60,7 @@ function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
 }
 
 function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+    // getDisplayValue/mapFiltersFormToLabelValueList serializes card arrays with join(', '), so this consumer must retain the matching split(', ').
     const cardValue = useFilterCardValue(Array.isArray(value) ? value : value.split(', '));
     return (
         <DropdownButton
