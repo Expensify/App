@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
@@ -281,6 +281,23 @@ describe('WorkspaceMemberDetailsPage', () => {
             expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
         });
         expect(screen.queryByTestId('WorkspaceMemberDetailsPage')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should render the read-only role of the owner at full opacity and without a caret', async () => {
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const roleItem = await screen.findByTestId('member-role-menu-item');
+
+        // The owner's role stays disabled so the edit flow cannot be opened...
+        expect(roleItem).toBeDisabled();
+
+        // ...but it must not be dimmed or keep the caret, so it matches the other read-only fields.
+        expect(roleItem).not.toHaveStyle({opacity: 0.5});
+        expect(within(roleItem).queryByTestId('ArrowRight Icon')).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

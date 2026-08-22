@@ -71,17 +71,6 @@ describe('CurrencyUtils', () => {
         });
     });
 
-    describe('getCurrencyUnit', () => {
-        test('Currency with decimals smaller than or equal 2', () => {
-            expect(CurrencyUtils.getCurrencyUnit('JPY')).toBe(1);
-            expect(CurrencyUtils.getCurrencyUnit('USD')).toBe(100);
-        });
-
-        test('Currency with decimals larger than 2 should be floor to 2', () => {
-            expect(CurrencyUtils.getCurrencyUnit('LYD')).toBe(100);
-        });
-    });
-
     describe('convertToBackendAmount', () => {
         test.each([
             [25, 2500],

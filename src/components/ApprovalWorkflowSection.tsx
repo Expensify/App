@@ -15,7 +15,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -62,7 +62,7 @@ function ApprovalWorkflowSection({
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const approverTitle = (index: number) => {
@@ -79,7 +79,7 @@ function ApprovalWorkflowSection({
             const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
             return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
         }
-        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
     };
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
@@ -202,13 +202,14 @@ function ApprovalWorkflowSection({
             {!isDisabled && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4, styles.gap2]}>
                     <Button
-                        small
-                        icon={icons.Pencil}
-                        text={translate('workflowsPage.editWorkflowAction')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onPress}
                         accessibilityLabel={translate('workflowsPage.editWorkflowAction')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
-                    />
+                    >
+                        <Button.Icon src={icons.Pencil} />
+                        <Button.Text>{translate('workflowsPage.editWorkflowAction')}</Button.Text>
+                    </Button>
                 </View>
             )}
         </View>

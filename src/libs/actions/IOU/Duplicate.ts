@@ -2,6 +2,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {SelectedReports} from '@components/Search/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import {getPolicyTagsSelector} from '@hooks/useParticipantsPolicyTags';
 
 import * as API from '@libs/API';
 import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/parameters';
@@ -50,6 +51,7 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
@@ -61,10 +63,11 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {buildParticipantsPolicyTags, getAllReports, getAllTransactions} from '.';
+import {getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -306,6 +309,7 @@ function mergeDuplicates({
                 updatedReportPreviewAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: index === actions.length - 1,
                 currentUserAccountID,
+                transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`],
             });
             cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);
             cleanUpTransactionThreadReportsSuccessData.push(...cleanUp.successData);
@@ -439,6 +443,7 @@ function resolveDuplicates({
     transactionThreadReportIDMap,
     allTransactionViolations,
     allReportActionsList,
+    delegateAccountID,
     ...params
 }: MergeDuplicatesParams & {
     taxAmount?: number;
@@ -446,6 +451,7 @@ function resolveDuplicates({
     transactionThreadReportIDMap: Record<string, string | undefined>;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    delegateAccountID: number | undefined;
 }) {
     if (!params.transactionID) {
         return;
@@ -511,7 +517,7 @@ function resolveDuplicates({
             continue;
         }
 
-        const createdReportAction = buildOptimisticHoldReportAction();
+        const createdReportAction = buildOptimisticHoldReportAction(delegateAccountID);
         reportActionIDList.push(createdReportAction.reportActionID);
         resolvedTransactionIDList.push(transactionID);
         optimisticHoldTransactionActions.push({
@@ -670,6 +676,9 @@ function createExpenseByType({
     recentWaypoints,
     isTrackIntentUser,
     formatPhoneNumber,
+    dateFnsLocale,
+    participantsPolicyTags,
+    policyTags,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -684,6 +693,9 @@ function createExpenseByType({
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    dateFnsLocale: DateFnsLocale | undefined;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    policyTags: OnyxTypes.PolicyTagLists;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -721,15 +733,14 @@ function createExpenseByType({
                 personalDetails,
                 recentWaypoints,
                 formatPhoneNumber,
-                // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                participantsPolicyTags: buildParticipantsPolicyTags(participants),
+                participantsPolicyTags,
             };
             return createDistanceRequest(distanceParams);
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
+                dateFnsLocale,
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',
@@ -739,6 +750,7 @@ function createExpenseByType({
                 customUnitPolicyID,
                 isTrackIntentUser,
                 formatPhoneNumber,
+                policyTags,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -750,6 +762,7 @@ function createExpenseByType({
 }
 
 type DuplicateExpenseTransactionParams = {
+    dateFnsLocale: DateFnsLocale | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     optimisticChatReportID: string;
     optimisticIOUReportID: string;
@@ -777,9 +790,13 @@ type DuplicateExpenseTransactionParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function duplicateExpenseTransaction({
+    dateFnsLocale,
     transaction,
     optimisticChatReportID,
     optimisticIOUReportID,
@@ -806,6 +823,10 @@ function duplicateExpenseTransaction({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    getCurrencyDecimals,
+    participantsPolicyTags,
+    conciergeChat,
+    targetPolicyTags,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -850,17 +871,19 @@ function duplicateExpenseTransaction({
             transactionID: '1',
         },
         isSelfTourViewed,
-        // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-        conciergeChat: undefined,
+        conciergeChat,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
         isTrackIntentUser,
         delegateAccountID,
+        formatPhoneNumber,
+        getCurrencyDecimals,
     };
 
-    // If no workspace is provided the expense should be unreported
-    if (!targetPolicy) {
+    // A duplicate mirrors the source, so an unreported source stays unreported even when a workspace is available
+    const isSourceUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    if (!targetPolicy || isSourceUnreported) {
         const trackExpenseParams: CreateTrackExpenseParams = {
             ...params,
             participantParams: {
@@ -891,8 +914,7 @@ function duplicateExpenseTransaction({
             isDraftPolicy: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
-            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-            conciergeChat: undefined,
+            conciergeChat,
             quickAction,
             recentWaypoints,
             betas,
@@ -911,6 +933,7 @@ function duplicateExpenseTransaction({
     };
 
     return createExpenseByType({
+        dateFnsLocale,
         transactionType: getTransactionType(transaction),
         params,
         transaction,
@@ -924,10 +947,13 @@ function duplicateExpenseTransaction({
         recentWaypoints,
         isTrackIntentUser,
         formatPhoneNumber,
+        participantsPolicyTags,
+        policyTags: targetPolicyTags ?? {},
     });
 }
 
 type DuplicateReportParams = {
+    dateFnsLocale: DateFnsLocale | undefined;
     sourceReport: OnyxEntry<OnyxTypes.Report>;
     sourceReportTransactions: OnyxTypes.Transaction[];
     sourceReportName: string;
@@ -952,9 +978,12 @@ type DuplicateReportParams = {
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function duplicateReport({
+    dateFnsLocale,
     sourceReport,
     sourceReportTransactions,
     sourceReportName,
@@ -979,6 +1008,8 @@ function duplicateReport({
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
+    participantsPolicyTags,
+    conciergeChat,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1079,16 +1110,18 @@ function duplicateReport({
                 transactionID: '1',
             },
             isSelfTourViewed,
-            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-            conciergeChat: undefined,
+            conciergeChat,
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
+            getCurrencyDecimals,
         };
 
         const result = createExpenseByType({
+            dateFnsLocale,
             transactionType: getTransactionType(transaction),
             params,
             transaction,
@@ -1102,6 +1135,8 @@ function duplicateReport({
             recentWaypoints,
             isTrackIntentUser,
             formatPhoneNumber,
+            participantsPolicyTags,
+            policyTags: targetPolicyTags ?? {},
         });
 
         if (result?.iouReport) {
@@ -1115,6 +1150,7 @@ function duplicateReport({
 }
 
 type BulkDuplicateExpensesParams = {
+    dateFnsLocale: DateFnsLocale | undefined;
     transactionIDs: string[];
     allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>>;
     sourcePolicyIDMap: Record<string, string | undefined>;
@@ -1137,9 +1173,13 @@ type BulkDuplicateExpensesParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function bulkDuplicateExpenses({
+    dateFnsLocale,
     transactionIDs,
     allTransactions,
     sourcePolicyIDMap,
@@ -1162,6 +1202,9 @@ function bulkDuplicateExpenses({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    getCurrencyDecimals,
+    participantsPolicyTags,
+    conciergeChat,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1200,12 +1243,15 @@ function bulkDuplicateExpenses({
         isSubmitAndClose(targetPolicy) &&
         (allNonReimbursable || targetPolicy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
 
+    // A copy of an unreported expense is tracked, so only an expense that lands on the report can submit it.
+    const lastReportBoundIndex = targetPolicy ? transactionsToDuplicate.findLastIndex((t) => !!t.reportID && t.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) : -1;
+    let lastDuplicateTransactionID: string | undefined;
+
     for (let i = 0; i < transactionsToDuplicate.length; i++) {
         const item = transactionsToDuplicate.at(i);
         if (!item) {
             continue;
         }
-        const isLastExpense = i === transactionsToDuplicate.length - 1;
         const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
@@ -1226,14 +1272,15 @@ function bulkDuplicateExpenses({
             }
         }
 
-        // Defer auto-submit only when this isn't the last expense AND the
+        // Defer auto-submit only when a later expense still lands on the report AND the
         // report wasn't just split AND the policy won't force each expense
         // onto its own report.  Once a split happens every subsequent expense
         // will also split (the policy closes reports immediately), so none of
         // them should defer.
-        const shouldDeferAutoSubmit = !isLastExpense && !reportWasSplit && !policyWillSplitReport;
+        const shouldDeferAutoSubmit = i < lastReportBoundIndex && !reportWasSplit && !policyWillSplitReport;
 
         const result = duplicateExpenseTransaction({
+            dateFnsLocale,
             transaction: item,
             optimisticChatReportID,
             optimisticIOUReportID: currentOptimisticIOUReportID,
@@ -1261,10 +1308,16 @@ function bulkDuplicateExpenses({
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
+            getCurrencyDecimals,
+            participantsPolicyTags,
+            conciergeChat,
         });
 
         if (result?.iouReport) {
             optimisticIOUReport = result.iouReport;
+        }
+        if (result?.transactionID) {
+            lastDuplicateTransactionID = result.transactionID;
         }
 
         if (currentTargetReport && !currentTargetReport.iouReportID) {
@@ -1273,9 +1326,11 @@ function bulkDuplicateExpenses({
     }
 
     playSound(SOUNDS.DONE);
+    signalExpenseAddedGrowl(lastDuplicateTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 }
 
 type BulkDuplicateReportsParams = {
+    dateFnsLocale: DateFnsLocale | undefined;
     selectedReports: SelectedReports[];
     allReports: NonNullable<OnyxCollection<OnyxTypes.Report>>;
     searchData: Record<string, unknown> | undefined;
@@ -1300,9 +1355,11 @@ type BulkDuplicateReportsParams = {
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function bulkDuplicateReports({
+    dateFnsLocale,
     selectedReports: selectedReportsParam,
     allReports,
     searchData,
@@ -1327,6 +1384,7 @@ function bulkDuplicateReports({
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
+    conciergeChat,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1380,7 +1438,11 @@ function bulkDuplicateReports({
         const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
         const targetPolicyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {};
 
+        const participants = getMoneyRequestParticipantsFromReport(parentChatReport, currentUserAccountID);
+        const participantsPolicyTags = getPolicyTagsSelector(participants)(allPolicyTags);
+
         duplicateReport({
+            dateFnsLocale,
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
             sourceReportName: report.reportName ?? '',
@@ -1405,6 +1467,8 @@ function bulkDuplicateReports({
             delegateAccountID,
             formatPhoneNumber,
             getCurrencyDecimals,
+            participantsPolicyTags,
+            conciergeChat,
         });
     }
 

@@ -5,10 +5,12 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import SEARCH_ROUTER_OPTIONS_CONFIG from '@components/Search/SearchRouter/searchRouterOptionsConfig';
 import Text from '@components/Text';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {setHasRadio} from '@libs/NetworkState';
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -18,9 +20,10 @@ import Navigation from '@navigation/Navigation';
 
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
 import type ReactNative from 'react-native';
@@ -28,6 +31,7 @@ import type ReactNative from 'react-native';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -168,7 +172,10 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
+const CURRENT_USER_ACCOUNT_ID = 1;
 const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+    dateFnsLocale: undefined,
     conciergeReportID: undefined,
     isSearching: true,
 });
@@ -221,6 +228,7 @@ describe('SearchAutocompleteList', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT],
         });
+        initOnyxDerivedValues();
     });
 
     beforeEach(() => {
@@ -252,6 +260,14 @@ describe('SearchAutocompleteList', () => {
         render(<SearchRouterWrapper isSearchRouterDisplayed={isSearchRouterDisplayed} />);
 
         expect(mockUseNavigationSuggestions).toHaveBeenCalledWith(expect.any(String), shouldWatchForApprovals);
+    });
+
+    it('asks for the option list with the config shared with the SearchRouter warm-up', () => {
+        render(<SearchRouterWrapper />);
+
+        // createFilteredOptionList keys its cache on these values, so the empty-query list this screen asks for
+        // has to be the one SearchRouterOptionsWarmer built, or the warm build is never reused.
+        expect(mockUseFilteredOptions).toHaveBeenCalledWith(expect.objectContaining({...SEARCH_ROUTER_OPTIONS_CONFIG, isSearching: false}));
     });
 
     it('should display and select navigation suggestion rows', async () => {
@@ -375,6 +391,181 @@ describe('SearchAutocompleteList', () => {
         // Then the contextual report (not part of recent reports) is built through createOptionFromReport
         expect(createOptionFromReportSpy).toHaveBeenCalled();
         expect(createOptionFromReportSpy.mock.calls.at(0)?.at(0)?.conciergeReportID).toBe('concierge-router-1');
+    });
+
+    it('should display the localized category update message for a thread on a category update action', async () => {
+        // Given an #admins room with a report action that made attendees required on a category
+        const policyID = '400';
+        const adminsReportID = '401';
+        const threadReportID = '402';
+        const rawServerMessage = 'updated the category "Advertising" by changing the Attendees from Not Required to Required';
+
+        const parentReportAction: ReportAction = {
+            reportActionID: '4001',
+            actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+            created: '2026-01-01 00:00:00.000',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: rawServerMessage, text: rawServerMessage}],
+            originalMessage: {
+                categoryName: 'Advertising',
+                updatedField: 'areAttendeesRequired',
+                oldValue: '',
+                newValue: true,
+            },
+        };
+
+        const adminsReport = {
+            ...createRandomReport(Number(adminsReportID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+        };
+
+        // And a chat thread opened on that action. The thread needs a last message so it is not treated as an
+        // empty chat thread, which the option list hides.
+        const threadReport = {
+            ...createRandomReport(Number(threadReportID), undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+            parentReportID: adminsReportID,
+            parentReportActionID: parentReportAction.reportActionID,
+            participants: {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            lastMessageText: 'Thanks for the update',
+        };
+
+        // The derived report attributes translate the name, so the locale has to be loaded before they compute
+        await IntlStore.load(CONST.LOCALES.EN);
+        await waitForBatchedUpdates();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsReportID}`, {
+            [parentReportAction.reportActionID]: parentReportAction,
+        });
+        await Onyx.multiSet({
+            [ONYXKEYS.BETAS]: mockedBetas,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`, adminsReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@test.com'});
+        await flushAllUpdates();
+
+        // The row label is the derived report name, so the options have to be built from the derived attributes
+        const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+        expect(reportAttributes?.reports?.[threadReportID]?.reportName).toBeTruthy();
+        mockUseFilteredOptions.mockReturnValue({
+            options: createFilteredOptionList(
+                mockedPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]: threadReport},
+                reportAttributes?.reports,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                },
+            ),
+            isLoading: false,
+            loadMore: jest.fn(),
+            hasMore: false,
+            isLoadingMore: false,
+        });
+
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        // Then the search result shows the same copy as the system message in the chat, not the raw server text
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('workspaceActions.updateAreAttendeesRequired', 'Advertising', true))).toBeTruthy();
+        });
+        expect(screen.queryByText(rawServerMessage)).toBeNull();
+    });
+
+    it('should display the localized category update message as the subtitle of a thread it was posted in', async () => {
+        // Given a workspace change log thread whose newest message made attendees required on a category
+        const policyID = '500';
+        const adminsReportID = '501';
+        const threadReportID = '502';
+        const rawServerMessage = 'updated the category "Advertising" by changing the Attendees from Not Required to Required';
+
+        const upgradeAction: ReportAction = {
+            reportActionID: '5001',
+            actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
+            created: '2026-01-01 00:00:00.000',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'upgraded this workspace', text: 'upgraded this workspace'}],
+            originalMessage: {},
+        };
+
+        const categoryAction: ReportAction = {
+            reportActionID: '5002',
+            actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+            created: '2026-01-02 00:00:00.000',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: rawServerMessage, text: rawServerMessage}],
+            originalMessage: {
+                categoryName: 'Advertising',
+                updatedField: 'areAttendeesRequired',
+                oldValue: '',
+                newValue: true,
+            },
+        };
+
+        const adminsReport = {
+            ...createRandomReport(Number(adminsReportID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+        };
+
+        const threadReport = {
+            ...createRandomReport(Number(threadReportID), undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+            parentReportID: adminsReportID,
+            parentReportActionID: upgradeAction.reportActionID,
+            participants: {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            lastMessageText: rawServerMessage,
+        };
+
+        await IntlStore.load(CONST.LOCALES.EN);
+        await waitForBatchedUpdates();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsReportID}`, {[upgradeAction.reportActionID]: upgradeAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {[categoryAction.reportActionID]: categoryAction});
+        await Onyx.multiSet({
+            [ONYXKEYS.BETAS]: mockedBetas,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`, adminsReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@test.com'});
+        await flushAllUpdates();
+
+        const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+        expect(reportAttributes?.reports?.[threadReportID]?.reportName).toBeTruthy();
+        mockUseFilteredOptions.mockReturnValue({
+            options: createFilteredOptionList(
+                mockedPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]: threadReport},
+                reportAttributes?.reports,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                },
+            ),
+            isLoading: false,
+            loadMore: jest.fn(),
+            hasMore: false,
+            isLoadingMore: false,
+        });
+
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        // Then the subtitle shows the same copy as the system message in the chat, not the raw server text
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('workspaceActions.updateAreAttendeesRequired', 'Advertising', true))).toBeTruthy();
+        });
+        expect(screen.queryByText(rawServerMessage)).toBeNull();
     });
 
     describe('two-section chat switcher', () => {
