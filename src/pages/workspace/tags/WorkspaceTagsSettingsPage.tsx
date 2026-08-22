@@ -59,7 +59,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     );
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path);
-    const shouldBlockEmptySettings = isRulesRevampEnabled && isMultiLevelTags && !isLoading;
+    const shouldBlockEmptySettings = isRulesRevampEnabled && isMultiLevelTags && !isLoading && !policyData.policy?.glCodes;
 
     const getTagsSettings = (policy: OnyxEntry<Policy>) => {
         const updateShowTagGLCodes = (value: boolean) => {
