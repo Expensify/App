@@ -12836,11 +12836,24 @@ describe('getLastSearchQuery', () => {
     const submitQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`;
     const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`;
 
-    const searchFilters = {
+    const searchFilters: OnyxTypes.SearchFilters = {
         [submitKey]: {query: submitQuery, timestamp: '2026-08-21 00:00:00.000'},
         [savedSearchKey]: {query: savedSearchQuery, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} exported:false`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} feed:Expensify`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} reimbursable:true`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} reimbursable:false`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} posted:2026-08`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:from`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:category`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:merchant`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:month`, timestamp: '2026-08-21 00:00:00.000'},
+        // Legacy string format, kept for the assertions below.
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`,
-    } as OnyxTypes.SearchFilters;
+        [CONST.SEARCH.SEARCH_KEYS.PAY]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Uber`,
+    };
 
     it('returns the query of the filter stored for the search key', () => {
         expect(SearchUIUtils.getLastSearchQuery(searchFilters, submitKey)).toBe(submitQuery);
@@ -12849,10 +12862,10 @@ describe('getLastSearchQuery', () => {
 
     it('returns undefined for a filter stored in the legacy string format', () => {
         expect(SearchUIUtils.getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.APPROVE)).toBeUndefined();
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.PAY)).toBeUndefined();
     });
 
     it('returns undefined when the search key has no filter', () => {
-        expect(SearchUIUtils.getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.PAY)).toBeUndefined();
         expect(SearchUIUtils.getLastSearchQuery(searchFilters, SearchUIUtils.savedSearchIDToSearchKey('200'))).toBeUndefined();
     });
 
