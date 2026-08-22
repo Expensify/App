@@ -5,7 +5,7 @@ import {
     handleReplaceFullscreenUnderRHP,
 } from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import type {RemoveFullscreenUnderRHPActionType, ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
-import type {NavigationPartialRoute, NavigationStateRoute} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, NavigationStateRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -152,16 +152,14 @@ function makeExistingReportsState(reportRoutes: TestRoute[], reportIndex: number
     return makeStackState([...rootRoutesBeforeTab, tabNavRoute, makeRHPRoute()]);
 }
 
-function getReportsRoutes(result: StackNavigationState<ParamListBase> | null) {
+function getReportsSplitState(result: StackNavigationState<ParamListBase> | null) {
     const tabRoute = result?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
     const reportsSplitRoute = tabRoute?.state?.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-    return reportsSplitRoute?.state?.routes;
+    return reportsSplitRoute?.state;
 }
 
-function getReportsIndex(result: StackNavigationState<ParamListBase> | null) {
-    const tabRoute = result?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    const reportsSplitRoute = tabRoute?.state?.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-    return reportsSplitRoute?.state?.index;
+function getReportIDs(result: StackNavigationState<ParamListBase> | null) {
+    return getReportsSplitState(result)?.routes.map((route) => (route.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | undefined)?.reportID);
 }
 
 function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> | null) {
@@ -194,10 +192,11 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
             stackRouter,
         );
 
-        const routes = getReportsRoutes(result);
+        const reportsState = getReportsSplitState(result);
+        const routes = reportsState?.routes;
         expect(routes?.map((route) => route.name)).toEqual([SCREENS.INBOX, SCREENS.REPORT, SCREENS.REPORT]);
-        expect(routes?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual([undefined, 'A', 'B']);
-        expect(getReportsIndex(result)).toBe(2);
+        expect(getReportIDs(result)).toEqual([undefined, 'A', 'B']);
+        expect(reportsState?.index).toBe(2);
         expect(routes?.at(0)?.key).toBe('inbox-key');
         expect(routes?.at(1)?.key).toBeUndefined();
     });
@@ -213,17 +212,18 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         const originalState = makeExistingReportsState([makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 0, true, [earlierTabRoute]);
         const result = handleReplaceFullscreenUnderRHP(originalState, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
 
-        const routes = getReportsRoutes(result);
+        const reportsState = getReportsSplitState(result);
+        const routes = reportsState?.routes;
         expect(result?.routes.filter((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)).toHaveLength(2);
         expect(result?.routes.at(0)).toEqual(earlierTabRoute);
-        expect(routes?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual(['A', 'B']);
-        expect(getReportsIndex(result)).toBe(1);
+        expect(getReportIDs(result)).toEqual(['A', 'B']);
+        expect(reportsState?.index).toBe(1);
         expect(routes?.at(0)?.key).toBeUndefined();
 
         const restoredState = handleRemoveFullscreenUnderRHP(result as StackNavigationState<ParamListBase>, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
         expect(restoredState?.routes.at(0)).toEqual(earlierTabRoute);
-        expect(getReportsRoutes(restoredState)?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual(['A']);
-        expect(getReportsRoutes(restoredState)?.at(0)?.key).toBe('report-a-key');
+        expect(getReportIDs(restoredState)).toEqual(['A']);
+        expect(getReportsSplitState(restoredState)?.routes.at(0)?.key).toBe('report-a-key');
     });
 
     it('drops forward history above the focused report', () => {
@@ -242,7 +242,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
             stackRouter,
         );
 
-        expect(getReportsRoutes(result)?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual([undefined, 'A', 'C']);
+        expect(getReportIDs(result)).toEqual([undefined, 'A', 'C']);
     });
 
     it('preserves history when skip-confirmation pre-inserts the already focused report without duplicating it', () => {
@@ -261,9 +261,9 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
             stackRouter,
         );
 
-        const routes = getReportsRoutes(result);
-        expect(routes?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual([undefined, 'A', 'B']);
-        expect(routes?.filter((route) => (route.params as {reportID?: string} | undefined)?.reportID === 'B')).toHaveLength(1);
+        const reportIDs = getReportIDs(result);
+        expect(reportIDs).toEqual([undefined, 'A', 'B']);
+        expect(reportIDs?.filter((reportID) => reportID === 'B')).toHaveLength(1);
     });
 
     it('does not preserve the Reports stack when another tab is focused', () => {
@@ -275,7 +275,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
             stackRouter,
         );
 
-        expect(getReportsRoutes(result)?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual([undefined, 'B']);
+        expect(getReportIDs(result)).toEqual([undefined, 'B']);
     });
 
     it('keeps web behavior unchanged', () => {
@@ -288,7 +288,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
             stackRouter,
         );
 
-        expect(getReportsRoutes(result)?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual([undefined, 'B']);
+        expect(getReportIDs(result)).toEqual([undefined, 'B']);
     });
 
     it('restores the untouched original Reports stack when the user cancels', () => {
@@ -299,8 +299,8 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         );
         const preInsertedState = handleReplaceFullscreenUnderRHP(originalState, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
         const restoredState = handleRemoveFullscreenUnderRHP(preInsertedState as StackNavigationState<ParamListBase>, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
-        const routes = getReportsRoutes(restoredState);
-        expect(routes?.map((route) => (route.params as {reportID?: string} | undefined)?.reportID)).toEqual([undefined, 'A']);
+        const routes = getReportsSplitState(restoredState)?.routes;
+        expect(getReportIDs(restoredState)).toEqual([undefined, 'A']);
         expect(routes?.at(0)?.key).toBe('inbox-key');
         expect(routes?.at(1)?.key).toBe('report-a-key');
     });
