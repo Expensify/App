@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -36,6 +37,7 @@ function DynamicNewTaskDescriptionPage() {
     const {translate} = useLocalize();
     const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const accountIDToName = useAccountIDToNameMap();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path);
 
     const goBack = () => Navigation.goBack(backPath);
@@ -81,7 +83,7 @@ function DynamicNewTaskDescriptionPage() {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''))}
+                            defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName})}
                             inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
