@@ -388,15 +388,17 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
-        // `splitReportID` is deliberately not named `reportID` so it cannot inherit the base path's report:
+        // `splitReportID` is deliberately not named `reportID` so it cannot inherit the base path's report.
+        // `originalTransactionID` is deliberately not named `transactionID` so it cannot collide with the
+        // `transactionID` query param used by the expense step screens nested under this dynamic route.
         getRoute: (splitReportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string) => {
             if (!splitReportID || !originalTransactionID) {
                 Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE route`);
             }
 
-            return getUrlWithParams('split-expense-overview', {splitReportID, transactionID: originalTransactionID, splitExpenseTransactionID});
+            return getUrlWithParams('split-expense-overview', {splitReportID, originalTransactionID, splitExpenseTransactionID});
         },
-        queryParams: ['splitReportID', 'transactionID', 'splitExpenseTransactionID'],
+        queryParams: ['splitReportID', 'originalTransactionID', 'splitExpenseTransactionID'],
     },
     MONEY_REQUEST_SPLIT_EXPENSE_SEARCH: {
         path: 'split-expense-overview-search',
@@ -412,12 +414,12 @@ const DYNAMIC_ROUTES = {
                 Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE_SEARCH route`);
             }
 
-            return getUrlWithParams('split-expense-overview-search', {splitReportID, transactionID: originalTransactionID, splitExpenseTransactionID});
+            return getUrlWithParams('split-expense-overview-search', {splitReportID, originalTransactionID, splitExpenseTransactionID});
         },
-        queryParams: ['splitReportID', 'transactionID', 'splitExpenseTransactionID'],
+        queryParams: ['splitReportID', 'originalTransactionID', 'splitExpenseTransactionID'],
     },
     MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE: {
-        // No query params of its own: `splitReportID`/`transactionID` are inherited from the overview screen underneath.
+        // No query params of its own: `splitReportID`/`originalTransactionID` are inherited from the overview screen underneath.
         path: 'split-expense-create-date-range',
         entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
     },

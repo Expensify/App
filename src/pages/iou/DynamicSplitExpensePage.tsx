@@ -96,7 +96,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
-    const {splitReportID: reportID, transactionID, splitExpenseTransactionID} = route.params;
+    const {splitReportID: reportID, originalTransactionID: transactionID, splitExpenseTransactionID} = route.params;
 
     // The search variant is a separate dynamic route, so the suffix to strip depends on which screen is rendered.
     const dynamicRouteSuffix =

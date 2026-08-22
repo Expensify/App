@@ -2289,17 +2289,18 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE]: {
         /** Deliberately not named `reportID` so it cannot inherit the base path's report. */
         splitReportID: string;
-        transactionID: string;
+        /** Deliberately not named `transactionID` so it cannot collide with the `transactionID` query param used by the expense step screens nested under this dynamic route. */
+        originalTransactionID: string;
         splitExpenseTransactionID?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH]: {
         splitReportID: string;
-        transactionID: string;
+        originalTransactionID: string;
         splitExpenseTransactionID?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
         splitReportID: string;
-        transactionID: string;
+        originalTransactionID: string;
     };
     [SCREENS.MONEY_REQUEST.REJECT]: {
         /** ID of the transaction the page was opened for */
@@ -2744,7 +2745,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.AVATAR_CROP]: NavigatorScreenParams<AvatarCropNavigatorParamList>;
     [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT]: {
         reportID: string;
-        transactionID: string;
+        /** Inherited from the base path's `originalTransactionID` query param (see DYNAMIC_SPLIT_EXPENSE). */
+        originalTransactionID: string;
         splitExpenseTransactionID?: string;
     };
     [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
