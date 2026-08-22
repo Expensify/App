@@ -3,6 +3,7 @@ import {
     getBankAccountState,
     getCompletedStepsForBankAccount,
     getDefaultCompanyWebsite,
+    getDisabledInternationalBankAccountFields,
     getLastFourDigits,
     getRequiredKYBDocuments,
     hasBankAccountAllowDebit,
@@ -13,6 +14,7 @@ import {
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
     PERSONAL_INFO_STEP,
+    shouldShowInternationalDetailOnConfirmation,
 } from '@libs/BankAccountUtils';
 import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
 
@@ -751,6 +753,47 @@ describe('BankAccountUtils', () => {
                 INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION,
                 INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION,
             ]);
+        });
+    });
+
+    describe('getDisabledInternationalBankAccountFields', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('disables IBAN when the account number is already a valid IBAN', () => {
+            expect(getDisabledInternationalBankAccountFields(iban, undefined).isIBANDisabled).toBe(true);
+        });
+
+        it('does not disable IBAN when the account number is not an IBAN', () => {
+            expect(getDisabledInternationalBankAccountFields('123456789', undefined).isIBANDisabled).toBe(false);
+        });
+
+        it('disables SWIFT/BIC when swiftBicCode is already a valid SWIFT/BIC', () => {
+            expect(getDisabledInternationalBankAccountFields(undefined, swiftBicCode).isSwiftCodeDisabled).toBe(true);
+        });
+
+        it('does not disable SWIFT/BIC when swiftBicCode is empty', () => {
+            expect(getDisabledInternationalBankAccountFields(iban, undefined).isSwiftCodeDisabled).toBe(false);
+        });
+    });
+
+    describe('shouldShowInternationalDetailOnConfirmation', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('hides empty values', () => {
+            expect(shouldShowInternationalDetailOnConfirmation('', iban)).toBe(false);
+            expect(shouldShowInternationalDetailOnConfirmation(undefined, iban)).toBe(false);
+        });
+
+        it('hides IBAN when it matches accountNumber and SWIFT when it matches swiftBicCode', () => {
+            expect(shouldShowInternationalDetailOnConfirmation(iban, iban)).toBe(false);
+            expect(shouldShowInternationalDetailOnConfirmation(swiftBicCode, swiftBicCode)).toBe(false);
+        });
+
+        it('shows a value entered on the international details step even if another field has the same string', () => {
+            expect(shouldShowInternationalDetailOnConfirmation(iban, '123456789')).toBe(true);
+            expect(shouldShowInternationalDetailOnConfirmation(swiftBicCode, iban)).toBe(true);
         });
     });
 });

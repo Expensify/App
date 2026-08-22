@@ -4,9 +4,11 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollectInternationalDepositDetails';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
+import {hasValidInternationalBankAccountDetails} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
@@ -29,6 +31,7 @@ import React, {useContext, useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
+import InternationalBankAccountDetails from './substeps/InternationalBankAccountDetailsStep';
 import LegalName from './substeps/LegalNameStep';
 import ManualBankAccountDetails from './substeps/ManualBankAccountDetailsStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
@@ -38,7 +41,10 @@ import getSkippedStepsPersonalInfo from './utils/getSkippedStepsPersonalInfo';
 
 const SUB_PAGE_NAMES = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES;
 
+// The international bank account details page sits right after the bank account details page, so the info pages that
+// follow it start at index 2 (see getSkippedStepsPersonalInfo).
 const infoPages = [
+    {pageName: SUB_PAGE_NAMES.INTERNATIONAL_BANK_ACCOUNT_DETAILS, component: InternationalBankAccountDetails},
     {pageName: SUB_PAGE_NAMES.LEGAL_NAME, component: LegalName},
     {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
     {pageName: SUB_PAGE_NAMES.PHONE_NUMBER, component: PhoneNumber},
@@ -66,6 +72,7 @@ function AddPersonalBankAccountPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(CONST.COUNTRY.US);
     const kycWallRef = useContext(KYCWallContext);
 
     const shouldShowSuccess = fullPersonalBankAccount?.shouldShowSuccess ?? false;
@@ -141,8 +148,14 @@ function AddPersonalBankAccountPage() {
         addPersonalBankAccount(accountData, personalPolicyID);
     };
 
+    // Skip the international bank account details page when no collecting policy needs international details for a US
+    // bank account, or when this page already collected a valid IBAN and SWIFT/BIC code. Unlike the international flow,
+    // a US account number is never an IBAN, so this page is the only source of those values here.
+    const shouldSkipInternationalBankAccountDetails =
+        !shouldCollectInternationalDepositDetails || hasValidInternationalBankAccountDetails(personalBankAccount?.iban, personalBankAccount?.swiftCode);
+
     const pages = isManual ? pagesWithManualSetup : pagesWithPlaid;
-    const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails)
+    const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails, shouldSkipInternationalBankAccountDetails)
         .map((index) => pages.at(index)?.pageName)
         .filter((pageName): pageName is NonNullable<typeof pageName> => !!pageName);
 

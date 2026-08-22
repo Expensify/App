@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {shouldShowInternationalDetailOnConfirmation} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
@@ -121,6 +122,30 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
+            },
+        });
+    }
+
+    if (shouldShowInternationalDetailOnConfirmation(formValues.iban, formValues.accountNumber)) {
+        summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS}-iban`,
+            description: translate('bankAccount.iban'),
+            title: formValues.iban,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(STEP_INDEXES.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
+            },
+        });
+    }
+
+    if (shouldShowInternationalDetailOnConfirmation(formValues.swiftCode, formValues.swiftBicCode)) {
+        summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS}-swiftCode`,
+            description: translate('bankAccount.swiftBicCode'),
+            title: formValues.swiftCode,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(STEP_INDEXES.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
             },
         });
     }

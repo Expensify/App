@@ -22,6 +22,8 @@ const INPUT_IDS = {
         COUNTRY: 'country',
         ZIP_CODE: 'addressZipCode',
         PHONE_NUMBER: 'phoneNumber',
+        IBAN: 'iban',
+        SWIFT_CODE: 'swiftCode',
     },
 } as const;
 
@@ -42,6 +44,8 @@ type BankAccountStepProps = {
     [INPUT_IDS.BANK_INFO_STEP.ZIP_CODE]: string;
     [INPUT_IDS.BANK_INFO_STEP.COUNTRY]: string;
     [INPUT_IDS.BANK_INFO_STEP.PHONE_NUMBER]: string;
+    [INPUT_IDS.BANK_INFO_STEP.IBAN]: string;
+    [INPUT_IDS.BANK_INFO_STEP.SWIFT_CODE]: string;
 };
 
 type PlaidAccountProps = {
