@@ -880,6 +880,12 @@ describe('OptionsListUtils', () => {
 
         // createFilteredOptionList caches results at module level; clear it so tests stay order-independent.
         clearFilteredOptionListCache();
+
+        // Onyx.clear() models sign-out and empties PERSONAL_DETAILS_LIST. Report-holder option text
+        // resolves via ReportUtils.allPersonalDetails (the live connect), so restore the list the
+        // same way a signed-in session would after login.
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await waitForBatchedUpdates();
     });
 
     describe('getSearchOptions()', () => {
