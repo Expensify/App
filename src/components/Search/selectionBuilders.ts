@@ -36,9 +36,6 @@ type MapTransactionItemToSelectedEntryParams = {
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
 
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
     /** Keep the amount signed instead of taking its absolute value */
     allowNegativeAmount: boolean;
 
@@ -60,7 +57,6 @@ function mapTransactionItemToSelectedEntry({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
-    isProduction,
     allowNegativeAmount,
     parentReport,
 }: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
@@ -79,7 +75,7 @@ function mapTransactionItemToSelectedEntry({
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport, isProduction),
+            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest({
                 reportAction: item.reportAction,
@@ -184,9 +180,6 @@ type PrepareTransactionsListParams = {
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
 
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
     /** The row's parent report, used for split eligibility */
     parentReport: OnyxEntry<Report> | undefined;
 };
@@ -205,7 +198,6 @@ function prepareTransactionsList({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
-    isProduction,
     parentReport,
 }: PrepareTransactionsListParams) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
@@ -223,7 +215,6 @@ function prepareTransactionsList({
         reportNameValuePairs,
         outstandingReportsByPolicyID,
         selfDMReport,
-        isProduction,
         allowNegativeAmount: false,
         parentReport,
     });

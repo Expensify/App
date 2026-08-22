@@ -6,7 +6,6 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -324,8 +323,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         setRejectModalAction(null);
     };
 
-    const {isProduction} = useEnvironment();
-
     // Secondary actions
     const secondaryActions = (() => {
         if (!transaction || !parentReportAction || !parentReport) {
@@ -344,7 +341,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             reportNameValuePairs,
             isChatReportArchived: isChatIOUReportArchived,
             grandParentReport,
-            isProduction,
             hasWorkspaceToSubmitTo,
         });
     })();
@@ -408,17 +404,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(
-                    transaction,
-                    report,
-                    splitEffectivePolicy,
-                    selfDMReportID,
-                    restrictedActionPolicyID,
-                    personalPolicy?.outputCurrency,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
-                    {isProduction},
-                );
+                initSplitExpense(transaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, getCurrencyDecimals, getCurrencySymbol);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
