@@ -29,6 +29,7 @@ type EditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, ty
 function EditNamePage({route}: EditNamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     // Resolve the optimistic accountID to the real one so opening this page mid-CreateAgent (or after a reload) doesn't 404.
     const [accountID] = useResolvedAgentAccountID(route.params.accountID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});

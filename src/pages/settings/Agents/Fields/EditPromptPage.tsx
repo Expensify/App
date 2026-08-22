@@ -33,6 +33,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const shouldUseScrollableLayout = useIsInLandscapeMode();
+
     // Resolve the optimistic accountID to the real one so opening this page mid-CreateAgent (or after a reload) doesn't 404.
     const [accountID] = useResolvedAgentAccountID(route.params.accountID);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);

@@ -65,6 +65,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
+
     // Read here (rather than inside createAgent()) so the write action stays a pure function of its params.
     const [optimisticAgentAccountIDMappingCreatedAt] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
     const hasSubmittedRef = useRef(false);

@@ -154,6 +154,7 @@ function createAgent(
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
             value: {isOptimisticReport: false},
         },
+
         // Stamped here, not where the mapping itself arrives, since that onyxData is backend-owned.
         {
             onyxMethod: Onyx.METHOD.MERGE,

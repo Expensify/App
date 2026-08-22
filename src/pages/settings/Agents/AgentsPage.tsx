@@ -65,6 +65,7 @@ function AgentsPage() {
 
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
     // Read here (rather than inside openAgentsPage()) so the action stays a pure function of its params.
     const [optimisticAgentAccountIDMappingCreatedAt] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
     const personalDetailsList = usePersonalDetails();
@@ -75,6 +76,7 @@ function AgentsPage() {
             return;
         }
         openAgentsPage(optimisticAgentAccountIDMappingCreatedAt);
+
         // Only re-fire OPEN_AGENTS_PAGE when isCustomAgentEnabled changes, not on every mapping update
         // (which happens after each agent creation) — the mapping is read fresh whenever this does run.
         // eslint-disable-next-line react-hooks/exhaustive-deps
