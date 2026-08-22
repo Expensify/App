@@ -690,6 +690,9 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
  * @param usersReactions - all the users reactions
  */
 function hasAccountIDEmojiReacted(accountID: number, usersReactions: UsersReactions, skinTone?: number) {
+    if (!usersReactions) {
+        return false;
+    }
     if (skinTone === undefined) {
         return !!usersReactions[accountID];
     }
