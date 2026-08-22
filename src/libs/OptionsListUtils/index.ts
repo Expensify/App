@@ -1160,17 +1160,16 @@ type CreateOptionParams = {
 /** Shared by createOption and shells so filtering uses the final display text. */
 type GetPersonalDetailOptionTextProps = {
     accountID: number | undefined;
-    hasReport: boolean;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     login: string | undefined;
     translate: LocalizedTranslate;
 };
 
-function getPersonalDetailOptionText({accountID, hasReport, personalDetails, login, translate}: GetPersonalDetailOptionTextProps): string {
+function getPersonalDetailOptionText({accountID, personalDetails, login, translate}: GetPersonalDetailOptionTextProps): string {
     return (
         getDisplayNameForParticipant({
             accountID,
-            personalDetailsData: hasReport ? undefined : (personalDetails ?? undefined),
+            personalDetailsData: personalDetails ?? undefined,
             formatPhoneNumber: formatPhoneNumberPhoneUtils,
             translate,
         }) || formatPhoneNumberPhoneUtils(login ?? '')
@@ -1319,10 +1318,10 @@ function createOption({
                 : '');
 
         reportName = showPersonalDetails
-            ? getPersonalDetailOptionText({accountID: accountIDs.at(0), hasReport: true, personalDetails, login: personalDetail?.login, translate: translateFn})
+            ? getPersonalDetailOptionText({accountID: accountIDs.at(0), personalDetails, login: personalDetail?.login, translate: translateFn})
             : computedReportName;
     } else {
-        reportName = getPersonalDetailOptionText({accountID: accountIDs.at(0), hasReport: false, personalDetails, login: personalDetail?.login, translate: translateFn});
+        reportName = getPersonalDetailOptionText({accountID: accountIDs.at(0), personalDetails, login: personalDetail?.login, translate: translateFn});
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumberPhoneUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -1819,7 +1818,7 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
         // Match createOption's personal-details lookup.
         const detail = getPersonalDetailForAccountID(accountID, personalDetails);
         // Keep shell text identical to the hydrated option.
-        const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate});
+        const text = getPersonalDetailOptionText({accountID, personalDetails, login: detail?.login, translate});
 
         // Do not capture the shell: getValidOptions mutates its transient marks.
         let built: HydratedPersonalDetailOption | undefined;
