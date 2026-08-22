@@ -5,7 +5,7 @@ import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavig
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {NavigationPartialRoute} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -221,10 +221,10 @@ function areSameReportRoutes(firstRoute: NavigationPartialRoute | undefined, sec
         return false;
     }
 
-    const firstReportID = (firstRoute.params as {reportID?: unknown} | undefined)?.reportID;
-    const secondReportID = (secondRoute.params as {reportID?: unknown} | undefined)?.reportID;
+    const firstReportID = (firstRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | undefined)?.reportID;
+    const secondReportID = (secondRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | undefined)?.reportID;
 
-    return firstReportID !== undefined && firstReportID === secondReportID;
+    return typeof firstReportID === 'string' && firstReportID === secondReportID;
 }
 
 function getTargetTabRoute(
