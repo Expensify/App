@@ -17,7 +17,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import CONST from '@src/CONST';
 import type {IntuitEnterpriseSuiteEntity} from '@src/types/onyx/Policy';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import IntuitEnterpriseSuiteOAuthFlow from './IntuitEnterpriseSuiteOAuthFlow';
@@ -31,7 +31,7 @@ function IntuitEnterpriseSuiteEntitySelector({policy}: WithPolicyConnectionsProp
     const [oauthAttempt, setOAuthAttempt] = useState(0);
     const [reconnectEntity, setReconnectEntity] = useState<IntuitEnterpriseSuiteEntity | null>(null);
 
-    const entities = useMemo(() => Object.values(config?.entities ?? {}), [config?.entities]);
+    const entities = Object.values(config?.entities ?? {});
 
     const currentEntity = entities.find((entity) => entity.realmId === config?.realmId);
     const data: SelectorType<IntuitEnterpriseSuiteEntity>[] = entities.map((entity) => ({
