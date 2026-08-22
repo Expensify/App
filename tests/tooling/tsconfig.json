@@ -13,5 +13,5 @@
         "noEmit": true
     },
     "include": [],
-    "files": ["CIGitLogic.test.ts"]
+    "files": ["CIGitLogic.test.ts", "lintSeatbelt.test.ts", "lintPipeline.test.ts"]
 }

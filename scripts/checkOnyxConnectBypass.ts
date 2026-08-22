@@ -1,54 +1,24 @@
 #!/usr/bin/env bun
 
-import type {Rule} from 'eslint';
-
+import {file} from 'bun';
 /**
  * Fails the lint run when a new inline `eslint-disable` bypasses the Onyx.connect() ban.
  *
  * The ban (`rulesdir/no-onyx-connect`, shipped by eslint-config-expensify) is a normal lint rule,
- * so an inline disable can silence it. The ESLint CLI neither surfaces nor fails on such suppressed
- * violations, so this runner re-elevates them: it lints with only the ban enabled, reads the
- * suppressed violations off the results, and exits non-zero on any that are not grandfathered.
- * Because it works from ESLint's suppressed-message data, no disable directive can reach it.
+ * so an inline disable can silence it. The runner re-elevates those disables by scanning source
+ * for directives that name the ban — no disable comment can reach this check.
  *
  * A real bypass requires a file to contain both an `Onyx.connect` reference and an `eslint-disable`
- * directive, so we first narrow the targets to files matching both (via git grep) and only run
- * ESLint on those — keeping the check fast even on a whole-repo lint. The `Onyx.connect` match
- * deliberately omits the `(` so it stays a superset of the AST rule (e.g. whitespace or a comment
- * before the paren); extra matches like `Onyx.connectWithoutView` are harmless, as the rule ignores them.
+ * directive, so we first narrow the targets to files matching both (via git grep). The `Onyx.connect`
+ * match deliberately omits the `(` so it stays a superset of the AST rule; extra matches like
+ * `Onyx.connectWithoutView` are harmless, as we only fail on disable directives that name the ban.
  */
-import tsParser from '@typescript-eslint/parser';
-import {ESLint} from 'eslint';
 import {execFileSync} from 'node:child_process';
-import {createRequire} from 'node:module';
 import path from 'node:path';
 
-import {BANNED_RULE_ID, collectSuppressedBans, findNewBypasses} from './onyxConnectBypass';
+import {collectDisableDirectivesFromSource, findNewBypasses} from './onyxConnectBypass';
 
-const projectRoot = path.resolve(__dirname, '..');
-
-/** The ban's rule name as registered under the `rulesdir` plugin (i.e. `BANNED_RULE_ID` without the prefix). */
-const RULE_NAME = 'no-onyx-connect';
-
-function isRuleModule(value: unknown): value is Rule.RuleModule {
-    return typeof value === 'object' && value !== null && 'create' in value && typeof value.create === 'function';
-}
-
-/** Dynamically import the shipped `no-onyx-connect` rule, which is ESM with relative imports. */
-async function loadNoOnyxConnectRule(): Promise<Rule.RuleModule> {
-    const require = createRequire(__filename);
-    // Resolve the package entry rather than its package.json, since eslint-config-expensify's `exports` map doesn't expose ./package.json.
-    const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify'));
-    const ruleFile = path.join(expensifyConfigDirectory, 'eslint-plugin-expensify', 'no-onyx-connect.js');
-    const imported: unknown = await import(ruleFile);
-    if (isRuleModule(imported)) {
-        return imported;
-    }
-    if (typeof imported === 'object' && imported !== null && 'default' in imported && isRuleModule(imported.default)) {
-        return imported.default;
-    }
-    throw new Error(`Could not load the no-onyx-connect rule from ${ruleFile}`);
-}
+const projectRoot = path.resolve(import.meta.dir, '..');
 
 /** Files among the lint targets that contain both an Onyx.connect() call and an eslint-disable. */
 function findCandidateFiles(targets: string[]): string[] {
@@ -60,7 +30,6 @@ function findCandidateFiles(targets: string[]): string[] {
         });
         return output.split('\n').filter(Boolean);
     } catch (error: unknown) {
-        // git grep exits 1 when nothing matches; anything else is a real failure.
         if (typeof error === 'object' && error !== null && 'status' in error && error.status === 1) {
             return [];
         }
@@ -78,24 +47,16 @@ async function checkOnyxConnectBypass(targets: string[]): Promise<boolean> {
         return false;
     }
 
-    const rule = await loadNoOnyxConnectRule();
-    const eslint = new ESLint({
-        cwd: projectRoot,
-        warnIgnored: false,
-        errorOnUnmatchedPattern: false,
-        overrideConfigFile: true,
-        overrideConfig: [
-            {
-                files: ['**/*.{js,jsx,ts,tsx,mjs,cjs}'],
-                languageOptions: {parser: tsParser},
-                plugins: {rulesdir: {rules: {[RULE_NAME]: rule}}},
-                rules: {[BANNED_RULE_ID]: 'error'},
-            },
-        ],
-    });
+    const suppressed = (
+        await Promise.all(
+            candidates.map(async (relativePath) => {
+                const source = await file(path.join(projectRoot, relativePath)).text();
+                return collectDisableDirectivesFromSource(source, relativePath.split(path.sep).join('/'));
+            }),
+        )
+    ).flat();
 
-    const results = await eslint.lintFiles(candidates);
-    const newBypasses = findNewBypasses(collectSuppressedBans(results, projectRoot));
+    const newBypasses = findNewBypasses(suppressed);
     if (newBypasses.length === 0) {
         return false;
     }
@@ -108,7 +69,7 @@ async function checkOnyxConnectBypass(targets: string[]): Promise<boolean> {
     return true;
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     checkOnyxConnectBypass(process.argv.slice(2))
         .then((failed) => {
             if (!failed) {

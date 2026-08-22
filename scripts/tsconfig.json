@@ -20,5 +20,5 @@
         "noEmit": true
     },
     "include": [],
-    "files": ["lint.ts"]
+    "files": ["lint.ts", "lint/index.ts", "lint/args.ts", "lint/eslint.ts", "lint/pipeline.ts", "lint/reactCompilerFilter.ts", "lint/reactCompilerWorker.ts", "lint/report.ts", "lint/seatbelt.ts", "lint/stratifyNoDeprecated.ts", "lint/timings.ts", "lint/types.ts", "checkOnyxConnectBypass.ts"]
 }

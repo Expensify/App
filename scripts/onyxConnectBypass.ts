@@ -2,17 +2,18 @@
  * Detection logic for new `eslint-disable` bypasses of the Onyx.connect() ban.
  *
  * `rulesdir/no-onyx-connect` (shipped by eslint-config-expensify) is a normal lint rule, so an
- * inline `eslint-disable` can silence it. ESLint records such silenced violations as "suppressed
- * messages". This module finds suppressed `rulesdir/no-onyx-connect` violations and flags any that
- * go beyond the disables already present on `main`, so a new bypass can be re-elevated to an error
- * at the runner level — where no disable directive can reach it.
+ * inline `eslint-disable` can silence it. The lint runner re-elevates those disables by scanning
+ * source for disable directives that name the ban. No disable directive can reach this check
+ * because it does not go through ESLint's message pipeline.
+ *
+ * Blanket `eslint-disable` / `eslint-disable-next-line` with no rule list is ignored: those
+ * comments are used for other rules (e.g. ReportUtils) and must not count as a ban bypass.
  */
-import type {ESLint} from 'eslint';
-
-import path from 'node:path';
 
 /** Rule id of the Onyx.connect() ban, as exposed through eslint-plugin-rulesdir. */
 const BANNED_RULE_ID = 'rulesdir/no-onyx-connect';
+
+const BANNED_RULE_NAME = 'no-onyx-connect';
 
 /**
  * Disables of the ban that already exist on `main`, keyed by repo-relative path with the number of
@@ -30,20 +31,32 @@ type SuppressedBan = {
     line: number;
 };
 
-/** The fields of an ESLint result this module reads; real `ESLint.LintResult`s satisfy it. */
-type ResultWithSuppressed = Pick<ESLint.LintResult, 'filePath' | 'suppressedMessages'>;
+const DISABLE_DIRECTIVE_REGEX = /(?:\/\/|\/\*)\s*eslint-disable(?:-next-line|-line)?(?<args>[^\n*]*)/g;
 
-/** Pull suppressed `no-onyx-connect` violations out of ESLint results, keyed by repo-relative path. */
-function collectSuppressedBans(results: readonly ResultWithSuppressed[], projectRoot: string): SuppressedBan[] {
+function directiveTargetsBan(args: string): boolean {
+    const trimmed = args.replace(/--.*$/, '').trim();
+    if (trimmed.length === 0) {
+        return false;
+    }
+    return trimmed.split(',').some((part) => {
+        const rule = part.trim();
+        return rule === BANNED_RULE_ID || rule === BANNED_RULE_NAME || rule.endsWith(`/${BANNED_RULE_NAME}`);
+    });
+}
+
+/**
+ * Find disable directives in `source` that name `rulesdir/no-onyx-connect`.
+ * Line numbers are 1-based. Matches both full-line and trailing `eslint-disable-line`.
+ */
+function collectDisableDirectivesFromSource(source: string, file: string): SuppressedBan[] {
     const bans: SuppressedBan[] = [];
-    for (const result of results) {
-        for (const message of result.suppressedMessages ?? []) {
-            if (message.ruleId !== BANNED_RULE_ID) {
-                continue;
-            }
-            const file = path.relative(projectRoot, result.filePath).split(path.sep).join('/');
-            bans.push({file, line: message.line});
+    for (const match of source.matchAll(DISABLE_DIRECTIVE_REGEX)) {
+        if (!directiveTargetsBan(match.groups?.args ?? '')) {
+            continue;
         }
+        const prefix = source.slice(0, match.index ?? 0);
+        const line = prefix.split('\n').length;
+        bans.push({file, line});
     }
     return bans;
 }
@@ -69,5 +82,5 @@ function findNewBypasses(suppressedBans: readonly SuppressedBan[]): SuppressedBa
     return newBypasses;
 }
 
-export {BANNED_RULE_ID, GRANDFATHERED_BYPASSES, collectSuppressedBans, findNewBypasses};
-export type {SuppressedBan, ResultWithSuppressed};
+export {BANNED_RULE_ID, BANNED_RULE_NAME, GRANDFATHERED_BYPASSES, collectDisableDirectivesFromSource, findNewBypasses};
+export type {SuppressedBan};
