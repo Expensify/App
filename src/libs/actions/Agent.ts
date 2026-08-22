@@ -207,6 +207,15 @@ function createAgent(
 }
 
 /**
+ * Backfills a createdAt timestamp for a mapping entry this device notices without one — e.g. one that arrived via
+ * sync from another device/tab that resolved it first, so this device never got the chance to stamp it itself.
+ * Without a timestamp an entry is invisible to createAgent()'s pruning and never expires.
+ */
+function backfillOptimisticAccountIDMappingCreatedAt(optimisticAccountID: number) {
+    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, {[optimisticAccountID]: Date.now()});
+}
+
+/**
  * Stash the template chosen in the "New agent" picker so the custom-agent builder can open pre-filled.
  */
 function setNewAgentTemplate(template: NewAgentTemplate) {
@@ -494,6 +503,7 @@ export {
     openAgentsPage,
     openProfilePage,
     createAgent,
+    backfillOptimisticAccountIDMappingCreatedAt,
     setNewAgentTemplate,
     clearNewAgentTemplate,
     clearAgentError,

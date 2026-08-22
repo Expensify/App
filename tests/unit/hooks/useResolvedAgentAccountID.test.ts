@@ -13,6 +13,18 @@ const REAL_ACCOUNT_ID = 222;
 const OTHER_OPTIMISTIC_ACCOUNT_ID = 999;
 const OTHER_REAL_ACCOUNT_ID = 888;
 
+function getMappingCreatedAt(): Promise<Record<string, number> | undefined> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT,
+            callback: (value) => {
+                Onyx.disconnect(connection);
+                resolve(value ?? undefined);
+            },
+        });
+    });
+}
+
 describe('useResolvedAgentAccountID', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -70,5 +82,35 @@ describe('useResolvedAgentAccountID', () => {
         await waitFor(() => {
             expect(result.current).toEqual([REAL_ACCOUNT_ID, true]);
         });
+    });
+
+    it('backfills a createdAt timestamp when a mapping entry has none, so it stays eligible for pruning', async () => {
+        const before = Date.now();
+        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[OPTIMISTIC_ACCOUNT_ID]: REAL_ACCOUNT_ID});
+        await waitForBatchedUpdates();
+
+        renderHook(() => useResolvedAgentAccountID(OPTIMISTIC_ACCOUNT_ID));
+        await waitForBatchedUpdates();
+        const after = Date.now();
+
+        const createdAtMapping = await getMappingCreatedAt();
+        const createdAtValue = createdAtMapping?.[OPTIMISTIC_ACCOUNT_ID];
+        expect(createdAtValue).toBeGreaterThanOrEqual(before);
+        expect(createdAtValue).toBeLessThanOrEqual(after);
+    });
+
+    it('does not overwrite an existing createdAt timestamp', async () => {
+        const originalCreatedAt = Date.now() - 24 * 60 * 60 * 1000;
+        await Onyx.multiSet({
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[OPTIMISTIC_ACCOUNT_ID]: REAL_ACCOUNT_ID},
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT]: {[OPTIMISTIC_ACCOUNT_ID]: originalCreatedAt},
+        });
+        await waitForBatchedUpdates();
+
+        renderHook(() => useResolvedAgentAccountID(OPTIMISTIC_ACCOUNT_ID));
+        await waitForBatchedUpdates();
+
+        const createdAtMapping = await getMappingCreatedAt();
+        expect(createdAtMapping?.[OPTIMISTIC_ACCOUNT_ID]).toBe(originalCreatedAt);
     });
 });
