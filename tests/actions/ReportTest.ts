@@ -8910,6 +8910,40 @@ describe('actions/Report', () => {
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
         });
 
+        it('should mark optimistic transaction thread actions as loaded when requested', async () => {
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(600, undefined),
+                reportID: '600',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(6),
+                reportActionID: 'action-6',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                betas: undefined,
+                personalDetails: undefined,
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+                hasOptimisticReportActions: true,
+            });
+            await waitForBatchedUpdates();
+
+            const loadingState = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result?.reportID}`);
+
+            expect(loadingState?.hasOnceLoadedReportActions).toBe(true);
+            expect(loadingState?.isLoadingInitialReportActions).toBe(false);
+        });
+
         it('should resolve participant logins from the passed personalDetails rather than the Onyx personal details list', async () => {
             const ACTOR_ACCOUNT_ID = 600;
             const parentReport: OnyxTypes.Report = {

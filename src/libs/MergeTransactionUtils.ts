@@ -192,7 +192,7 @@ function getTransactionsAndReportsFromSearch(
 ): {
     transactions: Transaction[];
     reports: Report[];
-    policies: Policy[];
+    policies: Array<OnyxEntry<Policy>>;
 } {
     const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
     const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(1)}`];
@@ -204,7 +204,9 @@ function getTransactionsAndReportsFromSearch(
         reports: [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]].filter(
             (report) => !!report,
         ),
-        policies: [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${policyID1}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${policyID2}`]].filter((policy) => !!policy),
+        // Not filtered, unlike the arrays above: this is read by index alongside `transactions`, and a self-DM
+        // transaction has no policyID, so dropping its undefined slot would pair a policy with the wrong transaction.
+        policies: [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${policyID1}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${policyID2}`]],
     };
 }
 
