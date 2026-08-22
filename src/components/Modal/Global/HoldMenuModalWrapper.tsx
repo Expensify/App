@@ -19,7 +19,10 @@ import type {ModalProps} from './ModalContext';
 type HoldMenuModalWrapperProps = ModalProps & {
     reportID: string | undefined;
     chatReportID: string | undefined;
-    requestType: ActionHandledType;
+    /** Which action the modal confirms. Chat surfaces surface the approval choice up front via the approve
+     *  dropdown and never open this modal to approve, so it defaults to the pay copy when omitted. The Search
+     *  page still routes its approve action here until it gets the same treatment. */
+    requestType?: ActionHandledType;
     paymentType?: PaymentMethodType;
     methodID?: number;
     nonHeldAmount?: string;
@@ -69,16 +72,20 @@ function HoldMenuModalWrapper({
         onConfirm,
     });
 
+    let approvalPrompt: string;
+    if (isApprove) {
+        // Reuse the copy the approve dropdown shows, so both surfaces phrase the same choice identically.
+        approvalPrompt = hasNonHeldExpenses ? translate('iou.confirmApprovalWithHeldAmount') : translate('iou.confirmApprovalAllHoldAmount');
+    } else {
+        approvalPrompt = hasNonHeldExpenses ? translate('iou.confirmPayAmount') : translate('iou.confirmPayAllHoldAmount', {count: transactionCount});
+    }
+
     return (
         <DecisionModal
             title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
             onClose={() => setIsVisible(false)}
             isVisible={isVisible}
-            prompt={
-                hasNonHeldExpenses
-                    ? translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')
-                    : translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount})
-            }
+            prompt={approvalPrompt}
             firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
@@ -95,4 +102,4 @@ function HoldMenuModalWrapper({
 }
 
 export default HoldMenuModalWrapper;
-export type {ActionHandledType, HoldMenuModalWrapperProps};
+export type {HoldMenuModalWrapperProps};

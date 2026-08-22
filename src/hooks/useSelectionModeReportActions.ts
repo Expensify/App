@@ -93,6 +93,9 @@ function useSelectionModeReportActions({
         handleSubmitReport: lifecycleHandleSubmitReport,
         shouldBlockSubmit,
         isBlockSubmitDueToPreventSelfApproval,
+        approveSubMenuItems,
+        approveSubMenuHeaderText,
+        shouldShowApproveSubMenu,
     } = useLifecycleActions({
         reportID: report?.reportID,
         startApprovedAnimation: () => {},
@@ -233,7 +236,8 @@ function useSelectionModeReportActions({
 
     // Build report-level action menu
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText' | 'shouldCallOnSelectedForSubMenuItem'>> =
+            [];
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
@@ -248,7 +252,17 @@ function useSelectionModeReportActions({
                 text: translate('iou.approve'),
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                onSelected: confirmApproval,
+                rightIcon: shouldShowApproveSubMenu ? expensifyIcons.ArrowRight : undefined,
+                backButtonText: shouldShowApproveSubMenu ? translate('iou.approve') : undefined,
+                subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
+                subMenuHeaderText: shouldShowApproveSubMenu ? approveSubMenuHeaderText : undefined,
+                shouldCallOnSelectedForSubMenuItem: true,
+                onSelected: () => {
+                    if (shouldShowApproveSubMenu) {
+                        return;
+                    }
+                    confirmApproval();
+                },
             };
         }
         if (hasPayAction && !(isOffline && !canAllowSettlement)) {

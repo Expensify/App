@@ -76,6 +76,7 @@ function SelectionDropdown({
                     customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                     shouldShowSuccessStyle
                     ref={kycWallRef}
+                    shouldPutHeaderTextAfterBackButton
                 />
             </View>
         );

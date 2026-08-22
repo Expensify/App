@@ -115,21 +115,22 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(singleTransaction?.comment?.originalTransactionID)}`);
 
     // Submit/approve via shared lifecycle actions
-    const {confirmApproval, handleSubmitReport, shouldBlockSubmit, isBlockSubmitDueToPreventSelfApproval} = useLifecycleActions({
-        reportID,
-        startApprovedAnimation,
-        startAnimation,
-        startSubmittingAnimation,
-        onHoldMenuOpen: (requestType, onConfirm, paymentType) =>
-            openHoldMenu({
-                requestType,
-                onConfirm: () => {
-                    onConfirm?.();
-                    clearSelectedTransactions(true);
-                },
-                paymentType,
-            }),
-    });
+    const {confirmApproval, handleSubmitReport, shouldBlockSubmit, isBlockSubmitDueToPreventSelfApproval, approveSubMenuItems, approveSubMenuHeaderText, shouldShowApproveSubMenu} =
+        useLifecycleActions({
+            reportID,
+            startApprovedAnimation,
+            startAnimation,
+            startSubmittingAnimation,
+            onHoldMenuOpen: (requestType, onConfirm, paymentType) =>
+                openHoldMenu({
+                    requestType,
+                    onConfirm: () => {
+                        onConfirm?.();
+                        clearSelectedTransactions(true);
+                    },
+                    paymentType,
+                }),
+        });
 
     const {
         options: originalSelectedTransactionsOptions,
@@ -248,7 +249,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const submitButtonText = shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
     const approveButtonText = shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
 
-    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [
+    const selectionModeReportLevelActions: Array<
+        DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuHeaderText' | 'shouldCallOnSelectedForSubMenuItem'>
+    > = [
         ...(hasSubmitAction && !shouldBlockSubmit
             ? [
                   {
@@ -265,7 +268,17 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                       text: approveButtonText,
                       icon: expensifyIcons.ThumbsUp,
                       value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                      onSelected: () => confirmApproval(true),
+                      rightIcon: shouldShowApproveSubMenu ? expensifyIcons.ArrowRight : undefined,
+                      backButtonText: shouldShowApproveSubMenu ? translate('iou.approve') : undefined,
+                      subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
+                      subMenuHeaderText: shouldShowApproveSubMenu ? approveSubMenuHeaderText : undefined,
+                      shouldCallOnSelectedForSubMenuItem: true,
+                      onSelected: () => {
+                          if (shouldShowApproveSubMenu) {
+                              return;
+                          }
+                          confirmApproval(true);
+                      },
                   },
               ]
             : []),
@@ -343,6 +356,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                     customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                     shouldShowSuccessStyle
                     ref={kycWallRef}
+                    shouldPutHeaderTextAfterBackButton
                 />
             </>
         );
