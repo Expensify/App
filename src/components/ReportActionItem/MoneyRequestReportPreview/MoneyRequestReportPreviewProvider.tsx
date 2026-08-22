@@ -68,6 +68,8 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     renderTransactionItem: ListRenderItem<Transaction>;
+    onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
+    onCancelPendingPress?: () => void;
     currentWidth: number;
     reportPreviewStyles: MoneyRequestReportPreviewStyleType;
     newTransactionIDs?: Set<string>;
@@ -96,6 +98,8 @@ function MoneyRequestReportPreviewProvider({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     renderTransactionItem,
+    onOrderedTransactionsChange,
+    onCancelPendingPress,
     currentWidth,
     reportPreviewStyles,
     newTransactionIDs,
@@ -202,12 +206,14 @@ function MoneyRequestReportPreviewProvider({
         currentWidth,
         newTransactionIDs,
         renderTransactionItem,
+        onOrderedTransactionsChange,
     });
 
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID) {
             return;
         }
+        onCancelPendingPress?.();
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -224,7 +230,7 @@ function MoneyRequestReportPreviewProvider({
                 }),
             );
         }
-    }, [iouReportID, isSmallScreenWidth]);
+    }, [iouReportID, isSmallScreenWidth, onCancelPendingPress]);
 
     const onHoldMenuOpen = useCallback((requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
         if (requestType !== CONST.IOU.REPORT_ACTION_TYPE.PAY && requestType !== CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
