@@ -24,7 +24,7 @@ import {clearPolicyErrorField, setWorkspaceCurrencyConversionFeesPreference} fro
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type CurrencyConversionFeesPreferenceKey = typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY | typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE;
 
@@ -46,26 +46,40 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
         ? CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY
         : CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE;
 
+    const [draftPreference, setDraftPreference] = useState<CurrencyConversionFeesPreferenceKey>();
+    const currentPreference = draftPreference ?? selectedPreference;
+
     const items: CurrencyConversionFeesItem[] = [
         {
             text: translate('workflowsCurrencyConversionFeesPage.companyPays'),
             keyForList: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY,
-            isSelected: selectedPreference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY,
+            isSelected: currentPreference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY,
         },
         {
             text: translate('workflowsCurrencyConversionFeesPage.employeePays'),
             keyForList: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
-            isSelected: selectedPreference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
+            isSelected: currentPreference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
         },
     ];
 
     const onSelectPreference = (item: CurrencyConversionFeesItem) => {
-        const shouldPreferCompany = item.keyForList === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY;
+        setDraftPreference(item.keyForList);
+    };
+
+    const saveCurrencyConversionFeesPreference = () => {
+        const shouldPreferCompany = currentPreference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY;
         if (!!policy?.id && shouldPreferCompany !== !!policy.globalReimbursementFXPreferCompany) {
             setWorkspaceCurrencyConversionFeesPreference(policy.id, shouldPreferCompany, policy.globalReimbursementFXPreferCompany);
         }
 
         Navigation.goBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveCurrencyConversionFeesPreference,
+        isDisabled: currentPreference === selectedPreference,
     };
 
     const listHeaderContent = (
@@ -110,6 +124,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
                         onSelectRow={onSelectPreference}
                         initiallyFocusedItemKey={selectedPreference}
                         customListHeaderContent={listHeaderContent}
+                        confirmButtonOptions={confirmButtonOptions}
                         addBottomSafeAreaPadding
                     />
                 </OfflineWithFeedback>
