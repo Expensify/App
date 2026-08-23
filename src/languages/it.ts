@@ -1230,6 +1230,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Crea nota spese tempo',
     },
     iou: {
+        expenseAdded: 'Spesa aggiunta',
+        invoiceSent: 'Fattura inviata',
         amount: 'Importo',
         percent: 'Percentuale',
         date: 'Data',
@@ -1701,8 +1703,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `I report sono limitati a ${CONST.REPORT.MAX_TRANSACTIONS} spese. Spostane alcune in un altro report.`,
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
         submitReportTo: {
-            sendExpense: 'Invia la tua spesa a chiunque',
+            sendExpense: 'Invia a chiunque',
             sendExpenseSubtitle: 'Invita chiunque su Expensify usando il suo indirizzo email o numero di telefono.',
+            selectRecipientError: 'Seleziona o inserisci un destinatario per continuare.',
         },
         changeApprover: {
             title: 'Cambia approvatore',
@@ -6775,8 +6778,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 chooseLimitType: 'Scegli un tipo di limite',
                 smartLimit: 'Limite intelligente',
                 smartLimitDescription: 'Spendi fino a un certo importo prima di richiedere l’approvazione',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Spendi fino a un certo importo prima di richiedere l’approvazione. <a href="${workspaceWorkflowsLink}">Abilita le approvazioni</a> per selezionare questa opzione.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Spendi fino a un certo importo prima di richiedere l’approvazione. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Abilita le approvazioni</a>` : 'Abilita le approvazioni'} per selezionare questa opzione.</muted-text-label>`,
                 monthly: 'Mensile',
                 monthlyDescription: 'Spendi fino a un certo importo al mese',
                 fixedAmount: 'Importo fisso',

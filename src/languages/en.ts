@@ -1311,6 +1311,8 @@ const translations = {
         createTimeExpense: 'Create time expense',
     },
     iou: {
+        expenseAdded: 'Expense added',
+        invoiceSent: 'Invoice sent',
         amount: 'Amount',
         percent: 'Percent',
         date: 'Date',
@@ -1782,8 +1784,9 @@ const translations = {
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         moveExpensesMaxTransactionsError: `Reports are limited to ${CONST.REPORT.MAX_TRANSACTIONS} expenses. Please move some to another report.`,
         submitReportTo: {
-            sendExpense: 'Send your expense to anyone',
+            sendExpense: 'Submit to anyone',
             sendExpenseSubtitle: 'Invite anyone to Expensify by using their email address or phone number.',
+            selectRecipientError: 'Select or enter a recipient to continue.',
         },
         changeApprover: {
             title: 'Change approver',
@@ -6904,8 +6907,8 @@ const translations = {
                 chooseLimitType: 'Choose a limit type',
                 smartLimit: 'Smart Limit',
                 smartLimitDescription: 'Spend up to a certain amount before requiring approval',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Spend up to a certain amount before requiring approval. <a href="${workspaceWorkflowsLink}">Enable approvals</a> to select this option.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Spend up to a certain amount before requiring approval. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Enable approvals</a>` : 'Enable approvals'} to select this option.</muted-text-label>`,
                 monthly: 'Monthly',
                 monthlyDescription: 'Limit renews monthly',
                 fixedAmount: 'Fixed amount',

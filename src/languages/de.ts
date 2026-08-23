@@ -1231,6 +1231,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Zeitaufwand erstellen',
     },
     iou: {
+        expenseAdded: 'Ausgabe hinzugefügt',
+        invoiceSent: 'Rechnung gesendet',
         amount: 'Betrag',
         percent: 'Prozent',
         date: 'Datum',
@@ -1702,8 +1704,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Berichte sind auf ${CONST.REPORT.MAX_TRANSACTIONS} Ausgaben begrenzt. Bitte verschiebe einige in einen anderen Bericht.`,
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
         submitReportTo: {
-            sendExpense: 'Senden Sie Ihre Ausgabe an jede beliebige Person',
+            sendExpense: 'Bei jeder Person einreichen',
             sendExpenseSubtitle: 'Laden Sie jede beliebige Person zu Expensify ein, indem Sie ihre E-Mail-Adresse oder Telefonnummer verwenden.',
+            selectRecipientError: 'Wählen Sie einen Empfänger aus oder geben Sie einen ein, um fortzufahren.',
         },
         changeApprover: {
             title: 'Genehmigende Person ändern',
@@ -6803,8 +6806,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 chooseLimitType: 'Wähle einen Limittyp',
                 smartLimit: 'Intelligentes Limit',
                 smartLimitDescription: 'Bis zu einem bestimmten Betrag ausgeben, bevor eine Genehmigung erforderlich ist',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Bis zu einem bestimmten Betrag ausgeben, bevor eine Genehmigung erforderlich ist. <a href="${workspaceWorkflowsLink}">Aktiviere Genehmigungen</a>, um diese Option auszuwählen.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Bis zu einem bestimmten Betrag ausgeben, bevor eine Genehmigung erforderlich ist. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Aktiviere Genehmigungen</a>` : 'Aktiviere Genehmigungen'}, um diese Option auszuwählen.</muted-text-label>`,
                 monthly: 'Monatlich',
                 monthlyDescription: 'Bis zu einem bestimmten Betrag pro Monat ausgeben',
                 fixedAmount: 'Fester Betrag',

@@ -1229,6 +1229,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Criar despesa de tempo',
     },
     iou: {
+        expenseAdded: 'Despesa adicionada',
+        invoiceSent: 'Fatura enviada',
         amount: 'Valor',
         percent: 'Porcentagem',
         date: 'Data',
@@ -1696,8 +1698,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Os relatórios são limitados a ${CONST.REPORT.MAX_TRANSACTIONS} despesas. Mova algumas para outro relatório.`,
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
         submitReportTo: {
-            sendExpense: 'Envie sua despesa para qualquer pessoa',
+            sendExpense: 'Envie para qualquer pessoa',
             sendExpenseSubtitle: 'Convide qualquer pessoa para o Expensify usando o endereço de e-mail ou número de telefone.',
+            selectRecipientError: 'Selecione ou insira um destinatário para continuar.',
         },
         changeApprover: {
             title: 'Alterar aprovador',
@@ -6761,8 +6764,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 chooseLimitType: 'Escolha um tipo de limite',
                 smartLimit: 'Limite Inteligente',
                 smartLimitDescription: 'Gaste até um determinado valor antes de exigir aprovação',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Gaste até um determinado valor antes de exigir aprovação. <a href="${workspaceWorkflowsLink}">Ative as aprovações</a> para selecionar esta opção.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Gaste até um determinado valor antes de exigir aprovação. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Ative as aprovações</a>` : 'Ative as aprovações'} para selecionar esta opção.</muted-text-label>`,
                 monthly: 'Mensal',
                 monthlyDescription: 'Gastar até um determinado valor por mês',
                 fixedAmount: 'Valor fixo',

@@ -1180,6 +1180,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '创建工时报销',
     },
     iou: {
+        expenseAdded: '已添加支出',
+        invoiceSent: '已发送发票',
         amount: '金额',
         percent: '百分比',
         date: '日期',
@@ -1640,8 +1642,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `每个报告最多可包含 ${CONST.REPORT.MAX_TRANSACTIONS} 笔支出。请将部分支出移动到其他报告。`,
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         submitReportTo: {
-            sendExpense: '将你的报销发送给任何人',
+            sendExpense: '提交给任何人',
             sendExpenseSubtitle: '使用电子邮箱地址或电话号码邀请任何人加入 Expensify。',
+            selectRecipientError: '请选择或输入收件人以继续。',
         },
         changeApprover: {
             title: '更改审批人',
@@ -6524,8 +6527,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseLimitType: '选择限额类型',
                 smartLimit: '智能限额',
                 smartLimitDescription: '在需要审批前可支出至指定金额上限',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>在需要审批前可支出至指定金额上限。<a href="${workspaceWorkflowsLink}">启用审批</a>后即可选择此选项。</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>在需要审批前可支出至指定金额上限。${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">启用审批</a>` : '启用审批'}后即可选择此选项。</muted-text-label>`,
                 monthly: '每月',
                 monthlyDescription: '每月消费上限为特定金额',
                 fixedAmount: '固定金额',

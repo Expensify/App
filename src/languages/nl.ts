@@ -1229,6 +1229,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Tijdkosten aanmaken',
     },
     iou: {
+        expenseAdded: 'Uitgave toegevoegd',
+        invoiceSent: 'Factuur verzonden',
         amount: 'Bedrag',
         percent: 'Procent',
         date: 'Datum',
@@ -1697,8 +1699,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Rapporten zijn beperkt tot ${CONST.REPORT.MAX_TRANSACTIONS} uitgaven. Verplaats er enkele naar een ander rapport.`,
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
         submitReportTo: {
-            sendExpense: 'Stuur je uitgave naar iedereen',
+            sendExpense: 'Indienen bij iedereen',
             sendExpenseSubtitle: 'Nodig iedereen uit voor Expensify met hun e-mailadres of telefoonnummer.',
+            selectRecipientError: 'Selecteer of voer een ontvanger in om door te gaan.',
         },
         changeApprover: {
             title: 'Goedkeurder wijzigen',
@@ -6759,8 +6762,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 chooseLimitType: 'Kies een limiettype',
                 smartLimit: 'Slimme limiet',
                 smartLimitDescription: 'Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is. <a href="${workspaceWorkflowsLink}">Schakel goedkeuringen in</a> om deze optie te selecteren.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Schakel goedkeuringen in</a>` : 'Schakel goedkeuringen in'} om deze optie te selecteren.</muted-text-label>`,
                 monthly: 'Maandelijks',
                 monthlyDescription: 'Geef per maand tot een bepaald bedrag uit',
                 fixedAmount: 'Vast bedrag',

@@ -1282,6 +1282,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Δημιουργία χρονοχρέωσης',
     },
     iou: {
+        expenseAdded: 'Δαπάνη προστέθηκε',
+        invoiceSent: 'Τιμολόγιο στάλθηκε',
         amount: 'Ποσό',
         percent: 'Ποσοστό',
         date: 'Ημερομηνία',
@@ -1759,8 +1761,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError:
             'Δεν μπορείτε να μετακινήσετε έξοδα ημερήσιας αποζημίωσης σε αναφορές άλλων χώρων εργασίας, επειδή οι τιμές ημερήσιας αποζημίωσης μπορεί να διαφέρουν μεταξύ των χώρων εργασίας.',
         submitReportTo: {
-            sendExpense: 'Στείλτε την δαπάνη σας σε οποιονδήποτε',
+            sendExpense: 'Υποβάλετε σε οποιονδήποτε',
             sendExpenseSubtitle: 'Προσκαλέστε οποιονδήποτε στο Expensify χρησιμοποιώντας τη διεύθυνση email ή τον αριθμό τηλεφώνου τους.',
+            selectRecipientError: 'Επιλέξτε ή εισαγάγετε έναν παραλήπτη για να συνεχίσετε.',
         },
         changeApprover: {
             title: 'Αλλαγή εγκρίνοντος',
@@ -6954,8 +6957,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 chooseLimitType: 'Επιλέξτε τύπο ορίου',
                 smartLimit: 'Έξυπνο όριο',
                 smartLimitDescription: 'Ξοδέψτε έως ένα συγκεκριμένο ποσό πριν απαιτείται έγκριση',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Ξοδέψτε έως ένα συγκεκριμένο ποσό πριν απαιτείται έγκριση. <a href="${workspaceWorkflowsLink}">Ενεργοποιήστε τις εγκρίσεις</a> για να επιλέξετε αυτήν την επιλογή.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Ξοδέψτε έως ένα συγκεκριμένο ποσό πριν απαιτείται έγκριση. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Ενεργοποιήστε τις εγκρίσεις</a>` : 'Ενεργοποιήστε τις εγκρίσεις'} για να επιλέξετε αυτήν την επιλογή.</muted-text-label>`,
                 monthly: 'Μηνιαίως',
                 monthlyDescription: 'Το όριο ανανεώνεται μηνιαία',
                 fixedAmount: 'Σταθερό ποσό',

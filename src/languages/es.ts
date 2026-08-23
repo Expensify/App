@@ -1229,6 +1229,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Crear gasto de tiempo',
     },
     iou: {
+        expenseAdded: 'Gasto añadido',
+        invoiceSent: 'Factura enviada',
         amount: 'Importe',
         percent: 'Porcentaje',
         date: 'Fecha',
@@ -1700,8 +1702,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Los informes están limitados a ${CONST.REPORT.MAX_TRANSACTIONS} gastos. Por favor, mueve algunos a otro informe.`,
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
         submitReportTo: {
-            sendExpense: 'Envía tu gasto a cualquier persona',
+            sendExpense: 'Envía a cualquiera',
             sendExpenseSubtitle: 'Invita a cualquiera a Expensify usando su dirección de correo electrónico o número de teléfono.',
+            selectRecipientError: 'Selecciona o introduce un destinatario para continuar.',
         },
         changeApprover: {
             title: 'Cambiar aprobador',
@@ -6972,8 +6975,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 chooseLimitType: 'Elegir un tipo de límite',
                 smartLimit: 'Límite inteligente',
                 smartLimitDescription: 'Gasta hasta un determinado importe antes de requerir aprobación',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Gasta hasta un determinado importe antes de requerir aprobación. <a href="${workspaceWorkflowsLink}">Habilita las aprobaciones</a> para seleccionar esta opción.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Gasta hasta un determinado importe antes de requerir aprobación. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Habilita las aprobaciones</a>` : 'Habilita las aprobaciones'} para seleccionar esta opción.</muted-text-label>`,
                 monthly: 'Mensual',
                 monthlyDescription: 'Gasta hasta un determinado importe al mes',
                 fixedAmount: 'Importe fijo',

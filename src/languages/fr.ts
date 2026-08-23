@@ -1235,6 +1235,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Créer une dépense de temps',
     },
     iou: {
+        expenseAdded: 'Dépense ajoutée',
+        invoiceSent: 'Facture envoyée',
         amount: 'Montant',
         percent: 'Pourcentage',
         date: 'Date',
@@ -1709,8 +1711,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
         submitReportTo: {
-            sendExpense: 'Envoyez votre dépense à n’importe qui',
+            sendExpense: 'Soumettez à n’importe qui',
             sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
+            selectRecipientError: 'Sélectionnez ou saisissez un destinataire pour continuer.',
         },
         changeApprover: {
             title: 'Modifier l’approbateur',
@@ -6825,8 +6828,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 chooseLimitType: 'Choisissez un type de limite',
                 smartLimit: 'Limite intelligente',
                 smartLimitDescription: 'Dépenser jusqu’à un certain montant avant de nécessiter une approbation',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Dépenser jusqu’à un certain montant avant de nécessiter une approbation. <a href="${workspaceWorkflowsLink}">Activez les approbations</a> pour sélectionner cette option.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Dépenser jusqu’à un certain montant avant de nécessiter une approbation. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Activez les approbations</a>` : 'Activez les approbations'} pour sélectionner cette option.</muted-text-label>`,
                 monthly: 'Mensuel',
                 monthlyDescription: 'Dépenser jusqu’à un certain montant par mois',
                 fixedAmount: 'Montant fixe',

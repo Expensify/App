@@ -1225,6 +1225,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Utwórz wydatek czasowy',
     },
     iou: {
+        expenseAdded: 'Dodano wydatek',
+        invoiceSent: 'Wysłano fakturę',
         amount: 'Kwota',
         percent: 'Procent',
         date: 'Data',
@@ -1692,8 +1694,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Raporty są ograniczone do ${CONST.REPORT.MAX_TRANSACTIONS} wydatków. Przenieś część z nich do innego raportu.`,
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
         submitReportTo: {
-            sendExpense: 'Wyślij swój wydatek do dowolnej osoby',
+            sendExpense: 'Wyślij do kogokolwiek',
             sendExpenseSubtitle: 'Zaproś dowolną osobę do Expensify, używając jej adresu e-mail lub numeru telefonu.',
+            selectRecipientError: 'Wybierz lub wprowadź odbiorcę, aby kontynuować.',
         },
         changeApprover: {
             title: 'Zmień osobę zatwierdzającą',
@@ -6739,8 +6742,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 chooseLimitType: 'Wybierz typ limitu',
                 smartLimit: 'Inteligentny limit',
                 smartLimitDescription: 'Wydawaj do określonej kwoty przed wymaganiem zatwierdzenia',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Wydawaj do określonej kwoty przed wymaganiem zatwierdzenia. <a href="${workspaceWorkflowsLink}">Włącz zatwierdzanie</a>, aby wybrać tę opcję.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Wydawaj do określonej kwoty przed wymaganiem zatwierdzenia. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Włącz zatwierdzanie</a>` : 'Włącz zatwierdzanie'}, aby wybrać tę opcję.</muted-text-label>`,
                 monthly: 'Miesięcznie',
                 monthlyDescription: 'Wydawaj do określonej kwoty miesięcznie',
                 fixedAmount: 'Stała kwota',

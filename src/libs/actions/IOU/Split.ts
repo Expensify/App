@@ -88,8 +88,8 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -2361,7 +2361,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (isFromGlobalCreate) {
+        signalExpenseAddedGrowl(parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    }
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);
