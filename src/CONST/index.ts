@@ -6855,7 +6855,8 @@ const CONST = {
     DISTANCE_DECIMAL_PLACES: 2,
     HOURS_DECIMAL_PLACES: 2,
 
-    RECEIPTS_UPLOAD_PATH: '/Receipts-Upload',
+    /** Folder name builds before the attachment-dir convergence wrote queued receipts into. Kept for read-side recovery only. */
+    LEGACY_RECEIPTS_UPLOAD_DIR_NAME: 'Receipts-Upload',
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,

@@ -21,13 +21,18 @@ jest.mock('@libs/telemetry/ReceiptObservability', () => ({
     logReceiptDropped: mockLogReceiptDropped,
 }));
 
-const RECEIPTS_FOLDER = '/Containers/Data/Application/CURRENT/Documents/Receipts-Upload';
+const ATTACHMENTS_FOLDER = '/Containers/Data/Application/CURRENT/Documents/attachments';
+const LEGACY_RECEIPTS_FOLDER = '/Containers/Data/Application/CURRENT/Documents/Receipts-Upload';
 jest.mock('@libs/ReceiptStorage', () => ({
     __esModule: true,
     default: {
         resolve: (source?: string) => {
-            const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
-            return name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+            if (!source || !(source.includes('/attachments/') || source.includes('/Receipts-Upload/'))) {
+                return source;
+            }
+            const name = source.split('/').pop();
+            const folder = source.includes('/Receipts-Upload/') ? LEGACY_RECEIPTS_FOLDER : ATTACHMENTS_FOLDER;
+            return name ? `file://${folder}/${name}` : source;
         },
     },
 }));
@@ -46,10 +51,10 @@ describe('prepareRequestPayload (native)', () => {
         mockCheckFileExists.mockResolvedValue(true);
 
         const receipt = {
-            source: 'file:///var/mobile/Documents/Receipts-Upload/receipt.jpg',
+            source: `file://${ATTACHMENTS_FOLDER}/receipt.jpg`,
             name: 'receipt.jpg',
             type: 'image/jpeg',
-            uri: 'file:///var/mobile/Documents/Receipts-Upload/receipt.jpg',
+            uri: `file://${ATTACHMENTS_FOLDER}/receipt.jpg`,
         };
 
         const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
@@ -83,22 +88,39 @@ describe('prepareRequestPayload (native)', () => {
         });
     });
 
-    it('should recover a queued receipt whose stored path names a stale container, by re-rooting the filename', async () => {
+    it('should recover a queued receipt whose stored attachments path names a stale container, by re-rooting the filename', async () => {
         mockCheckFileExists.mockResolvedValue(true);
 
         const receipt = {
             // Written before an app upgrade. The device no longer has this container.
-            source: 'file:///Containers/Data/Application/STALE/Documents/Receipts-Upload/receipt_9.jpg',
-            uri: 'file:///Containers/Data/Application/STALE/Documents/Receipts-Upload/receipt_9.jpg',
+            source: 'file:///Containers/Data/Application/STALE/Documents/attachments/receipt_9.jpg',
+            uri: 'file:///Containers/Data/Application/STALE/Documents/attachments/receipt_9.jpg',
             name: 'receipt.jpg',
             type: 'image/jpeg',
         };
 
         const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
 
-        expect(mockCheckFileExists).toHaveBeenCalledWith(`file://${RECEIPTS_FOLDER}/receipt_9.jpg`);
+        expect(mockCheckFileExists).toHaveBeenCalledWith(`file://${ATTACHMENTS_FOLDER}/receipt_9.jpg`);
         expect(formData.has('receipt')).toBe(true);
-        expect(mockValidateFormDataParameter).toHaveBeenCalledWith('RequestMoney', 'receipt', expect.objectContaining({uri: `file://${RECEIPTS_FOLDER}/receipt_9.jpg`}));
+        expect(mockValidateFormDataParameter).toHaveBeenCalledWith('RequestMoney', 'receipt', expect.objectContaining({uri: `file://${ATTACHMENTS_FOLDER}/receipt_9.jpg`}));
+        expect(mockLogReceiptDropped).not.toHaveBeenCalled();
+    });
+
+    it('should recover a queued receipt stored by a pre-convergence build under the legacy receipts folder', async () => {
+        mockCheckFileExists.mockResolvedValue(true);
+
+        const receipt = {
+            source: 'file:///Containers/Data/Application/STALE/Documents/Receipts-Upload/receipt_old.jpg',
+            uri: 'file:///Containers/Data/Application/STALE/Documents/Receipts-Upload/receipt_old.jpg',
+            name: 'receipt.jpg',
+            type: 'image/jpeg',
+        };
+
+        const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
+
+        expect(mockCheckFileExists).toHaveBeenCalledWith(`file://${LEGACY_RECEIPTS_FOLDER}/receipt_old.jpg`);
+        expect(formData.has('receipt')).toBe(true);
         expect(mockLogReceiptDropped).not.toHaveBeenCalled();
     });
 
@@ -106,8 +128,8 @@ describe('prepareRequestPayload (native)', () => {
         mockCheckFileExists.mockResolvedValue(false);
 
         const receipt = {
-            source: 'file:///Containers/Data/Application/CURRENT/Documents/Receipts-Upload/gone.jpg',
-            uri: 'file:///Containers/Data/Application/CURRENT/Documents/Receipts-Upload/gone.jpg',
+            source: `file://${ATTACHMENTS_FOLDER}/gone.jpg`,
+            uri: `file://${ATTACHMENTS_FOLDER}/gone.jpg`,
             name: 'receipt.jpg',
             type: 'image/jpeg',
         };
@@ -115,7 +137,7 @@ describe('prepareRequestPayload (native)', () => {
         const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
 
         expect(formData.has('receipt')).toBe(false);
-        expect(mockLogReceiptDropped).toHaveBeenCalledWith(expect.objectContaining({source: `file://${RECEIPTS_FOLDER}/gone.jpg`}));
+        expect(mockLogReceiptDropped).toHaveBeenCalledWith(expect.objectContaining({source: `file://${ATTACHMENTS_FOLDER}/gone.jpg`}));
     });
 
     it('should not check the filesystem for a bundled placeholder receipt', async () => {
