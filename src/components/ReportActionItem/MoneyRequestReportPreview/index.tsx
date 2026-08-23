@@ -50,6 +50,7 @@ import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent
 
 const reportActionCountSelector = (reportActions: OnyxEntry<ReportActions>) => Object.keys(reportActions ?? {}).length;
 
+// The stagger between the report and the expense that design asked for: https://github.com/Expensify/App/pull/92546#issuecomment-4687440972
 const PRESSED_EXPENSE_CASCADE_DELAY = 180;
 
 function MoneyRequestReportPreview({
