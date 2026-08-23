@@ -952,11 +952,9 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then neither the source report nor the destination reports carry stranded highlight flags
-            const sourceRail = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(sourceRail?.['moved-tx-1']).toBeUndefined();
-            expect(sourceRail?.['moved-tx-2']).toBeUndefined();
-            expect((await getPendingNewTransactionIDsFromOnyx('other-report-1'))?.['moved-tx-1']).toBeUndefined();
-            expect((await getPendingNewTransactionIDsFromOnyx('other-report-2'))?.['moved-tx-2']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx('other-report-1'))).toEqual([]);
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx('other-report-2'))).toEqual([]);
         });
     });
 });
