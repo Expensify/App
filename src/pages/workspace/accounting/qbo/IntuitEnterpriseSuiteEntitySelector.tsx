@@ -8,11 +8,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {selectIntuitEnterpriseSuiteEntity} from '@libs/actions/connections/QuickbooksOnline';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import type {IntuitEnterpriseSuiteEntity} from '@src/types/onyx/Policy';
@@ -34,7 +37,7 @@ function IntuitEnterpriseSuiteEntitySelector({policy}: WithPolicyConnectionsProp
     const entities = Object.values(config?.entities ?? {});
 
     const currentEntity = entities.find((entity) => entity.realmId === config?.realmId);
-    const data: Array<SelectorType<IntuitEnterpriseSuiteEntity>> = entities.map((entity) => ({
+    const data: SelectorType<IntuitEnterpriseSuiteEntity>[] = entities.map((entity) => ({
         text: entity.companyName,
         keyForList: entity.realmId,
         isSelected: entity.realmId === config?.realmId,
@@ -89,6 +92,9 @@ function IntuitEnterpriseSuiteEntitySelector({policy}: WithPolicyConnectionsProp
                 onBackButtonPress={() => Navigation.goBack()}
                 title="workspace.qbo.entity"
                 pendingAction={settingsPendingAction(['realmId'], config?.pendingFields)}
+                errors={getLatestErrorField(config ?? {}, 'realmId')}
+                errorRowStyles={[styles.ph5, styles.mv3]}
+                onClose={() => clearQBOErrorField(policyID, 'realmId')}
             />
             {!!oauthAttempt && (
                 <IntuitEnterpriseSuiteOAuthFlow
