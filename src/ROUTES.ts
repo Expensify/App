@@ -367,6 +367,60 @@ const DYNAMIC_ROUTES = {
         },
         queryParams: ['action', 'iouType', 'reportID', 'shouldTurnOffSelectionMode', 'transactionID'],
     },
+    MONEY_REQUEST_HOLD_REASON: {
+        path: 'hold-reason',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (transactionID: string, holdReportID: string | undefined) => getUrlWithParams('hold-reason', {transactionID, holdReportID}),
+        queryParams: ['transactionID', 'holdReportID'],
+    },
+    MONEY_REQUEST_RECEIPT_VIEW: {
+        path: 'receipt-view',
+        entryScreens: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.STEP_SCAN],
+        getRoute: (transactionID: string) => getUrlWithParams('receipt-view', {transactionID}),
+        queryParams: ['transactionID'],
+    },
+    MONEY_REQUEST_SPLIT_EXPENSE: {
+        path: 'split-expense-overview',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+        // `splitReportID` is deliberately not named `reportID` so it cannot inherit the base path's report:
+        getRoute: (splitReportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string) => {
+            if (!splitReportID || !originalTransactionID) {
+                Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE route`);
+            }
+
+            return getUrlWithParams('split-expense-overview', {splitReportID, transactionID: originalTransactionID, splitExpenseTransactionID});
+        },
+        queryParams: ['splitReportID', 'transactionID', 'splitExpenseTransactionID'],
+    },
+    MONEY_REQUEST_SPLIT_EXPENSE_SEARCH: {
+        path: 'split-expense-overview-search',
+        entryScreens: [
+            SCREENS.SEARCH.ROOT,
+            SCREENS.SEARCH.MONEY_REQUEST_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (splitReportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string) => {
+            if (!splitReportID || !originalTransactionID) {
+                Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE_SEARCH route`);
+            }
+
+            return getUrlWithParams('split-expense-overview-search', {splitReportID, transactionID: originalTransactionID, splitExpenseTransactionID});
+        },
+        queryParams: ['splitReportID', 'transactionID', 'splitExpenseTransactionID'],
+    },
+    MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE: {
+        // No query params of its own: `splitReportID`/`transactionID` are inherited from the overview screen underneath.
+        path: 'split-expense-create-date-range',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
+    },
     MONEY_REQUEST_STEP_TAG: {
         path: 'expense-tag',
         entryScreens: [
@@ -437,6 +491,26 @@ const DYNAMIC_ROUTES = {
             getUrlWithParams('expense-date', {action, iouType, transactionID, reportID, reportActionID}),
         queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
     },
+    MONEY_REQUEST_STEP_PARTICIPANTS: {
+        path: 'expense-participants',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string | undefined; reportID: string | undefined; isWorkspacesOnly?: boolean}) => {
+            const {action, iouType, transactionID, reportID, isWorkspacesOnly} = params;
+            // `getUrlWithParams` drops falsy values, so the flag is only sent when it is on.
+            return getUrlWithParams('expense-participants', {action, iouType, transactionID, reportID, isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly'],
+    },
     MONEY_REQUEST_STEP_DESTINATION: {
         path: 'per-diem-destination',
         entryScreens: [SCREENS.MONEY_REQUEST.CREATE],
@@ -454,6 +528,16 @@ const DYNAMIC_ROUTES = {
         path: 'per-diem-time-edit',
         // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
         entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_SUBRATE: {
+        path: 'per-diem-subrate/:pageIndex',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME],
+        getRoute: (pageIndex: string | number = 0) => `per-diem-subrate/${pageIndex}` as const,
+    },
+    MONEY_REQUEST_STEP_SUBRATE_EDIT: {
+        path: 'per-diem-subrate-edit/:pageIndex',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        getRoute: (pageIndex: string | number) => `per-diem-subrate-edit/${pageIndex}` as const,
     },
     PROFILE: {
         path: 'a/:accountID',
@@ -1632,6 +1716,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('taxRate', {action, iouType, transactionID, reportID}),
         queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
@@ -1668,7 +1753,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
             SCREENS.MONEY_REQUEST.CREATE,
-            SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS,
+            SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS,
             SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
             SCREENS.REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
@@ -2352,41 +2437,6 @@ const ROUTES = {
         route: 'r/:reportID/chronos/schedule-ooo',
         getRoute: (reportID: string) => `r/${reportID}/chronos/schedule-ooo` as const,
     },
-    SPLIT_EXPENSE: {
-        // TODO: Remove backTo from route once we have find another way to fix navigation issues with tabs
-        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID/:backTo?',
-        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
-            if (!reportID || !originalTransactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE route`);
-            }
-
-            const splitExpenseTransactionIDPart = splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : '/0';
-
-            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionIDPart}`, backTo);
-        },
-    },
-    SPLIT_EXPENSE_SEARCH: {
-        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID/search/:backTo?',
-        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
-            if (!reportID || !originalTransactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_SEARCH route`);
-            }
-
-            const splitExpenseTransactionIDPart = splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : '/0';
-
-            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionIDPart}/search`, backTo);
-        },
-    },
-    SPLIT_EXPENSE_CREATE_DATE_RANGE: {
-        route: 'create/split-expense/create-date-range/:reportID/:transactionID?',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
-            if (!reportID || !transactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_CREATE_DATE_RANGE route`);
-            }
-
-            return getUrlWithBackToParam(`create/split-expense/create-date-range/${reportID}/${transactionID}`, backTo);
-        },
-    },
     SPLIT_EXPENSE_EDIT: {
         route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
         getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
@@ -2395,14 +2445,6 @@ const ROUTES = {
             }
 
             return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
-        },
-    },
-    MONEY_REQUEST_HOLD_REASON: {
-        route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
-            const searchPart = searchHash ? `/${searchHash}` : '';
-            const reportPart = reportID ? `&reportID=${reportID}` : '';
-            return `${type as string}/edit/reason/${transactionID}${searchPart}/?backTo=${backTo}${reportPart}` as const;
         },
     },
     MONEY_REQUEST_CREATE: {
@@ -2447,16 +2489,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
-    },
-    MONEY_REQUEST_STEP_SUBRATE: {
-        route: ':action/:iouType/subrate/:transactionID/:reportID/:backToReport?/:pageIndex',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/0`, backTo),
-    },
-    MONEY_REQUEST_STEP_SUBRATE_EDIT: {
-        route: ':action/:iouType/subrate/:transactionID/:reportID/edit/:pageIndex',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = 0, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}/edit/${pageIndex}`, backTo),
     },
     MONEY_REQUEST_RECEIPT_PREVIEW: {
         route: ':action/:iouType/receipt/:transactionID/:reportID',
@@ -2571,13 +2603,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/distanceRate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
-    MONEY_REQUEST_STEP_PARTICIPANTS: {
-        route: ':action/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', action: IOUAction = 'create', isWorkspacesOnly = false) => {
-            const queryParams = isWorkspacesOnly ? '?isWorkspacesOnly=true' : '';
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}${queryParams}`, backTo);
-        },
-    },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
@@ -2624,12 +2649,6 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/time` as const,
     },
-
-    MONEY_REQUEST_RECEIPT_VIEW: {
-        route: 'receipt-view/:transactionID',
-
-        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view/${transactionID}`, backTo),
-    } as const,
 
     MONEY_REQUEST_STEP_TIME_RATE: {
         route: ':action/:iouType/rate/:transactionID/:reportID/:reportActionID?',
@@ -3108,6 +3127,10 @@ const ROUTES = {
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
         getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/fx-expense-account-selector',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/fx-expense-account-selector` as const,
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'workspaces/:policyID/accounting/:connection/card-reconciliation',
@@ -4608,6 +4631,30 @@ const ROUTES = {
     POLICY_ACCOUNTING_DUALENTRY_IMPORT: {
         route: 'workspaces/:policyID/accounting/dualentry/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/import` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPORT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/expensify-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/expensify-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/default-company-card-vendor` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',

@@ -246,6 +246,7 @@ const WRITE_COMMANDS = {
     MARK_TRANSACTION_VIOLATION_AS_RESOLVED: 'MarkTransactionViolationAsResolved',
     CREATE_DISTANCE_REQUEST: 'CreateDistanceRequest',
     START_SPLIT_BILL: 'StartSplitBill',
+    DISMISS_MARKETING_WINDOW: 'DismissMarketingWindow',
     SEND_MONEY_ELSEWHERE: 'SendMoneyElsewhere',
     SEND_MONEY_WITH_WALLET: 'SendMoneyWithWallet',
     APPROVE_MONEY_REQUEST: 'ApproveMoneyRequest',
@@ -326,6 +327,7 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: 'UpdateQuickbooksOnlineAccountingMethod',
     UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT: 'UpdateQuickbooksOnlineNonReimbursableExpensesAccount',
     UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID: 'UpdateQuickbooksOnlineCollectionAccountID',
+    UPDATE_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT: 'UpdateQuickbooksOnlineFxExpenseAccount',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_REIMBURSED_REPORTS: 'UpdateQuickbooksOnlineSyncReimbursedReports',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_TAX: 'UpdateQuickbooksOnlineSyncTax',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_LOCATIONS: 'UpdateQuickbooksOnlineSyncLocations',
@@ -369,6 +371,7 @@ const WRITE_COMMANDS = {
     REQUEST_WORKSPACE_OWNER_CHANGE: 'RequestWorkspaceOwnerChange',
     ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE: 'AddBillingCardAndRequestPolicyOwnerChange',
     SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
+    SET_WORKSPACE_DISTANCE_AUTO_UPDATE: 'SetWorkspaceDistanceAutoUpdate',
     SET_CUSTOM_UNIT_DEFAULT_CATEGORY: 'SetCustomUnitDefaultCategory',
     ENABLE_DISTANCE_REQUEST_TAX: 'EnableDistanceRequestTax',
     UPDATE_POLICY_DISTANCE_RATE: 'UpdatePolicyDistanceRate',
@@ -532,6 +535,11 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_ENABLE_NEW_CATEGORIES: 'UpdateDualEntryEnableNewCategories',
     UPDATE_DUALENTRY_SYNC_TAX_RATES: 'UpdateDualEntrySyncTaxRates',
     UPDATE_DUALENTRY_FIELD_MAPPING: 'UpdateDualEntryFieldMapping',
+    UPDATE_DUALENTRY_EXPORTER: 'UpdateDualEntryExporter',
+    UPDATE_DUALENTRY_EXPORT_DATE: 'UpdateDualEntryExportDate',
+    UPDATE_DUALENTRY_DEFAULT_VENDOR: 'UpdateDualEntryDefaultVendor',
+    UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT: 'UpdateDualEntryCreditCardAccount',
+    UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: 'UpdateDualEntryExpensifyCardAccount',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -722,6 +730,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE]: Parameters.UpdateAutomaticTimezoneParams;
     [WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE]: Parameters.UpdateSelectedTimezoneParams;
     [WRITE_COMMANDS.UPDATE_USER_AVATAR]: Parameters.UpdateUserAvatarParams;
+    [WRITE_COMMANDS.DISMISS_MARKETING_WINDOW]: Parameters.DismissMarketingWindowParams;
     [WRITE_COMMANDS.DELETE_USER_AVATAR]: null;
     [WRITE_COMMANDS.REFER_TEACHERS_UNITE_VOLUNTEER]: Parameters.ReferTeachersUniteVolunteerParams;
     [WRITE_COMMANDS.ADD_SCHOOL_PRINCIPAL]: Parameters.AddSchoolPrincipalParams;
@@ -979,6 +988,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RENAME_POLICY_TAX]: Parameters.RenamePolicyTaxParams;
     [WRITE_COMMANDS.UPDATE_POLICY_TAX_CODE]: Parameters.UpdatePolicyTaxCodeParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE]: Parameters.SetWorkspaceDistanceAutoUpdateParams;
     [WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY]: Parameters.SetCustomUnitDefaultCategoryParams;
     [WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX]: Parameters.EnableDistanceRequestTaxParams;
     [WRITE_COMMANDS.REPORT_EXPORT]: Parameters.ReportExportParams;
@@ -1020,6 +1030,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD]: Parameters.UpdateQuickbooksOnlineAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_MAPPING]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
@@ -1170,6 +1181,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_ENABLE_NEW_CATEGORIES]: Parameters.UpdateDualEntryEnableNewCategoriesParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TAX_RATES]: Parameters.UpdateDualEntrySyncTaxRatesParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_FIELD_MAPPING]: Parameters.UpdateDualEntryFieldMappingParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPORTER]: Parameters.UpdateDualEntryExporterParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPORT_DATE]: Parameters.UpdateDualEntryExportDateParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_DEFAULT_VENDOR]: Parameters.UpdateDualEntryDefaultVendorParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT]: Parameters.UpdateDualEntryCreditCardAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: Parameters.UpdateDualEntryExpensifyCardAccountParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
