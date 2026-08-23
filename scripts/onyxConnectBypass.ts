@@ -35,8 +35,16 @@ type SuppressedBan = {
     line: number;
 };
 
-const DISABLE_DIRECTIVE_REGEX = /(?:\/\/|\/\*)\s*eslint-disable(?<kind>-next-line|-line)?(?<args>[^\n*]*)/g;
-const ENABLE_DIRECTIVE_REGEX = /(?:\/\/|\/\*)\s*eslint-enable(?<args>[^\n*]*)/g;
+const DISABLE_DIRECTIVE_REGEX = /(?:\/\/\s*eslint-disable(?<lineKind>-next-line|-line)?(?<lineArgs>[^\n]*)|\/\*\s*eslint-disable(?<blockKind>-next-line|-line)?(?<blockArgs>[\s\S]*?)\*\/)/g;
+const ENABLE_DIRECTIVE_REGEX = /(?:\/\/\s*eslint-enable(?<lineArgs>[^\n]*)|\/\*\s*eslint-enable(?<blockArgs>[\s\S]*?)\*\/)/g;
+
+function directiveKind(match: RegExpMatchArray): string | undefined {
+    return match.groups?.lineKind ?? match.groups?.blockKind;
+}
+
+function directiveArgs(match: RegExpMatchArray): string {
+    return match.groups?.lineArgs ?? match.groups?.blockArgs ?? '';
+}
 
 function unwrapExpression(node: ts.Expression): ts.Expression {
     let current = node;
@@ -63,7 +71,10 @@ function collectOnyxConnectCallOffsets(source: string, file: string): number[] {
 }
 
 function normalizedDirectiveArgs(args: string): string {
-    return args.replace(/--.*$/, '').trim();
+    return args
+        .replace(/--[\s\S]*$/, '')
+        .replaceAll(/[\s*]+/g, ' ')
+        .trim();
 }
 
 function directiveTargetsBan(args: string): boolean {
@@ -87,7 +98,7 @@ function lineNumberAtOffset(source: string, offset: number): number {
 
 function blanketDirectiveCoversCall(source: string, match: RegExpMatchArray, callOffsets: number[], enableMatches: RegExpMatchArray[]): boolean {
     const directiveLine = lineNumberAtOffset(source, match.index ?? 0);
-    const kind = match.groups?.kind;
+    const kind = directiveKind(match);
     const directiveEnd = (match.index ?? 0) + match[0].length;
     return callOffsets.some((callOffset) => {
         const callLine = lineNumberAtOffset(source, callOffset);
@@ -105,7 +116,7 @@ function blanketDirectiveCoversCall(source: string, match: RegExpMatchArray, cal
             if (enableOffset <= directiveEnd || enableOffset >= callOffset) {
                 return false;
             }
-            const enableArgs = enableMatch.groups?.args ?? '';
+            const enableArgs = directiveArgs(enableMatch);
             return isBlanketDirective(enableArgs) || directiveTargetsBan(enableArgs);
         });
         return !reenabled;
@@ -121,7 +132,7 @@ function collectDisableDirectivesFromSource(source: string, file: string): Suppr
     const callOffsets = collectOnyxConnectCallOffsets(source, file);
     const enableMatches = [...source.matchAll(ENABLE_DIRECTIVE_REGEX)];
     for (const match of source.matchAll(DISABLE_DIRECTIVE_REGEX)) {
-        const args = match.groups?.args ?? '';
+        const args = directiveArgs(match);
         const targetsBan = directiveTargetsBan(args);
         const coversBan = isBlanketDirective(args) && blanketDirectiveCoversCall(source, match, callOffsets, enableMatches);
         if (!targetsBan && !coversBan) {
