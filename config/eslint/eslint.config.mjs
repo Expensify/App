@@ -722,6 +722,8 @@ const config = defineConfig([
             'tests/tooling/WorkerPool.test.ts',
             'tests/tooling/workerPoolEchoWorker.ts',
             'tests/tooling/workerPoolCrashWorker.ts',
+            'tests/tooling/workerPoolSelectiveCrashWorker.ts',
+            'tests/tooling/workerPoolExitWorker.ts',
         ],
         languageOptions: {
             parserOptions: {

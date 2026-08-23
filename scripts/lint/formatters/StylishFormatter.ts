@@ -16,7 +16,7 @@ function formatMessage(projectRoot: string, message: LintMessage): string {
 }
 
 class StylishFormatter extends Formatter {
-    readonly name = 'report';
+    readonly name = 'stylish';
 
     constructor(
         private readonly projectRoot: string,

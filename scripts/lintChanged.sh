@@ -27,7 +27,7 @@ if ! GIT_DIFF_OUTPUT="$(git diff --diff-filter=AMR --name-only "$MERGE_BASE_SHA_
     exit 1
 fi
 
-# Run eslint on the changed files, forwarding any user-provided flags
+# Run lint on the changed files. Flags must precede paths; this script puts "$@" first.
 if [[ -n "$GIT_DIFF_OUTPUT" ]] ; then
     # shellcheck disable=SC2086 # For multiple files in variable
     exec bun "${TOP}/scripts/lint/index.ts" "$@" $GIT_DIFF_OUTPUT

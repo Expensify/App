@@ -55,6 +55,12 @@ describe('resolveSeatbeltOptions', () => {
         expect(options.allowIncreaseRules).toEqual(new Set(['no-console']));
     });
 
+    it('lets SEATBELT_INCREASE override SEATBELT_READ_ONLY', () => {
+        const options = resolveSeatbeltOptions(root, {SEATBELT_INCREASE: 'no-console', SEATBELT_READ_ONLY: '1'});
+        expect(options.readOnly).toBe(false);
+        expect(options.allowIncreaseRules).toEqual(new Set(['no-console']));
+    });
+
     it('parses SEATBELT_INCREASE=ALL', () => {
         expect(resolveSeatbeltOptions(root, {SEATBELT_INCREASE: 'ALL'}).allowIncreaseRules).toBe('all');
     });
@@ -151,6 +157,12 @@ describe('filterReactCompilerMessages', () => {
         const result = await filterReactCompilerMessages(messages, '/tmp', () => {
             throw new Error('compiler boom');
         });
+        expect(result).toEqual(messages);
+    });
+
+    it('keeps suppressible messages when the source file cannot be read', async () => {
+        const messages = [makeMessage({filePath: '/tmp/does-not-exist.tsx', ruleID: 'react/jsx-no-constructed-context-values'})];
+        const result = await filterReactCompilerMessages(messages, '/tmp');
         expect(result).toEqual(messages);
     });
 });

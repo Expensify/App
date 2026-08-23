@@ -1,4 +1,5 @@
 import {file} from 'bun';
+import path from 'node:path';
 
 import type {LintMessage, ProcessorContext} from '../types';
 
@@ -38,6 +39,10 @@ function cachePath(projectRoot: string, hash: string): string {
     return `${projectRoot}/${CACHE_DIR}/${hash}`;
 }
 
+function cacheKey(fingerprint: string | undefined, filename: string, source: string): string {
+    return Bun.hash(`${fingerprint}\0${path.extname(filename)}\0${source}`).toString(16);
+}
+
 async function getReactCompilerFingerprint(projectRoot: string): Promise<string> {
     const contents = await Promise.all(
         REACT_COMPILER_FINGERPRINT_FILES.map(async (relativePath) => {
@@ -50,8 +55,8 @@ async function getReactCompilerFingerprint(projectRoot: string): Promise<string>
     return Bun.hash(contents.join('\0')).toString(16);
 }
 
-async function readCache(path: string): Promise<boolean | undefined> {
-    const handle = file(path);
+async function readCache(cacheFilePath: string): Promise<boolean | undefined> {
+    const handle = file(cacheFilePath);
     if (!(await handle.exists())) {
         return undefined;
     }
@@ -170,13 +175,22 @@ async function filterReactCompilerMessages(
 
     await Promise.all(
         candidateNames.map(async (filename) => {
-            const source = checkBoth ? '' : await file(filename).text();
+            let source = '';
             if (!checkBoth) {
-                const hash = Bun.hash(`${reactCompilerFingerprint}\0${source}`).toString(16);
-                const cached = await readCache(cachePath(projectRoot, hash));
-                if (cached !== undefined) {
-                    memoized.set(filename, cached);
+                try {
+                    source = await file(filename).text();
+                } catch {
+                    memoized.set(filename, false);
                     return;
+                }
+                try {
+                    const cached = await readCache(cachePath(projectRoot, cacheKey(reactCompilerFingerprint, filename, source)));
+                    if (cached !== undefined) {
+                        memoized.set(filename, cached);
+                        return;
+                    }
+                } catch {
+                    // Conservative: recompute rather than abort the lint.
                 }
             }
             uncached.push({filename, source});
@@ -191,8 +205,11 @@ async function filterReactCompilerMessages(
             if (checkBoth) {
                 return;
             }
-            const hash = Bun.hash(`${reactCompilerFingerprint}\0${candidate.source}`).toString(16);
-            await writeCache(cachePath(projectRoot, hash), bothMemoized);
+            try {
+                await writeCache(cachePath(projectRoot, cacheKey(reactCompilerFingerprint, candidate.filename, candidate.source)), bothMemoized);
+            } catch {
+                // Conservative: skip the cache write rather than abort the lint.
+            }
         }),
     );
 

@@ -121,7 +121,6 @@ function serializeSeatbeltTSV(data: Map<string, SeatbeltFileData>, comments: str
             for (const [ruleID, maxErrorCount] of fileState.maxErrors) {
                 fileState.lines.push({filename, ruleID, maxErrors: maxErrorCount});
             }
-            fileState.lines.sort((a, b) => a.ruleID.localeCompare(b.ruleID));
         }
         for (const line of fileState.lines) {
             line.encoded ??= encodeLine(line);

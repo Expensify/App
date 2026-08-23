@@ -20,6 +20,7 @@
         "WorkerPool.test.ts",
         "workerPoolEchoWorker.ts",
         "workerPoolCrashWorker.ts",
-        "workerPoolSelectiveCrashWorker.ts"
+        "workerPoolSelectiveCrashWorker.ts",
+        "workerPoolExitWorker.ts"
     ]
 }

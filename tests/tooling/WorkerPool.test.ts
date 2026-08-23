@@ -35,6 +35,17 @@ describe('WorkerPool', () => {
         expect(result).toEqual([{n: 2}, {n: 4}, {n: -3}, {n: 8}]);
     });
 
+    it('uses the fallback when a worker exits without an error event', async () => {
+        const pool = new WorkerPool<EchoRequest, EchoResponse>(new URL('./workerPoolExitWorker.ts', import.meta.url), 1);
+        const result = await Promise.race([
+            pool.map([{n: 1}, {n: 2}], (item) => ({n: -item.n})),
+            new Promise<EchoResponse[]>((_, reject) => {
+                setTimeout(() => reject(new Error('WorkerPool hung after worker exit')), 5_000);
+            }),
+        ]);
+        expect(result).toEqual([{n: -1}, {n: -2}]);
+    });
+
     it('returns an empty array for no items', async () => {
         const pool = new WorkerPool<EchoRequest, EchoResponse>(new URL('./workerPoolEchoWorker.ts', import.meta.url), 2);
         expect(await pool.map([], (item) => ({n: item.n}))).toEqual([]);

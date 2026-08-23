@@ -63,6 +63,18 @@ class WorkerPool<TRequest, TResponse> {
                 worker.postMessage(next.item);
             };
 
+            const fail = () => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                if (inFlight) {
+                    results.set(inFlight.index, fallback(inFlight.item));
+                    inFlight = undefined;
+                }
+                resolve();
+            };
+
             worker.addEventListener('message', (event: MessageEvent<TResponse>) => {
                 if (settled) {
                     return;
@@ -74,17 +86,9 @@ class WorkerPool<TRequest, TResponse> {
                 pump();
             });
 
-            worker.addEventListener('error', () => {
-                if (settled) {
-                    return;
-                }
-                settled = true;
-                if (inFlight) {
-                    results.set(inFlight.index, fallback(inFlight.item));
-                    inFlight = undefined;
-                }
-                resolve();
-            });
+            worker.addEventListener('error', fail);
+            worker.addEventListener('messageerror', fail);
+            worker.addEventListener('close', fail);
 
             pump();
         });
