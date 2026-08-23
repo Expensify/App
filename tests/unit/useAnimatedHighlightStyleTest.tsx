@@ -26,6 +26,7 @@ const ENTRY_DURATION = 111;
 const PULSE_START_DURATION = 222;
 const PULSE_END_DURATION = 333;
 
+const {scheduleOnRN: scheduleOnRNMock} = jest.requireMock<{scheduleOnRN: jest.Mock}>('react-native-worklets');
 const reanimated = jest.requireMock<typeof ReanimatedModule>('react-native-reanimated');
 const timingSpy = jest.spyOn(reanimated, 'withTiming');
 const sequenceSpy = jest.spyOn(reanimated, 'withSequence');
@@ -78,6 +79,7 @@ function renderHarness(shouldHighlight: boolean) {
 
 describe('useAnimatedHighlightStyle', () => {
     beforeEach(() => {
+        scheduleOnRNMock.mockImplementation((callback: (...args: unknown[]) => void, ...args: unknown[]) => callback(...args));
         timingSpy.mockClear();
         sequenceSpy.mockClear();
         jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: true});
@@ -198,5 +200,27 @@ describe('useAnimatedHighlightStyle', () => {
         jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: true});
         setShouldHighlight(true);
         expect(entryPlays()).toBe(1);
+    });
+
+    it('does not pulse a row whose highlight was retracted while the entry was still playing', () => {
+        const queued: Array<() => void> = [];
+        scheduleOnRNMock.mockImplementation((callback: () => void) => {
+            queued.push(callback);
+        });
+        const flush = () => {
+            for (const callback of queued.splice(0)) {
+                callback();
+            }
+        };
+
+        const {setShouldHighlight} = renderHarness(true);
+        flush();
+        expect(entryPlays()).toBe(1);
+        expect(pulsePlays()).toBe(0);
+
+        setShouldHighlight(false);
+        flush();
+
+        expect(pulsePlays()).toBe(0);
     });
 });

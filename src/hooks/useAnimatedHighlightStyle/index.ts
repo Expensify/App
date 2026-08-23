@@ -118,6 +118,13 @@ export default function useAnimatedHighlightStyle({
                 ),
             );
         };
+        // Runs on the JS thread, where a highlight retracted mid-entry is still visible, so a recycled row cannot pulse.
+        const pulseIfStillHighlighted = () => {
+            if (!prevShouldHighlightRef.current) {
+                return;
+            }
+            playPulse();
+        };
         const playEntryThenPulse = () => {
             scheduleOnRN(() => {
                 nonRepeatableProgress.set(
@@ -128,7 +135,7 @@ export default function useAnimatedHighlightStyle({
                                 return;
                             }
                             // This callback runs on the UI thread, so the pulse hops back to JS once.
-                            scheduleOnRN(playPulse);
+                            scheduleOnRN(pulseIfStillHighlighted);
                         }),
                     ),
                 );
