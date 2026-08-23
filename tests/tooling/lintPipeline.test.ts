@@ -3,7 +3,7 @@ import {describe, expect, it} from 'bun:test';
 import type {LintMessage, RawLintOutput} from '../../scripts/lint/types';
 
 import {resolveSeatbeltOptions} from '../../scripts/lint/args';
-import {normalizeEslintResults} from '../../scripts/lint/eslint';
+import {normalizeEslintResults, parseEslintStdout} from '../../scripts/lint/eslint';
 import {runPostprocess} from '../../scripts/lint/pipeline';
 import {filterReactCompilerMessages} from '../../scripts/lint/reactCompilerFilter';
 import {stratifyMessages} from '../../scripts/lint/stratifyNoDeprecated';
@@ -130,6 +130,14 @@ describe('filterReactCompilerMessages', () => {
         const result = await filterReactCompilerMessages(messages, '/tmp', () => true);
         expect(result).toEqual(messages);
     });
+
+    it('keeps suppressible messages when a compiler check throws', async () => {
+        const messages = [makeMessage({ruleId: 'react/jsx-no-constructed-context-values'})];
+        const result = await filterReactCompilerMessages(messages, '/tmp', () => {
+            throw new Error('compiler boom');
+        });
+        expect(result).toEqual(messages);
+    });
 });
 
 describe('stratifyMessages', () => {
@@ -161,5 +169,25 @@ describe('runPostprocess', () => {
         });
         expect(result.exitCode).toBe(2);
         expect(result.reportText).toBe('oops');
+    });
+
+    it('treats a JSON parse failure with ESLint exit 0 or 1 as fatal', async () => {
+        const parsed = parseEslintStdout('not json', '', 1);
+        expect(parsed.linterExitCode).toBe(2);
+        expect(parsed.results).toEqual([]);
+        expect(parsed.stderr).toContain('Failed to parse ESLint JSON output');
+
+        const result = await runPostprocess({
+            raw: parsed,
+            options: resolveSeatbeltOptions('/tmp', {SEATBELT_DISABLE: '1'}),
+            showWarnings: false,
+        });
+        expect(result.exitCode).toBe(2);
+        expect(result.reportText).toContain('Failed to parse ESLint JSON output');
+        expect(parseEslintStdout('', '', 0).linterExitCode).toBe(2);
+    });
+
+    it('preserves a linter crash exit code above 2 on parse failure', () => {
+        expect(parseEslintStdout('', 'oom', 137).linterExitCode).toBe(137);
     });
 });

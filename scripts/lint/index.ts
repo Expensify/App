@@ -21,7 +21,7 @@ import Timings from './timings';
 
 const projectRoot = `${import.meta.dir}/../..`;
 
-const cli = parseCliArgs(process.argv.slice(2));
+const cli = parseCliArgs();
 const timings = new Timings();
 const seatbeltOptions = resolveSeatbeltOptions(projectRoot);
 
@@ -43,7 +43,13 @@ if (cli.dumpRawPath) {
     if (cli.showTimings) {
         console.error(timings.format());
     }
-    process.exit(raw.linterExitCode > 1 ? raw.linterExitCode : 0);
+    if (raw.linterExitCode > 1) {
+        if (raw.stderr.trim()) {
+            console.error(raw.stderr.trim());
+        }
+        process.exit(raw.linterExitCode);
+    }
+    process.exit(0);
 }
 
 const result = await runPostprocess({raw, options: seatbeltOptions, showWarnings: cli.showWarnings, timings});

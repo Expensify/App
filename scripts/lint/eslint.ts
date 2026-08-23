@@ -99,26 +99,42 @@ async function runEslint(options: RunEslintOptions): Promise<RawLintOutput> {
         .nothrow()
         .quiet();
 
-    const stdout = result.stdout.toString();
-    const stderr = result.stderr.toString();
-    const jsonText = extractJsonArray(stdout);
+    return parseEslintStdout(result.stdout.toString(), result.stderr.toString(), result.exitCode);
+}
 
+const PARSE_FAILURE_EXIT_CODE = 2;
+
+function parseFailureOutput(stdout: string, stderr: string, exitCode: number): RawLintOutput {
+    return {
+        results: [],
+        linterExitCode: Math.max(PARSE_FAILURE_EXIT_CODE, exitCode),
+        stderr: `${stderr}\nFailed to parse ESLint JSON output.\n${stdout.slice(0, 500)}`,
+    };
+}
+
+/**
+ * Turn ESLint stdout into structured results. A missing/invalid JSON payload is
+ * fatal (`linterExitCode > 1`) even when ESLint itself exited 0 or 1 — otherwise
+ * the pipeline would flatten zero messages and report a clean pass.
+ */
+function parseEslintStdout(stdout: string, stderr: string, exitCode: number): RawLintOutput {
+    const jsonText = extractJsonArray(stdout);
     if (!jsonText) {
-        return {results: [], linterExitCode: result.exitCode === 0 ? 1 : result.exitCode, stderr: `${stderr}\nFailed to parse ESLint JSON output.\n${stdout.slice(0, 500)}`};
+        return parseFailureOutput(stdout, stderr, exitCode);
     }
 
     let parsed: unknown;
     try {
         parsed = JSON.parse(jsonText);
     } catch {
-        return {results: [], linterExitCode: result.exitCode === 0 ? 1 : result.exitCode, stderr: `${stderr}\nFailed to parse ESLint JSON output.\n${stdout.slice(0, 500)}`};
+        return parseFailureOutput(stdout, stderr, exitCode);
     }
     if (!Array.isArray(parsed)) {
-        return {results: [], linterExitCode: result.exitCode === 0 ? 1 : result.exitCode, stderr: `${stderr}\nFailed to parse ESLint JSON output.\n${stdout.slice(0, 500)}`};
+        return parseFailureOutput(stdout, stderr, exitCode);
     }
 
-    return {results: normalizeEslintResults(parsed.filter(isEslintJsonResult)), linterExitCode: result.exitCode, stderr};
+    return {results: normalizeEslintResults(parsed.filter(isEslintJsonResult)), linterExitCode: exitCode, stderr};
 }
 
-export {flattenResults, normalizeEslintResults, runEslint};
+export {flattenResults, normalizeEslintResults, parseEslintStdout, runEslint};
 export type {EslintJsonResult, RunEslintOptions};

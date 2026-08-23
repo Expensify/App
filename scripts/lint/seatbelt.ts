@@ -378,7 +378,7 @@ function updateMaxErrors(
     return {removedRules, changed: changed && !options.frozen};
 }
 
-function frozenRemovedRuleMessages(filename: string, removedRules: Set<string>, maxErrorsBefore: ReadonlyMap<string, number> | undefined): LintMessage[] {
+function frozenRemovedRuleMessages(filename: string, seatbeltFile: string, removedRules: Set<string>, maxErrorsBefore: ReadonlyMap<string, number> | undefined): LintMessage[] {
     if (removedRules.size === 0) {
         return [];
     }
@@ -393,7 +393,7 @@ function frozenRemovedRuleMessages(filename: string, removedRules: Set<string>, 
             column: 0,
             line: 1,
             severity: 2 as const,
-            message: messageFrozenUnderMaxErrorCountText(filename, 0, maxErrorCount),
+            message: messageFrozenUnderMaxErrorCountText(seatbeltFile, 0, maxErrorCount),
         };
     });
 }
@@ -462,7 +462,7 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
         const {removedRules, changed} = updateMaxErrors(options, data, filename, ruleToErrorCount);
         anyChanged ||= changed;
         if (options.frozen && removedRules.size > 0) {
-            transformed.push(...after, ...frozenRemovedRuleMessages(filename, removedRules, maxErrorsBeforeCopy));
+            transformed.push(...after, ...frozenRemovedRuleMessages(filename, options.seatbeltFile, removedRules, maxErrorsBeforeCopy));
         } else {
             transformed.push(...after);
         }
@@ -485,12 +485,12 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
         anyChanged = true;
         pruned++;
     }
-    if (pruned > 0) {
-        console.log(`eslint-seatbelt: removed ${pruned} baseline row(s) for deleted files`);
-    }
-
     const tsv = serializeSeatbeltTsv(data, comments || DEFAULT_FILE_HEADER);
     const shouldWrite = anyChanged && !options.frozen && !options.readOnly;
+    if (pruned > 0) {
+        const verb = shouldWrite ? 'removed' : 'would remove';
+        console.log(`eslint-seatbelt: ${verb} ${pruned} baseline row(s) for deleted files`);
+    }
     if (shouldWrite) {
         await writeTsvAtomically(options.seatbeltFile, tsv);
     }

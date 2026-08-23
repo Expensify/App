@@ -1,3 +1,5 @@
+import CLI from 'expensify-common/CLI';
+
 import type {SeatbeltOptions, SeatbeltRuleSet} from './types';
 
 const SEATBELT_TSV_RELATIVE = 'config/eslint/eslint.seatbelt.tsv';
@@ -10,7 +12,6 @@ type LintCliArgs = {
     fromRawPath: string | undefined;
     showTimings: boolean;
     lintTargets: string[];
-    passthroughArgs: string[];
 };
 
 /**
@@ -42,46 +43,55 @@ function parseRuleSetEnvVar(value: string | undefined): SeatbeltRuleSet | undefi
     return new Set(value.split(/[\s,]+/g).filter(Boolean));
 }
 
-function parseCliArgs(argv: string[]): LintCliArgs {
-    let useCache = true;
-    let showWarnings = false;
-    let fix = false;
-    let dumpRawPath: string | undefined;
-    let fromRawPath: string | undefined;
-    let showTimings = readBooleanEnvVar(process.env.LINT_TIMINGS) ?? false;
-    const passthroughArgs: string[] = [];
+function parseCliArgs(): LintCliArgs {
+    /* CLI argv uses kebab-case for flags documented in help */
+    /* eslint-disable @typescript-eslint/naming-convention */
+    const cli = new CLI({
+        flags: {
+            'no-cache': {
+                description: 'Disable the ESLint content cache',
+            },
+            'show-warnings': {
+                description: 'Include grandfathered seatbelt warnings in the report',
+            },
+            fix: {
+                description: 'Apply ESLint auto-fixes',
+            },
+            timings: {
+                description: 'Print per-stage wall times',
+            },
+        },
+        namedArgs: {
+            'dump-raw': {
+                description: 'Write unprocessed linter JSON to this path and stop',
+                required: false,
+            },
+            'from-raw': {
+                description: 'Skip ESLint and post-process a captured dump instead',
+                required: false,
+            },
+        },
+        positionalArgs: [
+            {
+                name: 'targets',
+                description: 'Files or directories to lint (default: the whole repo)',
+                variadic: true,
+                default: ['.'],
+            },
+        ],
+    });
+    /* eslint-enable @typescript-eslint/naming-convention */
 
-    for (let i = 0; i < argv.length; i++) {
-        const arg = argv.at(i);
-        if (arg === '--no-cache') {
-            useCache = false;
-        } else if (arg === '--show-warnings') {
-            showWarnings = true;
-        } else if (arg === '--fix') {
-            fix = true;
-        } else if (arg === '--timings') {
-            showTimings = true;
-        } else if (arg === '--dump-raw') {
-            dumpRawPath = argv.at(++i);
-            if (!dumpRawPath) {
-                throw new Error('--dump-raw requires a file path');
-            }
-        } else if (arg?.startsWith('--dump-raw=')) {
-            dumpRawPath = arg.slice('--dump-raw='.length);
-        } else if (arg === '--from-raw') {
-            fromRawPath = argv.at(++i);
-            if (!fromRawPath) {
-                throw new Error('--from-raw requires a file path');
-            }
-        } else if (arg?.startsWith('--from-raw=')) {
-            fromRawPath = arg.slice('--from-raw='.length);
-        } else if (arg !== undefined) {
-            passthroughArgs.push(arg);
-        }
-    }
-
-    const lintTargets = passthroughArgs.length > 0 ? passthroughArgs : ['.'];
-    return {useCache, showWarnings, fix, dumpRawPath, fromRawPath, showTimings, lintTargets, passthroughArgs};
+    const lintTargets = cli.positionalArgs.targets.length > 0 ? cli.positionalArgs.targets : ['.'];
+    return {
+        useCache: !cli.flags['no-cache'],
+        showWarnings: cli.flags['show-warnings'],
+        fix: cli.flags.fix,
+        dumpRawPath: cli.namedArgs['dump-raw'],
+        fromRawPath: cli.namedArgs['from-raw'],
+        showTimings: cli.flags.timings || (readBooleanEnvVar(process.env.LINT_TIMINGS) ?? false),
+        lintTargets,
+    };
 }
 
 /**

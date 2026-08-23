@@ -2,6 +2,8 @@ import {file} from 'bun';
 
 import type {LintMessage} from './types';
 
+import WorkerPool from '../utils/WorkerPool';
+
 const RULES_SUPPRESSED_BY_REACT_COMPILER = new Set(['react/jsx-no-constructed-context-values', 'rulesdir/no-inline-useOnyx-selector']);
 const EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN = /\buseCallback\(\) Hook\b|\buseMemo\(\) Hook\b/;
 const CACHE_DIR = 'node_modules/.cache/react-compiler';
@@ -50,6 +52,15 @@ type Candidate = {
     source: string;
 };
 
+type CompilerWorkerResponse = {
+    filename: string;
+    bothMemoized: boolean;
+};
+
+function unmemoizedFallback(candidate: Candidate): CompilerWorkerResponse {
+    return {filename: candidate.filename, bothMemoized: false};
+}
+
 async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: CompilerCheck | undefined, workerCount: number): Promise<Map<string, boolean>> {
     const memoized = new Map<string, boolean>();
     if (candidates.length === 0) {
@@ -59,46 +70,22 @@ async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: Compi
     if (checkBoth) {
         await Promise.all(
             candidates.map(async (candidate) => {
-                memoized.set(candidate.filename, await checkBoth(candidate.source, candidate.filename));
+                try {
+                    memoized.set(candidate.filename, await checkBoth(candidate.source, candidate.filename));
+                } catch {
+                    // Conservative: keep the message rather than aborting the whole lint.
+                    memoized.set(candidate.filename, false);
+                }
             }),
         );
         return memoized;
     }
 
-    const poolSize = Math.max(1, Math.min(workerCount, candidates.length));
-    const queue = [...candidates];
-    const workers = Array.from({length: poolSize}, () => new Worker(new URL('./reactCompilerWorker.ts', import.meta.url)));
-
-    try {
-        await Promise.all(
-            workers.map(
-                (createdWorker) =>
-                    new Promise<void>((resolve, reject) => {
-                        const pump = () => {
-                            const next = queue.pop();
-                            if (!next) {
-                                resolve();
-                                return;
-                            }
-                            createdWorker.postMessage(next);
-                        };
-                        createdWorker.addEventListener('message', (event: MessageEvent<{filename: string; bothMemoized: boolean}>) => {
-                            memoized.set(event.data.filename, event.data.bothMemoized);
-                            pump();
-                        });
-                        createdWorker.addEventListener('error', (error) => {
-                            reject(error);
-                        });
-                        pump();
-                    }),
-            ),
-        );
-    } finally {
-        for (const worker of workers) {
-            worker.terminate();
-        }
+    const pool = new WorkerPool<Candidate, CompilerWorkerResponse>(new URL('./reactCompilerWorker.ts', import.meta.url), workerCount);
+    const responses = await pool.map(candidates, unmemoizedFallback);
+    for (const response of responses) {
+        memoized.set(response.filename, response.bothMemoized);
     }
-
     return memoized;
 }
 

@@ -94,6 +94,8 @@ describe('transformMessages', () => {
         const result = transformMessages(makeOptions({frozen: true}), data, '/tmp/src/file.ts', [makeMessage('no-console'), makeMessage('no-console', {line: 2})]);
         expect(result.at(0)?.severity).toBe(1);
         expect(result.at(0)?.message).toContain('SEATBELT_FROZEN');
+        expect(result.at(0)?.message).toContain('eslint.seatbelt.tsv');
+        expect(result.at(0)?.message).not.toContain('/tmp/src/file.ts');
     });
 
     it('leaves unbaselined rules untouched', () => {
@@ -229,6 +231,18 @@ describe('applySeatbelt', () => {
 
         expect(result.wrote).toBe(false);
         expect(await Bun.file(tsvPath).text()).toBe(original);
+    });
+
+    it('names the TSV path when a frozen run drops a rule entirely', async () => {
+        const dir = await tempDir();
+        await writeFile(path.join(dir, 'kept.ts'), 'x\n');
+        const tsvPath = path.join(dir, 'eslint.seatbelt.tsv');
+        await writeFile(tsvPath, `"kept.ts"\t"no-console"\t1\n`);
+
+        const result = await applySeatbelt([], makeOptions({seatbeltFile: tsvPath, projectRoot: dir, frozen: true, readOnly: false}), [path.join(dir, 'kept.ts')]);
+
+        expect(result.messages.some((message) => message.message.includes(tsvPath) && message.message.includes('SEATBELT_FROZEN'))).toBe(true);
+        expect(result.messages.some((message) => message.message.includes('kept.ts') && !message.message.includes(tsvPath))).toBe(false);
     });
 
     it('is a no-op when SEATBELT_DISABLE is set', async () => {

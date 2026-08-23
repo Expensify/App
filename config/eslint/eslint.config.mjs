@@ -715,7 +715,14 @@ const config = defineConfig([
     {
         // CIGitLogic is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
         // be pointed at the project that does own it. See tests/tooling/README.md.
-        files: ['tests/tooling/CIGitLogic.test.ts', 'tests/tooling/lintSeatbelt.test.ts', 'tests/tooling/lintPipeline.test.ts'],
+        files: [
+            'tests/tooling/CIGitLogic.test.ts',
+            'tests/tooling/lintSeatbelt.test.ts',
+            'tests/tooling/lintPipeline.test.ts',
+            'tests/tooling/WorkerPool.test.ts',
+            'tests/tooling/workerPoolEchoWorker.ts',
+            'tests/tooling/workerPoolCrashWorker.ts',
+        ],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tests/tooling/tsconfig.json'),
@@ -727,7 +734,7 @@ const config = defineConfig([
     {
         // lint.ts is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
         // be pointed at the project that does own it. See scripts/tsconfig.json.
-        files: ['scripts/lint.ts', 'scripts/lint/**/*.ts', 'scripts/checkOnyxConnectBypass.ts'],
+        files: ['scripts/lint.ts', 'scripts/lint/**/*.ts', 'scripts/checkOnyxConnectBypass.ts', 'scripts/utils/WorkerPool.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'scripts/tsconfig.json'),
