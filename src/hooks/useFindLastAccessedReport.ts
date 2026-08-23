@@ -23,13 +23,7 @@ type UseFindLastAccessedReportResult = {
     reportNameValuePairsMetadata: ResultMetadata | undefined;
 };
 
-/**
- * Resolves the last accessed report for navigation fallbacks from a view-scoped
- * subscription, so callers do not thread the reports and name-value-pairs collections
- * through themselves. The lookup runs inside the reports selector, so the component
- * only re-renders when the resolved report changes. `enabled` short-circuits the
- * selector when no lookup is needed.
- */
+/** Resolves the last accessed report for navigation fallbacks from a view-scoped subscription. */
 function useFindLastAccessedReport(options: UseFindLastAccessedReportOptions): UseFindLastAccessedReportResult {
     const {ignoreDomainRooms, openOnAdminRoom = false, excludeReportID, enabled = true} = options;
     const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
