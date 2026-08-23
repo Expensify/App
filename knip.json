@@ -79,7 +79,6 @@
         "eslint-config-prettier",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
-        "@vercel/ncc",
         "bun",
         "shellcheck",
         "patch-package",

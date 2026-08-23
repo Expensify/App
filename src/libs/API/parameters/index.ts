@@ -60,6 +60,11 @@ export type {default as UpdateDualEntrySubsidiaryParams} from './UpdateDualEntry
 export type {default as UpdateDualEntryEnableNewCategoriesParams} from './UpdateDualEntryEnableNewCategoriesParams';
 export type {default as UpdateDualEntryFieldMappingParams} from './UpdateDualEntryFieldMappingParams';
 export type {default as UpdateDualEntrySyncTaxRatesParams} from './UpdateDualEntrySyncTaxRatesParams';
+export type {default as UpdateDualEntryExporterParams} from './UpdateDualEntryExporterParams';
+export type {default as UpdateDualEntryExportDateParams} from './UpdateDualEntryExportDateParams';
+export type {default as UpdateDualEntryDefaultVendorParams} from './UpdateDualEntryDefaultVendorParams';
+export type {default as UpdateDualEntryCreditCardAccountParams} from './UpdateDualEntryCreditCardAccountParams';
+export type {default as UpdateDualEntryExpensifyCardAccountParams} from './UpdateDualEntryExpensifyCardAccountParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
@@ -307,6 +312,7 @@ export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMore
 export type {default as OpenPolicyMemberProfilePageParams} from './OpenPolicyMemberProfilePageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
+export type {default as SetWorkspaceDistanceAutoUpdateParams} from './SetWorkspaceDistanceAutoUpdateParams';
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
 export type {default as SetCustomUnitDefaultCategoryParams} from './SetCustomUnitDefaultCategoryParams';
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
@@ -597,3 +603,4 @@ export type {default as ClearExportDownloadParams} from './ClearExportDownloadPa
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
 export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';
+export type {default as DismissMarketingWindowParams} from './DismissMarketingWindow';

@@ -27,6 +27,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Dejar de compartir',
         yes: 'Sí',
         no: 'No',
+        dontChange: 'No cambiar',
         ok: 'OK',
         notNow: 'Ahora no',
         noThanks: 'No, gracias',
@@ -982,7 +983,6 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Reembolsado últimos 30 días',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transacciones recientes • ${lastFour}`,
         },
-        announcements: 'Anuncios',
         discoverSection: {
             title: 'Descubrir',
             menuItemTitleNonAdmin: 'Aprende a crear gastos y enviar informes.',
@@ -1229,6 +1229,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Crear gasto de tiempo',
     },
     iou: {
+        expenseAdded: 'Gasto añadido',
+        invoiceSent: 'Factura enviada',
         amount: 'Importe',
         percent: 'Porcentaje',
         date: 'Fecha',
@@ -1503,7 +1505,11 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLargeReduceRate: 'El importe total es demasiado alto. Disminuye la tarifa.',
             odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
             unableToSubmitReport: 'No se puede enviar el informe',
+            unableToMarkAsDone: 'No se puede marcar como listo',
             allTransactionsPendingDescription: 'No puedes enviar este informe porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
+            allTransactionsPendingMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
+            allExpensesOnHoldDescription: 'No puedes enviar este informe porque todos los gastos están retenidos. Elimina la retención para enviarlo.',
+            allExpensesOnHoldMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todos los gastos están retenidos. Elimina la retención para continuar.',
             stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
             failedToSaveOdometerDraft: 'No se pudo guardar el borrador del odómetro. Por favor, inténtalo de nuevo.',
             invalidIntegerAmount: 'Por favor, introduce un importe entero en dólares antes de continuar',
@@ -1598,6 +1604,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Retener',
+        sendToSomeone: 'Enviar a alguien',
         unhold: 'Desbloquear',
         holdEducationalTitle: '¿Deberías retener este gasto?',
         whatIsHoldExplain: 'Retener es como presionar "pausa" en un gasto hasta que estés listo para enviarlo.',
@@ -1695,8 +1702,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Los informes están limitados a ${CONST.REPORT.MAX_TRANSACTIONS} gastos. Por favor, mueve algunos a otro informe.`,
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
         submitReportTo: {
-            sendExpense: 'Envía tu gasto a cualquier persona',
+            sendExpense: 'Envía a cualquiera',
             sendExpenseSubtitle: 'Invita a cualquiera a Expensify usando su dirección de correo electrónico o número de teléfono.',
+            selectRecipientError: 'Selecciona o introduce un destinatario para continuar.',
         },
         changeApprover: {
             title: 'Cambiar aprobador',
@@ -4414,6 +4422,10 @@ ${amount} para ${merchant} - ${date}`,
             railCard:
                 '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Los viajes no están habilitados',
+            message: 'Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
+        },
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',
@@ -4517,7 +4529,7 @@ ${amount} para ${merchant} - ${date}`,
             subscription: 'Suscripción',
             markAsEntered: 'Marcar como introducido manualmente',
             markAsExported: 'Marcar como exportado',
-            exportIntegrationSelected: (connectionName) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `Exportar a ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
             lineItemLevel: 'Nivel de partida',
@@ -4858,6 +4870,9 @@ ${amount} para ${merchant} - ${date}`,
                 qboInvoiceCollectionAccount: (integrationName = 'QuickBooks Online') => `Cuenta de cobro de las facturas ${integrationName}`,
                 accountSelectDescription: (integrationName = 'QuickBooks Online') => `Elige desde dónde pagar las facturas y crearemos el pago en ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') => `Elige dónde recibir los pagos de facturas y crearemos el pago en ${integrationName}.`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `Cuenta de comisión por conversión de moneda de ${integrationName}`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
+                    `Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en ${integrationName} como un asiento contable.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en ${integrationName}. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.`,
@@ -5655,11 +5670,62 @@ ${amount} para ${merchant} - ${date}`,
             subsidiarySelectDescription: 'Elige la filial en DualEntry de la que te gustaría importar datos.',
             noCompaniesFound: 'No se han encontrado empresas',
             noCompaniesFoundDescription: 'Por favor, añade una empresa en DualEntry y sincroniza la conexión de nuevo',
+            noVendorsFound: 'No se han encontrado proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en DualEntry y sincroniza la conexión de nuevo',
+            noAccountsFound: 'No se han encontrado cuentas',
+            noAccountsFoundDescription: 'Por favor, añade cuentas en DualEntry y sincroniza la conexión de nuevo',
             accountTypesDescription: 'Tus cuentas de DualEntry se importarán como categorías.',
             enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
             enableNewAccountsDescription: 'Las nuevas cuentas DualEntry estarán disponibles como categorías.',
             classificationsImport: 'Todas las clasificaciones de DualEntry se importan como etiquetas',
             importDescription: 'Elige qué configuraciones de codificación importar desde DualEntry.',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a DualEntry.',
+            exportReimbursable: {
+                label: 'Exportar gastos reembolsables como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Facturas de proveedor',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Fecha de factura del proveedor',
+                description: 'Usa esta fecha al exportar informes a DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en que se exportó el informe a DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en que se envió el informe para su aprobación.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Exportar gastos de tarjetas de empresa como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Gastos directos',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Proveedor predeterminado para todas las tarjetas de empresa',
+                description: 'Elige un proveedor DualEntry predeterminado para los gastos que no se asignen automáticamente.',
+            },
+            companyCardAccount: {
+                label: 'Cuenta de tarjeta de empresa',
+                description: 'Elige dónde exportar las transacciones de las tarjetas de la empresa.',
+            },
+            expensifyCardAccount: {
+                label: 'Cuenta de la Tarjeta Expensify',
+                description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
+            },
         },
         type: {
             free: 'Gratis',
@@ -6909,8 +6975,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 chooseLimitType: 'Elegir un tipo de límite',
                 smartLimit: 'Límite inteligente',
                 smartLimitDescription: 'Gasta hasta un determinado importe antes de requerir aprobación',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Gasta hasta un determinado importe antes de requerir aprobación. <a href="${workspaceWorkflowsLink}">Habilita las aprobaciones</a> para seleccionar esta opción.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Gasta hasta un determinado importe antes de requerir aprobación. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Habilita las aprobaciones</a>` : 'Habilita las aprobaciones'} para seleccionar esta opción.</muted-text-label>`,
                 monthly: 'Mensual',
                 monthlyDescription: 'Gasta hasta un determinado importe al mes',
                 fixedAmount: 'Importe fijo',
@@ -7042,6 +7108,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             authenticationError: (providerName: string) => `No se puede conectar a ${providerName} porque la conexión ha caducado.`,
             reconnect: 'Volver a conectar',
             reconnectLink: 'Volver a conectar.',
+            findIntegration: 'Buscar integración',
         },
         export: {
             notReadyHeading: 'No está listo para exportar',
@@ -7145,6 +7212,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             startDate: 'Fecha de inicio',
             endDate: 'Fecha de fin',
             autoGeneratedRateTooltip: 'Esta tasa se genera automáticamente.',
+            autoUpdateGovernmentRate: 'Actualizar automáticamente las tasas gubernamentales',
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Crea automáticamente nuevas tasas cuando ${countryPhrase} publique nuevas directrices.`,
+            governmentRateCountries: {US: 'Estados Unidos', CA: 'Canadá', GB: 'Gran Bretaña', AU: 'Australia'},
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -7231,26 +7301,32 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         exportAgainModal: {
             title: '¡Cuidado!',
-            description: (reportName, connectionName) =>
-                `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. ¿Estás seguro de que deseas exportarlos de nuevo?\n\n${reportName}`,
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `Los siguientes informes ya se han exportado a ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. ¿Seguro que quieres exportarlos de nuevo?
+
+${reportName}`,
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
         },
         exportDifferentCompaniesModal: {
             title: '¡Cuidado!',
-            description: (connectionName) =>
-                `Los informes seleccionados están conectados a diferentes empresas de ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, por lo que no se pueden exportar juntos. Selecciona informes conectados a la misma empresa e inténtalo de nuevo.`,
+            description: (connectionName, connectionNameFriendly) =>
+                `Los informes seleccionados están conectados a diferentes empresas ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, por lo que no se pueden exportar juntos. Selecciona informes conectados a la misma empresa e inténtalo de nuevo.`,
             confirmText: 'Entendido',
         },
         exportPartialModal: {
-            title: (exportableCount, selectedCount, integration) => `¿Exportar ${exportableCount}/${selectedCount} informes a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
-            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports) => {
+            title: (exportableCount, selectedCount, integration, connectionNameFriendly) =>
+                `¿Exportar ${exportableCount}/${selectedCount} informes a ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports, connectionNameFriendly) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Solo se exportarán los informes conectados a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                    reasons.push(`Solo se exportarán los informes conectados a ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Solo se exportarán los informes aptos para la exportación.`);
+                    reasons.push(`Solo se exportarán los informes que sean aptos para exportarse.`);
                 }
                 return `${reasons.join('\n\n')}\n\nSe exportarán los siguientes informes:`;
             },
@@ -7532,6 +7608,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 description: 'Si quieres que los enlaces de tus recibos sean accesibles para cualquiera, como un cliente o un contable externo, esta función es para ti.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La visibilidad pública de recibos solo está disponible en el plan Controlar, desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            governmentDistanceRates: {
+                title: 'Actualizar automáticamente las tasas gubernamentales',
+                description: 'Si quieres que Expensify mantenga tus tasas de kilometraje actualizadas cada vez que tu gobierno publique nuevas directrices, esta función es para ti.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La actualización automática de tasas gubernamentales solo está disponible en el plan Controlar, desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -7880,6 +7962,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 restrictMerchantsBlockSubtitle: 'Los cargos se aprueban para monedas permitidas que no superen un importe máximo, o cuando el comercio o el tipo de comercio coinciden.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'divisas' : 'moneda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
+                defaultRulesCannotBeDeleted: 'Las reglas predeterminadas no se pueden eliminar',
             },
             agentRules: {
                 title: 'Reglas del agente',
@@ -8298,6 +8381,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `actualizó la regla de agente «${title}» a: ${prompt}` : `actualizó una regla de agente a: ${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `eliminó la regla de agente «${title}»` : 'eliminó una regla de agente'),
         },
+        addedRule: 'añadió una regla',
+        updatedRule: 'actualizó una regla',
+        removedRule: 'eliminó una regla',
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'más de', under: 'debajo'},
@@ -8717,6 +8803,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'deshabilitado'} el requisito de categorización de gastos`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'deshabilitado'} el requisito de etiquetado de gastos`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `actualizó el ajuste de la comisión por conversión de moneda a «${preferenceLabel}»`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no es obligatorio'} (previamente ${newValue ? 'no es obligatorio' : 'obligatorio'})`;
         },
@@ -10593,8 +10680,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nuevos tipos de roles para admins',
-                body: 'Ofrece a tu equipo permisos más granulares con los nuevos roles de administrador de tarjetas, personas y pagos.',
+                heading: 'Asignación de proveedores mejorada',
+                body: 'Crea proveedores y reglas personalizadas para facilitar la asignación a los principales paquetes de contabilidad.',
+                cta: 'Pruébalo',
+            },
+            member: {
+                heading: 'Agentes preconfigurados para ti',
+                body: 'Usa agentes prediseñados o personalizados para clasificar, dividir y enviar gastos automáticamente en tu nombre.',
                 cta: 'Pruébalo',
             },
         },

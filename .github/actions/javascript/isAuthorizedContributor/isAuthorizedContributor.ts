@@ -156,7 +156,7 @@ async function run(): Promise<void> {
     core.setOutput('IS_INTERNAL', isInternal);
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run().catch((error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         core.setFailed(message);
