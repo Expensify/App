@@ -43,7 +43,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     const {isOffline} = useNetwork();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isKeyboardActive} = useKeyboardState();
-    const shouldUseFixedFooter = isInLandscapeMode && isKeyboardActive;
+    const shouldMoveFooterToScrollView = isInLandscapeMode && isKeyboardActive;
 
     const {data, isLoading} = useSuggestedAgentRules();
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
@@ -162,10 +162,10 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                     })
                 )}
 
-                {shouldUseFixedFooter && button}
+                {shouldMoveFooterToScrollView && button}
             </ScrollView>
 
-            {!shouldUseFixedFooter && <FixedFooter style={styles.pt5}>{button}</FixedFooter>}
+            {!shouldMoveFooterToScrollView && <FixedFooter style={styles.pt5}>{button}</FixedFooter>}
         </View>
     );
 }
