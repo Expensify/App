@@ -36,6 +36,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import useAgentPromptInputStyles from './useAgentPromptInputStyles';
+import useShouldUseExpandedRevampFormLayout from './useShouldUseExpandedRevampFormLayout';
 
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
 type EditAgentRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
@@ -52,7 +53,7 @@ function EditAgentRulePage({
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !isInLandscapeMode;
+    const shouldUseExpandedRevampFormLayout = useShouldUseExpandedRevampFormLayout();
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);

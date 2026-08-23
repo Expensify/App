@@ -1,23 +1,20 @@
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
 
-import CONST from '@src/CONST';
-
 import type {StyleProp, ViewStyle} from 'react-native';
+
+import useShouldUseExpandedRevampFormLayout from './useShouldUseExpandedRevampFormLayout';
 
 function useAgentPromptInputStyles(): StyleProp<ViewStyle> {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isKeyboardActive} = useKeyboardState();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !isInLandscapeMode;
+    const shouldUseExpandedRevampFormLayout = useShouldUseExpandedRevampFormLayout();
 
     if (isInLandscapeMode && isKeyboardActive) {
         return StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE);
