@@ -1311,8 +1311,6 @@ const translations = {
         createTimeExpense: 'Create time expense',
     },
     iou: {
-        expenseAdded: 'Expense added',
-        invoiceSent: 'Invoice sent',
         amount: 'Amount',
         percent: 'Percent',
         date: 'Date',
