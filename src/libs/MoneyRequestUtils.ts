@@ -7,7 +7,7 @@ import type {ValueOf} from 'type-fest';
 
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import replaceAllDigits from './replaceAllDigits';
-import {isInvoiceReport, isIOUReport} from './ReportUtils';
+import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
 import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isExpenseUnreported} from './TransactionUtils';
 import {getMerchantError} from './ValidationUtils';
 
@@ -159,6 +159,22 @@ function isTaxAmountInvalid(currentAmount: string, maxTaxAmount: number, decimal
 }
 
 /**
+ * Determines whether a merchant value is required for a given report/transaction. Shared by the normal merchant
+ * edit step (DynamicIOURequestStepMerchant) and inline table editing (isValidMerchant) so both agree on when an
+ * empty merchant is allowed. Unreported expenses, IOU requests, and invoices allow an empty merchant (clearing).
+ */
+function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Transaction>): boolean {
+    // Unreported expenses can always have an empty merchant (allows clearing), even without a parent report.
+    if (transaction && isExpenseUnreported(transaction)) {
+        return false;
+    }
+    if (!report) {
+        return true;
+    }
+    return isExpenseReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+}
+
+/**
  * Validates a merchant value according to business rules.
  *
  * @param merchant - The merchant name to validate
@@ -167,14 +183,8 @@ function isTaxAmountInvalid(currentAmount: string, maxTaxAmount: number, decimal
  * @returns Whether the merchant value is valid
  */
 function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<Transaction>, report?: OnyxEntry<Report>): boolean {
-    // Unreported expenses, IOU requests, and invoices can have empty merchants (allows clearing)
-    const isUnreported = transaction ? isExpenseUnreported(transaction) : false;
-    const isIOU = !!report && isIOUReport(report);
-    const isInvoice = !!report && isInvoiceReport(report);
-    const isMerchantRequired = !(isUnreported || isIOU || isInvoice);
-
-    // Reuse the same validation rules as the normal merchant edit step (IOURequestStepMerchant)
-    return !getMerchantError(merchant, isMerchantRequired);
+    // Reuse the same validation rules as the normal merchant edit step (DynamicIOURequestStepMerchant)
+    return !getMerchantError(merchant, isMerchantRequired(report, transaction));
 }
 
 type AmountHasUnsavedChangesParams = {
@@ -246,6 +256,7 @@ export {
     handleNegativeAmountFlipping,
     isValidMoneyRequestAmount,
     isTaxAmountInvalid,
+    isMerchantRequired,
     isValidMerchant,
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,

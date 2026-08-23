@@ -21,7 +21,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isMerchantRequired} from '@libs/MoneyRequestUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
 import {getMerchantError, isInvalidMerchantValue} from '@libs/ValidationUtils';
 
@@ -90,14 +91,14 @@ function DynamicIOURequestStepMerchant({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
 
-    const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+    const isMerchantFieldRequired = isMerchantRequired(report, transaction);
 
     const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
-            const merchantError = getMerchantError(value.moneyRequestMerchant, !!isMerchantRequired);
+            const merchantError = getMerchantError(value.moneyRequestMerchant, isMerchantFieldRequired);
 
             if (merchantError?.type === 'required') {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
@@ -109,7 +110,7 @@ function DynamicIOURequestStepMerchant({
 
             return errors;
         },
-        [isMerchantRequired, translate],
+        [isMerchantFieldRequired, translate],
     );
 
     const updateMerchantRef = (value: string) => {
