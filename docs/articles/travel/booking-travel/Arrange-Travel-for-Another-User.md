@@ -35,6 +35,8 @@ Before arranging travel for another traveler, a Travel Admin must assign you the
 1. Head to the [Booking](https://travel.expensify.com/flights) page of your travel account.
 2. Click the **Pencil** icon to the right of your name in the booking tool.
 3. Search for the traveler by name or email and select them.
+
+   **Note:** A traveler’s email address can only be linked to one company in Expensify Travel. Email is a unique identifier, so if the address is already associated with another company or profile, the booking will fail with an **“Adhoc user info is invalid”** error. See [Book Travel for a Guest](https://help.expensify.com/articles/travel/booking-travel/Book-Travel-for-a-Guest) for how to resolve this.
 4. Choose a travel type:
    - Flights
    - Hotels
