@@ -1,6 +1,5 @@
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import type {LastAccessedReport} from '@libs/ReportUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -17,7 +16,7 @@ const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
 const ONBOARDING_POLICY_ID = '2';
 const REPORT_ID = '3';
 const USER_ID = '4';
-const mockFindLastAccessedReport = jest.fn<LastAccessedReport | undefined, Parameters<typeof ReportUtils.findLastAccessedReport>>();
+const mockFindLastAccessedReport = jest.fn<ReportUtils.LastAccessedReport | undefined, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn(() => false);
 const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
 
