@@ -8,6 +8,18 @@ import Processor from '../Processor';
 const RULES_SUPPRESSED_BY_REACT_COMPILER = new Set(['react/jsx-no-constructed-context-values', 'rulesdir/no-inline-useOnyx-selector']);
 const EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN = /\buseCallback\(\) Hook\b|\buseMemo\(\) Hook\b/;
 const CACHE_DIR = 'node_modules/.cache/react-compiler';
+const REACT_COMPILER_FINGERPRINT_FILES = [
+    'babel.config.js',
+    'config/babel/reactCompilerConfig.js',
+    'config/reactCompiler/checkBoth.mjs',
+    'config/reactCompiler/checkWithBabel.mjs',
+    'config/reactCompiler/checkWithOxc.mjs',
+    'config/rsbuild/rsbuild.common.ts',
+    'package-lock.json',
+    'scripts/lint/processors/ReactCompilerFilter.ts',
+    'scripts/lint/processors/ReactCompilerWorker.ts',
+    'scripts/utils/WorkerPool.ts',
+] as const;
 
 type CompilerCheck = (source: string, filename: string) => boolean | Promise<boolean>;
 
@@ -24,6 +36,18 @@ function shouldSkipCompiler(filename: string): boolean {
 
 function cachePath(projectRoot: string, hash: string): string {
     return `${projectRoot}/${CACHE_DIR}/${hash}`;
+}
+
+async function getReactCompilerFingerprint(projectRoot: string): Promise<string> {
+    const contents = await Promise.all(
+        REACT_COMPILER_FINGERPRINT_FILES.map(async (relativePath) => {
+            const content = await file(`${projectRoot}/${relativePath}`)
+                .text()
+                .catch(() => '');
+            return `${relativePath}\0${content}`;
+        }),
+    );
+    return Bun.hash(contents.join('\0')).toString(16);
 }
 
 async function readCache(path: string): Promise<boolean | undefined> {
@@ -58,7 +82,7 @@ type CompilerWorkerResponse = {
     bothMemoized: boolean;
 };
 
-function unmemoizedFallback(candidate: Candidate): CompilerWorkerResponse {
+function conservativeFallback(candidate: Candidate): CompilerWorkerResponse {
     return {filename: candidate.filename, bothMemoized: false};
 }
 
@@ -83,7 +107,7 @@ async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: Compi
     }
 
     const pool = new WorkerPool<Candidate, CompilerWorkerResponse>(new URL('./ReactCompilerWorker.ts', import.meta.url), workerCount);
-    const responses = await pool.map(candidates, unmemoizedFallback);
+    const responses = await pool.map(candidates, conservativeFallback);
     for (const response of responses) {
         memoized.set(response.filename, response.bothMemoized);
     }
@@ -95,8 +119,8 @@ async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: Compi
  * compilers memoize the file. Files with no suppressible message are skipped
  * entirely (~60× fewer compiler invocations than the ESLint processor).
  *
- * Cache is one file per content hash so concurrent writes of the same key are
- * benign and need no lock.
+ * Cache is one file per compiler fingerprint and content hash so concurrent
+ * writes of the same key are benign and need no lock.
  */
 class ReactCompilerFilter extends Processor {
     readonly name = 'react-compiler-filter';
@@ -142,12 +166,13 @@ async function filterReactCompilerMessages(
 
     const uncached: Candidate[] = [];
     const memoized = new Map<string, boolean>();
+    const reactCompilerFingerprint = checkBoth ? undefined : await getReactCompilerFingerprint(projectRoot);
 
     await Promise.all(
         candidateNames.map(async (filename) => {
             const source = checkBoth ? '' : await file(filename).text();
             if (!checkBoth) {
-                const hash = Bun.hash(source).toString(16);
+                const hash = Bun.hash(`${reactCompilerFingerprint}\0${source}`).toString(16);
                 const cached = await readCache(cachePath(projectRoot, hash));
                 if (cached !== undefined) {
                     memoized.set(filename, cached);
@@ -166,7 +191,7 @@ async function filterReactCompilerMessages(
             if (checkBoth) {
                 return;
             }
-            const hash = Bun.hash(candidate.source).toString(16);
+            const hash = Bun.hash(`${reactCompilerFingerprint}\0${candidate.source}`).toString(16);
             await writeCache(cachePath(projectRoot, hash), bothMemoized);
         }),
     );

@@ -6,7 +6,8 @@ import {file} from 'bun';
  *
  * The ban (`rulesdir/no-onyx-connect`, shipped by eslint-config-expensify) is a normal lint rule,
  * so an inline disable can silence it. The runner re-elevates those disables by scanning source
- * for directives that name the ban — no disable comment can reach this check.
+ * for directives that name the ban or blanket directives that cover a real call — no disable
+ * comment can reach this check.
  *
  * A real bypass requires a file to contain both an `Onyx.connect` reference and an `eslint-disable`
  * directive, so we first narrow the targets to files matching both (via git grep). The `Onyx.connect`
