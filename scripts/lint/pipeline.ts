@@ -2,17 +2,17 @@ import {file} from 'bun';
 
 import type {LintFileResult, LintMessage, RawLintOutput, SeatbeltOptions} from './types';
 
+import Bench from '../utils/Bench';
 import {filterReactCompilerMessages} from './reactCompilerFilter';
 import renderReport from './report';
 import {applySeatbelt} from './seatbelt';
 import {stratifyNoDeprecated} from './stratifyNoDeprecated';
-import Timings from './timings';
 
 type PipelineInput = {
     raw: RawLintOutput;
     options: SeatbeltOptions;
     showWarnings: boolean;
-    timings?: Timings;
+    bench?: Bench;
 };
 
 type PipelineResult = {
@@ -34,7 +34,7 @@ function flatten(results: LintFileResult[]): LintMessage[] {
 }
 
 async function runPostprocess(input: PipelineInput): Promise<PipelineResult> {
-    const timings = input.timings ?? new Timings();
+    const bench = input.bench ?? new Bench();
     const {raw, options, showWarnings} = input;
 
     if (raw.linterExitCode > 1) {
@@ -51,13 +51,13 @@ async function runPostprocess(input: PipelineInput): Promise<PipelineResult> {
 
     let messages = flatten(raw.results);
 
-    messages = await timings.measure('react-compiler-filter', () => filterReactCompilerMessages(messages, options.projectRoot));
-    messages = await timings.measure('stratify-no-deprecated', () => stratifyNoDeprecated(messages));
+    messages = await bench.measure('react-compiler-filter', () => filterReactCompilerMessages(messages, options.projectRoot));
+    messages = await bench.measure('stratify-no-deprecated', () => stratifyNoDeprecated(messages));
 
-    const seatbeltResult = await timings.measure('seatbelt', () => applySeatbelt(messages, options, lintedFilenames(raw.results)));
+    const seatbeltResult = await bench.measure('seatbelt', () => applySeatbelt(messages, options, lintedFilenames(raw.results)));
     messages = seatbeltResult.messages;
 
-    const report = timings.measureSync('report', () => renderReport(messages, {projectRoot: options.projectRoot, showWarnings}));
+    const report = bench.measureSync('report', () => renderReport(messages, {projectRoot: options.projectRoot, showWarnings}));
     const exitCode = report.errorCount > 0 ? 1 : 0;
 
     return {

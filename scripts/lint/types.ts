@@ -48,9 +48,4 @@ type SeatbeltOptions = {
     verbose: boolean;
 };
 
-type TimingMark = {
-    name: string;
-    ms: number;
-};
-
-export type {LintFileResult, LintMessage, LintSeverity, RawLintOutput, SeatbeltOptions, SeatbeltRuleSet, TimingMark};
+export type {LintFileResult, LintMessage, LintSeverity, RawLintOutput, SeatbeltOptions, SeatbeltRuleSet};

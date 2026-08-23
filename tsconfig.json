@@ -63,6 +63,7 @@
         "scripts/lint.ts",
         "scripts/lint",
         "scripts/checkOnyxConnectBypass.ts",
+        "scripts/utils/Bench.ts",
         "scripts/utils/WorkerPool.ts",
         "tests/tooling/WorkerPool.test.ts",
         "tests/tooling/workerPoolEchoWorker.ts",

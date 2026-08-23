@@ -734,7 +734,7 @@ const config = defineConfig([
     {
         // lint.ts is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
         // be pointed at the project that does own it. See scripts/tsconfig.json.
-        files: ['scripts/lint.ts', 'scripts/lint/**/*.ts', 'scripts/checkOnyxConnectBypass.ts', 'scripts/utils/WorkerPool.ts'],
+        files: ['scripts/lint.ts', 'scripts/lint/**/*.ts', 'scripts/checkOnyxConnectBypass.ts', 'scripts/utils/Bench.ts', 'scripts/utils/WorkerPool.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'scripts/tsconfig.json'),

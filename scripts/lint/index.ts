@@ -14,22 +14,22 @@
  */
 
 import checkOnyxConnectBypass from '../checkOnyxConnectBypass';
+import Bench from '../utils/Bench';
 import {parseCliArgs, resolveSeatbeltOptions} from './args';
 import {runEslint} from './eslint';
 import {dumpRawToFile, loadRawFromFile, runPostprocess} from './pipeline';
-import Timings from './timings';
 
 const projectRoot = `${import.meta.dir}/../..`;
 
 const cli = parseCliArgs();
-const timings = new Timings();
+const bench = new Bench();
 const seatbeltOptions = resolveSeatbeltOptions(projectRoot);
 
 const fromRawPath = cli.fromRawPath;
 const raw =
     fromRawPath !== undefined
-        ? await timings.measure('load-raw', () => loadRawFromFile(fromRawPath))
-        : await timings.measure('eslint', () =>
+        ? await bench.measure('load-raw', () => loadRawFromFile(fromRawPath))
+        : await bench.measure('eslint', () =>
               runEslint({
                   projectRoot,
                   targets: cli.lintTargets,
@@ -41,7 +41,7 @@ const raw =
 if (cli.dumpRawPath) {
     await dumpRawToFile(cli.dumpRawPath, raw);
     if (cli.showTimings) {
-        console.error(timings.format());
+        console.error(bench.format('lint timings'));
     }
     if (raw.linterExitCode > 1) {
         if (raw.stderr.trim()) {
@@ -52,7 +52,7 @@ if (cli.dumpRawPath) {
     process.exit(0);
 }
 
-const result = await runPostprocess({raw, options: seatbeltOptions, showWarnings: cli.showWarnings, timings});
+const result = await runPostprocess({raw, options: seatbeltOptions, showWarnings: cli.showWarnings, bench});
 
 if (raw.stderr.trim() && raw.linterExitCode > 1) {
     console.error(raw.stderr.trim());
@@ -63,7 +63,7 @@ if (result.reportText) {
 }
 
 if (cli.showTimings) {
-    console.error(timings.format());
+    console.error(bench.format('lint timings'));
 }
 
 if (result.exitCode !== 0) {

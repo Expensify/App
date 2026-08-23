@@ -31,9 +31,9 @@
         "lint/report.ts",
         "lint/seatbelt.ts",
         "lint/stratifyNoDeprecated.ts",
-        "lint/timings.ts",
         "lint/types.ts",
         "checkOnyxConnectBypass.ts",
+        "utils/Bench.ts",
         "utils/WorkerPool.ts"
     ]
 }
