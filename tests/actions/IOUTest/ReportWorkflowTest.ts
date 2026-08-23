@@ -1775,7 +1775,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             submitReport({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
-                submitterLogin: undefined,
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1798,6 +1798,84 @@ describe('actions/IOU/ReportWorkflow', () => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
             const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
             expect(optimisticReportUpdate.value.managerID).toBe(correctManagerAccountID);
+        });
+
+        it('routes to the default approver when the submitter is a policy member but their submitsTo was removed from the workspace', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+            const submitterAccountID = 100;
+            const removedApproverAccountID = 101;
+            const defaultApproverAccountID = 102;
+            const submitterEmail = 'submitter@example.com';
+            const removedApproverEmail = 'removed-approver@example.com';
+            const defaultApproverEmail = 'default-approver@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [removedApproverAccountID]: {accountID: removedApproverAccountID, login: removedApproverEmail},
+                [defaultApproverAccountID]: {accountID: defaultApproverAccountID, login: defaultApproverEmail},
+            });
+            await waitForBatchedUpdates();
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: defaultApproverEmail,
+                owner: defaultApproverEmail,
+                employeeList: {
+                    [defaultApproverEmail]: {email: defaultApproverEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ''},
+                    // The submitter is still a member, but the approver they point at was removed from the workspace.
+                    [submitterEmail]: {email: submitterEmail, role: CONST.POLICY.ROLE.USER, submitsTo: removedApproverEmail},
+                },
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                // The Classic-era manager stamped on the migrated report.
+                managerID: removedApproverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                submitterLogin: submitterEmail,
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: submitterAccountID,
+                currentUserEmailParam: submitterEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                betas: [],
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+
+            const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            // The submitter's route is known, so the orphaned submitsTo falls back to the default approver instead of the removed member.
+            expect(parameters.managerAccountID).toBe(defaultApproverAccountID);
+
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+            const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
+            const optimisticReportValue = optimisticReportUpdate.value;
+            expect(optimisticReportValue.managerID).toBe(defaultApproverAccountID);
+            expect(optimisticReportValue.nextStep).toEqual({
+                actorAccountID: defaultApproverAccountID,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            });
         });
 
         it('omits the API managerAccountID but keeps the existing report manager optimistically for a retracted report when policy employee data is missing', async () => {
@@ -1843,7 +1921,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             submitReport({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
-                submitterLogin: undefined,
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
