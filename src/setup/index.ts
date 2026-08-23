@@ -15,7 +15,7 @@ import addUtilsToWindow from './addUtilsToWindow';
 import platformSetup from './platformSetup';
 import telemetry from './telemetry';
 
-const enableDevTools = Config?.USE_REDUX_DEVTOOLS ? Config.USE_REDUX_DEVTOOLS === 'true' : true;
+const enableDevTools = Config?.USE_REDUX_DEVTOOLS === 'true';
 
 export default function () {
     telemetry();
@@ -58,6 +58,9 @@ export default function () {
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
+            // The "Expense added" growl confirms an expense created this session. Drop any signal left over
+            // from a prior session (e.g. force-quit before it was consumed) so it can't surface on next launch.
+            [ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS]: {},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],

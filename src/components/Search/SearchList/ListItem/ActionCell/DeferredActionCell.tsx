@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,9 +12,7 @@ import type {ActionCellProps} from '.';
 import ActionCell from '.';
 import actionTranslationsMap from './actionTranslationsMap';
 
-type DeferredActionCellProps = ActionCellProps & {isMarkAsDone?: boolean};
-
-function DeferredActionCell(actionCellProps: DeferredActionCellProps) {
+function DeferredActionCell(actionCellProps: ActionCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldRender = useDeferredValue(true, false);
@@ -27,19 +25,19 @@ function DeferredActionCell(actionCellProps: DeferredActionCellProps) {
         if (shouldUseViewAction) {
             text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
         } else {
-            text = actionCellProps.isMarkAsDone ? translate('common.done') : translate(actionTranslationsMap[action]);
+            text = actionCellProps.shouldShowMarkAsDoneCopy ? translate('common.done') : translate(actionTranslationsMap[action]);
         }
 
         return (
             <Button
-                text={text}
-                small={!actionCellProps.extraSmall}
-                extraSmall={actionCellProps.extraSmall}
+                size={CONST.BUTTON_SIZE.SMALL}
                 style={[styles.w100, styles.pointerEventsNone]}
                 isDisabled
-                success={isSuccess}
+                variant={isSuccess ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                 isNested
-            />
+            >
+                <Button.Text>{text}</Button.Text>
+            </Button>
         );
     }
 

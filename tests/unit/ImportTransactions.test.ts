@@ -101,7 +101,7 @@ describe('ImportTransactions', () => {
             const importFinalModal = {
                 titleKey: 'spreadsheet.importSuccessfulTitle' as const,
                 promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
-                promptKeyParams: {transactions: 3},
+                promptKeyParams: {count: 3},
             };
 
             expect(getImportFinalModalOnyxData('import-result-1', importFinalModal)).toEqual({
@@ -912,6 +912,17 @@ describe('ImportTransactions', () => {
             const [command, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(command).toBe('ImportCSVTransactions');
             getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE);
+        });
+
+        it('stores the reimbursable selection on the optimistic card', async () => {
+            const nonReimbursableSpreadsheet = {...validSpreadsheet, importTransactionSettings: {isReimbursable: false}};
+
+            await importTransactionsFromCSV(nonReimbursableSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const cardUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE, true);
+            const [optimisticCard] = Object.values(cardUpdate.value);
+            expect(optimisticCard).toEqual(expect.objectContaining({reimbursable: false}));
         });
 
         it('reuses an existingCardID without queuing an optimistic card', async () => {

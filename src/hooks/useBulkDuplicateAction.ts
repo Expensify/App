@@ -41,7 +41,7 @@ type UseBulkDuplicateActionParams = {
 function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -49,6 +49,8 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -78,6 +80,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
 
     const handleDuplicate = () => {
         bulkDuplicateExpenses({
+            dateFnsLocale,
             getCurrencyDecimals,
             transactionIDs: selectedTransactionsKeys,
             allTransactions: allTransactions ?? {},
@@ -102,6 +105,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             policyTagList,
             formatPhoneNumber,
             participantsPolicyTags,
+            conciergeChat,
         });
 
         if (onAfterDuplicate) {

@@ -1,3 +1,6 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
@@ -80,6 +83,44 @@ function UserListItemContent<TItem extends ListItem>({
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
     const isHovered = hovered && !shouldDisableHoverStyle;
+    const fallbackDisplayName = item.text ?? item.alternateText ?? undefined;
+
+    // A report resolves its own avatars, so it keeps going through `ReportActionAvatars`, otherwise using Account/Policy.
+    let avatar: React.ReactNode;
+    if (reportExists) {
+        avatar = (
+            <ReportActionAvatars
+                subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                secondaryAvatarContainerStyle={[
+                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                    isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                ]}
+                reportID={item.reportID}
+                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    } else if (policyID) {
+        avatar = (
+            <PolicyAvatar
+                policyID={policyID}
+                accountID={itemAccountID}
+                containerStyle={[styles.actionAvatar, styles.mr3]}
+                subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    } else if (itemAccountID) {
+        avatar = (
+            <AccountAvatar
+                accountID={itemAccountID}
+                containerStyle={[styles.actionAvatar, styles.mr3]}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    }
+
     const baseAccessibilityLabel = getAccessibilityLabel(item);
     const accessibilityLabel =
         shouldDisableAccessibleGrouping && item.isSelected !== undefined
@@ -93,22 +134,7 @@ function UserListItemContent<TItem extends ListItem>({
             role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
         >
-            {(!!reportExists || !!itemAccountID || !!policyID) && (
-                <ReportActionAvatars
-                    subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                    shouldShowTooltip={showTooltip}
-                    secondaryAvatarContainerStyle={[
-                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                        isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                    ]}
-                    reportID={reportExists ? item.reportID : undefined}
-                    accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
-                    policyID={!reportExists && !!policyID ? policyID : undefined}
-                    singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                />
-            )}
+            {!!avatar && <AvatarTooltipsProvider isEnabled={showTooltip}>{avatar}</AvatarTooltipsProvider>}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}
