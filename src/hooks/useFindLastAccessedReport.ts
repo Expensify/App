@@ -1,10 +1,8 @@
-import useOnyx from '@hooks/useOnyx';
-
-import {findLastAccessedReport, type LastAccessedReport} from '@libs/ReportUtils';
+import {findLastAccessedReport} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ResultMetadata} from 'react-native-onyx';
+import useOnyx from './useOnyx';
 
 type UseFindLastAccessedReportOptions = {
     /** Exclude domain rooms that are on the defaultRooms beta. */
@@ -17,15 +15,8 @@ type UseFindLastAccessedReportOptions = {
     enabled?: boolean;
 };
 
-type UseFindLastAccessedReportResult = {
-    lastAccessedReport: LastAccessedReport | undefined;
-    reportsMetadata: ResultMetadata | undefined;
-    reportNameValuePairsMetadata: ResultMetadata | undefined;
-};
-
 /** Resolves the last accessed report for navigation fallbacks from a view-scoped subscription. */
-function useFindLastAccessedReport(options: UseFindLastAccessedReportOptions): UseFindLastAccessedReportResult {
-    const {ignoreDomainRooms, openOnAdminRoom = false, excludeReportID, enabled = true} = options;
+function useFindLastAccessedReport({ignoreDomainRooms, openOnAdminRoom = false, excludeReportID, enabled = true}: UseFindLastAccessedReportOptions) {
     const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [lastAccessedReport, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => (enabled ? findLastAccessedReport(ignoreDomainRooms, openOnAdminRoom, excludeReportID, reportNameValuePairs, reports) : undefined),
@@ -34,4 +25,3 @@ function useFindLastAccessedReport(options: UseFindLastAccessedReportOptions): U
 }
 
 export default useFindLastAccessedReport;
-export type {UseFindLastAccessedReportOptions, UseFindLastAccessedReportResult};
