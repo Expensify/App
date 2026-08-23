@@ -5,6 +5,7 @@ import path from 'node:path';
 import type {LintMessage, SeatbeltOptions, SeatbeltRuleSet} from './types';
 
 const SEATBELT_NAME = 'eslint-seatbelt';
+const SEATBELT_TSV_RELATIVE = 'config/eslint/eslint.seatbelt.tsv';
 const COMMENT_LINE_REGEX = /^\s*#/;
 const NON_EMPTY_LINE_REGEX = /\S+/;
 const DEFAULT_FILE_HEADER = `# ${SEATBELT_NAME} temporarily allowed errors
@@ -498,5 +499,66 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     return {messages: canonicalizeMessages(transformed), tsv, wrote: shouldWrite, changed: anyChanged};
 }
 
-export {applySeatbelt, canonicalizeMessages, compareMessages, countRuleIds, parseSeatbeltTsv, serializeSeatbeltTsv, toRelativePath, transformMessages, updateMaxErrors};
+/**
+ * Mirrors eslint-seatbelt's boolean env parsing: unset/empty is unset, "0"/"false"/"no"
+ * (case-insensitive) is false, anything else is true.
+ */
+function readBooleanEnvVar(value: string | undefined): boolean | undefined {
+    if (value === undefined || value === '') {
+        return undefined;
+    }
+    return !['0', 'false', 'no'].includes(value.toLowerCase());
+}
+
+/**
+ * Mirrors eslint-seatbelt's rule-set env parsing: unset is unset, empty is [],
+ * "all"/"1"/"true" is "all", otherwise a whitespace-or-comma-separated list.
+ */
+function parseRuleSetEnvVar(value: string | undefined): SeatbeltRuleSet | undefined {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (!value) {
+        return new Set();
+    }
+    const lower = value.toLowerCase();
+    if (lower === 'all' || lower === '1' || lower === 'true') {
+        return 'all';
+    }
+    return new Set(value.split(/[\s,]+/g).filter(Boolean));
+}
+
+/**
+ * Seatbelt env/config:
+ * - `SEATBELT_FROZEN` defaults to false (the wrapper forces `0` so `CI=true` does not freeze).
+ * - `readOnly` defaults to `!CI`; `SEATBELT_INCREASE` forces writes.
+ */
+function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = process.env): SeatbeltOptions {
+    const allowIncreaseRules = parseRuleSetEnvVar(env.SEATBELT_INCREASE) ?? new Set();
+    const isIncreaseSet = allowIncreaseRules === 'all' || allowIncreaseRules.size > 0;
+    return {
+        seatbeltFile: `${projectRoot}/${SEATBELT_TSV_RELATIVE}`,
+        projectRoot,
+        disable: readBooleanEnvVar(env.SEATBELT_DISABLE) ?? false,
+        frozen: readBooleanEnvVar(env.SEATBELT_FROZEN) ?? false,
+        readOnly: isIncreaseSet ? false : (readBooleanEnvVar(env.SEATBELT_READ_ONLY) ?? !env.CI),
+        allowIncreaseRules,
+        keepRules: parseRuleSetEnvVar(env.SEATBELT_KEEP) ?? new Set(),
+        quiet: readBooleanEnvVar(env.SEATBELT_QUIET) ?? false,
+        verbose: readBooleanEnvVar(env.SEATBELT_VERBOSE) ?? false,
+    };
+}
+
+export {
+    applySeatbelt,
+    canonicalizeMessages,
+    compareMessages,
+    countRuleIds,
+    parseSeatbeltTsv,
+    resolveSeatbeltOptions,
+    serializeSeatbeltTsv,
+    toRelativePath,
+    transformMessages,
+    updateMaxErrors,
+};
 export type {SeatbeltApplyResult, SeatbeltFileData};

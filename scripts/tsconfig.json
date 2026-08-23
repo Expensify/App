@@ -23,7 +23,6 @@
     "files": [
         "lint.ts",
         "lint/index.ts",
-        "lint/args.ts",
         "lint/eslint.ts",
         "lint/pipeline.ts",
         "lint/reactCompilerFilter.ts",

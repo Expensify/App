@@ -2,10 +2,10 @@ import {describe, expect, it} from 'bun:test';
 
 import type {LintMessage, RawLintOutput} from '../../scripts/lint/types';
 
-import {resolveSeatbeltOptions} from '../../scripts/lint/args';
 import {normalizeEslintResults, parseEslintStdout} from '../../scripts/lint/eslint';
 import {runPostprocess} from '../../scripts/lint/pipeline';
 import {filterReactCompilerMessages} from '../../scripts/lint/reactCompilerFilter';
+import {resolveSeatbeltOptions} from '../../scripts/lint/seatbelt';
 import {stratifyMessages} from '../../scripts/lint/stratifyNoDeprecated';
 
 function makeMessage(overrides: Partial<LintMessage> = {}): LintMessage {
