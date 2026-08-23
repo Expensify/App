@@ -1798,6 +1798,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
             const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
             expect(optimisticReportUpdate.value.managerID).toBe(correctManagerAccountID);
+            // The omission is about what we let the server route by, not about what we show meanwhile: offline the report keeps
+            // the manager it already had, so the next step stays consistent with it until the server answers.
+            expect(optimisticReportUpdate.value.nextStep).toEqual({
+                actorAccountID: correctManagerAccountID,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            });
         });
 
         it('routes to the default approver when the submitter is a policy member but their submitsTo was removed from the workspace', async () => {

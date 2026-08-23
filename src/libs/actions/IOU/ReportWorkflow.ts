@@ -1340,10 +1340,7 @@ function submitReport({
     // accountID from the approval chain, which would point the server at someone other than the chosen approver.
     const apiManagerAccountID = trimmedManagerEmail ? resolvedManagerAccountIDFromEmail : submitReportManagerAccountID;
     const managerID = apiManagerAccountID ?? expenseReport.managerID;
-
-    // Only bypass the workflow-derived approver when we trust the route we're sending. Otherwise the optimistic next step
-    // would name the stale manager already stamped on the report, which is the routing this omission exists to distrust.
-    const optimisticNextStepApproverID = !isSubmitAndClosePolicy && apiManagerAccountID !== undefined && isValidAccountRoute(apiManagerAccountID) ? apiManagerAccountID : undefined;
+    const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
 
     // unheldTotal already uses the same sign convention as total, so it can be used directly here without conversion.
