@@ -21,8 +21,14 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
-    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
+    const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
     const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
+    // The value FormProvider actually renders uses the draft first, then the base value.
+    const ssnValue = walletAdditionalDetailsDraft?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? defaultSsnLast4;
+    // Ask for the full SSN when the backend flagged it, or when the value already shown is a full 9-digit SSN. The
+    // errorCode is optimistically cleared on a successful submit while the 9-digit draft value is still displayed,
+    // so relying on errorCode alone would flip the label/validation back to "last 4" while showing 9 digits.
+    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN || isValidSSNFullNine(ssnValue);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
