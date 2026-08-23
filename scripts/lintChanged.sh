@@ -30,7 +30,7 @@ fi
 # Run eslint on the changed files, forwarding any user-provided flags
 if [[ -n "$GIT_DIFF_OUTPUT" ]] ; then
     # shellcheck disable=SC2086 # For multiple files in variable
-    exec "${TOP}/scripts/lint.sh" "$@" $GIT_DIFF_OUTPUT
+    exec bun "${TOP}/scripts/lint.ts" "$@" $GIT_DIFF_OUTPUT
 else
     info "No lintable files changed"
 fi

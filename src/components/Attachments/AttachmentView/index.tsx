@@ -2,7 +2,7 @@ import {useAttachmentCarouselPagerActions} from '@components/Attachments/Attachm
 import {AttachmentIDContextProvider} from '@components/Attachments/AttachmentIDContext';
 import MultiGestureIcon from '@components/Attachments/MultiGestureIcon';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
@@ -345,8 +345,6 @@ function AttachmentView({
                         <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
                     </View>
                     <Button
-                        text={translate('attachmentView.retry')}
-                        icon={icons.ArrowCircleClockwise}
                         onPress={() => {
                             if (isOffline) {
                                 return;
@@ -354,7 +352,10 @@ function AttachmentView({
                             setImageError(false);
                         }}
                         sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.RETRY_BUTTON}
-                    />
+                    >
+                        <Button.Icon src={icons.ArrowCircleClockwise} />
+                        <Button.Text>{translate('attachmentView.retry')}</Button.Text>
+                    </Button>
                 </View>
             );
         }

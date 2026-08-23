@@ -128,22 +128,19 @@ function IOURequestStepOdometerImage({
         }
 
         stageAttachment({uri: sourceUri, fileName: filename})
-            .then((durableUri) => {
+            .then((uri) => {
                 setMoneyRequestOdometerImage(
                     transaction,
                     imageType,
                     {
-                        uri: durableUri,
+                        uri,
                         name: filename,
-                        type: file.type ?? getMimeTypeFromUri(durableUri) ?? 'image/jpeg',
+                        type: file.type ?? getMimeTypeFromUri(uri) ?? 'image/jpeg',
                         size: file.size,
                     },
                     isTransactionDraft,
                     false,
                 );
-            })
-            .catch((error: unknown) => {
-                Log.warn('Failed to move odometer receipt to durable storage', error instanceof Error ? error.message : String(error));
             })
             .finally(() => {
                 navigateBack();

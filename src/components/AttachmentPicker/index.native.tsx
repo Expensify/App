@@ -14,6 +14,7 @@ import {stageAttachment} from '@libs/actions/Attachment';
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
+import {getPickerCaptureSource, logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -147,7 +148,7 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
         })
             .then((durableUri) => ({...file, uri: durableUri, source: durableUri}) as FileObject)
             .catch((error: unknown) => {
-                Log.warn('[AttachmentPicker] Failed to stage attachment, using original URI', {error});
+                logReceiptAdoptFailed({error, captureSource: getPickerCaptureSource()});
                 return file;
             }),
     );
