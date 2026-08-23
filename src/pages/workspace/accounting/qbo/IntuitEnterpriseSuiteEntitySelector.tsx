@@ -37,7 +37,7 @@ function IntuitEnterpriseSuiteEntitySelector({policy}: WithPolicyConnectionsProp
     const entities = Object.values(config?.entities ?? {});
 
     const currentEntity = entities.find((entity) => entity.realmId === config?.realmId);
-    const data: SelectorType<IntuitEnterpriseSuiteEntity>[] = entities.map((entity) => ({
+    const data: Array<SelectorType<IntuitEnterpriseSuiteEntity>> = entities.map((entity) => ({
         text: entity.companyName,
         keyForList: entity.realmId,
         isSelected: entity.realmId === config?.realmId,
