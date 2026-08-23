@@ -463,7 +463,7 @@ function ReportSubmitToContent({
     // here is what lets the recipient list scroll inside a constant-size popover instead of resizing the popover when
     // the list collapses to the empty / "No results found" state. `FixedFooter` already pads 20px below the Confirm
     // button, so no extra bottom padding is added here.
-    const containerStyle = useMemo(() => [styles.w100, styles.flex1, styles.pt3], [styles.flex1, styles.pt3, styles.w100]);
+    const containerStyle = [styles.w100, styles.flex1, styles.pt3];
 
     if (shouldShowNotFoundView) {
         return (
