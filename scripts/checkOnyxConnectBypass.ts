@@ -11,7 +11,7 @@ import {file} from 'bun';
  *
  * A real bypass requires a file to mention `Onyx` and `connect` and contain an `eslint-disable`
  * directive, so we first narrow the targets to files matching all three (via git grep). The
- * prefilter does not require the contiguous text `Onyx.connect` — git grep is line-oriented, so a
+ * candidate scan does not require the contiguous text `Onyx.connect` — git grep is line-oriented, so a
  * spaced or split `Onyx . connect(` would otherwise be skipped. Extra matches like
  * `Onyx.connectWithoutView` are harmless: we only fail on disable directives that actually
  * suppress the ban.
