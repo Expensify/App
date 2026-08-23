@@ -300,9 +300,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
-        (accountID: number) => {
+        (accountID: number, login?: string) => {
             if (!canWriteMembers || !canManageMembers) {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+                // Pass the login so ProfilePage can render a fallback identity for members whose personal details
+                // aren't loaded (their accountID is generated and can't be resolved from a spinner otherwise).
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, login)));
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
@@ -412,7 +414,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 disabled: isPendingDeleteOrError,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
-                action: () => openMemberDetails(accountID),
+                action: () => openMemberDetails(accountID, login),
                 dismissError: () => dismissError(login, accountID, policyEmployee.pendingAction),
             };
         });
