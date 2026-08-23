@@ -14315,7 +14315,6 @@ export {
     doesReportBelongToWorkspace,
     shouldEnableNegative,
     findLastAccessedReport,
-    findLastAccessedReportSelector,
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
@@ -14652,6 +14651,5 @@ export type {
     SelfDMParameters,
     OptimisticReportAction,
     ActionErrorsByTransaction,
-    FindLastAccessedReportOptions,
     LastAccessedReport,
 };
