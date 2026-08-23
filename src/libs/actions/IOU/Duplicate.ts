@@ -67,7 +67,6 @@ import {getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
-import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -1245,7 +1244,6 @@ function bulkDuplicateExpenses({
 
     // A copy of an unreported expense is tracked, so only an expense that lands on the report can submit it.
     const lastReportBoundIndex = targetPolicy ? transactionsToDuplicate.findLastIndex((t) => !!t.reportID && t.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) : -1;
-    let lastDuplicateTransactionID: string | undefined;
 
     for (let i = 0; i < transactionsToDuplicate.length; i++) {
         const item = transactionsToDuplicate.at(i);
@@ -1316,9 +1314,6 @@ function bulkDuplicateExpenses({
         if (result?.iouReport) {
             optimisticIOUReport = result.iouReport;
         }
-        if (result?.transactionID) {
-            lastDuplicateTransactionID = result.transactionID;
-        }
 
         if (currentTargetReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
@@ -1326,7 +1321,6 @@ function bulkDuplicateExpenses({
     }
 
     playSound(SOUNDS.DONE);
-    signalExpenseAddedGrowl(lastDuplicateTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 }
 
 type BulkDuplicateReportsParams = {
