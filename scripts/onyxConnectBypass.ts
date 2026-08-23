@@ -8,8 +8,11 @@
  *
  * Blanket `eslint-disable` / `eslint-disable-next-line` with no rule list counts only when it
  * covers a real Onyx.connect() call. Unrelated blanket comments (e.g. around ReportUtils) remain
- * ignored.
+ * ignored. Call sites are found via the TypeScript AST so comments and grouping parens cannot
+ * hide a banned member access from a source scan.
  */
+
+import ts from 'typescript';
 
 /** Rule id of the Onyx.connect() ban, as exposed through eslint-plugin-rulesdir. */
 const BANNED_RULE_ID = 'rulesdir/no-onyx-connect';
@@ -34,7 +37,30 @@ type SuppressedBan = {
 
 const DISABLE_DIRECTIVE_REGEX = /(?:\/\/|\/\*)\s*eslint-disable(?<kind>-next-line|-line)?(?<args>[^\n*]*)/g;
 const ENABLE_DIRECTIVE_REGEX = /(?:\/\/|\/\*)\s*eslint-enable(?<args>[^\n*]*)/g;
-const ONYX_CONNECT_CALL_REGEX = /\bOnyx\s*\.\s*connect\s*\(/g;
+
+function unwrapExpression(node: ts.Expression): ts.Expression {
+    let current = node;
+    while (ts.isParenthesizedExpression(current) || ts.isAsExpression(current) || ts.isSatisfiesExpression(current) || ts.isNonNullExpression(current)) {
+        current = current.expression;
+    }
+    return current;
+}
+
+function collectOnyxConnectCallOffsets(source: string, file: string): number[] {
+    const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const offsets: number[] = [];
+    const visit = (node: ts.Node) => {
+        if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && !node.expression.questionDotToken && node.expression.name.text === 'connect') {
+            const object = unwrapExpression(node.expression.expression);
+            if (ts.isIdentifier(object) && object.text === 'Onyx') {
+                offsets.push(node.getStart(sourceFile));
+            }
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(sourceFile);
+    return offsets;
+}
 
 function normalizedDirectiveArgs(args: string): string {
     return args.replace(/--.*$/, '').trim();
@@ -92,7 +118,7 @@ function blanketDirectiveCoversCall(source: string, match: RegExpMatchArray, cal
  */
 function collectDisableDirectivesFromSource(source: string, file: string): SuppressedBan[] {
     const bans: SuppressedBan[] = [];
-    const callOffsets = [...source.matchAll(ONYX_CONNECT_CALL_REGEX)].map((match) => match.index ?? -1).filter((offset) => offset >= 0);
+    const callOffsets = collectOnyxConnectCallOffsets(source, file);
     const enableMatches = [...source.matchAll(ENABLE_DIRECTIVE_REGEX)];
     for (const match of source.matchAll(DISABLE_DIRECTIVE_REGEX)) {
         const args = match.groups?.args ?? '';
