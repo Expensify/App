@@ -6,7 +6,7 @@ import path from 'node:path';
 
 import type {LintMessage, SeatbeltOptions} from '../../scripts/lint/types';
 
-import {applySeatbelt, canonicalizeMessages, parseSeatbeltTsv, serializeSeatbeltTsv, transformMessages} from '../../scripts/lint/seatbelt';
+import {applySeatbelt, canonicalizeMessages, parseSeatbeltTsv, serializeSeatbeltTsv, transformMessages} from '../../scripts/lint/processors/Seatbelt';
 
 function makeOptions(overrides: Partial<SeatbeltOptions> = {}): SeatbeltOptions {
     return {

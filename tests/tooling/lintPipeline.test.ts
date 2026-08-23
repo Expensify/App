@@ -1,12 +1,14 @@
 import {describe, expect, it} from 'bun:test';
 
-import type {LintMessage, RawLintOutput} from '../../scripts/lint/types';
+import type {LintMessage, LinterResult} from '../../scripts/lint/types';
 
-import {normalizeEslintResults, parseEslintStdout} from '../../scripts/lint/eslint';
-import {runPostprocess} from '../../scripts/lint/pipeline';
-import {filterReactCompilerMessages} from '../../scripts/lint/reactCompilerFilter';
-import {resolveSeatbeltOptions} from '../../scripts/lint/seatbelt';
-import {stratifyMessages} from '../../scripts/lint/stratifyNoDeprecated';
+import {normalizeEslintResults, parseEslintStdout} from '../../scripts/lint/eslint/EslintLinter';
+import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
+import Linter from '../../scripts/lint/Linter';
+import Pipeline from '../../scripts/lint/LintPipeline';
+import {filterReactCompilerMessages} from '../../scripts/lint/processors/ReactCompilerFilter';
+import Seatbelt, {resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
+import {stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
 
 function makeMessage(overrides: Partial<LintMessage> = {}): LintMessage {
     return {
@@ -18,6 +20,18 @@ function makeMessage(overrides: Partial<LintMessage> = {}): LintMessage {
         column: 1,
         ...overrides,
     };
+}
+
+class StubLinter extends Linter {
+    readonly name = 'stub';
+
+    constructor(private readonly result: LinterResult) {
+        super();
+    }
+
+    run(): Promise<LinterResult> {
+        return Promise.resolve(this.result);
+    }
 }
 
 describe('resolveSeatbeltOptions', () => {
@@ -159,35 +173,33 @@ describe('stratifyMessages', () => {
     });
 });
 
-describe('runPostprocess', () => {
-    it('returns the linter exit code when ESLint itself crashed', async () => {
-        const raw: RawLintOutput = {results: [], linterExitCode: 2, stderr: 'oops'};
-        const result = await runPostprocess({
-            raw,
-            options: resolveSeatbeltOptions('/tmp', {SEATBELT_DISABLE: '1'}),
-            showWarnings: false,
-        });
+describe('Pipeline', () => {
+    it('returns the linter exit code when the linter itself crashed', async () => {
+        const pipeline = new Pipeline(
+            '/tmp',
+            new StubLinter({files: [], exitCode: 2, stderr: 'oops'}),
+            [new Seatbelt(resolveSeatbeltOptions('/tmp', {SEATBELT_DISABLE: '1'}))],
+            new StylishFormatter('/tmp', false),
+        );
+        const result = await pipeline.run(['.']);
         expect(result.exitCode).toBe(2);
         expect(result.reportText).toBe('oops');
     });
 
     it('treats a JSON parse failure with ESLint exit 0 or 1 as fatal', async () => {
         const parsed = parseEslintStdout('not json', '', 1);
-        expect(parsed.linterExitCode).toBe(2);
-        expect(parsed.results).toEqual([]);
+        expect(parsed.exitCode).toBe(2);
+        expect(parsed.files).toEqual([]);
         expect(parsed.stderr).toContain('Failed to parse ESLint JSON output');
 
-        const result = await runPostprocess({
-            raw: parsed,
-            options: resolveSeatbeltOptions('/tmp', {SEATBELT_DISABLE: '1'}),
-            showWarnings: false,
-        });
+        const pipeline = new Pipeline('/tmp', new StubLinter(parsed), [new Seatbelt(resolveSeatbeltOptions('/tmp', {SEATBELT_DISABLE: '1'}))], new StylishFormatter('/tmp', false));
+        const result = await pipeline.run(['.']);
         expect(result.exitCode).toBe(2);
         expect(result.reportText).toContain('Failed to parse ESLint JSON output');
-        expect(parseEslintStdout('', '', 0).linterExitCode).toBe(2);
+        expect(parseEslintStdout('', '', 0).exitCode).toBe(2);
     });
 
     it('preserves a linter crash exit code above 2 on parse failure', () => {
-        expect(parseEslintStdout('', 'oom', 137).linterExitCode).toBe(137);
+        expect(parseEslintStdout('', 'oom', 137).exitCode).toBe(137);
     });
 });

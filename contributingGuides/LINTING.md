@@ -31,7 +31,7 @@ Editor integrations and bare `npx eslint` still run the rule set from `config/es
 By default the wrapper only prints blocking errors — seatbelt-grandfathered violations (which CI does not fail on) are suppressed from the output but still evaluated against the baseline. Pass `--show-warnings` when you want to see them too, e.g. when paying down baselined errors.
 
 ## Seatbelt
-Known lint errors are grandfathered by a seatbelt ratchet implemented in [`scripts/lint/seatbelt.ts`](../scripts/lint/seatbelt.ts). The TSV format and env-var names match the previous `eslint-seatbelt` plugin so existing workflows stay the same.
+Known lint errors are grandfathered by a seatbelt ratchet implemented in [`scripts/lint/processors/Seatbelt.ts`](../scripts/lint/processors/Seatbelt.ts). The TSV format and env-var names match the previous `eslint-seatbelt` plugin so existing workflows stay the same.
 
 1. **Every rule is an error.** There are no warnings.
 2. **Pre-existing errors are grandfathered via the seatbelt ratchet.** A per-file / per-rule baseline lives at [`config/eslint/eslint.seatbelt.tsv`](../config/eslint/eslint.seatbelt.tsv). As long as a file's error count for a given rule is **≤** its recorded baseline, seatbelt reclassifies those errors as warnings and the run still passes.

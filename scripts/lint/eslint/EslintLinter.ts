@@ -1,6 +1,8 @@
 import {$} from 'bun';
 
-import type {LintFileResult, LintMessage, LintSeverity, RawLintOutput} from './types';
+import type {LintFileResult, LintMessage, LintSeverity, LinterResult} from '../types';
+
+import Linter from '../Linter';
 
 type EslintJsonMessage = {
     ruleId: string | null;
@@ -21,14 +23,15 @@ type EslintJsonResult = {
     suppressedMessages?: unknown[];
 };
 
-type RunEslintOptions = {
+type EslintLinterOptions = {
     projectRoot: string;
-    targets: string[];
     useCache: boolean;
     fix: boolean;
     concurrency?: string;
     nodeOptions?: string;
 };
+
+const PARSE_FAILURE_EXIT_CODE = 2;
 
 function normalizeSeverity(severity: number): LintSeverity {
     return severity >= 2 ? 2 : 1;
@@ -59,10 +62,6 @@ function normalizeEslintResults(results: EslintJsonResult[]): LintFileResult[] {
     }));
 }
 
-function flattenResults(results: LintFileResult[]): LintMessage[] {
-    return results.flatMap((result) => result.messages);
-}
-
 /** Babel / file-progress may write to stdout around the JSON array. */
 function extractJsonArray(text: string): string | null {
     const start = text.indexOf('[');
@@ -73,51 +72,20 @@ function extractJsonArray(text: string): string | null {
     return text.slice(start, end + 1);
 }
 
-/**
- * Spawn ESLint as a JSON producer. Processors (react-compiler, stratify,
- * seatbelt) are *not* wired in the ESLint config — this is the raw linter
- * output the post-process pipeline consumes.
- *
- * `--no-inline-config` is intentionally *not* passed: disable comments must
- * still work. `--quiet` is also not passed here; the reporter filters
- * warnings after seatbelt demotes grandfathered errors.
- */
-async function runEslint(options: RunEslintOptions): Promise<RawLintOutput> {
-    const eslintArgs: string[] = ['--format', 'json', '--no-warn-ignored'];
-    if (options.useCache) {
-        eslintArgs.push('--cache', '--cache-location=node_modules/.cache/eslint', '--cache-strategy', 'content');
-    }
-    if (options.fix) {
-        eslintArgs.push('--fix');
-    }
-    eslintArgs.push(`--concurrency=${options.concurrency ?? process.env.ESLINT_CONCURRENCY ?? 'auto'}`, ...options.targets);
-
-    const nodeOptions = options.nodeOptions ?? process.env.NODE_OPTIONS ?? '--max_old_space_size=8192';
-    const result = await $`npx eslint ${eslintArgs}`
-        .cwd(options.projectRoot)
-        .env({...process.env, NODE_OPTIONS: nodeOptions, LINT_PIPELINE: '1'})
-        .nothrow()
-        .quiet();
-
-    return parseEslintStdout(result.stdout.toString(), result.stderr.toString(), result.exitCode);
-}
-
-const PARSE_FAILURE_EXIT_CODE = 2;
-
-function parseFailureOutput(stdout: string, stderr: string, exitCode: number): RawLintOutput {
+function parseFailureOutput(stdout: string, stderr: string, exitCode: number): LinterResult {
     return {
-        results: [],
-        linterExitCode: Math.max(PARSE_FAILURE_EXIT_CODE, exitCode),
+        files: [],
+        exitCode: Math.max(PARSE_FAILURE_EXIT_CODE, exitCode),
         stderr: `${stderr}\nFailed to parse ESLint JSON output.\n${stdout.slice(0, 500)}`,
     };
 }
 
 /**
  * Turn ESLint stdout into structured results. A missing/invalid JSON payload is
- * fatal (`linterExitCode > 1`) even when ESLint itself exited 0 or 1 — otherwise
+ * fatal (`exitCode > 1`) even when ESLint itself exited 0 or 1 — otherwise
  * the pipeline would flatten zero messages and report a clean pass.
  */
-function parseEslintStdout(stdout: string, stderr: string, exitCode: number): RawLintOutput {
+function parseEslintStdout(stdout: string, stderr: string, exitCode: number): LinterResult {
     const jsonText = extractJsonArray(stdout);
     if (!jsonText) {
         return parseFailureOutput(stdout, stderr, exitCode);
@@ -133,8 +101,45 @@ function parseEslintStdout(stdout: string, stderr: string, exitCode: number): Ra
         return parseFailureOutput(stdout, stderr, exitCode);
     }
 
-    return {results: normalizeEslintResults(parsed.filter(isEslintJsonResult)), linterExitCode: exitCode, stderr};
+    return {files: normalizeEslintResults(parsed.filter(isEslintJsonResult)), exitCode, stderr};
 }
 
-export {flattenResults, normalizeEslintResults, parseEslintStdout, runEslint};
-export type {EslintJsonResult, RunEslintOptions};
+/**
+ * Spawn ESLint as a JSON producer. Processors are not wired in the ESLint
+ * config — this is the raw linter output the pipeline consumes.
+ *
+ * `--no-inline-config` is intentionally *not* passed: disable comments must
+ * still work. `--quiet` is also not passed here; the formatter filters
+ * warnings after seatbelt demotes grandfathered errors.
+ */
+class EslintLinter extends Linter {
+    readonly name = 'eslint';
+
+    constructor(private readonly options: EslintLinterOptions) {
+        super();
+    }
+
+    async run(targets: string[]): Promise<LinterResult> {
+        const eslintArgs: string[] = ['--format', 'json', '--no-warn-ignored'];
+        if (this.options.useCache) {
+            eslintArgs.push('--cache', '--cache-location=node_modules/.cache/eslint', '--cache-strategy', 'content');
+        }
+        if (this.options.fix) {
+            eslintArgs.push('--fix');
+        }
+        eslintArgs.push(`--concurrency=${this.options.concurrency ?? process.env.ESLINT_CONCURRENCY ?? 'auto'}`, ...targets);
+
+        const nodeOptions = this.options.nodeOptions ?? process.env.NODE_OPTIONS ?? '--max_old_space_size=8192';
+        const result = await $`npx eslint ${eslintArgs}`
+            .cwd(this.options.projectRoot)
+            .env({...process.env, NODE_OPTIONS: nodeOptions, LINT_PIPELINE: '1'})
+            .nothrow()
+            .quiet();
+
+        return parseEslintStdout(result.stdout.toString(), result.stderr.toString(), result.exitCode);
+    }
+}
+
+export default EslintLinter;
+export {normalizeEslintResults, parseEslintStdout};
+export type {EslintJsonResult, EslintLinterOptions};

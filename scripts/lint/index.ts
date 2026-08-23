@@ -1,9 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * Lint runner: spawn a linter as a JSON producer, then apply the post-process
- * pipeline (react-compiler filter, no-deprecated stratify, seatbelt ratchet)
- * as pure transforms over the message list.
+ * Lint runner: run a Linter, then each Processor, then a Formatter.
  *
  *   bun scripts/lint/index.ts                      -> lint the whole repo
  *   bun scripts/lint/index.ts src/foo.ts ...       -> lint just the given paths
@@ -15,9 +13,12 @@ import CLI from 'expensify-common/CLI';
 
 import checkOnyxConnectBypass from '../checkOnyxConnectBypass';
 import Bench from '../utils/Bench';
-import {runEslint} from './eslint';
-import {runPostprocess} from './pipeline';
-import {resolveSeatbeltOptions} from './seatbelt';
+import EslintLinter from './eslint/EslintLinter';
+import StylishFormatter from './formatters/StylishFormatter';
+import Pipeline from './LintPipeline';
+import ReactCompilerFilter from './processors/ReactCompilerFilter';
+import Seatbelt, {resolveSeatbeltOptions} from './processors/Seatbelt';
+import StratifyNoDeprecated from './processors/StratifyNoDeprecated';
 
 const projectRoot = `${import.meta.dir}/../..`;
 
@@ -51,24 +52,21 @@ const cli = new CLI({
 
 const lintTargets = cli.positionalArgs.targets.length > 0 ? cli.positionalArgs.targets : ['.'];
 const showTimings = cli.flags.timings || process.env.LINT_TIMINGS === '1';
-
 const bench = new Bench();
-const seatbeltOptions = resolveSeatbeltOptions(projectRoot);
 
-const raw = await bench.measure('eslint', () =>
-    runEslint({
+const pipeline = new Pipeline(
+    projectRoot,
+    new EslintLinter({
         projectRoot,
-        targets: lintTargets,
         useCache: !cli.flags['no-cache'],
         fix: cli.flags.fix,
     }),
+    [new ReactCompilerFilter(), new StratifyNoDeprecated(), new Seatbelt(resolveSeatbeltOptions(projectRoot))],
+    new StylishFormatter(projectRoot, cli.flags['show-warnings']),
+    bench,
 );
 
-const result = await runPostprocess({raw, options: seatbeltOptions, showWarnings: cli.flags['show-warnings'], bench});
-
-if (raw.stderr.trim() && raw.linterExitCode > 1) {
-    console.error(raw.stderr.trim());
-}
+const result = await pipeline.run(lintTargets);
 
 if (result.reportText) {
     console.log(result.reportText);

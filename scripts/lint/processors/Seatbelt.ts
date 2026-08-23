@@ -2,7 +2,9 @@ import {file} from 'bun';
 import {rename} from 'node:fs/promises';
 import path from 'node:path';
 
-import type {LintMessage, SeatbeltOptions, SeatbeltRuleSet} from './types';
+import type {LintMessage, ProcessorContext, SeatbeltOptions, SeatbeltRuleSet} from '../types';
+
+import Processor from '../Processor';
 
 const SEATBELT_NAME = 'eslint-seatbelt';
 const SEATBELT_TSV_RELATIVE = 'config/eslint/eslint.seatbelt.tsv';
@@ -424,6 +426,19 @@ async function writeTsvAtomically(seatbeltFile: string, tsv: string): Promise<vo
     }
 }
 
+class Seatbelt extends Processor {
+    readonly name = 'seatbelt';
+
+    constructor(private readonly options: SeatbeltOptions) {
+        super();
+    }
+
+    async process(messages: LintMessage[], context: ProcessorContext): Promise<LintMessage[]> {
+        const result = await applySeatbelt(messages, this.options, context.lintedFiles);
+        return result.messages;
+    }
+}
+
 async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, lintedFilenames: Iterable<string>): Promise<SeatbeltApplyResult> {
     if (options.disable) {
         const existing = await file(options.seatbeltFile)
@@ -549,6 +564,7 @@ function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = pr
     };
 }
 
+export default Seatbelt;
 export {
     applySeatbelt,
     canonicalizeMessages,

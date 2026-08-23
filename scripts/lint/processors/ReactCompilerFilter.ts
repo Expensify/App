@@ -1,8 +1,9 @@
 import {file} from 'bun';
 
-import type {LintMessage} from './types';
+import type {LintMessage, ProcessorContext} from '../types';
 
-import WorkerPool from '../utils/WorkerPool';
+import WorkerPool from '../../utils/WorkerPool';
+import Processor from '../Processor';
 
 const RULES_SUPPRESSED_BY_REACT_COMPILER = new Set(['react/jsx-no-constructed-context-values', 'rulesdir/no-inline-useOnyx-selector']);
 const EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN = /\buseCallback\(\) Hook\b|\buseMemo\(\) Hook\b/;
@@ -81,7 +82,7 @@ async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: Compi
         return memoized;
     }
 
-    const pool = new WorkerPool<Candidate, CompilerWorkerResponse>(new URL('./reactCompilerWorker.ts', import.meta.url), workerCount);
+    const pool = new WorkerPool<Candidate, CompilerWorkerResponse>(new URL('./ReactCompilerWorker.ts', import.meta.url), workerCount);
     const responses = await pool.map(candidates, unmemoizedFallback);
     for (const response of responses) {
         memoized.set(response.filename, response.bothMemoized);
@@ -97,6 +98,21 @@ async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: Compi
  * Cache is one file per content hash so concurrent writes of the same key are
  * benign and need no lock.
  */
+class ReactCompilerFilter extends Processor {
+    readonly name = 'react-compiler-filter';
+
+    constructor(
+        private readonly checkBoth?: CompilerCheck,
+        private readonly workerCount = navigator.hardwareConcurrency || 4,
+    ) {
+        super();
+    }
+
+    process(messages: LintMessage[], context: ProcessorContext): Promise<LintMessage[]> {
+        return filterReactCompilerMessages(messages, context.projectRoot, this.checkBoth, this.workerCount);
+    }
+}
+
 async function filterReactCompilerMessages(
     messages: LintMessage[],
     projectRoot: string,
@@ -163,5 +179,6 @@ async function filterReactCompilerMessages(
     });
 }
 
+export default ReactCompilerFilter;
 export {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, filterReactCompilerMessages, isSuppressibleMessage, RULES_SUPPRESSED_BY_REACT_COMPILER};
 export type {CompilerCheck};

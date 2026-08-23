@@ -1,6 +1,6 @@
 // The compiler helper is ESM (.mjs); Bun resolves it without the extension.
 // eslint-disable-next-line import/extensions
-import {didBothCompilersMemoizeFile} from '../../config/reactCompiler/checkBoth.mjs';
+import {didBothCompilersMemoizeFile} from '../../../config/reactCompiler/checkBoth.mjs';
 
 type WorkerRequest = {
     filename: string;

@@ -1,6 +1,6 @@
 /**
- * Linter-agnostic diagnostic produced by an adapter (ESLint today, Oxlint later)
- * and consumed by the post-process pipeline.
+ * Linter-agnostic diagnostic produced by a Linter (ESLint today, Oxlint later)
+ * and consumed by processors and the formatter.
  *
  * `severity` matches ESLint: 2 = error, 1 = warning. Seatbelt only ratchets
  * countable errors (severity 2, non-null ruleId).
@@ -26,12 +26,23 @@ type LintFileResult = {
     source?: string;
 };
 
-type RawLintOutput = {
-    results: LintFileResult[];
+type LinterResult = {
+    files: LintFileResult[];
     /** Non-zero when the linter itself crashed or rejected the config. */
-    linterExitCode: number;
+    exitCode: number;
     /** Stderr from the linter process, for surfacing crashes. */
     stderr: string;
+};
+
+type ProcessorContext = {
+    projectRoot: string;
+    lintedFiles: string[];
+};
+
+type FormatterResult = {
+    text: string;
+    errorCount: number;
+    warningCount: number;
 };
 
 type SeatbeltRuleSet = 'all' | Set<string>;
@@ -48,4 +59,4 @@ type SeatbeltOptions = {
     verbose: boolean;
 };
 
-export type {LintFileResult, LintMessage, LintSeverity, RawLintOutput, SeatbeltOptions, SeatbeltRuleSet};
+export type {FormatterResult, LintFileResult, LintMessage, LintSeverity, LinterResult, ProcessorContext, SeatbeltOptions, SeatbeltRuleSet};

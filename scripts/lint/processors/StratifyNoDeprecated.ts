@@ -1,7 +1,9 @@
 import {parse} from '@babel/parser';
 import {file} from 'bun';
 
-import type {LintMessage} from './types';
+import type {LintMessage} from '../types';
+
+import Processor from '../Processor';
 
 const NO_DEPRECATED_RULE_ID = '@typescript-eslint/no-deprecated';
 const NON_CHILD_KEYS = new Set(['loc', 'start', 'end', 'extra', 'leadingComments', 'trailingComments', 'innerComments']);
@@ -135,6 +137,14 @@ function stratifyMessages(messages: LintMessage[], source: string | null): LintM
  * ratchet can tighten each deprecated symbol independently. Only files that
  * actually carry a `no-deprecated` message are re-parsed.
  */
+class StratifyNoDeprecated extends Processor {
+    readonly name = 'stratify-no-deprecated';
+
+    process(messages: LintMessage[]): Promise<LintMessage[]> {
+        return stratifyNoDeprecated(messages);
+    }
+}
+
 async function stratifyNoDeprecated(messages: LintMessage[]): Promise<LintMessage[]> {
     const filesNeedingSource = new Set<string>();
     for (const message of messages) {
@@ -171,4 +181,5 @@ async function stratifyNoDeprecated(messages: LintMessage[]): Promise<LintMessag
     return rewritten;
 }
 
+export default StratifyNoDeprecated;
 export {NO_DEPRECATED_RULE_ID, stratifyMessages, stratifyNoDeprecated, toRuleIdSuffix};
