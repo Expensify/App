@@ -2467,11 +2467,7 @@ type FindLastAccessedReportOptions = {
     excludeReportID?: string;
 };
 
-/**
- * Minimal slice of a Report that `findLastAccessedReport` callers consume.
- * Returning only the needed fields keeps the contract explicit and avoids handing
- * the full Report object to navigation fallbacks.
- */
+/** Fields of a Report that `findLastAccessedReport` callers consume. */
 type LastAccessedReport = {
     reportID: string;
     policyID?: string;
@@ -2485,12 +2481,7 @@ function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | u
     return {reportID: report.reportID, policyID: report.policyID, chatType: report.chatType};
 }
 
-/**
- * Pure selector that computes the last accessed report from the supplied collections.
- * It does not subscribe to Onyx itself, so callers decide how data reaches it:
- * the module-scoped `findLastAccessedReport` wrapper feeds it the module subscriptions,
- * and tests can pass curated collections directly.
- */
+/** Pure selector; callers pass the collections, so it has no Onyx subscription of its own. */
 function findLastAccessedReportSelector(
     reports: OnyxCollection<Report>,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
@@ -2550,15 +2541,10 @@ function findLastAccessedReportSelector(
 }
 
 /**
- * Finds the last accessed report for navigation fallbacks without triggering a view-based
- * Onyx subscription. It reads the report and last-visit-times collections from the
- * module-scoped subscriptions (intentional — see the `connectWithoutView` calls above)
- * and only takes the name-value pairs as an explicit argument so callers can pass a
- * curated collection. Returns a minimal slice instead of the full Report.
- *
- * Callers that need to react to the report data arriving (rather than reading whatever the module-scoped
- * copy happens to hold at call time) can pass their own subscribed collections through `reportNameValuePairs`
- * and `reports`. Both fall back to the module-scoped copies when omitted.
+ * Finds the last accessed report for navigation fallbacks using the module-scoped
+ * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
+ * `reports` let a caller pass its own subscribed collections and fall back to the
+ * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
