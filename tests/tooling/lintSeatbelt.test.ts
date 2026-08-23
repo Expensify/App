@@ -6,7 +6,7 @@ import path from 'node:path';
 
 import type {LintMessage, SeatbeltOptions} from '../../scripts/lint/types';
 
-import {applySeatbelt, canonicalizeMessages, parseSeatbeltTsv, serializeSeatbeltTsv, transformMessages} from '../../scripts/lint/processors/Seatbelt';
+import {applySeatbelt, canonicalizeMessages, parseSeatbeltTSV, serializeSeatbeltTSV, transformMessages} from '../../scripts/lint/processors/Seatbelt';
 
 function makeOptions(overrides: Partial<SeatbeltOptions> = {}): SeatbeltOptions {
     return {
@@ -23,12 +23,12 @@ function makeOptions(overrides: Partial<SeatbeltOptions> = {}): SeatbeltOptions 
     };
 }
 
-function makeMessage(ruleId: string, overrides: Partial<LintMessage> = {}): LintMessage {
+function makeMessage(ruleID: string, overrides: Partial<LintMessage> = {}): LintMessage {
     return {
         filePath: '/tmp/src/file.ts',
-        ruleId,
+        ruleID,
         severity: 2,
-        message: `Original: ${ruleId}`,
+        message: `Original: ${ruleID}`,
         line: 1,
         column: 1,
         ...overrides,
@@ -36,14 +36,14 @@ function makeMessage(ruleId: string, overrides: Partial<LintMessage> = {}): Lint
 }
 
 describe('canonicalizeMessages', () => {
-    it('sorts by filename, ruleId, line, then column', () => {
+    it('sorts by filename, ruleID, line, then column', () => {
         const messages = [
             makeMessage('b', {filePath: '/z.ts', line: 2, column: 1}),
             makeMessage('a', {filePath: '/a.ts', line: 9, column: 1}),
             makeMessage('a', {filePath: '/a.ts', line: 1, column: 9}),
             makeMessage('a', {filePath: '/a.ts', line: 1, column: 1}),
         ];
-        expect(canonicalizeMessages(messages).map((message) => `${message.filePath}:${message.ruleId}:${message.line}:${message.column}`)).toEqual([
+        expect(canonicalizeMessages(messages).map((message) => `${message.filePath}:${message.ruleID}:${message.line}:${message.column}`)).toEqual([
             '/a.ts:a:1:1',
             '/a.ts:a:1:9',
             '/a.ts:a:9:1',
@@ -54,7 +54,7 @@ describe('canonicalizeMessages', () => {
 
 describe('transformMessages', () => {
     it('demotes errors at the baseline to warnings', () => {
-        const {data} = parseSeatbeltTsv(`"../../src/file.ts"\t"no-console"\t2\n`);
+        const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t2\n`);
         const result = transformMessages(makeOptions(), data, '/tmp/src/file.ts', [makeMessage('no-console'), makeMessage('no-console', {line: 2})]);
         expect(result).toHaveLength(2);
         expect(result.at(0)?.severity).toBe(1);
@@ -62,7 +62,7 @@ describe('transformMessages', () => {
     });
 
     it('keeps overflow errors as errors', () => {
-        const {data} = parseSeatbeltTsv(`"../../src/file.ts"\t"no-console"\t1\n`);
+        const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t1\n`);
         const result = transformMessages(makeOptions(), data, '/tmp/src/file.ts', [
             makeMessage('no-console', {line: 1}),
             makeMessage('no-console', {line: 2}),
@@ -74,7 +74,7 @@ describe('transformMessages', () => {
     });
 
     it('demotes the first N overflow occurrences, not an arbitrary subset', () => {
-        const {data} = parseSeatbeltTsv(`"../../src/file.ts"\t"no-console"\t1\n`);
+        const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t1\n`);
         const result = transformMessages(makeOptions(), data, '/tmp/src/file.ts', [makeMessage('no-console', {line: 10}), makeMessage('no-console', {line: 20})]);
         expect(result.at(0)?.severity).toBe(1);
         expect(result.at(0)?.line).toBe(10);
@@ -83,14 +83,14 @@ describe('transformMessages', () => {
     });
 
     it('quiet suppresses at-max warnings but keeps overflow errors', () => {
-        const {data} = parseSeatbeltTsv(`"../../src/file.ts"\t"no-console"\t1\n`);
+        const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t1\n`);
         const result = transformMessages(makeOptions({quiet: true}), data, '/tmp/src/file.ts', [makeMessage('no-console', {line: 1}), makeMessage('no-console', {line: 2})]);
         expect(result).toHaveLength(1);
         expect(result.at(0)?.severity).toBe(2);
     });
 
     it('frozen turns a decrease into a warning rather than writing', () => {
-        const {data} = parseSeatbeltTsv(`"../../src/file.ts"\t"no-console"\t5\n`);
+        const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t5\n`);
         const result = transformMessages(makeOptions({frozen: true}), data, '/tmp/src/file.ts', [makeMessage('no-console'), makeMessage('no-console', {line: 2})]);
         expect(result.at(0)?.severity).toBe(1);
         expect(result.at(0)?.message).toContain('SEATBELT_FROZEN');
@@ -99,13 +99,13 @@ describe('transformMessages', () => {
     });
 
     it('leaves unbaselined rules untouched', () => {
-        const {data} = parseSeatbeltTsv(`"../../src/file.ts"\t"no-console"\t1\n`);
+        const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t1\n`);
         const result = transformMessages(makeOptions(), data, '/tmp/src/file.ts', [makeMessage('no-debugger')]);
         expect(result).toEqual([makeMessage('no-debugger')]);
     });
 });
 
-describe('serializeSeatbeltTsv', () => {
+describe('serializeSeatbeltTSV', () => {
     it('round-trips the committed header and row format', () => {
         const original = `# eslint-seatbelt temporarily allowed errors
 # docs: https://github.com/justjake/eslint-seatbelt#readme
@@ -113,12 +113,12 @@ describe('serializeSeatbeltTsv', () => {
 "../../src/a.ts"	"no-console"	1
 "../../src/b.ts"	"@typescript-eslint/no-deprecated/Foo"	2
 `;
-        const {data, comments} = parseSeatbeltTsv(original);
+        const {data, comments} = parseSeatbeltTSV(original);
         // Force reserialization through the maxErrors map (the write path).
         for (const fileState of data.values()) {
-            fileState.maxErrors = new Map(fileState.lines.map((line) => [line.ruleId, line.maxErrors]));
+            fileState.maxErrors = new Map(fileState.lines.map((line) => [line.ruleID, line.maxErrors]));
         }
-        expect(serializeSeatbeltTsv(data, comments)).toBe(original);
+        expect(serializeSeatbeltTSV(data, comments)).toBe(original);
     });
 });
 

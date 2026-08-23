@@ -28,7 +28,7 @@
         "lint/Processor.ts",
         "lint/Formatter.ts",
         "lint/LintPipeline.ts",
-        "lint/eslint/EslintLinter.ts",
+        "lint/eslint/ESLintLinter.ts",
         "lint/formatters/StylishFormatter.ts",
         "lint/processors/ReactCompilerFilter.ts",
         "lint/processors/ReactCompilerWorker.ts",

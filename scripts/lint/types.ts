@@ -3,13 +3,13 @@
  * and consumed by processors and the formatter.
  *
  * `severity` matches ESLint: 2 = error, 1 = warning. Seatbelt only ratchets
- * countable errors (severity 2, non-null ruleId).
+ * countable errors (severity 2, non-null ruleID).
  */
 type LintSeverity = 1 | 2;
 
 type LintMessage = {
     filePath: string;
-    ruleId: string | null;
+    ruleID: string | null;
     severity: LintSeverity;
     message: string;
     line: number;

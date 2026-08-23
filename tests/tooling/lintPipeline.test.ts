@@ -1,8 +1,9 @@
 import {describe, expect, it} from 'bun:test';
 
+import type {ESLintJSONResult} from '../../scripts/lint/eslint/ESLintLinter';
 import type {LintMessage, LinterResult} from '../../scripts/lint/types';
 
-import {normalizeEslintResults, parseEslintStdout} from '../../scripts/lint/eslint/EslintLinter';
+import {normalizeESLintResults, parseESLintStdout} from '../../scripts/lint/eslint/ESLintLinter';
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
 import Linter from '../../scripts/lint/Linter';
 import Pipeline from '../../scripts/lint/LintPipeline';
@@ -13,7 +14,7 @@ import {stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecat
 function makeMessage(overrides: Partial<LintMessage> = {}): LintMessage {
     return {
         filePath: '/tmp/src/file.ts',
-        ruleId: 'no-console',
+        ruleID: 'no-console',
         severity: 2,
         message: 'x',
         line: 1,
@@ -65,7 +66,7 @@ describe('resolveSeatbeltOptions', () => {
     });
 });
 
-describe('extractJsonArray via runEslint stdout', () => {
+describe('extractJSONArray via runESLint stdout', () => {
     it('normalizes results even when babel logs wrap the JSON array', () => {
         const wrapped = `babel.config.js\n  - running in: undefined\n${JSON.stringify([
             {filePath: '/repo/src/a.ts', messages: [{ruleId: 'no-console', severity: 2, message: 'nope', line: 3, column: 4}]},
@@ -76,18 +77,18 @@ describe('extractJsonArray via runEslint stdout', () => {
         if (!Array.isArray(parsed)) {
             throw new Error('expected JSON array');
         }
-        const [first] = normalizeEslintResults(
-            parsed.filter((value): value is {filePath: string; messages: Array<{ruleId: string; severity: number; message: string; line: number; column: number}>} => {
+        const [first] = normalizeESLintResults(
+            parsed.filter((value): value is ESLintJSONResult => {
                 return typeof value === 'object' && value !== null && 'filePath' in value && 'messages' in value;
             }),
         );
-        expect(first?.messages.at(0)?.ruleId).toBe('no-console');
+        expect(first?.messages.at(0)?.ruleID).toBe('no-console');
     });
 });
 
-describe('normalizeEslintResults', () => {
+describe('normalizeESLintResults', () => {
     it('copies ESLint JSON into the linter-agnostic message shape', () => {
-        const [result] = normalizeEslintResults([
+        const [result] = normalizeESLintResults([
             {
                 filePath: '/repo/src/a.ts',
                 messages: [{ruleId: 'no-console', severity: 2, message: 'nope', line: 3, column: 4}],
@@ -97,7 +98,7 @@ describe('normalizeEslintResults', () => {
         expect(result.messages).toEqual([
             {
                 filePath: '/repo/src/a.ts',
-                ruleId: 'no-console',
+                ruleID: 'no-console',
                 severity: 2,
                 message: 'nope',
                 line: 3,
@@ -114,7 +115,7 @@ describe('normalizeEslintResults', () => {
 describe('filterReactCompilerMessages', () => {
     it('skips the compiler for files with no suppressible message', async () => {
         let called = 0;
-        const messages = [makeMessage({ruleId: 'no-console'})];
+        const messages = [makeMessage({ruleID: 'no-console'})];
         const result = await filterReactCompilerMessages(messages, '/tmp', () => {
             called++;
             return true;
@@ -125,28 +126,28 @@ describe('filterReactCompilerMessages', () => {
 
     it('drops suppressible messages when both compilers memoize the file', async () => {
         const messages = [
-            makeMessage({ruleId: 'react/jsx-no-constructed-context-values'}),
-            makeMessage({ruleId: 'react-hooks/exhaustive-deps', message: 'React Hook useCallback() Hook is missing a dependency'}),
-            makeMessage({ruleId: 'no-console'}),
+            makeMessage({ruleID: 'react/jsx-no-constructed-context-values'}),
+            makeMessage({ruleID: 'react-hooks/exhaustive-deps', message: 'React Hook useCallback() Hook is missing a dependency'}),
+            makeMessage({ruleID: 'no-console'}),
         ];
         const result = await filterReactCompilerMessages(messages, '/tmp', () => true);
-        expect(result.map((message) => message.ruleId)).toEqual(['no-console']);
+        expect(result.map((message) => message.ruleID)).toEqual(['no-console']);
     });
 
     it('keeps suppressible messages when either compiler skips memoization', async () => {
-        const messages = [makeMessage({ruleId: 'react/jsx-no-constructed-context-values'})];
+        const messages = [makeMessage({ruleID: 'react/jsx-no-constructed-context-values'})];
         const result = await filterReactCompilerMessages(messages, '/tmp', () => false);
         expect(result).toEqual(messages);
     });
 
     it('does not suppress genuine exhaustive-deps missing-deps warnings', async () => {
-        const messages = [makeMessage({ruleId: 'react-hooks/exhaustive-deps', message: 'React Hook useEffect has a missing dependency: "foo"'})];
+        const messages = [makeMessage({ruleID: 'react-hooks/exhaustive-deps', message: 'React Hook useEffect has a missing dependency: "foo"'})];
         const result = await filterReactCompilerMessages(messages, '/tmp', () => true);
         expect(result).toEqual(messages);
     });
 
     it('keeps suppressible messages when a compiler check throws', async () => {
-        const messages = [makeMessage({ruleId: 'react/jsx-no-constructed-context-values'})];
+        const messages = [makeMessage({ruleID: 'react/jsx-no-constructed-context-values'})];
         const result = await filterReactCompilerMessages(messages, '/tmp', () => {
             throw new Error('compiler boom');
         });
@@ -157,18 +158,18 @@ describe('filterReactCompilerMessages', () => {
 describe('stratifyMessages', () => {
     it('rewrites no-deprecated using the source expression at the lint location', () => {
         const source = 'const x = StyleSheet.absoluteFillObject;\n';
-        const messages = [makeMessage({ruleId: '@typescript-eslint/no-deprecated', message: '`absoluteFillObject` is deprecated.', line: 1, column: 11})];
+        const messages = [makeMessage({ruleID: '@typescript-eslint/no-deprecated', message: '`absoluteFillObject` is deprecated.', line: 1, column: 11})];
         const result = stratifyMessages(messages, source);
-        expect(result.at(0)?.ruleId).toBe('@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject');
+        expect(result.at(0)?.ruleID).toBe('@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject');
     });
 
     it('falls back to the backtick symbol in the message when there is no source', () => {
-        const messages = [makeMessage({ruleId: '@typescript-eslint/no-deprecated', message: '`Foo.bar` is deprecated.'})];
-        expect(stratifyMessages(messages, null).at(0)?.ruleId).toBe('@typescript-eslint/no-deprecated/Foo.bar');
+        const messages = [makeMessage({ruleID: '@typescript-eslint/no-deprecated', message: '`Foo.bar` is deprecated.'})];
+        expect(stratifyMessages(messages, null).at(0)?.ruleID).toBe('@typescript-eslint/no-deprecated/Foo.bar');
     });
 
     it('leaves other rules alone', () => {
-        const messages = [makeMessage({ruleId: 'no-console'})];
+        const messages = [makeMessage({ruleID: 'no-console'})];
         expect(stratifyMessages(messages, 'console.log(1)\n')).toEqual(messages);
     });
 });
@@ -187,7 +188,7 @@ describe('Pipeline', () => {
     });
 
     it('treats a JSON parse failure with ESLint exit 0 or 1 as fatal', async () => {
-        const parsed = parseEslintStdout('not json', '', 1);
+        const parsed = parseESLintStdout('not json', '', 1);
         expect(parsed.exitCode).toBe(2);
         expect(parsed.files).toEqual([]);
         expect(parsed.stderr).toContain('Failed to parse ESLint JSON output');
@@ -196,10 +197,10 @@ describe('Pipeline', () => {
         const result = await pipeline.run(['.']);
         expect(result.exitCode).toBe(2);
         expect(result.reportText).toContain('Failed to parse ESLint JSON output');
-        expect(parseEslintStdout('', '', 0).exitCode).toBe(2);
+        expect(parseESLintStdout('', '', 0).exitCode).toBe(2);
     });
 
     it('preserves a linter crash exit code above 2 on parse failure', () => {
-        expect(parseEslintStdout('', 'oom', 137).exitCode).toBe(137);
+        expect(parseESLintStdout('', 'oom', 137).exitCode).toBe(137);
     });
 });

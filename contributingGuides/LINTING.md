@@ -24,6 +24,8 @@ npm run lint-watch
 npm run eslint-report
 ```
 
+Put flags before file or directory paths. The CLI stops parsing flags once it starts collecting variadic targets.
+
 Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx eslint` invocations. The wrapper increases the memory allocation to prevent OOM errors, applies the seatbelt ratchet and the other post-processors, and includes caching and concurrency flags for faster linting.
 
 Editor integrations and bare `npx eslint` still run the rule set from `config/eslint/`, but they do **not** apply the seatbelt ratchet, the React Compiler filter, or no-deprecated stratification. Those run only in `scripts/lint/`. Grandfathered seatbelt rows may therefore show as errors in the editor even though `npm run lint` passes.

@@ -16,7 +16,7 @@ const DEFAULT_FILE_HEADER = `# ${SEATBELT_NAME} temporarily allowed errors
 type SeatbeltFileLine = {
     encoded?: string;
     filename: string;
-    ruleId: string;
+    ruleID: string;
     maxErrors: number;
 };
 
@@ -32,15 +32,15 @@ type SeatbeltApplyResult = {
     changed: boolean;
 };
 
-function ruleSetHas(ruleSet: SeatbeltRuleSet, ruleId: string): boolean {
-    return ruleSet === 'all' || ruleSet.has(ruleId);
+function ruleSetHas(ruleSet: SeatbeltRuleSet, ruleID: string): boolean {
+    return ruleSet === 'all' || ruleSet.has(ruleID);
 }
 
 function encodeLine(line: SeatbeltFileLine): string {
-    return `${JSON.stringify(line.filename)}\t${JSON.stringify(line.ruleId)}\t${line.maxErrors}\n`;
+    return `${JSON.stringify(line.filename)}\t${JSON.stringify(line.ruleID)}\t${line.maxErrors}\n`;
 }
 
-function parseJsonString(value: string | undefined, column: string, index: number): string {
+function parseJSONString(value: string | undefined, column: string, index: number): string {
     if (value === undefined) {
         throw new Error(`Missing ${column} at line ${index + 1}`);
     }
@@ -51,7 +51,7 @@ function parseJsonString(value: string | undefined, column: string, index: numbe
     return parsed;
 }
 
-function parseJsonNumber(value: string | undefined, column: string, index: number): number {
+function parseJSONNumber(value: string | undefined, column: string, index: number): number {
     if (value === undefined) {
         throw new Error(`Missing ${column} at line ${index + 1}`);
     }
@@ -69,16 +69,16 @@ function decodeLine(line: string, index: number): SeatbeltFileLine {
     }
     return {
         encoded: line,
-        filename: parseJsonString(lineParts.at(0), 'filename', index),
-        ruleId: parseJsonString(lineParts.at(1), 'ruleId', index),
-        maxErrors: parseJsonNumber(lineParts.at(2), 'maxErrors', index),
+        filename: parseJSONString(lineParts.at(0), 'filename', index),
+        ruleID: parseJSONString(lineParts.at(1), 'ruleID', index),
+        maxErrors: parseJSONNumber(lineParts.at(2), 'maxErrors', index),
     };
 }
 
 function parseMaxErrors(lines: SeatbeltFileLine[]): Map<string, number> {
     const maxErrors = new Map<string, number>();
     for (const row of lines) {
-        maxErrors.set(row.ruleId, row.maxErrors);
+        maxErrors.set(row.ruleID, row.maxErrors);
     }
     return maxErrors;
 }
@@ -97,7 +97,7 @@ function toAbsolutePath(seatbeltFile: string, filename: string): string {
     return path.resolve(path.dirname(seatbeltFile), filename);
 }
 
-function parseSeatbeltTsv(text: string): {data: Map<string, SeatbeltFileData>; comments: string} {
+function parseSeatbeltTSV(text: string): {data: Map<string, SeatbeltFileData>; comments: string} {
     const data = new Map<string, SeatbeltFileData>();
     const split = text.split(/(?<=\n)/);
     const lines = split.filter((line) => NON_EMPTY_LINE_REGEX.test(line) && !COMMENT_LINE_REGEX.test(line)).map(decodeLine);
@@ -113,15 +113,15 @@ function parseSeatbeltTsv(text: string): {data: Map<string, SeatbeltFileData>; c
     return {data, comments: comments.trim()};
 }
 
-function serializeSeatbeltTsv(data: Map<string, SeatbeltFileData>, comments: string): string {
+function serializeSeatbeltTSV(data: Map<string, SeatbeltFileData>, comments: string): string {
     const lines: string[] = [];
     for (const [filename, fileState] of data) {
         if (fileState.maxErrors) {
             fileState.lines = [];
-            for (const [ruleId, maxErrorCount] of fileState.maxErrors) {
-                fileState.lines.push({filename, ruleId, maxErrors: maxErrorCount});
+            for (const [ruleID, maxErrorCount] of fileState.maxErrors) {
+                fileState.lines.push({filename, ruleID, maxErrors: maxErrorCount});
             }
-            fileState.lines.sort((a, b) => a.ruleId.localeCompare(b.ruleId));
+            fileState.lines.sort((a, b) => a.ruleID.localeCompare(b.ruleID));
         }
         for (const line of fileState.lines) {
             line.encoded ??= encodeLine(line);
@@ -141,17 +141,17 @@ function getMaxErrors(data: Map<string, SeatbeltFileData>, relativeFilename: str
     return fileState.maxErrors;
 }
 
-function isCountableError(message: LintMessage): message is LintMessage & {ruleId: string} {
-    return message.severity >= 2 && !!message.ruleId;
+function isCountableError(message: LintMessage): message is LintMessage & {ruleID: string} {
+    return message.severity >= 2 && !!message.ruleID;
 }
 
-function countRuleIds(messages: readonly LintMessage[]): Map<string, number> {
+function countRuleIDs(messages: readonly LintMessage[]): Map<string, number> {
     const counts = new Map<string, number>();
     for (const message of messages) {
         if (!isCountableError(message)) {
             continue;
         }
-        counts.set(message.ruleId, (counts.get(message.ruleId) ?? 0) + 1);
+        counts.set(message.ruleID, (counts.get(message.ruleID) ?? 0) + 1);
     }
     return counts;
 }
@@ -164,10 +164,14 @@ function compareMessages(a: LintMessage, b: LintMessage): number {
     if (a.filePath !== b.filePath) {
         return a.filePath < b.filePath ? -1 : 1;
     }
-    const aRule = a.ruleId ?? '';
-    const bRule = b.ruleId ?? '';
-    if (aRule !== bRule) {
-        return aRule < bRule ? -1 : 1;
+    if (a.ruleID === null) {
+        return b.ruleID === null ? 0 : -1;
+    }
+    if (b.ruleID === null) {
+        return 1;
+    }
+    if (a.ruleID !== b.ruleID) {
+        return a.ruleID < b.ruleID ? -1 : 1;
     }
     if (a.line !== b.line) {
         return a.line - b.line;
@@ -247,26 +251,26 @@ function transformMessages(options: SeatbeltOptions, data: Map<string, SeatbeltF
         return messages;
     }
 
-    const ruleToErrorCount = countRuleIds(messages);
+    const ruleToErrorCount = countRuleIDs(messages);
     const demoteRemaining = new Map<string, number>();
     const seenVerbose = new Set<string>();
 
     return messages.flatMap((message) => {
-        if (message.ruleId === null) {
-            verboseLog(options, () => `${filename}:${message.line}:${message.column}: cannot transform message with null ruleId`);
+        if (message.ruleID === null) {
+            verboseLog(options, () => `${filename}:${message.line}:${message.column}: cannot transform message with null ruleID`);
             return message;
         }
         if (!isCountableError(message)) {
             return message;
         }
 
-        const errorCount = ruleToErrorCount.get(message.ruleId);
+        const errorCount = ruleToErrorCount.get(message.ruleID);
         if (errorCount === undefined) {
-            throw new Error(`${SEATBELT_NAME} bug: errorCount not found for rule ${message.ruleId}`);
+            throw new Error(`${SEATBELT_NAME} bug: errorCount not found for rule ${message.ruleID}`);
         }
 
-        const maxErrorCount = ruleToMaxErrorCount?.get(message.ruleId) ?? 0;
-        const allowThisIncrease = ruleSetHas(options.allowIncreaseRules, message.ruleId);
+        const maxErrorCount = ruleToMaxErrorCount?.get(message.ruleID) ?? 0;
+        const allowThisIncrease = ruleSetHas(options.allowIncreaseRules, message.ruleID);
         if (maxErrorCount === 0 && !allowThisIncrease) {
             return message;
         }
@@ -278,13 +282,13 @@ function transformMessages(options: SeatbeltOptions, data: Map<string, SeatbeltF
                 }
                 return messageOverMaxErrorCountButIncreaseAllowed(message, errorCount, maxErrorCount);
             }
-            if (options.verbose && !seenVerbose.has(message.ruleId)) {
-                seenVerbose.add(message.ruleId);
-                verboseLog(options, () => `${filename}: rule ${message.ruleId}: error: ${errorCount} ${pluralErrors(errorCount)} found > max ${maxErrorCount}`);
+            if (options.verbose && !seenVerbose.has(message.ruleID)) {
+                seenVerbose.add(message.ruleID);
+                verboseLog(options, () => `${filename}: rule ${message.ruleID}: error: ${errorCount} ${pluralErrors(errorCount)} found > max ${maxErrorCount}`);
             }
-            const remaining = demoteRemaining.get(message.ruleId) ?? maxErrorCount;
+            const remaining = demoteRemaining.get(message.ruleID) ?? maxErrorCount;
             if (remaining > 0) {
-                demoteRemaining.set(message.ruleId, remaining - 1);
+                demoteRemaining.set(message.ruleID, remaining - 1);
                 if (options.quiet) {
                     return [];
                 }
@@ -294,9 +298,9 @@ function transformMessages(options: SeatbeltOptions, data: Map<string, SeatbeltF
         }
 
         if (errorCount === maxErrorCount) {
-            if (options.verbose && !seenVerbose.has(message.ruleId)) {
-                seenVerbose.add(message.ruleId);
-                verboseLog(options, () => `${filename}: rule ${message.ruleId}: ok: ${errorCount} ${pluralErrors(errorCount)} found == max ${maxErrorCount}`);
+            if (options.verbose && !seenVerbose.has(message.ruleID)) {
+                seenVerbose.add(message.ruleID);
+                verboseLog(options, () => `${filename}: rule ${message.ruleID}: ok: ${errorCount} ${pluralErrors(errorCount)} found == max ${maxErrorCount}`);
             }
             if (options.quiet) {
                 return [];
@@ -328,18 +332,18 @@ function updateMaxErrors(
     const existing = data.get(relativeFilename)?.maxErrors;
     const maxErrors = new Map(existing ?? []);
 
-    for (const [ruleId, errorCount] of ruleToErrorCount) {
-        const maxErrorCount = maxErrors.get(ruleId) ?? 0;
+    for (const [ruleID, errorCount] of ruleToErrorCount) {
+        const maxErrorCount = maxErrors.get(ruleID) ?? 0;
         if (errorCount === maxErrorCount) {
             continue;
         }
-        if (errorCount < maxErrorCount || ruleSetHas(options.allowIncreaseRules, ruleId)) {
+        if (errorCount < maxErrorCount || ruleSetHas(options.allowIncreaseRules, ruleID)) {
             verboseLog(options, () =>
                 options.frozen
-                    ? `${filename}: rule ${ruleId}: SEATBELT_FROZEN: didn't update max errors ${maxErrorCount} -> ${errorCount}`
-                    : `${filename}: rule ${ruleId}: update max errors ${maxErrorCount} -> ${errorCount}`,
+                    ? `${filename}: rule ${ruleID}: SEATBELT_FROZEN: didn't update max errors ${maxErrorCount} -> ${errorCount}`
+                    : `${filename}: rule ${ruleID}: update max errors ${maxErrorCount} -> ${errorCount}`,
             );
-            maxErrors.set(ruleId, errorCount);
+            maxErrors.set(ruleID, errorCount);
             if (errorCount > maxErrorCount) {
                 increasedRulesCount++;
             } else {
@@ -349,22 +353,22 @@ function updateMaxErrors(
     }
 
     if (options.verbose || options.keepRules !== 'all') {
-        for (const [ruleId, maxErrorCount] of [...maxErrors]) {
-            const shouldRemove = maxErrorCount === 0 || !ruleToErrorCount.has(ruleId);
+        for (const [ruleID, maxErrorCount] of [...maxErrors]) {
+            const shouldRemove = maxErrorCount === 0 || !ruleToErrorCount.has(ruleID);
             if (!shouldRemove) {
                 continue;
             }
-            if (ruleSetHas(options.keepRules, ruleId)) {
-                verboseLog(options, () => `${filename}: rule ${ruleId}: SEATBELT_KEEP: didn't update max errors ${maxErrorCount} -> 0`);
+            if (ruleSetHas(options.keepRules, ruleID)) {
+                verboseLog(options, () => `${filename}: rule ${ruleID}: SEATBELT_KEEP: didn't update max errors ${maxErrorCount} -> 0`);
                 continue;
             }
             verboseLog(options, () =>
                 options.frozen
-                    ? `${filename}: rule ${ruleId}: SEATBELT_FROZEN: didn't update max errors ${maxErrorCount} -> 0`
-                    : `${filename}: rule ${ruleId}: update max errors ${maxErrorCount} -> 0`,
+                    ? `${filename}: rule ${ruleID}: SEATBELT_FROZEN: didn't update max errors ${maxErrorCount} -> 0`
+                    : `${filename}: rule ${ruleID}: update max errors ${maxErrorCount} -> 0`,
             );
-            maxErrors.delete(ruleId);
-            removedRules.add(ruleId);
+            maxErrors.delete(ruleID);
+            removedRules.add(ruleID);
         }
     }
 
@@ -385,14 +389,14 @@ function frozenRemovedRuleMessages(filename: string, seatbeltFile: string, remov
     if (removedRules.size === 0) {
         return [];
     }
-    return [...removedRules].map((ruleId) => {
-        const maxErrorCount = maxErrorsBefore?.get(ruleId);
+    return [...removedRules].map((ruleID) => {
+        const maxErrorCount = maxErrorsBefore?.get(ruleID);
         if (maxErrorCount === undefined) {
-            throw new Error(`${SEATBELT_NAME} bug: maxErrorCount not found for removed frozen rule ${ruleId}`);
+            throw new Error(`${SEATBELT_NAME} bug: maxErrorCount not found for removed frozen rule ${ruleID}`);
         }
         return {
             filePath: filename,
-            ruleId,
+            ruleID,
             column: 0,
             line: 1,
             severity: 2 as const,
@@ -402,14 +406,14 @@ function frozenRemovedRuleMessages(filename: string, seatbeltFile: string, remov
 }
 
 /**
- * Sort by (filename, ruleId, line, column) so "the first N of M" demotions are
+ * Sort by (filename, ruleID, line, column) so "the first N of M" demotions are
  * deterministic regardless of the linter's thread order.
  */
 function canonicalizeMessages(messages: LintMessage[]): LintMessage[] {
     return [...messages].sort(compareMessages);
 }
 
-async function writeTsvAtomically(seatbeltFile: string, tsv: string): Promise<void> {
+async function writeTSVAtomically(seatbeltFile: string, tsv: string): Promise<void> {
     const tempPath = `${seatbeltFile}.${process.pid}.${Date.now()}.tmp`;
     await Bun.write(tempPath, tsv);
     try {
@@ -450,7 +454,7 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     const existingText = await file(options.seatbeltFile)
         .text()
         .catch(() => '');
-    const {data, comments} = existingText ? parseSeatbeltTsv(existingText) : {data: new Map<string, SeatbeltFileData>(), comments: DEFAULT_FILE_HEADER};
+    const {data, comments} = existingText ? parseSeatbeltTSV(existingText) : {data: new Map<string, SeatbeltFileData>(), comments: DEFAULT_FILE_HEADER};
 
     const canonical = canonicalizeMessages(messages);
     const byFile = new Map<string, LintMessage[]>();
@@ -474,7 +478,7 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
         const maxErrorsBefore = getMaxErrors(data, relativeFilename);
         const maxErrorsBeforeCopy = maxErrorsBefore ? new Map(maxErrorsBefore) : undefined;
         const after = transformMessages(options, data, filename, fileMessages);
-        const ruleToErrorCount = countRuleIds(fileMessages);
+        const ruleToErrorCount = countRuleIDs(fileMessages);
         const {removedRules, changed} = updateMaxErrors(options, data, filename, ruleToErrorCount);
         anyChanged ||= changed;
         if (options.frozen && removedRules.size > 0) {
@@ -501,14 +505,14 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
         anyChanged = true;
         pruned++;
     }
-    const tsv = serializeSeatbeltTsv(data, comments || DEFAULT_FILE_HEADER);
+    const tsv = serializeSeatbeltTSV(data, comments || DEFAULT_FILE_HEADER);
     const shouldWrite = anyChanged && !options.frozen && !options.readOnly;
     if (pruned > 0) {
         const verb = shouldWrite ? 'removed' : 'would remove';
         console.log(`eslint-seatbelt: ${verb} ${pruned} baseline row(s) for deleted files`);
     }
     if (shouldWrite) {
-        await writeTsvAtomically(options.seatbeltFile, tsv);
+        await writeTSVAtomically(options.seatbeltFile, tsv);
     }
 
     return {messages: canonicalizeMessages(transformed), tsv, wrote: shouldWrite, changed: anyChanged};
@@ -569,10 +573,10 @@ export {
     applySeatbelt,
     canonicalizeMessages,
     compareMessages,
-    countRuleIds,
-    parseSeatbeltTsv,
+    countRuleIDs,
+    parseSeatbeltTSV,
     resolveSeatbeltOptions,
-    serializeSeatbeltTsv,
+    serializeSeatbeltTSV,
     toRelativePath,
     transformMessages,
     updateMaxErrors,

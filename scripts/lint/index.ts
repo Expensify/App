@@ -13,7 +13,7 @@ import CLI from 'expensify-common/CLI';
 
 import checkOnyxConnectBypass from '../checkOnyxConnectBypass';
 import Bench from '../utils/Bench';
-import EslintLinter from './eslint/EslintLinter';
+import ESLintLinter from './eslint/ESLintLinter';
 import StylishFormatter from './formatters/StylishFormatter';
 import Pipeline from './LintPipeline';
 import ReactCompilerFilter from './processors/ReactCompilerFilter';
@@ -56,7 +56,7 @@ const bench = new Bench();
 
 const pipeline = new Pipeline(
     projectRoot,
-    new EslintLinter({
+    new ESLintLinter({
         projectRoot,
         useCache: !cli.flags['no-cache'],
         fix: cli.flags.fix,
@@ -69,7 +69,11 @@ const pipeline = new Pipeline(
 const result = await pipeline.run(lintTargets);
 
 if (result.reportText) {
-    console.log(result.reportText);
+    if (result.exitCode > 1) {
+        console.error(result.reportText);
+    } else {
+        console.log(result.reportText);
+    }
 }
 
 if (showTimings) {

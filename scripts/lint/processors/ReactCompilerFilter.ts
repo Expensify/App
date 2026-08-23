@@ -12,10 +12,10 @@ const CACHE_DIR = 'node_modules/.cache/react-compiler';
 type CompilerCheck = (source: string, filename: string) => boolean | Promise<boolean>;
 
 function isSuppressibleMessage(message: LintMessage): boolean {
-    if (message.ruleId !== null && RULES_SUPPRESSED_BY_REACT_COMPILER.has(message.ruleId)) {
+    if (message.ruleID !== null && RULES_SUPPRESSED_BY_REACT_COMPILER.has(message.ruleID)) {
         return true;
     }
-    return message.ruleId === 'react-hooks/exhaustive-deps' && EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN.test(message.message);
+    return message.ruleID === 'react-hooks/exhaustive-deps' && EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN.test(message.message);
 }
 
 function shouldSkipCompiler(filename: string): boolean {

@@ -10,12 +10,12 @@ type QueuedItem<TRequest> = {
  * pool crash cannot drop work on the floor.
  */
 class WorkerPool<TRequest, TResponse> {
-    private readonly workerUrl: URL;
+    private readonly workerURL: URL;
 
     private readonly concurrency: number;
 
-    constructor(workerUrl: URL, concurrency = 4) {
-        this.workerUrl = workerUrl;
+    constructor(workerURL: URL, concurrency = 4) {
+        this.workerURL = workerURL;
         this.concurrency = concurrency;
     }
 
@@ -27,7 +27,7 @@ class WorkerPool<TRequest, TResponse> {
         const results = new Map<number, TResponse>();
         const queue: Array<QueuedItem<TRequest>> = items.map((item, index) => ({item, index}));
         const poolSize = Math.max(1, Math.min(this.concurrency, items.length));
-        const workers = Array.from({length: poolSize}, () => new Worker(this.workerUrl));
+        const workers = Array.from({length: poolSize}, () => new Worker(this.workerURL));
 
         try {
             await Promise.all(workers.map((worker) => this.drain(worker, queue, results, fallback)));
@@ -47,10 +47,15 @@ class WorkerPool<TRequest, TResponse> {
     private drain(worker: Worker, queue: Array<QueuedItem<TRequest>>, results: Map<number, TResponse>, fallback: (item: TRequest) => TResponse): Promise<void> {
         return new Promise((resolve) => {
             let inFlight: QueuedItem<TRequest> | undefined;
+            let settled = false;
 
             const pump = () => {
+                if (settled) {
+                    return;
+                }
                 const next = queue.pop();
                 if (!next) {
+                    settled = true;
                     resolve();
                     return;
                 }
@@ -59,6 +64,9 @@ class WorkerPool<TRequest, TResponse> {
             };
 
             worker.addEventListener('message', (event: MessageEvent<TResponse>) => {
+                if (settled) {
+                    return;
+                }
                 if (inFlight) {
                     results.set(inFlight.index, event.data);
                     inFlight = undefined;
@@ -67,6 +75,10 @@ class WorkerPool<TRequest, TResponse> {
             });
 
             worker.addEventListener('error', () => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
                 if (inFlight) {
                     results.set(inFlight.index, fallback(inFlight.item));
                     inFlight = undefined;

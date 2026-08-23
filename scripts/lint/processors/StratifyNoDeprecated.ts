@@ -9,7 +9,7 @@ const NO_DEPRECATED_RULE_ID = '@typescript-eslint/no-deprecated';
 const NON_CHILD_KEYS = new Set(['loc', 'start', 'end', 'extra', 'leadingComments', 'trailingComments', 'innerComments']);
 const MEMBER_LIKE_TYPES = new Set(['MemberExpression', 'OptionalMemberExpression', 'TSQualifiedName']);
 
-type AstNode = {
+type ASTNode = {
     type: string;
     start: number;
     end: number;
@@ -20,20 +20,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
 }
 
-const isAstNode = (value: unknown): value is AstNode => {
+const isASTNode = (value: unknown): value is ASTNode => {
     if (!isRecord(value)) {
         return false;
     }
     return typeof value.type === 'string' && typeof value.start === 'number' && typeof value.end === 'number';
 };
 
-function* astChildren(node: AstNode): Generator<AstNode> {
+function* astChildren(node: ASTNode): Generator<ASTNode> {
     for (const [key, value] of Object.entries(node)) {
         if (NON_CHILD_KEYS.has(key)) {
             continue;
         }
         for (const child of Array.isArray(value) ? value : [value]) {
-            if (isAstNode(child)) {
+            if (isASTNode(child)) {
                 yield child;
             }
         }
@@ -52,7 +52,7 @@ function lineColumnToOffset(source: string, line: number, column: number): numbe
     return lineStart + column - 1;
 }
 
-function findAstPathAtOffset(root: AstNode, offset: number): AstNode[] | null {
+function findASTPathAtOffset(root: ASTNode, offset: number): ASTNode[] | null {
     if (offset < 0 || offset < root.start || offset > root.end) {
         return null;
     }
@@ -76,7 +76,7 @@ function findAstPathAtOffset(root: AstNode, offset: number): AstNode[] | null {
     }
 }
 
-function topOfMemberChain(path: AstNode[]): AstNode {
+function topOfMemberChain(path: ASTNode[]): ASTNode {
     let topIndex = path.length - 1;
     while (topIndex > 0 && MEMBER_LIKE_TYPES.has(path.at(topIndex - 1)?.type ?? '')) {
         topIndex--;
@@ -88,18 +88,18 @@ function topOfMemberChain(path: AstNode[]): AstNode {
     return top;
 }
 
-function parseSourceOrNull(source: string): AstNode | null {
+function parseSourceOrNull(source: string): ASTNode | null {
     try {
         const parsed: unknown = parse(source, {sourceType: 'module', plugins: ['typescript', 'jsx']});
-        return isAstNode(parsed) ? parsed : null;
+        return isASTNode(parsed) ? parsed : null;
     } catch {
         return null;
     }
 }
 
-function getDeprecatedExpressionFromSource(source: string, ast: AstNode, message: LintMessage): string | null {
+function getDeprecatedExpressionFromSource(source: string, ast: ASTNode, message: LintMessage): string | null {
     const offset = lineColumnToOffset(source, message.line, message.column);
-    const path = findAstPathAtOffset(ast, offset);
+    const path = findASTPathAtOffset(ast, offset);
     if (!path) {
         return null;
     }
@@ -112,23 +112,23 @@ function getSymbolNameFromMessage(message: LintMessage): string | null {
     return match ? (match.at(1) ?? null) : null;
 }
 
-function toRuleIdSuffix(apiName: string): string {
+function toRuleIDSuffix(apiName: string): string {
     return apiName.trim().replaceAll(/[\s/]+/g, '_');
 }
 
 function stratifyMessages(messages: LintMessage[], source: string | null): LintMessage[] {
-    const hasNoDeprecatedMessages = messages.some((message) => message.ruleId === NO_DEPRECATED_RULE_ID);
+    const hasNoDeprecatedMessages = messages.some((message) => message.ruleID === NO_DEPRECATED_RULE_ID);
     const ast = source && hasNoDeprecatedMessages ? parseSourceOrNull(source) : null;
 
     return messages.map((message) => {
-        if (message.ruleId !== NO_DEPRECATED_RULE_ID) {
+        if (message.ruleID !== NO_DEPRECATED_RULE_ID) {
             return message;
         }
         const apiName = (source !== null && ast !== null ? getDeprecatedExpressionFromSource(source, ast, message) : null) ?? getSymbolNameFromMessage(message);
         if (!apiName) {
             return message;
         }
-        return {...message, ruleId: `${NO_DEPRECATED_RULE_ID}/${toRuleIdSuffix(apiName)}`};
+        return {...message, ruleID: `${NO_DEPRECATED_RULE_ID}/${toRuleIDSuffix(apiName)}`};
     });
 }
 
@@ -148,7 +148,7 @@ class StratifyNoDeprecated extends Processor {
 async function stratifyNoDeprecated(messages: LintMessage[]): Promise<LintMessage[]> {
     const filesNeedingSource = new Set<string>();
     for (const message of messages) {
-        if (message.ruleId === NO_DEPRECATED_RULE_ID) {
+        if (message.ruleID === NO_DEPRECATED_RULE_ID) {
             filesNeedingSource.add(message.filePath);
         }
     }
@@ -182,4 +182,4 @@ async function stratifyNoDeprecated(messages: LintMessage[]): Promise<LintMessag
 }
 
 export default StratifyNoDeprecated;
-export {NO_DEPRECATED_RULE_ID, stratifyMessages, stratifyNoDeprecated, toRuleIdSuffix};
+export {NO_DEPRECATED_RULE_ID, stratifyMessages, stratifyNoDeprecated, toRuleIDSuffix};

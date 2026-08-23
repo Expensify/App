@@ -13,5 +13,13 @@
         "noEmit": true
     },
     "include": [],
-    "files": ["CIGitLogic.test.ts", "lintSeatbelt.test.ts", "lintPipeline.test.ts", "WorkerPool.test.ts", "workerPoolEchoWorker.ts", "workerPoolCrashWorker.ts"]
+    "files": [
+        "CIGitLogic.test.ts",
+        "lintSeatbelt.test.ts",
+        "lintPipeline.test.ts",
+        "WorkerPool.test.ts",
+        "workerPoolEchoWorker.ts",
+        "workerPoolCrashWorker.ts",
+        "workerPoolSelectiveCrashWorker.ts"
+    ]
 }

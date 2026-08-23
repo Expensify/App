@@ -11,7 +11,7 @@ function relativePath(projectRoot: string, filePath: string): string {
 function formatMessage(projectRoot: string, message: LintMessage): string {
     const loc = `${relativePath(projectRoot, message.filePath)}:${message.line}:${message.column}`;
     const level = message.severity >= 2 ? 'error' : 'warning';
-    const rule = message.ruleId ? `  ${message.ruleId}` : '';
+    const rule = message.ruleID ? `  ${message.ruleID}` : '';
     return `${loc}\n  ${level}  ${message.message}${rule}`;
 }
 

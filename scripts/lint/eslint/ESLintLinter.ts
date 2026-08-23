@@ -4,8 +4,11 @@ import type {LintFileResult, LintMessage, LintSeverity, LinterResult} from '../t
 
 import Linter from '../Linter';
 
-type EslintJsonMessage = {
-    ruleId: string | null;
+const ESLINT_RULE_ID_KEY = 'ruleId' as const;
+
+type ESLintJSONMessage = {
+    // ESLint's JSON output uses this key; normalize it to ruleID below.
+    [ESLINT_RULE_ID_KEY]: string | null;
     severity: number;
     message: string;
     line?: number;
@@ -16,14 +19,14 @@ type EslintJsonMessage = {
     fix?: unknown;
 };
 
-type EslintJsonResult = {
+type ESLintJSONResult = {
     filePath: string;
-    messages: EslintJsonMessage[];
+    messages: ESLintJSONMessage[];
     source?: string;
     suppressedMessages?: unknown[];
 };
 
-type EslintLinterOptions = {
+type ESLintLinterOptions = {
     projectRoot: string;
     useCache: boolean;
     fix: boolean;
@@ -37,18 +40,18 @@ function normalizeSeverity(severity: number): LintSeverity {
     return severity >= 2 ? 2 : 1;
 }
 
-function isEslintJsonResult(value: unknown): value is EslintJsonResult {
+function isESLintJSONResult(value: unknown): value is ESLintJSONResult {
     return typeof value === 'object' && value !== null && 'filePath' in value && 'messages' in value;
 }
 
-function normalizeEslintResults(results: EslintJsonResult[]): LintFileResult[] {
+function normalizeESLintResults(results: ESLintJSONResult[]): LintFileResult[] {
     return results.map((result) => ({
         filePath: result.filePath,
         source: result.source,
         messages: result.messages.map(
             (message): LintMessage => ({
                 filePath: result.filePath,
-                ruleId: message.ruleId,
+                ruleID: message[ESLINT_RULE_ID_KEY],
                 severity: normalizeSeverity(message.severity),
                 message: message.message,
                 line: message.line ?? 0,
@@ -63,7 +66,7 @@ function normalizeEslintResults(results: EslintJsonResult[]): LintFileResult[] {
 }
 
 /** Babel / file-progress may write to stdout around the JSON array. */
-function extractJsonArray(text: string): string | null {
+function extractJSONArray(text: string): string | null {
     const start = text.indexOf('[');
     const end = text.lastIndexOf(']');
     if (start < 0 || end <= start) {
@@ -85,8 +88,8 @@ function parseFailureOutput(stdout: string, stderr: string, exitCode: number): L
  * fatal (`exitCode > 1`) even when ESLint itself exited 0 or 1 — otherwise
  * the pipeline would flatten zero messages and report a clean pass.
  */
-function parseEslintStdout(stdout: string, stderr: string, exitCode: number): LinterResult {
-    const jsonText = extractJsonArray(stdout);
+function parseESLintStdout(stdout: string, stderr: string, exitCode: number): LinterResult {
+    const jsonText = extractJSONArray(stdout);
     if (!jsonText) {
         return parseFailureOutput(stdout, stderr, exitCode);
     }
@@ -101,7 +104,7 @@ function parseEslintStdout(stdout: string, stderr: string, exitCode: number): Li
         return parseFailureOutput(stdout, stderr, exitCode);
     }
 
-    return {files: normalizeEslintResults(parsed.filter(isEslintJsonResult)), exitCode, stderr};
+    return {files: normalizeESLintResults(parsed.filter(isESLintJSONResult)), exitCode, stderr};
 }
 
 /**
@@ -112,10 +115,10 @@ function parseEslintStdout(stdout: string, stderr: string, exitCode: number): Li
  * still work. `--quiet` is also not passed here; the formatter filters
  * warnings after seatbelt demotes grandfathered errors.
  */
-class EslintLinter extends Linter {
+class ESLintLinter extends Linter {
     readonly name = 'eslint';
 
-    constructor(private readonly options: EslintLinterOptions) {
+    constructor(private readonly options: ESLintLinterOptions) {
         super();
     }
 
@@ -136,10 +139,10 @@ class EslintLinter extends Linter {
             .nothrow()
             .quiet();
 
-        return parseEslintStdout(result.stdout.toString(), result.stderr.toString(), result.exitCode);
+        return parseESLintStdout(result.stdout.toString(), result.stderr.toString(), result.exitCode);
     }
 }
 
-export default EslintLinter;
-export {normalizeEslintResults, parseEslintStdout};
-export type {EslintJsonResult, EslintLinterOptions};
+export default ESLintLinter;
+export {normalizeESLintResults, parseESLintStdout};
+export type {ESLintJSONResult, ESLintLinterOptions};
