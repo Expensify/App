@@ -7,12 +7,11 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getTagLists, isGroupPolicy, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction,
-    findSelfDMReportID,
     isArchivedReport,
     isInvoiceReport,
     isIOUReport,
@@ -43,7 +42,6 @@ import type {
     RecentlyUsedTags,
     Report,
     ReportAction,
-    ReportActions,
     ReportNameValuePairs,
     Transaction,
     TransactionViolations,
@@ -55,11 +53,12 @@ import type {ValueOf} from 'type-fest';
 /**
  * Actions for inline editing of transactions from the Search results table and the Expense Report page.
  *
- * Each function delegates to the corresponding IOU action which owns the canonical Onyx record,
- * the API write, failure rollback, and snapshot updates (when a hash is provided).
+ * These functions are pure: every Onyx value they need (the transaction and violation
+ * collections, the resolved reports/report action, session, betas, etc.) is passed in by
+ * the caller (`useTransactionInlineEdit`), which reads it via `useOnyx`. Each function
+ * delegates to the corresponding IOU action which owns the canonical Onyx record, the API
+ * write, failure rollback, and snapshot updates (when a hash is provided).
  */
-import Onyx from 'react-native-onyx';
-
 import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
@@ -78,64 +77,6 @@ type TransactionEditPermissions = {
     canEditAmount: boolean;
     canEditTag: boolean;
 };
-
-let allTransactions: NonNullable<OnyxCollection<Transaction>> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    callback: (value) => {
-        allTransactions = value ?? {};
-    },
-});
-
-let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (value) => {
-        allTransactionViolations = value ?? {};
-    },
-});
-
-let allReports: NonNullable<OnyxCollection<Report>> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (value) => {
-        allReports = value ?? {};
-    },
-});
-
-let allReportActions: NonNullable<OnyxCollection<ReportActions>> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (value) => {
-        allReportActions = value ?? {};
-    },
-});
-
-let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
-let currentUserEmail = '';
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserEmail = value?.email ?? '';
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
-let allBetas: Beta[] | undefined;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => {
-        allBetas = value ?? undefined;
-    },
-});
-
-let introSelected: OnyxEntry<IntroSelected>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
-    },
-});
 
 const NO_EDIT: Readonly<TransactionEditPermissions> = Object.freeze({
     canEditDate: false,
@@ -196,6 +137,24 @@ type GetIouParamsInput = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+
+    /** The transaction being edited plus any of its duplicates, scoped by the caller. */
+    transactions: OnyxCollection<Transaction>;
+
+    /** Violations for the transaction being edited plus any of its duplicates, scoped by the caller. */
+    transactionViolations: OnyxCollection<TransactionViolations>;
+
+    /** Betas the current user has access to, used to gate ASAP submit behavior. */
+    betas: Beta[] | undefined;
+
+    /** Onboarding intro data, needed to build a transaction thread report when one doesn't exist yet. */
+    introSelected: OnyxEntry<IntroSelected>;
+
+    /** The current user's account ID. */
+    currentUserAccountID: number;
+
+    /** The current user's email/login. */
+    currentUserEmail: string;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -229,51 +188,31 @@ function getIouParamsForTransaction({
     isTrackIntentUser,
     getCurrencyDecimals,
     getCurrencySymbol,
+    transactions,
+    transactionViolations,
+    betas,
+    introSelected,
+    currentUserAccountID,
+    currentUserEmail,
 }: GetIouParamsInput) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    const isUnreportedExpense = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionViolationsForTransaction = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
-    let resolvedParentReport = parentReport;
-    if (!resolvedParentReport?.reportID && transaction?.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-        resolvedParentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-    }
-
-    let resolvedParentReportAction = parentReportAction;
-    if (!resolvedParentReportAction && resolvedParentReport?.reportID) {
-        const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${resolvedParentReport.reportID}`] ?? {};
-        resolvedParentReportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
-    }
-
-    if (isUnreportedExpense) {
-        const selfDMReportID = findSelfDMReportID(allReports);
-        if (selfDMReportID) {
-            resolvedParentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] ?? resolvedParentReport;
-
-            if (!resolvedParentReportAction) {
-                const selfDMReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`] ?? {};
-                resolvedParentReportAction = getIOUActionForTransactionID(Object.values(selfDMReportActions), transactionID);
-            }
-        }
-    }
-
+    // parentReport (already resolved to the self DM for unreported expenses), parentReportAction, and
+    // transactionThreadReport are resolved by the caller (useTransactionInlineEdit) via useOnyx, so they
+    // are used directly here. The only remaining resolution is building a transaction thread report when
+    // one doesn't exist in Onyx yet.
     let resolvedTransactionThreadReport = transactionThreadReport;
-    const transactionThreadReportID = resolvedTransactionThreadReport?.reportID ?? transaction?.transactionThreadReportID ?? resolvedParentReportAction?.childReportID;
-
-    if (!resolvedTransactionThreadReport && transactionThreadReportID) {
-        resolvedTransactionThreadReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
-    }
-
-    if (!resolvedTransactionThreadReport && resolvedParentReportAction && transaction) {
+    if (!resolvedTransactionThreadReport && parentReportAction && transaction) {
         resolvedTransactionThreadReport = createTransactionThreadReport({
             introSelected,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
-            betas: allBetas,
-            iouReport: resolvedParentReport,
-            iouReportAction: resolvedParentReportAction,
+            betas,
+            iouReport: parentReport,
+            iouReportAction: parentReportAction,
             transaction,
-            transactionViolations: transactionViolations ?? undefined,
+            transactionViolations: transactionViolationsForTransaction ?? undefined,
             personalDetails: personalDetailsList,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
@@ -283,14 +222,14 @@ function getIouParamsForTransaction({
     return {
         transactionID,
         transactionThreadReport: resolvedTransactionThreadReport,
-        parentReport: resolvedParentReport,
-        iouReportOwnerLogin: getLoginByAccountID(resolvedParentReport?.ownerAccountID, personalDetailsList),
+        parentReport,
+        iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, personalDetailsList),
         policy,
         policyForTrackExpense,
         policyCategories,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
-        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
+        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas),
         delegateAccountID,
         isTrackIntentUser,
         getCurrencyDecimals,
@@ -313,8 +252,8 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
         policyTags: iouParams.policyTagList,
         value: newDate,
-        transactions: allTransactions,
-        transactionViolations: allTransactionViolations,
+        transactions: params.transactions,
+        transactionViolations: params.transactionViolations,
         isOffline: params.isOffline,
         hash: params.hash,
         distanceOriginalPolicy: params.distanceOriginalPolicy,
@@ -324,13 +263,11 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
 function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
+    const iouParams = getIouParamsForTransaction(params);
 
-    if (!isValidMerchant(newMerchant, transaction, params.parentReport)) {
+    if (!isValidMerchant(newMerchant, iouParams.transaction, params.parentReport)) {
         return;
     }
-
-    const iouParams = getIouParamsForTransaction(params);
 
     updateMoneyRequestMerchant({
         ...iouParams,
@@ -386,8 +323,8 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
         taxCode,
         taxValue: taxPercentage,
         allowNegative,
-        transactions: allTransactions,
-        transactionViolations: allTransactionViolations,
+        transactions: params.transactions,
+        transactionViolations: params.transactionViolations,
         policyRecentlyUsedCurrencies: [],
         hash: params.hash,
     });
