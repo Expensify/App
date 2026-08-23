@@ -28,8 +28,6 @@ Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx esli
 
 Editor integrations and bare `npx eslint` still run the rule set from `config/eslint/`, but they do **not** apply the seatbelt ratchet, the React Compiler filter, or no-deprecated stratification. Those run only in `scripts/lint/`. Grandfathered seatbelt rows may therefore show as errors in the editor even though `npm run lint` passes.
 
-To benchmark the post-process pipeline without re-running ESLint, capture a raw dump once (`npm run lint -- --dump-raw /tmp/lint-raw.json`) and replay it (`npm run lint -- --from-raw /tmp/lint-raw.json --timings`). `--from-raw` skips `checkOnyxConnectBypass` and re-runs the React Compiler against the current worktree rather than the captured `source`, so replay pass/fail can differ from the original run.
-
 By default the wrapper only prints blocking errors — seatbelt-grandfathered violations (which CI does not fail on) are suppressed from the output but still evaluated against the baseline. Pass `--show-warnings` when you want to see them too, e.g. when paying down baselined errors.
 
 ## Seatbelt

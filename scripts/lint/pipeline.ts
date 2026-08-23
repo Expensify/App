@@ -1,5 +1,3 @@
-import {file} from 'bun';
-
 import type {LintFileResult, LintMessage, RawLintOutput, SeatbeltOptions} from './types';
 
 import Bench from '../utils/Bench';
@@ -71,21 +69,5 @@ async function runPostprocess(input: PipelineInput): Promise<PipelineResult> {
     };
 }
 
-function isRawLintOutput(value: unknown): value is RawLintOutput {
-    return typeof value === 'object' && value !== null && 'results' in value && 'linterExitCode' in value;
-}
-
-async function loadRawFromFile(path: string): Promise<RawLintOutput> {
-    const parsed: unknown = JSON.parse(await file(path).text());
-    if (!isRawLintOutput(parsed)) {
-        throw new Error(`Invalid raw lint dump: ${path}`);
-    }
-    return parsed;
-}
-
-async function dumpRawToFile(path: string, raw: RawLintOutput): Promise<void> {
-    await Bun.write(path, `${JSON.stringify(raw)}\n`);
-}
-
-export {dumpRawToFile, loadRawFromFile, runPostprocess};
+export {runPostprocess};
 export type {PipelineInput, PipelineResult};
