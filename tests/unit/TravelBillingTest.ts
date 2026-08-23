@@ -41,7 +41,7 @@ describe('TravelBilling', () => {
         setTravelBillingSettlementAccount(policyID, workspaceAccountID, settlementBankAccountID, previousPaymentBankAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'SetTravelInvoicingSettlementAccount',
+            'SetTravelBillingSettlementAccount',
             {
                 policyID,
                 settlementBankAccountID,
@@ -134,7 +134,7 @@ describe('TravelBilling', () => {
         toggleTravelBillingContinuousReconciliation(workspaceAccountID, true, connectionName, oldConnectionName);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'ToggleTravelInvoicingContinuousReconciliation',
+            'ToggleTravelBillingContinuousReconciliation',
             {
                 policyAccountID: workspaceAccountID,
                 shouldUseContinuousReconciliation: true,
@@ -184,7 +184,7 @@ describe('TravelBilling', () => {
         setTravelBillingReconciliationBankAccount(workspaceAccountID, domainName, selectedBankAccountID, previousBankAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'SetTravelInvoicingReconciliationBankAccount',
+            'SetTravelBillingReconciliationBankAccount',
             {
                 domainName,
                 travelInvoicingReconciliationBankAccountID: selectedBankAccountID,
@@ -241,7 +241,7 @@ describe('TravelBilling', () => {
         updateTravelBillingSettlementFrequency(workspaceAccountID, frequency, currentMonthlySettlementDate);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'UpdateTravelInvoiceSettlementFrequency',
+            'UpdateTravelBillingSettlementFrequency',
             {
                 domainAccountID: workspaceAccountID,
                 settlementFrequency: frequency,
@@ -313,7 +313,7 @@ describe('TravelBilling', () => {
         configureTravelBillingForPolicy(policyID, workspaceAccountID, settlementBankAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'ConfigureTravelInvoicingForPolicy',
+            'ConfigureTravelBillingForPolicy',
             {
                 policyID,
                 settlementBankAccountID,
@@ -372,7 +372,7 @@ describe('TravelBilling', () => {
         deactivateTravelBilling(policyID, workspaceAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'DeactivateTravelInvoicing',
+            'DeactivateTravelBilling',
             {
                 policyID,
             },
