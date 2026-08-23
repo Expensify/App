@@ -9,10 +9,12 @@ import {file} from 'bun';
  * for directives that name the ban or blanket directives that cover a real call — no disable
  * comment can reach this check.
  *
- * A real bypass requires a file to contain both an `Onyx.connect` reference and an `eslint-disable`
- * directive, so we first narrow the targets to files matching both (via git grep). The `Onyx.connect`
- * match deliberately omits the `(` so it stays a superset of the AST rule; extra matches like
- * `Onyx.connectWithoutView` are harmless, as we only fail on disable directives that name the ban.
+ * A real bypass requires a file to mention `Onyx` and `connect` and contain an `eslint-disable`
+ * directive, so we first narrow the targets to files matching all three (via git grep). The
+ * prefilter does not require the contiguous text `Onyx.connect` — git grep is line-oriented, so a
+ * spaced or split `Onyx . connect(` would otherwise be skipped. Extra matches like
+ * `Onyx.connectWithoutView` are harmless: we only fail on disable directives that actually
+ * suppress the ban.
  */
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
@@ -21,14 +23,18 @@ import {collectDisableDirectivesFromSource, findNewBypasses} from './onyxConnect
 
 const projectRoot = path.resolve(import.meta.dir, '..');
 
-/** Files among the lint targets that contain both an Onyx.connect() call and an eslint-disable. */
+/** Files among the lint targets that mention Onyx, connect, and eslint-disable. */
 function findCandidateFiles(targets: string[]): string[] {
     const pathSpecs = targets.length > 0 ? targets : ['.'];
     try {
-        const output = execFileSync('git', ['grep', '-lI', '-F', '--all-match', '--untracked', '--no-recurse-submodules', '-e', 'Onyx.connect', '-e', 'eslint-disable', '--', ...pathSpecs], {
-            cwd: projectRoot,
-            encoding: 'utf8',
-        });
+        const output = execFileSync(
+            'git',
+            ['grep', '-lI', '--all-match', '--untracked', '--no-recurse-submodules', '-e', 'Onyx', '-e', 'connect', '-e', 'eslint-disable', '--', ...pathSpecs],
+            {
+                cwd: projectRoot,
+                encoding: 'utf8',
+            },
+        );
         return output.split('\n').filter(Boolean);
     } catch (error: unknown) {
         if (typeof error === 'object' && error !== null && 'status' in error && error.status === 1) {
