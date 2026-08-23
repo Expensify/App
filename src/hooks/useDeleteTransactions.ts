@@ -5,10 +5,11 @@ import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import {initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
 import {updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate';
+import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isExpenseReport, isInvoiceReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {
@@ -21,7 +22,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -273,7 +274,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
                 const splitExpensesTotal = allChildTransactions.reduce((total, childTransaction) => {
                     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-                    return total + initSplitExpenseItemData(childTransaction, transactionReport).amount;
+                    return total + initSplitExpenseItemData(childTransaction, transactionReport, {getCurrencyDecimals}).amount;
                 }, 0);
                 const policyRecentlyUsedCategories =
                     allPolicyRecentlyUsedCategories?.[
@@ -297,7 +298,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     // up with an undefined reportID downstream.
                     const resolvedReportID = childTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : childTransaction?.reportID;
                     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${resolvedReportID}`];
-                    return initSplitExpenseItemData(childTransaction, transactionReport, {reportID: resolvedReportID});
+                    return initSplitExpenseItemData(childTransaction, transactionReport, {reportID: resolvedReportID, getCurrencyDecimals});
                 });
                 const remainingSplitExpensesTotal = remainingSplitExpenses.reduce((total, splitExpense) => total + splitExpense.amount, 0);
                 const updatedRemainingSplitExpenses =
@@ -312,6 +313,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
                 updateSplitTransactions({
                     getCurrencyDecimals,
+                    getCurrencySymbol,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: allReportActions,
@@ -362,6 +364,48 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) || isInvoiceReport(candidateIOUReport) ? candidateIOUReport : undefined;
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`];
+
+                // A self-DM expense is a tracked expense: it has no IOU report to key the cleanup on, so it goes
+                // through the track-expense flow, which resolves the self-DM report actions and the whisper.
+                if (isSelfDM(candidateIOUReport) && isTrackExpenseAction(action)) {
+                    // The Onyx collection can be missing the self-DM actions when the delete comes from Search, where
+                    // they are read from the search snapshot instead, so the ones passed in fill the gaps. Actionable
+                    // track expense whispers are matched on their own since they are built without a `reportID`.
+                    const selfDMReportActions: ReportActions = {
+                        ...Object.fromEntries(
+                            reportActions
+                                .filter((chatAction) => chatAction.reportID === candidateIOUReport?.reportID || isActionableTrackExpense(chatAction))
+                                .map((chatAction) => [chatAction.reportActionID, chatAction]),
+                        ),
+                        ...allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${candidateIOUReport?.reportID}`],
+                    };
+
+                    deleteTrackExpense({
+                        chatReportID: candidateIOUReport?.reportID,
+                        chatReport: candidateIOUReport,
+                        chatReportActions: selfDMReportActions,
+                        transactionID,
+                        reportAction: action,
+                        iouReport: undefined,
+                        chatIOUReport: undefined,
+                        transactions: duplicateTransactions,
+                        violations: duplicateTransactionViolations,
+                        isSingleTransactionView,
+                        isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${candidateIOUReport?.reportID}`]),
+                        isChatIOUReportArchived: false,
+                        allTransactionViolationsParam: transactionViolations,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserEmail: currentUserPersonalDetails.email ?? '',
+                        policy: undefined,
+                        getCurrencyDecimals,
+                    });
+                    deletedTransactionIDs.push(transactionID);
+                    if (action.childReportID) {
+                        deletedTransactionThreadReportIDs.add(action.childReportID);
+                    }
+                    continue;
+                }
+
                 const chatIOUReportID = chatReport?.reportID;
                 const isChatIOUReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`]);
                 const iouPolicy = iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`] : undefined;
