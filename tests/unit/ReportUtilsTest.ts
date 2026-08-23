@@ -12074,7 +12074,7 @@ describe('ReportUtils', () => {
 
         it('blocks the submitter while the session account ID has not loaded yet', () => {
             // Given an open expense report but no resolved current user account ID
-            // Then the submitter check cannot pass, though an admin is still recognised from the policy alone
+            // Then the submitter check cannot pass, though an admin is still recognized from the policy alone
             expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, undefined)).toBe(false);
             expect(canInviteMembersToReport(openExpenseReport, adminPolicy, false, undefined)).toBe(true);
         });
