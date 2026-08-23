@@ -29,6 +29,12 @@ describe('getOnboardingIntentFromUrl', () => {
         expect(getOnboardingIntentFromUrl('/onboarding?intent=submit')).toBe(CONST.ONBOARDING_INTENTS.SUBMIT);
     });
 
+    // HybridApp hands NewDot the deeplink as a bare path rather than a full URL, which is the shape the emailed
+    // magic link arrives in on mobile.
+    it('reads the intent from the exitTo of a magic link passed as a bare path', () => {
+        expect(getOnboardingIntentFromUrl(`v/12345/678910?exitTo=${encodedOnboardingRoute}`)).toBe(CONST.ONBOARDING_INTENTS.SUBMIT);
+    });
+
     it('reads the intent from the exitTo of an OldDot transition link', () => {
         const url = `https://new.expensify.com/transition?email=${encodeURIComponent('me@example.com')}&shortLivedAuthToken=abc123&exitTo=${encodedOnboardingRoute}`;
 
