@@ -144,6 +144,33 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
 
+    it('keeps the Payer row when reimbursementChoice is REIMBURSEMENT_YES after the bank account is disconnected', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            // Disconnecting the bank account clears the bank data (no open state, removed from BANK_ACCOUNT_LIST)
+            // but preserves the reimburser and leaves reimbursementChoice as REIMBURSEMENT_YES.
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        reimburser: 'test@user.com',
+                        bankAccountID: 0,
+                        accountNumber: '',
+                        routingNumber: '',
+                        addressName: '',
+                        bankName: '',
+                    },
+                }),
+            );
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
+    });
+
     it('shows the Payer row when reimbursementChoice is REIMBURSEMENT_MANUAL', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
