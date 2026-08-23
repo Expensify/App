@@ -2,6 +2,8 @@ import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 
+import {suppressWelcomeModalForSubmitDeeplink} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
+
 import {setSubmitMigrationModalShown} from '@userActions/User';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,17 +33,25 @@ function ApplySubmitOnboardingIntent() {
     const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [isSupportalSession] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
 
+    // Runs at mount rather than alongside the work below, which waits on HAS_LOADED_APP — the same signal the guard
+    // uses to decide whether to open its modal.
     useEffect(() => {
-        if (hasAppliedIntent || !hasLoadedApp || isOnboardingCompleted === undefined || isSupportalSession) {
+        suppressWelcomeModalForSubmitDeeplink();
+    }, []);
+
+    useEffect(() => {
+        if (hasAppliedIntent || !hasLoadedApp || isOnboardingCompleted === undefined) {
             return;
         }
         hasAppliedIntent = true;
 
-        if (!isOnboardingCompleted) {
+        // Marked applied above before these checks, since they are reasons to drop the intent rather than to wait for
+        // it to become actionable. Returning without consuming would leave it live for whoever signs in next.
+        if (!isOnboardingCompleted || isSupportalSession) {
             return;
         }
 
-        // The deeplink delivers the same outcome as the Submit plan welcome modal, so keep that modal from opening too.
+        // Persists the suppression applied above, so the modal stays away in later sessions too.
         setSubmitMigrationModalShown();
 
         // `false` skips CompleteGuidedSetup, which is already done. The hook navigates to the user's existing Submit
