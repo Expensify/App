@@ -4,6 +4,7 @@ import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {pendingDeleteMemberAccountIDsByReportIDSelector} from '@selectors/ReportMetaData';
 import {useCallback, useMemo, useState} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -84,6 +85,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [pendingDeleteMemberAccountIDsByReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingDeleteMemberAccountIDsByReportIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributesDerived = useReportAttributes();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -110,7 +112,17 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
-                      {currentUserAccountID, dateFnsLocale, conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
+                      {
+                          currentUserAccountID,
+                          dateFnsLocale,
+                          conciergeReportID,
+                          maxRecentReports: reportsLimit,
+                          includeP2P,
+                          isSearching,
+                          deferContactsUntilSearch,
+                          locale: preferredLocale,
+                          pendingDeleteMemberAccountIDsByReportID,
+                      },
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -133,6 +145,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             isTrackIntentUser,
             sortedActions,
             currentUserAccountID,
+            pendingDeleteMemberAccountIDsByReportID,
             dateFnsLocale,
         ],
     );

@@ -11882,4 +11882,41 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports.at(0)?.isBold).toBe(true);
         });
     });
+    describe('createFilteredOptionList() with members pending removal', () => {
+        const GROUP_CHAT_REPORT_ID = '9001';
+        const groupChatReport: Report = {
+            reportID: GROUP_CHAT_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            reportName: '',
+            lastVisibleActionCreated: '2024-01-01 00:00:00.000',
+            lastMessageText: 'hi',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+
+        const buildGroupChatOption = (pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>) => {
+            clearFilteredOptionListCache();
+            const optionList = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                {[`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`]: groupChatReport},
+                MOCK_REPORT_ATTRIBUTES_DERIVED,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                allPolicies,
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, pendingDeleteMemberAccountIDsByReportID},
+            );
+            return optionList.reports.find((option) => option.item.reportID === GROUP_CHAT_REPORT_ID);
+        };
+
+        it('keeps every member in the group chat icon when nothing is pending removal', () => {
+            expect(buildGroupChatOption()?.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
+        });
+
+        it('leaves the members pending removal out of the group chat icon', () => {
+            expect(buildGroupChatOption({[GROUP_CHAT_REPORT_ID]: ['4']})?.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
+        });
+    });
 });

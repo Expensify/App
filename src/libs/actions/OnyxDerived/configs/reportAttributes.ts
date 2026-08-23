@@ -565,6 +565,7 @@ export default createOnyxDerivedValueConfig({
                     allTransactions: transactions,
                     reports,
                     policies,
+                    reportMetadata,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
                 });
