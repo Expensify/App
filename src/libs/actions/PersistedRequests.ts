@@ -542,6 +542,8 @@ function resetPendingWritesForTest() {
 export {
     clear,
     save,
+    getClientRequestIndex,
+    shouldPersistOngoingRequest,
     getAll,
     getCommands,
     endRequestAndRemoveFromQueue,

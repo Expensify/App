@@ -47,6 +47,15 @@ type OnyxDataBase<TOnyxUpdate> = {
 
     /** Onyx instructions that are executed when Onyx queue is flushed */
     queueFlushedData?: TOnyxUpdate[];
+
+    /**
+     * Retry this request on a later flush instead of failing it, when it runs out of retries and the server never
+     * answered. `failureData` only makes sense for a rejection the server actually sent; without one it throws away
+     * work the user can still get. After `CONST.NETWORK.MAX_GIVE_UP_PARKS` tries we fail it as before.
+     *
+     * Only for commands that are safe to send twice. Never on one that creates money. See #2788.
+     */
+    shouldReplayOnGiveUp?: boolean;
 };
 
 /** Model of onyx requests sent to the API */
@@ -67,6 +76,9 @@ type RequestType = 'get' | 'post';
 type RequestDataBase<TKey extends OnyxKey> = {
     /** Name of the API command */
     command: string;
+
+    /** How many times the queue has already put this request back for a later retry. See `shouldReplayOnGiveUp`. */
+    giveUpCount?: number;
 
     /** Command name for logging purposes */
     commandName?: string;

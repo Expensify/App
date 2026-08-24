@@ -315,7 +315,10 @@ function replaceReceipt({
         isSameReceipt,
     };
 
-    API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});
+    // In production every ReplaceReceipt that runs out of retries is a network failure, never a server rejection, so
+    // giving up after ~34s throws away a receipt nobody refused. Sending it twice is harmless — same file, same
+    // transaction — so let the queue retry it later instead. See #2788.
+    API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData, shouldReplayOnGiveUp: true});
 }
 
 function setMoneyRequestReceipt(

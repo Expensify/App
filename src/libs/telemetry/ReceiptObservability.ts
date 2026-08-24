@@ -178,6 +178,38 @@ function logReceiptDropped({
     });
 }
 
+/**
+ * Logs a receipt the queue stopped uploading, so it can be traced back to when it was taken. 'parked' means we will
+ * try again later, 'gaveUp' means we stopped for good. Comparing the two counts tells us whether retrying helps.
+ */
+function logReceiptGiveUp({
+    event,
+    receiptTraceId,
+    transactionID,
+    command,
+    errorMessage,
+    errorStatus,
+    giveUpCount,
+}: {
+    event: 'parked' | 'gaveUp';
+    receiptTraceId: string | undefined;
+    transactionID: string | undefined;
+    command: string;
+    errorMessage: string | undefined;
+    errorStatus: string | undefined;
+    giveUpCount: number;
+}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} ${event}`, {
+        event,
+        receiptTraceId,
+        transactionID,
+        command,
+        errorMessage,
+        errorStatus,
+        giveUpCount,
+    });
+}
+
 function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureSource: ReceiptCaptureSource}) {
     Log.alert(`${RECEIPT_LOG_PREFIX} adopt failed`, {
         event: 'adoptFailed',
@@ -246,6 +278,7 @@ export {
     logReceiptSubmitted,
     logReceiptEnqueued,
     logReceiptDropped,
+    logReceiptGiveUp,
     logReceiptAdoptFailed,
     logReceiptQueueSnapshot,
     getPickerCaptureSource,

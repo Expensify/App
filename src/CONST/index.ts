@@ -2593,6 +2593,9 @@ const CONST = {
         MAX_PENDING_TIME_MS: 10 * 1000,
         MAX_REQUEST_RETRIES: 10,
         MAX_OPEN_APP_REQUEST_RETRIES: 2,
+
+        /** How many times the queue may retry a request that ran out of retries without the server answering (#2788). */
+        MAX_GIVE_UP_PARKS: 3,
         SUSTAINED_FAILURE_THRESHOLD_COUNT: 3,
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
         RECONNECT_STAMPEDE_JITTER_MS: 5000,

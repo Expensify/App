@@ -3,6 +3,7 @@ import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
+    getClientRequestIndex,
     getCommands,
     getOngoingRequest as getPersistedOngoingRequest,
     onCrossTabRequestsMerged as onPersistedRequestsCrossTabMerge,
@@ -10,16 +11,18 @@ import {
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
     save as savePersistedRequest,
+    shouldPersistOngoingRequest as isRequestSerializable,
     update as updatePersistedRequest,
 } from '@libs/actions/PersistedRequests';
 import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import isNonAuthoritativeFailure from '@libs/Errors/isNonAuthoritativeFailure';
 import Log from '@libs/Log';
 import {getIsOffline as isOfflineNetwork, subscribe as subscribeToNetworkState} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
-import {logReceiptEnqueued, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
+import {logReceiptEnqueued, logReceiptGiveUp, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +50,69 @@ type RequestError = Error & {
     message?: string;
     status?: string;
 };
+
+/**
+ * Requests we already retried in this drain, by client request index. They wait for the next flush, so the network
+ * gets a real chance to recover instead of us burning every retry in one pass. Cleared by flush(). In memory only:
+ * after a restart the request is fair game again.
+ */
+const parkedRequestIndexesThisDrain = new Set<number>();
+
+/** Logs to the [Receipt] spine as well, so a lost receipt can be traced back to when it was taken. */
+function logGiveUpForReceipt(request: AnyRequest, event: 'parked' | 'gaveUp', error: RequestError, giveUpCount: number) {
+    if (!RECEIPT_BEARING_COMMANDS.has(request.command)) {
+        return;
+    }
+
+    const data = (request.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
+    if (!data.receipt) {
+        return;
+    }
+
+    logReceiptGiveUp({
+        event,
+        receiptTraceId: data.receipt.receiptTraceId,
+        transactionID: data.transactionID,
+        command: request.command,
+        errorMessage: error.message,
+        errorStatus: error.status,
+        giveUpCount,
+    });
+}
+
+function canParkRequest(request: AnyRequest): boolean {
+    if (!request.shouldReplayOnGiveUp) {
+        return false;
+    }
+
+    if ((request.giveUpCount ?? 0) >= CONST.NETWORK.MAX_GIVE_UP_PARKS) {
+        return false;
+    }
+
+    if (getClientRequestIndex(request) == null) {
+        return false;
+    }
+
+    // A File or Blob payload (web receipts) survives in memory but not on disk, so a retry after a restart would
+    // upload nothing. Fail those the old way instead, so the user at least sees an error.
+    if (!isRequestSerializable(request)) {
+        return false;
+    }
+
+    // Another write for the same transaction makes this one stale — retrying it would put the old receipt back.
+    // Skip ourselves in the scan: rollbackOngoingRequest() has already put this request back in the queue by now, so
+    // a naive check matches itself and nothing with a transactionID would ever be retried.
+    const transactionID = (request.data as {transactionID?: string} | undefined)?.transactionID;
+    if (!transactionID) {
+        return true;
+    }
+
+    const requestIndex = getClientRequestIndex(request);
+    return !getAllPersistedRequests().some(
+        (queued) =>
+            queued.command === request.command && getClientRequestIndex(queued) !== requestIndex && (queued.data as {transactionID?: string} | undefined)?.transactionID === transactionID,
+    );
+}
 
 let resolveIsReadyPromise: (() => void) | undefined;
 let isReadyPromise: Promise<void> = Promise.resolve();
@@ -297,6 +363,18 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
+    // Back round to a request we already retried this drain. Return it to the front and stop — the next flush picks
+    // it up first.
+    const requestToProcessIndex = getClientRequestIndex(requestToProcess);
+    if (requestToProcessIndex != null && parkedRequestIndexesThisDrain.has(requestToProcessIndex)) {
+        Log.info('[SequentialQueue] Reached a parked request, ending this drain until the next flush', false, {
+            command: requestToProcess.command,
+            giveUpCount: requestToProcess.giveUpCount ?? 0,
+        });
+        rollbackOngoingPersistedRequest();
+        return Promise.resolve();
+    }
+
     Log.info('[SequentialQueue] Starting to process request', false, {
         command: requestToProcess.command,
         isRollback: requestToProcess.isRollback ?? false,
@@ -411,10 +489,49 @@ function process(): Promise<void> {
                     return process();
                 })
                 .catch(() => {
+                    // The throttle rejects with no value, so `error` is the outer one: the last attempt's failure.
+                    const shouldPark = isNonAuthoritativeFailure(error) && canParkRequest(requestToProcess);
+
+                    if (shouldPark) {
+                        // The server never answered, so nothing actually failed — we just could not reach it for ~34s.
+                        // Applying failureData here is what loses the receipt. Move the request to the back instead,
+                        // let the rest of the queue drain, and try again on a later flush. No Onyx write: the
+                        // optimistic state is still correct, pending indicator included. See #2788.
+                        const giveUpCount = (requestToProcess.giveUpCount ?? 0) + 1;
+                        Log.info('[SequentialQueue] Request exhausted its retries with no answer from the server, parking it for replay', false, {
+                            command: requestToProcess.command,
+                            errorMessage: error.message,
+                            errorStatus: error.status ?? '',
+                            giveUpCount,
+                        });
+
+                        logGiveUpForReceipt(requestToProcess, 'parked', error, giveUpCount);
+                        // Clears the ongoing slot. Its own removal matches by deepEqual, which `isRollback` can break,
+                        // so we also remove by request index below.
+                        endPersistedRequestAndRemoveFromQueue(requestToProcess);
+
+                        const requestIndex = getClientRequestIndex(requestToProcess);
+                        const queuedIndex = getAllPersistedRequests().findIndex((queued) => getClientRequestIndex(queued) === requestIndex);
+                        if (queuedIndex !== -1) {
+                            deletePersistedRequestsByIndices([queuedIndex]);
+                        }
+
+                        if (requestIndex != null) {
+                            parkedRequestIndexesThisDrain.add(requestIndex);
+                        }
+                        savePersistedRequest({...requestToProcess, giveUpCount});
+
+                        sequentialQueueRequestThrottle.clear();
+                        return process();
+                    }
+
                     Log.info('[SequentialQueue] Request failed too many times, giving up', false, {
                         command: requestToProcess.command,
                         errorMessage: error.message,
+                        errorStatus: error.status ?? '',
+                        giveUpCount: requestToProcess.giveUpCount ?? 0,
                     });
+                    logGiveUpForReceipt(requestToProcess, 'gaveUp', error, requestToProcess.giveUpCount ?? 0);
                     Onyx.update(requestToProcess.failureData ?? []);
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
@@ -451,6 +568,10 @@ function flush(shouldResetPromise = true) {
         Log.info('[SequentialQueue] Unable to flush. Queue is already running.');
         return;
     }
+
+    // New drain, so anything we set aside last time gets another go. This is what retries a parked request: the
+    // flush after a reconnect, a new write, or the app coming back to the foreground.
+    parkedRequestIndexesThisDrain.clear();
 
     const currentPersistedRequests = getAllPersistedRequests();
     const currentOngoingRequest = getPersistedOngoingRequest();
