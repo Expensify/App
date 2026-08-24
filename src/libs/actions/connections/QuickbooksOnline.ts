@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
+import type {SelectIntuitEnterpriseSuiteEntityParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
 import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -10,7 +10,7 @@ import {isPolicyAdmin} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Connections, QBOConnectionConfig} from '@src/types/onyx/Policy';
+import type {Connections, IntuitEnterpriseSuiteEntity, QBOConnectionConfig} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
 import type {CONST as COMMON_CONST} from 'expensify-common';
@@ -32,6 +32,67 @@ function getQuickbooksOnlineSetupLink(policyID: string, isIntuitEnterpriseSuite 
         shouldSkipWebProxy: true,
     });
     return commandURL + params.toString();
+}
+
+function selectIntuitEnterpriseSuiteEntity(policyID: string, entity: IntuitEnterpriseSuiteEntity, currentEntity: IntuitEnterpriseSuiteEntity | undefined) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            realmId: entity.realmId,
+                            companyName: entity.companyName,
+                            pendingFields: {realmId: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {realmId: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            pendingFields: {realmId: null},
+                            errorFields: {realmId: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            realmId: currentEntity?.realmId ?? '',
+                            companyName: currentEntity?.companyName ?? '',
+                            pendingFields: {realmId: null},
+                            errorFields: {realmId: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    const params: SelectIntuitEnterpriseSuiteEntityParams = {
+        policyID,
+        realmId: entity.realmId,
+    };
+
+    API.write(WRITE_COMMANDS.SELECT_INTUIT_ENTERPRISE_SUITE_ENTITY, params, {optimisticData, successData, failureData});
 }
 
 function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
@@ -431,6 +492,25 @@ function updateQuickbooksOnlineCollectionAccountID<TSettingValue extends QBOConn
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
+function updateQuickbooksOnlineFxExpenseAccount<TSettingValue extends QBOConnectionConfig['fxExpenseAccount']>(
+    policyID: string | undefined,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    if (settingValue === oldSettingValue || !policyID) {
+        return;
+    }
+
+    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT, parameters, {optimisticData, failureData, successData});
+}
+
 function updateQuickbooksOnlineSyncReimbursedReports(
     policyID: string | undefined,
     settingValue: QBOConnectionConfig['collectionAccountID'],
@@ -539,6 +619,7 @@ function updateQuickbooksOnlineTravelBillingPayableAccount(policyID: string, acc
 export {
     shouldShowQBOReimbursableExportDestinationAccountError,
     getQuickbooksOnlineSetupLink,
+    selectIntuitEnterpriseSuiteEntity,
     updateQuickbooksOnlineEnableNewCategories,
     updateQuickbooksOnlineAutoCreateVendor,
     updateQuickbooksOnlineReimbursableExpensesAccount,
@@ -551,6 +632,7 @@ export {
     updateQuickbooksOnlineExportDate,
     updateQuickbooksOnlineNonReimbursableExpensesAccount,
     updateQuickbooksOnlineCollectionAccountID,
+    updateQuickbooksOnlineFxExpenseAccount,
     updateQuickbooksOnlineSyncReimbursedReports,
     updateQuickbooksOnlineNonReimbursableBillDefaultVendor,
     updateQuickbooksOnlineNonReimbursableCreditCardDefaultVendor,

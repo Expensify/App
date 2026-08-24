@@ -24,6 +24,14 @@ let lastUpdateIDAppliedToClient: number | undefined = 0;
 // applied so queued WRITE responses don't look like gaps; reset if the flush fails so recovery can kick in.
 let lastUpdateIDPendingFlush = 0;
 
+function getEffectiveLastUpdateID(): number {
+    return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
+}
+
+function getPersistedLastUpdateID(): number {
+    return lastUpdateIDAppliedToClient ?? 0;
+}
+
 // We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -145,9 +153,9 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
-    // Updates staged for the deferred WRITE flush count as applied for ordering purposes, otherwise they would
-    // get re-staged (and reapplied on flush) if the same update ID arrives again while the flush is pending.
-    const effectiveLastUpdateID = Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
+    const isCatchUpRequest =
+        request?.command === SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES || (request?.command === SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP && !!request?.data?.updateIDFrom);
+    const effectiveLastUpdateID = isCatchUpRequest ? (lastUpdateIDAppliedToClient ?? 0) : getEffectiveLastUpdateID();
     const isUpdateOld = lastUpdateID && effectiveLastUpdateID && Number(lastUpdateID) <= effectiveLastUpdateID;
     const isOpenAppRequest = request?.command === WRITE_COMMANDS.OPEN_APP;
     const isFullReconnectRequest = request?.command === SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP && !request?.data?.updateIDFrom;
@@ -156,6 +164,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
         Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData', false, {
             lastUpdateID,
             lastUpdateIDAppliedToClient,
+            effectiveLastUpdateID,
             command: request?.command,
         });
 
@@ -290,5 +299,5 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
     return false;
 }
 
-export {apply, doesClientNeedToBeUpdated, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
+export {apply, doesClientNeedToBeUpdated, getEffectiveLastUpdateID, getPersistedLastUpdateID, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
 export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};
