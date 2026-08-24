@@ -38,6 +38,17 @@ type ButtonBehaviorProps = {
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading?: boolean;
 
+    /**
+     * Shows the loading spinner the moment the button is pressed, ahead of `onPress`. Defaults to false.
+     *
+     * The spinner is painted before `onPress` runs, so a JS-blocking handler still gives instant feedback. What clears it
+     * depends on `isLoading` being defined: without one it clears as `onPress` settles, with one the button hands it over,
+     * so pass a stable boolean that does turn true, or none at all.
+     *
+     * It wraps the whole handler; for a spinner on only some branches, drive `isLoading` from your own `usePressLoading`.
+     */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
+
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;
 

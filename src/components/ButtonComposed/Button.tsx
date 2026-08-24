@@ -3,6 +3,7 @@ import {getButtonRole} from '@components/Button/utils';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
+import usePressLoading from '@hooks/usePressLoading';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +12,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useMemo, useState} from 'react';
@@ -25,7 +26,8 @@ function Button({
     children,
     contentContainerStyle = [],
     size = CONST.BUTTON_SIZE.MEDIUM,
-    isLoading = false,
+    isLoading: isOnyxLoading,
+    shouldShowLoadingImmediatelyOnPress = false,
     isDisabled = false,
     onLayout = () => {},
     onPress = () => {},
@@ -58,17 +60,45 @@ function Button({
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
 
-    const contextValue = useMemo(
-        () => ({
-            isHovered,
-            variant,
-            size,
-            onPress,
-            isDisabled,
-            isLoading,
-        }),
-        [isHovered, variant, size, onPress, isDisabled, isLoading],
-    );
+    // Merges the consumer's isLoading with the pressed state into the single flag that drives the spinner.
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading, resetOnFocus: shouldShowLoadingImmediatelyOnPress});
+
+    // Shared by a pointer press and the Enter shortcut, so both take the same route into onPress.
+    const runPress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (isDisabled || isLoading) {
+            return;
+        }
+        if (shouldShowLoadingImmediatelyOnPress) {
+            return startWithLoading(() => onPress(event));
+        }
+        return onPress(event);
+    };
+
+    // Entry point for a pointer press: drops focus from the pressed element and fires haptic feedback before the shared press logic.
+    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (event?.type === 'click') {
+            const currentTarget = event?.currentTarget as HTMLElement;
+            currentTarget?.blur();
+        }
+
+        if (enableHapticFeedback) {
+            HapticFeedback.press();
+        }
+
+        return runPress(event);
+    };
+
+    // Entry point for the Enter shortcut: same press logic as a pointer press, without the mouse-only blur and haptic feedback.
+    const handleEnterPress = () => runPress();
+
+    const contextValue = {
+        isHovered,
+        variant,
+        size,
+        onPress: handleEnterPress,
+        isDisabled,
+        isLoading,
+    };
 
     const buttonVariantStyles = useMemo(() => {
         const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
@@ -172,21 +202,7 @@ function Button({
             onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
-            onPress={(event) => {
-                if (event?.type === 'click') {
-                    const currentTarget = event?.currentTarget as HTMLElement;
-                    currentTarget?.blur();
-                }
-
-                if (enableHapticFeedback) {
-                    HapticFeedback.press();
-                }
-
-                if (isDisabled || isLoading) {
-                    return;
-                }
-                return onPress(event);
-            }}
+            onPress={handlePress}
             onLongPress={(event) => {
                 if (isLongPressDisabled) {
                     return;

@@ -187,36 +187,32 @@ function SearchEditMultiplePage() {
 
         setIsSaving(true);
 
-        // Defer the bulk edit loop so the loading spinner has a chance to paint
-        // before the synchronous Onyx writes block the JS thread.
-        requestAnimationFrame(() => {
-            updateMultipleMoneyRequests({
-                transactionIDs: selectedTransactionIDs,
-                changes,
-                policy,
-                reports: mergedReports,
-                transactions: mergedTransactions,
-                reportActions: mergedReportActions,
-                policyCategories: allPolicyCategories,
-                policyTags: allPolicyTags,
-                violations: allTransactionViolations,
-                reportNameValuePairs,
-                hash: currentSearchHash,
-                allPolicies: policies,
-                currentUserAccountID,
-                delegateAccountID,
-                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
-                personalDetailsList,
-                getCurrencyDecimals,
-                getCurrencySymbol,
-            });
-            // Bulk edit can start from report (ID-based selection) or search (map-based selection),
-            // so clear both stores to keep deselection behavior consistent.
-            clearSelectedTransactions(true);
-            clearSelectedTransactions();
-
-            Navigation.dismissToPreviousRHP();
+        updateMultipleMoneyRequests({
+            transactionIDs: selectedTransactionIDs,
+            changes,
+            policy,
+            reports: mergedReports,
+            transactions: mergedTransactions,
+            reportActions: mergedReportActions,
+            policyCategories: allPolicyCategories,
+            policyTags: allPolicyTags,
+            violations: allTransactionViolations,
+            reportNameValuePairs,
+            hash: currentSearchHash,
+            allPolicies: policies,
+            currentUserAccountID,
+            delegateAccountID,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            personalDetailsList,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
+        // Bulk edit can start from report (ID-based selection) or search (map-based selection),
+        // so clear both stores to keep deselection behavior consistent.
+        clearSelectedTransactions(true);
+        clearSelectedTransactions();
+
+        Navigation.dismissToPreviousRHP();
     };
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -352,7 +348,7 @@ function SearchEditMultiplePage() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={save}
                     isLoading={isSaving}
-                    isDisabled={isSaving}
+                    shouldShowLoadingImmediatelyOnPress
                     style={[styles.m5]}
                 >
                     <Button.Text>{translate('common.save')}</Button.Text>
