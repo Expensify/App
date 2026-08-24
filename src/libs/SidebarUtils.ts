@@ -1026,7 +1026,7 @@ function getOptionData({
             : null;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate, formatPhoneNumber);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
@@ -1047,6 +1047,7 @@ function getOptionData({
             lastAction,
             isTrackIntentUser,
             currentUserAccountID,
+            formatPhoneNumber,
         });
     }
 
@@ -1088,7 +1089,7 @@ function getOptionData({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate, formatPhoneNumber) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
@@ -1350,6 +1351,7 @@ function getOptionData({
                         personalDetails,
                         !!reportNameValuePairs?.private_isArchived,
                         translate,
+                        formatPhoneNumber,
                         visibleReportActionsData,
                         lastAction,
                     )) ||
@@ -1399,7 +1401,7 @@ function getOptionData({
                 }).messageText || translate('report.noActivityYet'),
             );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate) && !isReportArchived) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate, formatPhoneNumber) && !isReportArchived) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 &&
                     getLastActorDisplayNameFromLastVisibleActions(
@@ -1409,6 +1411,7 @@ function getOptionData({
                         personalDetails,
                         !!reportNameValuePairs?.private_isArchived,
                         translate,
+                        formatPhoneNumber,
                         visibleReportActionsData,
                         lastAction,
                     )) ||

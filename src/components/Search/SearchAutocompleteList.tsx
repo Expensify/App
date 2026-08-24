@@ -267,6 +267,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            formatPhoneNumber,
         }).options;
     }, [
         listOptions,
@@ -285,6 +286,7 @@ function SearchAutocompleteList({
         isTrackIntentUser,
         translate,
         dateFnsLocale,
+        formatPhoneNumber,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);

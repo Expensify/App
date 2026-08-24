@@ -128,7 +128,7 @@ function NewChatConfirmPage() {
     const isInLandscapeMode = useIsInLandscapeMode();
     const optimisticReportID = useRef<string>(generateReportID());
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -140,7 +140,7 @@ function NewChatConfirmPage() {
     const participants = newGroupDraft?.participants ?? [];
 
     const selectedOptions: Participant[] = participants.map((participant) =>
-        getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails, translate),
+        getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails, translate, formatPhoneNumber),
     );
 
     const selectedParticipants: ListItem[] = selectedOptions
