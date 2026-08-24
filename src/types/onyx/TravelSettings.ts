@@ -10,7 +10,7 @@ type TravelSettings = {
     testAccount?: boolean;
 
     /** The last travel signup request time */
-    lastTravelSignupRequestTime?: string;
+    lastTravelSignupRequestTime?: string | null;
 };
 
 /** Model of workspace travel information to connect with Spotnana */

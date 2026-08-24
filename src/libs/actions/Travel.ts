@@ -89,6 +89,16 @@ function requestTravelAccess() {
     API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData});
 }
 
+async function getTravelRiskApproval(): Promise<boolean> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the status determines whether to enter the travel enablement flow
+    const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRAVEL_RISK_APPROVAL, null, {});
+    return response?.travelRiskApproved === true;
+}
+
+function clearTravelSignupRequest() {
+    Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {lastTravelSignupRequestTime: null});
+}
+
 function setTravelProvisioningTaxID(taxID: string) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {taxID});
 }
@@ -111,7 +121,9 @@ function cleanupTravelProvisioningSession() {
 
 export {
     acceptSpotnanaTerms,
+    clearTravelSignupRequest,
     cleanupTravelProvisioningSession,
+    getTravelRiskApproval,
     requestTravelAccess,
     setTravelProvisioningDomain,
     setTravelProvisioningEnabledSteps,

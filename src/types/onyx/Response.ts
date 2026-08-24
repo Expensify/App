@@ -75,6 +75,9 @@ type Response<TKey extends OnyxKey> = {
     /** Whether the account is set for testing Travel and should use the sandbox environment */
     isTestAccount?: boolean;
 
+    /** Whether the domain is approved for Travel risk */
+    travelRiskApproved?: boolean;
+
     /** User authorization token to authorize Pusher connections */
     auth?: string;
 

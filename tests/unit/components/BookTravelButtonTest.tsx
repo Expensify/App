@@ -5,7 +5,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, getTravelRiskApproval, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 
@@ -45,6 +45,7 @@ jest.mock('@libs/actions/Travel', () => {
     return {
         ...actual,
         cleanupTravelProvisioningSession: jest.fn(),
+        getTravelRiskApproval: jest.fn(),
         requestTravelAccess: jest.fn(),
         setTravelProvisioningNextStep: jest.fn(),
     };
@@ -169,6 +170,25 @@ describe('BookTravelButton', () => {
             expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, POLICY_ID, ''));
             expect(Navigation.navigate).not.toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+        });
+    });
+
+    describe('when the domain is travel-risk-approved', () => {
+        it('navigates a validated admin to the enablement stepper without the travel beta', async () => {
+            await seedOnyx(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...provisionedPolicy, travelSettings: undefined});
+                await waitForBatchedUpdatesWithAct();
+            });
+            jest.mocked(getTravelRiskApproval).mockResolvedValue(true);
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(requestTravelAccess).not.toHaveBeenCalled();
         });
     });
 
