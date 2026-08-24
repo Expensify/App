@@ -351,7 +351,11 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
             ? {
                   titleKey: 'spreadsheet.importSuccessfulTitle',
                   promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
-                  promptKeyParams: {rules: 0, duplicates: skippedDuplicateCount, invalidCategories: invalidCategoryNames.size},
+                  promptKeyParams: {count: 0, duplicates: skippedDuplicateCount},
+                  ...(invalidCategoryNames.size > 0 && {
+                      pendingMessageKey: 'spreadsheet.importMerchantRulesSkippedCategories',
+                      pendingMessageKeyParams: {count: invalidCategoryNames.size},
+                  }),
               }
             : await importMerchantRulesSpreadsheet(policyID, rules, invalidCategoryNames.size);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});

@@ -3652,6 +3652,40 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, paymentsAdminEmail, paymentsAdminAccountID, [], false)).toBeTruthy();
             expect(isPayer(paymentsAdminAccountID, paymentsAdminEmail, fakeReport, {}, fakePolicy, false)).toBe(false);
         });
+
+        it('should not return PAY for the expense owner in a 1:1 IOU on a personal policy with manual reimbursement', async () => {
+            const chatReport = createRandomReport(2, undefined);
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.PERSONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    [RORY_EMAIL]: {
+                        email: RORY_EMAIL,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: CARLOS_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: -10000,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            expect(canIOUBePaid(fakeReport, chatReport, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
+            expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, fakeReport, {}, fakePolicy, false)).toBe(false);
+        });
     });
 
     describe('retractReport', () => {
