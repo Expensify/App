@@ -350,6 +350,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                     Software: {name: 'Software', enabled: true, maxExpenseAmount: 1000},
                 };
                 const targetCategories: PolicyCategories = {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     Food: {name: 'Food', enabled: true, maxExpenseAmount: 100, 'GL Code': 'GL-1'},
                     Travel: {name: 'Travel', enabled: false},
                     Office: {name: 'Office', enabled: true},
@@ -372,6 +373,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                         expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
                         areCommentsRequired: true,
                         commentHint: 'Why?',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         'GL Code': 'GL-1',
                     },
                     Travel: {name: 'Travel', enabled: true, areAttendeesRequired: true},
