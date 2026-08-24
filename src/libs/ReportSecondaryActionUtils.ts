@@ -401,6 +401,19 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     return isReportApprover;
 }
 
+/** The daily ACH batch leaves at the cutoff, so before it the money has not moved and the credit cannot have posted yet. */
+function hasDailyNachaCutoffPassed(reportID: string): boolean {
+    const payActions = Object.values(getAllReportActions(reportID)).filter((action): action is ReportAction => !!action && isPayAction(action));
+
+    return payActions.some((action) => {
+        const now = new Date();
+        const paymentDatetime = fromZonedTime(action.created, 'UTC');
+        const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
+        const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
+        return nowUTC.getTime() > cutoffTimeUTC.getTime();
+    });
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -443,23 +456,17 @@ function isCancelPaymentAction(
         return true;
     }
 
-    const hasDailyNachaCutoffPassed = payActions.some((action) => {
-        const now = new Date();
-        const paymentDatetime = fromZonedTime(action.created, 'UTC');
-        const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
-        const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-        return nowUTC.getTime() > cutoffTimeUTC.getTime();
-    });
+    const cutoffPassed = hasDailyNachaCutoffPassed(report.reportID);
 
     // A queued payment only goes out in the daily batch, so it stays cancellable until the cutoff.
     if (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
-        return !hasDailyNachaCutoffPassed;
+        return !cutoffPassed;
     }
 
     // Only Auth knows whether the money has moved (fast ACH posts the credit right away), and it only allows cancelling in BILLING + REIMBURSED.
     const isReimbursementSubmitted = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-    return isPaidViaBankAccount && isReimbursementSubmitted && !!reimbursementCancellableStatus?.canCancel;
+    return isPaidViaBankAccount && isReimbursementSubmitted && !cutoffPassed && !!reimbursementCancellableStatus?.canCancel;
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
@@ -1239,4 +1246,12 @@ function getSecondaryTransactionThreadActions({
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions, getReportAccountingExportActions, isSplitAction, isChangeWorkspaceAction};
+export {
+    getSecondaryReportActions,
+    getSecondaryTransactionThreadActions,
+    isMergeActionForSelectedTransactions,
+    getReportAccountingExportActions,
+    isSplitAction,
+    isChangeWorkspaceAction,
+    hasDailyNachaCutoffPassed,
+};

@@ -13,12 +13,17 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 let mockIsOffline = false;
+let mockHasCutoffPassed = false;
 
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     getReportCancelReimbursementStatus: jest.fn(() => Promise.resolve({canCancel: true, isWaitingForCreditToPost: false})),
 }));
 
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
+
+jest.mock('@libs/ReportSecondaryActionUtils', () => ({
+    hasDailyNachaCutoffPassed: () => mockHasCutoffPassed,
+}));
 
 const mockGetReportCancelReimbursementStatus = jest.mocked(getReportCancelReimbursementStatus);
 
@@ -47,6 +52,7 @@ describe('useReportCancelReimbursementStatus', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsOffline = false;
+        mockHasCutoffPassed = false;
         mockGetReportCancelReimbursementStatus.mockResolvedValue({canCancel: true, isWaitingForCreditToPost: false});
     });
 
@@ -96,6 +102,16 @@ describe('useReportCancelReimbursementStatus', () => {
         rerender(undefined);
         await waitForBatchedUpdates();
 
+        expect(result.current).toBeUndefined();
+    });
+
+    it('does not ask the backend once the NACHA cutoff has passed', async () => {
+        mockHasCutoffPassed = true;
+
+        const {result} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
+        await waitForBatchedUpdates();
+
+        expect(mockGetReportCancelReimbursementStatus).not.toHaveBeenCalled();
         expect(result.current).toBeUndefined();
     });
 

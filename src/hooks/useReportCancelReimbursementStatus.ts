@@ -1,3 +1,4 @@
+import {hasDailyNachaCutoffPassed} from '@libs/ReportSecondaryActionUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 
 import {getReportCancelReimbursementStatus} from '@userActions/IOU/PayMoneyRequest';
@@ -16,7 +17,9 @@ export default function useReportCancelReimbursementStatus(report: OnyxEntry<Rep
     const {isOffline} = useNetwork();
     // Auth only allows cancelling in BILLING + REIMBURSED, so there is nothing to ask about in any other state.
     const isReimbursementSubmitted = isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.BILLING && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const reportIDToFetch = isReimbursementSubmitted && !isOffline ? report?.reportID : undefined;
+    // Past the cutoff the batch has left, so the answer is already known and there is nothing to ask.
+    const isStillCancellable = isReimbursementSubmitted && !!report?.reportID && !hasDailyNachaCutoffPassed(report.reportID);
+    const reportIDToFetch = isStillCancellable && !isOffline ? report?.reportID : undefined;
     const [fetchedStatus, setFetchedStatus] = useState<{reportID: string; status: ReportCancelReimbursementStatus | undefined}>();
 
     useEffect(() => {
