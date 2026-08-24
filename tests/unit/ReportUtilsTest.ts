@@ -6804,6 +6804,15 @@ describe('ReportUtils', () => {
             expect(restoreAttachmentAnchorAttributes(edited, plainOriginal)).toBe(edited);
         });
 
+        it('recognises the attachment on a second edit, when only the attachment ID is left', () => {
+            // The server strips the source attribute from its response but keeps the attachment ID, so this is what
+            // a comment looks like going into an edit that follows an earlier one.
+            const afterServerRoundTrip = `Hello edited<br /><br /><a href="${docUrl}" data-attachment-id="98765" target="_blank" rel="noreferrer noopener">file.doc</a>`;
+            const secondEdit = `Hello edited twice<br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
+
+            expect(restoreAttachmentAnchorAttributes(secondEdit, afterServerRoundTrip)).toContain('data-attachment-id="98765"');
+        });
+
         it('only restores the anchor whose href matches, leaving other links plain', () => {
             const mixedHtml = `Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a><br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
             const restored = restoreAttachmentAnchorAttributes(mixedHtml, originalDocHtml);

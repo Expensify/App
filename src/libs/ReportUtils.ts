@@ -6818,20 +6818,28 @@ function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCom
     return !!localSource && !draftMarkdown.includes(localSource);
 }
 
+/** Whether an anchor tag, or a whole comment, still carries something that marks it as an attachment. */
+function hasAttachmentAnchorAttributes(html: string): boolean {
+    return html.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE) || html.includes(CONST.ATTACHMENT_ID_ATTRIBUTE);
+}
+
 /**
  * Re-applies the attachment attributes of anchor tags that an edit round-trip dropped. The parser caches these
  * for images and videos but not for anchors, so an edited doc attachment would come back as an ordinary link:
  * rendered without its border and download icon, and downloaded without the auth token it needs.
+ *
+ * The server drops the source attribute from its response but keeps the attachment ID, so a second edit only has
+ * the ID left to recognise the anchor by. Matching on either keeps repeated edits from degrading the attachment.
  */
 function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalCommentHtml: string | undefined): string {
-    if (!originalCommentHtml?.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE) || !newCommentHtml.includes('<a ')) {
+    if (!originalCommentHtml || !hasAttachmentAnchorAttributes(originalCommentHtml) || !newCommentHtml.includes('<a ')) {
         return newCommentHtml;
     }
 
     const anchorTagRegex = /<a\s([^>]*)>/gi;
     const attachmentAttributesByHref = new Map<string, string>();
     for (const [, attributes] of originalCommentHtml.matchAll(anchorTagRegex)) {
-        if (!attributes.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE)) {
+        if (!hasAttachmentAnchorAttributes(attributes)) {
             continue;
         }
         const href = attributes.match(/href="([^"]*)"/i)?.at(1);
@@ -6845,7 +6853,7 @@ function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalComme
     }
 
     return newCommentHtml.replaceAll(anchorTagRegex, (match: string, attributes: string) => {
-        if (attributes.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE)) {
+        if (hasAttachmentAnchorAttributes(attributes)) {
             return match;
         }
         const href = attributes.match(/href="([^"]*)"/i)?.at(1);
