@@ -379,6 +379,12 @@ describe('getExportTemplates', () => {
 
         expect(defaultTemplates.map((template) => template.templateName)).toContain(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
     });
+
+    it('excludes the Reconciliation - All Expenses template when includeReconciliationAllExpenses is false for an admin policy', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN}, true, false, false, false);
+
+        expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
+    });
 });
 
 describe('getChatReportWithFallback', () => {

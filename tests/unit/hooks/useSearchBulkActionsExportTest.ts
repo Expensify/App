@@ -221,7 +221,6 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockAreAllMatchingItemsSelected = false;
-let mockCurrentSearchKey: string | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
@@ -233,7 +232,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         currentSearchResults: mockCurrentSearchResults,
     }),
     useSearchQueryContext: () => ({
-        currentSearchKey: mockCurrentSearchKey,
+        currentSearchKey: undefined,
         currentSearchHash: 12345,
         currentSearchQueryJSON: undefined,
         suggestedSearches: undefined,
@@ -439,7 +438,6 @@ describe('useSearchBulkActions - export options', () => {
         // tests override with mockResolvedValueOnce to exercise the cancel path.
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
         mockAreAllMatchingItemsSelected = false;
-        mockCurrentSearchKey = undefined;
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         // A policy connected to NetSuite so the integration export branch is reachable.
@@ -1367,7 +1365,7 @@ describe('useSearchBulkActions - export options', () => {
             });
         });
 
-        it('hides the template when the user is a member of the selected workspace', async () => {
+        it('hides the template when the user is a member of every workspace', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.USER});
 
             mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
@@ -1382,41 +1380,20 @@ describe('useSearchBulkActions - export options', () => {
             expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
         });
 
-        it('keeps the template on Card Statements when a card group is selected', async () => {
-            mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.STATEMENTS;
-            mockGetExportTemplates.mockReturnValue({
-                customTemplates: [{name: 'Custom template', templateName: 'customTemplate', type: 'in-app', policyID: undefined, description: ''}],
-                defaultTemplates: [
-                    {name: 'export.expenseLevelExport', templateName: 'detailed_export', type: 'integrations', policyID: undefined, description: ''},
-                    {name: 'export.reportLevelExport', templateName: 'report_level_export', type: 'integrations', policyID: undefined, description: ''},
-                    {
-                        name: 'export.reconciliationAllExpenses',
-                        templateName: CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES,
-                        type: 'integrations',
-                        policyID: undefined,
-                        description: '',
-                    },
-                ],
-            });
+        it('offers the template when the user is a workspace admin of any workspace, even if the selected rows belong to a workspace they are only a member of', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {id: POLICY_ID_2, role: CONST.POLICY.ROLE.USER});
 
-            const cardStatementsQueryJSON: SearchQueryJSON = {
-                ...expenseReportQueryJSON,
-                inputQuery: 'type:expense groupBy:card',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.CARD,
-            };
-
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
             mockSelectedTransactions = {
-                tx1: makeSelectedTransaction({
-                    groupKey: `${CONST.SEARCH.GROUP_PREFIX}card`,
-                    isSelectedViaGroup: true,
-                }),
+                tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
             };
 
-            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardStatementsQueryJSON}), {wrapper: OnyxListItemProvider});
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
             await waitFor(() => {
-                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.reconciliationAllExpenses']);
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
             });
         });
     });

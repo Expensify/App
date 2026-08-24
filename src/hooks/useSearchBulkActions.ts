@@ -615,37 +615,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
-    // Workspace and card admins get Reconciliation - All Expenses. When the query isn't scoped to workspaces, Card Statements still needs this template, so we fall back to whether the user holds that role on any workspace.
-    const doAllSelectedItemsBelongToWorkspaceOrCardAdminPolicies = useMemo(() => {
-        const isWorkspaceOrCardAdminPolicy = (policyID: string | undefined) => {
-            if (!policyID) {
-                return false;
-            }
-            const selectedPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return isPolicyAdmin(selectedPolicy) || isPolicyCardAdmin(selectedPolicy);
-        };
-        const isWorkspaceOrCardAdminOnAnyPolicy = Object.values(policies ?? {}).some((policy) => isPolicyAdmin(policy) || isPolicyCardAdmin(policy));
-
-        if (areAllMatchingItemsSelected) {
-            const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
-            if (policyIDFilter.value?.length && !policyIDFilter.isNegated) {
-                return policyIDFilter.value.every((policyID) => isWorkspaceOrCardAdminPolicy(policyID));
-            }
-
-            return isWorkspaceOrCardAdminOnAnyPolicy;
-        }
-
-        const selectedItems = [...selectedReports, ...Object.values(selectedTransactions)];
-        if (selectedItems.length === 0) {
-            return isWorkspaceOrCardAdminOnAnyPolicy;
-        }
-
-        return selectedItems.every((item) => {
-            const report = ('report' in item ? item.report : undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
-            const policyID = item.policyID ?? report?.policyID;
-            return policyID ? isWorkspaceOrCardAdminPolicy(policyID) : isWorkspaceOrCardAdminOnAnyPolicy;
-        });
-    }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
+    // Reconciliation - All Expenses is a role-gated layout, so it is offered whenever the current user is a workspace admin
+    // or card admin of any workspace, regardless of which rows are selected.
+    const doAllSelectedItemsBelongToWorkspaceOrCardAdminPolicies = useMemo(
+        () => Object.values(policies ?? {}).some((policy) => isPolicyAdmin(policy) || isPolicyCardAdmin(policy)),
+        [policies],
+    );
 
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
@@ -2068,39 +2043,33 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 addSeparatorBefore: true,
             });
 
-            // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
-            const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): PopoverMenuItem => {
-                // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
-                const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
-                return {
-                    text: template.name,
-                    icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
-                    description: template.description,
-                    onSelected: () => {
-                        if (isBasicExport) {
-                            handleBasicExport();
-                            return;
-                        }
-                        beginExportWithTemplate(template.templateName, template.type, template.policyID, template.name);
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                    addSeparatorBefore,
-                };
-            };
-
             if (!allSelectedAreDeleted && !includesGroupExport) {
+                // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
+                const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): PopoverMenuItem => {
+                    // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
+                    const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
+                    return {
+                        text: template.name,
+                        icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
+                        description: template.description,
+                        onSelected: () => {
+                            if (isBasicExport) {
+                                handleBasicExport();
+                                return;
+                            }
+                            beginExportWithTemplate(template.templateName, template.type, template.policyID, template.name);
+                        },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                        addSeparatorBefore,
+                    };
+                };
+
                 // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
                 for (const [index, template] of availableCustomTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, false, index === 0));
                 }
                 for (const [index, template] of availableDefaultTemplates.entries()) {
-                    exportOptions.push(buildExportOption(template, true, index === 0));
-                }
-            } else if (!allSelectedAreDeleted && includesGroupExport && currentSearchKey === CONST.SEARCH.SEARCH_KEYS.STATEMENTS) {
-                // Card Statements groups by card, which would otherwise hide every template. Keep this one so admins can still export statement expenses from that search.
-                const reconciliationTemplates = availableDefaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
-                for (const [index, template] of reconciliationTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, true, index === 0));
                 }
             } else if (!isGroupedSearch) {
