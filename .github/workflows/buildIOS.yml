@@ -119,6 +119,8 @@ jobs:
 
       - name: Resolve react-native artifact version
         id: resolve-rn-artifacts
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           VERSION=$(bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" | jq -r '.version // "source"')
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
@@ -128,7 +130,7 @@ jobs:
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: ~/Library/Caches/Expensify/react-native-artifacts
-          key: ${{ runner.os }}-rn-artifacts-react-hybrid-${{ steps.resolve-rn-artifacts.outputs.VERSION }}
+          key: ${{ runner.os }}-rn-artifacts-react-hybrid-${{ steps.resolve-rn-artifacts.outputs.VERSION }}-dsyms-${{ inputs.download-dsyms }}
 
       - name: Cache Pod dependencies
         # v5.0.1
