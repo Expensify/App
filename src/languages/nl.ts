@@ -463,6 +463,8 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Geen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
         enableGlobalReimbursements: 'Wereldwijde terugbetalingen inschakelen',
+        corpayPayModalTitle: 'Pay report',
+        corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursement to pay the report, or ask them to add a USD bank account.',
         purchaseAmount: 'Aankoopsbedrag',
         originalAmount: 'Oorspronkelijk bedrag',
         frequency: 'Frequentie',

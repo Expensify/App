@@ -1,6 +1,7 @@
 import Log from '@libs/Log';
 import {
     FailureTracking,
+    GlobalReimbursementPayError,
     handleDeletedAccount,
     HandleUnusedOptimisticID,
     LoadTest,
@@ -56,6 +57,9 @@ addMiddleware(handleDeletedAccount);
 
 // Handle supportal permission denial centrally
 addMiddleware(SupportalPermission);
+
+// Handle the Corpay pay modal signal: when the backend signals that the workspace USD VBBA is not set up on Corpay, replace the optimistic PAY action-error with an action-null so no inline error shows and the orphan action is removed.
+addMiddleware(GlobalReimbursementPayError);
 
 // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
 addMiddleware(HandleUnusedOptimisticID);
