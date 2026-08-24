@@ -7,7 +7,7 @@ import {render} from '@testing-library/react-native';
 
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
-import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
+import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
 import type {PersonalDetails} from '@src/types/onyx';
 
@@ -40,7 +40,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({FallbackAvatar: 'fallback-avatar'})),
 }));
 
-jest.mock('@hooks/usePersonalDetailsByLogin', () => jest.fn(() => ({})));
+jest.mock('@hooks/useVacationDelegatePersonalDetails', () => jest.fn(() => undefined));
 
 jest.mock('@components/OfflineWithFeedback', () => {
     function MockOfflineWithFeedback({children}: {children: React.ReactNode}) {
@@ -68,7 +68,7 @@ jest.mock('@components/Text', () => {
     return MockText;
 });
 
-const mockUsePersonalDetailsByLogin = jest.mocked(usePersonalDetailsByLogin);
+const mockUseVacationDelegatePersonalDetails = jest.mocked(useVacationDelegatePersonalDetails);
 
 const EMAIL_DELEGATE = 'jane@example.com';
 const PHONE_DELEGATE_WITH_SMS_DOMAIN = '+919789942470@expensify.sms';
@@ -82,7 +82,7 @@ describe('VacationDelegateMenuItem', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         capturedMenuItemProps.length = 0;
-        mockUsePersonalDetailsByLogin.mockReturnValue({});
+        mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
     });
 
     describe('existing account (personal details available)', () => {
@@ -92,7 +92,7 @@ describe('VacationDelegateMenuItem', () => {
                 login: EMAIL_DELEGATE,
                 displayName: 'Jane Doe',
             };
-            mockUsePersonalDetailsByLogin.mockReturnValue({[EMAIL_DELEGATE.toLowerCase()]: personalDetails});
+            mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
             render(
                 <VacationDelegateMenuItem
@@ -115,7 +115,7 @@ describe('VacationDelegateMenuItem', () => {
                 login: PHONE_DELEGATE_WITH_SMS_DOMAIN,
                 displayName: PHONE_DELEGATE_WITH_SMS_DOMAIN,
             };
-            mockUsePersonalDetailsByLogin.mockReturnValue({[PHONE_DELEGATE_WITH_SMS_DOMAIN.toLowerCase()]: personalDetails});
+            mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
             render(
                 <VacationDelegateMenuItem
@@ -135,7 +135,7 @@ describe('VacationDelegateMenuItem', () => {
 
     describe('new account (personal details missing, e.g. after cache clear)', () => {
         it('renders the raw email as title and description when no personal details exist', () => {
-            mockUsePersonalDetailsByLogin.mockReturnValue({});
+            mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
 
             render(
                 <VacationDelegateMenuItem
@@ -153,7 +153,7 @@ describe('VacationDelegateMenuItem', () => {
 
         // Bug #89578 — the exact scenario reported.
         it('renders the formatted phone number (no `@expensify.sms`) when no personal details exist', () => {
-            mockUsePersonalDetailsByLogin.mockReturnValue({});
+            mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
 
             render(
                 <VacationDelegateMenuItem

@@ -2,13 +2,12 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
 import {searchUserInServer} from '@libs/actions/Report';
 import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,23 +23,6 @@ import DelegatorList from './DelegatorList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionList from './SelectionList/SelectionListWithSections';
-
-/** Returns the row title: keeps a real display name, but renders phone logins as raw E.164 (e.g. `+9779806050938`). */
-function getDelegateText(login: string | undefined, text: string | undefined): string {
-    const sanitizedLogin = Str.removeSMSDomain(login ?? '');
-    const sanitizedText = Str.removeSMSDomain(text ?? '');
-
-    if (sanitizedText === '') {
-        return sanitizedLogin;
-    }
-
-    const toDigits = (value: string) => value.replace(CONST.REGEX.NON_NUMERIC, '');
-    if (parsePhoneNumber(sanitizedLogin).valid && toDigits(sanitizedText) === toDigits(sanitizedLogin)) {
-        return sanitizedLogin;
-    }
-
-    return sanitizedText;
-}
 
 type BaseVacationDelegateSelectionComponentProps = {
     /** Current vacation delegate */
@@ -107,17 +89,19 @@ function BaseVacationDelegateSelectionComponent({
     const hasPendingDelegateChange = !!vacationDelegate?.previousDelegate;
     const pinnedVacationDelegate = searchValue || hasPendingDelegateChange ? currentVacationDelegate : (initialVacationDelegate ?? currentVacationDelegate);
 
-    const pinnedDelegatePersonalDetails = usePersonalDetailByLogin(pinnedVacationDelegate);
+    const pinnedDelegatePersonalDetails = useVacationDelegatePersonalDetails(pinnedVacationDelegate);
     const pinnedDelegateLogin = pinnedDelegatePersonalDetails?.login ?? pinnedVacationDelegate;
 
     // Pin the current delegate even when personal details are missing (e.g. right after a cache
     // clear). Without this fallback the pinned row would be dropped entirely — the raw login and
     // DEFAULT_MISSING_ID keep the previously selected delegate visible on the page.
+    // `text`/`alternateText` mirror what createPersonalDetailOption builds for the other rows, so that
+    // formatPhoneNumber decides the local vs international phone form here too.
     const pinnedDelegateOption = pinnedVacationDelegate
         ? {
               ...(pinnedDelegatePersonalDetails ?? {}),
-              text: Str.removeSMSDomain(pinnedDelegatePersonalDetails?.displayName ?? pinnedVacationDelegate),
-              alternateText: pinnedDelegateLogin,
+              text: pinnedDelegatePersonalDetails?.displayName ?? formatPhoneNumber(pinnedDelegateLogin),
+              alternateText: formatPhoneNumber(pinnedDelegateLogin),
               login: pinnedDelegateLogin,
               keyForList: `vacationDelegate-${pinnedDelegateLogin}`,
               isDisabled: false,
@@ -194,10 +178,8 @@ function BaseVacationDelegateSelectionComponent({
         ...section,
         data: (section.data ?? []).map((option) => ({
             ...option,
-            text: getDelegateText(option.login, option.text),
-            // Show the subtitle as the localized international phone form (e.g. `+977 980-6050938`), falling back to the raw alternateText/login for emails.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string from formatPhoneNumber should fall back to alternateText
-            alternateText: formatPhoneNumber(Str.removeSMSDomain(option.login ?? '')) || option.alternateText || undefined,
+            text: option.text ?? '',
+            alternateText: option.alternateText ?? undefined,
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
             isSelected: option.login === currentVacationDelegate,
