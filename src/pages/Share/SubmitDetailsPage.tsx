@@ -570,8 +570,8 @@ function SubmitDetailsPage({
             return;
         }
         formHasBeenSubmitted.current = true;
-        // The share extension wipes its folder on the next share. Adopting at submit, not at ingestion, keeps cancelled
-        // shares out of a folder nothing prunes.
+        // Nothing ever deletes from ReceiptStorage, so we only adopt once the user submits. A cancelled share stays in
+        // the share extension's own folder, which the next share wipes.
         ReceiptStorage.adopt(currentReceiptSource, currentReceiptName)
             .then((durableName) => {
                 const uri = ReceiptStorage.toLocalUri(durableName);
