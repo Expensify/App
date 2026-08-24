@@ -9,7 +9,7 @@ import {consumePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStor
 
 import {completeCloudflareAuthRedirect} from '@userActions/CloudflareSession';
 
-import type {CloudflareAuthRedirectOutcome, GetCloudflareAuthRedirectOutcome, HandleCloudflareAuthRedirectCallback} from './types';
+import type {CloudflareAuthRedirectOutcome, ConsumeCloudflareAuthCallbackURL, GetCloudflareAuthRedirectOutcome} from './types';
 
 let lastOutcome: CloudflareAuthRedirectOutcome = 'not-a-callback';
 let lastErrorMessage: string | undefined;
@@ -30,7 +30,7 @@ function toSafeReturnPath(returnURL: string | undefined): string {
     }
 }
 
-const handleCloudflareAuthRedirectCallback: HandleCloudflareAuthRedirectCallback = () => {
+const consumeCloudflareAuthCallbackURL: ConsumeCloudflareAuthCallbackURL = () => {
     lastErrorMessage = undefined;
 
     if (!isQAAuthConfigured()) {
@@ -100,4 +100,4 @@ const handleCloudflareAuthRedirectCallback: HandleCloudflareAuthRedirectCallback
 
 const getCloudflareAuthRedirectOutcome: GetCloudflareAuthRedirectOutcome = () => ({outcome: lastOutcome, errorMessage: lastErrorMessage});
 
-export {getCloudflareAuthRedirectOutcome, handleCloudflareAuthRedirectCallback};
+export {consumeCloudflareAuthCallbackURL, getCloudflareAuthRedirectOutcome};

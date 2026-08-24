@@ -1,4 +1,4 @@
-import {handleCloudflareAuthRedirectCallback} from '@libs/CloudflareAccess/handleAuthRedirectCallback';
+import {consumeCloudflareAuthCallbackURL} from '@libs/CloudflareAccess/consumeAuthCallbackURL';
 import intlPolyfill from '@libs/IntlPolyfill';
 
 import {setDeviceID} from '@userActions/Device';
@@ -93,7 +93,7 @@ export default function () {
     // The QA auth callback arrives as a full page load, so no component is around to receive it: the code is
     // picked up and the URL restored here, before React Navigation resolves the initial route. After
     // Onyx.init() because a completed exchange persists the session. No-op on every other load.
-    handleCloudflareAuthRedirectCallback();
+    consumeCloudflareAuthCallbackURL();
 
     initOnyxDerivedValues();
 

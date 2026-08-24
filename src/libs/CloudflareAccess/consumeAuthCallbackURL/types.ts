@@ -18,9 +18,9 @@ type CloudflareAuthRedirectResult = {
 };
 
 /** Call once during boot, before any render. A no-op on every load that is not the callback */
-type HandleCloudflareAuthRedirectCallback = () => CloudflareAuthRedirectOutcome;
+type ConsumeCloudflareAuthCallbackURL = () => CloudflareAuthRedirectOutcome;
 
 /** What the boot-time callback handling concluded, for UI that wants to surface a failed round trip */
 type GetCloudflareAuthRedirectOutcome = () => CloudflareAuthRedirectResult;
 
-export type {CloudflareAuthRedirectOutcome, GetCloudflareAuthRedirectOutcome, HandleCloudflareAuthRedirectCallback};
+export type {CloudflareAuthRedirectOutcome, ConsumeCloudflareAuthCallbackURL, GetCloudflareAuthRedirectOutcome};

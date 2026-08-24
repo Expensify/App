@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
-import {getCloudflareAuthRedirectOutcome} from '@libs/CloudflareAccess/handleAuthRedirectCallback';
+import {getCloudflareAuthRedirectOutcome} from '@libs/CloudflareAccess/consumeAuthCallbackURL';
 import DateUtils from '@libs/DateUtils';
 
 import type {CloudflareAuthProbeResult, CloudflareAuthProbeStatus} from '@userActions/CloudflareProbe';
