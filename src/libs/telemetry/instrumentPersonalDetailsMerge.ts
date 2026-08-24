@@ -70,6 +70,23 @@ const SHADOW_WHOLE_MAP_SUBSCRIBER_COUNT = 69;
  */
 const SHADOW_ITERATING_SUBSCRIBER_COUNT = 15;
 
+/**
+ * Accounts a member subscriber always covers. The fleet otherwise spreads over the mirrored keys in
+ * insertion order, so a hand-run `Onyx.merge` against one accountID usually lands on an unwatched key and
+ * logs `subscribedMembersHit: 0` — cheap because nobody listened, not because the shape is faster.
+ */
+const PINNED_SUBSCRIBED_MEMBER_IDS = ['1'];
+
+/**
+ * How many of the member subscribers to stack on each pinned account, so a hand-run merge fires a visible
+ * number of member callbacks instead of the ~1 an even spread gives it.
+ *
+ * This deliberately overstates the pinned account: 112 subscribers over ~6k members is ~1 each, so 20 on
+ * one key is what a heavily-watched account looks like (your own, Concierge), not the average one. Set it
+ * back to 1 for a run that should match the real mix.
+ */
+const PINNED_SUBSCRIBERS_PER_MEMBER = 20;
+
 let existingKeyCount = 0;
 
 /**
@@ -81,12 +98,13 @@ let existingKeyCount = 0;
 const mirroredMembers = new Map<string, string>();
 
 /**
- * The accountIDs the synthetic member subscribers cover. Which ones they are decides how many of a
- * write's changed members reach a subscriber at all, so the count that landed is reported per sample as
- * `subscribedMembersHit` — a collection sample with a low hit count is cheap because nobody was
- * listening, not because the shape is faster.
+ * Account ID -> how many synthetic member subscribers watch it. Which IDs are covered decides how many of
+ * a write's changed members reach a subscriber at all, so both the members that landed
+ * (`subscribedMembersHit`) and the callbacks they fired (`memberCallbacksFired`) are reported per sample —
+ * a collection sample with a low hit count is cheap because nobody was listening, not because the shape is
+ * faster. The counts differ once `PINNED_SUBSCRIBERS_PER_MEMBER` stacks several on one key.
  */
-const subscribedMemberIDs = new Set<string>();
+const subscribersPerMemberID = new Map<string, number>();
 
 const shadowConnections: Array<ReturnType<typeof Onyx.connectWithoutView>> = [];
 
@@ -160,6 +178,7 @@ function mergeShadowCollection(source: string, changes: PersonalDetailsList, ext
     let upsertCount = 0;
     let changedMembers = 0;
     let subscribedMembersHit = 0;
+    let memberCallbacksFired = 0;
     for (const accountID of accountIDs) {
         const member = changes[accountID];
 
@@ -175,8 +194,10 @@ function mergeShadowCollection(source: string, changes: PersonalDetailsList, ext
         const serialised = JSON.stringify(member);
         if (mirroredMembers.get(accountID) !== serialised) {
             changedMembers++;
-            if (subscribedMemberIDs.has(accountID)) {
+            const subscriberCount = subscribersPerMemberID.get(accountID) ?? 0;
+            if (subscriberCount > 0) {
                 subscribedMembersHit++;
+                memberCallbacksFired += subscriberCount;
             }
         }
         mirroredMembers.set(accountID, serialised);
@@ -202,6 +223,9 @@ function mergeShadowCollection(source: string, changes: PersonalDetailsList, ext
             // How many of `changedMembers` a member subscriber was actually watching. Near zero means the
             // member fleet sat idle for this write, so the sample only exercised the collection subscribers.
             subscribedMembersHit,
+            // Member callbacks this write fired. Add `wholeMapSubscribers` for the total, and compare against
+            // the single key, which fires all `shadowSubscribers` no matter which member changed.
+            memberCallbacksFired,
         },
         Onyx.mergeCollection(SHADOW_KEY, collection),
     );
@@ -218,9 +242,11 @@ function attachShadowSubscribers() {
         return;
     }
 
+    const memberSubscriberIDs = [...PINNED_SUBSCRIBED_MEMBER_IDS.flatMap((accountID) => Array.from({length: PINNED_SUBSCRIBERS_PER_MEMBER}, () => accountID)), ...mirroredAccountIDs];
+
     for (let i = 0; i < SHADOW_MEMBER_SUBSCRIBER_COUNT; i++) {
-        const accountID = mirroredAccountIDs.at(i % mirroredAccountIDs.length) ?? '';
-        subscribedMemberIDs.add(accountID);
+        const accountID = memberSubscriberIDs.at(i % memberSubscriberIDs.length) ?? '';
+        subscribersPerMemberID.set(accountID, (subscribersPerMemberID.get(accountID) ?? 0) + 1);
         shadowConnections.push(
             Onyx.connectWithoutView({
                 key: `${SHADOW_KEY}${accountID}` as const,
