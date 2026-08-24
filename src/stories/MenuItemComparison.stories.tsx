@@ -10,6 +10,7 @@ import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/Me
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 
@@ -162,35 +163,33 @@ function Comparison() {
                     />
                 }
                 composable={
-                    <>
-                        <View style={styles.ph5}>
-                            <MenuItem.Label>Assignee</MenuItem.Label>
-                        </View>
-                        <MenuItem.Root onPress={noop}>
-                            <MenuItem.Row>
-                                <MenuItem.Leading>
-                                    <UserAvatar
-                                        source={icons.FallbackAvatar}
-                                        accountID={STORY_ACCOUNT_ID}
+                    <MenuItemWithLabel
+                        label="Assignee"
+                        onPress={noop}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <UserAvatar
+                                    source={icons.FallbackAvatar}
+                                    accountID={STORY_ACCOUNT_ID}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title accessibilityLabel="John Doe">
+                                    <DisplayNames
+                                        fullTitle="John Doe"
+                                        displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
+                                        tooltipEnabled
+                                        numberOfLines={1}
                                     />
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    <MenuItem.Title accessibilityLabel="John Doe">
-                                        <DisplayNames
-                                            fullTitle="John Doe"
-                                            displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                        />
-                                    </MenuItem.Title>
-                                    <MenuItem.Description>john@example.com</MenuItem.Description>
-                                </MenuItem.Content>
-                                <MenuItem.Trailing>
-                                    <MenuItem.Chevron />
-                                </MenuItem.Trailing>
-                            </MenuItem.Row>
-                        </MenuItem.Root>
-                    </>
+                                </MenuItem.Title>
+                                <MenuItem.Description>john@example.com</MenuItem.Description>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItemWithLabel>
                 }
             />
 
@@ -486,29 +485,26 @@ function Comparison() {
                     />
                 }
                 composable={
-                    <>
-                        {/* Outside Root the label loses the row's paddingHorizontal: 20, so the call site restores it */}
-                        <View style={[styles.ph5, styles.mt2]}>
-                            <MenuItem.Label>Send from</MenuItem.Label>
-                        </View>
-                        <MenuItem.Root onPress={noop}>
-                            <MenuItem.Row>
-                                <MenuItem.Leading>
-                                    <WorkspaceAvatar
-                                        name="Expensify Inc"
-                                        avatarID={STORY_POLICY_ID}
-                                    />
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    <MenuItem.Title>Expensify Inc</MenuItem.Title>
-                                    <MenuItem.Description>Workspace</MenuItem.Description>
-                                </MenuItem.Content>
-                                <MenuItem.Trailing>
-                                    <MenuItem.Chevron />
-                                </MenuItem.Trailing>
-                            </MenuItem.Row>
-                        </MenuItem.Root>
-                    </>
+                    <MenuItemWithLabel
+                        label="Send from"
+                        onPress={noop}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <WorkspaceAvatar
+                                    name="Expensify Inc"
+                                    avatarID={STORY_POLICY_ID}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>Expensify Inc</MenuItem.Title>
+                                <MenuItem.Description>Workspace</MenuItem.Description>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItemWithLabel>
                 }
             />
 
@@ -526,10 +522,10 @@ function Comparison() {
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
-                        <View style={styles.mb2}>
-                            <MenuItem.Label>Assignee</MenuItem.Label>
-                        </View>
+                    <MenuItemWithLabel
+                        label="Assignee"
+                        onPress={noop}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <ReportActionAvatars
@@ -552,7 +548,7 @@ function Comparison() {
                                 <MenuItem.Chevron />
                             </MenuItem.Trailing>
                         </MenuItem.Row>
-                    </MenuItem.Root>
+                    </MenuItemWithLabel>
                 }
             />
 
@@ -569,10 +565,10 @@ function Comparison() {
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
-                        <View style={styles.mb2}>
-                            <MenuItem.Label>Share</MenuItem.Label>
-                        </View>
+                    <MenuItemWithLabel
+                        label="Share"
+                        onPress={noop}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <ReportActionAvatars
@@ -584,11 +580,11 @@ function Comparison() {
                                 <MenuItem.Description>Expensify Inc</MenuItem.Description>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
-                                <Text style={styles.rightLabelMenuItem}>Required</Text>
+                                <MenuItem.RightLabel>Required</MenuItem.RightLabel>
                                 <MenuItem.Chevron />
                             </MenuItem.Trailing>
                         </MenuItem.Row>
-                    </MenuItem.Root>
+                    </MenuItemWithLabel>
                 }
             />
 
@@ -598,6 +594,7 @@ function Comparison() {
                     <MenuItem
                         label="Assignee"
                         title="John Doe"
+                        description="john@example.com"
                         iconAccountID={STORY_ACCOUNT_ID}
                         avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                         disabled
@@ -605,11 +602,11 @@ function Comparison() {
                     />
                 }
                 composable={
-                    <MenuItem.Root
+                    <MenuItemWithLabel
+                        label="Assignee"
                         isDisabled
                         onPress={noop}
                     >
-                        <MenuItem.Label>Assignee</MenuItem.Label>
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <UserAvatar
@@ -619,9 +616,10 @@ function Comparison() {
                             </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title>John Doe</MenuItem.Title>
+                                <MenuItem.Description>john@example.com</MenuItem.Description>
                             </MenuItem.Content>
                         </MenuItem.Row>
-                    </MenuItem.Root>
+                    </MenuItemWithLabel>
                 }
             />
 
