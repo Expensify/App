@@ -51,10 +51,10 @@ type PressableProps = {
     children: ReactNode;
 
     /** Whether to show the "Mark as Done" state for this row. */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
-function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, isMarkAsDone}: PressableProps) {
+function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, shouldShowMarkAsDoneCopy}: PressableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -68,7 +68,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
 
     const reportID = optionItem.reportID;
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-    const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {
@@ -159,7 +159,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
                     }}
                     withoutFocusOnSecondaryInteraction
                     activeOpacity={variables.pressDimValue}
-                    opacityAnimationDuration={0}
+                    opacityAnimationDuration={variables.instantAnimationDuration}
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,
