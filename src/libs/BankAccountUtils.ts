@@ -111,6 +111,30 @@ function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; 
     return false;
 }
 
+/**
+ * Picks the policyID whose waitlist entry made the bank account eligible for Plaid link/relink.
+ * A shared bank account may reference many policies; the backend needs the specific matching one
+ * to run the same eligibility check.
+ */
+function getPlaidLinkableCardPolicyID(bankAccount: {accountData?: AccountData} | null | undefined, onCardWaitlistPolicyIDs: string[] | undefined): string | undefined {
+    if (!bankAccount) {
+        return undefined;
+    }
+
+    const primaryPolicyID = bankAccount.accountData?.additionalData?.policyID;
+    if (primaryPolicyID && onCardWaitlistPolicyIDs?.includes(primaryPolicyID)) {
+        return primaryPolicyID;
+    }
+
+    for (const id of bankAccount.accountData?.policyIDs ?? []) {
+        if (onCardWaitlistPolicyIDs?.includes(id)) {
+            return id;
+        }
+    }
+
+    return primaryPolicyID;
+}
+
 function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
     return {
         labelKey: 'walletPage.bankAccountStatus.incomplete',
@@ -369,6 +393,7 @@ export {
     isConnectedViaPlaid,
     hasBrokenPlaidConnection,
     canLinkPlaid,
+    getPlaidLinkableCardPolicyID,
     getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,

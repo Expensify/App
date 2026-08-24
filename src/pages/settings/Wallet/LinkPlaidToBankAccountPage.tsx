@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearLinkPlaidBankAccountErrors, clearPlaid, linkPlaidToBankAccount} from '@libs/actions/BankAccounts';
 import {openPlaidBankLogin} from '@libs/actions/Plaid';
-import {hasBrokenPlaidConnection, isConnectedViaPlaid} from '@libs/BankAccountUtils';
+import {getPlaidLinkableCardPolicyID, hasBrokenPlaidConnection, isConnectedViaPlaid} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
@@ -31,6 +31,7 @@ import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import cardOnWaitlistPolicyIDsSelector from '@selectors/CardOnWaitlist';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -52,11 +53,11 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
+    const [cardOnWaitlistPolicyIDs] = useOnyx(ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST, {selector: cardOnWaitlistPolicyIDsSelector});
 
-    const policyID = bankAccount?.accountData?.additionalData?.policyID;
+    const policyID = getPlaidLinkableCardPolicyID(bankAccount, cardOnWaitlistPolicyIDs);
     const latestErrorMessage = getLatestErrorMessage(bankAccount);
     const isWrongAccountError = latestErrorMessage === CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT;
-
     const isSuccess = !bankAccount?.isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
 
     useEffect(() => {
