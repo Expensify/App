@@ -21413,6 +21413,7 @@ var require_surrogate_pairs = __commonJS({
 // node_modules/html-entities/lib/index.js
 var require_lib2 = __commonJS({
   "node_modules/html-entities/lib/index.js"(exports) {
+    "worklet";
     "use strict";
     var __assign = exports && exports.__assign || function() {
       __assign = Object.assign || function(t) {
