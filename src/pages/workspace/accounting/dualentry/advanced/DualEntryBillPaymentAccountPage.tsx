@@ -34,8 +34,8 @@ function DualEntryBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const billPaymentAccountID = dualentryConfig?.sync?.billPaymentAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
 
@@ -55,7 +55,7 @@ function DualEntryBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.billPaymentAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.billPaymentAccount.description')}</Text>
         </View>
     );
 
@@ -64,8 +64,8 @@ function DualEntryBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualentry.noAccountsFound')}
-            subtitle={translate('workspace.dualentry.noAccountsFoundDescription')}
+            title={translate('workspace.dualEntry.noAccountsFound')}
+            subtitle={translate('workspace.dualEntry.noAccountsFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
@@ -84,7 +84,7 @@ function DualEntryBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
             displayName="DualEntryBillPaymentAccountPage"
-            title="workspace.dualentry.billPaymentAccount.label"
+            title="workspace.dualEntry.billPaymentAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}

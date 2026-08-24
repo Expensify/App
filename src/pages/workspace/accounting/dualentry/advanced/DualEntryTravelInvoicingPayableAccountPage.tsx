@@ -6,7 +6,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import TravelInvoicingPayableAccountSelectPage from '@pages/workspace/accounting/common/TravelInvoicingPayableAccountSelectPage';
+import TravelBillingPayableAccountSelectPage from '@pages/workspace/accounting/common/TravelBillingPayableAccountSelectPage';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -17,8 +17,8 @@ import React from 'react';
 
 function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const travelInvoicingPayableAccountID = dualentryConfig?.export?.travelInvoicingPayableAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
 
@@ -49,21 +49,21 @@ function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCo
     };
 
     return (
-        <TravelInvoicingPayableAccountSelectPage
+        <TravelBillingPayableAccountSelectPage
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             shouldBeBlocked={shouldBeBlocked}
-            title="workspace.dualentry.travelInvoicingPayableAccount.label"
+            title="workspace.dualEntry.travelInvoicingPayableAccount.label"
             displayName="DualEntryTravelInvoicingPayableAccountSelectPage"
             data={data}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
-            emptyStateTitle="workspace.dualentry.noAccountsFound"
-            emptyStateSubtitle="workspace.dualentry.noAccountsFoundDescription"
+            emptyStateTitle="workspace.dualEntry.noAccountsFound"
+            emptyStateSubtitle="workspace.dualEntry.noAccountsFoundDescription"
             onSelect={setPayableAccount}
             onBack={() => Navigation.goBack(backPath)}
-            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID], dualentryConfig?.pendingFields)}
-            errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID)}
-            onClose={() => clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID)}
+            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], dualentryConfig?.pendingFields)}
+            errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID)}
+            onClose={() => clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID)}
         />
     );
 }

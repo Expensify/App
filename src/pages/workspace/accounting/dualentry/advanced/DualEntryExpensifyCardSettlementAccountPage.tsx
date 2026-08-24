@@ -34,8 +34,8 @@ function DualEntryExpensifyCardSettlementAccountPage({policy}: WithPolicyConnect
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const settlementsBankAccountID = dualentryConfig?.sync?.settlementsBankAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
 
@@ -55,7 +55,7 @@ function DualEntryExpensifyCardSettlementAccountPage({policy}: WithPolicyConnect
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.settlementAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.settlementAccount.description')}</Text>
         </View>
     );
 
@@ -64,8 +64,8 @@ function DualEntryExpensifyCardSettlementAccountPage({policy}: WithPolicyConnect
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualentry.noAccountsFound')}
-            subtitle={translate('workspace.dualentry.noAccountsFoundDescription')}
+            title={translate('workspace.dualEntry.noAccountsFound')}
+            subtitle={translate('workspace.dualEntry.noAccountsFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
@@ -84,7 +84,7 @@ function DualEntryExpensifyCardSettlementAccountPage({policy}: WithPolicyConnect
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
             displayName="DualEntryExpensifyCardSettlementAccountPage"
-            title="workspace.dualentry.settlementAccount.label"
+            title="workspace.dualEntry.settlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}

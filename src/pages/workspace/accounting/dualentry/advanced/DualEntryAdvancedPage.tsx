@@ -21,7 +21,7 @@ import {getCardSettings, isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -38,8 +38,8 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const autoSync = dualentryConfig?.autoSync?.enabled ?? false;
     const accountingMethod = dualentryConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
     const syncReimbursedReports = dualentryConfig?.sync?.syncReimbursedReports ?? true;
@@ -52,9 +52,9 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
     const {isAccordionExpanded: isAutoSyncAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateAutoSyncAccordionSection} = useAccordionAnimation(autoSync);
     const {isAccordionExpanded: isSyncReimbursedReportsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncReimbursedReportsAccordionSection} =
@@ -86,7 +86,7 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.autoSync')}
-                subtitle={translate('workspace.dualentry.autoSyncDescription')}
+                subtitle={translate('workspace.dualEntry.autoSyncDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
@@ -102,9 +102,9 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.ACCOUNTING_METHOD], dualentryConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
-                        title={translate(`workspace.dualentry.accountingMethods.values.${accountingMethod}`)}
-                        description={translate('workspace.dualentry.accountingMethods.label')}
-                        hintText={translate(`workspace.dualentry.accountingMethods.alternateText.${accountingMethod}`)}
+                        title={translate(`workspace.dualEntry.accountingMethods.values.${accountingMethod}`)}
+                        description={translate('workspace.dualEntry.accountingMethods.label')}
+                        hintText={translate(`workspace.dualEntry.accountingMethods.alternateText.${accountingMethod}`)}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT_METHOD.getRoute(policyID)) : undefined)}
                         shouldShowRightIcon
                         brickRoadIndicator={
@@ -115,9 +115,9 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
             </Accordion>
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <ToggleSettingOptionRow
-                title={translate('workspace.dualentry.syncReimbursedReports')}
-                subtitle={translate('workspace.dualentry.syncReimbursedReportsDescription')}
-                switchAccessibilityLabel={translate('workspace.dualentry.syncReimbursedReports')}
+                title={translate('workspace.dualEntry.syncReimbursedReports')}
+                subtitle={translate('workspace.dualEntry.syncReimbursedReportsDescription')}
+                switchAccessibilityLabel={translate('workspace.dualEntry.syncReimbursedReports')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={syncReimbursedReports}
@@ -133,7 +133,7 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.BILL_PAYMENT_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={billPaymentAccount ? `${billPaymentAccount?.id} ${billPaymentAccount?.name}` : undefined}
-                        description={translate('workspace.dualentry.billPaymentAccount.label')}
+                        description={translate('workspace.dualEntry.billPaymentAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                         shouldShowRightIcon
                         brickRoadIndicator={
@@ -146,8 +146,8 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
-                        title={translate('workspace.dualentry.syncExpensifyCardSettlements')}
-                        switchAccessibilityLabel={translate('workspace.dualentry.syncExpensifyCardSettlements')}
+                        title={translate('workspace.dualEntry.syncExpensifyCardSettlements')}
+                        switchAccessibilityLabel={translate('workspace.dualEntry.syncExpensifyCardSettlements')}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncExpensifyCardSettlements}
@@ -163,7 +163,7 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={settlementsBankAccount ? `${settlementsBankAccount?.id} ${settlementsBankAccount?.name}` : undefined}
-                                description={translate('workspace.dualentry.settlementAccount.label')}
+                                description={translate('workspace.dualEntry.settlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 shouldShowRightIcon
                                 brickRoadIndicator={
@@ -176,45 +176,45 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     </Accordion>
                 </>
             )}
-            {isTravelInvoicingEnabled && (
+            {isTravelBillingEnabled && (
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
-                        title={translate('workspace.dualentry.syncTravelInvoicingSettlements')}
-                        switchAccessibilityLabel={translate('workspace.dualentry.syncTravelInvoicingSettlements')}
+                        title={translate('workspace.dualEntry.syncTravelInvoicingSettlements')}
+                        switchAccessibilityLabel={translate('workspace.dualEntry.syncTravelInvoicingSettlements')}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTravelInvoicingSettlements}
                         onToggle={() => policyID && updateDualEntrySyncTravelInvoicingSettlements(policyID, !syncTravelInvoicingSettlements, syncTravelInvoicingSettlements)}
-                        pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS], dualentryConfig?.pendingFields)}
-                        errors={getLatestErrorField(dualentryConfig ?? {}, CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS)}
-                        onCloseError={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS)}
+                        pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS], dualentryConfig?.pendingFields)}
+                        errors={getLatestErrorField(dualentryConfig ?? {}, CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS)}
+                        onCloseError={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS)}
                     />
                     <Accordion
                         isExpanded={isSyncTravelInvoicingSettlementsAccordionExpanded}
                         isToggleTriggered={shouldAnimateSyncTravelInvoicingSettlementsAccordionSection}
                     >
-                        <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
+                        <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={travelInvoicingSettlementsBankAccount ? `${travelInvoicingSettlementsBankAccount?.id} ${travelInvoicingSettlementsBankAccount?.name}` : undefined}
-                                description={translate('workspace.dualentry.travelInvoicingSettlementAccount.label')}
-                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
+                                description={translate('workspace.dualEntry.travelInvoicingSettlementAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 shouldShowRightIcon
                                 brickRoadIndicator={
-                                    areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.errorFields)
+                                    areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.errorFields)
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                         : undefined
                                 }
                             />
                         </OfflineWithFeedback>
-                        <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
+                        <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={travelInvoicingPayableAccount ? `${travelInvoicingPayableAccount?.id} ${travelInvoicingPayableAccount?.name}` : undefined}
-                                description={translate('workspace.dualentry.travelInvoicingPayableAccount.label')}
-                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
+                                description={translate('workspace.dualEntry.travelInvoicingPayableAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
                                 shouldShowRightIcon
                                 brickRoadIndicator={
-                                    areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID], dualentryConfig?.errorFields)
+                                    areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], dualentryConfig?.errorFields)
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                         : undefined
                                 }

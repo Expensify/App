@@ -4663,11 +4663,11 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/dualentry/advanced/expensify-card-settlement-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/expensify-card-settlement-account` as const,
     },
-    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: {
+    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-invoicing-settlement-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-invoicing-settlement-account` as const,
     },
-    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT: {
+    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-invoicing-payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-invoicing-payable-account` as const,
     },

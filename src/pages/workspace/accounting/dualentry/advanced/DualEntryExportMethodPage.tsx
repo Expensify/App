@@ -29,7 +29,7 @@ function DualEntryExportMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
     const accountingMethod = dualentryConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
 
@@ -38,15 +38,15 @@ function DualEntryExportMethodPage({policy}: WithPolicyConnectionsProps) {
 
     const data: AccountingMethodListItem[] = Object.values(COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD).map((accountingMethodItem) => ({
         value: accountingMethodItem,
-        text: translate(`workspace.dualentry.accountingMethods.values.${accountingMethodItem}`),
-        alternateText: translate(`workspace.dualentry.accountingMethods.alternateText.${accountingMethodItem}`),
+        text: translate(`workspace.dualEntry.accountingMethods.values.${accountingMethodItem}`),
+        alternateText: translate(`workspace.dualEntry.accountingMethods.alternateText.${accountingMethodItem}`),
         keyForList: accountingMethodItem,
         isSelected: accountingMethod === accountingMethodItem,
     }));
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.accountingMethods.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.accountingMethods.description')}</Text>
         </View>
     );
 
@@ -64,7 +64,7 @@ function DualEntryExportMethodPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
             displayName="DualEntryExportMethodPage"
-            title="workspace.dualentry.accountingMethods.label"
+            title="workspace.dualEntry.accountingMethods.label"
             data={data}
             headerContent={headerContent}
             onSelectRow={selectAccountingMethod}
