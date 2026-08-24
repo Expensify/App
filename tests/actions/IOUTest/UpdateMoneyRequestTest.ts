@@ -580,16 +580,15 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const {onyxData} = getUpdateTrackExpenseParams(
+            const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
-                undefined,
-                transactionThreadReport.reportID,
-                {amount: 20000},
-                createRandomPolicy(1),
-                undefined,
-                {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
-                snapshotHash,
-            );
+                transactionThreadReportID: transactionThreadReport.reportID,
+                transactionChanges: {amount: 20000},
+                policy: createRandomPolicy(1),
+                delegateAccountID: undefined,
+                currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+                hash: snapshotHash,
+            });
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
             const transactionKey: keyof SearchResults['data'] = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             type SnapshotUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>, {onyxMethod: typeof Onyx.METHOD.SET | typeof Onyx.METHOD.MERGE}>;
@@ -2019,9 +2018,13 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
-            const {params} = getUpdateTrackExpenseParams(transactionID, undefined, transactionThreadReportID, {distance: 5.555}, fakePolicy, undefined, {
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
+            const {params} = getUpdateTrackExpenseParams({
+                transactionID,
+                transactionThreadReportID,
+                transactionChanges: {distance: 5.555},
+                policy: fakePolicy,
+                delegateAccountID: undefined,
+                currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
             });
 
             // Then the raw caller value flows into the API params instead of the rounded display value (5.56).
@@ -2090,17 +2093,16 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
             await waitForBatchedUpdates();
 
-            const {onyxData} = getUpdateTrackExpenseParams(
+            const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
-                undefined,
                 transactionThreadReportID,
-                {created: '2026-06-15'},
-                fakePolicy,
-                undefined,
-                {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
-                snapshotHash,
-                {currentTransactionViolations: []},
-            );
+                transactionChanges: {created: '2026-06-15'},
+                policy: fakePolicy,
+                delegateAccountID: undefined,
+                currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+                hash: snapshotHash,
+                currentTransactionViolations: [],
+            });
 
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
             const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
