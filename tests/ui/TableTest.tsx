@@ -6,7 +6,7 @@ import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import Table from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
@@ -26,7 +26,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
-import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock navigation
@@ -127,7 +126,7 @@ jest.mock('@components/Icon', () => {
 
 // The real empty state renders illustrations/Lottie, so stub it with a lightweight component we can assert on.
 jest.mock('@components/EmptyStateComponent/GenericEmptyStateComponent', () => {
-    const {View: RNView, Text: RNText} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {View: RNView, Text: RNText} = jest.requireActual<Record<string, React.FC<Record<string, unknown>>>>('react-native');
     function MockGenericEmptyState({title}: {title?: string}) {
         return (
             <RNView testID="table-empty-state">
@@ -185,10 +184,9 @@ jest.mock('@components/TextInput', () => {
 // Mock PressableWithFeedback, but keep the module's other exports (e.g. the Pressable variants the modal
 // Backdrop relies on) so the filter popover can still mount.
 jest.mock('@components/Pressable', () => ({
-    ...jest.requireActual<typeof import('@components/Pressable')>('@components/Pressable'),
+    ...jest.requireActual<Record<string, unknown>>('@components/Pressable'),
     PressableWithFeedback: ({children, ...props}: {children: React.ReactNode}) => {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-        const {Pressable} = jest.requireActual<typeof import('react-native')>('react-native');
+        const {Pressable} = jest.requireActual<Record<string, React.FC<Record<string, unknown>>>>('react-native');
         // Forward every prop (testID, onPress, accessibility props, …) so list rows inside the filter popover
         // stay pressable by their testID.
         return <Pressable {...props}>{children}</Pressable>;
@@ -799,14 +797,26 @@ describe('Table', () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
             });
-            (useResponsiveLayout as jest.Mock).mockReturnValue(NARROW_LAYOUT);
+            jest.mocked(useResponsiveLayout).mockReturnValue(NARROW_LAYOUT);
         });
 
         afterEach(async () => {
             await act(async () => {
                 await Onyx.clear();
             });
-            (useResponsiveLayout as jest.Mock).mockReturnValue({shouldUseNarrowLayout: false, isMediumScreenWidth: false});
+            jest.mocked(useResponsiveLayout).mockReturnValue({
+                shouldUseNarrowLayout: false,
+                isSmallScreenWidth: false,
+                isInNarrowPaneModal: false,
+                isExtraSmallScreenHeight: false,
+                isMediumScreenWidth: false,
+                isLargeScreenWidth: false,
+                isExtraLargeScreenWidth: false,
+                isExtraSmallScreenWidth: false,
+                isSmallScreen: false,
+                onboardingIsMediumOrLargerScreenWidth: false,
+                isInLandscapeMode: false,
+            });
         });
 
         // A staged (non-immediate) MULTI_SELECT variant used to contrast the two rendering paths.
