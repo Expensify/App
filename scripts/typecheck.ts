@@ -9,6 +9,7 @@
  * Every project is checked even after one fails, so a single run reports every error in the repo.
  */
 import {$} from 'bun';
+import CLI from 'expensify-common/CLI';
 
 const projectRoot = `${import.meta.dir}/..`;
 
@@ -21,8 +22,18 @@ const tsc = `${projectRoot}/node_modules/typescript7/bin/tsc`;
 /** Project directories, relative to the repo root, that `npm run typecheck` and CI check. */
 const DEFAULT_PROJECTS = ['.', 'tests/tooling', 'server', 'server/victory-chart-renderer', 'scripts'];
 
-const args = process.argv.slice(2);
-const projects = args.length > 0 ? args : DEFAULT_PROJECTS;
+const cli = new CLI({
+    positionalArgs: [
+        {
+            name: 'projects',
+            description: 'Project directories to type-check, relative to the repo root (default: the five CI-gated projects)',
+            variadic: true,
+            default: DEFAULT_PROJECTS,
+        },
+    ],
+});
+
+const {projects} = cli.positionalArgs;
 
 const failed: string[] = [];
 for (const project of projects) {
