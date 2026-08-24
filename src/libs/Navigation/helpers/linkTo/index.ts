@@ -134,6 +134,10 @@ function shouldChangeToMatchingFullScreen(
     return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastActiveScreen !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
+/**
+ * Preserves nested split state under `params.state`, where React Navigation expects it.
+ * Omitting it rebuilds the workspace split without its policy-scoped route history.
+ */
 function getMatchingFullScreenRouteParams(
     matchingFullScreenRoute: NavigationPartialRoute,
 ): NavigationPartialRoute['params'] | {screen: string; params: NavigationPartialRoute['params'] | undefined} {

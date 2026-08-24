@@ -305,6 +305,55 @@ describe('Navigate', () => {
             expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
         });
 
+        it('preserves report navigation history when opening a workspace from an RHP', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 1,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [{name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID: '1'}}],
+                                            },
+                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                                    ],
+                                },
+                            },
+                            {
+                                name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                                state: {index: 0, routes: [{name: SCREENS.RIGHT_MODAL.SETTINGS}]},
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute('1', ROUTES.REPORT_WITH_ID.getRoute('1')));
+            });
+            act(() => {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute('1'));
+            });
+
+            const rootState = navigationRef.current?.getRootState();
+            const tabState = rootState?.routes.at(rootState.index)?.state;
+            const activeTab = tabState?.routes.at(tabState.index ?? 0);
+            expect(activeTab?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+            expect(activeTab?.state?.routes.at(0)?.name).toBe(SCREENS.INBOX);
+            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+        });
+
         it('to the sub-route from a same split navigator', () => {
             // Given the initialized navigation on the narrow layout with the settings split navigator
             render(
