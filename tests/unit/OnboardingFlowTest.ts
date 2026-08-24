@@ -1,7 +1,26 @@
-import {getOnboardingInitialPath, getRequired2FAOnboardingResumePath} from '@libs/actions/Welcome/OnboardingFlow';
+import {findFocusedRoute} from '@react-navigation/native';
+import {getOnboardingInitialPath, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
+
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    getCurrentRoute: jest.fn(),
+    getRootState: jest.fn(),
+    resetRoot: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => jest.fn());
+
+jest.mock('@react-navigation/native', () => ({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    ...jest.requireActual('@react-navigation/native'),
+    findFocusedRoute: jest.fn(),
+}));
 
 describe('OnboardingFlow', () => {
     describe('getOnboardingInitialPath', () => {
@@ -258,6 +277,65 @@ describe('OnboardingFlow', () => {
             };
 
             expect(getRequired2FAOnboardingResumePath(params)).toBe('/onboarding/work-email/validation');
+        });
+    });
+
+    describe('startOnboardingFlow', () => {
+        /* eslint-disable @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding */
+        const mockedGetCurrentRoute = jest.mocked(navigationRef.getCurrentRoute);
+        const mockedGetRootState = jest.mocked(navigationRef.getRootState);
+        const mockedResetRoot = jest.mocked(navigationRef.resetRoot);
+        /* eslint-enable @typescript-eslint/unbound-method */
+        const mockedGetAdaptedStateFromPath = jest.mocked(getAdaptedStateFromPath);
+        const mockedFindFocusedRoute = jest.mocked(findFocusedRoute);
+
+        const params: GetOnboardingInitialPathParamsType = {
+            isUserFromPublicDomain: false,
+            hasAccessiblePolicies: true,
+            currentOnboardingPurposeSelected: undefined,
+            currentOnboardingCompanySize: undefined,
+            onboardingInitialPath: '/onboarding/private-domain',
+            onboardingValues: undefined,
+            // resumePath bypasses getOnboardingInitialPath so the test drives the resolved target directly.
+            resumePath: '/onboarding/personal-details',
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            // The onboarding modal navigator is already mounted; getAdaptedStateFromPath resolves to it.
+            mockedGetAdaptedStateFromPath.mockReturnValue({routes: [{name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]} as ReturnType<typeof getAdaptedStateFromPath>);
+        });
+
+        it('should not call resetRoot when the merged route list is unchanged (no-op that would still fire replaceState)', () => {
+            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.ONBOARDING.PRIVATE_DOMAIN});
+            // Resolved target focuses a different route name, so the name-only guard passes through to the merge check.
+            mockedFindFocusedRoute.mockReturnValue({key: 'focused-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
+            mockedGetRootState.mockReturnValue({routes: [{key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]} as ReturnType<typeof navigationRef.getRootState>);
+
+            startOnboardingFlow(params);
+
+            expect(mockedResetRoot).not.toHaveBeenCalled();
+        });
+
+        it('should call resetRoot when the merged route list adds the onboarding navigator', () => {
+            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.HOME});
+            mockedFindFocusedRoute.mockReturnValue({key: 'focused-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
+            // Root state does not yet contain the onboarding navigator, so the merge appends it and the route list changes.
+            mockedGetRootState.mockReturnValue({routes: [{key: 'home', name: SCREENS.HOME}]} as ReturnType<typeof navigationRef.getRootState>);
+
+            startOnboardingFlow(params);
+
+            expect(mockedResetRoot).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not call resetRoot when the resolved route name already matches the current route', () => {
+            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
+            mockedFindFocusedRoute.mockReturnValue({key: 'focused-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
+            mockedGetRootState.mockReturnValue({routes: [{key: 'home', name: SCREENS.HOME}]} as ReturnType<typeof navigationRef.getRootState>);
+
+            startOnboardingFlow(params);
+
+            expect(mockedResetRoot).not.toHaveBeenCalled();
         });
     });
 });
