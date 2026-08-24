@@ -186,18 +186,12 @@ jest.mock('@components/TextInput', () => {
 // Backdrop relies on) so the filter popover can still mount.
 jest.mock('@components/Pressable', () => ({
     ...jest.requireActual<typeof import('@components/Pressable')>('@components/Pressable'),
-    PressableWithFeedback: (props: {children: React.ReactNode; onPress: () => void; accessibilityLabel: string; accessibilityRole: 'button' | 'link' | 'none' | undefined}) => {
+    PressableWithFeedback: ({children, ...props}: {children: React.ReactNode}) => {
         // eslint-disable-next-line @typescript-eslint/consistent-type-imports
         const {Pressable} = jest.requireActual<typeof import('react-native')>('react-native');
-        return (
-            <Pressable
-                onPress={props.onPress}
-                accessibilityLabel={props.accessibilityLabel}
-                accessibilityRole={props.accessibilityRole}
-            >
-                {props.children}
-            </Pressable>
-        );
+        // Forward every prop (testID, onPress, accessibility props, …) so list rows inside the filter popover
+        // stay pressable by their testID.
+        return <Pressable {...props}>{children}</Pressable>;
     },
 }));
 
@@ -815,40 +809,73 @@ describe('Table', () => {
             (useResponsiveLayout as jest.Mock).mockReturnValue({shouldUseNarrowLayout: false, isMediumScreenWidth: false});
         });
 
-        it('applies a selection immediately without an Apply button', async () => {
+        // A staged (non-immediate) MULTI_SELECT variant used to contrast the two rendering paths.
+        const stagedFilterConfig: FilterConfig = {
+            status: {
+                label: 'Status',
+                filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+                options: [
+                    {label: 'Active', value: STATUS_ACTIVE},
+                    {label: 'Archived', value: STATUS_ARCHIVED},
+                ],
+            },
+        };
+
+        function StagedFilterTable() {
+            const props = createDefaultProps();
+            return (
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+                    <PortalProvider>
+                        <ModalProvider>
+                            <NavigationContainer>
+                                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                                    <Table<TestItem, TestColumnKey>
+                                        data={immediateData}
+                                        columns={props.columns}
+                                        renderItem={props.renderItem}
+                                        keyExtractor={props.keyExtractor}
+                                        filters={stagedFilterConfig}
+                                        isItemInFilter={isItemInImmediateFilter}
+                                    >
+                                        <Table.FilterBar label="Find" />
+                                        <Table.Body />
+                                    </Table>
+                                </ScreenWrapperStatusContext.Provider>
+                            </NavigationContainer>
+                        </ModalProvider>
+                    </PortalProvider>
+                </ComposeProviders>
+            );
+        }
+
+        it('renders the filter options inline without a staged Apply/Reset footer', async () => {
             render(<ImmediateFilterTable />);
             await waitForBatchedUpdatesWithAct();
 
-            // Only the active row shows by default.
+            // Only the active row shows by default (archived is hidden until opted into).
             expect(screen.getByTestId('row-1')).toBeOnTheScreen();
             expect(screen.queryByTestId('row-2')).toBeNull();
 
             await openFilter();
 
-            // The `immediate` filter renders its options inline, so there is no staged Apply/Reset footer.
+            // Both options render inline in the popover.
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ACTIVE}`)).toBeOnTheScreen();
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`)).toBeOnTheScreen();
+
+            // `immediate` applies each selection right away, so there is no staged Apply/Reset footer.
             expect(screen.queryByText('common.apply')).toBeNull();
-
-            // Selecting "Archived" surfaces the archived row right away, with no Apply press needed.
-            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByTestId('row-2')).toBeOnTheScreen();
+            expect(screen.queryByText('common.reset')).toBeNull();
         });
 
-        it('toggles a selection off immediately, restoring the default view', async () => {
-            render(<ImmediateFilterTable />);
+        it('renders a staged Apply/Reset footer when the filter is not immediate', async () => {
+            render(<StagedFilterTable />);
             await waitForBatchedUpdatesWithAct();
 
             await openFilter();
-            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`));
-            await waitForBatchedUpdatesWithAct();
-            expect(screen.getByTestId('row-2')).toBeOnTheScreen();
 
-            // Toggling the same option off immediately hides the archived row again.
-            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`));
-            await waitForBatchedUpdatesWithAct();
-            expect(screen.queryByTestId('row-2')).toBeNull();
-            expect(screen.getByTestId('row-1')).toBeOnTheScreen();
+            // Without `immediate`, the same MULTI_SELECT filter stages selections behind an Apply/Reset footer.
+            expect(screen.getByText('common.apply')).toBeOnTheScreen();
+            expect(screen.getByText('common.reset')).toBeOnTheScreen();
         });
     });
 
