@@ -88,12 +88,13 @@ function PolicyDistanceRatesPage({
 
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
-            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+            const reportIDs: Record<string, true> = {};
+            for (const report of Object.values(reports ?? {})) {
                 if (report?.policyID === policyID) {
-                    reportIDs.add(report.reportID);
+                    reportIDs[report.reportID] = true;
                 }
-                return reportIDs;
-            }, new Set<string>());
+            }
+            return reportIDs;
         },
         [policyID],
     );
@@ -111,11 +112,11 @@ function PolicyDistanceRatesPage({
                 (transactionsData, transaction) => {
                     if (
                         transaction?.reportID &&
-                        policyReports?.has(transaction.reportID) &&
+                        policyReports?.[transaction.reportID] &&
                         transaction?.comment?.customUnit?.customUnitRateID &&
                         rateIDs.has(transaction?.comment?.customUnit?.customUnitRateID)
                     ) {
-                        transactionsData.transactionIDs.add(transaction.transactionID);
+                        transactionsData.transactionIDs.push(transaction.transactionID);
                         if (!transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID]) {
                             // eslint-disable-next-line no-param-reassign
                             transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID] = [];
@@ -124,7 +125,7 @@ function PolicyDistanceRatesPage({
                     }
                     return transactionsData;
                 },
-                {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
+                {transactionIDs: [] as string[], rateIDToTransactionIDsMap: {} as Record<string, string[]>},
             );
         },
         [customUnit?.customUnitID, rateIDs, policyReports],
