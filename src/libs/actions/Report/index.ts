@@ -173,6 +173,7 @@ import {
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
     replaceLocalAttachmentReferences,
+    restoreAttachmentAnchorAttributes,
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -3555,7 +3556,10 @@ function editReportComment(
     if (originalCommentMarkdown === draftForNewComment) {
         return;
     }
-    const htmlForNewComment = handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache);
+    const htmlForNewComment = restoreAttachmentAnchorAttributes(
+        handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache),
+        originalCommentHTML,
+    );
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 

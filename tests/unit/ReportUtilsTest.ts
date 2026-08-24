@@ -199,6 +199,7 @@ import {
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
     replaceLocalAttachmentReferences,
+    restoreAttachmentAnchorAttributes,
     requiresAttentionFromCurrentUser,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
@@ -6769,6 +6770,46 @@ describe('ReportUtils', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
             expect(replaceLocalAttachmentReferences(draft, otherActionHtml, reportActionID)).toBe(draft);
+        });
+    });
+
+    describe('restoreAttachmentAnchorAttributes', () => {
+        const docUrl = 'https://www.expensify.com/chat-attachments/123/file.doc';
+        const originalDocHtml = `Hello<br /><br /><a href="${docUrl}" data-expensify-source="${docUrl}" data-name="file.doc">file.doc</a>`;
+        // What the markdown round-trip produces: the attachment attributes are gone, so the doc renders as a plain link.
+        const roundTrippedHtml = `Hello edited<br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
+
+        it('re-applies the attachment attributes an edit dropped from a doc anchor', () => {
+            const restored = restoreAttachmentAnchorAttributes(roundTrippedHtml, originalDocHtml);
+
+            expect(restored).toContain(`data-expensify-source="${docUrl}"`);
+            expect(restored).toContain('data-name="file.doc"');
+            expect(restored).toContain('Hello edited');
+        });
+
+        it('leaves an anchor that still carries its attachment attributes untouched', () => {
+            expect(restoreAttachmentAnchorAttributes(originalDocHtml, originalDocHtml)).toBe(originalDocHtml);
+        });
+
+        it('never turns an ordinary link into an attachment', () => {
+            const ordinaryLinkHtml = 'Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a>';
+
+            expect(restoreAttachmentAnchorAttributes(ordinaryLinkHtml, originalDocHtml)).toBe(ordinaryLinkHtml);
+        });
+
+        it('leaves the html alone when the original comment had no attachment', () => {
+            const plainOriginal = 'Hello<br /><br /><a href="https://example.com/page">example</a>';
+            const edited = 'Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a>';
+
+            expect(restoreAttachmentAnchorAttributes(edited, plainOriginal)).toBe(edited);
+        });
+
+        it('only restores the anchor whose href matches, leaving other links plain', () => {
+            const mixedHtml = `Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a><br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
+            const restored = restoreAttachmentAnchorAttributes(mixedHtml, originalDocHtml);
+
+            expect(restored).toContain(`<a href="${docUrl}" target="_blank" rel="noreferrer noopener" data-expensify-source="${docUrl}" data-name="file.doc">`);
+            expect(restored).toContain('<a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a>');
         });
     });
 

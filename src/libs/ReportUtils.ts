@@ -6818,6 +6818,42 @@ function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCom
     return !!localSource && !draftMarkdown.includes(localSource);
 }
 
+/**
+ * Re-applies the attachment attributes of anchor tags that an edit round-trip dropped. The parser caches these
+ * for images and videos but not for anchors, so an edited doc attachment would come back as an ordinary link:
+ * rendered without its border and download icon, and downloaded without the auth token it needs.
+ */
+function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalCommentHtml: string | undefined): string {
+    if (!originalCommentHtml?.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE) || !newCommentHtml.includes('<a ')) {
+        return newCommentHtml;
+    }
+
+    const anchorTagRegex = /<a\s([^>]*)>/gi;
+    const attachmentAttributesByHref = new Map<string, string>();
+    for (const [, attributes] of originalCommentHtml.matchAll(anchorTagRegex)) {
+        if (!attributes.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE)) {
+            continue;
+        }
+        const href = attributes.match(/href="([^"]*)"/i)?.at(1);
+        const attachmentAttributes = attributes.match(/data-[\w-]+="[^"]*"/gi)?.join(' ');
+        if (href && attachmentAttributes) {
+            attachmentAttributesByHref.set(href, attachmentAttributes);
+        }
+    }
+    if (attachmentAttributesByHref.size === 0) {
+        return newCommentHtml;
+    }
+
+    return newCommentHtml.replaceAll(anchorTagRegex, (match: string, attributes: string) => {
+        if (attributes.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE)) {
+            return match;
+        }
+        const href = attributes.match(/href="([^"]*)"/i)?.at(1);
+        const attachmentAttributes = href ? attachmentAttributesByHref.get(href) : undefined;
+        return attachmentAttributes ? `<a ${attributes} ${attachmentAttributes}>` : match;
+    });
+}
+
 function getReportDescription(report: OnyxEntry<Report>): string {
     if (!report?.description) {
         return '';
@@ -14599,6 +14635,7 @@ export {
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
     isUploadingAttachmentRemovedFromDraft,
+    restoreAttachmentAnchorAttributes,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
 };
