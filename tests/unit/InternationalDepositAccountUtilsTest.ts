@@ -1,10 +1,12 @@
+import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {getAccountDetailsFieldsMap, getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx/CorpayFields';
 
-const translate = ((key: string) => key) as LocaleContextProps['translate'];
+const translate: LocaleContextProps['translate'] = (path) => path;
 
 function createCorpayField(id: string, isRequired: boolean, label = id, validationRules: CorpayFormField['validationRules'] = []): CorpayFormField {
     return {
@@ -16,6 +18,10 @@ function createCorpayField(id: string, isRequired: boolean, label = id, validati
         regEx: '',
         validationRules,
     };
+}
+
+function createFormValues(swiftBicCode: string): FormOnyxValues<ONYXKEYS['FORMS']['INTERNATIONAL_BANK_ACCOUNT_FORM']> {
+    return {swiftBicCode};
 }
 
 describe('getAccountDetailsFieldsMap', () => {
@@ -62,8 +68,8 @@ describe('getValidationErrors', () => {
         const swiftBicCode = createCorpayField('swiftBicCode', true, 'Swift Code', [{regEx: '^.{0,12}$', errorMessage: 'Swift must be less than 12 characters'}]);
         const fields = {swiftBicCode};
 
-        expect(getValidationErrors({swiftBicCode: ''} as never, fields, translate)).toEqual({swiftBicCode: 'common.error.fieldRequired'});
-        expect(getValidationErrors({swiftBicCode: 'toolongswiftcode'} as never, fields, translate)).toEqual({swiftBicCode: 'Swift must be less than 12 characters'});
-        expect(getValidationErrors({swiftBicCode: 'XXXXATXX'} as never, fields, translate)).toEqual({});
+        expect(getValidationErrors(createFormValues(''), fields, translate)).toEqual({swiftBicCode: 'common.error.fieldRequired'});
+        expect(getValidationErrors(createFormValues('toolongswiftcode'), fields, translate)).toEqual({swiftBicCode: 'Swift must be less than 12 characters'});
+        expect(getValidationErrors(createFormValues('XXXXATXX'), fields, translate)).toEqual({});
     });
 });
