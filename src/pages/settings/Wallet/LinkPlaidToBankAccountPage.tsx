@@ -1,3 +1,8 @@
+/**
+ * Page for linking (or re-linking/fixing) an existing verified Business Bank Account to Plaid.
+ * Reached from the Wallet page when the account is provisioned for the Expensify Card or its
+ * policy is on the Expensify Card waitlist.
+ */
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmationPage from '@components/ConfirmationPage';
