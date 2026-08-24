@@ -89,7 +89,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
 
     const items = useMemo(() => {
-        const rules = getWorkspaceRules(policy, translate, policyCategories);
+        // Duplication copies category-stored rules only as part of the categories themselves, so they belong to the Categories row rather than the Rules row.
+        const rules = getWorkspaceRules(policy, translate);
         const workflows = getWorkflowRules(policy, translate);
 
         const result = [
@@ -203,7 +204,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         connectedIntegration,
         totalTags,
         categoriesCount,
-        policyCategories,
         taxesLength,
         ratesCount,
         isCollect,

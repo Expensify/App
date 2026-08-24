@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {CustomUnit, PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {PolicyCategory} from '@src/types/onyx/PolicyCategory';
 
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
@@ -216,6 +217,58 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
 }
 
 /**
+ * Mirror Backend logic for the category field of flag for review and field requirement
+ */
+const CATEGORY_RULE_FIELDS = [
+    'maxExpenseAmount',
+    'expenseLimitType',
+    'maxAmountNoReceipt',
+    'maxAmountNoItemizedReceipt',
+    'areCommentsRequired',
+    'areAttendeesRequired',
+    'commentHint',
+] as const satisfies ReadonlyArray<keyof PolicyCategory>;
+
+/**
+ * Returns the categories patch to merge onto a target when `rules` is copied without `categories`.
+ */
+function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCategories: PolicyCategories): PolicyCategories | undefined {
+    const patch: PolicyCategories = {};
+
+    for (const sourceCategory of Object.values(sourceCategories)) {
+        if (sourceCategory.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        const targetCategory = targetCategories[sourceCategory.name];
+        if (!targetCategory || targetCategory.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
+        const categoryPatch: Partial<PolicyCategory> = {};
+        for (const field of CATEGORY_RULE_FIELDS) {
+            if (sourceCategory[field] === undefined) {
+                continue;
+            }
+            // The CATEGORY_RULE_FIELDS values are typed as keyof PolicyCategory, so this assignment is safe.
+            (categoryPatch as Record<string, unknown>)[field] = sourceCategory[field];
+        }
+        if (Object.keys(categoryPatch).length === 0) {
+            continue;
+        }
+
+        // The Rules page hides disabled categories, so rules copied onto a disabled target category would be
+        // invisible - enable it so the copy is actually usable.
+        patch[sourceCategory.name] = {
+            ...targetCategory,
+            ...categoryPatch,
+            ...(sourceCategory.enabled && !targetCategory.enabled ? {enabled: true} : {}),
+        };
+    }
+
+    return Object.keys(patch).length > 0 ? patch : undefined;
+}
+
+/**
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
  * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
  */
@@ -289,6 +342,7 @@ function buildCopyPolicySettingsData(
     const isTimeTrackingSelected = parts.includes('timeTracking');
     const isReceiptPartnersSelected = parts.includes('receiptPartners');
     const isCodingRulesSelected = parts.includes('codingRules');
+    const isRulesSelected = parts.includes('rules');
     const isTravelSelected = parts.includes('travel');
     const timeTrackingPendingFields = isTimeTrackingSelected
         ? {
@@ -396,6 +450,25 @@ function buildCopyPolicySettingsData(
                 key: targetCategoriesKey,
                 value: previousCategories,
             });
+        }
+
+        // When categories are copied too, the SET above already carries the source's category rules across.
+        if (isRulesSelected && !isCategoriesSelected) {
+            const targetCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy.id}` as const;
+            const previousCategories = allPolicyCategories?.[targetCategoriesKey];
+            const categoryRulesPatch = previousCategories ? buildCategoryRulesPatch(sourceCategories, previousCategories) : undefined;
+            if (previousCategories && categoryRulesPatch) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: targetCategoriesKey,
+                    value: categoryRulesPatch,
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: targetCategoriesKey,
+                    value: previousCategories,
+                });
+            }
         }
 
         if (isTagsSelected) {
