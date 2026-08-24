@@ -1,6 +1,6 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 
-import {getSearchValueForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
+import {getExportLabelForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
 import {getParsableSearchValue, getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 
 import CONST from '@src/CONST';
@@ -535,13 +535,13 @@ describe('SearchAutocompleteUtils', () => {
     });
 
     describe('AccountingUtils exported-to search filter helpers', () => {
-        describe('getSearchValueForConnection', () => {
+        describe('getExportLabelForConnection', () => {
             it('returns user-friendly name for QBO', () => {
-                expect(getSearchValueForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('QuickBooks Online');
+                expect(getExportLabelForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('QuickBooks Online');
             });
 
             it('returns user-friendly name for Sage Intacct', () => {
-                expect(getSearchValueForConnection(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('Sage Intacct');
+                expect(getExportLabelForConnection(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('Sage Intacct');
             });
         });
 

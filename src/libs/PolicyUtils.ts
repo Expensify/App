@@ -2798,7 +2798,10 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
  * Resolves the default workspace for report creation: the active policy when it's one of the eligible
  * workspaces, otherwise the only eligible workspace, else undefined.
  */
-function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
+function getDefaultChatEnabledPolicy(
+    groupPoliciesWithChatEnabled: ReadonlyArray<OnyxInputOrEntry<Policy>>,
+    activePolicy?: OnyxInputOrEntry<Policy> | null,
+): OnyxInputOrEntry<Policy> | undefined {
     // Only default to the active policy when it's actually eligible, so we never pick an ineligible policy
     // (e.g. a personal or free workspace) over an eligible fallback.
     if (activePolicy && isGroupPolicy(activePolicy) && groupPoliciesWithChatEnabled.some((policy) => policy?.id === activePolicy.id)) {
@@ -2810,6 +2813,17 @@ function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInp
     }
 
     return undefined;
+}
+
+/** Scalar version for useOnyx selectors: an eligible-policy array makes useOnyx deep-compare every policy on each policy_ update */
+function getDefaultChatEnabledPolicySelection(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, activePolicyID: string | undefined) {
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+    const activePolicy = activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
+
+    return {
+        defaultChatEnabledPolicyID: getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy)?.id,
+        hasMultipleChatEnabledPolicies: groupPoliciesWithChatEnabled.length > 1,
+    };
 }
 
 function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentPolicyID: string) {
@@ -3233,6 +3247,7 @@ export {
     getGroupPaidPolicies,
     getGroupPoliciesWhereReportCanBeCreated,
     getDefaultChatEnabledPolicy,
+    getDefaultChatEnabledPolicySelection,
     getForwardsToAccount,
     getSubmitToAccountID,
     getSubmitReportManagerAccountID,
