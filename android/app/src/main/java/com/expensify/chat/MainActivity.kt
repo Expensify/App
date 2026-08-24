@@ -1,19 +1,13 @@
 package com.expensify.chat
 
-import android.app.Activity
-import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.res.Resources
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
-import android.view.WindowManager
 import com.expensify.chat.bootsplash.BootSplash
-import com.expensify.chat.bootsplash.BootSplashDialog
 import com.expensify.chat.intenthandler.IntentHandlerFactory
 import com.expensify.reactnativekeycommand.KeyCommandModule
 import com.facebook.react.ReactActivity
@@ -25,19 +19,6 @@ import expo.modules.ReactActivityDelegateWrapper
 class MainActivity : ReactActivity() {
     companion object {
         private const val APP_START_TIME_PREFERENCES = "AppStartTime"
-
-        // Recents shows this card instead of a snapshot, since snapshots are disabled for privacy.
-        fun applyTaskDescription(activity: Activity) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                return
-            }
-            activity.setTaskDescription(
-                ActivityManager.TaskDescription.Builder()
-                    .setBackgroundColor(activity.getColor(R.color.bootsplash_background))
-                    .setStatusBarColor(activity.getColor(R.color.bootsplash_background))
-                    .build()
-            )
-        }
     }
 
     /**
@@ -53,10 +34,10 @@ class MainActivity : ReactActivity() {
      * (aka React 18) with two boolean flags.
      */
     override fun createReactActivityDelegate() = ReactActivityDelegateWrapper(this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED, DefaultReactActivityDelegate(
-            this,
-            mainComponentName,  // If you opted-in for the New Architecture, we enable the Fabric Renderer.
-            fabricEnabled
-        ))
+        this,
+        mainComponentName,  // If you opted-in for the New Architecture, we enable the Fabric Renderer.
+        fabricEnabled
+    ))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         getSharedPreferences(APP_START_TIME_PREFERENCES, MODE_PRIVATE)
@@ -88,9 +69,9 @@ class MainActivity : ReactActivity() {
         super.onNewIntent(intent)
 
         if (intent.hasCategory(Intent.CATEGORY_LAUNCHER)
-            && intent.getAction() != null
-            && intent.getAction().equals(Intent.ACTION_MAIN)) {
-            wasAppRelaunchedFromIcon = true
+              && intent.getAction() != null
+              && intent.getAction().equals(Intent.ACTION_MAIN)) {
+             wasAppRelaunchedFromIcon = true
         }
 
         setIntent(intent) // Must store the new intent unless getIntent() will return the old one
@@ -139,61 +120,5 @@ class MainActivity : ReactActivity() {
 
     override fun onStart() {
         super.onStart()
-    }
-
-    // It lets us tell "leaving the app" from "internal window"
-    private var isTopResumed = true
-
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            hidePrivacyDialog()
-        } else if (!isTopResumed) {
-            showPrivacyDialog()
-        }
-    }
-
-    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
-        super.onTopResumedActivityChanged(isTopResumedActivity)
-        isTopResumed = isTopResumedActivity
-        if (isTopResumedActivity) {
-            hidePrivacyDialog()
-        } else if (!hasWindowFocus()) {
-            // Backgrounding with an in-app dialog open: this callback is the only "leaving the app" signal.
-            showPrivacyDialog()
-        }
-    }
-
-    override fun onApplyThemeResource(theme: Resources.Theme, resid: Int, first: Boolean) {
-        super.onApplyThemeResource(theme, resid, first)
-        applyTaskDescription(this)
-    }
-
-    override fun onDestroy() {
-        hidePrivacyDialog()
-        super.onDestroy()
-    }
-
-    private var privacyDialog: BootSplashDialog? = null
-
-    private fun showPrivacyDialog() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || privacyDialog != null || isFinishing || isDestroyed) {
-            return
-        }
-        val dialog = BootSplashDialog(this, R.style.BootTheme)
-        // When the user comes back the activity underneath regains focus
-        dialog.window?.setFlags(
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        )
-        // The default dialog fade-in would let the snapshot see the content underneath
-        dialog.window?.setWindowAnimations(0)
-        dialog.show()
-        privacyDialog = dialog
-    }
-
-    private fun hidePrivacyDialog() {
-        privacyDialog?.dismiss()
-        privacyDialog = null
     }
 }
