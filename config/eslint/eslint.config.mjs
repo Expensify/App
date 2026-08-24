@@ -606,6 +606,32 @@ const config = defineConfig([
     },
 
     {
+        // Only the sources that esbuild bundles into an action's index.js. Those bundles are real ESM (see
+        // .github/actions/javascript/package.json), where `module`/`__dirname`/`__filename` don't exist. esbuild
+        // leaves the identifiers untouched rather than failing, so a CJS idiom here builds fine and then throws
+        // a ReferenceError when the action runs in CI. `.github/scripts/` is excluded: it runs directly under
+        // Bun, which does provide these.
+        files: ['.github/actions/**/*.ts', '.github/libs/**/*.ts'],
+        rules: {
+            'no-restricted-globals': [
+                'error',
+                {
+                    name: 'module',
+                    message: 'This file is bundled as ESM and runs on Node 24. For an entry-point guard use `import.meta.main` instead of `require.main === module`.',
+                },
+                {
+                    name: '__dirname',
+                    message: 'This file is bundled as ESM. Use `import.meta.dirname` instead of `__dirname`.',
+                },
+                {
+                    name: '__filename',
+                    message: 'This file is bundled as ESM. Use `import.meta.filename` instead of `__filename`.',
+                },
+            ],
+        },
+    },
+
+    {
         files: ['**/*.ts', '**/*.tsx'],
         plugins: {
             '@typescript-eslint': tseslint.plugin,

@@ -130,18 +130,18 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Span ID**: Based on reportID
 **Attributes**: `iou_type`, `iou_request_type`, `report_id`, `route_from`
 
-### Open Share Extension Submit Flow
+### Open Share Submit Flow
 
 **Constant**: `CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW`
 **Sentry Name**: `ShareExtensionOpenSubmitFlow`
 **Threshold**: 1s (P90)
-**What's Measured**: Time from selecting a recipient (workspace chat or DM) in the iOS Share Extension to the submit-details (confirm) screen rendering
-**Start**: Recipient selected in the Share Extension participants selector — an existing report or a new DM created from the selected account (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`)
+**What's Measured**: Time from selecting a recipient in the Share Submit flow to the submit-details (confirm) screen rendering
+**Start**: Recipient selected in the in-app Share participants selector, using an existing report or an account that requires an optimistic DM (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`).
 **End**:
 - User sees: Confirm-details screen
 - Technical: Confirm-details container layout complete (onLayout event)
 **Attributes**: `report_id`, `route_from`
-**Notes**: Scoped to the submit flow only (route `SHARE_SUBMIT_DETAILS`); the shared selector's track/share flow (`SHARE_DETAILS`) is not instrumented. Abandoned attempts (user backs out before the screen renders) are canceled on unmount and tagged `canceled`.
+**Notes**: The flow enters through a native OS share surface (the iOS Share Extension or Android share intent) and continues in the loaded app’s participant selector. It is scoped to the submit flow only (route `SHARE_SUBMIT_DETAILS`); the shared selector's track/share flow (`SHARE_DETAILS`) is not instrumented. Abandoned attempts (user backs out before the screen renders) are canceled on unmount and tagged `canceled`. The existing `ShareExtensionOpenSubmitFlow` name is retained for Sentry historical continuity.
 
 ### Send Message
 
