@@ -27,7 +27,7 @@ jest.mock('@libs/Navigation/Navigation');
 // backTo on the self DM, so a test needs to pin that reportID to assert the picker route no longer points at the
 // (soon-to-be non-writable) source report.
 jest.mock('@libs/ReportUtils', () => {
-    const actualReportUtils = jest.requireActual('@libs/ReportUtils');
+    const actualReportUtils = jest.requireActual<Record<string, unknown>>('@libs/ReportUtils');
     return {
         __esModule: true,
         ...actualReportUtils,
