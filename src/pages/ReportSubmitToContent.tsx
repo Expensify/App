@@ -85,7 +85,7 @@ function ReportSubmitToContent({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {keyboardActiveHeight} = useKeyboardState();
+    const {keyboardActiveHeight, isKeyboardActive} = useKeyboardState();
 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
@@ -493,7 +493,7 @@ function ReportSubmitToContent({
                 initiallyFocusedItemKey={submitToSelectionData.find((m) => m.isSelected)?.keyForList}
                 style={{containerStyle: styles.flex1}}
                 disableMaintainingScrollPosition
-                addBottomSafeAreaPadding={!isInLandscapeMode}
+                addBottomSafeAreaPadding={!isInLandscapeMode && !isKeyboardActive}
             >
                 {errorContent}
             </SelectionList>

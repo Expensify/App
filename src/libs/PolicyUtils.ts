@@ -1363,6 +1363,7 @@ function isPaidGroupPolicyByType(policyType: string | undefined): boolean {
 }
 
 function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return true;
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
