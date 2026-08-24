@@ -49,7 +49,7 @@ function ExpiredValidateCodeModal() {
                                     // navigate/goBack no-op from the public /v/ route when it's the stack root (security link opened
                                     // in a fresh tab), so reset the stack to TAB_NAVIGATOR (which hosts the public SignInPage).
                                     Navigation.isNavigationReady().then(() => {
-                                        navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+                                        Navigation.resetToAppRoot();
                                     });
                                 }}
                             >

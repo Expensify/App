@@ -655,12 +655,12 @@ describe('Go back with nothing to pop', () => {
             />,
         );
 
-        // The key identifies the mounted screen. A reset assigns a new one, which remounts SignInPage.
-        const keyBefore = navigationRef.current?.getRootState().routes.at(0)?.key;
         const navigationContainer = navigationRef.current;
         if (!navigationContainer) {
             throw new Error('Navigation container is not ready');
         }
+        // The key identifies the mounted screen. A reset assigns a new one, which remounts SignInPage.
+        const keyBefore = navigationContainer.getRootState().routes.at(0)?.key;
         const resetSpy = jest.spyOn(navigationContainer, 'reset');
 
         // When going back without a fallback route
@@ -674,6 +674,39 @@ describe('Go back with nothing to pop', () => {
         expect(rootState?.routes.at(0)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
         expect(rootState?.routes.at(0)?.key).toBe(keyBefore);
         expect(resetSpy).not.toHaveBeenCalled();
+        resetSpy.mockRestore();
+    });
+
+    it('Should stay put when the root state is not available', () => {
+        // Given an initialized navigation whose root state cannot be read yet
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [{name: SCREENS.VALIDATE_LOGIN, params: {accountID: '1', validateCode: '1'}}],
+                }}
+            />,
+        );
+
+        const navigationContainer = navigationRef.current;
+        if (!navigationContainer) {
+            throw new Error('Navigation container is not ready');
+        }
+        const resetSpy = jest.spyOn(navigationContainer, 'reset');
+        // getRootState() is typed as always returning a state, but it resolves to undefined before the container is
+        // ready, which is the branch under test.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const getRootStateSpy = jest.spyOn(navigationContainer, 'getRootState').mockReturnValue(undefined as unknown as ReturnType<typeof navigationContainer.getRootState>);
+
+        // When going back without a fallback route
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then nothing is reset, because there is no state to reset
+        expect(resetSpy).not.toHaveBeenCalled();
+
+        getRootStateSpy.mockRestore();
         resetSpy.mockRestore();
     });
 

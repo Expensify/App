@@ -130,7 +130,7 @@ function ValidateLoginPage({
                 if (ignore) {
                     return;
                 }
-                navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+                Navigation.resetToAppRoot();
             });
         }
 

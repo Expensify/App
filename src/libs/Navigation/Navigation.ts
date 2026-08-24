@@ -565,9 +565,6 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
                 // still landed the user somewhere. That fallback was dropped along with the drawer and was never replaced,
                 // so routes that are only reachable by link now dead-end silently. TAB_NAVIGATOR is the modern equivalent
                 // of the drawer root. It is the tab navigator in AuthScreens and the sign-in page in PublicScreens.
-                // resetToHome() is deliberately not reused here. It seeds an INBOX split navigator state, which assumes
-                // an authenticated stack, and this branch must also serve PublicScreens. NavigationRoot uses the same
-                // bare payload as its post logout fallback for the same reason.
                 const rootState = navigationRef.current?.getRootState();
                 const isAlreadyAtRoot = rootState?.routes.length === 1 && rootState.routes.at(0)?.name === NAVIGATORS.TAB_NAVIGATOR;
 
@@ -581,7 +578,10 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
                     return;
                 }
 
-                navigationRef.current?.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+                // resetToHome() is deliberately not reused here. It seeds an INBOX split navigator state, which
+                // assumes an authenticated stack, and this branch must also serve PublicScreens. NavigationRoot uses
+                // the same bare payload as its post logout fallback for the same reason.
+                resetToAppRoot();
                 return;
             }
 
@@ -668,6 +668,15 @@ function popToSidebar(options?: {shouldSkipFocusRestore?: boolean}): boolean {
     armFocusSkipIfRequested();
     navigationRef.current?.dispatch(StackActions.popToTop());
     return true;
+}
+
+/**
+ * Resets the whole stack to the app root. TAB_NAVIGATOR is the tab navigator in AuthScreens and hosts
+ * SignInPage in PublicScreens, so this is the one target that resolves in both. Unlike resetToHome() it
+ * seeds no nested state, which is what makes it safe to use before we know the stack is authenticated.
+ */
+function resetToAppRoot() {
+    navigationRef.current?.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
 }
 
 /**
@@ -1314,6 +1323,7 @@ export default {
     getTopmostReportActionId,
     waitForProtectedRoutes,
     resetToHome,
+    resetToAppRoot,
     goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
