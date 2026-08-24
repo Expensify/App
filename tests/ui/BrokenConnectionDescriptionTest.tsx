@@ -60,4 +60,24 @@ describe('BrokenConnectionDescription', () => {
 
         expect(screen.getByText("Can't auto-match receipt due to a temporary bank issue. Please try again later.")).toBeTruthy();
     });
+
+    it('prefers the 530 message when both 530 and 531 broken connections are present', async () => {
+        mockUseTransactionViolations.mockReturnValue([
+            {
+                name: 'rter',
+                type: 'violation',
+                data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531},
+            },
+            {
+                name: 'rter',
+                type: 'violation',
+                data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530},
+            },
+        ] as TransactionViolations);
+
+        renderDescription();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('Receipt pending due to broken bank connection')).toBeTruthy();
+    });
 });

@@ -127,10 +127,7 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
             const brokenConnectionViolations = transactionViolations.length
                 ? transactionViolations
                 : (visibleTransactions?.flatMap((t) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`] ?? []) ?? []);
-            const brokenConnectionError = brokenConnectionViolations.find(
-                (violation) =>
-                    violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531,
-            );
+            const brokenConnectionError = brokenConnectionViolations.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
             const cardID = brokenConnectionError?.data?.cardID;
             const card = cardID ? cardList?.[cardID] : undefined;
             if (isPersonalCard(card) && brokenConnectionError) {
