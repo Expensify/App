@@ -42,7 +42,8 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.QBO);
-    const shouldShowConnectionOptions = !!isIntuitEnterpriseSuite && environment === CONST.ENVIRONMENT.DEV && !isAuthError;
+    // IES shows the production/sandbox selector in development and staging so testers can pick the OAuth configuration.
+    const shouldShowConnectionOptions = !!isIntuitEnterpriseSuite && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) && !isAuthError;
     const [isConnectionOptionsPopoverOpen, setIsConnectionOptionsPopoverOpen] = useState(shouldShowConnectionOptions);
     const [connectionOptionsPopoverPosition, setConnectionOptionsPopoverPosition] = useState<AnchorPosition | null>(null);
     const didInitialize = useRef(false);
@@ -64,9 +65,7 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
         enablePolicyTaxes(policyID, false);
         // Reconnect starts from the overflow menu, so there is no connection button to anchor this popover to.
         if (!shouldShowConnectionOptions) {
-            // IES on staging must use the sandbox OAuth configuration; all other non-DEV connections use production.
-            const isSandbox = isIntuitEnterpriseSuite && environment === CONST.ENVIRONMENT.STAGING;
-            onConnect(isSandbox);
+            onConnect(false);
         }
     }, [onConnect, policyID, shouldShowConnectionOptions]);
 
