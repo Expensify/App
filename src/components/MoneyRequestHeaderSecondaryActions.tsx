@@ -122,7 +122,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const theme = useTheme();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
-    const {login: currentUserLogin, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
 
@@ -190,7 +190,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserLogin), [currentUserLogin]);
+    const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserEmail), [currentUserEmail]);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const draftTransactionIDs = useMemo(() => Object.keys(transactionDrafts ?? {}), [transactionDrafts]);
 
@@ -354,7 +354,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     })();
 
     // Shared params for converting a self-tracked expense through the participant selector, used by both
-    // "Send to someone" (friend) and "Send to my employer" (employer) menu actions. Mirrors the Inbox
+    // "Send to someone" (friend) and "Submit to my employer" (employer) menu actions. Mirrors the Inbox
     // track-expense whisper flow (see ChatActionableButtons' baseDraftTransactionParams).
     const sendTrackedExpenseParams = {
         reportID: parentReport?.reportID,
@@ -371,7 +371,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         preferredPolicyID,
         transaction,
         currentUserAccountID: accountID,
-        currentUserEmail: currentUserLogin ?? '',
+        currentUserEmail: currentUserEmail ?? '',
         currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
         filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
         firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
@@ -663,7 +663,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER]: {
-            text: translate('iou.sendToEmployer'),
+            text: translate('iou.submitToEmployer'),
             icon: expensifyIcons.Building,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER,
             onSelected: () => {
@@ -675,7 +675,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 createDraftTransactionAndNavigateToParticipantSelector({
                     ...sendTrackedExpenseParams,
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
-                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserLogin ?? '', lastWorkspaceNumber, translate, currentUserDisplayName),
+                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail ?? '', lastWorkspaceNumber, translate, currentUserDisplayName),
                 });
             },
         },

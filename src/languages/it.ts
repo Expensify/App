@@ -1550,7 +1550,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Abilita portafoglio',
         hold: 'Metti in attesa',
         sendToSomeone: 'Invia a qualcuno',
-        sendToEmployer: 'Invia al mio datore di lavoro',
+        submitToEmployer: 'Invia al mio datore di lavoro',
         unhold: 'Rimuovi blocco',
         holdExpense: () => ({
             one: 'Metti in sospeso la spesa',

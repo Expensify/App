@@ -4952,16 +4952,16 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
-    describe('SEND_TO_SOMEONE gate', () => {
+    describe('self-DM convert-from-track actions gate (SEND_TO_SOMEONE / SEND_TO_EMPLOYER)', () => {
         // These cases install persistent spies (mockReturnValue); the enclosing beforeEach only clears call data, not
         // implementations, so restore them here to avoid leaking into later getSecondaryTransactionThreadActions tests.
         afterEach(() => {
             jest.restoreAllMocks();
         });
 
-        function getSendToSomeoneResult(isExpenseSplit: boolean, hasWorkspaceToSubmitTo: boolean, isChatReportArchived = false) {
+        function getSelfDMConvertActionsResult(isExpenseSplit: boolean, hasWorkspaceToSubmitTo: boolean, isChatReportArchived = false) {
             jest.spyOn(ReportUtils, 'isTrackExpenseReportNew').mockReturnValue(true);
-            // An archived self-DM has no write access; mirror that so the write-action guard on SEND_TO_SOMEONE is exercised.
+            // An archived self-DM has no write access; mirror that so the shared write-action guard is exercised.
             jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(!isChatReportArchived);
             jest.spyOn(TransactionUtils, 'getOriginalTransactionWithSplitInfo').mockReturnValue({
                 originalTransaction: createMock<Transaction>({}),
@@ -4984,35 +4984,35 @@ describe('getSecondaryTransactionThreadActions', () => {
         }
 
         it('includes SEND_TO_SOMEONE for an unreported self-tracked expense that is not a split', () => {
-            expect(getSendToSomeoneResult(false, false)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+            expect(getSelfDMConvertActionsResult(false, false)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         });
 
         it('hides SEND_TO_SOMEONE for a self-DM split expense when the user has no workspace to submit to', () => {
-            expect(getSendToSomeoneResult(true, false)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+            expect(getSelfDMConvertActionsResult(true, false)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         });
 
-        it('includes SEND_TO_SOMEONE for a self-DM split expense when the user has a workspace to submit to', () => {
-            expect(getSendToSomeoneResult(true, true)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        it('hides SEND_TO_SOMEONE for a self-DM split expense even when the user has a workspace, since a split has no personal destination', () => {
+            expect(getSelfDMConvertActionsResult(true, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         });
 
         it('hides SEND_TO_SOMEONE on an archived self-DM (no write access)', () => {
-            expect(getSendToSomeoneResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+            expect(getSelfDMConvertActionsResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         });
 
         it('includes SEND_TO_EMPLOYER for an unreported self-tracked expense that is not a split', () => {
-            expect(getSendToSomeoneResult(false, false)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+            expect(getSelfDMConvertActionsResult(false, false)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
         });
 
         it('hides SEND_TO_EMPLOYER for a self-DM split expense when the user has no workspace to submit to', () => {
-            expect(getSendToSomeoneResult(true, false)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+            expect(getSelfDMConvertActionsResult(true, false)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
         });
 
         it('includes SEND_TO_EMPLOYER for a self-DM split expense when the user has a workspace to submit to', () => {
-            expect(getSendToSomeoneResult(true, true)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+            expect(getSelfDMConvertActionsResult(true, true)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
         });
 
         it('hides SEND_TO_EMPLOYER on an archived self-DM (no write access)', () => {
-            expect(getSendToSomeoneResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+            expect(getSelfDMConvertActionsResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
         });
     });
 

@@ -1531,7 +1531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
         sendToSomeone: '誰かに送る',
-        sendToEmployer: '雇用主に送る',
+        submitToEmployer: '勤務先に送信する',
         unhold: '保留を解除',
         holdExpense: () => ({
             one: '経費を保留',

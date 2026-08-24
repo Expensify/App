@@ -1546,7 +1546,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Portemonnee inschakelen',
         hold: 'Vasthouden',
         sendToSomeone: 'Naar iemand sturen',
-        sendToEmployer: 'Naar mijn werkgever sturen',
+        submitToEmployer: 'Indienen bij mijn werkgever',
         unhold: 'Blokkering opheffen',
         holdExpense: () => ({
             one: 'Uitgave vasthouden',
