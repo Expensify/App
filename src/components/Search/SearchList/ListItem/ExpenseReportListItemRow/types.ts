@@ -26,7 +26,7 @@ type ExpenseReportListItemRowWideProps = ExpenseReportListItemRowNarrowProps & {
     isPendingDelete?: boolean;
     shouldDisableActionPointerEvents?: boolean;
     columns?: SearchColumnType[];
-    isMarkAsDone: boolean;
+    shouldShowMarkAsDoneCopy: boolean;
 };
 
 type ExpenseReportListItemRowProps = ExpenseReportListItemRowWideProps;
