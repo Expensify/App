@@ -7,7 +7,10 @@ import {openLink} from '@userActions/Link';
 import {useEffect} from 'react';
 
 type IntuitEnterpriseSuiteOAuthFlowProps = {
+    /** ID of the policy whose IES connection is being authorized. */
     policyID: string;
+
+    /** Whether to target the Intuit sandbox environment. */
     isSandbox: boolean;
 };
 
