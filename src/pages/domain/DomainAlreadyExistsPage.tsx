@@ -28,6 +28,7 @@ function DomainAlreadyExistsPage() {
             />
             <ConfirmationPage
                 illustration={EarthWithControls}
+                illustrationStyle={styles.emptyDomainListStaticIllustrationStyle}
                 heading={translate('domain.domainAlreadyExists.title')}
                 innerContainerStyle={styles.p10}
                 description={translate('domain.domainAlreadyExists.description')}
