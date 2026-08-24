@@ -7,6 +7,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import {reportVisibleActionsSelector} from '@selectors/ReportAction';
+
 type UseMoneyRequestReportVisibleActionsParams = {
     /** The report whose actions are being displayed */
     reportID: string | undefined;
@@ -54,7 +56,9 @@ function useMoneyRequestReportVisibleActions({
     shouldShowHarvestCreatedAction,
     isOffline,
 }: UseMoneyRequestReportVisibleActionsParams): UseMoneyRequestReportVisibleActionsResult {
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    // Scoped selector: subscribing to the whole derived value re-renders this view on any report-action
+    // change anywhere in the app; the selector keeps the ref stable while this report's slice is unchanged.
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(reportID)});
 
     const visibleReportActionsNewestFirst = reportActions.filter((reportAction) => {
         const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
