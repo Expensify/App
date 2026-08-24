@@ -1062,6 +1062,8 @@
         {
             "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
             "rules": {
+                // Core rules the TypeScript compiler already enforces, off exactly as
+                // typescript-eslint's `eslint-recommended` switches them off for TS files.
                 "constructor-super": "off",
                 "getter-return": "off",
                 "no-class-assign": "off",
@@ -1084,12 +1086,7 @@
                         "destructuring": "any",
                         "ignoreReadBeforeAssign": true
                     }
-                ]
-            }
-        },
-        {
-            "files": ["**/*.ts", "**/*.tsx", "**/*.cts", "**/*.mts"],
-            "rules": {
+                ],
                 "no-implied-eval": "off",
                 "no-unused-expressions": "error",
                 "no-unused-vars": "error",
@@ -1151,34 +1148,6 @@
                 // and its formatting config is not applied to plain JS here, so `index.js` has the
                 // rule absent. Verified with `eslint --print-config` on both, not assumed.
                 "core/lines-between-class-members": ["error", "always", {"exceptAfterSingleLine": false}]
-            }
-        },
-        {
-            "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
-            "rules": {
-                "constructor-super": "off",
-                "getter-return": "off",
-                "no-class-assign": "off",
-                "no-const-assign": "off",
-                "no-dupe-class-members": "off",
-                "no-dupe-keys": "off",
-                "no-func-assign": "off",
-                "no-import-assign": "off",
-                "no-new-native-nonconstructor": "off",
-                "no-obj-calls": "off",
-                "no-redeclare": "off",
-                "no-setter-return": "off",
-                "no-this-before-super": "off",
-                "no-unreachable": "off",
-                "no-unsafe-negation": "off",
-                "no-with": "off",
-                "prefer-const": [
-                    "error",
-                    {
-                        "destructuring": "any",
-                        "ignoreReadBeforeAssign": true
-                    }
-                ]
             }
         },
         {
@@ -1328,64 +1297,6 @@
                 "typescript/prefer-promise-reject-errors": "off"
             },
             "plugins": ["jsdoc"]
-        },
-        {
-            // Every rule below is OFF only to mirror ESLint: typescript-eslint switches its typed
-            // rules off for plain-JS files, so these are parity, not coverage gaps.
-            "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
-            "rules": {
-                "typescript/await-thenable": "off",
-                "typescript/consistent-type-exports": "off",
-                "typescript/dot-notation": "off",
-                "typescript/no-array-delete": "off",
-                "typescript/no-base-to-string": "off",
-                "typescript/no-confusing-void-expression": "off",
-                "typescript/no-deprecated": "off",
-                "typescript/no-duplicate-type-constituents": "off",
-                "typescript/no-floating-promises": "off",
-                "typescript/no-for-in-array": "off",
-                "typescript/no-implied-eval": "off",
-                "typescript/no-meaningless-void-operator": "off",
-                "typescript/no-misused-promises": "off",
-                "typescript/no-misused-spread": "off",
-                "typescript/no-mixed-enums": "off",
-                "typescript/no-redundant-type-constituents": "off",
-                "typescript/no-unnecessary-boolean-literal-compare": "off",
-                "typescript/no-unnecessary-qualifier": "off",
-                "typescript/no-unnecessary-template-expression": "off",
-                "typescript/no-unnecessary-type-arguments": "off",
-                "typescript/no-unnecessary-type-assertion": "off",
-                "typescript/no-unnecessary-type-conversion": "off",
-                "typescript/no-unnecessary-type-parameters": "off",
-                "typescript/no-unsafe-enum-comparison": "off",
-                "typescript/no-unsafe-type-assertion": "off",
-                "typescript/no-unsafe-unary-minus": "off",
-                "typescript/no-useless-default-assignment": "off",
-                "typescript/non-nullable-type-assertion-style": "off",
-                "typescript/only-throw-error": "off",
-                "typescript/prefer-find": "off",
-                "typescript/prefer-includes": "off",
-                "typescript/prefer-nullish-coalescing": "off",
-                "typescript/prefer-promise-reject-errors": "off",
-                "typescript/prefer-readonly": "off",
-                "typescript/prefer-readonly-parameter-types": "off",
-                "typescript/prefer-reduce-type-parameter": "off",
-                "typescript/prefer-regexp-exec": "off",
-                "typescript/prefer-return-this-type": "off",
-                "typescript/prefer-string-starts-ends-with": "off",
-                "typescript/promise-function-async": "off",
-                "typescript/related-getter-setter-pairs": "off",
-                "typescript/require-array-sort-compare": "off",
-                "typescript/require-await": "off",
-                "typescript/restrict-plus-operands": "off",
-                "typescript/restrict-template-expressions": "off",
-                "typescript/return-await": "off",
-                "typescript/strict-boolean-expressions": "off",
-                "typescript/strict-void-return": "off",
-                "typescript/switch-exhaustiveness-check": "off",
-                "typescript/unbound-method": "off",
-                "typescript/use-unknown-in-catch-callback-variable": "off"
-            }
         },
         {
             "files": ["**/scripts/**", "**/server/**", "**/.github/**"],
@@ -1749,7 +1660,8 @@
         {
             "files": [".github/**/*", "scripts/**/*", "server/**/*", "tests/**/*"],
             "rules": {
-                "no-await-in-loop": "off"
+                "no-await-in-loop": "off",
+                "core/no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"]
             }
             // No globals block here any more: all 70 names it listed (Buffer, AbortController,
             // Blob, ...) resolve through the root `env.node`, verified by probing every one of
@@ -1770,12 +1682,6 @@
                         ]
                     }
                 ]
-            }
-        },
-        {
-            "files": ["**/*.ts", "**/*.tsx"],
-            "rules": {
-                "typescript/no-deprecated": "off"
             }
         },
         {
@@ -1946,6 +1852,16 @@
                             }
                         ]
                     }
+                ],
+                // Overrides are last-wins, so this block's position is load-bearing twice: this rule
+                // has to stay above the 83-file block near the end of `overrides` that switches it
+                // off, and `no-restricted-imports` above has to stay above the two blocks that re-set
+                // it for 24 files between them.
+                "typescript/no-deprecated": [
+                    "error",
+                    {
+                        "allow": ["translateFn"]
+                    }
                 ]
             }
         },
@@ -2104,12 +2020,6 @@
                         ]
                     }
                 ]
-            }
-        },
-        {
-            "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
-            "rules": {
-                "rulesdir/no-default-props": "off"
             }
         },
         {
@@ -2288,22 +2198,6 @@
             }
         },
         {
-            "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
-            "rules": {
-                "typescript/no-unsafe-assignment": "off",
-                "typescript/no-unsafe-argument": "off",
-                "typescript/no-unsafe-return": "off",
-                "typescript/no-unsafe-call": "off",
-                "typescript/no-unsafe-member-access": "off"
-            }
-        },
-        {
-            "files": [".github/**/*", "scripts/**/*", "server/**/*", "tests/**/*"],
-            "rules": {
-                "core/no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"]
-            }
-        },
-        {
             "files": ["src/libs/Navigation/types.ts"],
             "rules": {
                 "core/no-restricted-syntax": [
@@ -2311,17 +2205,6 @@
                     {
                         "selector": "TSPropertySignature[key.name=\"backTo\"]",
                         "message": "The `backTo` route param is deprecated. Do not add new `backTo` properties to screen param lists. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead."
-                    }
-                ]
-            }
-        },
-        {
-            "files": ["**/*.ts", "**/*.tsx"],
-            "rules": {
-                "typescript/no-deprecated": [
-                    "error",
-                    {
-                        "allow": ["translateFn"]
                     }
                 ]
             }
@@ -2419,6 +2302,67 @@
         {
             "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
             "rules": {
+                // Every typed rule below is OFF only to mirror ESLint: typescript-eslint switches
+                // its typed rules off for plain-JS files, so these are parity, not coverage gaps.
+                "typescript/await-thenable": "off",
+                "typescript/consistent-type-exports": "off",
+                "typescript/dot-notation": "off",
+                "typescript/no-array-delete": "off",
+                "typescript/no-base-to-string": "off",
+                "typescript/no-confusing-void-expression": "off",
+                "typescript/no-deprecated": "off",
+                "typescript/no-duplicate-type-constituents": "off",
+                "typescript/no-floating-promises": "off",
+                "typescript/no-for-in-array": "off",
+                "typescript/no-implied-eval": "off",
+                "typescript/no-meaningless-void-operator": "off",
+                "typescript/no-misused-promises": "off",
+                "typescript/no-misused-spread": "off",
+                "typescript/no-mixed-enums": "off",
+                "typescript/no-redundant-type-constituents": "off",
+                "typescript/no-unnecessary-boolean-literal-compare": "off",
+                "typescript/no-unnecessary-qualifier": "off",
+                "typescript/no-unnecessary-template-expression": "off",
+                "typescript/no-unnecessary-type-arguments": "off",
+                "typescript/no-unnecessary-type-assertion": "off",
+                "typescript/no-unnecessary-type-conversion": "off",
+                "typescript/no-unnecessary-type-parameters": "off",
+                "typescript/no-unsafe-enum-comparison": "off",
+                "typescript/no-unsafe-type-assertion": "off",
+                "typescript/no-unsafe-unary-minus": "off",
+                "typescript/no-useless-default-assignment": "off",
+                "typescript/non-nullable-type-assertion-style": "off",
+                "typescript/only-throw-error": "off",
+                "typescript/prefer-find": "off",
+                "typescript/prefer-includes": "off",
+                "typescript/prefer-nullish-coalescing": "off",
+                "typescript/prefer-promise-reject-errors": "off",
+                "typescript/prefer-readonly": "off",
+                "typescript/prefer-readonly-parameter-types": "off",
+                "typescript/prefer-reduce-type-parameter": "off",
+                "typescript/prefer-regexp-exec": "off",
+                "typescript/prefer-return-this-type": "off",
+                "typescript/prefer-string-starts-ends-with": "off",
+                "typescript/promise-function-async": "off",
+                "typescript/related-getter-setter-pairs": "off",
+                "typescript/require-array-sort-compare": "off",
+                "typescript/require-await": "off",
+                "typescript/restrict-plus-operands": "off",
+                "typescript/restrict-template-expressions": "off",
+                "typescript/return-await": "off",
+                "typescript/strict-boolean-expressions": "off",
+                "typescript/strict-void-return": "off",
+                "typescript/switch-exhaustiveness-check": "off",
+                "typescript/unbound-method": "off",
+                "typescript/use-unknown-in-catch-callback-variable": "off",
+                // Also off in the `scripts/**` / `.github/**` block above, to the same value, so the
+                // 27 plain-JS files the two share get the same answer either way.
+                "typescript/no-unsafe-assignment": "off",
+                "typescript/no-unsafe-argument": "off",
+                "typescript/no-unsafe-return": "off",
+                "typescript/no-unsafe-call": "off",
+                "typescript/no-unsafe-member-access": "off",
+                "rulesdir/no-default-props": "off",
                 "hosted/no-types": "off"
             }
         },
