@@ -1,5 +1,6 @@
 import {resolveOpenAppDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
+import HttpsError from '@libs/Errors/HttpsError';
 import * as NetworkState from '@libs/NetworkState';
 
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
@@ -414,6 +415,175 @@ describe('SequentialQueue', () => {
             processSpy.mockRestore();
             onyxUpdateSpy.mockRestore();
         }
+    });
+
+    describe('give-up: park and replay', () => {
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1}}];
+
+        // What a real iOS failure looks like once nitro has lost the original message. 84% of production give-ups.
+        const noAnswer = () => new Error('Unknown St13runtime_error error.');
+
+        let processSpy: jest.SpyInstance;
+        let sleepSpy: jest.SpyInstance;
+        let onyxUpdateSpy: jest.SpyInstance<ReturnType<typeof Onyx.update>, Parameters<typeof Onyx.update>>;
+
+        /** Fail every attempt, with the backoff skipped. */
+        async function armQueue(rejection: unknown) {
+            await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
+            await clearPersistedRequests();
+            await waitForBatchedUpdates();
+
+            processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockRejectedValue(rejection);
+            // Allow one retry, then stop sleeping, so we skip the real ~34s wait. The retry matters: rollback stamps
+            // `isRollback` on the queued copy, and removal matches by deepEqual, so without it we would be testing a
+            // state the queue never actually reaches.
+            sleepSpy = jest.spyOn(SequentialQueue.sequentialQueueRequestThrottle, 'sleep').mockResolvedValueOnce(undefined).mockRejectedValue(undefined);
+            onyxUpdateSpy = jest.spyOn(Onyx, 'update');
+        }
+
+        function wasDispatched(updates: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>>) {
+            const expected: unknown = updates.at(0);
+            return onyxUpdateSpy.mock.calls.some(([dispatched]) => Array.isArray(dispatched) && dispatched.some((entry: unknown) => entry === expected));
+        }
+
+        afterEach(() => {
+            processSpy?.mockRestore();
+            sleepSpy?.mockRestore();
+            onyxUpdateSpy?.mockRestore();
+        });
+
+        it('parks the request instead of failing it when the server never answered', async () => {
+            await armQueue(noAnswer());
+
+            SequentialQueue.push({command: 'ReplaceReceipt', requestIndex: 1, data: {transactionID: 'txn-1'}, failureData, shouldReplayOnGiveUp: true});
+            await waitForBatchedUpdates();
+
+            // The transactionID is deliberate: without one the staleness scan is skipped and stops being covered.
+            // And nothing should touch Onyx — the receipt and its pending indicator are still correct.
+            expect(wasDispatched(failureData)).toBe(false);
+            expect(onyxUpdateSpy).not.toHaveBeenCalled();
+
+            // Still queued, and carrying the round counter that bounds how often we may do this.
+            const queued = getAll();
+            expect(queued.length).toBe(1);
+            expect(queued.at(0)?.command).toBe('ReplaceReceipt');
+            expect(queued.at(0)?.giveUpCount).toBe(1);
+        });
+
+        it('does not retry a parked request within the same drain', async () => {
+            await armQueue(noAnswer());
+
+            SequentialQueue.push({command: 'ReplaceReceipt', requestIndex: 2, data: {transactionID: 'txn-2'}, failureData, shouldReplayOnGiveUp: true});
+            await waitForBatchedUpdates();
+
+            // Two attempts, then left alone. Without the guard it would be picked straight back up and burn every retry.
+            expect(processSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it('still drains the requests queued behind a parked one', async () => {
+            await armQueue(noAnswer());
+
+            SequentialQueue.push({command: 'ReplaceReceipt', requestIndex: 3, data: {transactionID: 'txn-3'}, failureData, shouldReplayOnGiveUp: true});
+            await waitForBatchedUpdates();
+            SequentialQueue.push({command: 'ReconnectApp', requestIndex: 4, failureData});
+            await waitForBatchedUpdates();
+
+            // The set-aside ReplaceReceipt must not block the queue: ReconnectApp ran and failed on its own.
+            expect(getAll().map((queued) => queued.command)).toEqual(['ReplaceReceipt']);
+        });
+
+        it('replays a parked request on the next flush', async () => {
+            await armQueue(noAnswer());
+
+            SequentialQueue.push({command: 'ReplaceReceipt', requestIndex: 5, data: {transactionID: 'txn-5'}, failureData, shouldReplayOnGiveUp: true});
+            await waitForBatchedUpdates();
+            const callsAfterFirstDrain = processSpy.mock.calls.length;
+
+            SequentialQueue.flush();
+            await waitForBatchedUpdates();
+
+            // A new drain makes it eligible again, and the counter moves.
+            expect(processSpy.mock.calls.length).toBeGreaterThan(callsAfterFirstDrain);
+            expect(getAll().at(0)?.giveUpCount).toBe(2);
+        });
+
+        it('gives up for real once the park cap is reached', async () => {
+            await armQueue(noAnswer());
+
+            SequentialQueue.push({
+                command: 'ReplaceReceipt',
+                requestIndex: 6,
+                data: {transactionID: 'txn-6'},
+                giveUpCount: CONST.NETWORK.MAX_GIVE_UP_PARKS,
+                failureData,
+                shouldReplayOnGiveUp: true,
+            });
+            await waitForBatchedUpdates();
+
+            expect(wasDispatched(failureData)).toBe(true);
+            expect(getAll().length).toBe(0);
+        });
+
+        it('applies failureData unchanged when the server issued a real verdict', async () => {
+            await armQueue(new HttpsError({message: 'Bad Request', status: '400'}));
+
+            SequentialQueue.push({command: 'ReplaceReceipt', requestIndex: 7, data: {transactionID: 'txn-7'}, failureData, shouldReplayOnGiveUp: true});
+            await waitForBatchedUpdates();
+
+            expect(wasDispatched(failureData)).toBe(true);
+            expect(getAll().length).toBe(0);
+        });
+
+        it('leaves a command that has not opted in on the old path', async () => {
+            await armQueue(noAnswer());
+
+            SequentialQueue.push({command: 'ReconnectApp', requestIndex: 8, failureData});
+            await waitForBatchedUpdates();
+
+            expect(wasDispatched(failureData)).toBe(true);
+            expect(getAll().length).toBe(0);
+        });
+
+        it('does not park a request superseded by another one for the same transaction', async () => {
+            await armQueue(noAnswer());
+
+            // Two writes for the same transaction, oldest first.
+            SequentialQueue.push({command: 'ReplaceReceipt', requestIndex: 9, data: {transactionID: '1'}, failureData, shouldReplayOnGiveUp: true});
+            SequentialQueue.push({command: 'ReplaceReceipt', requestIndex: 10, data: {transactionID: '1'}, failureData, shouldReplayOnGiveUp: true});
+            await waitForBatchedUpdates();
+
+            // The older write is stale because another is waiting behind it, so it fails. The newer one is not, so it
+            // is kept for a retry and is all that is left.
+            expect(wasDispatched(failureData)).toBe(true);
+            expect(getAll().map((queued) => queued.requestIndex)).toEqual([10]);
+        });
+
+        it('does not park a request whose payload cannot be written back to disk', async () => {
+            await armQueue(noAnswer());
+
+            // A web receipt is a real File, which does not survive on disk, so it takes the old failing path.
+            SequentialQueue.push({
+                command: 'ReplaceReceipt',
+                requestIndex: 11,
+                data: {receipt: new File(['x'], 'receipt.jpg', {type: 'image/jpeg'})},
+                failureData,
+                shouldReplayOnGiveUp: true,
+            });
+            await waitForBatchedUpdates();
+
+            expect(wasDispatched(failureData)).toBe(true);
+            expect(getAll().length).toBe(0);
+        });
+
+        it('does not park a request with no client request index to track it by', async () => {
+            await armQueue(noAnswer());
+
+            SequentialQueue.push({command: 'ReplaceReceipt', data: {transactionID: 'txn-noindex'}, failureData, shouldReplayOnGiveUp: true});
+            await waitForBatchedUpdates();
+
+            expect(wasDispatched(failureData)).toBe(true);
+            expect(getAll().length).toBe(0);
+        });
     });
 
     it('should reset the shared throttle when the queue stops because the app went offline', async () => {
