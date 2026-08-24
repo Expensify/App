@@ -411,6 +411,31 @@ function useParticipantSubmission({
         // its own back path. See #99145.
         const shouldReturnToParticipantPicker = isMovingTransactionFromTrackExpense && !isCategorizing;
 
+        // "Submit it to someone"/"Send to someone" (SUBMIT) can open the picker anchored on the tracked-expense's source
+        // report (e.g. the transaction thread from the expense header's "Submit to a friend"). goToNextStep reassigns the
+        // draft transaction OFF that report just above, so snapshotting Navigation.getActiveRoute() here would capture a picker
+        // URL whose reportID is no longer writable — pressing back then lands on the NotFound "Not here" page (#99371). Instead
+        // reconstruct the picker route anchored on the persistent self DM, which stays writable after the move (this mirrors the
+        // "Send to someone" flow that already anchors the picker on the self DM). "Share with accountant" (SHARE) keeps using the
+        // active route because it routes back through the accountant step rather than the participant picker.
+        let participantPickerBackTo: string | undefined;
+        if (shouldReturnToParticipantPicker) {
+            if (isShareAction) {
+                participantPickerBackTo = Navigation.getActiveRoute();
+            } else {
+                const participantPickerReportID = dataRef.current.selfDMReportID ?? reportID;
+                participantPickerBackTo = createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                        action,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: initialTransactionID,
+                        reportID: participantPickerReportID,
+                    }),
+                    ROUTES.REPORT_WITH_ID.getRoute(participantPickerReportID),
+                );
+            }
+        }
+
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
             iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
@@ -418,7 +443,7 @@ function useParticipantSubmission({
             newReportID,
             undefined,
             undefined,
-            shouldReturnToParticipantPicker ? Navigation.getActiveRoute() : undefined,
+            participantPickerBackTo,
         );
 
         const route = isCategorizing
