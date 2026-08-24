@@ -230,6 +230,12 @@ function SecuritySettingsPage() {
                     deleteAgent(agentAccountID, agentLogin, allPolicies, false);
                     return;
                 }
+                // Kept below the agent branch because copiloting into an agent is also a delegate session,
+                // and that flow needs to reach deleteAgent above.
+                if (isActingAsDelegate) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);
             },
         });
