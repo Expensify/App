@@ -2,6 +2,7 @@ import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -181,6 +182,7 @@ function AttachmentPicker({
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     /**
      * A generic handling when we don't know the exact reason for an error
@@ -585,8 +587,9 @@ function AttachmentPicker({
                 isVisible={isVisible}
                 anchorRef={popoverRef}
                 onModalHide={() => onModalHide.current?.()}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
+                <View style={[!shouldUseNarrowLayout && styles.createMenuContainer, bottomSafeAreaPaddingStyle]}>
                     {menuItemData.map((item, menuIndex) => (
                         <MenuItem
                             key={item.textTranslationKey}

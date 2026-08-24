@@ -5,6 +5,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -65,6 +66,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.p4});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -188,8 +190,9 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 innerContainerStyle={!shouldUseNarrowLayout ? {maxWidth: variables.modalContentMaxWidth} : undefined}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={styles.p4}>
+                <View style={bottomSafeAreaPaddingStyle}>
                     <Text
                         numberOfLines={1}
                         style={[styles.optionDisplayName, styles.textStrong, styles.mb2]}
