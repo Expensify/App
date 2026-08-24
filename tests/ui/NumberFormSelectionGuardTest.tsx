@@ -35,11 +35,11 @@ function getInput() {
     return screen.getByTestId(INPUT_TEST_ID);
 }
 
-function renderTextInput(onInputChange: jest.Mock, numberFormRef?: React.Ref<NumberFormRef>) {
+function renderTextInput(onInputChange: jest.Mock, numberFormRef?: React.Ref<NumberFormRef>, value = '12') {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <NumberForm
-                value="12"
+                value={value}
                 onInputChange={onInputChange}
                 numberFormRef={numberFormRef}
             >
@@ -162,6 +162,25 @@ describe('NumberForm.TextInput native selection guard', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the selection is still applied
+        expect(getInput().props.selection).toEqual({start: 1, end: 1});
+    });
+
+    it('keeps the caret position when forward-delete removes a character', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a TextInput with value "123" and the caret before the last two characters
+        renderTextInput(onInputChange, undefined, '123');
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 1}}});
+        await waitForBatchedUpdatesWithAct();
+
+        // When forward-delete is pressed and the character after the caret is removed
+        fireEvent(getInput(), 'keyPress', {nativeEvent: {key: 'Delete'}});
+        fireEvent.changeText(getInput(), '13');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the caret stays before the remaining character instead of moving backward
         expect(getInput().props.selection).toEqual({start: 1, end: 1});
     });
 });
