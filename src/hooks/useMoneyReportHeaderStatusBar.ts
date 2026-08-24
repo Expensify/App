@@ -121,8 +121,13 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
         if (hasDuplicates) {
             return CONST.REPORT.STATUS_BAR_TYPE.DUPLICATES;
         }
-        if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            const brokenConnectionError = transactionViolations.find(
+        if (shouldShowBrokenConnectionViolation) {
+            // On a multi-expense report there is no single transaction, so look across every visible
+            // transaction's violations to find the broken connection used for personal-card suppression.
+            const brokenConnectionViolations = transactionViolations.length
+                ? transactionViolations
+                : (visibleTransactions?.flatMap((t) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`] ?? []) ?? []);
+            const brokenConnectionError = brokenConnectionViolations.find(
                 (violation) =>
                     violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531,
             );
