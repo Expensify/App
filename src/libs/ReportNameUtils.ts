@@ -961,6 +961,7 @@ function computeChatThreadReportName(
     reports: OnyxCollection<Report>,
     currentUserLogin: string,
     transactions: OnyxCollection<Transaction>,
+    conciergeReportID: string | undefined,
     parentReportAction?: ReportAction,
     policyTags?: OnyxEntry<PolicyTagLists>,
     policy?: OnyxEntry<Policy>,
@@ -996,6 +997,15 @@ function computeChatThreadReportName(
 
     if (parentReportActionMessage?.isDeletedParentAction) {
         return translate('parentReportAction.deletedMessage');
+    }
+
+    // Concierge titles each of its threads with a summary of the question, so prefer that over the question itself.
+    if (
+        report.reportName &&
+        report.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME &&
+        isConciergeChatReport(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`], conciergeReportID)
+    ) {
+        return report.reportName;
     }
 
     const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
@@ -1135,6 +1145,7 @@ function computeReportName({
         reports ?? {},
         currentUserLogin ?? '',
         transactions,
+        conciergeReportID,
         parentReportAction,
         policyTags,
         reportPolicy,
