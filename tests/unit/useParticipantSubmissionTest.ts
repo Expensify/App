@@ -102,8 +102,8 @@ describe('useParticipantSubmission goToNextStep backTo', () => {
         // The expense-header "Submit to a friend" flow opens the picker anchored on the tracked-expense's source report.
         // goToNextStep moves the transaction off that report, so the reconstructed backTo must instead point at the
         // writable self DM — otherwise pressing back on the confirmation page lands on the NotFound "Not here" page.
-        mockFindSelfDMReportID.mockReturnValue('RSELFDM');
-        const {result} = renderSubmission({reportID: 'RSOURCE'});
+        mockFindSelfDMReportID.mockReturnValue('R3');
+        const {result} = renderSubmission({reportID: 'R4'});
 
         act(() => {
             result.current.goToNextStep(undefined, [RECIPIENT]);
@@ -112,8 +112,8 @@ describe('useParticipantSubmission goToNextStep backTo', () => {
         expect(mockGoBack).toHaveBeenCalledTimes(1);
         const backToRoute = mockGoBack.mock.calls.at(0)?.at(0);
         expect(backToRoute).toEqual(expect.stringContaining('backTo='));
-        expect(backToRoute).toEqual(expect.stringContaining('RSELFDM'));
-        expect(backToRoute).toEqual(expect.not.stringContaining('RSOURCE'));
+        expect(backToRoute).toEqual(expect.stringContaining('R3'));
+        expect(backToRoute).toEqual(expect.not.stringContaining('R4'));
     });
 
     it('passes an explicit backTo for the "Share with accountant" flow (SHARE moving a tracked expense)', () => {
