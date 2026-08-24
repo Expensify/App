@@ -45,7 +45,7 @@ function TemporarySystemMessageDesignComparison({children}: ChildrenProps) {
                         />
                     </View>
                 </View>
-                <View style={styles.flex1}>{children}</View>
+                <View style={[styles.flex1, styles.pRelative, styles.overflowHidden]}>{children}</View>
             </View>
         </SystemMessageLayoutContext.Provider>
     );
