@@ -561,14 +561,13 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     TransitionTracker.runAfterTransitions({
         callback: () => {
             if (!backToRoute && !shouldPopToSidebar && !navigationRef.current?.canGoBack()) {
-                // This branch used to call openDrawer(). With the LHN drawer as the app root, a goBack() with no history
-                // still landed the user somewhere. That fallback was dropped along with the drawer and was never replaced,
-                // so routes that are only reachable by link now dead-end silently. TAB_NAVIGATOR is the modern equivalent
-                // of the drawer root. It is the tab navigator in AuthScreens and the sign-in page in PublicScreens.
+                // Without a fallback route and with nothing to pop, goBack() would do nothing and strand the user on
+                // routes that are only reachable by a direct link. Reset to TAB_NAVIGATOR instead, which resolves to
+                // the tab navigator in AuthScreens (default Home page) and to the sign-in page in PublicScreens.
                 const rootState = navigationRef.current?.getRootState();
                 const isAlreadyAtRoot = rootState?.routes.length === 1 && rootState.routes.at(0)?.name === NAVIGATORS.TAB_NAVIGATOR;
 
-                // Nothing is stranded when the root already is the tab navigator, so keep the historical no-op.
+                // Nothing is stranded when the root already is the tab navigator, so keep the no-op.
                 // SignInPage depends on it. At the public sign-in root it calls goBack() expecting nothing to
                 // happen, then returns false so Android backgrounds the app. Resetting there would remount the
                 // sign-in page and discard the email and magic code the user already entered. Without a root state
