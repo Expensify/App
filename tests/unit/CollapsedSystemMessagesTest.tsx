@@ -1,7 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 
 import React from 'react';
@@ -27,13 +25,11 @@ describe('CollapsedSystemMessages', () => {
     it('renders a localized plural summary and expands accessibly', () => {
         const onPress = jest.fn();
         render(
-            <LocaleContextProvider>
-                <CollapsedSystemMessages
-                    count={4}
-                    isExpanded={false}
-                    onPress={onPress}
-                />
-            </LocaleContextProvider>,
+            <CollapsedSystemMessages
+                count={4}
+                isExpanded={false}
+                onPress={onPress}
+            />,
         );
 
         const control = screen.getByRole('button', {name: 'Show 4 actions'});
@@ -45,13 +41,11 @@ describe('CollapsedSystemMessages', () => {
 
     it('uses singular grammar and exposes the collapsed action for an expanded run', () => {
         render(
-            <LocaleContextProvider>
-                <CollapsedSystemMessages
-                    count={1}
-                    isExpanded
-                    onPress={jest.fn()}
-                />
-            </LocaleContextProvider>,
+            <CollapsedSystemMessages
+                count={1}
+                isExpanded
+                onPress={jest.fn()}
+            />,
         );
 
         expect(screen.getByRole('button', {name: 'Hide 1 action'}).props.accessibilityState).toMatchObject({expanded: true});
@@ -59,14 +53,12 @@ describe('CollapsedSystemMessages', () => {
 
     it('renders an unread marker for a member represented by the collapsed row', () => {
         render(
-            <LocaleContextProvider>
-                <CollapsedSystemMessages
-                    count={2}
-                    isExpanded={false}
-                    onPress={jest.fn()}
-                    unreadMarkerReportActionID="unread-action"
-                />
-            </LocaleContextProvider>,
+            <CollapsedSystemMessages
+                count={2}
+                isExpanded={false}
+                onPress={jest.fn()}
+                unreadMarkerReportActionID="unread-action"
+            />,
         );
 
         expect(screen.getByLabelText('New message line indicator').props['data-action-id']).toBe('unread-action');
