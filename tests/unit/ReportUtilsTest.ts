@@ -30,6 +30,7 @@ import {getOriginalMessage, getReportAction, isActionOfType, isWhisperAction} fr
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    applyLabelToUploadingAttachmentHtml,
     areAllRequestsBeingSmartScanned,
     buildEditedCommentWithAttachment,
     buildOptimisticAnnounceChat,
@@ -150,6 +151,7 @@ import {
     getTransactionDetails,
     getTransactionReportName,
     getUploadingAttachmentHtmlFromComment,
+    getUploadingAttachmentLabelFromDraft,
     getTransactionSortValue,
     getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
@@ -6761,6 +6763,41 @@ describe('ReportUtils', () => {
 
                 expect(secondEditDraft).toContain(videoSource);
                 expect(isUploadingAttachmentRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toBe(false);
+            });
+        });
+
+        describe('keeping a renamed attachment label', () => {
+            const localSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const uploadingFileHtml = `Hello<br /><br /><a href="${localSource}" data-optimistic-src="${localSource}" data-expensify-source="${localSource}" data-name="data.csv">data.csv</a>`;
+
+            it('reads the label the draft gives the attachment', () => {
+                const draft = `Hello\n\n[renamed.csv](${localSource})`;
+
+                expect(getUploadingAttachmentLabelFromDraft(draft, localSource)).toBe('renamed.csv');
+            });
+
+            it('reads no label from an image reference written without one', () => {
+                const draft = `Hello\n\n!(${localSource})`;
+
+                expect(getUploadingAttachmentLabelFromDraft(draft, localSource)).toBeUndefined();
+            });
+
+            it('carries the renamed label into the re-appended file attachment', () => {
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+
+                expect(applyLabelToUploadingAttachmentHtml(tag, 'renamed.csv')).toContain('>renamed.csv</a>');
+            });
+
+            it('carries the renamed label into the re-appended image attachment', () => {
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingImageHtml) ?? '';
+
+                expect(applyLabelToUploadingAttachmentHtml(tag, 'renamed.png')).toContain('alt="renamed.png"');
+            });
+
+            it('keeps the original label when the draft did not rename the attachment', () => {
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+
+                expect(applyLabelToUploadingAttachmentHtml(tag, undefined)).toBe(tag);
             });
         });
 
