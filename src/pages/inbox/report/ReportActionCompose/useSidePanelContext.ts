@@ -80,7 +80,18 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
         }
 
         return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
-    }, [conciergeReportID, reportID, isInSidePanel, sourceReportID, currentSearchQueryJSON?.type, currentRHPReportID, currentReportID, selectedTransactionIDs, selectedTransactions, selectedReports]);
+    }, [
+        conciergeReportID,
+        reportID,
+        isInSidePanel,
+        sourceReportID,
+        currentSearchQueryJSON?.type,
+        currentRHPReportID,
+        currentReportID,
+        selectedTransactionIDs,
+        selectedTransactions,
+        selectedReports,
+    ]);
 }
 
 export default useSidePanelContext;
