@@ -36,10 +36,12 @@ You'll see a message like:
 - "Your card connection is broken. Log into your bank to fix the card." (personal card)
 - "Card feed connection is broken. Please log into your bank so we can establish the connection again." (company card feed)
 - "The [feed] connection is broken. To restore card imports, log into your bank."
+- "Card update failed." — the feed hit an error Expensify's team is automatically alerted to.
+- "Unknown error." — often an international bank that doesn't support a direct connection.
 
-**What it means:** The connection failed and needs to be rebuilt rather than simply re-approved. This covers a range of causes — changed bank credentials, a changed or reissued card number, a bank-side outage, or a bank that no longer supports the connection.
+**What it means:** The connection failed and needs to be rebuilt rather than simply re-approved. This covers a range of causes — changed bank credentials, a changed or reissued card number, a bank-side outage, a bank that no longer supports the connection, or a bank Expensify can't classify the error for.
 
-**What to do:** Follow the broken-connection steps and, if needed, one of the alternative connection methods. See [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection).
+**What to do:** Follow the broken-connection steps and, if needed, one of the alternative connection methods. See [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection). If a specific bank keeps disconnecting (for example, Bank of America) or loops during authorization (for example, American Express), check the bank-specific guidance in that article.
 
 ---
 

@@ -65,6 +65,10 @@ If expenses are still missing after the feed reconnects, update an assigned card
 
 If you see an error while reconnecting, use the guidance below:
 
+**Card update failed**
+- **What it means:** The connection hit an error that Expensify's team is automatically alerted to. It doesn't always mean you did something wrong.
+- **What to do:** Select **Update card** once to retry. If it persists, contact Concierge with the details in [What to include when you contact Concierge](#what-to-include-when-you-contact-concierge) so it can be resolved without a back-and-forth.
+
 **Too many attempts**
 - **What it means:** Your login was attempted too many times in a short period.
 - **What to do:** Wait 24 hours before trying again.
@@ -88,6 +92,34 @@ If you see an error while reconnecting, use the guidance below:
 **General connection issue / temporary bank issue**
 - **What it means:** Temporary downtime or maintenance from your bank or connection provider.
 - **What to do:** Wait and try again later. If it persists for more than a day, retry the reconnect steps above.
+
+**Unknown error**
+- **What it means:** Your bank returned an error Expensify can't classify. This is common with some international banks that don't support a direct connection.
+- **What to do:** Try reconnecting once. If it persists, import your transactions from a spreadsheet instead — see [How to connect using an alternative method](#how-to-connect-using-an-alternative-method).
+
+---
+
+## Bank-specific guidance
+
+Some banks have known connection quirks with a more reliable path than repeatedly reconnecting:
+
+**Bank of America (persistent disconnects)**
+If a direct or Plaid connection to Bank of America keeps breaking, the most reliable fix is to switch to a **commercial card feed** (Visa/Mastercard) or an **OFX feed** rather than reconnecting again and again. See [Set up a Commercial Card Feed](/articles/new-expensify/connect-credit-cards/Set-up-a-Commercial-Card-Feed-Connection).
+
+**American Express (repeated reconnect prompts / authorization loop)**
+If American Express keeps prompting you to reconnect or loops during authorization, first clear your browser cache, try a different browser, and disable browser extensions, then reconnect. If it still loops, the connection needs a token refresh on Expensify's side — contact Concierge (see below) so it can be reset, rather than continuing to retry.
+
+---
+
+## What to include when you contact Concierge
+
+When a connection issue needs Concierge to resolve it, include all of the following in your first message so it can be fixed without a back-and-forth:
+
+- The **workspace or domain name**
+- The **cardholder email(s)** affected
+- The **last four digits** of the affected card(s)
+- The **date range** of any missing transactions
+- A **screenshot of the error** message
 
 ---
 
@@ -131,7 +163,7 @@ Update the affected card manually: open the card and select **Update card**. For
 
 ## What should I do if the connection still fails after retrying?
 
-Double-check your bank credentials by logging into your bank directly, and complete any required steps in your bank portal. If the issue continues, contact Concierge with the cardholder email and the last four digits of the card.
+Double-check your bank credentials by logging into your bank directly, and complete any required steps in your bank portal. If the issue continues, contact Concierge with the details in [What to include when you contact Concierge](#what-to-include-when-you-contact-concierge).
 
 ## Can a member fix a broken company card themselves?
 
