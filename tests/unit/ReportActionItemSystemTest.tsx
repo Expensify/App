@@ -50,7 +50,13 @@ jest.mock('@hooks/useThemeStyles', () => {
     return jest.fn(() => styleProxy);
 });
 
-jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getCompactContentContainerStyles: () => ({alignItems: 'baseline'})})));
+jest.mock('@hooks/useStyleUtils', () =>
+    jest.fn(() => ({
+        getCompactContentContainerStyles: () => ({alignItems: 'baseline'}),
+        getSelectionButtonPressableStyle: () => ({}),
+        getSelectionButtonContainerStyle: () => ({}),
+    })),
+);
 
 describe('ReportActionItemSystem', () => {
     it('renders the actor and action together with the timestamp on a separate line', () => {
