@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
-description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
+description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, Account, and Account settings on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination, Go to Profile, Go to Wallet, Go to Security, Preferences, Copilot, password, 2fa]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions for top-level destinations and Account settings. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -208,6 +208,20 @@ You can also use keyboard shortcuts on web to jump directly to specific items:
 
 ---
 
+## How to jump to an Account setting using Search
+
+You can also open an individual **Account** setting directly from **Search**, without opening the **Account** tab first.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the setting you want to open, such as **Profile**, **Wallet**, **Expense rules**, **Preferences**, **Copilot**, **Security**, **Help**, **About**, or **Troubleshoot**. If they're available on your account, you can also search for **Subscription** and **Agents**.
+3. Select the **Go to [setting]** result to open it.
+
+You can also find **Security** by typing **password**, **2fa**, **two factor**, or **two-factor**.
+
+**What's new**, **Save the world**, and **Sign out** are not available as **Go to** results in **Search**. Open them from the **Account** tab instead.
+
+---
+
 # FAQ
 
 ## Where are navigation tabs located in Expensify?
@@ -217,6 +231,10 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 ## Can I use Search to move between sections of Expensify?
 
 Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+
+## Can I open Account settings from Search?
+
+Yes. Type the name of the setting in **Search**, such as **Profile**, **Wallet**, **Expense rules**, **Preferences**, **Copilot**, **Security**, **Help**, **About**, or **Troubleshoot**, then select the **Go to [setting]** result. **Subscription** and **Agents** also appear if they're available on your account. To find **Security**, you can also type **password**, **2fa**, **two factor**, or **two-factor**. **What's new**, **Save the world**, and **Sign out** are not available as **Go to** results in **Search**.
 
 ## Where do I manage workspace settings?
 
