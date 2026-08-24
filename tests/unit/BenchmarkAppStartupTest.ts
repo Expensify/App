@@ -1,7 +1,5 @@
+import {benchmarkAlternatingStartups, benchmarkResultsOutputPath, benchmarkStartups, parseSpanNames, selectBenchmarkSpanNames} from '@scripts/benchmarkAppStartup';
 import {
-    benchmarkAlternatingStartups,
-    benchmarkStartups,
-    benchmarkStats,
     assertAndroidAppInstalled,
     findBenchmarkDuration,
     iosBenchmarkMarkerPath,
@@ -11,10 +9,7 @@ import {
     parseBenchmarkLogEvents,
     parseIosLaunchProcessIdentifier,
     parseIosRunningAppProcessIdentifier,
-    parseSpanNames,
-    percentile,
-    selectBenchmarkSpanNames,
-} from '@scripts/benchmarkAppStartup';
+} from '@scripts/lib/nativeAppBenchmark';
 
 import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -83,21 +78,6 @@ describe('benchmarkAppStartup', () => {
         expect(() => parseAndroidProcessIdentifier('', 'com.example.app')).toThrow('Unable to find the running Android process');
     });
 
-    it('calculates interpolated percentiles and summary statistics', () => {
-        expect(percentile([100, 200, 300, 400], 0.75)).toBe(325);
-        expect(benchmarkStats([300, 100, 200])).toEqual({
-            runs: 3,
-            average: 200,
-            p50: 200,
-            p75: 250,
-            p90: 280,
-            p95: 290,
-            p99: 298,
-            min: 100,
-            max: 300,
-        });
-    });
-
     it('selects all configured spans unless --span narrows the benchmark', () => {
         const configuredSpanNames = parseSpanNames('ManualAppStartup, ManualAppStartupNetworkRequest,ManualAppStartup');
 
@@ -107,9 +87,15 @@ describe('benchmarkAppStartup', () => {
         expect(() => selectBenchmarkSpanNames(configuredSpanNames, 'MissingSpan')).toThrow('is not included in EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS');
     });
 
+    it('derives a results table path from the raw sample path', () => {
+        expect(benchmarkResultsOutputPath('/tmp/startup.csv')).toBe('/tmp/startup-results.csv');
+        expect(benchmarkResultsOutputPath('/tmp/startup')).toBe('/tmp/startup-results.csv');
+    });
+
     it('measures each configured span through a reusable adapter', async () => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-test-'));
         const outputPath = join(temporaryDirectory, 'samples.csv');
+        const resultsOutputPath = join(temporaryDirectory, 'results.csv');
         const prepareStartup = jest.fn(async () => undefined);
         const launchAndCollect = jest
             .fn()
@@ -130,6 +116,7 @@ describe('benchmarkAppStartup', () => {
                     waitTimeSeconds: 30,
                     waitUntilSpan: 'ManualAppStartup',
                     outputPath,
+                    resultsOutputPath,
                 },
             );
 
@@ -142,7 +129,11 @@ describe('benchmarkAppStartup', () => {
             expect(launchAndCollect).toHaveBeenNthCalledWith(2, collectionOptions);
             expect(result.metrics.ManualAppStartup?.samples).toEqual([456]);
             expect(result.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([123]);
+            expect(result.resultsOutputPath).toBe(resultsOutputPath);
             expect(readFileSync(outputPath, 'utf8')).toBe('run,span,duration_ms\n1,ManualAppStartup,456\n1,ManualAppStartupNetworkRequest,123\n');
+            expect(readFileSync(resultsOutputPath, 'utf8')).toBe(
+                'span,runs,average,p50,p75,p90,p95,p99,min,max\nManualAppStartup,1,456.00,456.00,456.00,456.00,456.00,456.00,456.00,456.00\nManualAppStartupNetworkRequest,1,123.00,123.00,123.00,123.00,123.00,123.00,123.00,123.00\n',
+            );
             expect(consoleTable).toHaveBeenNthCalledWith(1, [
                 {
                     platform: 'android',
@@ -156,6 +147,33 @@ describe('benchmarkAppStartup', () => {
                     waitUntilSpan: 'ManualAppStartup',
                     appPath: 'installed app',
                     outputPath,
+                    resultsOutputPath,
+                },
+            ]);
+            expect(consoleTable).toHaveBeenNthCalledWith(2, [
+                {
+                    span: 'ManualAppStartup',
+                    runs: 1,
+                    average: '456.00',
+                    p50: '456.00',
+                    p75: '456.00',
+                    p90: '456.00',
+                    p95: '456.00',
+                    p99: '456.00',
+                    min: '456.00',
+                    max: '456.00',
+                },
+                {
+                    span: 'ManualAppStartupNetworkRequest',
+                    runs: 1,
+                    average: '123.00',
+                    p50: '123.00',
+                    p75: '123.00',
+                    p90: '123.00',
+                    p95: '123.00',
+                    p99: '123.00',
+                    min: '123.00',
+                    max: '123.00',
                 },
             ]);
         } finally {
@@ -168,6 +186,8 @@ describe('benchmarkAppStartup', () => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-comparison-test-'));
         const outputPathA = join(temporaryDirectory, 'binary-a.csv');
         const outputPathB = join(temporaryDirectory, 'binary-b.csv');
+        const resultsOutputPathA = join(temporaryDirectory, 'binary-a-results.csv');
+        const resultsOutputPathB = join(temporaryDirectory, 'binary-b-results.csv');
         const prepareStartupA = jest.fn(async () => undefined);
         const prepareStartupB = jest.fn(async () => undefined);
         const launchAndCollect = jest
@@ -224,12 +244,16 @@ describe('benchmarkAppStartup', () => {
             expect(result.binaryB.metrics.ManualAppStartup?.samples).toEqual([201, 202]);
             expect(result.binaryA.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([11, 12]);
             expect(result.binaryB.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([21, 22]);
+            expect(result.binaryA.resultsOutputPath).toBe(resultsOutputPathA);
+            expect(result.binaryB.resultsOutputPath).toBe(resultsOutputPathB);
             expect(readFileSync(outputPathA, 'utf8')).toBe(
                 'run,span,duration_ms\n1,ManualAppStartup,101\n1,ManualAppStartupNetworkRequest,11\n2,ManualAppStartup,102\n2,ManualAppStartupNetworkRequest,12\n',
             );
             expect(readFileSync(outputPathB, 'utf8')).toBe(
                 'run,span,duration_ms\n1,ManualAppStartup,201\n1,ManualAppStartupNetworkRequest,21\n2,ManualAppStartup,202\n2,ManualAppStartupNetworkRequest,22\n',
             );
+            expect(readFileSync(resultsOutputPathA, 'utf8')).toContain('ManualAppStartup,2,101.50,101.50,101.75,101.90,101.95,101.99,101.00,102.00');
+            expect(readFileSync(resultsOutputPathB, 'utf8')).toContain('ManualAppStartup,2,201.50,201.50,201.75,201.90,201.95,201.99,201.00,202.00');
             expect(consoleTable).toHaveBeenCalledTimes(3);
         } finally {
             consoleTable.mockRestore();

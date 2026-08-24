@@ -44,7 +44,7 @@ adb -s emulator-5554 install -r Mobile-Expensify/Android/build/outputs/apk/relea
 
 ## Run the benchmark
 
-The benchmark runs one unmeasured warm-up followed by 20 measured cold-process launches by default. It collects every span configured in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`, prints a separate statistics row for each span, and stores the raw samples under the git-ignored `.benchmarks` directory.
+The benchmark runs one unmeasured warm-up followed by 20 measured cold-process launches by default. It collects every span configured in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS` and prints a separate statistics row for each span. Every run writes the raw samples and the same Average, P50, P75, P90, P95, P99, Min, and Max table as CSV files under the git-ignored `.benchmarks` directory.
 
 Android:
 
@@ -76,7 +76,13 @@ Pass `--span` to restrict the statistics and CSV output to one span. The wait-un
 nr benchmark-app-startup ios 20 --span ManualAppStartupNetworkRequest --wait-until-span ManualAppStartup
 ```
 
-Use `--app-id` for a nonstandard Android application ID or iOS bundle identifier, and `--output` to select another CSV path. Runs where a configured metric does not end within the collection window are reported as `not observed` and are omitted from that metric's percentile calculations.
+Use `--app-id` for a nonstandard Android application ID or iOS bundle identifier. `--output` selects the raw sample CSV path, and `--results-output` selects the statistics table CSV path. Without `--results-output`, the script adds `-results.csv` to the raw sample filename. For example, `.benchmarks/ios-all-spans-process.csv` produces `.benchmarks/ios-all-spans-process-results.csv`. Runs where a configured metric does not end within the collection window are reported as `not observed` and are omitted from that metric's percentile calculations.
+
+```shell
+nr benchmark-app-startup ios 20 \
+    --output .benchmarks/startup-samples.csv \
+    --results-output .benchmarks/startup-results.csv
+```
 
 ### Compare two installed apps
 
@@ -91,7 +97,7 @@ nr benchmark-app-startup android 20 \
     --wait-time 30
 ```
 
-Use `--output-a` and `--output-b` to choose the per-app CSV files. By default they are written as `<platform>-<span>-<mode>-a.csv` and `...-b.csv` under `.benchmarks`. Each file contains every selected span's samples for that app, and the terminal prints a separate multi-span summary table for each app. `--output` is reserved for single-app mode.
+Use `--output-a` and `--output-b` to choose the per-app sample CSV files. Use `--results-output-a` and `--results-output-b` to choose the corresponding statistics table files. By default, the sample files are written as `<platform>-<span>-<mode>-a.csv` and `...-b.csv` under `.benchmarks`, and each statistics filename adds `-results.csv`. The terminal also prints a separate multi-span summary table for each app. The unsuffixed output options are reserved for single-app mode.
 
 Pass `--cold` together with `--app-path-a` and `--app-path-b` when you want each comparison app reinstalled before every warm-up and measured launch. The paths identify the corresponding Android APKs or signed iOS `.app` bundles. Cold comparison mode also clears app state using the platform-specific cold-start behavior; artifact paths are rejected in process mode.
 
@@ -105,11 +111,13 @@ nr benchmark-app-startup ios 20 --cold \
     --wait-time 30
 ```
 
-The script runs with Bun and also exports `benchmarkAppStartups`, `benchmarkAppStartupsAlternating`, and `benchmarkStartups`. Other local tooling, such as the PGO workflow, can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior.
+The script runs with Bun and also exports `benchmarkAppStartups`, `benchmarkAppStartupsAlternating`, and `benchmarkStartups`. Other local tooling can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior. This guide does not assume that an existing PGO script has adopted these exports.
+
+Pure percentile and summary-statistics calculations live in `scripts/lib/benchmarkStatistics.ts`. Scripts that already have numeric samples can reuse that module without importing device commands, filesystem output, or startup orchestration.
 
 Android benchmark logs are scoped to the PID launched for each application ID. This prevents log events from the other installed comparison binary from being counted in the current sample.
 
-For example, a PGO script can install each artifact and call `benchmarkAppStartups` with its platform, device, bundle identifier, output path, and span name. This keeps artifact building and installation in the PGO workflow while sharing all startup measurement and platform-device behavior.
+For example, another build or profiling script can install an artifact and call `benchmarkAppStartups` with its platform, device, bundle identifier, output paths, and span names. This keeps artifact building and installation in the caller while sharing startup measurement and platform-device behavior.
 
 ```ts
 import {benchmarkAppStartups} from '../benchmarkAppStartup';
