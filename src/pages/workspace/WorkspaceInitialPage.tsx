@@ -78,7 +78,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
-    const policyIDWithClosedRHPRef = useRef<string | undefined>(undefined);
+    const wasRendered = useRef(false);
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -136,13 +136,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     // While the policy is being fetched (e.g., right after joinAccessiblePolicy), the role is not yet populated,
     // so checkIfShouldShowPolicy returns false. Suppress NotFound during this loading window.
-    const computedShouldShowNotFoundPage = !!routePolicyID && isWorkspacesTabFocused && !shouldShowPolicy && !policy?.isLoading && (!isPendingDelete || prevIsPendingDelete);
+    const computedShouldShowNotFoundPage = isWorkspacesTabFocused && !shouldShowPolicy && !policy?.isLoading && (!isPendingDelete || prevIsPendingDelete);
     // Latch to true: once the not-found state is detected, keep showing it so the normal
     // workspace content doesn't flash during the exit animation when navigation state
     // changes (e.g., isWorkspacesTabFocused becomes false after StackActions.pop()).
     const prevShouldShowNotFoundPage = usePrevious(computedShouldShowNotFoundPage);
-    const prevRoutePolicyID = usePrevious(routePolicyID);
-    const shouldShowNotFoundPage = computedShouldShowNotFoundPage || (prevRoutePolicyID === routePolicyID && !!prevShouldShowNotFoundPage);
+    const shouldShowNotFoundPage = computedShouldShowNotFoundPage || !!prevShouldShowNotFoundPage;
     const fetchPolicyData = () => {
         if (policyDraft?.id || !isFocused || !routePolicyID) {
             return;
@@ -193,17 +192,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     // Close RHP if we land on a route that no longer exists in the menu
     const canAccessRoute = activeRoute && (workspaceMenuItems.some((item) => item.screenName === activeRoute) || activeRoute === SCREENS.WORKSPACE.INITIAL);
     useEffect(() => {
-        if (!routePolicyID || (!shouldShowNotFoundPage && canAccessRoute)) {
+        if (!shouldShowNotFoundPage && canAccessRoute) {
             return;
         }
-        if (policyIDWithClosedRHPRef.current === routePolicyID) {
+        if (wasRendered.current) {
             return;
         }
-        policyIDWithClosedRHPRef.current = routePolicyID;
+        wasRendered.current = true;
         Navigation.isNavigationReady().then(() => {
             Navigation.closeRHPFlow();
         });
-    }, [canAccessRoute, routePolicyID, shouldShowNotFoundPage]);
+    }, [canAccessRoute, shouldShowNotFoundPage]);
 
     // When this page is revealed from under the RHP during workspace creation (#90985), the RHP
     // slide-out is held until the page has painted. Signal readiness from the first non-empty layout
