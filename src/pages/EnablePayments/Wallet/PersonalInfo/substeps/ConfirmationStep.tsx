@@ -27,9 +27,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
     const isLoading = walletAdditionalDetails?.isLoading ?? false;
     const error = getLatestErrorMessage(walletAdditionalDetails ?? {});
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
-    // Ask for the full SSN when the backend flagged it, or when the value already shown (draft first, then base) is a
-    // full 9-digit SSN. The errorCode is optimistically cleared on a successful submit while the 9-digit draft value is
-    // still displayed, so relying on errorCode alone would revert the label to "last 4" while showing 9 digits.
+    // Also check the shown value: errorCode is cleared optimistically on submit while a full 9-digit SSN is still displayed.
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN || isValidSSNFullNine(values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]);
     const shouldShowSSNRowError = shouldAskForFullSSN && values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4].length < CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN;
 

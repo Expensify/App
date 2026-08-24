@@ -25,9 +25,7 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubPageProps) {
     const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
     // The value FormProvider actually renders uses the draft first, then the base value.
     const ssnValue = walletAdditionalDetailsDraft?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? defaultSsnLast4;
-    // Ask for the full SSN when the backend flagged it, or when the value already shown is a full 9-digit SSN. The
-    // errorCode is optimistically cleared on a successful submit while the 9-digit draft value is still displayed,
-    // so relying on errorCode alone would flip the label/validation back to "last 4" while showing 9 digits.
+    // Also check the shown value: errorCode is cleared optimistically on submit while a full 9-digit SSN is still displayed.
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN || isValidSSNFullNine(ssnValue);
 
     const validate = useCallback(
