@@ -1,7 +1,7 @@
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
 import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
-import {getEnabledTags, getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
+import {getEnabledTags, getTagListSections, getTagVisibility, getUpdatedTransactionTag, sortTags} from '@libs/TagsOptionsListUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1097,6 +1097,94 @@ describe('TagsOptionsListUtils', () => {
             });
 
             expect(result.at(0)?.data).toHaveLength(0);
+        });
+    });
+
+    describe('getUpdatedTransactionTag', () => {
+        const dependentPolicyTags: PolicyTagLists = {
+            company: {
+                name: 'Company',
+                required: true,
+                orderWeight: 0,
+                tags: {
+                    acmeCorp: {name: 'Acme Corp', enabled: true},
+                    otherCo: {name: 'Other Co', enabled: true},
+                },
+            },
+            costCenter: {
+                name: 'Cost Center',
+                required: true,
+                orderWeight: 1,
+                tags: {
+                    admin: {name: 'Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}},
+                    sales: {name: 'Sales', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}},
+                    support: {name: 'Support', enabled: true, rules: {parentTagsFilter: '^Other Co$'}},
+                },
+            },
+            glCode: {
+                name: 'GL Code',
+                required: true,
+                orderWeight: 2,
+                tags: {
+                    gl100: {name: 'GL-100', enabled: true, rules: {parentTagsFilter: '^Acme Corp:Admin$'}},
+                    gl200: {name: 'GL-200', enabled: true, rules: {parentTagsFilter: '^Acme Corp:Sales$'}},
+                    gl900: {name: 'GL-900', enabled: true, rules: {parentTagsFilter: '^Other Co:Support$'}},
+                },
+            },
+        };
+
+        const dependentTagParams = {
+            hasDependentTags: true,
+            hasMultipleTagLists: true,
+            policyTags: dependentPolicyTags,
+        };
+
+        it('auto-selects the next tag when the parent selection leaves exactly one enabled option', () => {
+            const result = getUpdatedTransactionTag({
+                ...dependentTagParams,
+                transactionTag: 'Acme Corp',
+                selectedTagName: 'Admin',
+                currentTag: '',
+                tagListIndex: 1,
+            });
+
+            expect(result).toBe('Acme Corp:Admin:GL-100');
+        });
+
+        it('does not auto-select when multiple child tags match the parent', () => {
+            const result = getUpdatedTransactionTag({
+                ...dependentTagParams,
+                transactionTag: '',
+                selectedTagName: 'Acme Corp',
+                currentTag: '',
+                tagListIndex: 0,
+            });
+
+            expect(result).toBe('Acme Corp');
+        });
+
+        it('auto-selects chained unique children when each remaining level has one option', () => {
+            const result = getUpdatedTransactionTag({
+                ...dependentTagParams,
+                transactionTag: '',
+                selectedTagName: 'Other Co',
+                currentTag: '',
+                tagListIndex: 0,
+            });
+
+            expect(result).toBe('Other Co:Support:GL-900');
+        });
+
+        it('clears this level and children when the selected tag is deselected', () => {
+            const result = getUpdatedTransactionTag({
+                ...dependentTagParams,
+                transactionTag: 'Acme Corp:Admin:GL-100',
+                selectedTagName: 'Admin',
+                currentTag: 'Admin',
+                tagListIndex: 1,
+            });
+
+            expect(result).toBe('Acme Corp');
         });
     });
 });
