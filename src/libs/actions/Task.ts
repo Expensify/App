@@ -426,7 +426,7 @@ function buildTaskData(
 } {
     const message = `marked as complete`;
     // `actorAccountID` lets the caller attribute the optimistic completion to whoever the backend will (e.g. Concierge
-    // when a task is completed as a side effect); it falls back to the current user inside buildOptimisticTaskReportAction.
+    // when a task is completed as a side effect). It falls back to the current user inside buildOptimisticTaskReportAction.
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, delegateEmail, message, actorAccountID);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -545,8 +545,8 @@ type OnboardingTaskCompletionOnyxData = OnyxData<typeof ONYXKEYS.COLLECTION.REPO
  * Complete a task
  *
  * Pass `shouldSendCompleteTaskRequest: false` when the backend already completes the task as a side effect of
- * another command. The returned data is then purely optimistic and must be merged into that command's onyxData;
- * sending CompleteTask as well would be a redundant request. In that case `completedTaskReportActionID` is also
+ * another command. The returned data is then purely optimistic and must be merged into that command's onyxData.
+ * Sending CompleteTask as well would be a redundant request. In that case `completedTaskReportActionID` is also
  * returned so the caller can forward it to the side-effect command and have the backend reuse the same optimistic
  * action instead of creating a second "marked as complete" action.
  */
