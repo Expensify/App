@@ -64,14 +64,6 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {isAccordionExpanded: isSyncTravelInvoicingSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncTravelInvoicingSettlementsAccordionSection} =
         useAccordionAnimation(syncTravelInvoicingSettlements);
 
-    // s77rt TODO: Confirm why the ExpensifyCard/TI settlements require an explicit `export.expensifyCardAccountID`
-    // BUG Found with the documented approach, if user has only one account, then expensifyCardAccountID would fallback to creditCardAccountID
-    // and now the user can do nothing to explicitly set expensifyCardAccountID because in the UI it appears as set already (and setting same value does nothing)
-    // Options:
-    // 1. Do not require the explicit expensifyCardAccountID and have BE fallback to creditCardAccountID too
-    // 2. Do not fallback expensifyCardAccountID and make expensifyCardAccountID value explicit to export.expensifyCardAccountID (and not expensifyCardAccountID ?? creditCardAccountID)
-    // 3. Update UI to differentiate between whether the ExpensifyCard account is set from explicit expensifyCardAccountID or using the fallback creditCardAccountID
-
     return (
         <ConnectionLayout
             displayName="DualEntryAdvancedPage"
