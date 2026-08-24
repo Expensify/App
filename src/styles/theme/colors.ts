@@ -3,7 +3,9 @@
  * For functional components, you can use the `useTheme` and `useThemeStyles` hooks
  * For class components, you can use the `withTheme` and `withThemeStyles` HOCs
  */
-const colors: Record<string, string> = {
+type Color = string;
+
+const colors: Record<string, Color> = {
     // Brand Colors
     black: '#000000',
     white: '#FFFFFF',
@@ -96,3 +98,4 @@ const colors: Record<string, string> = {
 };
 
 export default colors;
+export type {Color};
