@@ -5,9 +5,12 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+import type {SearchListItem} from './SearchList/ListItem/types';
 import type {SearchColumnType, SearchQueryJSON} from './types';
 
+import useSearchColumnWidths from './hooks/useSearchColumnWidths';
 import HorizontalTableScroll from './primitives/HorizontalTableScroll';
+import {SearchColumnWidthsProvider} from './SearchColumnWidthsContext';
 
 type SearchListViewLayoutProps = {
     /** Columns rendered in the table (drives the min-width for horizontal scroll). */
@@ -34,6 +37,12 @@ type SearchListViewLayoutProps = {
     /** Outer container style for the list wrapper. */
     containerStyle: StyleProp<ViewStyle>;
 
+    /**
+     * The transactions the table renders. Passed by the expense views to size the free-text columns from their content;
+     * views that leave it out keep the columns' fixed and flex widths.
+     */
+    data?: SearchListItem[];
+
     /** The list and any header/modal blocks, composed by the view (e.g. SelectionTopBar, BaseSearchList, long-press menu). */
     children: React.ReactNode;
 };
@@ -52,20 +61,35 @@ function SearchListViewLayout({
     isKeyboardShown,
     safeAreaPaddingBottomStyle,
     containerStyle,
+    data,
     children,
 }: SearchListViewLayoutProps) {
     const styles = useThemeStyles();
 
+    const columnWidths = useSearchColumnWidths({
+        columns,
+        data: data ?? [],
+        // A header is only rendered in the table layout; narrow layouts render rows as cards with no columns to size.
+        isEnabled: isHeaderVisible && !!data,
+    });
+
+    // The scroller sizes the table from what its columns refuse to shrink below, so it has to know the minimums the
+    // dynamic columns measured for themselves rather than the estimates it would otherwise assume for them.
+    const measuredColumnMinWidths = Object.fromEntries(Object.entries(columnWidths).map(([column, sizing]) => [column, sizing.minWidth]));
+
     return (
-        <HorizontalTableScroll
-            columns={columns}
-            type={type}
-            isActionColumnWide={isActionColumnWide}
-            isHeaderVisible={isHeaderVisible}
-            dataKey={dataKey}
-        >
-            <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>
-        </HorizontalTableScroll>
+        <SearchColumnWidthsProvider columnWidths={columnWidths}>
+            <HorizontalTableScroll
+                columns={columns}
+                type={type}
+                isActionColumnWide={isActionColumnWide}
+                isHeaderVisible={isHeaderVisible}
+                dataKey={dataKey}
+                measuredColumnMinWidths={measuredColumnMinWidths}
+            >
+                <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>
+            </HorizontalTableScroll>
+        </SearchColumnWidthsProvider>
     );
 }
 

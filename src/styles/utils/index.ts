@@ -2458,4 +2458,4 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
 export default createStyleUtils;
-export type {StyleUtilsType, AvatarSizeName};
+export type {StyleUtilsType, AvatarSizeName, GetReportTableColumnStylesParams};

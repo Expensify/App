@@ -1,6 +1,7 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
+import createWidestTextMeasurer from '@libs/measureTextWidth/widestTextMeasurer';
 
 import variables from '@styles/variables';
 
@@ -13,7 +14,7 @@ import type {TableColumn, TableData} from './types';
 
 import calculateDynamicColumnWidths from './calculateDynamicColumnWidths';
 
-const {MEASURED_CANDIDATES_PER_COLUMN, MIN_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
+const {MIN_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
 type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends string> = {
     /** Column configuration for the table. */
@@ -45,43 +46,18 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
         return 0;
     }
 
-    // Text is grouped by font, because the same string renders wider in a larger or bolder font, so the longest string
-    // overall isn't necessarily the widest one.
-    const textsByFont = new Map<string, {fontSize?: number; fontWeight?: string; texts: string[]}>();
+    const measurer = createWidestTextMeasurer();
 
     for (const item of data) {
         for (const content of dynamicSizing.getContentToMeasure(item)) {
-            if (!content.text) {
-                continue;
-            }
-
-            const fontKey = `${content.fontSize ?? ''}|${content.fontWeight ?? ''}`;
-            const existingTexts = textsByFont.get(fontKey);
-
-            if (existingTexts) {
-                existingTexts.texts.push(content.text);
-            } else {
-                textsByFont.set(fontKey, {fontSize: content.fontSize, fontWeight: content.fontWeight, texts: [content.text]});
-            }
+            measurer.add(content.text, {fontSize: content.fontSize, fontWeight: content.fontWeight});
         }
     }
 
-    let widestContentWidth = 0;
+    const widestContentWidth = measurer.getWidestWidth();
 
-    for (const {fontSize, fontWeight, texts} of textsByFont.values()) {
-        // Only the widest string can decide the column's width, and character count is a good (if imperfect) proxy for
-        // rendered width, so just the longest few strings are measured.
-        const candidates = [...texts].sort((first, second) => second.length - first.length).slice(0, MEASURED_CANDIDATES_PER_COLUMN);
-
-        for (const text of candidates) {
-            const width = measureTextWidth(text, {fontSize, fontWeight});
-
-            if (width === null) {
-                return null;
-            }
-
-            widestContentWidth = Math.max(widestContentWidth, width);
-        }
+    if (widestContentWidth === null) {
+        return null;
     }
 
     // Rounded up because the widths end up as whole px grid tracks. Rounding a fraction down would leave a column

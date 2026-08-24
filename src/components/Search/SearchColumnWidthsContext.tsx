@@ -1,0 +1,51 @@
+import useStyleUtils from '@hooks/useStyleUtils';
+
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
+
+import type {ViewStyle} from 'react-native';
+
+import React, {createContext, useContext} from 'react';
+
+import type {SearchColumnSizing} from './hooks/useSearchColumnWidths';
+import type {SearchColumnType} from './types';
+
+/**
+ * How the Search table's dynamically sized columns share its free space. Columns absent from this map keep the flex or
+ * fixed width they are styled with, which is also the whole map's state when dynamic sizing doesn't apply.
+ */
+type SearchColumnWidths = Partial<Record<SearchColumnType, SearchColumnSizing>>;
+
+const SearchColumnWidthsContext = createContext<SearchColumnWidths>({});
+
+function SearchColumnWidthsProvider({columnWidths, children}: React.PropsWithChildren<{columnWidths: SearchColumnWidths}>) {
+    return <SearchColumnWidthsContext.Provider value={columnWidths}>{children}</SearchColumnWidthsContext.Provider>;
+}
+
+/**
+ * Returns the Search table's column style function, with any measured width applied on top.
+ *
+ * The header and every row resolve their columns through this, so they stay aligned: a column is either measured in
+ * both or in neither. When a column has a measured width it is pinned to it, replacing the flex that would otherwise
+ * have it share the table's leftover space equally with the other free-text columns.
+ */
+function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetReportTableColumnStylesParams) => ViewStyle {
+    const StyleUtils = useStyleUtils();
+    const columnWidths = useContext(SearchColumnWidthsContext);
+
+    return (columnName, options = {}) => {
+        const columnStyles = StyleUtils.getReportTableColumnStyles(columnName, options);
+        const sizing = columnWidths[columnName];
+
+        if (!sizing) {
+            return columnStyles;
+        }
+
+        // The measured width is the column's share of the free space rather than a width of its own: growing from a
+        // zero basis in proportion to what its content needs is what keeps the columns adding up to the row exactly,
+        // without this having to know what the fixed columns, gaps, and padding around it spend.
+        return {...columnStyles, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, width: undefined};
+    };
+}
+
+export {SearchColumnWidthsProvider, useSearchColumnStyles};
+export type {SearchColumnWidths};

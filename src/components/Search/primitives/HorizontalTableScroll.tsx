@@ -34,6 +34,12 @@ type HorizontalTableScrollProps = {
 
     /** Re-restores the saved horizontal offset whenever this value changes (typically the list data). */
     dataKey: unknown;
+
+    /**
+     * Measured minimum widths for the dynamically sized columns, which take the place of the estimates
+     * `getTableMinWidth` uses for them. Left out when dynamic sizing doesn't apply.
+     */
+    measuredColumnMinWidths?: Partial<Record<SearchColumnType, number>>;
 };
 
 /**
@@ -41,10 +47,10 @@ type HorizontalTableScrollProps = {
  * the saved horizontal offset across query changes (before paint, to avoid a visible shift). Extracted
  * from SearchList so ExpenseFlatSearchView can reuse it.
  */
-function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey}: HorizontalTableScrollProps) {
+function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey, measuredColumnMinWidths}: HorizontalTableScrollProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide);
+    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide, measuredColumnMinWidths);
     const shouldScrollHorizontally = isHeaderVisible && minTableWidth > windowWidth;
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);

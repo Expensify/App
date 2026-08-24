@@ -13,6 +13,7 @@ import {View} from 'react-native';
 
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
 
+import {useSearchColumnStyles} from './SearchColumnWidthsContext';
 import SortableHeaderText from './SortableHeaderText';
 
 type ColumnConfig = {
@@ -66,6 +67,7 @@ function SortableTableHeader({
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const getSearchColumnStyles = useSearchColumnStyles();
     const {translate} = useLocalize();
 
     return (
@@ -101,7 +103,7 @@ function SortableTableHeader({
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
                             innerContainerStyle={canEdit && styles.editableCellHeader}
                             containerStyle={[
-                                StyleUtils.getReportTableColumnStyles(columnName, {
+                                getSearchColumnStyles(columnName, {
                                     isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,

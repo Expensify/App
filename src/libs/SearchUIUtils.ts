@@ -6723,12 +6723,25 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean) {
+/** The gap the table renders between two neighbouring columns, matching the row's `gap3` styling. */
+const SEARCH_TABLE_COLUMN_GAP = 12;
+
+function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean, measuredColumnMinWidths?: Partial<Record<SearchColumnType, number>>) {
     // Starts at 24px to account for the checkbox width
     let minWidth = 24;
 
+    // The columns are laid out in a row with a gap between each pair, so the gaps are part of the width the table needs.
+    minWidth += Math.max(columns.length - 1, 0) * SEARCH_TABLE_COLUMN_GAP;
+
     for (const column of columns) {
-        if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+        // A dynamically sized column knows its own minimum, measured from its content and its header, so that is used in
+        // place of the estimate below. Without this the table would keep squeezing columns past the width they refuse to
+        // shrink below, and the row would overflow instead of scrolling.
+        const measuredMinWidth = measuredColumnMinWidths?.[column];
+
+        if (measuredMinWidth !== undefined) {
+            minWidth += measuredMinWidth;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
             minWidth += 36;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT) {
             minWidth += 28;
