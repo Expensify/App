@@ -25,11 +25,11 @@ import React from 'react';
 
 import WorkspaceTravelBillingSection from './WorkspaceTravelBillingSection';
 
-type GetStartedTravelProps = {
+type BookOrManageYourTripProps = {
     policyID: string;
 };
 
-function GetStartedTravel({policyID}: GetStartedTravelProps) {
+function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -134,4 +134,4 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     );
 }
 
-export default GetStartedTravel;
+export default BookOrManageYourTrip;
