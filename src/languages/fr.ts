@@ -10229,6 +10229,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'Paiement',
             subtitle: 'Ajoutez une carte pour payer votre abonnement Expensify.',
             addCardButton: 'Ajouter une carte de paiement',
+            addPaymentCardTitle: 'Ajouter une carte de paiement',
+            addCard: 'Ajouter une carte',
             cardInfo: (name: string, expiration: string, currency: string) => `Nom : ${name}, Expiration : ${expiration}, Devise : ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Votre prochaine date de paiement est le ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Carte se terminant par ${cardNumber}`,
