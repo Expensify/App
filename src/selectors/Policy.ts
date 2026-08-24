@@ -1,14 +1,18 @@
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {
+    canSendInvoice,
     getActiveAdminWorkspaces,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
+    isControlPolicy,
     isPendingDeletePolicy,
+    isPerDiemEnabled,
     isPolicyAdmin,
+    isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
@@ -206,40 +210,68 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
         areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
-// deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
-const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
-    if (!policies) {
-        return {};
-    }
+type IOURequestStartPolicies = {
+    /** Whether any active expense-chat policy has Per Diem enabled */
+    hasPerDiemPolicy: boolean;
 
-    const result: Record<string, Policy> = {};
+    /** Whether more than one active expense-chat policy has Per Diem enabled */
+    hasMultiplePerDiemPolicies: boolean;
 
-    for (const [id, policyItem] of Object.entries(policies)) {
-        if (!policyItem) {
-            continue;
+    /** ID of the first active expense-chat policy with Per Diem enabled */
+    firstPerDiemPolicyID: string | undefined;
+
+    /** Whether any active expense-chat policy has time tracking enabled */
+    hasTimePolicy: boolean;
+
+    /** Whether more than one active expense-chat policy has time tracking enabled */
+    hasMultipleTimePolicies: boolean;
+
+    /** ID of the first active expense-chat policy with time tracking enabled */
+    firstTimePolicyID: string | undefined;
+
+    /** Whether the user can send an invoice from any of their workspaces. Only computed for the invoice flow. */
+    canSendInvoiceFromAnyWorkspace: boolean;
+};
+
+/**
+ * Creates a selector returning a fixed-size summary of the policies the expense-creation start page needs: the page
+ * only ever asks "any?", "more than one?" and "which is first?", so the output stays the same size on an account with
+ * 5 workspaces or 5000 - no employeeList/customUnits deepEqual, and no ID list that grows with the collection.
+ * The invoice check walks the collection separately, so it stays behind `isInvoice` - only that flow reads it.
+ */
+const createIOURequestStartPoliciesSelector =
+    (currentUserLogin: string | undefined, isInvoice: boolean) =>
+    (policies: OnyxCollection<Policy>): IOURequestStartPolicies => {
+        let perDiemCount = 0;
+        let timeCount = 0;
+        let firstPerDiemPolicyID: string | undefined;
+        let firstTimePolicyID: string | undefined;
+
+        for (const policy of getActivePoliciesWithExpenseChat(policies, currentUserLogin)) {
+            if (perDiemCount < 2 && isControlPolicy(policy) && isPerDiemEnabled(policy)) {
+                firstPerDiemPolicyID ??= policy.id;
+                perDiemCount++;
+            }
+            if (timeCount < 2 && isTimeTrackingEnabled(policy)) {
+                firstTimePolicyID ??= policy.id;
+                timeCount++;
+            }
+            // Nothing downstream needs exact totals, so stop once both answers are settled.
+            if (perDiemCount >= 2 && timeCount >= 2) {
+                break;
+            }
         }
 
-        result[id] = {
-            id: policyItem.id,
-            type: policyItem.type,
-            name: policyItem.name,
-            pendingAction: policyItem.pendingAction,
-            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
-            role: policyItem.role,
-            chatReportIDAdmins: policyItem.chatReportIDAdmins,
-            employeeList: policyItem.employeeList,
-            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
-            customUnits: policyItem.customUnits,
-            units: policyItem.units,
-            isJoinRequestPending: policyItem.isJoinRequestPending,
-            errors: policyItem.errors,
-            owner: policyItem.owner,
-            areInvoicesEnabled: policyItem.areInvoicesEnabled,
-        } as Policy;
-    }
-
-    return result;
-};
+        return {
+            hasPerDiemPolicy: perDiemCount > 0,
+            hasMultiplePerDiemPolicies: perDiemCount > 1,
+            firstPerDiemPolicyID,
+            hasTimePolicy: timeCount > 0,
+            hasMultipleTimePolicies: timeCount > 1,
+            firstTimePolicyID,
+            canSendInvoiceFromAnyWorkspace: isInvoice && canSendInvoice(policies, currentUserLogin),
+        };
+    };
 
 type FilteredPoliciesInfo = {
     /** Number of policies that should be shown to the user (short-circuited at 2) */
@@ -402,7 +434,7 @@ export {
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
-    iouRequestPolicyCollectionSelector,
+    createIOURequestStartPoliciesSelector,
     policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
