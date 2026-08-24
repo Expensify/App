@@ -529,7 +529,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
@@ -546,9 +546,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
         didLayout.current = true;
 
-        if (report) {
-            markOpenReportEnd(report, {warm: true});
-        }
+        markOpenReportEnd(reportID, report, {warm: true});
     };
 
     // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
@@ -567,7 +565,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                 actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
                 actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
                 onActionBadgePress={scrollToActionBadgeTarget}
-                isMarkAsDone={shouldUseMarkAsDoneCopy}
+                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
             <ReportActionsListPaddingView
                 report={report}

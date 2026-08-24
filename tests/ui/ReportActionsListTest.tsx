@@ -617,7 +617,7 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
-            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: false});
             expect(mockUseIsReportLoadPending).toHaveBeenCalledWith(mockReport.reportID);
         });
 
@@ -806,10 +806,9 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList();
 
-            // The guard owns this mark now (it used to live in the body); it must still fire while the
-            // initial skeleton shows, otherwise the open-report span regresses.
+            // Must fire while the skeleton shows or the open-report span regresses.
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
-            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: false});
         });
 
         it('does not fire the warm:false mark once content is visible', () => {
@@ -820,7 +819,7 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
-            expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport, {warm: false});
+            expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: false});
         });
     });
 

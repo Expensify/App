@@ -195,9 +195,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             text: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.CLOSE_ACCOUNT,
             icon: icons.RemoveMembers,
-            onSelected: () => {
-                setIsModalVisible(true);
-            },
+            shouldSkipFocusRestore: true,
+            onSelected: () => setIsModalVisible(true),
         },
         {
             text: translate('domain.members.moveToGroup'),
@@ -304,6 +303,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                         title={translate('domain.domainMembers')}
                         onBackButtonPress={Navigation.goBack}
                         shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldUseHeadlineHeader
                         shouldDisplayHelpButton
                     />
                     <ScrollView
