@@ -215,6 +215,12 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 
+        expect(screen.getByText('Temporary design comparison')).toBeOnTheScreen();
+        expect(screen.getByRole('radio', {name: 'Two lines'}).props.accessibilityState).toMatchObject({checked: true});
+        fireEvent.press(screen.getByRole('radio', {name: 'One line'}));
+        expect(screen.getByRole('radio', {name: 'One line'}).props.accessibilityState).toMatchObject({checked: true});
+        fireEvent.press(screen.getByRole('radio', {name: 'Two lines'}));
+
         const collapsedControl = screen.getByRole('button', {name: 'Show 2 actions'});
         expect(collapsedControl.props.accessibilityState).toMatchObject({expanded: false});
         expect(getRenderedActionIDs()).toEqual(['report-action-chat-boundary', 'report-action-system-singleton']);

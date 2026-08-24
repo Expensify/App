@@ -59,6 +59,7 @@ import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexConte
 import ReportActionItemSystem from '@pages/inbox/report/ReportActionItemSystem';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import TemporarySystemMessageDesignComparison from '@pages/inbox/report/TemporarySystemMessageDesignComparison';
 import useReportActionsPresentation from '@pages/inbox/report/useReportActionsPresentation';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
@@ -101,7 +102,7 @@ type MoneyRequestReportListProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsListContent({onLayout}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -866,6 +867,14 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 )}
             </View>
         </View>
+    );
+}
+
+function MoneyRequestReportActionsList(props: MoneyRequestReportListProps) {
+    return (
+        <TemporarySystemMessageDesignComparison>
+            <MoneyRequestReportActionsListContent {...props} />
+        </TemporarySystemMessageDesignComparison>
     );
 }
 

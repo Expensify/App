@@ -17,11 +17,13 @@ import DelegateOnBehalfOfText from './DelegateOnBehalfOfText';
 import HumanAgentAssistedByText from './HumanAgentAssistedByText';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemDate from './ReportActionItemDate';
+import {useTemporarySystemMessageLayout} from './TemporarySystemMessageDesignComparison';
 import VacationDelegateText from './VacationDelegateText';
 
 function ReportActionItemSystemContent({children, action, report, iouReport, shouldUseRealActor}: ReportActionItemContentWrapperProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const layout = useTemporarySystemMessageLayout();
     const {avatarType, avatars, details, reportPreviewSenderID} = useReportActionAvatars({report: iouReport ?? report, action, shouldUseRealActor});
     const [primaryAvatar, secondaryAvatar] = avatars;
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
@@ -34,29 +36,47 @@ function ReportActionItemSystemContent({children, action, report, iouReport, sho
         .join(' ');
     const avatarActorName = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
     const actorName = avatarActorName?.length ? avatarActorName : fallbackActorName;
+    const actionContent = (
+        <>
+            {!!actorName && <Text style={[styles.chatItemMessage, styles.colorMuted]}>{`${actorName} `}</Text>}
+            {!!delegateAccountID && (
+                <View style={styles.mr1}>
+                    <DelegateOnBehalfOfText
+                        mainAccountID={mainAccountID}
+                        fallbackLogin={details.login}
+                    />
+                </View>
+            )}
+            {!!humanAgentAccountID && (
+                <View style={styles.mr1}>
+                    <HumanAgentAssistedByText action={action} />
+                </View>
+            )}
+            {hasVacationDelegate && (
+                <View style={styles.mr1}>
+                    <VacationDelegateText action={action} />
+                </View>
+            )}
+        </>
+    );
+
+    if (layout === 'oneLine') {
+        return (
+            <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
+                {actionContent}
+                <View style={[styles.flexShrink1, styles.mr1]}>{children}</View>
+                <ReportActionItemDate
+                    created={action.created ?? ''}
+                    isLowercase
+                />
+            </View>
+        );
+    }
 
     return (
         <View style={styles.flexShrink1}>
             <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
-                {!!actorName && <Text style={[styles.chatItemMessage, styles.colorMuted]}>{`${actorName} `}</Text>}
-                {!!delegateAccountID && (
-                    <View style={styles.mr1}>
-                        <DelegateOnBehalfOfText
-                            mainAccountID={mainAccountID}
-                            fallbackLogin={details.login}
-                        />
-                    </View>
-                )}
-                {!!humanAgentAccountID && (
-                    <View style={styles.mr1}>
-                        <HumanAgentAssistedByText action={action} />
-                    </View>
-                )}
-                {hasVacationDelegate && (
-                    <View style={styles.mr1}>
-                        <VacationDelegateText action={action} />
-                    </View>
-                )}
+                {actionContent}
                 <View style={styles.flexShrink1}>{children}</View>
             </View>
             <ReportActionItemDate created={action.created ?? ''} />

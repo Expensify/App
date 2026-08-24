@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
 import Text from '@components/Text';
@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import DelegateOnBehalfOfText from '@pages/inbox/report/DelegateOnBehalfOfText';
 import ReportActionItemDate from '@pages/inbox/report/ReportActionItemDate';
 import {ReportActionItemSystemContent} from '@pages/inbox/report/ReportActionItemSystem';
+import TemporarySystemMessageDesignComparison from '@pages/inbox/report/TemporarySystemMessageDesignComparison';
 
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -99,6 +100,59 @@ describe('ReportActionItemSystem', () => {
             throw new Error('Expected actor and action content to share a line container');
         }
         expect(timestampAncestors.includes(firstLineContainer)).toBe(false);
+    });
+
+    it('defaults the temporary comparison to two lines and renders the timestamp inline after selecting one line', () => {
+        const action: ReportAction = {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            actorAccountID: 1,
+            created: '2026-07-30 00:00:00.000',
+            message: [{type: 'TEXT', html: 'submitted', text: 'submitted'}],
+        };
+        const report: Report = {reportID: '1'};
+
+        render(
+            <TemporarySystemMessageDesignComparison>
+                <ReportActionItemSystemContent
+                    action={action}
+                    report={report}
+                    shouldUseRealActor
+                >
+                    <Text>submitted</Text>
+                </ReportActionItemSystemContent>
+            </TemporarySystemMessageDesignComparison>,
+        );
+
+        expect(screen.getByText('Temporary design comparison')).toBeOnTheScreen();
+        expect(screen.getByRole('radio', {name: 'Two lines'}).props.accessibilityState).toMatchObject({checked: true});
+
+        fireEvent.press(screen.getByRole('radio', {name: 'One line'}));
+
+        expect(screen.getByRole('radio', {name: 'One line'}).props.accessibilityState).toMatchObject({checked: true});
+        expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({created: '2026-07-30 00:00:00.000', isLowercase: true});
+
+        const actor = screen.getByText('Todd Clyde ');
+        const content = screen.getByText('submitted');
+        const timestamp = screen.getByText('2026-07-30 00:00:00.000');
+        const getAncestors = (node: typeof actor) => {
+            const ancestors: Array<typeof actor> = [];
+            let parent = node.parent;
+            while (parent) {
+                ancestors.push(parent);
+                parent = parent.parent;
+            }
+            return ancestors;
+        };
+        const actorAncestors = getAncestors(actor);
+        const contentAncestors = getAncestors(content);
+        const timestampAncestors = getAncestors(timestamp);
+        const inlineContainer = actorAncestors.find((ancestor) => contentAncestors.includes(ancestor));
+
+        if (!inlineContainer) {
+            throw new Error('Expected actor and action content to share an inline container');
+        }
+        expect(timestampAncestors.includes(inlineContainer)).toBe(true);
     });
 
     it('preserves delegated actor attribution in the inline system row', () => {

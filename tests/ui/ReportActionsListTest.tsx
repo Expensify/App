@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
@@ -424,6 +424,12 @@ describe('ReportActionsList (body)', () => {
 
         it('collapses and re-expands passive system runs in the standard expense-report list', () => {
             renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
+
+            expect(screen.getByText('Temporary design comparison')).toBeOnTheScreen();
+            expect(screen.getByRole('radio', {name: 'Two lines'}).props.accessibilityState).toMatchObject({checked: true});
+            fireEvent.press(screen.getByRole('radio', {name: 'One line'}));
+            expect(screen.getByRole('radio', {name: 'One line'}).props.accessibilityState).toMatchObject({checked: true});
+            fireEvent.press(screen.getByRole('radio', {name: 'Two lines'}));
 
             expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'chat-boundary']);
             expect(getRenderedReportActionsListItemProps(getSystemAction(2), 1)).toMatchObject({displayAsGroup: false});

@@ -75,6 +75,7 @@ import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
+import TemporarySystemMessageDesignComparison from './TemporarySystemMessageDesignComparison';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
 import useReportActionsPresentation from './useReportActionsPresentation';
 
@@ -583,12 +584,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
  */
 function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     return (
-        <ReportActionsSkeletonGuard reportID={reportID}>
-            <ReportActionsListContent
-                reportID={reportID}
-                onLayout={onLayout}
-            />
-        </ReportActionsSkeletonGuard>
+        <TemporarySystemMessageDesignComparison>
+            <ReportActionsSkeletonGuard reportID={reportID}>
+                <ReportActionsListContent
+                    reportID={reportID}
+                    onLayout={onLayout}
+                />
+            </ReportActionsSkeletonGuard>
+        </TemporarySystemMessageDesignComparison>
     );
 }
 
