@@ -262,6 +262,35 @@ describe('TelemetrySynchronizer', () => {
 
             expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW]).toBe(2);
         });
+
+        it('clears the span attributes on sign-out without touching the Sentry tags', async () => {
+            const mockSession: Session = {
+                email: 'test@example.com',
+                accountID: 1,
+            };
+            const mockPolicies: Record<string, Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
+                [`${ONYXKEYS.COLLECTION.POLICY}456`]: createRandomPolicy(456),
+            };
+            jest.mocked(getActivePolicies).mockReturnValue(Object.values(mockPolicies));
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: mockSession,
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: '123',
+                [ONYXKEYS.COLLECTION.POLICY]: mockPolicies,
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW]).toBe(2);
+            jest.clearAllMocks();
+
+            // A session without an email is how sign-out arrives before Onyx.clear wipes the key entirely.
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: 1});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW]).toBeUndefined();
+            expect(Sentry.setTag).not.toHaveBeenCalled();
+            expect(Sentry.setContext).not.toHaveBeenCalled();
+        });
     });
 
     describe('Onyx callbacks', () => {

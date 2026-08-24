@@ -13,5 +13,11 @@ function getGlobalSpanAttributes(): Record<string, GlobalSpanAttributeValue> {
     return globalSpanAttributes;
 }
 
-export {getGlobalSpanAttributes, setGlobalSpanAttribute};
-export type {GlobalSpanAttributeValue};
+/** Removes every registered attribute, so spans of the next session/account don't carry the previous account's values. */
+function clearGlobalSpanAttributes() {
+    for (const key of Object.keys(globalSpanAttributes)) {
+        delete globalSpanAttributes[key];
+    }
+}
+
+export {clearGlobalSpanAttributes, getGlobalSpanAttributes, setGlobalSpanAttribute};

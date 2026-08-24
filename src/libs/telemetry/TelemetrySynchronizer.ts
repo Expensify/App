@@ -16,7 +16,7 @@ import Onyx from 'react-native-onyx';
 
 import {cleanupCrashDiagnostics, initializeCrashDiagnostics} from './crashDiagnostics';
 import {cleanupDatabaseSizeTracking, requestDatabaseSizeRemeasurement} from './databaseSizeTracker';
-import {setGlobalSpanAttribute} from './globalSpanAttributes';
+import {clearGlobalSpanAttributes, setGlobalSpanAttribute} from './globalSpanAttributes';
 import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
 /**
@@ -42,6 +42,8 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         if (!value?.email) {
+            // The session was cleared (sign-out): drop all account-size attributes, so spans of the next account don't inherit them.
+            clearGlobalSpanAttributes();
             return;
         }
         session = value;
@@ -83,6 +85,7 @@ Onyx.connectWithoutView({
     },
 });
 
+// This module-level callback updates telemetry without rendering UI.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (value) => {

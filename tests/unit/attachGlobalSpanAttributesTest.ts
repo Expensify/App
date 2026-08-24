@@ -1,4 +1,4 @@
-import {setGlobalSpanAttribute} from '@libs/telemetry/globalSpanAttributes';
+import {clearGlobalSpanAttributes, getGlobalSpanAttributes, setGlobalSpanAttribute} from '@libs/telemetry/globalSpanAttributes';
 import attachGlobalSpanAttributes from '@libs/telemetry/middlewares/attachGlobalSpanAttributes';
 
 import type {TransactionEvent} from '@sentry/core';
@@ -21,7 +21,10 @@ function buildChildSpan(data?: SpanData, parentSpanID = 'a'): ChildSpan {
 }
 
 describe('attachGlobalSpanAttributes', () => {
-    // This test must run before any attribute is registered because the module-level registry cannot be reset.
+    beforeEach(() => {
+        clearGlobalSpanAttributes();
+    });
+
     it('returns the event untouched when no global attributes are registered', async () => {
         const event = buildTransaction();
         expect(await attachGlobalSpanAttributes(event, {})).toBe(event);
@@ -74,5 +77,16 @@ describe('attachGlobalSpanAttributes', () => {
 
         expect(result?.contexts?.trace?.data?.reportsCount).toBe(42);
         expect(result?.spans).toBeUndefined();
+    });
+
+    it('clearGlobalSpanAttributes removes every attribute, so the event passes through untouched', async () => {
+        setGlobalSpanAttribute('reportsCount', 42);
+        setGlobalSpanAttribute('dbSource', 'sqlite');
+
+        clearGlobalSpanAttributes();
+
+        expect(getGlobalSpanAttributes()).toEqual({});
+        const event = buildTransaction({rootOwn: 'keep'});
+        expect(await attachGlobalSpanAttributes(event, {})).toBe(event);
     });
 });

@@ -1,5 +1,11 @@
 import measureDatabaseSize from '@libs/telemetry/databaseSize';
-import {INITIAL_MEASUREMENT_DELAY_MS, REMEASURE_DEBOUNCE_TIME_MS, requestDatabaseSizeRemeasurement, scheduleInitialDatabaseSizeMeasurement} from '@libs/telemetry/databaseSizeTracker';
+import {
+    cleanupDatabaseSizeTracking,
+    INITIAL_MEASUREMENT_DELAY_MS,
+    REMEASURE_DEBOUNCE_TIME_MS,
+    requestDatabaseSizeRemeasurement,
+    scheduleInitialDatabaseSizeMeasurement,
+} from '@libs/telemetry/databaseSizeTracker';
 import {getGlobalSpanAttributes} from '@libs/telemetry/globalSpanAttributes';
 
 import CONST from '@src/CONST';
@@ -86,6 +92,7 @@ describe('databaseSizeTracker', () => {
         jest.useFakeTimers();
         mockMeasureDatabaseSize.mockClear();
         mockMeasureDatabaseSize.mockRejectedValue(new Error('no storage manager'));
+        const setSpy = jest.spyOn(Onyx, 'set');
 
         requestDatabaseSizeRemeasurement();
         await jest.advanceTimersByTimeAsync(REMEASURE_DEBOUNCE_TIME_MS * 2);
@@ -93,5 +100,20 @@ describe('databaseSizeTracker', () => {
         expect(mockMeasureDatabaseSize).toHaveBeenCalledTimes(1);
         expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(6000);
         expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_SOURCE]).toBe(CONST.TELEMETRY.DB_SIZE_SOURCE.SQLITE);
+        expect(setSpy).not.toHaveBeenCalledWith(ONYXKEYS.LAST_MEASURED_DATABASE_SIZE, {source: CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE});
+        setSpy.mockRestore();
+    });
+
+    it('re-arms the initial measurement after cleanup, so a remount can measure again', async () => {
+        jest.useFakeTimers();
+        mockMeasureDatabaseSize.mockClear();
+        mockMeasureDatabaseSize.mockResolvedValue({bytes: 7000, source: CONST.TELEMETRY.DB_SIZE_SOURCE.SQLITE});
+
+        cleanupDatabaseSizeTracking();
+        scheduleInitialDatabaseSizeMeasurement();
+        await jest.advanceTimersByTimeAsync(INITIAL_MEASUREMENT_DELAY_MS);
+
+        expect(mockMeasureDatabaseSize).toHaveBeenCalledTimes(1);
+        expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(7000);
     });
 });

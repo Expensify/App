@@ -17,6 +17,7 @@ import {getGlobalSpanAttributes, setGlobalSpanAttribute} from './globalSpanAttri
 
 const INITIAL_MEASUREMENT_DELAY_MS = 10000;
 const REMEASURE_DEBOUNCE_TIME_MS = 5000;
+const REMEASURE_MAX_WAIT_MS = 60000;
 
 let hasScheduledInitialMeasurement = false;
 let hasMeasuredThisSession = false;
@@ -46,8 +47,11 @@ function measureAndStoreDatabaseSize(): Promise<unknown> {
         .catch((): DatabaseSizeMeasurement => ({source: CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE}))
         .then((measurement) => {
             hasMeasuredThisSession = true;
-            // If we already have a real size, keep it instead of overwriting it with "unavailable".
-            if (measurement.source === CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE && getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES] !== undefined) {
+            if (measurement.source === CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE) {
+                // Report unavailable when no size is known, but only persist successful measurements.
+                if (getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES] === undefined) {
+                    applyMeasurement(measurement);
+                }
                 return;
             }
             applyMeasurement(measurement);
@@ -55,7 +59,7 @@ function measureAndStoreDatabaseSize(): Promise<unknown> {
         });
 }
 
-const debouncedMeasureAndStoreDatabaseSize = debounce(measureAndStoreDatabaseSize, REMEASURE_DEBOUNCE_TIME_MS);
+const debouncedMeasureAndStoreDatabaseSize = debounce(measureAndStoreDatabaseSize, REMEASURE_DEBOUNCE_TIME_MS, {maxWait: REMEASURE_MAX_WAIT_MS});
 
 function scheduleInitialDatabaseSizeMeasurement() {
     if (hasScheduledInitialMeasurement) {
@@ -78,6 +82,8 @@ function requestDatabaseSizeRemeasurement() {
 function cleanupDatabaseSizeTracking() {
     clearTimeout(initialMeasurementTimeout);
     debouncedMeasureAndStoreDatabaseSize.cancel();
+    hasScheduledInitialMeasurement = false;
+    hasMeasuredThisSession = false;
 }
 
 export {cleanupDatabaseSizeTracking, INITIAL_MEASUREMENT_DELAY_MS, REMEASURE_DEBOUNCE_TIME_MS, requestDatabaseSizeRemeasurement, scheduleInitialDatabaseSizeMeasurement};
