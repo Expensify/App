@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
@@ -35,7 +36,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 
 type MerchantRulesSectionProps = {
     policyID: string;
