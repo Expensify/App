@@ -441,13 +441,13 @@ describe('Workspace Search Router navigation source', () => {
         jest.clearAllMocks();
     });
 
-    const buildItems = (policies: Policy[]) =>
+    const buildItems = (policies: Policy[], isOffline = false) =>
         buildWorkspaceNavigationItems({
             policies: Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy])),
             policyCategories: undefined,
             currentUserLogin: workspaceCurrentUserLogin,
             icons: workspaceIcons,
-            isOffline: false,
+            isOffline,
             isRulesRevampBetaEnabled: false,
             isVendorMatchingBetaEnabled: false,
             shouldUseNarrowLayout: false,
@@ -472,14 +472,16 @@ describe('Workspace Search Router navigation source', () => {
         expect(buildNavigationSuggestions('Workflows', [items], localeCompare).map((item) => item.keyForList)).toEqual([`workspace_1_${SCREENS.WORKSPACE.WORKFLOWS}`]);
     });
 
-    it('excludes inaccessible policies, pending join requests, and disabled feature pages', () => {
+    it('excludes inaccessible policies, pending join requests, pending deletes, and disabled feature pages', () => {
         const accessiblePolicy = createWorkspacePolicy('1', 'Accessible Workspace', {areWorkflowsEnabled: false});
         const personalPolicy = createWorkspacePolicy('2', 'Personal Workspace', {type: CONST.POLICY.TYPE.PERSONAL, areWorkflowsEnabled: true});
         const pendingJoinPolicy = createWorkspacePolicy('3', 'Pending Workspace', {isJoinRequestPending: true});
-        const items = buildItems([accessiblePolicy, personalPolicy, pendingJoinPolicy]);
+        const pendingDeletePolicy = createWorkspacePolicy('4', 'Deleted Workspace', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        const items = buildItems([accessiblePolicy, personalPolicy, pendingJoinPolicy, pendingDeletePolicy], true);
 
         expect(items.some((item) => item.keyForList?.startsWith('workspace_2_'))).toBe(false);
         expect(items.some((item) => item.keyForList?.startsWith('workspace_3_'))).toBe(false);
+        expect(items.some((item) => item.keyForList?.startsWith('workspace_4_'))).toBe(false);
         expect(items.some((item) => item.keyForList === `workspace_1_${SCREENS.WORKSPACE.WORKFLOWS}`)).toBe(false);
     });
 
