@@ -1,13 +1,13 @@
-import type * as SelectionScraperModule from '@libs/SelectionScraper/index.native';
+import type * as SelectionScraperWebModule from '@libs/SelectionScraper/index';
 
 import CONST from '@src/CONST';
 
-import {Document, Element} from 'domhandler';
+import {Element, Text} from 'domhandler';
 
 // cspell:ignore mtext
 
-// Selection scraping only exists in the web implementation; the native variant always returns an empty string.
-const SelectionScraper = jest.requireActual<typeof SelectionScraperModule>('@libs/SelectionScraper/index.ts').default;
+// Selection scraping only exists in the web implementation. The native variant always returns an empty string.
+const {default: SelectionScraper, installTransformedChildren} = jest.requireActual<typeof SelectionScraperWebModule>('@libs/SelectionScraper/index.ts');
 
 const fixtures: HTMLElement[] = [];
 
@@ -34,55 +34,39 @@ describe('SelectionScraper', () => {
             fixture.remove();
         }
         fixtures.length = 0;
-        jest.restoreAllMocks();
     });
 
-    it('preserves pinned SVG foreignObject serialization', () => {
+    it('serializes HTML children in SVG foreignObject with paired tags', () => {
         selectFixture('<svg><foreignObject><div></div></foreignObject></svg><span>selected</span>');
 
-        expect(SelectionScraper.getCurrentSelection()).toBe('<svg><foreignObject><div/></foreignObject></svg><span>selected</span>');
+        expect(SelectionScraper.getCurrentSelection()).toBe('<svg><foreignObject><div></div></foreignObject></svg><span>selected</span>');
     });
 
-    it('retains coherent transformed MathML relationships', () => {
-        const documentCloneSpy = jest.spyOn(Document.prototype, 'cloneNode');
-        selectFixture('<math><mtext><div>first</div><span>middle</span><p>last</p></mtext></math>');
+    it('installs transformed children with coherent parent and sibling links', () => {
+        const parent = new Element('div', {});
+        const first = new Text('first');
+        const middle = new Text('middle');
+        const last = new Text('last');
+        const children = [first, middle, last];
 
-        expect(SelectionScraper.getCurrentSelection()).toBe('<math><mtext><div>first</div><span>middle</span><p>last</p></mtext></math>');
+        installTransformedChildren(parent, children);
 
-        const firstCloneResult = documentCloneSpy.mock.results.at(0);
-        if (!firstCloneResult || firstCloneResult.type !== 'return' || !(firstCloneResult.value instanceof Document)) {
-            throw new Error('SelectionScraper did not clone the parsed document');
-        }
-        const transformedDocument = firstCloneResult.value;
-
-        const math = transformedDocument.children.at(0);
-        if (!(math instanceof Element)) {
-            throw new Error('Transformed MathML root is not an element');
-        }
-        const mtext = math.children.at(0);
-        if (!(mtext instanceof Element)) {
-            throw new Error('Transformed mtext is not an element');
-        }
-
-        const [first, middle, last] = mtext.children;
-        if (!first || !middle || !last || mtext.children.length !== 3) {
-            throw new Error('Transformed mtext does not own the expected children');
-        }
-        expect(first.parent).toBe(mtext);
+        expect(parent.children).toBe(children);
+        expect(first.parent).toBe(parent);
         expect(first.prev).toBeNull();
         expect(first.next).toBe(middle);
-        expect(middle.parent).toBe(mtext);
+        expect(middle.parent).toBe(parent);
         expect(middle.prev).toBe(first);
         expect(middle.next).toBe(last);
-        expect(last.parent).toBe(mtext);
+        expect(last.parent).toBe(parent);
         expect(last.prev).toBe(middle);
         expect(last.next).toBeNull();
     });
 
-    it('preserves MathML serialization when an editor child div is collapsed', () => {
+    it('serializes a collapsed editor child at a MathML integration point with paired tags', () => {
         selectFixture(`<div data-testid="editor"><math><mtext><div><span></span></div></mtext></math></div><span data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}="true">selected</span>`);
 
-        expect(SelectionScraper.getCurrentSelection()).toBe('<div><math><mtext><span/></mtext></math></div>');
+        expect(SelectionScraper.getCurrentSelection()).toBe('<div><math><mtext><span></span></mtext></math></div>');
     });
 
     it('preserves ordinary HTML transformations', () => {

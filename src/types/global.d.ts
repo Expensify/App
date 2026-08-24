@@ -13,7 +13,8 @@ declare module '*.jpg' {
 }
 
 declare module '*.mp3' {
-    const value: number;
+    // Metro resolves assets to numeric registry IDs. Web bundlers resolve them to URL strings.
+    const value: number | string;
     export default value;
 }
 

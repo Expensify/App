@@ -13,59 +13,16 @@ const markdownElements = new Set(['h1', 'strong', 'em', 'del', 'blockquote', 'q'
 const tagAttribute = 'data-testid';
 
 const installTransformedChildren = (parent: ParentNode, children: ChildNode[]) => {
-    const transformedParent = parent;
-    transformedParent.children = children;
+    // The helper must update the supplied domhandler parent so it owns the exact transformed child array.
+    // eslint-disable-next-line no-param-reassign
+    parent.children = children;
 
     for (const [index, child] of children.entries()) {
-        child.parent = transformedParent;
-        child.prev = index > 0 ? (children.at(index - 1) ?? null) : null;
+        child.parent = parent;
+        // Negative indices wrap to the last child, but the first child must have no predecessor.
+        // eslint-disable-next-line rulesdir/prefer-at
+        child.prev = children[index - 1] ?? null;
         child.next = children.at(index + 1) ?? null;
-    }
-};
-
-/**
- * dom-serializer decides whether a node uses HTML rules from its parent's name. `parent` is the
- * traversal root and `isWithinSVG` carries SVG context to descendants. The lowercase clone stays
- * unattached so its original children expose the parser-normalized parent name only while rendering.
- */
-const installForeignObjectRenderCompatibility = (parent: ParentNode, isWithinSVG = false) => {
-    for (const child of parent.children) {
-        if (!(child instanceof Element)) {
-            continue;
-        }
-
-        const childIsWithinSVG = isWithinSVG || child.name === 'svg';
-        if (childIsWithinSVG && child.name === 'foreignobject') {
-            const lowercaseForeignObject = child.cloneNode();
-            for (const foreignObjectChild of child.children) {
-                foreignObjectChild.parent = lowercaseForeignObject;
-            }
-        }
-
-        installForeignObjectRenderCompatibility(child, childIsWithinSVG);
-    }
-};
-
-/**
- * Editor divs with one child are omitted from output, but dom-serializer still uses that omitted
- * parent's identity at MathML integration points. Walk the coherent source tree beside its render
- * clone and restore only those recorded parent identities as unattached shallow clones.
- */
-const installEditorCollapseRenderCompatibility = (sourceParent: ParentNode, renderParent: ParentNode, collapsedParents: ReadonlyMap<ChildNode, Element>) => {
-    for (const [index, sourceChild] of sourceParent.children.entries()) {
-        const renderChild = renderParent.children.at(index);
-        if (!renderChild) {
-            continue;
-        }
-
-        const collapsedParent = collapsedParents.get(sourceChild);
-        if (collapsedParent) {
-            renderChild.parent = collapsedParent.cloneNode();
-        }
-
-        if (sourceChild instanceof Element && renderChild instanceof Element) {
-            installEditorCollapseRenderCompatibility(sourceChild, renderChild, collapsedParents);
-        }
     }
 };
 
@@ -163,7 +120,7 @@ const getHTMLOfSelection = (): string => {
  * Clears all attributes from dom elements
  * @param dom - dom htmlparser2 dom representation
  */
-const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean, collapsedParents: Map<ChildNode, Element>): ChildNode => {
+const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean): ChildNode => {
     // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
     if (dom.type.toString() === 'text' && dom instanceof DataNode) {
         const clonedDom = dom.cloneNode();
@@ -187,11 +144,7 @@ const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean, collapsed
         } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement && child) {
             // We are excluding divs that are children of our editor element and have only one child to prevent
             // additional newlines from being added in the HTML to Markdown conversion process.
-            const transformedChild = replaceNodes(child, isChildOfEditorElement, collapsedParents);
-            if (!collapsedParents.has(transformedChild)) {
-                collapsedParents.set(transformedChild, dom);
-            }
-            return transformedChild;
+            return replaceNodes(child, isChildOfEditorElement);
         }
 
         // We need to preserve href attribute in order to copy links.
@@ -199,7 +152,7 @@ const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean, collapsed
             clonedDom.attribs.href = dom.attribs.href;
         }
 
-        const transformedChildren = dom.children.map((c) => replaceNodes(c, isChildOfEditorElement || !!dom.attribs?.[tagAttribute], collapsedParents));
+        const transformedChildren = dom.children.map((c) => replaceNodes(c, isChildOfEditorElement || !!dom.attribs?.[tagAttribute]));
         installTransformedChildren(clonedDom, transformedChildren);
         return clonedDom;
     }
@@ -212,24 +165,20 @@ const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean, collapsed
  */
 const getCurrentSelection: GetCurrentSelection = () => {
     const parsedDom = parseDocument(getHTMLOfSelection());
-    const collapsedParents = new Map<ChildNode, Element>();
     const domRepresentation = parsedDom.cloneNode();
     installTransformedChildren(
         domRepresentation,
-        parsedDom.children.map((item) => replaceNodes(item, false, collapsedParents)),
+        parsedDom.children.map((item) => replaceNodes(item, false)),
     );
-
-    const renderView = domRepresentation.cloneNode(true);
-    installForeignObjectRenderCompatibility(renderView);
-    installEditorCollapseRenderCompatibility(domRepresentation, renderView, collapsedParents);
 
     // Newline characters need to be removed here because the HTML could contain both newlines and <br> tags, and when
     // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
     // is pasted, there are extra newlines in the content that we want to avoid.
-    const newHtml = render(renderView).replaceAll('<br>\n', '<br>');
+    const newHtml = render(domRepresentation).replaceAll('<br>\n', '<br>');
     return newHtml || '';
 };
 
+export {installTransformedChildren};
 export default {
     getCurrentSelection,
 };

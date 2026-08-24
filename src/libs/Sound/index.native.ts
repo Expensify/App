@@ -11,12 +11,12 @@ import {createAudioPlayer, setAudioModeAsync} from 'expo-audio';
 import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 
 // Sound assets must be required at compile time
-const SOUND_ASSETS: Record<ValueOf<typeof SOUNDS>, AudioSource> = {
+const SOUND_ASSETS = {
     [SOUNDS.DONE]: doneSound,
     [SOUNDS.SUCCESS]: successSound,
     [SOUNDS.ATTENTION]: attentionSound,
     [SOUNDS.RECEIVE]: receiveSound,
-};
+} satisfies Record<ValueOf<typeof SOUNDS>, Extract<AudioSource, number | string>>;
 
 // Configure audio mode for in-app notification sounds:
 // - playsInSilentMode: false — respect the device's silent/mute switch (iOS)
