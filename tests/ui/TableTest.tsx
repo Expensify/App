@@ -1,18 +1,33 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import Table from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Text from '@components/Text';
+
+import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import type Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
+import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -110,19 +125,36 @@ jest.mock('@components/Icon', () => {
     return MockIcon;
 });
 
+// The real empty state renders illustrations/Lottie, so stub it with a lightweight component we can assert on.
+jest.mock('@components/EmptyStateComponent/GenericEmptyStateComponent', () => {
+    const {View: RNView, Text: RNText} = jest.requireActual<typeof import('react-native')>('react-native');
+    function MockGenericEmptyState({title}: {title?: string}) {
+        return (
+            <RNView testID="table-empty-state">
+                <RNText>{title}</RNText>
+            </RNView>
+        );
+    }
+    return MockGenericEmptyState;
+});
+
+jest.mock('@hooks/useGenericEmptyStateIllustration', () => jest.fn(() => ({headerMedia: 'illustration'})));
+
 // Table.Row reads the ScreenWrapper transition context, which isn't present in this isolated render
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
 }));
 
-// Mock the responsive hook so that we are rendering in web mode
+// Mock the responsive hook so that we are rendering in web mode by default. It's a jest.fn so individual
+// tests (e.g. the immediate-filter popover, which only positions synchronously in the narrow layout) can
+// override the return value.
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({
+    default: jest.fn(() => ({
         shouldUseNarrowLayout: false,
         isMediumScreenWidth: false,
-    }),
+    })),
 }));
 
 // Mock TextInput component
@@ -150,8 +182,10 @@ jest.mock('@components/TextInput', () => {
     return MockTextInput;
 });
 
-// Mock PressableWithFeedback
+// Mock PressableWithFeedback, but keep the module's other exports (e.g. the Pressable variants the modal
+// Backdrop relies on) so the filter popover can still mount.
 jest.mock('@components/Pressable', () => ({
+    ...jest.requireActual<typeof import('@components/Pressable')>('@components/Pressable'),
     PressableWithFeedback: (props: {children: React.ReactNode; onPress: () => void; accessibilityLabel: string; accessibilityRole: 'button' | 'link' | 'none' | undefined}) => {
         // eslint-disable-next-line @typescript-eslint/consistent-type-imports
         const {Pressable} = jest.requireActual<typeof import('react-native')>('react-native');
@@ -589,6 +623,232 @@ describe('Table', () => {
             expect(screen.getByTestId('row-3')).toBeTruthy();
             expect(screen.getByTestId('row-4')).toBeTruthy();
             expect(screen.getByTestId('row-5')).toBeTruthy();
+        });
+    });
+
+    describe('default-hidden filter (isDefaultViewEmpty)', () => {
+        // A filter whose default (empty) selection already hides some rows, mirroring the Workspaces list where
+        // archived rows are hidden until the user opts into the "Archived" filter.
+        const statusFilterConfig: FilterConfig = {
+            status: {
+                label: 'Status',
+                filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+                immediate: true,
+                options: [
+                    {label: 'Active', value: 'active'},
+                    {label: 'Archived', value: 'archived'},
+                ],
+            },
+        };
+
+        const isItemInStatusFilter: IsItemInFilterCallback<TestItem> = (item, filterValues) => {
+            const isArchived = item.category === 'archived';
+            // Default view (no selection) shows only active rows.
+            if (!filterValues || filterValues.length === 0) {
+                return !isArchived;
+            }
+            if (filterValues.includes('active') && !isArchived) {
+                return true;
+            }
+            return filterValues.includes('archived') && isArchived;
+        };
+
+        it('hides the default-hidden rows while still rendering the rest of the data', () => {
+            const props = createDefaultProps();
+            const data: TestItem[] = [
+                {keyForList: '1', id: '1', name: 'Active WS', category: 'active', value: 1},
+                {keyForList: '2', id: '2', name: 'Archived WS', category: 'archived', value: 2},
+            ];
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={statusFilterConfig}
+                    isItemInFilter={isItemInStatusFilter}
+                >
+                    <Table.EmptyState title="No workspaces" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // The active row shows, the archived row is hidden by the default filter, and because rows remain
+            // the empty state must NOT appear.
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+            expect(screen.queryByTestId('row-2')).toBeNull();
+            expect(screen.queryByTestId('table-empty-state')).toBeNull();
+        });
+
+        it('renders the empty state when the default view hides every row even though data exists', () => {
+            const props = createDefaultProps();
+            // Every row is hidden by the default filter, so processedData is empty while originalDataLength > 0.
+            const data: TestItem[] = [
+                {keyForList: '1', id: '1', name: 'Archived A', category: 'archived', value: 1},
+                {keyForList: '2', id: '2', name: 'Archived B', category: 'archived', value: 2},
+            ];
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={statusFilterConfig}
+                    isItemInFilter={isItemInStatusFilter}
+                >
+                    <Table.EmptyState title="No workspaces" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.queryByTestId('row-1')).toBeNull();
+            expect(screen.queryByTestId('row-2')).toBeNull();
+            expect(screen.getByTestId('table-empty-state')).toBeTruthy();
+        });
+    });
+
+    describe('immediate filter', () => {
+        const STATUS_ACTIVE = 'active';
+        const STATUS_ARCHIVED = 'archived';
+
+        // The filter popover only positions itself synchronously in the narrow layout (the wide layout defers on
+        // native `measureInWindow`, whose callback never fires under react-test-renderer).
+        const NARROW_LAYOUT = {
+            shouldUseNarrowLayout: true,
+            isSmallScreenWidth: true,
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: false,
+            isExtraLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: true,
+            onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
+        } as ResponsiveLayoutResult;
+
+        const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+
+        const immediateFilterConfig: FilterConfig = {
+            status: {
+                label: 'Status',
+                filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+                immediate: true,
+                options: [
+                    {label: 'Active', value: STATUS_ACTIVE},
+                    {label: 'Archived', value: STATUS_ARCHIVED},
+                ],
+            },
+        };
+
+        // Default (empty) selection shows only active rows; opting into "Archived" reveals archived rows.
+        const isItemInImmediateFilter: IsItemInFilterCallback<TestItem> = (item, filterValues) => {
+            const isArchived = item.category === 'archived';
+            if (!filterValues || filterValues.length === 0) {
+                return !isArchived;
+            }
+            if (filterValues.includes(STATUS_ACTIVE) && !isArchived) {
+                return true;
+            }
+            return filterValues.includes(STATUS_ARCHIVED) && isArchived;
+        };
+
+        const immediateData: TestItem[] = [
+            {keyForList: '1', id: '1', name: 'Active workspace', category: 'active', value: 1},
+            {keyForList: '2', id: '2', name: 'Archived workspace', category: 'archived', value: 2},
+        ];
+
+        // The popover machinery needs the real modal/navigation/portal providers, so wrap the table in them
+        // (the rest of this suite renders the table bare).
+        function ImmediateFilterTable() {
+            const props = createDefaultProps();
+            return (
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+                    <PortalProvider>
+                        <ModalProvider>
+                            <NavigationContainer>
+                                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                                    <Table<TestItem, TestColumnKey>
+                                        data={immediateData}
+                                        columns={props.columns}
+                                        renderItem={props.renderItem}
+                                        keyExtractor={props.keyExtractor}
+                                        filters={immediateFilterConfig}
+                                        isItemInFilter={isItemInImmediateFilter}
+                                    >
+                                        <Table.FilterBar label="Find" />
+                                        <Table.Body />
+                                    </Table>
+                                </ScreenWrapperStatusContext.Provider>
+                            </NavigationContainer>
+                        </ModalProvider>
+                    </PortalProvider>
+                </ComposeProviders>
+            );
+        }
+
+        const openFilter = async () => {
+            fireEvent.press(screen.getByLabelText('search.filtersHeader'));
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`)).toBeOnTheScreen();
+            });
+        };
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+            });
+            (useResponsiveLayout as jest.Mock).mockReturnValue(NARROW_LAYOUT);
+        });
+
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            (useResponsiveLayout as jest.Mock).mockReturnValue({shouldUseNarrowLayout: false, isMediumScreenWidth: false});
+        });
+
+        it('applies a selection immediately without an Apply button', async () => {
+            render(<ImmediateFilterTable />);
+            await waitForBatchedUpdatesWithAct();
+
+            // Only the active row shows by default.
+            expect(screen.getByTestId('row-1')).toBeOnTheScreen();
+            expect(screen.queryByTestId('row-2')).toBeNull();
+
+            await openFilter();
+
+            // The `immediate` filter renders its options inline, so there is no staged Apply/Reset footer.
+            expect(screen.queryByText('common.apply')).toBeNull();
+
+            // Selecting "Archived" surfaces the archived row right away, with no Apply press needed.
+            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('row-2')).toBeOnTheScreen();
+        });
+
+        it('toggles a selection off immediately, restoring the default view', async () => {
+            render(<ImmediateFilterTable />);
+            await waitForBatchedUpdatesWithAct();
+
+            await openFilter();
+            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByTestId('row-2')).toBeOnTheScreen();
+
+            // Toggling the same option off immediately hides the archived row again.
+            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${STATUS_ARCHIVED}`));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByTestId('row-2')).toBeNull();
+            expect(screen.getByTestId('row-1')).toBeOnTheScreen();
         });
     });
 
