@@ -18,7 +18,7 @@ type MenuItemWithLabelProps = MenuItemRootProps & {
  * The labeled MenuItem preset — a `Root` with a label above it. The label sits outside `Root`, so
  * it stays out of the press target and does not pick up the row's hover background.
  */
-function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, testID, children}: MenuItemWithLabelProps) {
+function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, children}: MenuItemWithLabelProps) {
     const styles = useThemeStyles();
 
     return (
@@ -31,6 +31,7 @@ function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, tes
                 isDisabled={isDisabled}
                 sentryLabel={sentryLabel}
                 testID={testID}
+                accessibilityLabel={accessibilityLabel}
             >
                 {children}
             </MenuItemRoot>
