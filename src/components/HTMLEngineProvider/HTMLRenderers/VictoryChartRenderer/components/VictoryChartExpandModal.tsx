@@ -15,6 +15,7 @@ import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 import VictoryChartContent from './VictoryChartContent';
 import VictoryChartExpandedContent from './VictoryChartExpandedContent';
@@ -67,9 +68,12 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
             onClose={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            {/* Explicitly paint the modal surface: during the close animation the unpainted modal base
-                can flash through as white, which is clearly visible on dark themes. */}
-            <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+            {/* GestureHandlerRootView is required for MultiGestureCanvas gestures to work inside a
+                modal on Android, which hosts modals in a separate native window — the same reason
+                the attachment modal wraps its content in one. It also explicitly paints the modal
+                surface: during the close animation the unpainted modal base can flash through as
+                white, which is clearly visible on dark themes. */}
+            <GestureHandlerRootView style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
                 {/* Header matches the attachment modal: back button on narrow layouts, close button on the right otherwise. */}
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -110,7 +114,7 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                             ))}
                     </View>
                 </View>
-            </View>
+            </GestureHandlerRootView>
         </Modal>
     );
 }
