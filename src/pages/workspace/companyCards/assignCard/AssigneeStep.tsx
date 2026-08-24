@@ -1,3 +1,4 @@
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -9,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +23,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -62,7 +63,22 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const employeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    // Seed the selection from the already-assigned cardholder (e.g. when returning to this step in edit mode) so
+    // Next continues with the saved cardholder instead of demanding a fresh selection. Matches CardSelectionStep.
+    const [selectedAssignee, setSelectedAssignee] = useState<ListItem | undefined>(() => {
+        const assignedEmail = assignCard?.cardToAssign?.email;
+        if (!assignedEmail) {
+            return undefined;
+        }
+        return {
+            login: assignedEmail,
+            accountID: employeePersonalDetails[assignedEmail]?.accountID,
+            keyForList: assignedEmail,
+        };
+    });
+    const [shouldShowError, setShouldShowError] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
 
@@ -92,7 +108,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const initialAssigneeEmail = useInitialSelection(assignCard?.cardToAssign?.email, {resetOnFocus: true});
 
     const submit = (assignee: ListItem) => {
-        const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
+        const personalDetail = employeePersonalDetails[assignee?.login ?? ''];
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const defaultCardName = getDefaultCardName(memberName);
         // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the currently selected assignee.
@@ -110,8 +126,12 @@ function AssigneeStep({route}: AssigneeStepProps) {
             if (assignCard?.cardToAssign?.encryptedCardNumber) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
-                cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
-                cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
+                // Preserve any start date the user already picked based on the saved data rather than `isEditing`.
+                // `isEditing` is false on the header-back-then-Next round trip, so keying off it here would wipe the
+                // chosen date. In a fresh flow `startDate`/`dateOption` are undefined, so both helpers still fall back
+                // to today/CUSTOM.
+                cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
+                cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
                 setAssignCardStepAndData({
                     cardToAssign,
                     isEditing: false,
@@ -145,8 +165,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
-            cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
-            cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
+            // Preserve the saved start date based on the data, not `isEditing` (see the matching branch above).
+            cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
+            cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
             setAssignCardStepAndData({
                 cardToAssign,
                 isEditing: false,
@@ -161,11 +182,29 @@ function AssigneeStep({route}: AssigneeStepProps) {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
     };
 
+    const selectAssignee = (assignee: ListItem) => {
+        setSelectedAssignee(assignee);
+        setShouldShowError(false);
+    };
+
+    const assignSelectedCardholder = () => {
+        if (!selectedAssignee) {
+            setShouldShowError(true);
+            return;
+        }
+        submit(selectedAssignee);
+    };
+
     const handleBackButtonPress = () => {
+        // When editing the cardholder from the Confirmation step, the assignee step is the only screen left in the RHP
+        // stack, so a bare goBack() would dismiss the whole modal. Navigate back to Confirmation explicitly instead
+        // (mirroring CardSelectionStep). Plain wizard back-navigation (isEditing false) falls through to goBack().
         if (isEditing) {
             setAssignCardStepAndData({
                 isEditing: false,
             });
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
+            return;
         }
         Navigation.goBack();
     };
@@ -177,7 +216,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 continue;
             }
 
-            const personalDetail = getPersonalDetailByEmail(email);
+            const personalDetail = employeePersonalDetails[email];
             membersDetails.push({
                 keyForList: email,
                 text: personalDetail?.displayName,
@@ -185,7 +224,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 login: email,
                 value: email,
                 accountID: personalDetail?.accountID,
-                isSelected: assignCard?.cardToAssign?.email === email,
+                isSelected: selectedAssignee?.login === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? icons.FallbackAvatar,
@@ -223,6 +262,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         assignees = options.map((option) => ({
             ...option,
             keyForList: option.keyForList ?? option.login ?? '',
+            isSelected: !!selectedAssignee?.login && selectedAssignee.login === option.login,
         }));
     } else if (debouncedSearchTerm) {
         assignees = [];
@@ -274,16 +314,29 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     // button remounts the list scrolled to the top with the selected assignee pinned and visible.
                     key={initialAssigneeEmail ?? ''}
                     data={assignees}
-                    onSelectRow={submit}
+                    onSelectRow={selectAssignee}
                     ListItem={UserListItem}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={initialAssigneeEmail}
+                    initiallyFocusedItemKey={selectedAssignee?.keyForList}
                     shouldScrollToFocusedIndexOnMount={false}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                     disableMaintainingScrollPosition
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
+                    footerContent={
+                        <FormAlertWithSubmitButton
+                            buttonText={translate('common.next')}
+                            onSubmit={assignSelectedCardholder}
+                            isAlertVisible={shouldShowError}
+                            containerStyles={[!shouldShowError && styles.mt5]}
+                            message={translate('workspace.companyCards.pleaseSelectACardholder')}
+                            shouldShowLoadingImmediatelyOnPress={false}
+                            // Selecting a cardholder is a local-state-only step (no network call), so Next must stay
+                            // usable offline. Without this the button is force-disabled offline (regression #97426).
+                            enabledWhenOffline
+                        />
+                    }
                 />
             </InteractiveStepWrapper>
         </AccessOrNotFoundWrapper>

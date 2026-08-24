@@ -33,6 +33,17 @@ type UseOdometerReadingsStateParams = {
     userHasUnsavedTypingRef: React.RefObject<boolean>;
 };
 
+type ReadingsBaseline = {
+    /** The start reading captured at mount, mirroring `initialStartReadingRef`. */
+    start: string;
+
+    /** The end reading captured at mount, mirroring `initialEndReadingRef`. */
+    end: string;
+
+    /** True once the baseline has been captured, mirroring `hasInitializedRefs`. */
+    hasInitialized: boolean;
+};
+
 type UseOdometerReadingsStateResult = {
     /** Current start-reading text-input value. */
     startReading: string;
@@ -78,7 +89,12 @@ type UseOdometerReadingsStateResult = {
 
     /** True once the initial baseline has been captured - gates discard-changes detection. */
     hasInitializedRefs: React.RefObject<boolean>;
+
+    /** Render-visible mirror of the baseline refs above. The discard guard reads dirtiness during render, so the snapshot has to arrive with a commit. */
+    readingsBaseline: ReadingsBaseline;
 };
+
+const EMPTY_READINGS_BASELINE: ReadingsBaseline = {start: '', end: '', hasInitialized: false};
 
 function useOdometerReadingsState({
     currentTransaction,
@@ -105,6 +121,7 @@ function useOdometerReadingsState({
     const initialStartImageRef = useRef<FileObject | string | undefined>(undefined);
     const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
+    const [readingsBaseline, setReadingsBaseline] = useState<ReadingsBaseline>(EMPTY_READINGS_BASELINE);
 
     const resetOdometerLocalState = () => {
         setStartReading('');
@@ -116,6 +133,7 @@ function useOdometerReadingsState({
         initialStartImageRef.current = undefined;
         initialEndImageRef.current = undefined;
         hasInitializedRefs.current = false;
+        setReadingsBaseline(EMPTY_READINGS_BASELINE);
     };
 
     // Reset component state when switching away from the odometer tab
@@ -163,6 +181,9 @@ function useOdometerReadingsState({
         initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
         initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
+        // The discard guard diffs the readings during render, so the baseline has to arrive with a commit, not only in a ref.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setReadingsBaseline({start: startValue, end: endValue, hasInitialized: true});
     }, [
         currentTransaction?.transactionID,
         currentTransaction?.iouRequestType,
@@ -212,6 +233,7 @@ function useOdometerReadingsState({
         if (isExternalResync) {
             initialStartReadingRef.current = startValue;
             initialEndReadingRef.current = endValue;
+            setReadingsBaseline((prev) => (prev.start === startValue && prev.end === endValue ? prev : {...prev, start: startValue, end: endValue}));
         }
     }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing, userHasUnsavedTypingRef]);
 
@@ -231,6 +253,7 @@ function useOdometerReadingsState({
         initialEndImageRef,
         resetOdometerLocalState,
         hasInitializedRefs,
+        readingsBaseline,
     };
 }
 
