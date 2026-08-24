@@ -55,7 +55,7 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './HRUtils';
+import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
@@ -1880,7 +1880,7 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | und
  * Returns the email the expense report should submit to per workspace approval config
  * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
  */
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined): string {
+function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): string {
     const approvalRules = policy?.rules?.approvalRules;
 
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
@@ -1890,14 +1890,21 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
-    return getManagerAccountEmail(policy, ownerLogin);
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin);
+
+    // Falls back to the default approver when the manager is unavailable.
+    if (shouldFallBackWhenManagerIsNotMember && managerEmail && !policy?.employeeList?.[managerEmail] && !getHRAdvancedModeFinalApprover(policy)) {
+        return getDefaultApprover(policy);
+    }
+
+    return managerEmail;
 }
 
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined): number {
-    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin);
+function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): number {
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, shouldFallBackWhenManagerIsNotMember);
     return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
@@ -1906,7 +1913,7 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     const existingManagerID = expenseReport?.managerID;
     const approvalRules = policy?.rules?.approvalRules;
     const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, submitterLogin);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, submitterLogin, true);
     const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
     const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
     const hasReliablePolicyRoute =
@@ -2786,7 +2793,10 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
  * Resolves the default workspace for report creation: the active policy when it's one of the eligible
  * workspaces, otherwise the only eligible workspace, else undefined.
  */
-function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
+function getDefaultChatEnabledPolicy(
+    groupPoliciesWithChatEnabled: ReadonlyArray<OnyxInputOrEntry<Policy>>,
+    activePolicy?: OnyxInputOrEntry<Policy> | null,
+): OnyxInputOrEntry<Policy> | undefined {
     // Only default to the active policy when it's actually eligible, so we never pick an ineligible policy
     // (e.g. a personal or free workspace) over an eligible fallback.
     if (activePolicy && isGroupPolicy(activePolicy) && groupPoliciesWithChatEnabled.some((policy) => policy?.id === activePolicy.id)) {
@@ -2798,6 +2808,17 @@ function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInp
     }
 
     return undefined;
+}
+
+/** Scalar version for useOnyx selectors: an eligible-policy array makes useOnyx deep-compare every policy on each policy_ update */
+function getDefaultChatEnabledPolicySelection(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, activePolicyID: string | undefined) {
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+    const activePolicy = activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
+
+    return {
+        defaultChatEnabledPolicyID: getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy)?.id,
+        hasMultipleChatEnabledPolicies: groupPoliciesWithChatEnabled.length > 1,
+    };
 }
 
 function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentPolicyID: string) {
@@ -2994,6 +3015,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.xero?.config?.export?.exporter,
         policy?.connections?.netsuite?.options?.config?.exporter,
         policy?.connections?.rillet?.config?.export?.exporter,
+        policy?.connections?.dualEntry?.config?.export?.exporter,
     ];
 }
 
@@ -3219,6 +3241,7 @@ export {
     getGroupPaidPolicies,
     getGroupPoliciesWhereReportCanBeCreated,
     getDefaultChatEnabledPolicy,
+    getDefaultChatEnabledPolicySelection,
     getForwardsToAccount,
     getSubmitToAccountID,
     getSubmitReportManagerAccountID,

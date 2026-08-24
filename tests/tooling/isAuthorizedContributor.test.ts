@@ -6,6 +6,7 @@ import {RequestError} from '@octokit/request-error';
 import {isAuthorizedContributor, isContributorPlusMember, isInternalExpensifyEngineer} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import createMock from '../utils/createMock';
+import materializeOctokitNamespace from '../utils/materializeOctokitNamespace';
 
 function createRequestError(status: number): RequestError {
     return new RequestError('Not Found', status, {
@@ -36,6 +37,9 @@ beforeEach(() => {
 
     GithubUtils.initOctokitWithToken('test-token');
     const mockOctokit = GithubUtils.octokit;
+    mockOctokit.teams = materializeOctokitNamespace(mockOctokit.teams);
+    mockOctokit.pulls = materializeOctokitNamespace(mockOctokit.pulls);
+    mockOctokit.issues = materializeOctokitNamespace(mockOctokit.issues);
     mockGetMembershipForUserInOrg = jest.spyOn(mockOctokit.teams, 'getMembershipForUserInOrg');
     mockPullsGet = jest.spyOn(mockOctokit.pulls, 'get');
     mockIssuesGet = jest.spyOn(mockOctokit.issues, 'get');
