@@ -760,7 +760,7 @@ function getOnyxLoadingData(
     // `search.state` tracks the lifecycle of a real search request (identified by its queryJSON): it starts as
     // `loading` optimistically and is resolved to `loaded` by finallyData. handlePreventSearchAPI
     // reuses this helper as a UI-only loading toggle with no query, so it must stay out of
-    // the state machine — otherwise it would strand `state: loading` with no terminal write to clear it.
+    // the state machine. Otherwise it would strand `state: loading` with no terminal write to clear it.
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
 

@@ -15,6 +15,7 @@ import {View} from 'react-native';
 import EmptyState from './EmptyState';
 
 type RecentlyAddedPlaceholderProps = {
+    /** When true, renders the shimmer skeleton; when false, renders the empty state. */
     shouldShowSkeleton: boolean;
 };
 
