@@ -61,7 +61,25 @@ jest.mock('@hooks/useStyleUtils', () =>
 );
 
 describe('ReportActionItemSystem', () => {
-    it('renders the actor and action together with the timestamp on a separate line', () => {
+    const getAncestors = (node: ReturnType<typeof screen.getByText>) => {
+        const ancestors: Array<typeof node> = [];
+        let parent = node.parent;
+        while (parent) {
+            ancestors.push(parent);
+            parent = parent.parent;
+        }
+        return ancestors;
+    };
+
+    const getDirectChild = (node: ReturnType<typeof screen.getByText>, ancestor: ReturnType<typeof screen.getByText>) => {
+        let directChild = node;
+        while (directChild.parent && directChild.parent !== ancestor) {
+            directChild = directChild.parent;
+        }
+        return directChild;
+    };
+
+    it('renders the actor and action above the timestamp in the Aug 19 revised two-line layout', () => {
         const action: ReportAction = {
             reportActionID: '1',
             actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -90,24 +108,24 @@ describe('ReportActionItemSystem', () => {
         const actor = screen.getByText('Todd Clyde ');
         const content = screen.getByText('submitted');
         const timestamp = screen.getByText('2026-07-30 00:00:00.000');
-        const getAncestors = (node: typeof actor) => {
-            const ancestors: Array<typeof actor> = [];
-            let parent = node.parent;
-            while (parent) {
-                ancestors.push(parent);
-                parent = parent.parent;
-            }
-            return ancestors;
-        };
         const actorAncestors = getAncestors(actor);
         const contentAncestors = getAncestors(content);
         const timestampAncestors = getAncestors(timestamp);
-        const firstLineContainer = actorAncestors.find((ancestor) => contentAncestors.includes(ancestor));
+        const actionLineContainer = actorAncestors.find((ancestor) => contentAncestors.includes(ancestor));
 
-        if (!firstLineContainer) {
+        if (!actionLineContainer) {
             throw new Error('Expected actor and action content to share a line container');
         }
-        expect(timestampAncestors.includes(firstLineContainer)).toBe(false);
+        expect(timestampAncestors.includes(actionLineContainer)).toBe(false);
+
+        const twoLineContainer = getAncestors(actionLineContainer).find((ancestor) => timestampAncestors.includes(ancestor));
+        if (!twoLineContainer) {
+            throw new Error('Expected timestamp and action lines to share a two-line container');
+        }
+
+        const timestampLine = getDirectChild(timestamp, twoLineContainer);
+        const actionLine = getDirectChild(actor, twoLineContainer);
+        expect(twoLineContainer.children.indexOf(actionLine)).toBeLessThan(twoLineContainer.children.indexOf(timestampLine));
     });
 
     it('defaults the temporary comparison to two lines and renders the timestamp inline after selecting one line', () => {
@@ -133,6 +151,7 @@ describe('ReportActionItemSystem', () => {
         );
 
         expect(screen.getByText('Temporary design comparison')).toBeOnTheScreen();
+        expect(screen.getByText('One line: refined treatment, different from the Aug 10 mock. Two lines: Aug 19 revised Show/Hide mock, action above timestamp.')).toBeOnTheScreen();
         expect(screen.getByRole('radio', {name: 'Two lines'}).props.accessibilityState).toMatchObject({checked: true});
 
         fireEvent.press(screen.getByRole('radio', {name: 'One line'}));
@@ -143,15 +162,6 @@ describe('ReportActionItemSystem', () => {
         const actor = screen.getByText('Todd Clyde ');
         const content = screen.getByText('submitted');
         const timestamp = screen.getByText('2026-07-30 00:00:00.000');
-        const getAncestors = (node: typeof actor) => {
-            const ancestors: Array<typeof actor> = [];
-            let parent = node.parent;
-            while (parent) {
-                ancestors.push(parent);
-                parent = parent.parent;
-            }
-            return ancestors;
-        };
         const actorAncestors = getAncestors(actor);
         const contentAncestors = getAncestors(content);
         const timestampAncestors = getAncestors(timestamp);
@@ -161,6 +171,10 @@ describe('ReportActionItemSystem', () => {
             throw new Error('Expected actor and action content to share an inline container');
         }
         expect(timestampAncestors.includes(inlineContainer)).toBe(true);
+
+        const actionContent = getDirectChild(content, inlineContainer);
+        const timestampContent = getDirectChild(timestamp, inlineContainer);
+        expect(inlineContainer.children.indexOf(actionContent)).toBeLessThan(inlineContainer.children.indexOf(timestampContent));
     });
 
     it('preserves delegated actor attribution in the inline system row', () => {

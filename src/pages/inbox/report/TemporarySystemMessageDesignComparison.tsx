@@ -26,6 +26,9 @@ function TemporarySystemMessageDesignComparison({children}: ChildrenProps) {
             <View style={styles.flex1}>
                 <View style={[styles.ph5, styles.pv2, styles.gap2, styles.borderBottom]}>
                     <Text style={styles.textMicroBold}>Temporary design comparison</Text>
+                    <Text style={[styles.textMicro, styles.colorMuted]}>
+                        One line: refined treatment, different from the Aug 10 mock. Two lines: Aug 19 revised Show/Hide mock, action above timestamp.
+                    </Text>
                     <View
                         style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap3]}
                         role={CONST.ROLE.RADIOGROUP}
