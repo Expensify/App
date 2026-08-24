@@ -265,6 +265,10 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
                 shouldUseModalPaddingStyle
+                // `FixedFooter` inside the list already applies the bottom safe area on top of its own 20px, so let it
+                // own that spacing entirely. Without this the narrow bottom-docked modal adds its own 16px plus a
+                // second safe area inset (both helpers sum rather than max), leaving far too much room under Confirm.
+                enableEdgeToEdgeBottomSafeAreaPadding
                 avoidKeyboard
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
