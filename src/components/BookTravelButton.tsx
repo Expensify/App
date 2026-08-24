@@ -177,7 +177,7 @@ function BookTravelButton({
                 return;
             }
 
-            const isTravelRiskApproved = await getTravelRiskApproval();
+            const isTravelRiskApproved = await getTravelRiskApproval(activePolicyID);
             if (isTravelRiskApproved) {
                 cleanupTravelProvisioningSession();
                 Navigation.navigate(ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID)));

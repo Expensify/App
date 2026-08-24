@@ -14,19 +14,23 @@ import CONST from '@src/CONST';
 
 import React, {useCallback} from 'react';
 
-function ReviewingRequest() {
+type ReviewingRequestProps = {
+    policyID: string;
+};
+
+function ReviewingRequest({policyID}: ReviewingRequestProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PendingTravel']);
 
     useFocusEffect(
         useCallback(() => {
-            getTravelRiskApproval().then((isTravelRiskApproved) => {
+            getTravelRiskApproval(policyID).then((isTravelRiskApproved) => {
                 if (isTravelRiskApproved) {
                     clearTravelSignupRequest();
                 }
             });
-        }, []),
+        }, [policyID]),
     );
 
     return (

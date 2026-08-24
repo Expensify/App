@@ -188,6 +188,7 @@ describe('BookTravelButton', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(getTravelRiskApproval).toHaveBeenCalledWith(POLICY_ID);
             expect(requestTravelAccess).not.toHaveBeenCalled();
         });
     });

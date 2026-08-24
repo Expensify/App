@@ -86,7 +86,7 @@ function WorkspaceTravelPage({
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
                 return <BookOrManageYourTrip policyID={policyID} />;
             case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
-                return <ReviewingRequest />;
+                return <ReviewingRequest policyID={policyID} />;
             default:
                 return (
                     <GetStartedTravel
