@@ -109,6 +109,10 @@ function getConnectionCompanyID(policy: Policy | undefined, connectionName: Conn
             return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.QBD]?.config);
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
             return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config);
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+            return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config);
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+            return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config);
         default:
             return undefined;
     }
