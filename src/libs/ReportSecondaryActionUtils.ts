@@ -84,6 +84,7 @@ import {
     isReportManager as isReportManagerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
+    isTrackExpenseReportNew,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
 import {
@@ -401,6 +402,23 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     return isReportApprover;
 }
 
+// Pay actions are at the report level, not per transaction.
+function getReportPayActions(reportID: string): ReportAction[] {
+    return Object.values(getAllReportActions(reportID)).filter((action): action is ReportAction => !!action && isPayAction(action));
+}
+
+// Whether every pay action on the report has a payment type the predicate accepts. Returns false when there are
+// no pay actions, since the payment type cannot be determined.
+function everyPayActionHasPaymentType(payActions: ReportAction[], matchesPaymentType: (paymentType: string | undefined) => boolean): boolean {
+    return (
+        payActions.length > 0 &&
+        payActions.every((action) => {
+            const originalMessage = getOriginalMessage(action);
+            return !!originalMessage && 'paymentType' in originalMessage && matchesPaymentType(originalMessage.paymentType);
+        })
+    );
+}
+
 /** The daily ACH batch leaves at the cutoff, so before it the money has not moved and the credit cannot have posted yet. */
 function hasDailyNachaCutoffPassed(reportID: string): boolean {
     const payActions = Object.values(getAllReportActions(reportID)).filter((action): action is ReportAction => !!action && isPayAction(action));
@@ -424,32 +442,36 @@ function isCancelPaymentAction(
     reimbursementCancellableStatus?: ReportCancelReimbursementStatus,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const isIOUReport = isIOUReportUtils(report);
 
-    if (!isExpenseReport) {
+    if (!isExpenseReport && !isIOUReport) {
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
+
+    // A P2P "send money" payment made with the Expensify wallet that is waiting for the receiver to set up their
+    // wallet is held until they onboard. The sender (payer) can cancel it while it is waiting, which returns the
+    // held funds.
+    if (isIOUReport) {
+        if (!isPayer || !report.isWaitingOnBankAccount) {
+            return false;
+        }
+
+        const payActions = getReportPayActions(report.reportID);
+        return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+    }
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (!isAdmin || !isPayer) {
         return false;
     }
 
-    // Get all report actions for this report and filter for pay actions
-    // Pay actions are at the report level, not per transaction
-    const allReportActions = getAllReportActions(report.reportID);
-    const allActionsArray = Object.values(allReportActions);
-    const payActions = allActionsArray.filter((action): action is ReportAction => !!action && isPayAction(action));
+    const payActions = getReportPayActions(report.reportID);
 
     // Check if payment was made via bank account (not elsewhere)
-    // If no pay actions exist, we can't determine the payment type, so we assume it was NOT a bank payment
-    const isPaidViaBankAccount =
-        payActions.length > 0 &&
-        payActions.every((action) => {
-            const originalMessage = getOriginalMessage(action);
-            return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-        });
+    const isPaidViaBankAccount = everyPayActionHasPaymentType(payActions, (paymentType) => paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
@@ -1178,6 +1200,7 @@ function getSecondaryTransactionThreadActions({
     isChatReportArchived,
     grandParentReport,
     isProduction,
+    hasWorkspaceToSubmitTo = false,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1192,6 +1215,8 @@ function getSecondaryTransactionThreadActions({
     isChatReportArchived: boolean;
     grandParentReport?: OnyxEntry<Report>;
     isProduction: boolean;
+    /** Whether the user belongs to a workspace they can submit an expense to (self-DM split expenses can only be submitted to a workspace). */
+    hasWorkspaceToSubmitTo?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1236,6 +1261,19 @@ function getSecondaryTransactionThreadActions({
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
+    }
+
+    // Show "Send to someone" only for an unreported self-tracked expense in personal space, reusing the track-expense
+    // whisper's convert-from-track flow (once submitted, parentReport is no longer a self-DM so this hides).
+    // A self-DM split can only go to a workspace, so hide it for a split unless the user has one; also require write
+    // access (like MOVE_EXPENSE) so the row hides on an archived self-DM.
+    const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+    if (
+        isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) &&
+        (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) &&
+        canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
+    ) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);

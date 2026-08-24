@@ -11,8 +11,8 @@ import '@libs/actions/IOU/MoneyRequest';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {createNewReport} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getOriginalMessage, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -367,6 +367,84 @@ describe('actions/Transaction', () => {
             expect(updatedExpenseReport?.nonReimbursableTotal).toBe(-amount);
             expect(updatedExpenseReport?.total).toBe(-amount);
             expect(updatedExpenseReport?.unheldNonReimbursableTotal).toBe(-amount);
+        });
+
+        it('stops rendering the self-DM report action once its expense moves to a report, even when the action still carries a pending state', async () => {
+            // Given an unreported expense in the self-DM whose IOU action is still marked as pending, which happens when
+            // an earlier optimistic write on that action was never resolved
+            const selfDMReport: Report = {...createRandomReport(77, CONST.REPORT.CHAT_TYPE.SELF_DM), reportID: '77'};
+            const movePolicy: Policy = {...createRandomPolicy(78, CONST.POLICY.TYPE.TEAM, 'Move Workspace'), id: 'policy-for-move'};
+            const workspaceChat: Report = {...createRandomReport(79, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: '79', policyID: movePolicy.id};
+            const destinationReport: Report = {
+                ...createRandomReport(80),
+                reportID: '80',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: movePolicy.id,
+                chatReportID: workspaceChat.reportID,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+            };
+            const movedTransaction: Transaction = {
+                transactionID: 'transaction-to-move',
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: ''},
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const trackedExpenseAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                    transactionID: movedTransaction.transactionID,
+                    isPersonalTrackingExpense: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                }),
+                reportID: selfDMReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReport.reportID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${movePolicy.id}`, movePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${movedTransaction.transactionID}`, movedTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[trackedExpenseAction.reportActionID]: trackedExpenseAction});
+            await waitForBatchedUpdates();
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+
+            // When the expense is moved to a workspace report
+            changeTransactionsReport({
+                transactionIDs: [movedTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CARLOS_ACCOUNT_ID,
+                email: CARLOS_EMAIL,
+                newReport: destinationReport,
+                policy: movePolicy,
+                allTransactions,
+                policyTagList: {},
+                transactionViolations: {},
+                reports: allReports,
+                selfDMReportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the action left behind in the self-DM holds no transaction, no pending state, and is not rendered
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const retiredAction = selfDMActions?.[trackedExpenseAction.reportActionID];
+            expect(isMoneyRequestAction(retiredAction) ? getOriginalMessage(retiredAction)?.IOUTransactionID : undefined).toBeFalsy();
+            expect(retiredAction?.pendingAction).toBeFalsy();
+            expect(shouldReportActionBeVisible(retiredAction, trackedExpenseAction.reportActionID, true, CARLOS_ACCOUNT_ID)).toBe(false);
         });
 
         it('recomputes a distance expense amount/merchant/currency from the destination workspace rate when moved', async () => {

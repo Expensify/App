@@ -55,6 +55,7 @@ import getAutocompleteInitialFocus from './getAutocompleteInitialFocus';
 import AvatarWithTextCell from './SearchList/ListItem/AvatarWithTextCell';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
+import SEARCH_ROUTER_OPTIONS_CONFIG from './SearchRouter/searchRouterOptionsConfig';
 
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
@@ -101,16 +102,6 @@ const defaultListOptions = {
 };
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
-
-// The list shows at most MAX_AMOUNT_OF_SUGGESTIONS recent reports, so building full option data for the
-// default 500-report list every time is unnecessary. Start from a smaller raw cap and only expand to the
-// full set if that batch filters down below the visible cap (see the loadAll effect below); typing a
-// query bypasses this cap entirely (isSearching drops the limit in createFilteredOptionList).
-// 100 leaves buffer for hidden/muted chats getting filtered out after the raw-recency slice.
-// The batch size stays at 500 (not smaller) because createFilteredOptionList rebuilds its whole
-// top-N slice from scratch each call, so a small batch would mean repeated rebuilds.
-const INITIAL_MAX_RECENT_REPORTS = 100;
-const RECENT_REPORTS_BATCH_SIZE = 500;
 
 // A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
 // row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
@@ -223,13 +214,8 @@ function SearchAutocompleteList({
         loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
     } = useFilteredOptions({
-        enabled: true,
+        ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: !!autocompleteQueryValue.trim(),
-        // The empty-query state renders only recent searches and recent reports (no standalone contacts),
-        // so contacts can be deferred until the user types a query.
-        deferContactsUntilSearch: true,
-        maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
-        batchSize: RECENT_REPORTS_BATCH_SIZE,
     });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
