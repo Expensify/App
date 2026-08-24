@@ -135,6 +135,9 @@ describe('HomePage', () => {
         jest.clearAllMocks();
         setNarrowLayout();
         await Onyx.clear();
+        // The app-load gate reads a cleared HAS_LOADED_APP as a first load in progress. Once HomePage branches on it,
+        // every case below would render the page-level skeleton instead of the Sections it asserts on. See Expensify/App#98968.
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await waitForBatchedUpdates();
     });
 
