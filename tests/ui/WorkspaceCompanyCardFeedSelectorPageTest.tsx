@@ -44,8 +44,7 @@ jest.mock(
 );
 
 jest.mock('@components/MenuItem/presets/MenuItemAction', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {Pressable} = require('react-native');
+    const {Pressable} = jest.requireActual<{Pressable: React.ComponentType<{testID: string; accessibilityRole: 'button'; onPress: () => void}>}>('react-native');
     return ({onPress}: {onPress: () => void}) => (
         <Pressable
             testID="addCardsMenuItem"

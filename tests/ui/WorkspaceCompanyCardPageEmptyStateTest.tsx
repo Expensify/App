@@ -33,8 +33,7 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
 }));
 
 jest.mock('@components/FeatureList', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {Pressable} = require('react-native');
+    const {Pressable} = jest.requireActual<{Pressable: React.ComponentType<{testID: string; accessibilityRole: 'button'; onPress: () => void}>}>('react-native');
     return ({onCtaPress}: {onCtaPress: () => void}) => (
         <Pressable
             testID="addCardsCta"
