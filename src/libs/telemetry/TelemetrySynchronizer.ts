@@ -46,8 +46,12 @@ Onyx.connectWithoutView({
             clearGlobalSpanAttributes();
             return;
         }
+        const previousEmail = session?.email;
         session = value;
         sendPoliciesContext();
+        if (previousEmail && previousEmail !== value.email) {
+            clearGlobalSpanAttributes();
+        }
     },
 });
 
@@ -204,7 +208,7 @@ function sendPersonalDetailsCount(personalDetailsCount: number) {
 }
 
 function sendTransactionsCount(transactionsCount: number) {
-    // Attribute only for now; the bucketed tag comes once borders can be derived from this data (https://github.com/Expensify/App/issues/98432).
+    // Attribute only for now. The bucketed tag comes once borders can be derived from this data (https://github.com/Expensify/App/issues/98432).
     setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_TRANSACTIONS_COUNT_RAW, transactionsCount);
 }
 

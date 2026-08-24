@@ -71,7 +71,6 @@ function scheduleInitialDatabaseSizeMeasurement() {
     }, INITIAL_MEASUREMENT_DELAY_MS);
 }
 
-/** Debounced re-measurement for data changes; ignored until the initial measurement ran. */
 function requestDatabaseSizeRemeasurement() {
     if (!hasMeasuredThisSession) {
         return;

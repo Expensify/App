@@ -291,6 +291,21 @@ describe('TelemetrySynchronizer', () => {
             expect(Sentry.setTag).not.toHaveBeenCalled();
             expect(Sentry.setContext).not.toHaveBeenCalled();
         });
+
+        it('clears the span attributes when switching directly between accounts', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'first@example.com', accountID: 1});
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: createRandomReport(1),
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: createRandomReport(2),
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW]).toBe(2);
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'second@example.com', accountID: 2});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW]).toBeUndefined();
+        });
     });
 
     describe('Onyx callbacks', () => {
