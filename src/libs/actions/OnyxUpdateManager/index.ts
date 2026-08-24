@@ -4,6 +4,7 @@ import {setAuthToken} from '@libs/Network/NetworkStore';
 import {registerPauseWatchdogEscalation, unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
 
 import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates, reconnectApp, reconnectAppWithSideEffects} from '@userActions/App';
+import {getEffectiveLastUpdateID, getPersistedLastUpdateID} from '@userActions/OnyxUpdates';
 import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
 
 import CONST from '@src/CONST';
@@ -38,14 +39,6 @@ import {
 // Onyx is used as a pub/sub mechanism to break out of the circular dependency.
 // The circular dependency happens because this file calls API.GetMissingOnyxUpdates() which uses the SaveResponseInOnyx.js file (as a middleware).
 // Therefore, SaveResponseInOnyx.js can't import and use this file directly.
-
-let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;
-// `lastUpdateIDAppliedToClient` is not dependent on any changes on the UI,
-// so it is okay to use `connectWithoutView` here.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = value ?? CONST.DEFAULT_NUMBER_ID),
-});
 
 let isLoadingApp = false;
 // `isLoadingApp` is not dependent on any changes on the UI,
@@ -86,9 +79,7 @@ function escalateIfFetchStalled(response: Awaited<ReturnType<typeof getMissingOn
         return false;
     }
 
-    // The client advanced, either through this response or through another path in the meantime
-    // (e.g. a parallel Pusher update applied mid-fetch). The fetches are making progress.
-    if (Number(response.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID) > lastUpdateIDFromClient || lastUpdateIDAppliedToClient > lastUpdateIDFromClient) {
+    if (getPersistedLastUpdateID() > lastUpdateIDFromClient) {
         return false;
     }
 
@@ -120,7 +111,7 @@ function isFetchAlreadyStalled(lastUpdateIDFromClient: number): boolean {
 // Registered here because SequentialQueue can't import App (cycle). Shares the stalled-fetch back-off
 // so a client thrashing on GetMissingOnyxMessages isn't handed another reconnect.
 registerPauseWatchdogEscalation(() => {
-    const lastUpdateIDFromClient = lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
+    const lastUpdateIDFromClient = getEffectiveLastUpdateID();
 
     // Only the leader closes gaps over the network (see handleMissingOnyxUpdates); escalating on a follower
     // would fire a duplicate out-of-queue ReconnectApp.
@@ -219,7 +210,7 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
     const shouldFetchPendingUpdates = onyxUpdatesFromServer?.shouldFetchPendingUpdates ?? false;
     const lastUpdateIDFromServer = onyxUpdatesFromServer.lastUpdateID;
     const previousUpdateIDFromServer = onyxUpdatesFromServer.previousUpdateID;
-    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
+    const lastUpdateIDFromClient = clientLastUpdateID ?? getEffectiveLastUpdateID();
 
     // Check if the client needs to send a backend request to fetch missing or pending updates and/or queue deferred updates.
     // Returns a boolean indicating whether we should execute the finally block after the promise is done,

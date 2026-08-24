@@ -107,6 +107,8 @@ function useMoneyRequestReportScroll({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     // The unified list writes its last item index here (see updateLastItemIndex). We jump to the bottom via
     // scrollToIndex rather than scrollToEnd: scrollToEnd targets an estimated content-end offset, which on a large
@@ -270,7 +272,7 @@ function useMoneyRequestReportScroll({
         }, 2000);
 
         if (!hasNewestReportAction) {
-            openReport({reportID, introSelected, betas, hasReportActions: true, currentUserAccountID});
+            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
             scrollToBottom();
             return;
         }

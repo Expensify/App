@@ -83,16 +83,17 @@ function useMoneyRequestReportPagination({
     const hasFinishedInitialLoad = reportLoadingState?.isLoadingInitialReportActions === false;
     const prevNewestFetchedIDRef = useRef<string | undefined>(undefined);
     useEffect(() => {
-        if (hasFinishedInitialLoad && hasNewerActions && reportActions.length > 0 && !isOffline && !reportLoadingState?.isLoadingNewerReportActions) {
-            // Safety guard: if the cursor hasn't advanced since the last call, the server
-            // isn't returning new data. Stop to prevent an infinite request loop.
-            const currentCursor = reportPaginationState?.newestFetchedReportActionID;
-            if (prevNewestFetchedIDRef.current !== undefined && prevNewestFetchedIDRef.current === currentCursor) {
-                return;
-            }
-            prevNewestFetchedIDRef.current = currentCursor;
-            loadNewerChats(false);
+        if (!hasFinishedInitialLoad || !hasNewerActions || reportActions.length === 0 || isOffline || reportLoadingState?.isLoadingNewerReportActions) {
+            return;
         }
+        // Safety guard: if the cursor hasn't advanced since the last call, the server
+        // isn't returning new data. Stop to prevent an infinite request loop.
+        const currentCursor = reportPaginationState?.newestFetchedReportActionID;
+        if (prevNewestFetchedIDRef.current !== undefined && prevNewestFetchedIDRef.current === currentCursor) {
+            return;
+        }
+        prevNewestFetchedIDRef.current = currentCursor;
+        loadNewerChats(false);
     }, [
         hasFinishedInitialLoad,
         reportActions.length,

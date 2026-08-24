@@ -1,7 +1,6 @@
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
-import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -131,9 +130,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         isOffline,
     });
 
-    const shouldShowOpenReportLoadingSkeleton = isInitialReportLoadPending && visibleReportActions.length === 0;
-    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
-
     const listRef = useActionListRef();
     const didLayout = useRef(false);
 
@@ -225,13 +221,13 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
      * Runs when the FlatList finishes laying out
      */
     const recordTimeToMeasureItemLayout = () => {
-        if (didLayout.current || !report) {
+        if (didLayout.current || !reportIDFromRoute) {
             return;
         }
 
         didLayout.current = true;
 
-        markOpenReportEnd(report, {warm: !shouldShowOpenReportLoadingSkeleton});
+        markOpenReportEnd(reportIDFromRoute, report, {warm: true});
     };
 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !isInitialReportLoadPending;
@@ -241,7 +237,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         return null;
     }
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
@@ -259,7 +255,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                     hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToLatestMessages}
-                    isMarkAsDone={shouldUseMarkAsDoneCopy}
+                    shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                 />
                 {/* Exactly one of these two branches is active at a time:
                     1. showEmptyState — genuinely empty report
