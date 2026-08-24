@@ -10,8 +10,6 @@ import hashStr from '@libs/StringUtils/hash';
 
 import {isTranslationTargetLocale, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
-import en from '@src/languages/en';
-import type {TranslationPaths} from '@src/languages/types';
 
 import type {TemplateExpression} from '@typescript/typescript6';
 
@@ -21,8 +19,6 @@ import * as dotenv from 'dotenv';
 import {Str} from 'expensify-common';
 import CLI from 'expensify-common/CLI';
 import fs from 'fs';
-// eslint-disable-next-line you-dont-need-lodash-underscore/get
-import get from 'lodash/get';
 import path from 'path';
 
 import type {DiffResult} from './utils/Git';
@@ -109,6 +105,11 @@ class TranslationGenerator {
     private readonly sourceFile: ts.SourceFile;
 
     /**
+     * The translation object parsed from the source file.
+     */
+    private readonly translationsNode: ts.ObjectLiteralExpression;
+
+    /**
      * Translator module to perform translations.
      */
     private readonly translator: Translator;
@@ -121,17 +122,17 @@ class TranslationGenerator {
     /**
      * Paths to add (don't exist in target file yet).
      */
-    private readonly pathsToAdd: Set<TranslationPaths>;
+    private readonly pathsToAdd: Set<string>;
 
     /**
      * Paths to modify (exist in target file and need retranslation).
      */
-    private readonly pathsToModify: Set<TranslationPaths>;
+    private readonly pathsToModify: Set<string>;
 
     /**
      * Paths to remove (only populated when using compareRef).
      */
-    private readonly pathsToRemove: Set<TranslationPaths>;
+    private readonly pathsToRemove: Set<string>;
 
     /**
      * Should we print verbose logs?
@@ -190,7 +191,7 @@ class TranslationGenerator {
             };
             paths: {
                 description: string;
-                parse: (val: string) => Set<TranslationPaths>;
+                parse: (val: string) => Set<string>;
                 supersedes: string[];
                 required: false;
             };
@@ -214,6 +215,9 @@ class TranslationGenerator {
     constructor() {
         this.languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
         const enSourceFile = path.join(this.languagesDir, 'en.ts');
+        const sourceCode = fs.readFileSync(enSourceFile, 'utf8');
+        this.sourceFile = ts.createSourceFile(enSourceFile, sourceCode, ts.ScriptTarget.Latest, true);
+        this.translationsNode = this.findTranslationsNode(this.sourceFile);
 
         /* eslint-disable @typescript-eslint/naming-convention */
         this.cli = new CLI({
@@ -268,13 +272,13 @@ class TranslationGenerator {
                 },
                 paths: {
                     description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
-                    parse: (val: string): Set<TranslationPaths> => {
+                    parse: (val: string): Set<string> => {
                         const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
-                        const validatedPaths = new Set<TranslationPaths>();
+                        const validatedPaths = new Set<string>();
                         const invalidPaths: string[] = [];
                         for (const rawPath of rawPaths) {
-                            if (get(en, rawPath)) {
-                                validatedPaths.add(rawPath as TranslationPaths);
+                            if (TSCompilerUtils.objectHas(this.translationsNode, rawPath)) {
+                                validatedPaths.add(rawPath);
                             } else {
                                 invalidPaths.push(rawPath);
                             }
@@ -296,18 +300,15 @@ class TranslationGenerator {
         this.prNumber = this.cli.namedArgs['pr-number'];
         this.diffBase = this.compareRef;
         this.useGitHubAPI = false;
-        this.pathsToAdd = new Set<TranslationPaths>();
-        this.pathsToModify = this.cli.namedArgs.paths ?? new Set<TranslationPaths>();
-        this.pathsToRemove = new Set<TranslationPaths>();
+        this.pathsToAdd = new Set<string>();
+        this.pathsToModify = this.cli.namedArgs.paths ?? new Set<string>();
+        this.pathsToRemove = new Set<string>();
         this.verbose = this.cli.flags.verbose;
         this.isIncremental = this.pathsToModify.size > 0 || !!this.compareRef || !!this.prNumber;
 
         if (this.prNumber && !process.env.GITHUB_TOKEN) {
             throw new Error('GITHUB_TOKEN environment variable is required when using --pr-number');
         }
-
-        const sourceCode = fs.readFileSync(enSourceFile, 'utf8');
-        this.sourceFile = ts.createSourceFile(enSourceFile, sourceCode, ts.ScriptTarget.Latest, true);
 
         if (this.cli.flags['dry-run']) {
             console.log('🍸 Dry run enabled');
@@ -1029,8 +1030,6 @@ class TranslationGenerator {
             }
 
             // Find the main translation object in en.ts
-            const translationsNode = this.findTranslationsNode(this.sourceFile);
-
             // Get changed lines from the diff
             const changedLines = diffResult.files.at(0);
             if (!changedLines) {
@@ -1042,7 +1041,7 @@ class TranslationGenerator {
             }
 
             // Traverse current en.ts for added and modified paths
-            this.extractPathsFromChangedLines(translationsNode, new Set([...changedLines.addedLines, ...changedLines.modifiedLines]), changedLines.removedLines);
+            this.extractPathsFromChangedLines(this.translationsNode, new Set([...changedLines.addedLines, ...changedLines.modifiedLines]), changedLines.removedLines);
 
             // For removed paths, we need to traverse the old version of en.ts
             if (changedLines.removedLines.size > 0) {
@@ -1054,7 +1053,7 @@ class TranslationGenerator {
             for (const removedPath of this.pathsToRemove) {
                 if (this.pathsToModify.has(removedPath)) {
                     this.pathsToRemove.delete(removedPath); // It's modified, not removed
-                } else if (get(en, removedPath) !== undefined) {
+                } else if (TSCompilerUtils.objectHas(this.translationsNode, removedPath)) {
                     // Path still exists in en.ts, so it's modified not removed
                     this.pathsToRemove.delete(removedPath);
                     this.pathsToModify.add(removedPath);
@@ -1144,10 +1143,10 @@ class TranslationGenerator {
             if (dotPath) {
                 if (isOldVersion && (isOnRemovedLine || hasContextChange)) {
                     // When traversing old version, removed lines indicate paths to remove
-                    this.pathsToRemove.add(dotPath as TranslationPaths);
+                    this.pathsToRemove.add(dotPath);
                 } else if (!isOldVersion && (isOnAddedLine || hasContextChange)) {
                     // When traversing current version, added lines indicate paths to modify/add
-                    this.pathsToModify.add(dotPath as TranslationPaths);
+                    this.pathsToModify.add(dotPath);
                 }
 
                 if (this.verbose) {
@@ -1220,8 +1219,8 @@ class TranslationGenerator {
     private extractTranslatedNodes(sourceFile: ts.SourceFile, translatedCodeMap: Map<string, string>): void {
         const visitWithPath = (node: ts.Node, currentPath = '') => {
             // Only extract code strings for exact paths in our sets (not hierarchical matches)
-            const isAddedPath = this.pathsToAdd.has(currentPath as TranslationPaths);
-            const isModifiedPath = this.pathsToModify.has(currentPath as TranslationPaths);
+            const isAddedPath = this.pathsToAdd.has(currentPath);
+            const isModifiedPath = this.pathsToModify.has(currentPath);
 
             if ((isAddedPath || isModifiedPath) && ts.isPropertyAssignment(node)) {
                 if (!node.initializer) {
@@ -1422,7 +1421,7 @@ class TranslationGenerator {
             }
 
             // Check if this path should be removed
-            if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
+            if (currentPath && this.pathsToRemove.has(currentPath)) {
                 return {action: TransformerAction.Remove};
             }
 

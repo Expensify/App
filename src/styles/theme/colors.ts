@@ -1,11 +1,9 @@
-import type {Color} from './types';
-
 /**
  * DO NOT import colors.js into files. Use the theme switching hooks and HOCs instead.
  * For functional components, you can use the `useTheme` and `useThemeStyles` hooks
  * For class components, you can use the `withTheme` and `withThemeStyles` HOCs
  */
-const colors: Record<string, Color> = {
+const colors: Record<string, string> = {
     // Brand Colors
     black: '#000000',
     white: '#FFFFFF',

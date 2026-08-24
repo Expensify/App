@@ -1,0 +1,26 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "expo/tsconfig.base",
+    "compilerOptions": {
+        "isolatedModules": true,
+        "strict": true,
+        "incremental": true,
+        "paths": {
+            "@assets/*": ["./assets/*"],
+            "@components/*": ["./src/components/*"],
+            "@github/*": ["./.github/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@libs/*": ["./src/libs/*"],
+            "@navigation/*": ["./src/libs/Navigation/*"],
+            "@pages/*": ["./src/pages/*"],
+            "@prompts/*": ["./prompts/*"],
+            "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
+            "@server/*": ["./server/*"],
+            "@styles/*": ["./src/styles/*"],
+            "@src/*": ["./src/*"],
+            "@userActions/*": ["./src/libs/actions/*"],
+            "@selectors/*": ["./src/selectors/*"],
+            "tests/*": ["./tests/*"]
+        }
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "types": ["node"],
+        "lib": ["ESNext"]
+    },
+    "include": [".github", "web/proxy.ts", "config"],
+    "exclude": ["**/node_modules/*", "**/dist/*"]
+}
