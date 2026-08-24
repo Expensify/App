@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
+import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -19,6 +20,14 @@ import createMock from '../utils/createMock';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
+
+// API initializes Log, which imports this unavailable native module in the Jest environment.
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn<ReturnType<HybridAppModuleType['isHybridApp']>, Parameters<HybridAppModuleType['isHybridApp']>>(() => false),
+    },
+}));
 
 const mockWrite = jest.mocked(write);
 const mockGoBack = jest.mocked(Navigation.goBack);

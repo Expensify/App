@@ -14,6 +14,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
+
 import React from 'react';
 
 const OWNER_ACCOUNT_ID = 999;
@@ -33,12 +35,20 @@ let mockAvatarDraft: {customExpensifyAvatarID?: string; uploadedAvatar?: {uri: s
 let mockAvatarDraftStatus: 'loading' | 'loaded' = 'loaded';
 let mockIsNarrowLayout = true;
 let mockTemplate: {name: string; prompt: string; avatarID: string} | undefined;
+let mockNavigationAction: (() => void) | undefined;
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: (...args: unknown[]) => mockCreateAgent(...args),
     setNewAgentAvatarPreset: (...args: unknown[]) => mockSetNewAgentAvatarPreset(...args),
     clearNewAgentAvatarDraft: (...args: unknown[]) => mockClearNewAgentAvatarDraft(...args),
     clearNewAgentTemplate: (...args: unknown[]) => mockClearNewAgentTemplate(...args),
+}));
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn<ReturnType<HybridAppModuleType['isHybridApp']>, Parameters<HybridAppModuleType['isHybridApp']>>(() => false),
+    },
 }));
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: mockTranslate})));
@@ -89,6 +99,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
     revealRouteBeforeDismissingModal: jest.fn(),
+    setNavigationActionToMicrotaskQueue: jest.fn((navigationAction: () => void) => {
+        mockNavigationAction = navigationAction;
+    }),
 }));
 
 const mockAddListener = jest.fn<() => void, [string, (...args: unknown[]) => void]>(() => jest.fn());
@@ -161,6 +174,7 @@ jest.mock('@components/AvatarButtonWithIcon', () => {
 
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockRevealRouteBeforeDismissingModal = jest.mocked(Navigation.revealRouteBeforeDismissingModal);
+const mockSetNavigationActionToMicrotaskQueue = jest.mocked(Navigation.setNavigationActionToMicrotaskQueue);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockUseOnyx = jest.mocked(useOnyx);
 
@@ -188,6 +202,7 @@ describe('AddAgentPage', () => {
         mockTemplate = undefined;
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN});
         mockAvatarOnPress = undefined;
+        mockNavigationAction = undefined;
     });
 
     it('renders page title', () => {
@@ -319,6 +334,9 @@ describe('AddAgentPage', () => {
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, undefined);
             expect(mockClearNewAgentTemplate).toHaveBeenCalledTimes(1);
             expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
+            expect(mockSetNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
+            expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
+            mockNavigationAction?.();
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
         });
 
@@ -328,6 +346,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, 'POL_42');
+            mockNavigationAction?.();
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
         });
 
