@@ -366,6 +366,15 @@ function entitlementContents(appGroup: string): string {
 `;
 }
 
+function patchIOSAppDisplayName(infoPlist: string, suffix: string | undefined): string {
+    const displayNamePattern = /(<key>CFBundleDisplayName<\/key>\s*<string>)[^<]*(<\/string>)/;
+    if (!displayNamePattern.test(infoPlist)) {
+        fail('Could not find CFBundleDisplayName in Mobile-Expensify/iOS/Expensify/Expensify-Info.plist.');
+    }
+    const suffixLabel = suffix ? ` (${suffix})` : '';
+    return infoPlist.replace(displayNamePattern, `$1Expensify${suffixLabel}$2`);
+}
+
 function bootstrapIOSForDevice(options: BootstrapOptions): void {
     const iosDirectory = resolve(options.rootDirectory, 'Mobile-Expensify/iOS');
     const projectPath = resolve(iosDirectory, 'Expensify.xcodeproj/project.pbxproj');
@@ -378,6 +387,10 @@ function bootstrapIOSForDevice(options: BootstrapOptions): void {
     const project = readFileSync(projectPath, 'utf8');
     const patchedProject = patchProject(project, baseIdentifier, suffix, options.developmentTeam);
     writeFileSync(projectPath, patchedProject);
+
+    const infoPlistPath = resolve(iosDirectory, 'Expensify/Expensify-Info.plist');
+    const infoPlist = readFileSync(infoPlistPath, 'utf8');
+    writeFileSync(infoPlistPath, patchIOSAppDisplayName(infoPlist, suffix));
 
     const appGroup = `group.${[baseIdentifier, suffix].filter(Boolean).join('.')}`;
     const entitlements = entitlementContents(appGroup);
@@ -507,6 +520,7 @@ export {
     entitlementContents,
     installedDevelopmentTeams,
     parseDevelopmentTeamFromProvisioningProfile,
+    patchIOSAppDisplayName,
     patchAndroidAppName,
     patchAndroidBuildGradle,
     patchAndroidManifest,

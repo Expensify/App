@@ -4,6 +4,7 @@ import {
     defaultBundleIdentifier,
     entitlementContents,
     parseDevelopmentTeamFromProvisioningProfile,
+    patchIOSAppDisplayName,
     patchProject,
     resolveDevelopmentTeam,
     targetBundleIdentifier,
@@ -100,6 +101,20 @@ describe('bootstrapIOSForDevice', () => {
 
     test('rejects an invalid suffix', () => {
         expect(() => validateSuffix('not.valid')).toThrow('Bundle identifier suffix');
+    });
+
+    test('adds the suffix to the iOS app display name in parentheses', () => {
+        const productNameBuildSetting = ['$', '{PRODUCT_NAME}'].join('');
+        const infoPlist = `<key>CFBundleDisplayName</key>\n<string>${productNameBuildSetting}</string>`;
+
+        expect(patchIOSAppDisplayName(infoPlist, 'branch')).toBe('<key>CFBundleDisplayName</key>\n<string>Expensify (branch)</string>');
+        expect(patchIOSAppDisplayName(infoPlist, undefined)).toBe('<key>CFBundleDisplayName</key>\n<string>Expensify</string>');
+    });
+
+    test('replaces an existing iOS app display name suffix', () => {
+        const infoPlist = '<key>CFBundleDisplayName</key>\n<string>Expensify (old)</string>';
+
+        expect(patchIOSAppDisplayName(infoPlist, 'new')).toBe('<key>CFBundleDisplayName</key>\n<string>Expensify (new)</string>');
     });
 
     test('patches debug, release, and adhoc configurations for every target', () => {
