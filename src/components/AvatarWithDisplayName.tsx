@@ -53,12 +53,12 @@ import {View} from 'react-native';
 import type DisplayNamesProps from './DisplayNames/types';
 import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 
+import ReportAvatar from './Avatar/connected/ReportAvatar';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import Icon from './Icon';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
@@ -296,7 +296,7 @@ function AvatarWithDisplayName({
     );
 
     const multipleAvatars = (
-        <ReportActionAvatars
+        <ReportAvatar
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
             subscriptAvatarBorderColor={avatarBorderColor}
             size={size}
