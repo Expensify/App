@@ -1,6 +1,10 @@
-import CONST from '@src/CONST';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 const ROUTE_NAME_MAPPING = {
@@ -47,7 +51,33 @@ function getRouteParamForConnection(connectionName: ConnectionName) {
     return NAME_ROUTE_MAPPING[connectionName];
 }
 
-function getSearchValueForConnection(connectionName: ConnectionName): string {
+function getExportLabelForConnection(connectionName: ConnectionName, policy?: OnyxEntry<Policy>): string {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO && isIntuitEnterpriseSuiteConnection(policy)) {
+        return CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE;
+    }
+    return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+}
+
+function getExportLabelsForConnection(connectionName: ConnectionName, policies: Array<OnyxEntry<Policy>>): string[] {
+    const connectionPolicies = policies.filter((policy) => !!policy?.connections?.[connectionName]);
+    if (connectionPolicies.length === 0) {
+        return [getExportLabelForConnection(connectionName)];
+    }
+    return [...new Set(connectionPolicies.map((policy) => getExportLabelForConnection(connectionName, policy)))];
+}
+
+function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(CONST.POLICY.CONNECTIONS.INTUIT_ENTERPRISE_SUITE_SCOPE);
+}
+
+function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
+    return translate(isIntuitEnterpriseSuiteConnection(policy) ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo');
+}
+
+function getAccountingIntegrationDisplayName(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, translate: LocaleContextProps['translate']): string {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        return getQuickbooksOnlineIntegrationName(policy, translate);
+    }
     return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 }
 
@@ -66,10 +96,14 @@ function isStandardExportTemplateLabel(label: string): boolean {
 }
 
 export {
+    getAccountingIntegrationDisplayName,
     getConnectionNameFromRouteParam,
+    getExportLabelForConnection,
+    getExportLabelsForConnection,
+    getQuickbooksOnlineIntegrationName,
     getRouteParamForConnection,
-    getSearchValueForConnection,
     getStandardExportTemplateDisplayName,
     isStandardExportTemplate,
     isStandardExportTemplateLabel,
+    isIntuitEnterpriseSuiteConnection,
 };

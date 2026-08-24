@@ -1,0 +1,412 @@
+diff --git a/node_modules/@react-navigation/core/lib/module/useDescriptors.js b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
+index dfd9de7..0d14027 100644
+--- a/node_modules/@react-navigation/core/lib/module/useDescriptors.js
++++ b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
+@@ -15,6 +15,8 @@ import { jsx as _jsx } from "react/jsx-runtime";
+  * - Helper method to render a screen
+  * - Options specified by the screen for the navigator
+  * - Navigation object intended for the route
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  */
+ export function useDescriptors({
+   state,
+@@ -30,7 +32,7 @@ export function useDescriptors({
+   onRouteFocus,
+   router,
+   emitter
+-}) {
++}, convertCustomScreenOptions) {
+   const theme = React.useContext(ThemeContext);
+   const [options, setOptions] = React.useState({});
+   const {
+@@ -71,15 +73,26 @@ export function useDescriptors({
+   const getOptions = (route, navigation, overrides) => {
+     const config = screens[route.name];
+     const screen = config.props;
+-    const optionsList = [
+-    // The default `screenOptions` passed to the navigator
+-    screenOptions,
+-    // The `screenOptions` props passed to `Group` elements
+-    ...(config.options ? config.options.filter(Boolean) : []),
+-    // The `options` prop passed to `Screen` elements,
+-    screen.options,
+-    // The options set via `navigation.setOptions`
+-    overrides];
++    let optionsList;
++    if (convertCustomScreenOptions) {
++      optionsList = [
++      // The default `screenOptions` passed to the navigator
++      convertCustomScreenOptions(screenOptions),
++      // The `screenOptions` props passed to `Group` elements
++      ...(config.options ? config.options.filter(Boolean).map(convertCustomScreenOptions) : []),
++      // The `options` prop passed to `Screen` elements,
++      convertCustomScreenOptions(screen.options), convertCustomScreenOptions(overrides)];
++    } else {
++      optionsList = [
++      // The default `screenOptions` passed to the navigator
++      screenOptions,
++      // The `screenOptions` props passed to `Group` elements
++      ...(config.options ? config.options.filter(Boolean) : []),
++      // The `options` prop passed to `Screen` elements,
++      screen.options,
++      // The options set via `navigation.setOptions`
++      options[route.key]];
++    }
+     return optionsList.reduce((acc, curr) => Object.assign(acc,
+     // @ts-expect-error: we check for function but TS still complains
+     typeof curr !== 'function' ? curr : curr({
+diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+index 2ed8725..8147d8f 100644
+--- a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
++++ b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+@@ -167,7 +167,7 @@ const getStateFromParams = (params, type) => {
+  * @param options Options object containing `children` and additional options for the router.
+  * @returns An object containing `state`, `navigation`, `descriptors` objects.
+  */
+-export function useNavigationBuilder(createRouter, options) {
++export function useNavigationBuilder(createRouter, options, convertCustomScreenOptions) {
+   const navigatorKey = useRegisterNavigator();
+   const route = React.useContext(NavigationRouteContext);
+   const consumedParams = React.useContext(ConsumedParamsContext);
+@@ -608,7 +608,7 @@ export function useNavigationBuilder(createRouter, options) {
+     router,
+     // @ts-expect-error: this should have both core and custom events, but too much work right now
+     emitter
+-  });
++  }, convertCustomScreenOptions);
+   useCurrentRender({
+     state,
+     navigation,
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+index 0b4f4c2..4dc5941 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+@@ -109,7 +109,16 @@ declare global {
+     }
+ }
+ type Keyof<T extends {}> = Extract<keyof T, string>;
+-export type DefaultNavigatorOptions<ParamList extends ParamListBase, NavigatorID extends string | undefined, State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase, Navigation> = DefaultRouterOptions<Keyof<ParamList>> & {
++export type ScreenListenersOrCallback<State extends NavigationState, EventMap extends EventMapBase, ParamList extends ParamListBase = ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = ScreenListeners<State, EventMap> | ((props: {
++    route: RouteProp<ParamList, RouteName>;
++    navigation: any;
++}) => ScreenListeners<State, EventMap>);
++export type ScreenOptionsOrCallback<ScreenOptions extends {}, ParamList extends ParamListBase = ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = ScreenOptions | ((props: {
++    route: RouteProp<ParamList, RouteName>;
++    navigation: any;
++}) => ScreenOptions);
++
++export type DefaultNavigatorOptions<ParamList extends ParamListBase, NavigatorID extends string | undefined, State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase, Navigation, RouteName extends keyof ParamList = keyof ParamList> = DefaultRouterOptions<Keyof<ParamList>> & {
+     /**
+      * Children React Elements to extract the route configuration from.
+      * Only `Screen`, `Group` and `React.Fragment` are supported as children.
+@@ -128,18 +137,11 @@ export type DefaultNavigatorOptions<ParamList extends ParamListBase, NavigatorID
+     /**
+      * Event listeners for all the screens in the navigator.
+      */
+-    screenListeners?: ScreenListeners<State, EventMap> | ((props: {
+-        route: ScreenRouteProp<ParamList>;
+-        navigation: Navigation;
+-    }) => ScreenListeners<State, EventMap>);
++    screenListeners?: ScreenListenersOrCallback<State, EventMap, ParamList, RouteName>;
+     /**
+      * Default options for all screens under this navigator.
+      */
+-    screenOptions?: ScreenOptions | ((props: {
+-        route: ScreenRouteProp<ParamList>;
+-        navigation: Navigation;
+-        theme: ReactNavigation.Theme;
+-    }) => ScreenOptions);
++    screenOptions?: ScreenOptionsOrCallback<ScreenOptions, ParamList, RouteName>;
+     /**
+      * Layout for all screens under this navigator.
+      */
+@@ -184,6 +186,7 @@ export type EventMapBase = Record<string, {
+     data?: any;
+     canPreventDefault?: boolean;
+ }>;
++export type ConvertCustomScreenOptions<CustomScreenOptions extends {}, ScreenOptions extends {}> = (options: ScreenOptionsOrCallback<CustomScreenOptions> | undefined) => ScreenOptionsOrCallback<ScreenOptions> | undefined;
+ export type EventMapCore<State extends NavigationState> = {
+     focus: {
+         data: undefined;
+@@ -599,7 +602,7 @@ export type RouteConfigProps<ParamList extends ParamListBase, RouteName extends
+      */
+     initialParams?: Partial<ParamList[RouteName]>;
+ };
+-export type RouteConfig<ParamList extends ParamListBase, RouteName extends keyof ParamList, State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase, Navigation> = RouteConfigProps<ParamList, RouteName, State, ScreenOptions, EventMap, Navigation> & RouteConfigComponent<ParamList, RouteName>;
++export type RouteConfig<ParamList extends ParamListBase, RouteName extends keyof ParamList, State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase, Navigation, CustomScreenOptions extends {} = ScreenOptions> = RouteConfigProps<ParamList, RouteName, State, ScreenOptions | CustomScreenOptions, EventMap, Navigation> & RouteConfigComponent<ParamList, RouteName>;
+ export type RouteGroupConfig<ParamList extends ParamListBase, ScreenOptions extends {}, Navigation> = {
+     /**
+      * Optional key for the screens in this group.
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts
+index 5e37fe4..f0129f1 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts
+@@ -1,7 +1,7 @@
+ import type { NavigationAction, NavigationState, ParamListBase, PartialState, Router } from '@react-navigation/routers';
+ import * as React from 'react';
+ import { type AddKeyedListener, type AddListener } from './NavigationBuilderContext.js';
+-import type { Descriptor, EventMapBase, NavigationHelpers, NavigationProp, RouteConfig, RouteProp } from './types.js';
++import type { ConvertCustomScreenOptions, Descriptor, EventMapBase, NavigationHelpers, NavigationProp, RouteConfig, RouteProp } from './types.js';
+ import type { NavigationEventEmitter } from './useEventEmitter.js';
+ export type ScreenConfigWithParent<State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase> = {
+     keys: (string | undefined)[];
+@@ -44,7 +44,7 @@ type Options<State extends NavigationState, ScreenOptions extends {}, EventMap e
+  * - Options specified by the screen for the navigator
+  * - Navigation object intended for the route
+  */
+-export declare function useDescriptors<State extends NavigationState, ActionHelpers extends Record<string, () => void>, ScreenOptions extends {}, EventMap extends EventMapBase>({ state, screens, navigation, screenOptions, screenLayout, onAction, getState, setState, addListener, addKeyedListener, onRouteFocus, router, emitter, }: Options<State, ScreenOptions, EventMap>): {
++export declare function useDescriptors<State extends NavigationState, ActionHelpers extends Record<string, () => void>, ScreenOptions extends {}, EventMap extends EventMapBase, CustomScreenOptions extends {} = ScreenOptions>({ state, screens, navigation, screenOptions, screenLayout, onAction, getState, setState, addListener, addKeyedListener, onRouteFocus, router, emitter, }: Options<State, ScreenOptions, EventMap>, convertCustomScreenOptions?: ConvertCustomScreenOptions<CustomScreenOptions, ScreenOptions>): {
+     describe: (route: RouteProp<ParamListBase>, placeholder: boolean) => Descriptor<ScreenOptions, Omit<{
+         dispatch(action: Readonly<{
+             type: string;
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
+index 36566fb..fc4eb26 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
+@@ -1,6 +1,6 @@
+ import { type DefaultRouterOptions, type NavigationAction, type NavigationState, type ParamListBase, type PartialState, type RouterFactory } from '@react-navigation/routers';
+ import * as React from 'react';
+-import { type DefaultNavigatorOptions, type EventMapCore, PrivateValueStore } from './types.js';
++import { type ConvertCustomScreenOptions, type DefaultNavigatorOptions, type EventMapCore, PrivateValueStore } from './types.js';
+ /**
+  * Hook for building navigators.
+  *
+@@ -8,7 +8,7 @@ import { type DefaultNavigatorOptions, type EventMapCore, PrivateValueStore } fr
+  * @param options Options object containing `children` and additional options for the router.
+  * @returns An object containing `state`, `navigation`, `descriptors` objects.
+  */
+-export declare function useNavigationBuilder<State extends NavigationState, RouterOptions extends DefaultRouterOptions, ActionHelpers extends Record<string, (...args: any) => void>, ScreenOptions extends {}, EventMap extends Record<string, any>>(createRouter: RouterFactory<State, NavigationAction, RouterOptions>, options: DefaultNavigatorOptions<ParamListBase, string | undefined, State, ScreenOptions, EventMap, any> & RouterOptions): {
++export declare function useNavigationBuilder<State extends NavigationState, RouterOptions extends DefaultRouterOptions, ActionHelpers extends Record<string, (...args: any) => void>, ScreenOptions extends {}, EventMap extends Record<string, any>, CustomScreenOptions extends {} = ScreenOptions>(createRouter: RouterFactory<State, NavigationAction, RouterOptions>, options: DefaultNavigatorOptions<ParamListBase, string | undefined, State, ScreenOptions, EventMap, any> & RouterOptions, convertCustomScreenOptions?: ConvertCustomScreenOptions<CustomScreenOptions, ScreenOptions>): {
+     state: State;
+     navigation: {
+         dispatch(action: Readonly<{
+diff --git a/node_modules/@react-navigation/core/src/types.tsx b/node_modules/@react-navigation/core/src/types.tsx
+index 68e52ae..4eb998a 100644
+--- a/node_modules/@react-navigation/core/src/types.tsx
++++ b/node_modules/@react-navigation/core/src/types.tsx
+@@ -157,6 +157,29 @@ declare global {
+ 
+ type Keyof<T extends {}> = Extract<keyof T, string>;
+ 
++export type ScreenListenersOrCallback<
++  State extends NavigationState,
++  EventMap extends EventMapBase,
++  ParamList extends ParamListBase = ParamListBase,
++  RouteName extends keyof ParamList = keyof ParamList,
++> =
++  | ScreenListeners<State, EventMap>
++  | ((props: {
++      route: RouteProp<ParamList, RouteName>;
++      navigation: any;
++    }) => ScreenListeners<State, EventMap>);
++
++export type ScreenOptionsOrCallback<
++  ScreenOptions extends {},
++  ParamList extends ParamListBase = ParamListBase,
++  RouteName extends keyof ParamList = keyof ParamList
++> =
++  | ScreenOptions
++  | ((props: {
++      route: RouteProp<ParamList, RouteName>;
++      navigation: any;
++    }) => ScreenOptions);
++
+ export type DefaultNavigatorOptions<
+   ParamList extends ParamListBase,
+   NavigatorID extends string | undefined,
+@@ -164,6 +187,7 @@ export type DefaultNavigatorOptions<
+   ScreenOptions extends {},
+   EventMap extends EventMapBase,
+   Navigation,
++  RouteName extends keyof ParamList = keyof ParamList,
+ > = DefaultRouterOptions<Keyof<ParamList>> & {
+   /**
+    * Children React Elements to extract the route configuration from.
+@@ -199,23 +223,12 @@ export type DefaultNavigatorOptions<
+   /**
+    * Event listeners for all the screens in the navigator.
+    */
+-  screenListeners?:
+-    | ScreenListeners<State, EventMap>
+-    | ((props: {
+-        route: ScreenRouteProp<ParamList>;
+-        navigation: Navigation;
+-      }) => ScreenListeners<State, EventMap>);
++  screenListeners?: ScreenListenersOrCallback<State, EventMap, ParamList, RouteName>;
+ 
+   /**
+    * Default options for all screens under this navigator.
+    */
+-  screenOptions?:
+-    | ScreenOptions
+-    | ((props: {
+-        route: ScreenRouteProp<ParamList>;
+-        navigation: Navigation;
+-        theme: ReactNavigation.Theme;
+-      }) => ScreenOptions);
++  screenOptions?: ScreenOptionsOrCallback<ScreenOptions, ParamList, RouteName>;
+ 
+   /**
+    * Layout for all screens under this navigator.
+@@ -276,6 +289,13 @@ export type EventMapBase = Record<
+   { data?: any; canPreventDefault?: boolean }
+ >;
+ 
++export type ConvertCustomScreenOptions<
++  CustomScreenOptions extends {},
++  ScreenOptions extends {}
++> = (
++  options: ScreenOptionsOrCallback<CustomScreenOptions> | undefined
++) => ScreenOptionsOrCallback<ScreenOptions> | undefined;
++
+ export type EventMapCore<State extends NavigationState> = {
+   focus: { data: undefined };
+   blur: { data: undefined };
+@@ -876,11 +896,12 @@ export type RouteConfig<
+   ScreenOptions extends {},
+   EventMap extends EventMapBase,
+   Navigation,
++  CustomScreenOptions extends {} = ScreenOptions,
+ > = RouteConfigProps<
+   ParamList,
+   RouteName,
+   State,
+-  ScreenOptions,
++  ScreenOptions | CustomScreenOptions,
+   EventMap,
+   Navigation
+ > &
+diff --git a/node_modules/@react-navigation/core/src/useDescriptors.tsx b/node_modules/@react-navigation/core/src/useDescriptors.tsx
+index 320efcf..e78fa6d 100644
+--- a/node_modules/@react-navigation/core/src/useDescriptors.tsx
++++ b/node_modules/@react-navigation/core/src/useDescriptors.tsx
+@@ -16,6 +16,7 @@ import { NavigationProvider } from './NavigationProvider';
+ import { SceneView } from './SceneView';
+ import { ThemeContext } from './theming/ThemeContext';
+ import type {
++  ConvertCustomScreenOptions,
+   Descriptor,
+   EventMapBase,
+   NavigationHelpers,
+@@ -91,12 +92,15 @@ type Options<
+  * - Helper method to render a screen
+  * - Options specified by the screen for the navigator
+  * - Navigation object intended for the route
++ * @param convertCustomScreenOptions Function to convert custom screen options to screen options.
++ * If passed, it means that the `options`/`screenOptions` passed to the navigator are custom and need to be converted to regular screen options.
+  */
+ export function useDescriptors<
+   State extends NavigationState,
+   ActionHelpers extends Record<string, () => void>,
+   ScreenOptions extends {},
+   EventMap extends EventMapBase,
++  CustomScreenOptions extends {} = ScreenOptions,
+ >({
+   state,
+   screens,
+@@ -111,7 +115,8 @@ export function useDescriptors<
+   onRouteFocus,
+   router,
+   emitter,
+-}: Options<State, ScreenOptions, EventMap>) {
++}: Options<State, ScreenOptions, EventMap>,
++convertCustomScreenOptions?: ConvertCustomScreenOptions<CustomScreenOptions, ScreenOptions>) {
+   const theme = React.useContext(ThemeContext);
+   const [options, setOptions] = React.useState<Record<string, ScreenOptions>>(
+     {}
+@@ -188,18 +193,33 @@ export function useDescriptors<
+     const config = screens[route.name];
+     const screen = config.props;
+ 
+-    const optionsList = [
+-      // The default `screenOptions` passed to the navigator
+-      screenOptions,
+-      // The `screenOptions` props passed to `Group` elements
+-      ...((config.options
+-        ? config.options.filter(Boolean)
+-        : []) as ScreenOptionsOrCallback<ScreenOptions>[]),
+-      // The `options` prop passed to `Screen` elements,
+-      screen.options,
+-      // The options set via `navigation.setOptions`
+-      overrides,
+-    ];
++    let optionsList: (ScreenOptionsOrCallback<ScreenOptions> | undefined)[];
++    if (convertCustomScreenOptions) {
++      optionsList = [
++        // The default `screenOptions` passed to the navigator
++        convertCustomScreenOptions(screenOptions as ScreenOptionsOrCallback<CustomScreenOptions> | undefined),
++        // The `screenOptions` props passed to `Group` elements
++        ...((config.options
++          ? config.options.filter(Boolean).map((opt) => convertCustomScreenOptions(opt as ScreenOptionsOrCallback<CustomScreenOptions> | undefined))
++          : []) as ScreenOptionsOrCallback<ScreenOptions>[]),
++        // The `options` prop passed to `Screen` elements,
++        convertCustomScreenOptions(screen.options as ScreenOptionsOrCallback<CustomScreenOptions> | undefined),
++        convertCustomScreenOptions(overrides as unknown as ScreenOptionsOrCallback<CustomScreenOptions> | undefined),
++      ];
++    } else {
++      optionsList = [
++        // The default `screenOptions` passed to the navigator
++        screenOptions,
++        // The `screenOptions` props passed to `Group` elements
++        ...((config.options
++          ? config.options.filter(Boolean)
++          : []) as ScreenOptionsOrCallback<ScreenOptions>[]),
++        // The `options` prop passed to `Screen` elements,
++        screen.options,
++        // The options set via `navigation.setOptions`
++        overrides,
++      ];
++    }
+ 
+     return optionsList.reduce<ScreenOptions>(
+       (acc, curr) =>
+diff --git a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx b/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
+index 9f0d412..bc976eb 100644
+--- a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
++++ b/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
+@@ -27,6 +27,7 @@ import { NavigationStateContext } from './NavigationStateContext';
+ import { PreventRemoveProvider } from './PreventRemoveProvider';
+ import { Screen } from './Screen';
+ import {
++  type ConvertCustomScreenOptions,
+   type DefaultNavigatorOptions,
+   type EventMapBase,
+   type EventMapCore,
+@@ -333,6 +334,7 @@ export function useNavigationBuilder<
+   ActionHelpers extends Record<string, (...args: any) => void>,
+   ScreenOptions extends {},
+   EventMap extends Record<string, any>,
++  CustomScreenOptions extends {} = ScreenOptions,
+ >(
+   createRouter: RouterFactory<State, NavigationAction, RouterOptions>,
+   options: DefaultNavigatorOptions<
+@@ -343,7 +345,8 @@ export function useNavigationBuilder<
+     EventMap,
+     any
+   > &
+-    RouterOptions
++    RouterOptions,
++  convertCustomScreenOptions?: ConvertCustomScreenOptions<CustomScreenOptions, ScreenOptions>
+ ) {
+   const navigatorKey = useRegisterNavigator();
+ 
+@@ -1021,7 +1024,8 @@ export function useNavigationBuilder<
+     State,
+     ActionHelpers,
+     ScreenOptions,
+-    EventMap
++    EventMap,
++    CustomScreenOptions
+   >({
+     state,
+     screens,
+@@ -1037,7 +1041,7 @@ export function useNavigationBuilder<
+     router,
+     // @ts-expect-error: this should have both core and custom events, but too much work right now
+     emitter,
+-  });
++  }, convertCustomScreenOptions);
+ 
+   useCurrentRender({
+     state,

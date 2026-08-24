@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CLI wrapper for checkBothCompilers used by Jest tests (oxc-transform is ESM-only and
+ * CLI wrapper for checkBothCompilers used by Jest tests (oxc-transform-react is ESM-only and
  * cannot be loaded directly in the Jest environment).
  *
  * Usage: node scripts/check-both-compilers-runner.mjs <filename> <sourcePath>

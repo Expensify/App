@@ -3,6 +3,7 @@ import Table from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +12,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -71,11 +73,13 @@ export default function WorkspaceTagsTable({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const shouldShowTagCountColumn = isMultiLevelTags && !shouldUseNarrowTableLayout;
     const shouldShowEnabledColumn = !isMultiLevelTags;
-    const shouldShowRequiredColumn = isMultiLevelTags && !hasDependentTags;
+    // Required is configured from Rules once the revamp is on, so the rows have no switch to head.
+    const shouldShowRequiredColumn = isMultiLevelTags && !hasDependentTags && !isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const tagTableColumns: Array<TableColumn<WorkspaceTagTableColumnKey>> = [
         {

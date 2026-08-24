@@ -101,7 +101,7 @@ describe('ImportTransactions', () => {
             const importFinalModal = {
                 titleKey: 'spreadsheet.importSuccessfulTitle' as const,
                 promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
-                promptKeyParams: {transactions: 3},
+                promptKeyParams: {count: 3},
             };
 
             expect(getImportFinalModalOnyxData('import-result-1', importFinalModal)).toEqual({

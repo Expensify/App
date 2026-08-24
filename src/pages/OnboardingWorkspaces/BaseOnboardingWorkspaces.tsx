@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
@@ -40,7 +39,7 @@ import {View} from 'react-native';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const {isOffline} = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -75,14 +74,13 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026;
+    const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
-        const shouldUseSubmitFlow = canUseSubmit2026 && policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
+        const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(policy.policyID);
@@ -120,11 +118,13 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     };
 
     const allPolicyIDItems = Object.values(joinablePolicies ?? {})
-        .filter((policyInfo) => policyInfo.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026)
         .sort((a, b) => b.employeeCount - a.employeeCount)
         .map((policyInfo) => ({
             text: policyInfo.policyName,
-            alternateText: translate('onboarding.workspaceMemberList', policyInfo.employeeCount, policyInfo.policyOwner),
+            alternateText: translate('onboarding.workspaceMemberList', {count: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
+            // The user is not a member of these workspaces yet, so they are absent from Onyx and the avatar falls back
+            // to the default one seeded from `text` - the same icon this list used to build by hand.
+            policyID: policyInfo.policyID,
             keyForList: policyInfo.policyID,
             isDisabled: true,
             rightElement: (
@@ -140,15 +140,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     <Button.Text>{policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}</Button.Text>
                 </Button>
             ),
-            icons: [
-                {
-                    id: policyInfo.policyID,
-                    source: getDefaultWorkspaceAvatar(policyInfo.policyName),
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
-                    name: policyInfo.policyName,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
         }));
 
     const hasMoreThanLimit = allPolicyIDItems.length > CONST.ONBOARDING_JOINABLE_WORKSPACES_LIMIT;

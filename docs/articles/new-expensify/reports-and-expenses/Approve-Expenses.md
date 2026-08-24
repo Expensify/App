@@ -131,7 +131,7 @@ As the assigned approver, you can reject an entire expense report to return it t
 
 ## What happens after a report is rejected
 
-- **Rejected to the submitter**: The report moves back to Draft. The submitter must fix any issues and manually resubmit — rejected reports are skipped during scheduled submit.
+- **Rejected to the submitter**: The report moves back to Draft. The submitter must fix any issues and manually resubmit — rejected reports are skipped when Submissions is enabled.
 - **Rejected to a previous approver**: The report stays Outstanding and prior approvals are preserved, so it won't restart the entire approval workflow.
 
 ---

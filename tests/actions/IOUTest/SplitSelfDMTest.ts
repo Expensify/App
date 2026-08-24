@@ -19,7 +19,7 @@ import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createSelfDM} from '../../utils/collections/reports';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -170,6 +170,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -258,6 +259,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -370,6 +372,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -465,6 +468,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         // Step 1: Create the splits
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -527,6 +531,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         // Step 3: Edit the splits (change amounts)
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -618,6 +623,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,

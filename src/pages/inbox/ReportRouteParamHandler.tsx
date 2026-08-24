@@ -12,6 +12,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 
@@ -27,7 +28,18 @@ function ReportRouteParamHandler() {
     const route = useRoute<ReportScreenRoute>();
     const navigation = useNavigation();
     const {isBetaEnabled} = usePermissions();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const shouldResolveReportID = !route.params.reportID;
+    const ignoreDomainRooms = !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
+    const shouldOpenOnAdminRoom = 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom;
+
+    // Subscribing to the reports collection (instead of relying on the module-scoped copy inside ReportUtils)
+    // makes this handler re-run once the reports finish loading, so a route that was created without a reportID
+    // recovers instead of staying stuck on the loading skeleton. Resolving inside the selector keeps that cheap:
+    // the route only re-renders when the resolved ID changes, and once one is set nothing is computed at all.
+    const [lastAccessedReportID, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => (shouldResolveReportID ? findLastAccessedReport(ignoreDomainRooms, shouldOpenOnAdminRoom, undefined, reportNameValuePairs, reports)?.reportID : undefined),
+    });
 
     useFocusEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -40,12 +52,13 @@ function ReportRouteParamHandler() {
             return;
         }
 
-        const lastAccessedReportID = findLastAccessedReport(
-            !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
-            undefined,
-            reportNameValuePairs,
-        )?.reportID;
+        // Wait for both collections. Archived status lives in the name-value pairs and a missing entry reads as
+        // "not archived", and picking from a partially loaded reports collection can pin a report that isn't
+        // really the last accessed one. Neither can be corrected later, because the effect returns early
+        // once a reportID is set.
+        if (isLoadingOnyxValue(reportNameValuePairsMetadata, reportsMetadata)) {
+            return;
+        }
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined

@@ -2,12 +2,12 @@
 
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
 #### [@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+routers+7.5.3+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.5.3+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch)
 
 - Reason: Necessary to run Jest with the obligatory `--experimental-vm-modules` flag. Currently we transpile all the code to `commonjs`, but Jest looks up to individual `package.jsons` to see whether the package is `commonjs` or `ESModule`. That causes a conflict, which can be solved by removing `{"type":"module"}` from `lib/module/package.json`. This might be an issue with Jest, but it would require much more investigation. More: https://github.com/react-navigation/react-navigation/issues/12637
@@ -16,30 +16,13 @@
 - PR Introducing Patch: [#64155](https://github.com/Expensify/App/pull/64155)
 - PR Updating Patch: N/A
 
-### [@react-navigation+core+7.16.1+001+platform-navigation-stack-types.patch](@react-navigation+core+7.16.1+001+platform-navigation-stack-types.patch)
+### [@react-navigation+core+7.21.12+002+platform-navigation-stack-types.patch](@react-navigation+core+7.21.12+002+platform-navigation-stack-types.patch)
 
 - Reason: Enables passing custom `ScreenOptions` and adjusts typing to have everything fully type-checked and make sure only the proper (common) platform-specific options are passed
 - Upstream PR/issue: N/A
 - E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
-
-### [@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch](@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch)
-
-- Reason: Browser back on web dispatches a root-targeted `RESET` that keeps route keys and only changes nested state, silently bypassing `usePreventRemove`/`beforeRemove` and losing unsaved data. The patch propagates the check into nested navigators.
-- Upstream PR: https://github.com/react-navigation/react-navigation/pull/13153
-- Upstream issue: https://github.com/react-navigation/react-navigation/issues/9031
-- E/App issue: [#84246](https://github.com/Expensify/App/issues/84246)
-- PR Introducing Patch: [#93268](https://github.com/Expensify/App/pull/93268)
-- PR Updating Patch: N/A
-
-### [@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch)
-
-- Reason: Adds `InteractionManager` implementation to `@react-navigation/native-stack`
-- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/11887 (closed/declined upstream; we re-implement it). Still required on v7 — `runAfterInteractions` is used across the app and relies on this. Removing it is gated on migrating those consumers to `navigation.addListener('transitionEnd', ...)`, tracked in [#71913](https://github.com/Expensify/App/issues/71913). That migration works on v7 today and is not a v8-only task — v8 just forces it, since RN deprecated `InteractionManager` in 0.82+.
-- E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
-- PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155) 
+- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#98097](https://github.com/Expensify/App/pull/98097)
 
 ### [@react-navigation+native+7.1.33+001+initial.patch](@react-navigation+native+7.1.33+001+initial.patch)
 

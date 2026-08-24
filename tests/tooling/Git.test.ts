@@ -53,6 +53,7 @@ describe('Git', () => {
 
             expect(result).toBe(true);
             expect(mockExecSync).toHaveBeenCalledWith('git rev-parse --verify "main^{object}"', {
+                maxBuffer: 1024 * 1024 * 200,
                 encoding: 'utf8',
                 cwd: process.cwd(),
                 stdio: 'pipe',
@@ -97,6 +98,7 @@ describe('Git', () => {
                 hasChanges: false,
             });
             expect(mockExecSync).toHaveBeenCalledWith('git diff -U0 -M main', {
+                maxBuffer: 1024 * 1024 * 200,
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
@@ -274,6 +276,7 @@ describe('Git', () => {
             const result = Git.diff('main', undefined, 'src/languages/en.ts');
 
             expect(mockExecSync).toHaveBeenCalledWith('git diff -U0 -M main -- "src/languages/en.ts"', {
+                maxBuffer: 1024 * 1024 * 200,
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
@@ -1198,6 +1201,7 @@ describe('Git', () => {
 
             expect(result).toEqual(['src/new-file.ts', 'src/another-file.tsx']);
             expect(mockExecSync).toHaveBeenCalledWith('git ls-files --others --exclude-standard', {
+                maxBuffer: 1024 * 1024 * 200,
                 encoding: 'utf8',
                 cwd: process.cwd(),
                 stdio: 'pipe',

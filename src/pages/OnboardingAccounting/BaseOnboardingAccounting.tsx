@@ -9,6 +9,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -22,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setOnboardingAccountingEnabled, setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
 import {getDefaultOnboardingFeaturesMap} from '@libs/actions/Welcome/OnboardingFeatures';
+import {isMobileSafari} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
@@ -34,7 +37,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useEffect, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingAccountingProps} from './types';
@@ -131,7 +137,12 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         initialSelectedIntegration = 'other';
     }
     const [selectedIntegration, setSelectedIntegration] = useState<AccountingOptionKey | undefined>(initialSelectedIntegration);
+    const [userReportedIntegrationName, setUserReportedIntegrationName] = useState('');
+    const [shouldScrollToOtherInput, setShouldScrollToOtherInput] = useState(initialSelectedIntegration === 'other');
     const [error, setError] = useState('');
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const otherAccountingSoftwareInputRef = useRef<BaseTextInputRef | null>(null);
+    const isOtherSelected = selectedIntegration === 'other';
 
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
@@ -175,7 +186,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
             />
         ),
-        isSelected: selectedIntegration === 'other',
+        isSelected: isOtherSelected,
     };
 
     const accountingOptions: OnboardingListItem[] = [...integrations.map(createAccountingOption), othersAccountingOption];
@@ -187,15 +198,40 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         }
 
         const integrationValue: OnboardingAccounting = selectedIntegration;
+        const trimmedIntegrationName = userReportedIntegrationName.trim();
+        const integrationName = integrationValue === 'other' && trimmedIntegrationName ? trimmedIntegrationName : undefined;
         setOnboardingAccountingEnabled(true);
         setOnboardingUserReportedIntegration(integrationValue);
-        await completeOnboardingFlow({featuresMap: onboardingFeaturesMap ?? getDefaultOnboardingFeaturesMap(), userReportedIntegration: integrationValue});
+        await completeOnboardingFlow({
+            featuresMap: onboardingFeaturesMap ?? getDefaultOnboardingFeaturesMap(),
+            userReportedIntegration: integrationValue,
+            userReportedIntegrationName: integrationName,
+        });
     };
 
     const handleIntegrationSelect = (integrationKey: OnboardingListItem['keyForList']) => {
+        if (integrationKey === 'other' && isOtherSelected) {
+            otherAccountingSoftwareInputRef.current?.focus();
+            setError('');
+            return;
+        }
+
         setSelectedIntegration(integrationKey);
+        setShouldScrollToOtherInput(integrationKey === 'other');
+        if (integrationKey !== 'other') {
+            setUserReportedIntegrationName('');
+        }
         setError('');
     };
+
+    const handleContentSizeChange = useCallback(() => {
+        if (!shouldScrollToOtherInput) {
+            return;
+        }
+
+        scrollViewRef.current?.scrollToEnd({animated: false});
+        setShouldScrollToOtherInput(false);
+    }, [shouldScrollToOtherInput]);
 
     function renderOption(item: OnboardingListItem) {
         return (
@@ -230,7 +266,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         <ScreenWrapper
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={!isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
         >
             <OnboardingHeader onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute())} />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
@@ -242,10 +279,31 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 </Text>
             </View>
             <ScrollView
+                ref={scrollViewRef}
                 style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 contentContainerStyle={[styles.pt3, styles.pb5]}
+                onContentSizeChange={handleContentSizeChange}
             >
-                <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptions.map(renderOption)}</View>
+                <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>
+                    {accountingOptions.map(renderOption)}
+                    {/* Keep Other from expanding across the empty second column on wide layouts. */}
+                    {!isSmallScreenWidth && (
+                        <View
+                            testID="onboarding-accounting-wide-layout-spacer"
+                            style={[styles.onboardingAccountingItem, styles.bgTransparent, styles.p0]}
+                        />
+                    )}
+                </View>
+                {isOtherSelected && (
+                    <TextInput
+                        ref={otherAccountingSoftwareInputRef}
+                        accessibilityLabel={translate('onboarding.accounting.otherAccountingSoftware')}
+                        label={translate('onboarding.accounting.otherAccountingSoftware')}
+                        value={userReportedIntegrationName}
+                        onChangeText={setUserReportedIntegrationName}
+                        autoFocus
+                    />
+                )}
             </ScrollView>
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 {!!error && (

@@ -70,6 +70,7 @@ On the Rillet integration, choose **Advanced** to configure:
   - **Cash** exports reimbursable expenses after they are paid.
 - **Sync reimbursed reports** – Automatically create bill payments in Rillet when vendor bills are reimbursed in Expensify.
 - **Sync Expensify Card settlements** – Automatically create settlement payments in Rillet for Expensify Card transactions.
+- **Sync Consolidated Travel Billing settlements** – Automatically create settlement payments in Rillet for Consolidated Travel Billing transactions.
 
 ---
 
@@ -98,4 +99,4 @@ Reimbursable expenses export as vendor bills matched to the report submitter's e
 
 ## Do I need a bill payment or settlements account?
 
-A bill payment account is required only when **Sync reimbursed reports** is enabled, and a settlements account is required only when **Sync Expensify Card settlements** is enabled.
+A bill payment account is required only when **Sync reimbursed reports** is enabled, and a settlements account is required only when **Sync Expensify Card settlements** or **Sync Consolidated Travel Billing settlements** is enabled.

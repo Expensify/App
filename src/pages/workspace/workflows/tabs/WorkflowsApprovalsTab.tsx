@@ -16,7 +16,6 @@ import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibil
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,7 +31,7 @@ import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRRea
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {canAccessSubmitWorkspaceFeatures, hasDynamicExternalWorkflow, isControlPolicy} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 
@@ -111,8 +110,6 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Plus']);
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useCardFeeds(policy?.id);
@@ -134,7 +131,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
-    const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
+    const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
@@ -194,7 +191,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
             usedApproverEmails,
         });
 
-        if (canAccessSubmit2026Features) {
+        if (isSubmitPolicyWorkspace) {
             navigateToSubmitWorkspaceApprovalsUpgrade();
             return;
         }
@@ -211,7 +208,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         }
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
-    }, [policy, policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
+    }, [policy, policyID, availableMembers, usedApproverEmails, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
@@ -313,7 +310,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                     showReadOnlyModal();
                     return;
                 }
-                if (isEnabled && canAccessSubmit2026Features) {
+                if (isEnabled && isSubmitPolicyWorkspace) {
                     navigateToSubmitWorkspaceApprovalsUpgrade();
                     return;
                 }
@@ -447,7 +444,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
             showLockIcon={!canWriteApprovals}
             // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
             isActive={
-                !canAccessSubmit2026Features &&
+                !isSubmitPolicyWorkspace &&
                 (isHRConnected ||
                     isDEWEnabled ||
                     (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false))

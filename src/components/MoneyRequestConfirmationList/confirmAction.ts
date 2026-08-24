@@ -56,10 +56,10 @@ type BuildConfirmActionParams = {
 /**
  * Owns the click-confirm action for the Money Request confirmation flow.
  *
- * Handles three branches: (1) invoice-without-company-info routes to the company info
- * step before validation; (2) non-PAY types invoke `onConfirm`; (3) PAY types run
- * delegate-access gating and invoke `onSendMoney` with the chosen payment method.
- * Validation results drive form-error state.
+ * Validation always runs first and its result drives form-error state. Past it there are three
+ * branches: (1) invoice-without-company-info routes to the company info step; (2) non-PAY types
+ * invoke `onConfirm`; (3) PAY types run delegate-access gating and invoke `onSendMoney` with the
+ * chosen payment method.
  */
 function buildConfirmAction({
     iouType,
@@ -76,12 +76,6 @@ function buildConfirmAction({
     onSendMoney,
 }: BuildConfirmActionParams) {
     return ({paymentType: paymentMethod}: PaymentActionParams = {}) => {
-        // Routing short-circuit: invoices without company info go to the company info step before we validate anything.
-        if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy) && transactionID && !routeError) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.path));
-            return;
-        }
-
         const result = validate(paymentMethod);
         if (!result) {
             return;
@@ -92,6 +86,11 @@ function buildConfirmAction({
                 setDidConfirmSplit(true);
             }
             setFormError(result.errorKey);
+            return;
+        }
+
+        if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy) && transactionID && !routeError) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.path));
             return;
         }
 

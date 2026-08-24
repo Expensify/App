@@ -437,7 +437,11 @@ function hasPaymentMethodError(
     const policyList = Object.values(policies ?? {}).filter(Boolean);
     const hasRelevantCardError = cardsWithErrors.some((card) => {
         if (CardUtils.isPersonalCard(card)) {
-            return true;
+            // A personal card's connection error is surfaced as a card error too, so once the card has gone without a
+            // successful sync past the grace period we stop leading the user to it and it must no longer light the RBR.
+            // This is deliberately keyed on the last successful sync rather than `isCardConnectionBroken`: the server
+            // sets the connection error even for scrape statuses that check treats as ignored (e.g. 434).
+            return !CardUtils.isLastScrapePastDismissThreshold(card);
         }
         const workspaceAccountID = Number(card?.fundID);
         const policy = policyList.find((p) => p?.policyAccountID === workspaceAccountID);

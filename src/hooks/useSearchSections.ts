@@ -55,6 +55,7 @@ function useSearchSections(): UseSearchSectionsResult {
             formatPhoneNumber,
             bankAccountList,
             groupBy,
+            queryJSON: lastSearchQuery?.queryJSON,
             currentSearch: searchKey,
             reportNameValuePairs,
             isActionLoadingSet,

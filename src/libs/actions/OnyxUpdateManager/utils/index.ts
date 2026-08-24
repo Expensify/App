@@ -2,22 +2,10 @@ import {getMissingOnyxUpdates} from '@libs/actions/App';
 import Log from '@libs/Log';
 
 import type {AnyDeferredUpdatesDictionary, AnyDetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
-
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-
-import Onyx from 'react-native-onyx';
+import {getEffectiveLastUpdateID} from '@userActions/OnyxUpdates';
 
 import {applyUpdates} from './applyUpdates';
 import {clear, enqueue, getUpdates} from './DeferredOnyxUpdates';
-
-let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;
-
-// We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = value ?? CONST.DEFAULT_NUMBER_ID),
-});
 
 /**
  * In order for the deferred updates to be applied correctly in order,
@@ -119,7 +107,7 @@ function detectGapsAndSplit(lastUpdateIDFromClient: number): AnyDetectGapAndSpli
  * apply the updates in order after the missing updates are fetched and applied
  */
 function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousParams?: {newLastUpdateIDFromClient: number; latestMissingUpdateID: number}): Promise<void> {
-    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
+    const lastUpdateIDFromClient = clientLastUpdateID ?? getEffectiveLastUpdateID();
 
     Log.info('[DeferredUpdates] Processing deferred updates', false, {lastUpdateIDFromClient, previousParams});
 
@@ -145,7 +133,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
                 // the initial "updatesAfterGaps" and all new deferred updates will be applied in order,
                 // as long as there was no new gap detected. Otherwise, repeat the process.
 
-                const newLastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
+                const newLastUpdateIDFromClient = clientLastUpdateID ?? getEffectiveLastUpdateID();
 
                 enqueue(updatesAfterGaps, {shouldPauseSequentialQueue: false});
 

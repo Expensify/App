@@ -5,6 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import SEARCH_ROUTER_OPTIONS_CONFIG from '@components/Search/SearchRouter/searchRouterOptionsConfig';
 import Text from '@components/Text';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
@@ -259,6 +260,14 @@ describe('SearchAutocompleteList', () => {
         render(<SearchRouterWrapper isSearchRouterDisplayed={isSearchRouterDisplayed} />);
 
         expect(mockUseNavigationSuggestions).toHaveBeenCalledWith(expect.any(String), shouldWatchForApprovals);
+    });
+
+    it('asks for the option list with the config shared with the SearchRouter warm-up', () => {
+        render(<SearchRouterWrapper />);
+
+        // createFilteredOptionList keys its cache on these values, so the empty-query list this screen asks for
+        // has to be the one SearchRouterOptionsWarmer built, or the warm build is never reused.
+        expect(mockUseFilteredOptions).toHaveBeenCalledWith(expect.objectContaining({...SEARCH_ROUTER_OPTIONS_CONFIG, isSearching: false}));
     });
 
     it('should display and select navigation suggestion rows', async () => {

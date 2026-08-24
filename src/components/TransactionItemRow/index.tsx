@@ -97,7 +97,7 @@ function TransactionItemRow({
 }: TransactionItemRowProps) {
     const shouldDeferRBR = !shouldSkipDeferRBR;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
@@ -264,7 +264,7 @@ function TransactionItemRow({
             createdAt={createdAt}
             transactionThreadReportID={transactionThreadReportID}
             shouldDeferRBR={shouldDeferRBR}
-            isMarkAsDone={shouldUseMarkAsDoneCopy}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
         />
     );
 }

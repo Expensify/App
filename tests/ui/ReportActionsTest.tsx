@@ -199,7 +199,7 @@ describe('ReportActions (orchestrator)', () => {
 
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
-        expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
+        expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(REPORT_ID, mockReport, {warm: false});
     });
 
     it('mounts the body (not the orchestrator app-load skeleton) for a Concierge report during app load', () => {

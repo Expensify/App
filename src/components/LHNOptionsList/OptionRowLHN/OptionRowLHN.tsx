@@ -8,7 +8,16 @@ import {View} from 'react-native';
 import OptionRow from './OptionRow';
 import useOptionRowChrome from './useOptionRowChrome';
 
-function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', onLayout = () => {}, hasDraftComment, testID, isMarkAsDone}: OptionRowLHNProps) {
+function OptionRowLHN({
+    isOptionFocused = false,
+    onSelectRow = () => {},
+    optionItem,
+    viewMode = 'default',
+    onLayout = () => {},
+    hasDraftComment,
+    testID,
+    shouldShowMarkAsDoneCopy,
+}: OptionRowLHNProps) {
     const styles = useThemeStyles();
     const {setHovered, sidebarInnerRowStyle, contentContainerStyles, avatarBackgroundColor} = useOptionRowChrome({
         isOptionFocused,
@@ -30,7 +39,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                     onLayout={onLayout}
                     onHoverIn={() => setHovered(true)}
                     onHoverOut={() => setHovered(false)}
-                    isMarkAsDone={isMarkAsDone}
+                    shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                 >
                     <View style={sidebarInnerRowStyle}>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -57,7 +66,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                             <OptionRow.ErrorBadge
                                 brickRoadIndicator={brickRoadIndicator}
                                 actionBadge={optionItem.actionBadge}
-                                isMarkAsDone={isMarkAsDone}
+                                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                             />
                         </View>
                     </View>
@@ -65,7 +74,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                         <OptionRow.InfoBadge
                             brickRoadIndicator={brickRoadIndicator}
                             actionBadge={optionItem.actionBadge}
-                            isMarkAsDone={isMarkAsDone}
+                            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         />
                         <OptionRow.DraftIndicator
                             hasDraftComment={hasDraftComment}

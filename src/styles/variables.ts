@@ -189,6 +189,8 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     checkboxLabelHoverOpacity: 1,
     avatarChatSpacing: 12,
+    // Left padding for the composer text input, tightened so the text sits close to the action button
+    composerTextInputPaddingLeft: 5,
     cornerHandleSize: 12,
     cornerTapTargetSize: 40,
     edgeHandleTapTargetThickness: 12,
@@ -287,7 +289,7 @@ export default {
     modalRightDockedZIndex: 9997,
     modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
-    sectionMargin: 16,
+    sectionMargin: 20,
     workspaceSectionMaxWidth: 680,
     sectionIllustrationHeight: 220,
     tripsIllustrationW: 168,

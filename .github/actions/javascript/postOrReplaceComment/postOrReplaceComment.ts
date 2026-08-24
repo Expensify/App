@@ -140,7 +140,7 @@ async function run() {
     await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

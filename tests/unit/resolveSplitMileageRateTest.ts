@@ -5,6 +5,8 @@ import type {Policy, Transaction} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
+import createMock from '../utils/createMock';
+
 const CUSTOM_UNIT_ID = 'distance-unit-1';
 const ACTIVE_RATE_ID = 'rate-active';
 const DELETED_RATE_ID = 'rate-deleted';
@@ -33,7 +35,7 @@ const buildRate = (customUnitRateID: string, overrides: RateOverrides = {}) => (
 });
 
 const buildPolicyWithRates = (rates: Record<string, ReturnType<typeof buildRate>>): Policy =>
-    ({
+    createMock<Policy>({
         id: 'policy-1',
         customUnits: {
             [CUSTOM_UNIT_ID]: {
@@ -46,10 +48,10 @@ const buildPolicyWithRates = (rates: Record<string, ReturnType<typeof buildRate>
                 rates,
             },
         },
-    }) as unknown as Policy;
+    });
 
 const buildDistanceTransaction = (customUnitRateID: string | undefined, overrides: {amount?: number; currency?: string; quantity?: number} = {}): Transaction =>
-    ({
+    createMock<Transaction>({
         transactionID: 'tx-1',
         amount: overrides.amount ?? -1000,
         currency: overrides.currency ?? CONST.CURRENCY.USD,
@@ -63,7 +65,7 @@ const buildDistanceTransaction = (customUnitRateID: string | undefined, override
                 quantity: overrides.quantity ?? 10,
             },
         },
-    }) as unknown as Transaction;
+    });
 
 describe('resolveSplitMileageRate', () => {
     describe('workspace context (isSelfDMSplit=false)', () => {

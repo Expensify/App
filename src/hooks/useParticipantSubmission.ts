@@ -64,7 +64,6 @@ type UseParticipantSubmissionParams = {
     participants: Participant[] | undefined;
     iouType: IOUType;
     action: IOUAction;
-    backTo: string | undefined;
     isSplitRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
     isFocused: boolean;
@@ -77,7 +76,6 @@ function useParticipantSubmission({
     participants,
     iouType,
     action,
-    backTo,
     isSplitRequest,
     isMovingTransactionFromTrackExpense,
     isFocused,
@@ -113,7 +111,6 @@ function useParticipantSubmission({
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE &&
         isGroupPolicy(activePolicy) &&
-        activePolicy?.isPolicyExpenseChatEnabled &&
         !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID);
 
     const dataRef = useRef({
@@ -210,16 +207,8 @@ function useParticipantSubmission({
         }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, dmReportID);
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
-                } else {
-                    // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
-                    // More information can be found here: https://github.com/Expensify/App/issues/73728
-                    Navigation.navigate(iouConfirmationPageRoute);
-                }
+                Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             });
         });
     };
@@ -348,7 +337,7 @@ function useParticipantSubmission({
         const isPolicyExpenseChat = effectiveParticipants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && splitTransaction?.amount && splitTransaction?.currency) {
             const participantAccountIDs = effectiveParticipants?.map((participant) => participant.accountID) as number[];
-            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs, userDetails.accountID);
+            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs, userDetails.accountID, getCurrencyDecimals);
         }
 
         const newReportID = selectedReportID.current;
@@ -415,6 +404,13 @@ function useParticipantSubmission({
             return;
         }
 
+        // Both "Share with accountant" and "Send to someone"/"Submit it to someone" replace the picker in the RHP stack when
+        // moving a tracked expense, so the confirmation page needs an explicit backTo to return to it. Without it, the back
+        // button falls through to navigateToStartMoneyRequestStep, which for these actions dismisses the whole RHP to the report
+        // instead of returning to the picker. CATEGORIZE is excluded because it routes through the category step, which carries
+        // its own back path. See #99145.
+        const shouldReturnToParticipantPicker = isMovingTransactionFromTrackExpense && !isCategorizing;
+
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
             iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
@@ -422,7 +418,7 @@ function useParticipantSubmission({
             newReportID,
             undefined,
             undefined,
-            action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
+            shouldReturnToParticipantPicker ? Navigation.getActiveRoute() : undefined,
         );
 
         const route = isCategorizing
@@ -433,16 +429,10 @@ function useParticipantSubmission({
             : iouConfirmationPageRoute;
 
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
             // More information can be found here: https://github.com/Expensify/App/issues/73728
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(route, {compareParams: false});
-                } else {
-                    Navigation.navigate(route);
-                }
+                Navigation.goBack(route, {compareParams: false});
             });
         });
     };
@@ -451,3 +441,4 @@ function useParticipantSubmission({
 }
 
 export default useParticipantSubmission;
+export type {UseParticipantSubmissionParams};

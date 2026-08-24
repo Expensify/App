@@ -14,6 +14,7 @@ import {
     updatePersonalDetailsAndShipExpensifyCards,
 } from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import type ResendValidateCodeParams from '@libs/API/parameters/ResendValidateCodeParams';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -115,6 +116,13 @@ function MissingPersonalDetailsValidateCodePage({
         [countryCode, values, isVirtualCard, cardID],
     );
 
+    // The validate code generated here must carry the reasonCode of the command handleSubmitForm will
+    // call: virtual cards verify via SetPersonalDetailsAndRevealExpensifyCard (reveal_card_details)
+    // and physical cards via SetPersonalDetailsAndShipExpensifyCards (ship_card)
+    const resendValidateCodeParams: ResendValidateCodeParams = isVirtualCard
+        ? {reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: Number(cardID)}
+        : {reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SHIP_CARD};
+
     let validateError = validateLoginError;
     if (!isEmptyObject(revealCardError)) {
         validateError = revealCardError;
@@ -126,9 +134,7 @@ function MissingPersonalDetailsValidateCodePage({
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
-            sendValidateCode={() =>
-                requestValidateCodeAction(isVirtualCard ? {reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: Number.parseInt(cardID, 10)} : undefined)
-            }
+            sendValidateCode={() => requestValidateCodeAction(resendValidateCodeParams)}
             validateCodeActionErrorField={CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD}
             handleSubmitForm={handleSubmitForm}
             validateError={validateError}

@@ -11,6 +11,7 @@ import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isUserValidatedSelector} from '@selectors/Account';
@@ -30,7 +31,7 @@ function AddBankAccount() {
             subtitle={translate('common.wallet')}
             ctaText={translate('common.add')}
             onCtaPress={() => openPersonalBankAccountSetupView({isUserValidated})}
-            buttonProps={{success: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

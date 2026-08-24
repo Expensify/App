@@ -23,9 +23,14 @@ function useImportSpreadsheetConfirmModal() {
             return false;
         }
 
+        // `translate` can't infer parameter types from a union of translation paths, so the assertion is
+        // unavoidable. Both messages below need it, so it lives in one place rather than at each call.
+        const translateKey = (key: ImportFinalModal['promptKey'], params?: ImportFinalModal['promptKeyParams'] | ImportFinalModal['pendingMessageKeyParams']) =>
+            translate(key, params as TranslationParameters<typeof key>[0]);
+
         const titleText = translate(importFinalModal.titleKey);
-        const promptText = translate(importFinalModal.promptKey, importFinalModal.promptKeyParams as TranslationParameters<typeof importFinalModal.promptKey>[0]);
-        const pendingText = importFinalModal.pendingMessageKey ? translate(importFinalModal.pendingMessageKey) : '';
+        const promptText = translateKey(importFinalModal.promptKey, importFinalModal.promptKeyParams);
+        const pendingText = importFinalModal.pendingMessageKey ? translateKey(importFinalModal.pendingMessageKey, importFinalModal.pendingMessageKeyParams) : '';
         const fullPromptText = pendingText ? `${promptText} ${pendingText}` : promptText;
 
         await showConfirmModal({

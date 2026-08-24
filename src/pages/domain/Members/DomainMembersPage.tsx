@@ -304,6 +304,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                         title={translate('domain.domainMembers')}
                         onBackButtonPress={Navigation.goBack}
                         shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldUseHeadlineHeader
                         shouldDisplayHelpButton
                     />
                     <ScrollView

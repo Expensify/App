@@ -30,7 +30,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
 } from '@libs/ReportUtils';
-import {getAmount, isScanFailedTransactionMovedOnPayment} from '@libs/TransactionUtils';
+import {getAmount} from '@libs/TransactionUtils';
 
 import {notifyNewAction} from '@userActions/Report';
 
@@ -549,12 +549,7 @@ type OptimisticHoldReportExpenseActionID = {
     oldReportActionID: string;
 };
 
-function getHoldReportActionsAndTransactions(
-    reportID: string | undefined,
-    iouReport?: OnyxEntry<OnyxTypes.Report>,
-    shouldMoveHeldTransactions = true,
-    shouldMoveScanFailedTransactions = false,
-) {
+function getHoldReportActionsAndTransactions(reportID: string | undefined) {
     const allTransactions = getAllTransactions();
     const iouReportActions = getAllReportActions(reportID);
     const holdReportActions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = [];
@@ -564,14 +559,7 @@ function getHoldReportActionsAndTransactions(
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-        if (!transaction) {
-            continue;
-        }
-
-        const isHeld = shouldMoveHeldTransactions && !!transaction.comment?.hold;
-        const isScanFailed = shouldMoveScanFailedTransactions && isScanFailedTransactionMovedOnPayment(transaction, iouReport);
-
-        if (isHeld || isScanFailed) {
+        if (transaction?.comment?.hold) {
             holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
             holdTransactions.push(transaction);
         }
@@ -680,8 +668,6 @@ function getReportFromHoldRequestsOnyxData({
     isApprovalFlow = false,
     delegateAccountID,
     getCurrencyDecimals,
-    shouldMoveHeldTransactions = true,
-    shouldMoveScanFailedTransactions = false,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -692,8 +678,6 @@ function getReportFromHoldRequestsOnyxData({
     isApprovalFlow?: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    shouldMoveHeldTransactions?: boolean;
-    shouldMoveScanFailedTransactions?: boolean;
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -701,10 +685,10 @@ function getReportFromHoldRequestsOnyxData({
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
     optimisticReportActionCopyIDs: OptimisticReportActionCopyIDs;
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>>;
-    successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>>;
 } {
-    const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport?.reportID, iouReport, shouldMoveHeldTransactions, shouldMoveScanFailedTransactions);
+    const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport?.reportID);
     const firstHoldTransaction = holdTransactions.at(0);
     const newParentReportActionID = NumberUtils.rand64();
 
@@ -712,11 +696,8 @@ function getReportFromHoldRequestsOnyxData({
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     const holdReimbursable = getReimbursableTotal(iouReport) - getUnheldReimbursableTotal(iouReport);
     const holdNonReimbursable = (iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
-
-    // Scan-failed expenses only move out when they have no amount, so they carry nothing over to the new report and
-    // leave the totals of the report they came from untouched.
-    const holdAmount = shouldMoveScanFailedTransactions ? 0 : (holdReimbursable + holdNonReimbursable) * coefficient;
-    const holdNonReimbursableAmount = shouldMoveScanFailedTransactions ? 0 : holdNonReimbursable * coefficient;
+    const holdAmount = (holdReimbursable + holdNonReimbursable) * coefficient;
+    const holdNonReimbursableAmount = holdNonReimbursable * coefficient;
 
     // Pass held transactions for formula computation (e.g., {report:startdate})
     const reportTransactions: Record<string, OnyxTypes.Transaction> = {};
@@ -825,7 +806,7 @@ function getReportFromHoldRequestsOnyxData({
     // Held transactions just moved out, leaving total/nonReimbursableTotal stale on this report —
     // offline consumers (e.g. the Pay button) would read the wrong amount until server reconciles.
     // unheldTotal stays as-is: every remaining transaction is unheld, so it already equals the new total.
-    const shouldUpdateOriginalReportTotals = !shouldMoveScanFailedTransactions && holdTransactions.length > 0 && iouReport?.unheldTotal !== undefined;
+    const shouldUpdateOriginalReportTotals = holdTransactions.length > 0 && iouReport?.unheldTotal !== undefined;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
@@ -903,7 +884,7 @@ function getReportFromHoldRequestsOnyxData({
         bringHeldTransactionsBack[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -1009,30 +990,6 @@ function getReportFromHoldRequestsOnyxData({
                 [optimisticCreatedReportForUnapprovedAction.reportActionID]: null,
             },
         });
-    }
-
-    // The backend creates its own report for the moved scan-failed expenses instead of reusing optimisticHoldReportID,
-    // so the optimistic one has to be dropped once the real report arrives, otherwise it lingers as an empty report.
-    if (shouldMoveScanFailedTransactions) {
-        successData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: {
-                    [optimisticExpenseReportPreview.reportActionID]: null,
-                },
-            },
-        );
     }
 
     return {

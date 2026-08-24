@@ -82,7 +82,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
         <Tooltip text={translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
+                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && !isDisabled, pressed && !isDisabled))]}
                 disabled={isDisabled}
                 onPress={openEmojiPicker}
                 id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
@@ -93,7 +93,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                 {({hovered, pressed}) => (
                     <Icon
                         src={icons.Emoji}
-                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                        fill={StyleUtils.getIconFillColor(getButtonState(hovered && !isDisabled, pressed && !isDisabled))}
                     />
                 )}
             </PressableWithoutFeedback>

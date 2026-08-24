@@ -15,15 +15,15 @@ import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
-import isStartupNetworkRequest from './AppStartupNetworkRequest';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
-import {cancelSpan, endSpan} from './telemetry/activeSpans';
+import {cancelSpan, endSpan, endSpanWithAttributes} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
-import startStartupPhaseSpan, {getStartupPhaseSpanId} from './telemetry/startStartupPhaseSpan';
+import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
+import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -70,8 +70,6 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
-let startupRequestAttempt = 0;
-
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -104,19 +102,19 @@ function processHTTPRequest<TKey extends OnyxKey>(
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
 
     // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
-    const isStartupRequest = isStartupNetworkRequest(command);
-    const attempt = isStartupRequest ? (startupRequestAttempt += 1) : 0;
-    const waitSpanId = getStartupPhaseSpanId(CONST.TELEMETRY.SPAN_STARTUP_DATA.WAIT, attempt);
-    const downloadSpanId = getStartupPhaseSpanId(CONST.TELEMETRY.SPAN_STARTUP_DATA.DOWNLOAD, attempt);
-    if (isStartupRequest && command) {
-        startStartupPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.WAIT, attempt, command);
+    const phaseSpanNames = getRequestPhaseSpanNames(command);
+    const attempt = phaseSpanNames ? getNextRequestPhaseAttempt(phaseSpanNames.WAIT) : 0;
+    const waitSpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.WAIT, attempt) : '';
+    const downloadSpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.DOWNLOAD, attempt) : '';
+    if (phaseSpanNames && command) {
+        startRequestPhaseSpan(phaseSpanNames.WAIT, attempt, command);
     }
 
     return fetch(url, fetchParams)
         .then((response) => {
-            if (isStartupRequest && command) {
+            if (phaseSpanNames && command) {
                 endSpan(waitSpanId);
-                startStartupPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.DOWNLOAD, attempt, command, {
+                startRequestPhaseSpan(phaseSpanNames.DOWNLOAD, attempt, command, {
                     [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: response.headers?.get('content-length') ?? undefined,
                 });
             }
@@ -174,10 +172,20 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
 
             const parsedResponse = response.json() as Promise<Response<TKey>>;
-            if (!isStartupRequest) {
+            if (!phaseSpanNames) {
                 return parsedResponse;
             }
-            return parsedResponse.finally(() => endSpan(downloadSpanId));
+            // The server's requestID only exists once the body is parsed, which is exactly when this phase ends. It ties every phase of one attempt together in Sentry.
+            return parsedResponse.then(
+                (parsedBody) => {
+                    endSpanWithAttributes(downloadSpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: parsedBody?.requestID});
+                    return parsedBody;
+                },
+                (error: unknown) => {
+                    endSpan(downloadSpanId);
+                    throw error;
+                },
+            );
         })
         .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists

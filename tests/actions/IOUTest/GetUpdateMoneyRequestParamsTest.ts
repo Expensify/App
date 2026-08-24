@@ -10,6 +10,7 @@ import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, Transaction} from
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -129,6 +130,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then no recently used tags entry should be added
@@ -166,6 +169,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then the tag should appear in the recently used tags for the correct policy and tag list
@@ -208,6 +213,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then the new tag should be first and the old tag should still be present
@@ -251,6 +258,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then tag1 should appear exactly once and be at the front
@@ -283,6 +292,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // When updating the tag with policyTagList: {} (empty)
@@ -301,6 +312,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then both should produce the same optimistic data (an undefined policy tag list is treated the same as an empty one)
@@ -365,6 +378,8 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
     }
 

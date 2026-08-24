@@ -31,10 +31,10 @@ const mockUseCreateReport = jest.fn<{createReport: typeof mockCreateReport; isVi
     isVisible: mockCreateReportIsVisible,
 }));
 const mockUseOnyx = jest.fn<unknown[], [key: string, options?: MockOnyxOptions]>();
-const mockIsBetaEnabled = jest.fn((beta: string) => beta !== CONST.BETAS.SUBMIT_2026);
+const mockIsBetaEnabled = jest.fn(() => true);
 const mockCanSendInvoice = jest.fn<boolean, unknown[]>(() => false);
 const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (policies.length === 1 ? policies.at(0) : undefined));
-const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, isSubmit2026BetaEnabled: boolean, currentUserLogin?: string]>();
+const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, currentUserLogin?: string]>();
 const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
 const mockIsOnSearchMoneyRequestReportPage = jest.fn(() => false);
 const mockGetCurrencyDecimals = jest.fn();
@@ -154,8 +154,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@libs/PolicyUtils', () => ({
     canSendInvoice: (...args: unknown[]) => mockCanSendInvoice(...args),
     getDefaultChatEnabledPolicy: (policies: unknown[]) => mockGetDefaultChatEnabledPolicy(policies),
-    getGroupPoliciesWhereReportCanBeCreated: (policies: unknown, isSubmit2026BetaEnabled: boolean, currentUserLogin?: string) =>
-        mockGetGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, currentUserLogin),
+    getGroupPoliciesWhereReportCanBeCreated: (policies: unknown, currentUserLogin?: string) => mockGetGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin),
     shouldShowPolicy: (...args: unknown[]) => mockShouldShowPolicy(...args),
 }));
 
@@ -203,18 +202,17 @@ describe('useCreateNavigationSuggestions', () => {
         mockCanSendInvoice.mockReturnValue(false);
         mockShouldShowPolicy.mockReturnValue(true);
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
-        mockIsBetaEnabled.mockImplementation((beta) => beta !== CONST.BETAS.SUBMIT_2026);
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(false);
         mockIsRestrictedPolicyCreation = false;
         mockCreateReportIsVisible = true;
         jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(false);
     });
 
-    it('uses beta-aware report policies and renders only available Create actions', () => {
+    it('uses shared report policy eligibility and renders only available Create actions', () => {
         mockCreateReportIsVisible = false;
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, false, session.email);
+        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, session.email);
         expect(mockUseCreateReport).toHaveBeenCalledWith(
             expect.objectContaining({
                 groupPoliciesWithChatEnabled: [],
@@ -295,14 +293,13 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('passes Submit eligibility and exposes permission-gated actions', () => {
-        mockIsBetaEnabled.mockReturnValue(true);
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
         mockCanSendInvoice.mockReturnValue(true);
         mockShouldShowPolicy.mockReturnValue(false);
 
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, true, session.email);
+        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, session.email);
         expect(mockUseCreateReport).toHaveBeenCalledWith(expect.objectContaining({groupPoliciesWithChatEnabled: [submitPolicy]}));
         expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat', 'create_invoice', 'create_workspace']);
 

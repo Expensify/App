@@ -46,7 +46,7 @@ function ExpenseReportListItemRowWide({
     isFocused = false,
     isPendingDelete = false,
     shouldDisableActionPointerEvents = false,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -281,7 +281,7 @@ function ExpenseReportListItemRowWide({
                         hash={item.hash}
                         amount={item.total}
                         chatReport={chatReport}
-                        isMarkAsDone={isMarkAsDone}
+                        shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>

@@ -624,8 +624,8 @@ describe('actions/PolicyCategory', () => {
 
             expect(importFinalModal).toStrictEqual({
                 titleKey: 'spreadsheet.importSuccessfulTitle',
-                promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
-                promptKeyParams: {added: 2, updated: 0},
+                promptKey: 'spreadsheet.importCategoriesAdded',
+                promptKeyParams: {count: 2},
             });
         });
 
@@ -664,7 +664,7 @@ describe('actions/PolicyCategory', () => {
 
             const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
 
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 2});
         });
 
         it('Categories with empty names are skipped when counting unique categories', async () => {
@@ -681,7 +681,7 @@ describe('actions/PolicyCategory', () => {
 
             const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
 
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 1});
         });
 
         it('Empty categories array results in zero unique count', async () => {
@@ -692,7 +692,7 @@ describe('actions/PolicyCategory', () => {
 
             const importFinalModal = await importPolicyCategories(fakePolicy.id, []);
 
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
+            expect(importFinalModal.promptKey).toStrictEqual('spreadsheet.importCategoriesNoneAddedOrUpdated');
         });
     });
 

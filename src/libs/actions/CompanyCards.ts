@@ -219,7 +219,7 @@ function addNewCompanyCardsFeed(
     }
 
     const feedType = CardUtils.getFeedType(cardFeed, cardFeeds);
-    const newSelectedFeed = getCardFeedWithDomainID(feedType, workspaceAccountID) as CompanyCardFeedWithDomainID;
+    const newSelectedFeed = getCardFeedWithDomainID(feedType, workspaceAccountID);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
@@ -1275,7 +1275,7 @@ function importCSVCompanyCards({
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-            value: feedNameWithDomainID as CompanyCardFeedWithDomainID,
+            value: feedNameWithDomainID,
         },
     ];
 
@@ -1283,7 +1283,7 @@ function importCSVCompanyCards({
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
         promptKeyParams: {
-            transactions: transactionsCount,
+            count: transactionsCount,
         },
         pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
     };

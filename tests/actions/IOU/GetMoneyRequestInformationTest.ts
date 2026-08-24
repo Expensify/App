@@ -19,6 +19,7 @@ const CHAT_REPORT_ID = 'report-chat-1';
 const PAYEE_ACCOUNT_ID = 100;
 const PAYER_ACCOUNT_ID = 200;
 const TAG_LIST = 'Department';
+const EMPTY_TAG_LIST = '';
 const TAG_NAME = 'Engineering';
 
 const parentChatReport: Report = {
@@ -138,8 +139,7 @@ describe('getMoneyRequestInformation', () => {
             const tagEntry = result.onyxData.optimisticData?.find((entry) => entry.key === expectedKey);
 
             expect(tagEntry).toBeDefined();
-            const value = tagEntry?.value as Record<string, string[]>;
-            expect(value['']).toEqual([TAG_NAME]);
+            expect(tagEntry?.value).toEqual({[EMPTY_TAG_LIST]: [TAG_NAME]});
         });
 
         it('should use parentChatReport.policyID for the recently used tags key', () => {

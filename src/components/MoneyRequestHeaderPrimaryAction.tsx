@@ -34,7 +34,7 @@ import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import {useWideRHPState} from './WideRHPContextProvider';
 
@@ -92,8 +92,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD) {
             return (
                 <Button
-                    success
-                    text={translate('iou.unhold')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (isDelegateAccessRestricted) {
                             showDelegateNoAccessModal();
@@ -110,45 +109,48 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                             delegateAccountID,
                         );
                     }}
-                />
+                >
+                    <Button.Text>{translate('iou.unhold')}</Button.Text>
+                </Button>
             );
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
             return (
                 <Button
-                    success
-                    text={translate('iou.reject.markAsResolved')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!transaction?.transactionID) {
                             return;
                         }
                         markRejectViolationAsResolved(transaction.transactionID, isOffline, rawTransactionViolations, reportID);
                     }}
-                />
+                >
+                    <Button.Text>{translate('iou.reject.markAsResolved')}</Button.Text>
+                </Button>
             );
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES) {
             return (
                 <Button
-                    success
-                    text={translate('iou.reviewDuplicates')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
                             return;
                         }
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(reportID)));
                     }}
-                />
+                >
+                    <Button.Text>{translate('iou.reviewDuplicates')}</Button.Text>
+                </Button>
             );
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE) {
             return (
                 <Button
-                    success
-                    text={translate('violations.keepThisOne')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
                             return;
@@ -173,19 +175,22 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                             ),
                         );
                     }}
-                />
+                >
+                    <Button.Text>{translate('violations.keepThisOne')}</Button.Text>
+                </Button>
             );
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH) {
             return (
                 <Button
-                    success
-                    text={translate('iou.markAsCash')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
                     }}
-                />
+                >
+                    <Button.Text>{translate('iou.markAsCash')}</Button.Text>
+                </Button>
             );
         }
 

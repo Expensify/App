@@ -202,15 +202,16 @@ This helps future investigators understand the history and current status of err
 17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
 18. Please add a screenshot of the app running on each platform (Web, iOS, Android, Mobile Web).
 19. Please review the [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md) for standards on PR titles, testing responsibilities, and the review workflow.
+20. You must respond to **every** comment left by our AI reviewers (e.g. Codex Review) before your PR is considered ready for review. React with 👍 if you are applying the feedback or 👎 if you are not, and leave a short comment explaining your reasoning either way. You are not required to make every change an AI reviewer suggests — its feedback is advisory — but you are required to respond to each comment so that reviewers can see it was considered rather than overlooked. See the [AI Reviewer philosophy](./philosophies/AI-REVIEWER.md) for more detail.
 
 ### Completing the final checklist
-20. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
-21. The items requiring your completion consist of:
+21. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
+22. The items requiring your completion consist of:
     1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head [here](https://github.com/Expensify/App/blob/main/contributingGuides/REGRESSION_TEST_BEST_PRACTICES.md)).
     2. Identifying and noting the offending PR that caused the bug (if any).
     3. Commenting on the offending PR to note the bug it caused and why (if applicable).
     4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again.
-22. Once the above items have been successfully completed, then payments will begin to be issued.
+23. Once the above items have been successfully completed, then payments will begin to be issued.
 
 ### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.

@@ -161,16 +161,28 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
+/**
+ * Picks the right translation key for an import result. The four cases (neither, added only, updated
+ * only, both) live here rather than in the translation files so each key carries a single `count` and
+ * can be pluralized per locale -- a translation function receiving two independent counts cannot be.
+ */
 function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number, shouldShowMemberRolePermissionWarning = false): ImportFinalModal {
-    return {
-        titleKey: 'spreadsheet.importSuccessfulTitle',
-        promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-        promptKeyParams: {
-            added: addedMembersLength,
-            updated: updatedMembersLength,
-        },
-        ...(shouldShowMemberRolePermissionWarning && {pendingMessageKey: 'spreadsheet.importMembersRolePermissionWarning'}),
-    };
+    const titleKey = 'spreadsheet.importSuccessfulTitle' as const;
+    const warning = shouldShowMemberRolePermissionWarning ? ({pendingMessageKey: 'spreadsheet.importMembersRolePermissionWarning'} as const) : {};
+
+    if (!addedMembersLength && !updatedMembersLength) {
+        return {titleKey, promptKey: 'spreadsheet.importMembersNoneAddedOrUpdated', ...warning};
+    }
+
+    if (addedMembersLength && updatedMembersLength) {
+        return {titleKey, promptKey: 'spreadsheet.importMembersAddedAndUpdated', promptKeyParams: {added: addedMembersLength, updated: updatedMembersLength}, ...warning};
+    }
+
+    if (addedMembersLength) {
+        return {titleKey, promptKey: 'spreadsheet.importMembersAdded', promptKeyParams: {count: addedMembersLength}, ...warning};
+    }
+
+    return {titleKey, promptKey: 'spreadsheet.importMembersUpdated', promptKeyParams: {count: updatedMembersLength}, ...warning};
 }
 
 /**
@@ -827,7 +839,6 @@ function buildAddMembersToWorkspaceOnyxData(
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     // Submit workspaces enforce the editor role for all invited members regardless of the requested role.
-    // Gating is on the policy type — the SUBMIT_2026 beta only controls whether a Submit workspace can be created.
     const effectiveRole = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);

@@ -2,6 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useCreateReport from '@hooks/useCreateReport';
 import useOnyx from '@hooks/useOnyx';
+import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -12,16 +13,18 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
+
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: jest.fn((key: string) => key)}));
 
 jest.mock('@hooks/useOnyx', () => jest.fn());
-const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
+const mockUseOnyx = jest.mocked(useOnyx);
 
 jest.mock('@hooks/useShouldShowEmptyReportConfirmation', () => jest.fn(() => false));
 
-const mockUseShouldShowEmptyReportConfirmation = require('@hooks/useShouldShowEmptyReportConfirmation') as jest.Mock;
+const mockUseShouldShowEmptyReportConfirmation = jest.mocked(useShouldShowEmptyReportConfirmation);
 
 const mockOpenCreateReportConfirmation = jest.fn();
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
@@ -77,8 +80,8 @@ jest.mock('@libs/SubscriptionUtils', () => ({
 
 const POLICY_ID = 'policy-123';
 
-function makePaidPolicy(id = POLICY_ID): OnyxEntry<Policy> {
-    return {
+function makePaidPolicy(id = POLICY_ID): Policy {
+    return createMock<Policy>({
         id,
         name: 'Test Workspace',
         role: CONST.POLICY.ROLE.ADMIN,
@@ -88,21 +91,27 @@ function makePaidPolicy(id = POLICY_ID): OnyxEntry<Policy> {
         ownerAccountID: 1,
         outputCurrency: 'USD',
         employeeList: {},
-    } as OnyxEntry<Policy>;
+    });
 }
 
-function makeSubmitPolicy(id = POLICY_ID): OnyxEntry<Policy> {
+function makeSubmitPolicy(id = POLICY_ID): Policy {
     const policy = makePaidPolicy(id);
-    return policy ? {...policy, type: CONST.POLICY.TYPE.SUBMIT} : policy;
+    return {...policy, type: CONST.POLICY.TYPE.SUBMIT};
 }
 
-function setupUseOnyx(overrides: Record<string, unknown> = {}) {
-    const impl = ((key: string, options?: {selector?: (value: unknown) => unknown}) => {
-        const rawValue = key in overrides ? overrides[key] : undefined;
-        const value = options?.selector ? options.selector(rawValue) : rawValue;
-        return [value, {status: 'loaded'}];
-    }) as typeof useOnyx;
-    mockUseOnyx.mockImplementation(impl);
+function setupUseCreateReportOnyx({activePolicy, emptyReportsConfirmationDismissed}: {activePolicy?: OnyxEntry<Policy>; emptyReportsConfirmationDismissed?: boolean} = {}) {
+    mockUseOnyx.mockImplementation((key) => {
+        if (key === ONYXKEYS.NVP_ACTIVE_POLICY_ID) {
+            return [activePolicy?.id, {status: 'loaded'}];
+        }
+        if (key === `${ONYXKEYS.COLLECTION.POLICY}${activePolicy?.id}`) {
+            return [activePolicy, {status: 'loaded'}];
+        }
+        if (key === ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED) {
+            return [emptyReportsConfirmationDismissed, {status: 'loaded'}];
+        }
+        return [undefined, {status: 'loaded'}];
+    });
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
@@ -113,7 +122,7 @@ describe('useCreateReport', () => {
         reportIDCounter.value = 100;
         mockShouldRestrictUserBillableActions.mockReturnValue(false);
         mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
-        setupUseOnyx();
+        setupUseCreateReportOnyx();
     });
 
     describe('upgrade path (no policies)', () => {
@@ -132,9 +141,9 @@ describe('useCreateReport', () => {
             });
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-            const navigateArg = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0) as string;
-            expect(navigateArg).toContain('upgrade');
-            expect(navigateArg).toContain(CONST.UPGRADE_PATHS.REPORTS);
+            const navigateArg = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0);
+            expect(navigateArg).toEqual(expect.stringContaining('upgrade'));
+            expect(navigateArg).toEqual(expect.stringContaining(CONST.UPGRADE_PATHS.REPORTS));
             expect(onCreateReport).not.toHaveBeenCalled();
         });
     });
@@ -143,7 +152,7 @@ describe('useCreateReport', () => {
         it('navigates to workspace selector when default policy ID is not available', () => {
             const onCreateReport = jest.fn();
             // Pass array with undefined so getDefaultChatEnabledPolicy returns undefined
-            const policies = [undefined] as Array<OnyxEntry<Policy>>;
+            const policies = [undefined];
 
             const {result} = renderHook(() =>
                 useCreateReport({
@@ -163,10 +172,7 @@ describe('useCreateReport', () => {
         it('navigates to workspace selector when restricted with multiple workspaces', () => {
             // Set activePolicy to a non-personal paid policy so isDefaultPersonal is false; the selector
             // should fire purely on the billing-restricted safety net branch.
-            setupUseOnyx({
-                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'p1',
-                [`${ONYXKEYS.COLLECTION.POLICY}p1`]: makePaidPolicy('p1'),
-            });
+            setupUseCreateReportOnyx({activePolicy: makePaidPolicy('p1')});
             mockShouldRestrictUserBillableActions.mockReturnValue(true);
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy('p1'), makePaidPolicy('p2')];
@@ -187,14 +193,11 @@ describe('useCreateReport', () => {
 
         it('navigates to workspace selector when default is personal and there are 2+ non-personal workspaces', () => {
             // Per spec: selector shows iff default workspace is personal AND user has 2+ non-personal options.
-            const personalPolicy = {
+            const personalPolicy: OnyxEntry<Policy> = {
                 ...makePaidPolicy('personal-1'),
                 type: CONST.POLICY.TYPE.PERSONAL,
-            } as OnyxEntry<Policy>;
-            setupUseOnyx({
-                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'personal-1',
-                [`${ONYXKEYS.COLLECTION.POLICY}personal-1`]: personalPolicy,
-            });
+            };
+            setupUseCreateReportOnyx({activePolicy: personalPolicy});
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy('p1'), makePaidPolicy('p2')];
 
@@ -215,10 +218,7 @@ describe('useCreateReport', () => {
 
         it('does NOT show selector when default is non-personal, even with multiple non-personal workspaces', () => {
             // Per spec: if default is already non-personal, just create in default — no selector.
-            setupUseOnyx({
-                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'p1',
-                [`${ONYXKEYS.COLLECTION.POLICY}p1`]: makePaidPolicy('p1'),
-            });
+            setupUseCreateReportOnyx({activePolicy: makePaidPolicy('p1')});
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy('p1'), makePaidPolicy('p2'), makePaidPolicy('p3')];
 
@@ -240,10 +240,7 @@ describe('useCreateReport', () => {
         it('does NOT show selector when default is a Submit workspace, even with 2+ Submit workspaces', () => {
             // Regression: a Submit workspace is a valid non-personal default, so creating a report
             // should go straight to it instead of opening the workspace selector.
-            setupUseOnyx({
-                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'p1',
-                [`${ONYXKEYS.COLLECTION.POLICY}p1`]: makeSubmitPolicy('p1'),
-            });
+            setupUseCreateReportOnyx({activePolicy: makeSubmitPolicy('p1')});
             const onCreateReport = jest.fn();
             const policies = [makeSubmitPolicy('p1'), makeSubmitPolicy('p2')];
 
@@ -264,14 +261,11 @@ describe('useCreateReport', () => {
 
         it('does NOT show selector when default is personal but only 1 non-personal workspace exists', () => {
             // Per spec: with a single non-personal candidate, just create there — no selector.
-            const personalPolicy = {
+            const personalPolicy: OnyxEntry<Policy> = {
                 ...makePaidPolicy('personal-1'),
                 type: CONST.POLICY.TYPE.PERSONAL,
-            } as OnyxEntry<Policy>;
-            setupUseOnyx({
-                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'personal-1',
-                [`${ONYXKEYS.COLLECTION.POLICY}personal-1`]: personalPolicy,
-            });
+            };
+            setupUseCreateReportOnyx({activePolicy: personalPolicy});
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy('p1')];
 
@@ -369,8 +363,8 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            const navigateArg = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0) as string;
-            expect(navigateArg).toContain('upgrade');
+            const navigateArg = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0);
+            expect(navigateArg).toEqual(expect.stringContaining('upgrade'));
         });
     });
 
@@ -404,9 +398,7 @@ describe('useCreateReport', () => {
     describe('empty report confirmation dismissed', () => {
         it('calls onCreateReport directly when confirmation was previously dismissed', () => {
             mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
-            setupUseOnyx({
-                [ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED]: true,
-            });
+            setupUseCreateReportOnyx({emptyReportsConfirmationDismissed: true});
 
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy()];
@@ -458,11 +450,7 @@ describe('useCreateReport', () => {
 
     describe('policy hydration gate', () => {
         it('isVisible is false while the policy collection is still loading', () => {
-            const impl = ((_key: string, options?: {selector?: (value: unknown) => unknown}) => {
-                const value = options?.selector ? options.selector(undefined) : undefined;
-                return [value, {status: 'loading'}];
-            }) as typeof useOnyx;
-            mockUseOnyx.mockImplementation(impl);
+            mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
 
             const onCreateReport = jest.fn();
 
@@ -479,11 +467,7 @@ describe('useCreateReport', () => {
         it('does not navigate to upgrade path when the user actually has policies but Onyx is still loading', () => {
             // Simulates cold start: consumer defaulted groupPoliciesWithChatEnabled to [] because Onyx
             // hasn't hydrated yet. The hook should NOT treat this as "no policies" and navigate to upgrade.
-            const impl = ((_key: string, options?: {selector?: (value: unknown) => unknown}) => {
-                const value = options?.selector ? options.selector(undefined) : undefined;
-                return [value, {status: 'loading'}];
-            }) as typeof useOnyx;
-            mockUseOnyx.mockImplementation(impl);
+            mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
 
             const onCreateReport = jest.fn();
 

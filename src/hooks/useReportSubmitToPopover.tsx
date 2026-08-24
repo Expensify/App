@@ -265,7 +265,9 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             >
                 <View
                     collapsable={false}
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, !isInLandscapeMode && styles.flex1, styles.w100, styles.pt4]}
+                    // Drop the extra top padding on the narrow bottom-docked mobile modal so the search input sits
+                    // closer to the top; the wide/desktop popover keeps `pt4`.
+                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, !isInLandscapeMode && styles.flex1, styles.w100, !isSmallScreenWidth && styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
@@ -296,6 +298,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         styles.flex1,
         styles.w100,
         styles.pt4,
+        isSmallScreenWidth,
         isInLandscapeMode,
         submitToContentKey,
         report,

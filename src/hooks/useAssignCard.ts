@@ -68,7 +68,10 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const {cardFeedErrors} = useCardFeedErrors();
     const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
-    const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
+    // Keyed on the prompting flag rather than `isFeedConnectionBroken`: once a broken connection is past the grace period we
+    // stop blocking assignment. Otherwise a single long-dead card would disable assigning on the whole feed forever, and a
+    // commercial/CSV feed cannot be reconnected at all, so there would be no way out.
+    const isSelectedFeedConnectionBroken = !!feedErrors?.shouldPromptBrokenConnection || !!feedErrors?.hasFeedErrors;
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;

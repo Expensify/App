@@ -3,7 +3,7 @@
  * React Compiler Compliance Check
  *
  * Checks how React components and hooks fare under BOTH React Compilers: Babel
- * (babel-plugin-react-compiler, used by Metro/Jest) and OXC (oxc-transform, used
+ * (babel-plugin-react-compiler, used by Metro/Jest) and OXC (oxc-transform-react, used
  * by the web build). Two modes:
  *   - `check <files...>` -- check specific files, report per-file dual status
  *   - `check-changed`    -- check files changed in a PR, enforce:
@@ -13,9 +13,9 @@
  *          other does not) that did not already exist on main
  *
  * The Babel analysis lives inline here (kept OXC-free at module scope) because this module's
- * `checkReactCompilerCompliance` export is imported by a Jest unit test, and oxc-transform is
+ * `checkReactCompilerCompliance` export is imported by a Jest unit test, and oxc-transform-react is
  * excluded from Jest's transform. The OXC analysis is loaded via a dynamic import that only runs
- * in the (bun) CLI paths, so importing this module in Jest never pulls in oxc-transform.
+ * in the (bun) CLI paths, so importing this module in Jest never pulls in oxc-transform-react.
  */
 import {transformSync} from '@babel/core';
 import CLI from 'expensify-common/CLI';
@@ -375,7 +375,7 @@ async function main() {
     const {remote} = cli.namedArgs;
     const {verbose} = cli.flags;
 
-    // Dynamically import the OXC checker so that importing this module in Jest (where oxc-transform
+    // Dynamically import the OXC checker so that importing this module in Jest (where oxc-transform-react
     // is not transformable) never pulls it in -- the CLI paths below are never executed under Jest.
     // The explicit .mjs extension is required for Node/bun ESM resolution of this JS module.
     // eslint-disable-next-line import/extensions

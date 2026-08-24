@@ -18,6 +18,20 @@ type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
 
     /** Optional message appended after the prompt */
     pendingMessageKey?: SpreadsheetTranslationPaths;
+
+    /**
+     * Parameters for the appended message's translation. Kept separate from `promptKeyParams` so the
+     * appended message can carry its own `count` and be pluralized independently of the prompt.
+     *
+     * Typed as a bare count rather than `TranslationParameters<SpreadsheetTranslationPaths>`: that
+     * union spans every spreadsheet path, including plain-string ones whose parameters are `never[]`,
+     * so it collapses to `undefined`. Distributing the union over both keys instead would square the
+     * size of `ImportFinalModalUnion`.
+     */
+    pendingMessageKeyParams?: {
+        /** Quantity the appended message pluralizes on */
+        count: number;
+    };
 };
 
 /**

@@ -62,6 +62,9 @@ type Icon = {
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
 
+    /** Display name of the account, embedded at build time so consumers can sort icons by name without a personal-details subscription */
+    displayName?: string;
+
     /** Avatar id */
     id?: number | string;
 

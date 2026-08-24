@@ -1,3 +1,4 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
@@ -84,18 +85,25 @@ function InviteMemberListItem<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
                         <AvatarTooltipsProvider isEnabled={showTooltip}>
-                            <ReportActionAvatars
-                                subscriptAvatarBorderColor={hovered && !isFocusVisible ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                secondaryAvatarContainerStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                    isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                    hovered && !isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                ]}
-                                fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                                reportID={item.reportID}
-                                accountIDs={accountID ? [accountID] : undefined}
-                            />
+                            {accountID ? (
+                                <AccountAvatar
+                                    accountID={accountID}
+                                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                    containerStyle={[styles.actionAvatar, styles.mr3]}
+                                />
+                            ) : (
+                                <ReportActionAvatars
+                                    subscriptAvatarBorderColor={hovered && !isFocusVisible ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                    secondaryAvatarContainerStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                        isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                        hovered && !isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                    ]}
+                                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                    singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                    reportID={item.reportID}
+                                />
+                            )}
                         </AvatarTooltipsProvider>
                     )}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>

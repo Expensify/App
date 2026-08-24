@@ -26,6 +26,7 @@ jest.mock('@libs/Pusher', () => ({
         CONCIERGE_DRAFT_CLEARED: 'conciergeDraftCleared',
     },
     subscribe: jest.fn(() => Object.assign(Promise.resolve(), {unsubscribe: jest.fn()})),
+    onChannelResubscribe: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('@libs/actions/Report', () => ({

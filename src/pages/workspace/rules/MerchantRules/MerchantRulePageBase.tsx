@@ -83,7 +83,7 @@ type SectionType = {
 
 const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
     if (value === undefined) {
-        return '';
+        return translate('common.dontChange');
     }
     return translate(value ? 'common.yes' : 'common.no');
 };

@@ -2,6 +2,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ButtonVariant} from '@styles/utils/types';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -10,9 +11,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ButtonProps} from './Button';
-
-import Button from './Button';
+import Button from './ButtonComposed';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -41,11 +40,11 @@ type BaseWidgetItemProps = {
     /** Optional: fill color for the icon (defaults to white) */
     iconFill?: string;
 
-    /** Additional props to pass to the Button component for styling control */
-    buttonProps?: Partial<ButtonProps>;
+    /** The visual variant of the CTA button */
+    buttonVariant?: ButtonVariant;
 };
 
-function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, buttonVariant}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -72,14 +71,13 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
                         <Text style={styles.widgetItemTitle}>{title}</Text>
                     </View>
                     <Button
-                        text={ctaText}
                         onPress={onCtaPress}
-                        small
+                        size={CONST.BUTTON_SIZE.SMALL}
                         style={styles.widgetItemButton}
-                        // Prop spreading allows parent components to pass additional button styling props (e.g., danger: true, success: true)
-
-                        {...buttonProps}
-                    />
+                        variant={buttonVariant}
+                    >
+                        <Button.Text>{ctaText}</Button.Text>
+                    </Button>
                 </View>
             )}
         </PressableWithoutFeedback>

@@ -54,6 +54,8 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const {options, isLoading} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
+        // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
+        includeP2P: false,
     });
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);

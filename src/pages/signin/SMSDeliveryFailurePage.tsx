@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {formatList} from '@libs/Localize';
 import {normalizeLogin} from '@libs/LoginUtils';
 
 import {beginSignIn, clearSignInData, resetSMSDeliveryFailureStatus} from '@userActions/Session';
@@ -48,6 +49,20 @@ function SMSDeliveryFailurePage() {
         }
     }
 
+    // Each unit is translated separately so it can be pluralized by the locale's own rules, then joined
+    // with Intl.ListFormat rather than a hardcoded "and".
+    const durationParts: string[] = [];
+    if (timeData?.days) {
+        durationParts.push(translate('common.durationDays', {count: timeData.days}));
+    }
+    if (timeData?.hours) {
+        durationParts.push(translate('common.durationHours', {count: timeData.hours}));
+    }
+    if (timeData?.minutes) {
+        durationParts.push(translate('common.durationMinutes', {count: timeData.minutes}));
+    }
+    const timeText = durationParts.length > 0 ? formatList(durationParts) : '';
+
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
     // We need to show two different messages after clicking validate button, based on API response for hasSMSDeliveryFailure.
@@ -68,7 +83,7 @@ function SMSDeliveryFailurePage() {
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
                     <View style={[styles.flex1]}>
-                        <Text>{translate('smsDeliveryFailurePage.validationFailed', {timeData})}</Text>
+                        <Text>{translate('smsDeliveryFailurePage.validationFailed', {timeText})}</Text>
                     </View>
                 </View>
                 <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>

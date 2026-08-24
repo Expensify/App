@@ -36,7 +36,13 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     originalDataLength: number;
 
     /** Column configuration for the table. */
-    columns: Array<TableColumn<ColumnKey>>;
+    columns: Array<TableColumn<ColumnKey, DataType>>;
+
+    /**
+     * The CSS grid tracks the header and every row must render, when the columns are sized from their content.
+     * `undefined` means the columns keep their static tracks (fixed widths and equal `1fr` shares).
+     */
+    dynamicGridTemplateColumns: string[] | undefined;
 
     /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig<FilterKey> | undefined;
@@ -83,6 +89,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     processedData: [],
     originalDataLength: 0,
     columns: [],
+    dynamicGridTemplateColumns: undefined,
     activeFilters: {},
     activeSorting: {
         columnKey: undefined,

@@ -36,6 +36,7 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
+import buildPerDiemTimeBasePath from './perDiemTimeBasePath';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -84,6 +85,8 @@ function DynamicIOURequestStepTime({
     const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
 
+    const buildTimeBasePath = () => buildPerDiemTimeBasePath({transaction, action, iouType, transactionID, reportID, backToReport, hasMoreThanOnePolicyWithPerDiemEnabled});
+
     const navigateBack = () => {
         if (isEditPage) {
             Navigation.goBack(editBackPath);
@@ -92,12 +95,8 @@ function DynamicIOURequestStepTime({
 
         if (transaction?.isFromGlobalCreate || iouType === CONST.IOU.TYPE.TRACK) {
             // We want to navigate to the destination step only when the first step was the workspace selector.
-            // The destination step is rebuilt from this route's own params instead of the current URL: dynamic suffixes
-            // carry no `:reportID`, so a URL-derived back path can miss the destination route in the stack (#97558).
             if (hasMoreThanOnePolicyWithPerDiemEnabled) {
-                Navigation.goBack(
-                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport)),
-                );
+                Navigation.goBack(buildTimeBasePath());
                 return;
             }
 
@@ -132,7 +131,9 @@ function DynamicIOURequestStepTime({
         if (isEditPage) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID, backToReport));
+            Navigation.navigate(
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(), createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, buildTimeBasePath())),
+            );
         }
     };
 

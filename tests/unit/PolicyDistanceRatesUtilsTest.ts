@@ -1,4 +1,11 @@
-import {isGovernmentRateUnmodified, validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
+import {
+    getExpectedUnitForCurrency,
+    getGovernmentRateCountryForCurrency,
+    getGovernmentRateCountryPhraseTranslationKey,
+    isCurrencySupportedForAutoUpdate,
+    isGovernmentRateUnmodified,
+    validateTaxClaimableValue,
+} from '@libs/PolicyDistanceRatesUtils';
 
 import type {GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
 
@@ -97,6 +104,56 @@ describe('PolicyDistanceRatesUtils', () => {
         it('should return false when the snapshot is malformed and has no rate amount', () => {
             // A snapshot missing its rate amount alongside an unset rate must not be reported as unmodified.
             expect(isGovernmentRateUnmodified(buildRate({rate: undefined}, {sourceRateID: 'US_2026-01-01', startDate: '2026-01-01', endDate: '2026-12-31'}))).toBe(false);
+        });
+    });
+
+    describe('getGovernmentRateCountryForCurrency', () => {
+        it('should map each supported currency to the country that publishes its rates', () => {
+            expect(getGovernmentRateCountryForCurrency('USD')).toBe('US');
+            expect(getGovernmentRateCountryForCurrency('CAD')).toBe('CA');
+            expect(getGovernmentRateCountryForCurrency('GBP')).toBe('GB');
+            expect(getGovernmentRateCountryForCurrency('AUD')).toBe('AU');
+        });
+
+        it('should return undefined for an unsupported or missing currency', () => {
+            expect(getGovernmentRateCountryForCurrency('NZD')).toBeUndefined();
+            expect(getGovernmentRateCountryForCurrency('')).toBeUndefined();
+            expect(getGovernmentRateCountryForCurrency(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('isCurrencySupportedForAutoUpdate', () => {
+        it('should return true only for the supported currencies', () => {
+            expect(isCurrencySupportedForAutoUpdate('USD')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('CAD')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('GBP')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('AUD')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('NZD')).toBe(false);
+            expect(isCurrencySupportedForAutoUpdate(undefined)).toBe(false);
+        });
+    });
+
+    describe('getExpectedUnitForCurrency', () => {
+        it('should return the unit each government publishes its rates in', () => {
+            expect(getExpectedUnitForCurrency('USD')).toBe('mi');
+            expect(getExpectedUnitForCurrency('GBP')).toBe('mi');
+            expect(getExpectedUnitForCurrency('CAD')).toBe('km');
+            expect(getExpectedUnitForCurrency('AUD')).toBe('km');
+        });
+
+        it('should return undefined for an unsupported currency', () => {
+            expect(getExpectedUnitForCurrency('NZD')).toBeUndefined();
+        });
+    });
+
+    describe('getGovernmentRateCountryPhraseTranslationKey', () => {
+        it('should return the country phrase key for a supported currency', () => {
+            expect(getGovernmentRateCountryPhraseTranslationKey('USD')).toBe('workspace.distanceRates.governmentRateCountries.US');
+            expect(getGovernmentRateCountryPhraseTranslationKey('GBP')).toBe('workspace.distanceRates.governmentRateCountries.GB');
+        });
+
+        it('should return undefined for an unsupported currency', () => {
+            expect(getGovernmentRateCountryPhraseTranslationKey('NZD')).toBeUndefined();
         });
     });
 });

@@ -524,6 +524,7 @@ function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail
         type: CONST.ICON_TYPE_AVATAR,
         source: personalDetails?.[accountID]?.avatar ?? defaultAvatars.FallbackAvatar,
         name: name ?? personalDetails?.[accountID]?.login ?? invitedEmail ?? '',
+        displayName: personalDetails?.[accountID]?.displayName ?? personalDetails?.[accountID]?.login,
         fallbackIcon: invitedEmail ? getDefaultAvatar({accountID, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail), defaultAvatars}) : undefined,
     };
 }

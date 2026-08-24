@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -15,6 +15,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -83,6 +84,7 @@ function DynamicIOURequestStepDistanceManual({
     // The page is also mounted on the static distance create screen, where there is nothing to go back to within the flow.
     const backTo = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL ? backPath : undefined;
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
@@ -174,11 +176,12 @@ function DynamicIOURequestStepDistanceManual({
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
 
+    const committedDistance = distance?.toString() ?? '';
+    // Mirrors the input so dirtiness compares the current value against the baseline instead of reading a ref
+    const [typedDistance, setTypedDistance] = useState(committedDistance);
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => {
-            const typedDistance = numberFormRef.current?.getNumber() ?? '';
-            return getStringFieldHasUnsavedChanges(typedDistance, distance?.toString() ?? '', isCreatingNewRequest);
-        },
+        getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(typedDistance, committedDistance, isCreatingNewRequest),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
@@ -200,11 +203,16 @@ function DynamicIOURequestStepDistanceManual({
     // whenever it or the selected tab changes. This is syncing with an external
     // (imperative) widget, which is a legitimate effect use case.
     useEffect(() => {
-        if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
+        // The transaction can hydrate after this screen mounts, so the mount-time mirror above can be
+        // empty while the input already shows the committed distance. Re-seed it here or an untouched
+        // screen reads as dirty and prompts on back.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setTypedDistance(committedDistance);
+        if (numberFormRef.current && numberFormRef.current?.getNumber() === committedDistance) {
             return;
         }
-        numberFormRef.current?.updateNumber(distance?.toString() ?? '');
-    }, [distance, selectedTab]);
+        numberFormRef.current?.updateNumber(committedDistance);
+    }, [committedDistance, selectedTab]);
 
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -245,11 +253,10 @@ function DynamicIOURequestStepDistanceManual({
                     transaction.transactionID,
                     splitDraftTransaction,
                     {distance: distanceAsFloat},
-                    policy,
-                    personalPolicy?.outputCurrency,
-                    undefined,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    policy,
+                    personalPolicy?.outputCurrency,
                 );
                 Navigation.goBack(backTo);
                 return;
@@ -321,6 +328,7 @@ function DynamicIOURequestStepDistanceManual({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
+            isOffline,
             selfDMReport,
             policyForMovingExpenses,
             betas,
@@ -381,7 +389,8 @@ function DynamicIOURequestStepDistanceManual({
                 numberFormRef={numberFormRef}
                 value={distance?.toString()}
                 shouldUseDynamicFontSize
-                onInputChange={() => {
+                onInputChange={(newDistance) => {
+                    setTypedDistance(newDistance);
                     if (!formError) {
                         return;
                     }
@@ -400,18 +409,17 @@ function DynamicIOURequestStepDistanceManual({
                 accessibilityLabel={`${translate('common.distance')} (${translate(`common.${unit}`)})`}
                 footer={
                     <Button
-                        success
-                        // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                        allowBubble={!isEditing}
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, canUseTouchScreen() ? styles.mt5 : styles.mt0]}
                         onPress={submitAndNavigateToNextPage}
-                        text={buttonText}
                         testID="next-button"
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MANUAL_NEXT_BUTTON}
-                    />
+                    >
+                        {/* Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked. */}
+                        <Button.KeyboardShortcut allowBubble={!isEditing} />
+                        <Button.Text>{buttonText}</Button.Text>
+                    </Button>
                 }
             />
         </StepScreenWrapper>

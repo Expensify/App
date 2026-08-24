@@ -28,6 +28,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
         'XeroSquare',
         'IntacctSquare',
         'QBOSquare',
+        'IntuitSquare',
         'Table',
         'TablePencil',
         'ZenefitsSquare',
@@ -44,6 +45,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     let isExportedToIntacct = false;
     let isExportedToQuickbooksOnline = false;
     let isExportedToQuickbooksDesktop = false;
+    let isExportedToIntuitEnterpriseSuite = false;
     let isExportedToCertinia = false;
     let isExportedToRillet = false;
     let isExportedToDualEntry = false;
@@ -72,6 +74,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             isExportedToNetsuite = isExportedToNetsuite || label === CONST.EXPORT_LABELS.NETSUITE;
             isExportedToQuickbooksOnline = isExportedToQuickbooksOnline || label === CONST.EXPORT_LABELS.QBO;
             isExportedToQuickbooksDesktop = isExportedToQuickbooksDesktop || label === CONST.EXPORT_LABELS.QBD;
+            isExportedToIntuitEnterpriseSuite = isExportedToIntuitEnterpriseSuite || label === CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE;
             isExportedToZenefits = isExportedToZenefits || label === CONST.EXPORT_LABELS.ZENEFITS;
             isExportedToBillCom = isExportedToBillCom || label === CONST.EXPORT_LABELS.BILLCOM;
             isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.CERTINIA;
@@ -121,6 +124,13 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             {(isExportedToQuickbooksOnline || isExportedToQuickbooksDesktop) && (
                 <Avatar
                     source={icons.QBOSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                />
+            )}
+            {isExportedToIntuitEnterpriseSuite && (
+                <Avatar
+                    source={icons.IntuitSquare}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />

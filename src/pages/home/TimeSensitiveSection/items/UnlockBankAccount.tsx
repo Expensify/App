@@ -11,6 +11,7 @@ import {navigateToConciergeChat} from '@libs/actions/Report';
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -54,7 +55,7 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={handleCtaPress}
-            buttonProps={{danger: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

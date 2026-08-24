@@ -130,7 +130,7 @@ describe('DynamicReportDetailsPage', () => {
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdatesWithAct();
-        const submitText = translateLocal('actionableMentionTrackExpense.submit');
+        const submitText = translateLocal('actionableMentionTrackExpense.submitToEmployer');
         await screen.findByText(submitText);
 
         // Categorize and share are temporarily disabled

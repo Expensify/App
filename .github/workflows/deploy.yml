@@ -953,6 +953,17 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      # The retest request tags the cherry-pick requester, which means reading the employee whitelist in Salt.
+      # Only the OSBotify app token can read that repo.
+      - name: Setup git for OSBotify
+        id: setupGitForOSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
       - name: Load retest webhook from 1Password
         id: loadWebhook
         # v4.0.0
@@ -966,7 +977,7 @@ jobs:
       - name: File retest request
         run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
 
   createRelease:

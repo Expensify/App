@@ -166,7 +166,7 @@ async function run(): Promise<void> {
     core.setOutput('HAS_CHANGES', changedFiles.length > 0);
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run().catch((error) => {
         console.error('Action failed:', error);
         core.setFailed(error instanceof Error ? error.message : String(error));

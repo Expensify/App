@@ -3,6 +3,7 @@ import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 
+import AccountUtils from '@libs/AccountUtils';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import getPlatform from '@libs/getPlatform';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -15,12 +16,14 @@ import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openLink} from '@userActions/Link';
 import {clearTwoFactorAuthData, quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
+import {buildOnboardingFlowParams, resumeOnboardingAfterRequired2FASetup} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute} from '@react-navigation/native';
@@ -41,11 +44,39 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isSecuritySettingsFlow = focusedRoute?.name === SCREENS.SETTINGS.SECURITY;
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
+    const isIncompleteOnboarding = hasCompletedGuidedSetupFlow === false;
+    const hasSavedOnboardingPath = !!onboardingInitialPath?.includes(`/${ROUTES.ONBOARDING_ROOT.route}`);
+    // Forced onboarding 2FA always enters via Settings > Security (from the require-2FA overlay).
+    // Gate on the real hasCompletedGuidedSetupFlow so the handoff only fires for users who haven't finished
+    // guided setup; passing a literal false made it fire for every user setting up 2FA from Settings > Security.
+    const isForcedOnboardingHandoff =
+        AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow) || (!!account?.requiresTwoFactorAuth && isIncompleteOnboarding && hasSavedOnboardingPath);
+    const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && isForcedOnboardingHandoff;
+
+    const completeForcedOnboarding2FAHandoff = () => {
+        clearTwoFactorAuthData(true);
+        const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
+            afterTransition: () => {
+                resumeOnboardingAfterRequired2FASetup(onboardingFlowParams);
+            },
+        });
+    };
 
     const goBack = () => {
+        if (shouldReturnToOnboardingAfter2FA) {
+            completeForcedOnboarding2FAHandoff();
+            return;
+        }
         if (isUSDBankAccountFlow) {
             Navigation.goBack(dynamicBackPath, {
                 afterTransition: () => {
@@ -65,6 +96,10 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const onButtonPress = () => {
         if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed && !isClassicRedirectBlocked) {
             closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
+            return;
+        }
+        if (shouldReturnToOnboardingAfter2FA) {
+            completeForcedOnboarding2FAHandoff();
             return;
         }
         // For the Settings > Security entry, keep the 2FA RHP open on the Enabled page instead of dismissing it

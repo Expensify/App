@@ -109,7 +109,7 @@ type GetHRCardStateParams = {
     /** Locale helper that converts an ISO datetime to a localized date string. */
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
 
-    /** Slug identifying a specific Merge HR sub-provider (e.g. "bamboohr", "rippling"). */
+    /** Slug identifying a specific Merge HR sub-provider (e.g. "bamboohr", "workday"). */
     mergeSlug?: MergeHRProviderSlug;
 };
 

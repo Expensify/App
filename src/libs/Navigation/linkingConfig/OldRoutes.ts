@@ -4,6 +4,9 @@ const oldRoutes: Record<string, string> = {
     '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
     '/*/*/time/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-time-edit',
     '/*/*/time/*/*': '/$1/$2/destination/$3/$4/per-diem-time',
+    '/*/*/subrate/*/*/edit/*': '/$1/$2/confirmation/$3/$4/per-diem-subrate-edit/$5',
+    '/*/*/subrate/*/*/*/*': '/$1/$2/start/$3/$4/$5/per-diem-time/per-diem-subrate/$6',
+    '/*/*/subrate/*/*/*': '/$1/$2/start/$3/$4/per-diem-time/per-diem-subrate/$5',
     '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
     '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings-tags-edit/$2',
@@ -161,6 +164,17 @@ const oldRoutes: Record<string, string> = {
     '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/accountant/*/*': '/r/$4/accountant?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/upgrade/*/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4&upgradePath=$5',
+    '/*/*/upgrade/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/merchant/*/*/*': '/r/$4/expense-merchant?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/merchant/*/*': '/r/$4/expense-merchant?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/description/*/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/description/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/date/*/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/date/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/participants/participants-details/*': '/$1/$2/participants/participants-details/$3',
+    '/*/*/participants/*/*': '/r/$4/expense-participants?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

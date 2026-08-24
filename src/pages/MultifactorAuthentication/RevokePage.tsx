@@ -213,7 +213,7 @@ function MultifactorAuthenticationRevokePage() {
                             )}
                             {otherDeviceCount > 0 && (
                                 <MenuItem
-                                    title={translate('multifactorAuthentication.revoke.otherDevices', otherDeviceCount)}
+                                    title={translate('multifactorAuthentication.revoke.otherDevices', {count: otherDeviceCount})}
                                     interactive={false}
                                     shouldShowRightComponent
                                     rightComponent={

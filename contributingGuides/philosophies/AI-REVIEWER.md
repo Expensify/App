@@ -25,7 +25,10 @@ As the codebase and contributor base grow, AI reviewers help maintain consistent
 
 ## Guiding Principles
 
-These are recommendations for working effectively with AI reviewers, not strict requirements.
+These are recommendations for working effectively with AI reviewers, not strict requirements — with one exception: responding to AI reviewer comments is required, as described below.
+
+### Always respond to AI reviewer comments
+PR authors must respond to every comment left by an AI reviewer before requesting final review. React with 👍 when applying the feedback or 👎 when not, and leave a short comment explaining the reasoning either way. Acting on the feedback is optional; responding to it is not. Silence leaves human reviewers unable to tell whether a point was considered and dismissed or simply missed, which is the most common gap we see in PRs from new contributors.
 
 ### Treat AI feedback as suggestions
 AI reviewers provide automated feedback to assist human reviewers, but their output is not infallible. Contributors and reviewers should evaluate each piece of feedback on its merits rather than blindly accepting or rejecting it.

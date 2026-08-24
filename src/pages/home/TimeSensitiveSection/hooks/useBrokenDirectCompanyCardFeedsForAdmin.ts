@@ -1,6 +1,6 @@
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 
-import {getCardFeedWithDomainID, isDirectFeed} from '@libs/CardUtils';
+import {getCardFeedWithDomainID, isBrokenConnectionPastDismissThreshold, isDirectFeed} from '@libs/CardUtils';
 
 import type {Policy} from '@src/types/onyx';
 
@@ -42,6 +42,12 @@ function useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies: Policy[] | undef
 
             // Only direct OAuth/Plaid feeds are user-fixable; commercial feeds (vcf/cdf/etc.) are file-based
             if (!isDirectFeed(card.bank)) {
+                continue;
+            }
+
+            // Stop offering the task once the connection has been unresolved past the grace period. The card stays in
+            // `cardsWithBrokenFeedConnection` so the Company cards page can still fix it. We just stop prompting here.
+            if (isBrokenConnectionPastDismissThreshold(card)) {
                 continue;
             }
 

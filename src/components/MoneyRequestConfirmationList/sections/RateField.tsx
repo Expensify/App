@@ -121,15 +121,17 @@ function RateField({
 
                 if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action,
-                            iouType,
-                            transactionID,
-                            reportID,
-                            upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                            backTo: Navigation.getActiveRoute(),
-                            shouldSubmitExpense: !isTrackExpense,
-                        }),
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action,
+                                iouType,
+                                transactionID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                upgradeBackTo: Navigation.getActiveRoute(),
+                                shouldSubmitExpense: !isTrackExpense,
+                            }),
+                        ),
                     );
                 } else if (!policy && shouldSelectPolicy && isTrackExpense) {
                     Navigation.navigate(

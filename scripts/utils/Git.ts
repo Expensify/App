@@ -29,6 +29,7 @@ type ExecSyncOptions = Omit<ExecSyncOptionsWithStringEncoding, 'encoding' | 'cwd
 
 function execSync(command: string, options?: ExecSyncOptions) {
     const optionsWithEncoding: ExecSyncOptionsWithStringEncoding = {
+        maxBuffer: 1024 * 1024 * 200, // Large diffs (e.g. bundled action output) can exceed Node's 1MB default.
         ...options,
         encoding: 'utf8',
         cwd: process.cwd(),

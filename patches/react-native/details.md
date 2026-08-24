@@ -146,22 +146,6 @@
 - E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
 - PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
 
-### [react-native+0.86.0+020+restore-interaction-manager.patch](react-native+0.86.0+020+restore-interaction-manager.patch)
-
-- Reason:
-
-    ```
-    This patch restores the old InteractionManager behavior. React Native 0.80 deprecated InteractionManager and modified
-    it to behave like `setImmediate`, more info here - https://github.com/facebook/react-native/blob/d9262c60f4c02d66417008970dc9c34b742aaa75/CHANGELOG.md?plain=1#L597
-  
-    We need to restore the previous behavior to avoid introducing any bugs in the app.
-    Bug example - https://github.com/Expensify/App/pull/69535#issuecomment-3443059319
-    ```
-
-- Upstream PR/issue: There won't be any upstream changes. We need to get rid of InteractionManager
-- E/App issue: https://github.com/Expensify/App/issues/71913
-- PR introducing patch: https://github.com/Expensify/App/pull/69535
-
 ### [react-native+0.86.0+021+perf-increase-initial-heap-size.patch](react-native+0.86.0+021+perf-increase-initial-heap-size.patch)
 
 - Reason: This patch increases the initial heap size of the Hermes runtime. This allows us to disable Hermes Young-Gen Garbage Collection (GC) in a separate patch, which improves initial TTI and app startup time.
@@ -325,8 +309,15 @@
 
 ### [react-native+0.86.0+038+log-soft-exception-if-viewState-not-found.patch](react-native+0.86.0+038+log-soft-exception-if-viewState-not-found.patch)
 
-- Reason: Restores the Android `updateOverflowInset` half of the dropped `react-native+0.85.3+025+log-soft-exception-if-viewState-not-found.patch`. `SurfaceMountingManager.updateOverflowInset` still resolves its tag through the throwing `getViewState`, so an `INSTRUCTION_UPDATE_OVERFLOW_INSET` op for a view that was already unmounted throws `RetryableMountingLayerException` from inside `IntBufferBatchMountItem.execute`. `MountItemDispatcher.dispatchMountItems` only retries `DispatchCommandMountItem`s, and `RetryableMountingLayerException` is not a `ReactIgnorableMountingException`, so the exception is rethrown and every remaining instruction in that mount transaction is dropped — the incoming views are created but never added or laid out, leaving a blank screen. This patch resolves the tag with `getNullableViewState` and soft-logs + returns instead, matching what upstream already does for `addViewAt`, `updateProps` and `updateLayout`.
-- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#56762](https://github.com/facebook/react-native/pull/56762) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
+- Reason: Guards Android Fabric's `updateOverflowInset`, `updatePadding`, and `updateState` batch-mount paths against a view tag that was already unmounted. These methods otherwise resolve the tag through the throwing `getViewState`, so a stale batch instruction throws `RetryableMountingLayerException` from inside `IntBufferBatchMountItem.execute`. `MountItemDispatcher.dispatchMountItems` only retries `DispatchCommandMountItem`s, and `IntBufferBatchMountItem` is not retryable, so the exception propagates and crashes the app. The patch uses `getNullableViewState`, soft-logs the missing state, and returns, matching upstream's established handling for stale batch work. The `updateOverflowInset` hunk restores protection dropped during the RN 0.86 upgrade; the `updatePadding` and `updateState` hunks backport upstream commit `0e86a043` after production release `9.4.46-10` confirmed a fatal `getViewState -> updateState -> IntBufferBatchMountItem` recurrence.
+- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#56762](https://github.com/facebook/react-native/pull/56762) [#57181](https://github.com/facebook/react-native/pull/57181) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
 - E/App issues: [#82611](https://github.com/Expensify/App/issues/82611) [#93833](https://github.com/Expensify/App/issues/93833)
-- PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303) (original 0.85.3 patch)
-- 0.86.0 migration note: RN 0.86.0 upstreamed the `getNullableViewState` + soft-log guard for `addViewAt`, `updateProps`, `updateLayout` and `removeViewAt`, which is why the 0.85.3 patch was dropped during the upgrade — but it did **not** upstream the `updateOverflowInset` guard, so that one site regressed. Only that site is re-patched here; `updatePadding` and `updateState` still use the throwing `getViewState`, matching 0.85.3 behaviour. Re-check on the RN 0.87 upgrade whether `updateOverflowInset` has been guarded upstream, and drop this patch if so.
+- PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303) (original 0.85.3 patch) and [#98604](https://github.com/Expensify/App/pull/98604) (restored `updateOverflowInset` on 0.86.0)
+- 0.86.0 migration note: RN 0.86.0 upstreamed the `getNullableViewState` + soft-log guard for `addViewAt`, `updateProps`, `updateLayout`, and `removeViewAt`, which is why the 0.85.3 patch was dropped during the upgrade, but it did not include the corresponding `updateOverflowInset`, `updatePadding`, or `updateState` guards. All three are patched here. Re-check these methods during the RN 0.87 upgrade and drop this patch once the adopted React Native release contains them upstream.
+
+### [react-native+0.86.0+039+persist-change-bundle-location.patch](react-native+0.86.0+039+persist-change-bundle-location.patch)
+
+- Reason: Backports React Native's Android fix for persisting the host selected through `Change Bundle Location`. The setting is written to the existing `debug_http_host` preference, restored after process restarts, and removed when the host is reset. This replaces the HybridApp-specific lifecycle workaround and can be removed after upgrading to React Native 0.88 or later.
+- Upstream PR/issue: [facebook/react-native#57425](https://github.com/facebook/react-native/pull/57425) / [d2ac1904118](https://github.com/facebook/react-native/commit/d2ac190411877e7a1bc94ffac346c5fd35b65a7c)
+- E/App issue: N/A
+- PR introducing patch: https://github.com/Expensify/Mobile-Expensify/pull/14058

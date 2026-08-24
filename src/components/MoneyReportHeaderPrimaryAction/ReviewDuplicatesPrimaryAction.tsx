@@ -7,13 +7,11 @@ import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+import {getOrCreateTransactionThreadReportID} from '@libs/TransactionThreadNavigationUtils';
 import {isDuplicate} from '@libs/TransactionUtils';
-
-import {createTransactionThreadReport} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +29,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     const {accountID, email} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
-    const {moneyRequestReport, reportActions, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
+    const {moneyRequestReport, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -41,45 +39,42 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
 
+    const duplicateTransaction = transactions.find((reportTransaction) =>
+        isDuplicate(
+            reportTransaction,
+            email ?? '',
+            accountID,
+            moneyRequestReport,
+            ownerLogin,
+            policy,
+            allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
+        ),
+    );
+    const duplicateIOUAction = getIOUActionForReportID(moneyRequestReport?.reportID, duplicateTransaction?.transactionID);
+    const duplicateThreadReportID = duplicateIOUAction?.childReportID;
+    const [duplicateThreadReportExists] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(duplicateThreadReportID)}`, {selector: (report) => !!report?.reportID});
+
     return (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
-                let threadID: string | undefined | null = transactionThreadReportID;
-                if (!threadID) {
-                    const duplicateTransaction = transactions.find((reportTransaction) =>
-                        isDuplicate(
-                            reportTransaction,
-                            email ?? '',
-                            accountID,
-                            moneyRequestReport,
-                            ownerLogin,
-                            policy,
-                            allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
-                        ),
-                    );
-                    if (duplicateTransaction) {
-                        const existingThreadID = getThreadReportIDsForTransactions(reportActions, [duplicateTransaction]).at(0);
-                        if (existingThreadID) {
-                            threadID = existingThreadID;
-                        } else {
-                            const transactionID = duplicateTransaction.transactionID;
-                            const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                            const createdTransactionThreadReport = createTransactionThreadReport({
-                                introSelected,
-                                currentUserLogin: email ?? '',
-                                currentUserAccountID: accountID,
-                                betas,
-                                iouReport: moneyRequestReport,
-                                iouReportAction: iouAction,
-                                personalDetails,
-                            });
-                            threadID = createdTransactionThreadReport?.reportID;
-                        }
-                    }
-                }
+                const threadID =
+                    transactionThreadReportID ??
+                    (duplicateTransaction
+                        ? getOrCreateTransactionThreadReportID(
+                              {
+                                  threadReportID: duplicateThreadReportID,
+                                  threadReportExists: !!duplicateThreadReportExists,
+                                  iouReport: moneyRequestReport,
+                                  iouReportAction: duplicateIOUAction,
+                                  transaction: duplicateTransaction,
+                              },
+                              {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID, personalDetails},
+                          )
+                        : undefined);
                 if (threadID) {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(threadID)));
+                    // Navigate on the microtask queue so the optimistic transaction thread is committed to Onyx before we navigate.
+                    Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(threadID))));
                 }
             }}
         >

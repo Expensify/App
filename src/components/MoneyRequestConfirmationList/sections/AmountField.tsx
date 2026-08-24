@@ -85,7 +85,7 @@ function AmountField({
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -204,11 +204,17 @@ function AmountField({
                 return acc;
             }, {});
 
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {
-                amount: updatedAmount,
-                currency: updatedCurrency,
-                ...(accountIDs.length > 0 ? {splitShares: updatedSplitShares} : {}),
-            });
+            setDraftSplitTransaction(
+                transactionID,
+                splitDraftTransaction,
+                {
+                    amount: updatedAmount,
+                    currency: updatedCurrency,
+                    ...(accountIDs.length > 0 ? {splitShares: updatedSplitShares} : {}),
+                },
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            );
             return;
         }
 
@@ -217,13 +223,13 @@ function AmountField({
             const participantAccountIDs =
                 shareAccountIDs.length > 0 ? shareAccountIDs : (transactionSlice.participants ?? []).map((p) => p.accountID).filter((id): id is number => id !== undefined);
             if (participantAccountIDs.length > 0) {
-                setSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, participantAccountIDs, currentUserPersonalDetails.accountID);
+                setSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, participantAccountIDs, currentUserPersonalDetails.accountID, getCurrencyDecimals);
             }
             return;
         }
 
         if (transactionSlice?.splitShares) {
-            resetSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, currentUserPersonalDetails.accountID);
+            resetSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, currentUserPersonalDetails.accountID, getCurrencyDecimals);
         }
     };
 
