@@ -1,5 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -22,6 +24,7 @@ import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isSubmitAndClose,
     isSubmitPolicy,
@@ -46,6 +49,7 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasOutstandingChildRequest,
     isArchivedReport,
@@ -114,6 +118,7 @@ type ApproveMoneyRequestFunctionParams = {
     ownerLogin: string | undefined;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type SubmitReportFunctionParams = {
@@ -124,11 +129,13 @@ type SubmitReportFunctionParams = {
     hasViolations: boolean;
     isTrackIntentUser: boolean | undefined;
     isASAPSubmitBetaEnabled: boolean;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
     submitterLogin: string | undefined;
     managerEmail?: string;
     /** When provided (e.g. from the submit-to popover selection), used for optimistic managerID before falling back to email resolution. */
@@ -139,6 +146,7 @@ type SubmitReportFunctionParams = {
      * writes the generated PDF filename back into Onyx and the App auto-downloads it. Used by "Submit via PDF".
      */
     shouldExportToPDF?: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function canApproveIOU(
@@ -234,9 +242,13 @@ function canIOUBePaid(
     }
 
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
+
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
     const canPay =
         isReportPayer ||
-        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+        (isGroupPolicy(policy) &&
+            policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
@@ -461,6 +473,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         additionalOnyxData,
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
+        getCurrencyDecimals,
     } = params;
     if (!expenseReport) {
         return;
@@ -487,7 +500,14 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (hasHeldExpenses && !full && !!unheldTotal) {
         total = unheldTotal;
     }
-    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
+    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(
+        total,
+        expenseReport.currency ?? '',
+        expenseReport.reportID,
+        currentUserAccountIDParam,
+        delegateEmail,
+        getCurrencyDecimals,
+    );
 
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
@@ -551,6 +571,10 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                   statusNum: predictedNextStatus,
                   managerID,
                   nextStep: optimisticNextStep ?? undefined,
+                  // The current user just approved this report, so it no longer awaits their action.
+                  // Clear the expense report's own outstanding-child flag so the LHN green dot disappears
+                  // optimistically instead of lingering until OpenReport re-fetches the server's false value.
+                  hasOutstandingChildRequest: false,
                   pendingFields: {
                       partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                       nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -655,6 +679,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                 statusNum: expenseReport.statusNum,
                 stateNum: expenseReport.stateNum,
                 nextStep: expenseReport.nextStep ?? null,
+                hasOutstandingChildRequest: expenseReport.hasOutstandingChildRequest,
                 pendingFields: {
                     partial: null,
                     nextStep: null,
@@ -736,6 +761,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             isApprovalFlow: true,
             betas,
             delegateAccountID,
+            getCurrencyDecimals,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -1136,12 +1162,19 @@ function unapproveExpenseReport(
     isASAPSubmitBetaEnabled: boolean,
     delegateEmail: string | undefined,
     isTrackIntentUser: boolean | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
 
-    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, delegateEmail);
+    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(
+        expenseReport.total ?? 0,
+        expenseReport.currency ?? '',
+        expenseReport.reportID,
+        delegateEmail,
+        getCurrencyDecimals,
+    );
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1275,16 +1308,19 @@ function submitReport({
     currentUserEmailParam,
     hasViolations,
     isASAPSubmitBetaEnabled,
+    betas,
     userBillingGracePeriodEnds,
     amountOwed,
     onSubmitted,
     ownerBillingGracePeriodEnd,
     delegateEmail,
+    delegateAccountID,
     submitterLogin,
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
     shouldExportToPDF,
     isTrackIntentUser,
+    getCurrencyDecimals,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1306,15 +1342,30 @@ function submitReport({
     const managerID = trimmedManagerEmail ? (resolvedManagerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID) : submitReportManagerAccountID;
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
+
+    // unheldTotal already uses the same sign convention as total, so it can be used directly here without conversion.
+    const reportTransactions = getReportTransactions(expenseReport.reportID);
+    const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
+    const hasHeldExpenses = heldTransactions.length > 0;
+
+    if (hasOnlyHeldExpenses(reportTransactions)) {
+        return;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+
+    const shouldSplitHeldExpenses = hasHeldExpenses && !isDEWPolicy && !!parentReport?.reportID;
+    const submittedTotal = shouldSplitHeldExpenses ? (expenseReport.unheldTotal ?? expenseReport.total ?? 0) : (expenseReport.total ?? 0);
+
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
-        expenseReport?.total ?? 0,
+        submittedTotal,
         expenseReport.currency ?? '',
         expenseReport.reportID,
         adminAccountID,
         policy?.approvalMode,
         delegateEmail,
+        getCurrencyDecimals,
     );
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     // For DEW policies, only add optimistic submit action when offline
     const shouldAddOptimisticSubmitAction = !isDEWPolicy || getIsOffline();
 
@@ -1337,6 +1388,7 @@ function submitReport({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME
         >
     > = [];
@@ -1427,7 +1479,9 @@ function submitReport({
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [];
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.TRANSACTION>
+    > = [];
     if (!isDEWPolicy) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1466,6 +1520,7 @@ function submitReport({
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME
         >
     > = [
@@ -1531,6 +1586,34 @@ function submitReport({
         });
     }
 
+    let optimisticHoldReportID: string | undefined;
+    let optimisticHoldActionID: string | undefined;
+    let optimisticHoldReportExpenseActionIDs: string | undefined;
+
+    // An all-held report is already blocked from being submitted, so this only has to handle the case where at
+    // least one unheld expense remains.
+    if (shouldSplitHeldExpenses) {
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
+            chatReport: parentReport,
+            iouReport: expenseReport,
+            recipient: {accountID: expenseReport.ownerAccountID},
+            policy,
+            createdTimestamp: getReportOriginalCreationTimestamp(expenseReport),
+            isApprovalFlow: false,
+            betas,
+            delegateAccountID,
+            getCurrencyDecimals,
+        });
+
+        optimisticData.push(...holdReportOnyxData.optimisticData);
+        successData.push(...holdReportOnyxData.successData);
+        failureData.push(...holdReportOnyxData.failureData);
+
+        optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
+        optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+        optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+    }
+
     // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
     // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
     // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
@@ -1554,6 +1637,13 @@ function submitReport({
         ...(trimmedManagerEmail
             ? {
                   managerEmail: trimmedManagerEmail,
+              }
+            : {}),
+        ...(optimisticHoldReportID
+            ? {
+                  optimisticHoldReportID,
+                  optimisticHoldActionID,
+                  optimisticHoldReportExpenseActionIDs,
               }
             : {}),
     };
