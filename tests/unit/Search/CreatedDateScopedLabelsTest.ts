@@ -5,40 +5,40 @@ import {FILTER_VIEW_MAP, getFilterViewLabelKey, getSearchColumnTranslationKey, g
 import CONST from '@src/CONST';
 
 /**
- * Issue #98148: the "Created" / "Created date" rename is scoped to `type:expense-report` only, whose date column
- * renders a non-editable report-created timestamp. Every other Search type keeps "Date": invoice, expense and trip
- * render the editable transaction date, chat/task stay simple, and the opened single-report table (which reuses
- * getExpenseHeaders) keeps "Date" too. These tests lock that scoping in on the column label, the filter label and
- * the column width so a future edit can't silently widen it to every type or flip invoice to "Created".
+ * Issue #98148: the "Created" / "Created date" rename is scoped to the types whose date column is a non-editable
+ * created timestamp: `type:expense-report` and `type:task`. Every other Search type keeps "Date": invoice, expense
+ * and trip render the editable transaction date, chat has no date column, and the opened single-report table (which
+ * reuses getExpenseHeaders) keeps "Date" too. These tests lock that scoping in on the column label, the filter label
+ * and the column width so a future edit can't silently widen it to every type or flip invoice back to "Created".
  */
 describe('Created date scoped labels (#98148)', () => {
     const DATE = CONST.SEARCH.TABLE_COLUMNS.DATE;
     const {EXPENSE, EXPENSE_REPORT, TASK, TRIP, INVOICE} = CONST.SEARCH.DATA_TYPES;
 
     describe('isCreatedDateType (shared predicate)', () => {
-        it('is true only for expense reports', () => {
+        it('is true for expense reports and tasks (non-editable created timestamp)', () => {
             expect(isCreatedDateType(EXPENSE_REPORT)).toBe(true);
+            expect(isCreatedDateType(TASK)).toBe(true);
         });
 
-        it('is false for invoice, expense, trip, task and no type', () => {
+        it('is false for invoice, expense, trip and no type', () => {
             expect(isCreatedDateType(INVOICE)).toBe(false);
             expect(isCreatedDateType(EXPENSE)).toBe(false);
             expect(isCreatedDateType(TRIP)).toBe(false);
-            expect(isCreatedDateType(TASK)).toBe(false);
             expect(isCreatedDateType()).toBe(false);
         });
     });
 
     describe('getSearchColumnTranslationKey (column header, Sort by, Edit columns, saved search, CSV current view)', () => {
-        it('returns "Created" for the DATE column in expense-report search', () => {
+        it('returns "Created" for the DATE column in expense-report and task search', () => {
             expect(getSearchColumnTranslationKey(DATE, EXPENSE_REPORT)).toBe('search.filters.created');
+            expect(getSearchColumnTranslationKey(DATE, TASK)).toBe('search.filters.created');
         });
 
-        it('keeps "Date" for the DATE column in invoice, expense, trip and task', () => {
+        it('keeps "Date" for the DATE column in invoice, expense and trip', () => {
             expect(getSearchColumnTranslationKey(DATE, INVOICE)).toBe('common.date');
             expect(getSearchColumnTranslationKey(DATE, EXPENSE)).toBe('common.date');
             expect(getSearchColumnTranslationKey(DATE, TRIP)).toBe('common.date');
-            expect(getSearchColumnTranslationKey(DATE, TASK)).toBe('common.date');
         });
 
         it('defaults to "Date" when no type is passed (e.g. the opened single-report table)', () => {
@@ -47,8 +47,9 @@ describe('Created date scoped labels (#98148)', () => {
     });
 
     describe('getFilterViewLabelKey (filter menu row, applied chip, filter subpage title)', () => {
-        it('returns "Created date" for the DATE filter in expense-report search', () => {
+        it('returns "Created date" for the DATE filter in expense-report and task search', () => {
             expect(getFilterViewLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, EXPENSE_REPORT)).toBe('search.filters.createdDate');
+            expect(getFilterViewLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, TASK)).toBe('search.filters.createdDate');
         });
 
         it('keeps "Date" for the DATE filter in invoice, expense, trip and with no type', () => {
@@ -71,16 +72,16 @@ describe('Created date scoped labels (#98148)', () => {
     });
 
     describe('getTableMinWidth (horizontal-scroll budget)', () => {
-        it('gives the DATE column the wider "Created" budget in expense-report search', () => {
+        it('gives the DATE column the wider "Created" budget in expense-report and task search', () => {
             const expenseWidth = getTableMinWidth([DATE], EXPENSE);
             expect(getTableMinWidth([DATE], EXPENSE_REPORT)).toBeGreaterThan(expenseWidth);
+            expect(getTableMinWidth([DATE], TASK)).toBeGreaterThan(expenseWidth);
         });
 
-        it('keeps the narrower "Date" budget for invoice, trip and task', () => {
+        it('keeps the narrower "Date" budget for invoice and trip', () => {
             const expenseWidth = getTableMinWidth([DATE], EXPENSE);
             expect(getTableMinWidth([DATE], INVOICE)).toBe(expenseWidth);
             expect(getTableMinWidth([DATE], TRIP)).toBe(expenseWidth);
-            expect(getTableMinWidth([DATE], TASK)).toBe(expenseWidth);
         });
     });
 });
