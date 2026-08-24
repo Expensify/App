@@ -1,12 +1,13 @@
-import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {getAccountDetailsFieldsMap, getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
-import type ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx/CorpayFields';
 
-const translate: LocaleContextProps['translate'] = (path) => path;
+const translate: LocaleContextProps['translate'] = (path, ...parameters) => {
+    parameters.some(() => false);
+    return path;
+};
 
 function createCorpayField(id: string, isRequired: boolean, label = id, validationRules: CorpayFormField['validationRules'] = []): CorpayFormField {
     return {
@@ -20,7 +21,7 @@ function createCorpayField(id: string, isRequired: boolean, label = id, validati
     };
 }
 
-function createFormValues(swiftBicCode: string): FormOnyxValues<ONYXKEYS['FORMS']['INTERNATIONAL_BANK_ACCOUNT_FORM']> {
+function createFormValues(swiftBicCode: string): Parameters<typeof getValidationErrors>[0] {
     return {swiftBicCode};
 }
 
