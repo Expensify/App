@@ -439,7 +439,7 @@ platform | result
         });
 
         const callable = () => {};
-        const getterSentinel = new Error('status getter failed');
+        const getterError = new Error('status getter failed');
         let getterCount = 0;
         if (propertyKind === 'own-data') {
             Object.assign(callable, {status});
@@ -454,7 +454,7 @@ platform | result
                 get: () => {
                     getterCount++;
                     if (status === 'throw') {
-                        throw getterSentinel;
+                        throw getterError;
                     }
                     return status;
                 },
@@ -484,7 +484,7 @@ platform | result
                 expect(consoleWarnSpy).toHaveBeenCalledWith(forkWarning);
                 expect(consoleLogSpy).not.toHaveBeenCalledWith(notFoundLog);
             } else {
-                await expect(runPromise).rejects.toBe(outcome === 'throw' ? getterSentinel : callable);
+                await expect(runPromise).rejects.toBe(outcome === 'throw' ? getterError : callable);
                 expect(consoleLogSpy).not.toHaveBeenCalledWith(notFoundLog);
                 expect(consoleWarnSpy).not.toHaveBeenCalled();
             }
