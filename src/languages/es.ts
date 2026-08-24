@@ -3031,7 +3031,13 @@ ${amount} para ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Mantente al tanto de todo viendo solo los chats no leídos o los chats que necesitan tu atención. No te preocupes, puedes cambiarlo en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
     },
-    inboxTabs: {all: 'Todo', todo: 'Pendientes', unread: 'No leído'},
+    inboxTabs: {
+        all: 'Todo',
+        todo: 'Pendientes',
+        unread: 'No leído',
+        markAllAsRead: 'Marcar todo como leído',
+        markAllAsReadConfirmationPrompt: '¿Seguro que quieres marcar todos los chats como leídos?',
+    },
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
