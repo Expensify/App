@@ -3,7 +3,25 @@
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
         "types": ["react-native", "react-native-web", "jest", "node"],
-        "lib": ["DOM", "ESNext"]
+        "lib": ["DOM", "ESNext"],
+        // Babel reads this config directly and does not resolve its `extends` chain.
+        "paths": {
+            "@assets/*": ["./assets/*"],
+            "@components/*": ["./src/components/*"],
+            "@github/*": ["./.github/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@libs/*": ["./src/libs/*"],
+            "@navigation/*": ["./src/libs/Navigation/*"],
+            "@pages/*": ["./src/pages/*"],
+            "@prompts/*": ["./prompts/*"],
+            "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
+            "@server/*": ["./server/*"],
+            "@styles/*": ["./src/styles/*"],
+            "@src/*": ["./src/*"],
+            "@userActions/*": ["./src/libs/actions/*"],
+            "@selectors/*": ["./src/selectors/*"],
+            "tests/*": ["./tests/*"]
+        }
     },
     "include": ["src", "website", "docs", "assets", "tests", "jest", "prompts", "__mocks__", ".storybook/**/*", ".claude/**/*", "modules", "**/*.nitro/*.ts", "**/*.nitro/*.tsx"],
     "exclude": [
@@ -13,7 +31,6 @@
         "**/docs/*",
         ".claude/worktrees/**",
         "tests/tooling",
-        "scripts",
         "server/libs",
         "server/plugins",
         "server/stubs",

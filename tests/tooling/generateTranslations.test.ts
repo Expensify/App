@@ -152,6 +152,7 @@ describe('generateTranslations', () => {
                 const moreStrings = {
                     [\`key\${strings.hello}\`]: 'more',
                 };
+                export default strings;
             `),
                 'utf8',
             );
@@ -188,6 +189,7 @@ describe('generateTranslations', () => {
                 const moreStrings = {
                     [\`key\${strings.hello}\`]: '[it] more',
                 };
+                export default strings;
             `)}`,
             );
         });
@@ -1768,16 +1770,6 @@ describe('generateTranslations', () => {
         });
 
         it('should handle string concatenation expressions', async () => {
-            const strings = {
-                onboarding: {
-                    tasks: {
-                        inviteTeamTask: {
-                            title: 'Simple title',
-                            description: 'First part & Second part',
-                        },
-                    },
-                },
-            };
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
@@ -2051,11 +2043,6 @@ describe('generateTranslations', () => {
         });
 
         it('detects modifications when a context annotation is removed with --compare-ref', async () => {
-            const strings = {
-                unchanged: 'This stays the same',
-                pin: 'Pin',
-                alsoUnchanged: 'Also unchanged',
-            };
             // Create English source without context annotation
             fs.writeFileSync(
                 EN_PATH,
