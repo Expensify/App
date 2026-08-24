@@ -1103,7 +1103,20 @@ function isTagInPolicy(tagValue: string, policyTags: OnyxEntry<PolicyTagLists>):
     if (!policyTags) {
         return false;
     }
-    return Object.values(policyTags).some((tagList) => tagList?.tags?.[tagValue] && tagList.tags[tagValue].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const tagComponents = getTagArrayFromName(tagValue);
+    const sortedTagLists = getTagLists(policyTags);
+
+    return tagComponents.every((component, index) => {
+        if (!component) {
+            return true;
+        }
+        const tagList = sortedTagLists.at(index);
+        if (!tagList?.tags) {
+            return false;
+        }
+        const tag = tagList.tags[component] ?? Object.values(tagList.tags).find((t) => t?.name === component);
+        return tag && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
 }
 
 /**
