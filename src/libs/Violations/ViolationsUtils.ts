@@ -32,12 +32,12 @@ import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import isEmpty from 'lodash/isEmpty';
@@ -58,7 +58,7 @@ Onyx.connectWithoutView({
 type ViolationTranslationParams = {
     violation: TransactionViolation;
     translate: LocaleContextProps['translate'];
-    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     canEdit?: boolean;
     tags?: PolicyTagLists;
@@ -279,12 +279,12 @@ function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, e
     return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', tagsWithIndexes[i]?.name)).join('. ');
 }
 
-function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLocale | undefined): string | undefined {
+function formatViolationDate(date: string | undefined, preferredLocale: Locale): string | undefined {
     if (!date) {
         return undefined;
     }
 
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+    return DateUtils.formatInUTCToLong(date, preferredLocale);
 }
 
 /**
@@ -944,7 +944,7 @@ const ViolationsUtils = {
         const {
             violation,
             translate,
-            dateFnsLocale,
+            preferredLocale,
             convertToDisplayString,
             canEdit = true,
             tags,
@@ -994,8 +994,8 @@ const ViolationsUtils = {
                 return translate('violations.customUnitOutOfPolicy');
             case CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE: {
                 const {startDate, endDate} = violation.data ?? {};
-                const formattedStartDate = formatViolationDate(startDate, dateFnsLocale);
-                const formattedEndDate = formatViolationDate(endDate, dateFnsLocale);
+                const formattedStartDate = formatViolationDate(startDate, preferredLocale);
+                const formattedEndDate = formatViolationDate(endDate, preferredLocale);
                 if (formattedStartDate && formattedEndDate) {
                     return translate('violations.customUnitRateOutOfDateRange', {startDate: formattedStartDate, endDate: formattedEndDate});
                 }
@@ -1114,7 +1114,7 @@ const ViolationsUtils = {
         transaction,
         transactionViolations,
         translate,
-        dateFnsLocale,
+        preferredLocale,
         convertToDisplayString,
         missingFieldError,
         transactionThreadActions,
@@ -1128,7 +1128,7 @@ const ViolationsUtils = {
         transaction: Transaction;
         transactionViolations: TransactionViolation[];
         translate: LocaleContextProps['translate'];
-        dateFnsLocale: LocaleContextProps['dateFnsLocale'];
+        preferredLocale: Locale;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         missingFieldError?: string;
         transactionThreadActions?: ReportAction[];
@@ -1151,7 +1151,7 @@ const ViolationsUtils = {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
                 const message = ViolationsUtils.getViolationTranslation({
-                    dateFnsLocale,
+                    preferredLocale,
                     violation,
                     translate,
                     convertToDisplayString,

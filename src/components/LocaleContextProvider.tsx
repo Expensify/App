@@ -18,10 +18,7 @@ import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
-
-import {format as formatDate} from 'date-fns';
-import React, {createContext, useEffect, useState} from 'react';
+import React, {createContext, useEffect, useSyncExternalStore} from 'react';
 
 type LocaleContextProviderProps = {
     /** Actual content wrapped by this component */
@@ -36,13 +33,13 @@ type LocaleContextProps = {
     numberFormat: (number: number, options?: Intl.NumberFormatOptions) => string;
 
     /** Converts a datetime into a local date object */
-    getLocalDateFromDatetime: (datetime?: string, currentSelectedTimezone?: SelectedTimezone) => Date;
+    getLocalDateFromDatetime: (datetime?: Date | string | number, currentSelectedTimezone?: SelectedTimezone) => Date;
 
     /** Converts a datetime into a localized string representation that's relative to current moment in time */
     datetimeToRelative: (datetime: string) => string;
 
     /** Formats a datetime to local date and time string */
-    datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase?: boolean) => string;
+    datetimeToCalendarTime: (datetime: string, isLowercase?: boolean) => string;
 
     /** Returns a locally converted phone number for numbers from the same region
      * and an internationally converted phone number with the country code for numbers from other regions */
@@ -50,9 +47,6 @@ type LocaleContextProps = {
 
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: (digit: string) => string;
-
-    /** Formats a number into its localized ordinal representation */
-    toLocaleOrdinal: (number: number) => string;
 
     /** Formats a number into its localized ordinal representation with words */
     toLocaleOrdinalWithWords: (number: number) => string;
@@ -67,13 +61,7 @@ type LocaleContextProps = {
     formatTravelDate: (datetime: string) => string;
 
     /** The user's preferred locale e.g. 'en', 'es' */
-    preferredLocale: Locale | undefined;
-
-    /**
-     * The date-fns locale matching `preferredLocale`. Pass it as the `locale` option of date-fns `format` so that
-     * locale-sensitive tokens (MMM, MMMM, EEEE, do) re-render when the user switches language.
-     */
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
 };
 
 type LocalizedTranslate = LocaleContextProps['translate'];
@@ -86,23 +74,20 @@ const LocaleContext = createContext<LocaleContextProps>({
     datetimeToCalendarTime: () => '',
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
-    toLocaleOrdinal: () => '',
     toLocaleOrdinalWithWords: () => '',
     fromLocaleDigit: () => '',
     localeCompare: () => 0,
     formatTravelDate: () => '',
-    preferredLocale: undefined,
-    dateFnsLocale: undefined,
+    preferredLocale: CONST.LOCALES.DEFAULT,
 });
 
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
 
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
+    const {locale: currentLocale} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
 
     let localeToApply: Locale | undefined;
     if (!isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
@@ -123,22 +108,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         setLocale(localeToApply, nvpPreferredLocale);
     }, [localeToApply, nvpPreferredLocale]);
 
-    // Sync currentLocale from IntlStore after translations finish loading.
-    // IntlStore.currentLocale is external mutable state that React can't track,
-    // so we use this effect to explicitly update React state when it changes.
-    useEffect(() => {
-        if (areTranslationsLoading) {
-            return;
-        }
-
-        const locale = IntlStore.getCurrentLocale();
-        if (!locale) {
-            return;
-        }
-
-        setCurrentLocale(locale);
-    }, [areTranslationsLoading]);
-
     const selectedTimezone = currentUserPersonalDetails?.timezone?.selected;
     const effectiveTimezone = selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected;
     const collator = new Intl.Collator(currentLocale, COLLATOR_OPTIONS);
@@ -152,14 +121,12 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const datetimeToRelative: LocaleContextProps['datetimeToRelative'] = (datetime) => DateUtils.datetimeToRelative(currentLocale, datetime, effectiveTimezone);
 
-    const datetimeToCalendarTime: LocaleContextProps['datetimeToCalendarTime'] = (datetime, includeTimezone, isLowercase = false) =>
-        DateUtils.datetimeToCalendarTime(currentLocale, datetime, effectiveTimezone, includeTimezone, isLowercase);
+    const datetimeToCalendarTime: LocaleContextProps['datetimeToCalendarTime'] = (datetime, isLowercase = false) =>
+        DateUtils.datetimeToCalendarTime(currentLocale, datetime, effectiveTimezone, isLowercase);
 
     const formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP);
 
     const toLocaleDigit: LocaleContextProps['toLocaleDigit'] = (digit) => toLocaleDigitLocaleDigitUtils(currentLocale, digit);
-
-    const toLocaleOrdinal: LocaleContextProps['toLocaleOrdinal'] = (number) => toLocaleOrdinalLocaleDigitUtils(currentLocale, number);
 
     const toLocaleOrdinalWithWords: LocaleContextProps['toLocaleOrdinalWithWords'] = (number) => {
         if (number >= 1 && number <= 10) {
@@ -172,12 +139,14 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const localeCompare: LocaleContextProps['localeCompare'] = (a, b) => collator.compare(a, b);
 
-    const dateFnsLocale = IntlStore.getDateFnsLocale(currentLocale);
-
     const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
-        const date = new Date(datetime);
-        const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
-        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale});
+        // Passed through as a string so the helpers apply `toLocalDate`, which parses the wire shape Hermes rejects.
+        const formattedDate = DateUtils.formatToMediumDate(datetime, currentLocale);
+        const formattedHour = DateUtils.formatToLocalTime(datetime, currentLocale);
+        // Both halves required, else a formatter failure leaves the bare conjunction on its own.
+        if (!formattedDate || !formattedHour) {
+            return '';
+        }
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };
@@ -190,16 +159,13 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         datetimeToCalendarTime,
         formatPhoneNumber,
         toLocaleDigit,
-        toLocaleOrdinal,
         toLocaleOrdinalWithWords,
         fromLocaleDigit,
         localeCompare,
         formatTravelDate,
         preferredLocale: currentLocale,
-        dateFnsLocale,
     };
 
-    // eslint-disable-next-line rulesdir/context-provider-split-values
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 

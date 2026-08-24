@@ -93,7 +93,7 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 
 function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
     const {splitReportID: reportID, transactionID, splitExpenseTransactionID} = route.params;
@@ -481,12 +481,11 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const isCancelled = currentItemReport?.isCancelledIOU;
         const percentage = adjustedPercentages.at(index) ?? 0;
 
-        const date = DateUtils.formatWithUTCTimeZone(
-            item.created,
-            DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
-        previewHeaderText.unshift({text: date}, dotSeparator);
+        const date = DateUtils.formatTransactionListDate(item.created, preferredLocale);
+        // Skip when empty, else the row renders a leading orphan " · " before the type label.
+        if (date) {
+            previewHeaderText.unshift({text: date}, dotSeparator);
+        }
 
         if (isCancelled) {
             previewHeaderText.push(dotSeparator, {text: translate('iou.canceled')});
@@ -575,7 +574,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
 
     const splitStartDate = draftTransaction?.comment?.splitsStartDate;
     const splitEndDate = draftTransaction?.comment?.splitsEndDate;
-    const splitDatesTitle = DateUtils.getFormattedSplitDateRange(translate, splitStartDate, splitEndDate);
+    const splitDatesTitle = DateUtils.getFormattedSplitDateRange(splitStartDate, splitEndDate, preferredLocale);
 
     const handleDatePress = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path));

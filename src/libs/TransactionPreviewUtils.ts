@@ -1,13 +1,13 @@
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import truncate from 'lodash/truncate';
@@ -215,7 +215,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     reportActions,
     originalTransaction,
     convertToDisplayString,
-    dateFnsLocale,
+    preferredLocale,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -231,7 +231,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     reportActions?: OnyxTypes.ReportActions;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -321,12 +321,11 @@ function getTransactionPreviewTextAndTranslationPaths({
     let previewDateText: TranslationPathOrText | undefined;
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
-        const date = DateUtils.formatWithUTCTimeZone(
-            created,
-            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
-        previewDateText = {text: date};
+        const date = DateUtils.formatTransactionListDate(created, preferredLocale);
+        // Left unset when empty, else the row renders a leading orphan " · " before the type label.
+        if (date) {
+            previewDateText = {text: date};
+        }
     }
 
     // Paid, Approved, Review required and the hold message are intentionally omitted here because the report status badge and the

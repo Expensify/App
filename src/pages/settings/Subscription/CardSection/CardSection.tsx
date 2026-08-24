@@ -52,7 +52,7 @@ import getSectionSubtitle from './CardSectionSubtitle';
 import CardSectionUtils from './utils';
 
 function CardSection() {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'Close']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
@@ -127,7 +127,7 @@ function CardSection() {
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
         CardSectionUtils.getBillingStatus({
             translate,
-            dateFnsLocale,
+            preferredLocale,
             stripeCustomerId: privateStripeCustomerID,
             accountData: defaultCard?.accountData ?? {},
             purchase: purchaseList?.[0],
@@ -144,7 +144,7 @@ function CardSection() {
         }),
     );
 
-    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate(dateFnsLocale) : undefined;
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate(preferredLocale) : undefined;
 
     const sectionSubtitle = getSectionSubtitle({
         translate,
@@ -157,7 +157,7 @@ function CardSection() {
         setBillingStatus(
             CardSectionUtils.getBillingStatus({
                 translate,
-                dateFnsLocale,
+                preferredLocale,
                 stripeCustomerId: privateStripeCustomerID,
                 accountData: defaultCard?.accountData ?? {},
                 purchase: purchaseList?.[0],
@@ -178,7 +178,7 @@ function CardSection() {
         subscriptionRetryBillingStatusSuccessful,
         subscriptionRetryBillingStatusFailed,
         translate,
-        dateFnsLocale,
+        preferredLocale,
         defaultCard?.accountData,
         privateStripeCustomerID,
         purchaseList,

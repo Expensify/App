@@ -22,6 +22,8 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
+import type createIntlStoreMock from '../../utils/createIntlStoreMock';
+
 import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
@@ -37,23 +39,7 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
-    const cache = new Map<string, Record<string, unknown>>();
-    cache.set('en', flatten(en));
-    return {
-        getCurrentLocale: jest.fn(() => 'en'),
-        getDateFnsLocale: jest.fn(() => undefined),
-        load: jest.fn(() => Promise.resolve()),
-        get: jest.fn((key: string, locale?: string) => {
-            const translations = cache.get(locale ?? 'en');
-            return translations?.[key] ?? null;
-        }),
-    };
-});
+jest.mock('@src/languages/IntlStore', () => ({__esModule: true, default: jest.requireActual<{default: typeof createIntlStoreMock}>('../../utils/createIntlStoreMock').default()}));
 
 jest.mock('@assets/emojis', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

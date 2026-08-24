@@ -63,7 +63,7 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
 
-    const timeStamp = datetimeToCalendarTime(mostRecentReply, false);
+    const timeStamp = datetimeToCalendarTime(mostRecentReply);
     const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
     return (

@@ -4,15 +4,15 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
+import type Locale from '@src/types/onyx/Locale';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {format, parseISO} from 'date-fns';
+import {parseISO} from 'date-fns';
 
 import DateUtils from './DateUtils';
 import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
@@ -824,24 +824,22 @@ function prepareTextForDisplay(text: string): string {
     return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
-function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string {
-    const dateFormat = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT;
-
-    try {
-        if (rate.startDate && rate.endDate) {
-            return translate('iou.rateValidDateRange', {
-                startDate: format(parseISO(rate.startDate), dateFormat, {locale: dateFnsLocale}),
-                endDate: format(parseISO(rate.endDate), dateFormat, {locale: dateFnsLocale}),
-            });
-        }
-        if (rate.startDate) {
-            return translate('iou.rateValidFrom', {startDate: format(parseISO(rate.startDate), dateFormat, {locale: dateFnsLocale})});
-        }
-        if (rate.endDate) {
-            return translate('iou.rateValidUntil', {endDate: format(parseISO(rate.endDate), dateFormat, {locale: dateFnsLocale})});
-        }
-    } catch {
+function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate'], preferredLocale: Locale): string {
+    const startDate = rate.startDate ? DateUtils.formatToMediumDate(parseISO(rate.startDate), preferredLocale) : '';
+    const endDate = rate.endDate ? DateUtils.formatToMediumDate(parseISO(rate.endDate), preferredLocale) : '';
+    // A date that was set but failed to format comes back empty. Rendering anyway leaves holes where the dates belong, and keeping one end of a range would advertise the rate as unbounded.
+    if ((rate.startDate && !startDate) || (rate.endDate && !endDate)) {
         return '';
+    }
+
+    if (startDate && endDate) {
+        return translate('iou.rateValidDateRange', {startDate, endDate});
+    }
+    if (startDate) {
+        return translate('iou.rateValidFrom', {startDate});
+    }
+    if (endDate) {
+        return translate('iou.rateValidUntil', {endDate});
     }
 
     return '';

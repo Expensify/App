@@ -80,7 +80,7 @@ function TransactionPreviewContent({
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
@@ -149,7 +149,7 @@ function TransactionPreviewContent({
 
     const violationMessage = firstViolation
         ? ViolationsUtils.getViolationTranslation({
-              dateFnsLocale,
+              preferredLocale,
               violation: firstViolation,
               translate,
               convertToDisplayString,
@@ -166,7 +166,6 @@ function TransactionPreviewContent({
     const previewText = useMemo(
         () =>
             getTransactionPreviewTextAndTranslationPaths({
-                dateFnsLocale,
                 ...transactionPreviewCommonArguments,
                 shouldShowRBR,
                 shouldShowCanceledStatus,
@@ -174,8 +173,9 @@ function TransactionPreviewContent({
                 reportActions,
                 originalTransaction,
                 convertToDisplayString,
+                preferredLocale,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, shouldShowCanceledStatus, violationMessage, reportActions, originalTransaction, convertToDisplayString, dateFnsLocale],
+        [transactionPreviewCommonArguments, shouldShowRBR, shouldShowCanceledStatus, violationMessage, reportActions, originalTransaction, convertToDisplayString, preferredLocale],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 

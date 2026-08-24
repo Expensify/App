@@ -34,7 +34,7 @@ import React, {useEffect} from 'react';
 
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
@@ -72,17 +72,17 @@ function ScheduleCallConfirmationPage() {
 
     let dateTimeString = '';
     if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
-        const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
-        const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
-            addMinutes(scheduleCallDraft?.timeSlot, 30),
-            userTimezone,
-            CONST.DATE.LOCAL_TIME_FORMAT,
-            {locale: dateFnsLocale},
-        )}`;
+        // Parsed once, so the two ends of the range and the zone abbreviation beside them cannot label different instants.
+        const startsAt = DateUtils.toUTCDate(scheduleCallDraft.timeSlot);
+        const dateString = DateUtils.formatToReadableString(scheduleCallDraft.date, preferredLocale);
+        const startTime = DateUtils.formatInTimeZoneToShortTime(startsAt, userTimezone, preferredLocale);
+        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(startsAt, 30), userTimezone, preferredLocale);
+        const timezoneString = DateUtils.getZoneAbbreviation(startsAt, userTimezone);
 
-        const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
-
-        dateTimeString = `${dateString} from ${timeString} ${timezoneString}`;
+        // A formatter failure on either end would otherwise render the range as " - 10:30 AM".
+        if (dateString && startTime && endTime) {
+            dateTimeString = `${dateString} from ${startTime} - ${endTime} ${timezoneString}`;
+        }
     }
 
     useEffect(() => {

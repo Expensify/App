@@ -227,6 +227,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.NVP_INTRO_SELECTED,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.NETWORK,
+        ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     ],
     compute: (
         [
@@ -248,8 +249,8 @@ export default createOnyxDerivedValueConfig({
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
-        const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
-        const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
+        const activeLocale = preferredLocale ?? IntlStore.getCurrentLocale();
+        const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(activeLocale, path, ...parameters);
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
@@ -275,11 +276,13 @@ export default createOnyxDerivedValueConfig({
             previousPolicies = policies;
         }
 
-        // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
-        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
-        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        // Report names are locale-dependent, so a locale change needs a full recompute, but only once the new chunk has
+        // landed. Comparing against the stored locale skips the no-op first load, and `hasLocale` skips the NVP write and the
+        // loading-flag tick, which would both recompute every name in the language the user just left.
         const needsFullRecompute =
-            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) && preferredLocale !== currentValue?.locale) ||
+            ((hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) || hasKeyTriggeredCompute(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, triggeredKeys)) &&
+                activeLocale !== currentValue?.locale &&
+                IntlStore.hasLocale(activeLocale)) ||
             displayNameChanges === RECOMPUTE_ALL ||
             hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys) ||
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
@@ -638,7 +641,7 @@ export default createOnyxDerivedValueConfig({
                               currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                               currentUserLogin: session?.email ?? '',
                               translate,
-                              dateFnsLocale,
+                              preferredLocale: activeLocale,
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
@@ -735,7 +738,9 @@ export default createOnyxDerivedValueConfig({
 
         return {
             reports: reportAttributes,
-            locale: preferredLocale ?? null,
+            // The locale the names were actually rendered in. Storing the requested one would claim a translation that never
+            // happened, and storing null for the no-NVP case leaves `undefined !== null` true and forces endless recomputes.
+            locale: IntlStore.hasLocale(activeLocale) ? activeLocale : null,
         };
     },
     // On Onyx clear, drop the cross-compute baselines so the first post-clear pass is treated as a full

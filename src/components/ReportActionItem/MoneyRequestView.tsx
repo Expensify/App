@@ -213,7 +213,7 @@ function MoneyRequestView({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {environmentURL, isProduction} = useEnvironment();
-    const {translate, toLocaleDigit, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
@@ -815,7 +815,7 @@ function MoneyRequestView({
                     const cardID = violation.data?.cardID;
                     const card = cardID ? cardList?.[cardID] : undefined;
                     return ViolationsUtils.getViolationTranslation({
-                        dateFnsLocale,
+                        preferredLocale,
                         violation,
                         translate,
                         convertToDisplayString,

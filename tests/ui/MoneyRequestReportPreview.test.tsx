@@ -178,7 +178,7 @@ const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequest
 
 const getTransactionDisplayAmountAndMetadataText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
-    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
+    const date = DateUtils.formatTransactionListDate(created, CONST.LOCALES.EN);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
     // The date leads the supporting line, which can also carry the category and the report status.
     const transactionSupportingText = new RegExp(`^${date}`);

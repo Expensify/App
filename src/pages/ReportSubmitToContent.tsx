@@ -81,7 +81,7 @@ function ReportSubmitToContent({
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -212,7 +212,7 @@ function ReportSubmitToContent({
         }
 
         const inviteOption = getUserToInviteOption({
-            dateFnsLocale,
+            preferredLocale,
             searchValue: trimmed,
             personalDetails,
             loginList,
@@ -233,7 +233,7 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale]);
+    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, preferredLocale]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {

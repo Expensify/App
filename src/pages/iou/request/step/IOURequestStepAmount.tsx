@@ -74,7 +74,7 @@ function IOURequestStepAmount({
     transaction,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
-    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -222,7 +222,7 @@ function IOURequestStepAmount({
             ? getParticipantsOption(participant, personalDetails, translate)
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
-                  dateFnsLocale,
+                  preferredLocale,
               });
     });
     const participant = participants.at(0);
@@ -245,7 +245,7 @@ function IOURequestStepAmount({
             getCurrencyDecimals,
             getCurrencySymbol,
             translate,
-            dateFnsLocale,
+            preferredLocale,
             report,
             transaction,
             splitDraftTransaction,

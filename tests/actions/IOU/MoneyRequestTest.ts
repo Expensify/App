@@ -797,7 +797,7 @@ describe('MoneyRequest', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             delegateAccountID: undefined,
-            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal, undefined),
+            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal, CONST.LOCALES.EN),
             participantsPolicyTags: {},
         };
         const splitShares: SplitShares = {
@@ -1719,7 +1719,18 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants when conciergeReportID is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions(
+                currentUserAccountID,
+                fakeReport,
+                fakePolicy,
+                {},
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                translateLocal,
+                CONST.LOCALES.EN,
+            );
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1734,7 +1745,7 @@ describe('MoneyRequest', () => {
                 undefined,
                 undefined,
                 translateLocal,
-                undefined,
+                CONST.LOCALES.EN,
             );
             expect(Array.isArray(participants)).toBe(true);
         });
@@ -1750,7 +1761,7 @@ describe('MoneyRequest', () => {
                 undefined,
                 undefined,
                 translateLocal,
-                undefined,
+                CONST.LOCALES.EN,
             );
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
@@ -1759,7 +1770,7 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants with privateIsArchived passed through', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal, CONST.LOCALES.EN);
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1768,26 +1779,70 @@ describe('MoneyRequest', () => {
                 ...createRandomReport(2, undefined),
                 participants: {},
             };
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions(
+                currentUserAccountID,
+                dmReport,
+                fakePolicy,
+                {},
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                translateLocal,
+                CONST.LOCALES.EN,
+            );
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions(
+                currentUserAccountID,
+                fakeReport,
+                fakePolicy,
+                {},
+                undefined,
+                undefined,
+                undefined,
+                fakeReport,
+                translateLocal,
+                CONST.LOCALES.EN,
+            );
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: true});
         });
 
         it('should not mark participant as disabled when reportDraft is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions(
+                currentUserAccountID,
+                fakeReport,
+                fakePolicy,
+                {},
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                translateLocal,
+                CONST.LOCALES.EN,
+            );
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
 
         it('should not mark participant as disabled when reportDrafts is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions(
+                currentUserAccountID,
+                fakeReport,
+                fakePolicy,
+                {},
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                translateLocal,
+                CONST.LOCALES.EN,
+            );
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly

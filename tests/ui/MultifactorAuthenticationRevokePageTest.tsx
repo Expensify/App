@@ -53,6 +53,7 @@ jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
         translate: (key: string) => key,
+        preferredLocale: 'en',
     }),
 }));
 

@@ -68,6 +68,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, TEXT_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -90,7 +91,6 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -631,7 +631,7 @@ type GetSectionsResult = [
 
 type GetSectionsParams = {
     type: SearchDataTypes;
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     data: OnyxTypes.SearchResults['data'];
     currentAccountID: number;
     currentUserEmail: string;
@@ -3727,11 +3727,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMonthSections(
-    data: OnyxTypes.SearchResults['data'],
-    queryJSON: SearchQueryJSON | undefined,
-    dateFnsLocale: DateFnsLocale | undefined,
-): [TransactionMonthGroupListItemType[], number, boolean] {
+function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, preferredLocale: Locale): [TransactionMonthGroupListItemType[], number, boolean] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -3744,7 +3740,7 @@ function getMonthSections(
             const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
 
             const monthDate = new Date(monthGroup.year, monthGroup.month - 1, 1);
-            const formattedMonth = format(monthDate, 'MMMM yyyy', {locale: dateFnsLocale});
+            const formattedMonth = DateUtils.formatToLongMonthYear(monthDate, preferredLocale);
 
             monthSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
@@ -3766,11 +3762,7 @@ function getMonthSections(
  * Returns sections for week-grouped search results.
  * Do not use directly, use only via `getSections()` facade.
  */
-function getWeekSections(
-    data: OnyxTypes.SearchResults['data'],
-    queryJSON: SearchQueryJSON | undefined,
-    dateFnsLocale: DateFnsLocale | undefined,
-): [TransactionWeekGroupListItemType[], number, boolean] {
+function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, preferredLocale: Locale): [TransactionWeekGroupListItemType[], number, boolean] {
     const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -3781,7 +3773,7 @@ function getWeekSections(
             const rawRange = DateUtils.getWeekDateRange(weekGroup.week);
             const dateResult = queryJSON && weekGroup.week ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
             const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
-            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(dateResult?.start ?? rawRange.start, dateResult?.end ?? rawRange.end, dateFnsLocale);
+            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(dateResult?.start ?? rawRange.start, dateResult?.end ?? rawRange.end, false, false, preferredLocale);
 
             weekSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
@@ -3833,7 +3825,7 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
 function getQuarterSections(
     data: OnyxTypes.SearchResults['data'],
     queryJSON: SearchQueryJSON | undefined,
-    dateFnsLocale: DateFnsLocale | undefined,
+    preferredLocale: Locale,
 ): [TransactionQuarterGroupListItemType[], number, boolean] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
     for (const key in data) {
@@ -3846,7 +3838,7 @@ function getQuarterSections(
                 queryJSON && quarterGroup.year !== undefined && quarterGroup.quarter !== undefined
                     ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
                     : undefined;
-            const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
+            const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, preferredLocale);
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
@@ -3869,7 +3861,7 @@ function getQuarterSections(
  */
 function getSections({
     type,
-    dateFnsLocale,
+    preferredLocale,
     data,
     currentAccountID,
     currentUserEmail,
@@ -3937,13 +3929,13 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.TAG:
                 return getTagSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.MONTH:
-                return getMonthSections(data, queryJSON, dateFnsLocale);
+                return getMonthSections(data, queryJSON, preferredLocale);
             case CONST.SEARCH.GROUP_BY.WEEK:
-                return getWeekSections(data, queryJSON, dateFnsLocale);
+                return getWeekSections(data, queryJSON, preferredLocale);
             case CONST.SEARCH.GROUP_BY.YEAR:
                 return getYearSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.QUARTER:
-                return getQuarterSections(data, queryJSON, dateFnsLocale);
+                return getQuarterSections(data, queryJSON, preferredLocale);
         }
     }
 
@@ -5594,7 +5586,7 @@ const FILTER_VIEW_MAP = {
     },
 } satisfies Partial<Record<SyntaxFilterKey, FilterView>>;
 
-function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined): string {
+function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate, preferredLocale: Locale): string {
     const key = getDateFilterKeys(syntaxKey);
     const on = form[key.dateOnKey];
     const after = form[key.dateAfterKey];
@@ -5603,19 +5595,19 @@ function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<Sear
     const parts: string[] = [];
 
     if (on) {
-        parts.push(isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on, dateFnsLocale)}`);
+        parts.push(isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on, preferredLocale)}`);
     }
 
     if (after) {
-        parts.push(`${translate('common.after')} ${DateUtils.formatToReadableString(after, dateFnsLocale)}`);
+        parts.push(`${translate('common.after')} ${DateUtils.formatToReadableString(after, preferredLocale)}`);
     }
 
     if (before) {
-        parts.push(`${translate('common.before')} ${DateUtils.formatToReadableString(before, dateFnsLocale)}`);
+        parts.push(`${translate('common.before')} ${DateUtils.formatToReadableString(before, preferredLocale)}`);
     }
 
     if (range) {
-        const rangeDisplay = getDateRangeDisplayValueFromFormValue(dateFnsLocale, range, undefined, undefined, true);
+        const rangeDisplay = getDateRangeDisplayValueFromFormValue(range, preferredLocale, undefined, undefined, true);
         if (rangeDisplay) {
             parts.push(rangeDisplay);
         }
@@ -5651,7 +5643,7 @@ function getAmountDisplayValue(
     return undefined;
 }
 
-function getReportFieldDisplayValue(form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined): string {
+function getReportFieldDisplayValue(form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate, preferredLocale: Locale): string {
     const values: string[] = [];
 
     for (const [fieldKey, fieldValue] of Object.entries(form)) {
@@ -5688,7 +5680,7 @@ function getReportFieldDisplayValue(form: Partial<SearchAdvancedFiltersForm>, tr
         }
 
         if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX)) {
-            const rangeDisplay = getDateRangeDisplayValueFromFormValue(dateFnsLocale, fieldValue as string, undefined, undefined, true);
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(fieldValue as string, preferredLocale, undefined, undefined, true);
             if (rangeDisplay) {
                 values.push(translate('search.filters.reportField', fieldName, `${translate('common.range')}: ${rangeDisplay}`.toLowerCase()));
             }
@@ -5867,7 +5859,7 @@ function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
+    preferredLocale: Locale,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
 ): SearchFilter[];
@@ -5875,7 +5867,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
+    preferredLocale: Locale,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
     mapper: (filterKey: MappedFilterKey) => T,
@@ -5884,7 +5876,7 @@ function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
+    preferredLocale: Locale,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
     mapper?: (filterKey: MappedFilterKey) => Record<string, unknown>,
@@ -5908,7 +5900,7 @@ function mapFiltersFormToLabelValueList(
 
             const displayValue = isAmountFilterKey(syntax)
                 ? getAmountDisplayValue(syntax, searchAdvancedFiltersForm, translate, convertToDisplayStringWithoutCurrency)
-                : getDateDisplayValue(syntax, searchAdvancedFiltersForm, translate, dateFnsLocale);
+                : getDateDisplayValue(syntax, searchAdvancedFiltersForm, translate, preferredLocale);
             const label = FILTER_VIEW_MAP[syntax].labelKey;
 
             if (displayValue && label) {
@@ -5924,7 +5916,7 @@ function mapFiltersFormToLabelValueList(
                 continue;
             }
 
-            const value = getReportFieldDisplayValue(searchAdvancedFiltersForm, translate, dateFnsLocale);
+            const value = getReportFieldDisplayValue(searchAdvancedFiltersForm, translate, preferredLocale);
             if (value) {
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
                 const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);

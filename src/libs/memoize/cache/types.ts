@@ -15,6 +15,8 @@ type Cache<K, V> = {
      * @returns The value for the key
      */
     getSet: (key: K, valueProducer: () => V) => BoxedValue<V>;
+    /** Drops every entry. For caches whose values are derived from state that can change after they were computed. */
+    clear: () => void;
     snapshot: {
         keys: () => K[];
         values: () => V[];

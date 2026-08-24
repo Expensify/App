@@ -358,7 +358,7 @@ const computeReportName = (
     conciergeReportID?: string,
 ) =>
     computeReportNameOriginal({
-        dateFnsLocale: undefined,
+        preferredLocale: CONST.LOCALES.EN,
         report,
         reports,
         policies,

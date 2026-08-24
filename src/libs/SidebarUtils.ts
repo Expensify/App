@@ -19,13 +19,13 @@ import type {
 } from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type Locale from '@src/types/onyx/Locale';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -841,7 +841,7 @@ function getOptionData({
     card,
     lastAction,
     translate,
-    dateFnsLocale,
+    preferredLocale,
     convertToDisplayString,
     localeCompare,
     isReportArchived,
@@ -869,7 +869,7 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     translate: LocalizedTranslate;
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived: boolean | undefined;
@@ -1031,7 +1031,7 @@ function getOptionData({
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
-            dateFnsLocale,
+            preferredLocale,
             report,
             personalDetails,
             lastActorDetails,
@@ -1167,9 +1167,9 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES)) {
             result.alternateText = getWorkspaceCustomUnitRateImportedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, lastAction);
+            result.alternateText = getWorkspaceCustomUnitRateAddedMessage(translate, preferredLocale, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, lastAction);
+            result.alternateText = getWorkspaceCustomUnitRateUpdatedMessage(translate, preferredLocale, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
             result.alternateText = getWorkspaceCustomUnitRateDeletedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE)) {
@@ -1183,7 +1183,7 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD)) {
             result.alternateText = getWorkspaceReportFieldDeleteMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
-            result.alternateText = getWorkspaceUpdateFieldMessage(translate, lastAction);
+            result.alternateText = getWorkspaceUpdateFieldMessage(translate, preferredLocale, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
             result.alternateText = getWorkspaceFeatureEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {

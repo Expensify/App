@@ -510,7 +510,7 @@ function ReportActionItem({
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
-    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
+    const formattedTimestamp = datetimeToCalendarTime(action.created);
     const plainMessage = getReportActionText(action);
     const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 

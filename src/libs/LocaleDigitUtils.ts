@@ -1,6 +1,9 @@
+import {LOCALES} from '@src/CONST/LOCALES';
+import localeDayOfMonthMap from '@src/languages/localeDayOfMonthMap';
 import localeOrdinalMap from '@src/languages/localeOrdinalMap';
 import type Locale from '@src/types/onyx/Locale';
 
+import {registerDerivedIntlCache} from './IntlFormatterCaches';
 import memoize from './memoize';
 import {format, formatToParts} from './NumberFormatUtils';
 
@@ -11,7 +14,7 @@ const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
 const getLocaleDigits = memoize(
-    (locale: Locale | undefined): string[] => {
+    (locale: Locale): string[] => {
         const localeDigits = [...STANDARD_DIGITS];
         for (let i = 0; i <= 9; i++) {
             localeDigits[i] = format(locale, i);
@@ -44,7 +47,7 @@ const getLocaleDigits = memoize(
  *
  * @throws If `digit` is not a valid standard digit.
  */
-function toLocaleDigit(locale: Locale | undefined, digit: string): string {
+function toLocaleDigit(locale: Locale, digit: string): string {
     const index = STANDARD_DIGITS.indexOf(digit);
     if (index < 0) {
         throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
@@ -60,7 +63,7 @@ function toLocaleDigit(locale: Locale | undefined, digit: string): string {
  *
  * @throws If `localeDigit` is not a valid locale digit.
  */
-function fromLocaleDigit(locale: Locale | undefined, localeDigit: string): string {
+function fromLocaleDigit(locale: Locale, localeDigit: string): string {
     const index = getLocaleDigits(locale).indexOf(localeDigit);
     if (index < 0) {
         throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);
@@ -73,19 +76,24 @@ function fromLocaleDigit(locale: Locale | undefined, localeDigit: string): strin
 const createOrdinalPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale, {type: 'ordinal'});
 const memoizedCreateOrdinalPluralRules = memoize(createOrdinalPluralRules);
 
+// Both resolve their locale at construction, so one built before that locale's data landed stays English.
+registerDerivedIntlCache(() => {
+    memoizedCreateOrdinalPluralRules.cache.clear();
+    getLocaleDigits.cache.clear();
+});
+
 /**
  * Formats a number into its localized ordinal representation, e.g. `1st` in English, `1.` in German
- * or `第1` in Japanese.
+ * or `第1` in Japanese. Returns an empty string for a non-finite number, because callers commonly pass
+ * `Date` getters and `PluralRules.select(NaN)` resolves to 'other' rather than throwing, which renders "NaNth".
  *
- * @param locale - The locale to use for formatting. Returns an empty string when absent, matching the
- * placeholder on the locale context.
+ * @param locale - The locale to use for formatting
  * @param number - The number to format
  */
-function toLocaleOrdinal(locale: Locale | undefined, number: number): string {
-    if (!locale) {
+function toLocaleOrdinal(locale: Locale, number: number): string {
+    if (!Number.isFinite(number)) {
         return '';
     }
-
     // Ordinal rules vary far more than they appear to: English selects four categories, Italian two,
     // and most locales only ever select `other`. Asking Intl avoids reimplementing English's rule and
     // applying it everywhere.
@@ -97,4 +105,13 @@ function toLocaleOrdinal(locale: Locale | undefined, number: number): string {
     return rule(number);
 }
 
-export {toLocaleDigit, toLocaleOrdinal, fromLocaleDigit};
+/** A date, not a rank: see `localeDayOfMonthMap`. */
+function toLocaleDayOfMonth(locale: Locale, day: number): string {
+    if (!Number.isFinite(day)) {
+        return '';
+    }
+    // The tag reaches here from an Onyx NVP, so a malformed persisted value would index the map to undefined.
+    return (localeDayOfMonthMap[locale] ?? localeDayOfMonthMap[LOCALES.DEFAULT])(day);
+}
+
+export {toLocaleDigit, toLocaleOrdinal, toLocaleDayOfMonth, fromLocaleDigit};

@@ -1083,7 +1083,7 @@ describe('libs/NextStepUtils', () => {
             };
 
             // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
-            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, undefined, 999999, formatPhoneNumber);
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, CONST.LOCALES.EN, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
         });
 
@@ -1108,7 +1108,7 @@ describe('libs/NextStepUtils', () => {
                 return translateLocal(path, ...parameters);
             };
 
-            const message = buildNextStepMessage(nextStep, translateWithDepositCurrency, undefined, currentUserAccountID, formatPhoneNumber);
+            const message = buildNextStepMessage(nextStep, translateWithDepositCurrency, CONST.LOCALES.EN, currentUserAccountID, formatPhoneNumber);
             expect(message).toBe(`<next-step>Waiting for <strong>you</strong> to add a ${expectedAccount}.</next-step>`);
         });
 
@@ -1130,7 +1130,7 @@ describe('libs/NextStepUtils', () => {
             };
             const formatPhoneNumberMock = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
 
-            const message = buildNextStepMessage(nextStep, translateWithActorName, undefined, 999999, formatPhoneNumberMock);
+            const message = buildNextStepMessage(nextStep, translateWithActorName, CONST.LOCALES.EN, 999999, formatPhoneNumberMock);
 
             expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
@@ -1154,7 +1154,7 @@ describe('libs/NextStepUtils', () => {
                 return translateLocal(path, ...parameters);
             };
 
-            const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
+            const message = buildNextStepMessage(nextStep, translateEta, CONST.LOCALES.EN, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>15th</next-step>');
         });
 

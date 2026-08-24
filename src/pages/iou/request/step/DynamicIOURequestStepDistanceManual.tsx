@@ -83,7 +83,7 @@ function DynamicIOURequestStepDistanceManual({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.path);
     // The page is also mounted on the static distance create screen, where there is nothing to go back to within the flow.
     const backTo = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL ? backPath : undefined;
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
@@ -231,7 +231,7 @@ function DynamicIOURequestStepDistanceManual({
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
-        dateFnsLocale,
+        preferredLocale,
         currentUserAccountID: currentUserAccountIDParam,
         report,
         policy,

@@ -62,7 +62,7 @@ function IOURequestStepDistanceGPS({
     const styles = useThemeStyles();
     const delegateAccountID = useDelegateAccountID();
 
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
@@ -126,7 +126,7 @@ function IOURequestStepDistanceGPS({
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
-        dateFnsLocale,
+        preferredLocale,
         currentUserAccountID: currentUserAccountIDParam,
         report,
         policy,

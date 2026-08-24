@@ -3,6 +3,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    Locale,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -17,7 +18,6 @@ import type {
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
@@ -187,7 +187,6 @@ import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUp
 import {hasNonReimbursableTransactions} from './TransactionUtils';
 
 type ComputeReportName = {
-    dateFnsLocale: DateFnsLocale | undefined;
     report?: Report;
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
@@ -199,6 +198,7 @@ type ComputeReportName = {
     currentUserAccountID?: number;
     currentUserLogin: string;
     translate: LocalizedTranslate;
+    preferredLocale: Locale;
     conciergeReportID: string | undefined;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     reportTransactions: Record<string, Transaction[]>;
@@ -480,7 +480,7 @@ function getMoneyRequestReportName({
 
 function computeReportNameBasedOnReportAction({
     translate,
-    dateFnsLocale,
+    preferredLocale,
     formatPhoneNumber,
     parentReportAction,
     report,
@@ -492,7 +492,7 @@ function computeReportNameBasedOnReportAction({
     currentUserAccountID,
 }: {
     translate: LocalizedTranslate;
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     parentReportAction: ReportAction | undefined;
     report: Report | undefined;
@@ -605,7 +605,7 @@ function computeReportNameBasedOnReportAction({
         return getWorkspaceCurrencyUpdateMessage(translate, parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
-        return getWorkspaceUpdateFieldMessage(translate, parentReportAction);
+        return getWorkspaceUpdateFieldMessage(translate, preferredLocale, parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
         return getWorkspaceFeatureEnabledMessage(translate, parentReportAction);
@@ -860,10 +860,10 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
-        return getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, parentReportAction);
+        return getWorkspaceCustomUnitRateAddedMessage(translate, preferredLocale, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-        return getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, parentReportAction);
+        return getWorkspaceCustomUnitRateUpdatedMessage(translate, preferredLocale, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
         return getWorkspaceCustomUnitRateDeletedMessage(translate, parentReportAction);
@@ -1046,7 +1046,6 @@ function computeChatThreadReportName(
  * In all other cases you should use `getReportName`
  */
 function computeReportName({
-    dateFnsLocale,
     report,
     reports,
     policies,
@@ -1057,6 +1056,7 @@ function computeReportName({
     currentUserAccountID,
     currentUserLogin,
     translate,
+    preferredLocale,
     allPolicyTags,
     conciergeReportID,
     reportAttributes,
@@ -1074,7 +1074,7 @@ function computeReportName({
 
     const parentReportActionBasedName = computeReportNameBasedOnReportAction({
         translate,
-        dateFnsLocale,
+        preferredLocale,
         formatPhoneNumber: formatPhoneNumberPhoneUtils,
         parentReportAction,
         report,
@@ -1098,7 +1098,6 @@ function computeReportName({
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
         const reportName = computeReportName({
-            dateFnsLocale,
             report: originalReport,
             reports,
             policies,
@@ -1109,6 +1108,7 @@ function computeReportName({
             currentUserAccountID,
             currentUserLogin,
             translate,
+            preferredLocale,
             conciergeReportID,
             reportAttributes,
             reportTransactions,

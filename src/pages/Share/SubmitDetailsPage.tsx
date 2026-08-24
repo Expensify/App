@@ -34,7 +34,6 @@ import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -68,6 +67,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -84,7 +84,7 @@ function SubmitDetailsPage({
     },
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
@@ -230,7 +230,7 @@ function SubmitDetailsPage({
             ? getParticipantsOption(participant, personalDetails, translate)
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
-                  dateFnsLocale,
+                  preferredLocale,
               });
     });
 
@@ -599,11 +599,7 @@ function SubmitDetailsPage({
 
     const onConfirm = (gpsRequired?: boolean) => {
         setIsConfirming(true);
-        const shouldStartLocationPermissionFlow =
-            gpsRequired &&
-            (!lastLocationPermissionPrompt ||
-                (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
-                    DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS));
+        const shouldStartLocationPermissionFlow = gpsRequired && shouldStartLocationPermissionFlowSelector(lastLocationPermissionPrompt);
 
         if (shouldStartLocationPermissionFlow) {
             setStartLocationPermissionFlow(true);

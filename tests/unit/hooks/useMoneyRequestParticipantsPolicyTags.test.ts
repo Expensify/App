@@ -4,6 +4,7 @@ import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestPartici
 
 import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
 
@@ -41,7 +42,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         const {result} = renderHook(() =>
             useMoneyRequestParticipantsPolicyTags({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: 999,
                 report,
                 policy,
@@ -56,7 +57,18 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         await waitFor(() => expect(result.current.participants).toEqual(mockParticipants));
 
-        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(999, report, policy, personalDetails, 'concierge1', false, reportAttributesDerived, reportDraft, translate, undefined);
+        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(
+            999,
+            report,
+            policy,
+            personalDetails,
+            'concierge1',
+            false,
+            reportAttributesDerived,
+            reportDraft,
+            translate,
+            CONST.LOCALES.EN,
+        );
     });
 
     it('derives participantsPolicyTags from Onyx policy tags keyed by each participant policyID', async () => {
@@ -87,7 +99,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         const {result} = renderHook(() =>
             useMoneyRequestParticipantsPolicyTags({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: 999,
                 report: {reportID: '1'},
                 policy: undefined,
@@ -110,7 +122,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         const {result} = renderHook(() =>
             useMoneyRequestParticipantsPolicyTags({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: 999,
                 report: {reportID: '1'},
                 policy: undefined,

@@ -88,7 +88,7 @@ function DateFilterBase({
     style,
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isLoading, startWithLoading} = usePressLoading();
 
     const normalizedDefaultDateValues = useMemo(() => ({...getEmptyDateValues(), ...defaultDateValues}), [defaultDateValues]);
@@ -97,8 +97,8 @@ function DateFilterBase({
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeDisplayText, setRangeDisplayText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(
-            dateFnsLocale,
             normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+            preferredLocale,
             normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
             normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
         ),
@@ -107,27 +107,27 @@ function DateFilterBase({
     useEffect(() => {
         setRangeDisplayText(
             getDateRangeDisplayValueFromFormValue(
-                dateFnsLocale,
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                preferredLocale,
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
             ),
         );
-    }, [normalizedDefaultDateValues, dateFnsLocale]);
+    }, [normalizedDefaultDateValues, preferredLocale]);
 
     const handleDateValuesChange = useCallback(
         (values: SearchDateValues) => {
             setRangeDisplayText(
                 getDateRangeDisplayValueFromFormValue(
-                    dateFnsLocale,
                     values[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                    preferredLocale,
                     values[CONST.SEARCH.DATE_MODIFIERS.AFTER],
                     values[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
                 ),
             );
             onDateValuesChange?.(values);
         },
-        [onDateValuesChange, dateFnsLocale],
+        [onDateValuesChange, preferredLocale],
     );
 
     const isDateModifierControlled = selectedDateModifierProp !== undefined;
