@@ -176,6 +176,10 @@ Choose how to sync reimbursement status:
 
 **Note**: Make sure the selected account matches your Bill Payments default in Sage Intacct.
 
+## How to map an FX expense account for company-paid conversion fees
+
+Select an **FX expense account** to record currency conversion (FX) fees. When your workspace's **Currency conversion fees** setting under **Workflows** is set so the company pays, a cross-border reimbursement exports an additional journal entry for the FX cost (debit the FX expense account, credit cash) alongside the bill payment. The journal entry memo reads "Foreign Exchange Fees for Expensify report [reportID]". This account must be mapped for the FX journal entry to export.
+
 ## How to sync Consolidated Travel Billing settlements in Sage Intacct
 
 **Sync Consolidated Travel Billing settlements** appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through Sage Intacct. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
