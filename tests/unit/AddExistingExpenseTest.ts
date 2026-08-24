@@ -1,5 +1,4 @@
-import {getEligibleTransactionsToAdd} from '@libs/ReportUtils';
-import {createUnreportedExpenses} from '@libs/TransactionUtils';
+import {createUnreportedExpenses, getEligibleTransactionsToAdd} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,6 +71,7 @@ function getEligibleTransactionIDs(
 
 describe('AddExistingExpense', () => {
     describe('getEligibleTransactionsToAdd', () => {
+        // Expense amounts use the opposite stored sign, so 1000 represents -$10.00 and -1000 represents $10.00.
         test.each([
             {amountType: 'negative', storedAmount: 1000, reportType: CONST.REPORT.TYPE.EXPENSE, expected: true},
             {amountType: 'zero', storedAmount: 0, reportType: CONST.REPORT.TYPE.EXPENSE, expected: true},
@@ -88,17 +88,18 @@ describe('AddExistingExpense', () => {
 
         it('should include only unreported transactions and transactions on open expense reports', () => {
             const unreportedTransaction = generateTransaction({transactionID: 'unreported'});
+            const unreportedTransactionWithEmptyReportID = generateTransaction({transactionID: 'unreportedWithEmptyReportID', reportID: ''});
             const openTransaction = generateTransaction({transactionID: 'open', reportID: 'openReport'});
             const draftTransaction = generateTransaction({transactionID: 'draft', reportID: 'draftReport'});
             const closedTransaction = generateTransaction({transactionID: 'closed', reportID: 'closedReport'});
             const currentReportTransaction = generateTransaction({transactionID: 'current', reportID: TARGET_REPORT_ID});
 
             expect(
-                getEligibleTransactionIDs([unreportedTransaction, openTransaction, draftTransaction, closedTransaction, currentReportTransaction], {
+                getEligibleTransactionIDs([unreportedTransaction, unreportedTransactionWithEmptyReportID, openTransaction, draftTransaction, closedTransaction, currentReportTransaction], {
                     allOpenReports: {openReport: true, [TARGET_REPORT_ID]: true},
                     openReportDrafts: {draftReport: true},
                 }),
-            ).toEqual(['unreported', 'open', 'draft']);
+            ).toEqual(['unreported', 'unreportedWithEmptyReportID', 'open', 'draft']);
         });
 
         it('should exclude reported and split expenses from IOU reports', () => {
