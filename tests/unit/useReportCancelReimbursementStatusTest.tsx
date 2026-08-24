@@ -115,6 +115,24 @@ describe('useReportCancelReimbursementStatus', () => {
         expect(result.current).toBeUndefined();
     });
 
+    it('does not show the previous answer again while the reconnected one is still loading', async () => {
+        const {result, rerender} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
+        await waitForBatchedUpdates();
+        expect(result.current).toEqual({canCancel: true, isWaitingForCreditToPost: false});
+
+        mockIsOffline = true;
+        rerender(undefined);
+        await waitForBatchedUpdates();
+        expect(result.current).toBeUndefined();
+
+        mockGetReportCancelReimbursementStatus.mockImplementationOnce(() => new Promise(() => {}));
+        mockIsOffline = false;
+        rerender(undefined);
+        await waitForBatchedUpdates();
+
+        expect(result.current).toBeUndefined();
+    });
+
     it('ignores a response that arrives after the hook moved to another report', async () => {
         const otherReimbursement = {...submittedReimbursement, reportID: OTHER_REPORT_ID} as Report;
         let resolveFirstRequest: ((status: ReportCancelReimbursementStatus) => void) | undefined;
