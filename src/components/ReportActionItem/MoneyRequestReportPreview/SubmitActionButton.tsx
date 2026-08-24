@@ -98,14 +98,20 @@ function SubmitActionButtonContent() {
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy,
+    });
+
     const handleSubmit = () => {
         if (hasOnlyPendingCardTransactions(transactions)) {
-            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 
         if (hasOnlyHeldExpenses(transactions)) {
-            showHeldExpensesBlockModal(showConfirmModal, translate);
+            showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 
@@ -136,17 +142,11 @@ function SubmitActionButtonContent() {
         });
     };
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        isTrackIntentUser,
-        report: iouReport,
-        policy,
-    });
-
     return (
         <AnimatedSubmitButton
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
-            isMarkAsDone={shouldUseMarkAsDoneCopy}
+            text={shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             onPress={handleSubmit}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
