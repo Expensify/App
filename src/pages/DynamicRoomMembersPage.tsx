@@ -87,7 +87,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         Navigation.goBack(backPath);
     }, [backPath]);
     const isReportArchived = useReportIsArchived(report.reportID);
-    const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const reportForSubtitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
     const derivedSubtitleReportName = useDerivedReportNameByReportID(reportForSubtitle?.reportID);
     const subtitleReportName = getReportName(reportForSubtitle, derivedSubtitleReportName);
 
