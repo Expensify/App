@@ -13,6 +13,7 @@ import React from 'react';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
+import NumberForm from './NumberForm';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 
 type AmountFormProps = {
@@ -78,7 +79,7 @@ type AmountFormProps = {
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'onBlur'>;
 
 /**
- * Wrapper around NumberWithSymbolForm with currency handling.
+ * Wrapper around the numeric form components with currency handling.
  */
 function AmountForm({
     value,
@@ -109,6 +110,39 @@ function AmountForm({
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
+    const symbol = getLocalizedCurrencySymbol(preferredLocale, currency) ?? '';
+
+    // Use the new composable NumberForm for the standard text-input path as part of the NumberWithSymbolForm migration.
+    // Keep the legacy component for currency-button variants until those additional controls are supported by NumberForm.
+    if (displayAsTextInput && !shouldShowCurrencyButton) {
+        return (
+            <NumberForm
+                value={value ?? ''}
+                onInputChange={onInputChange}
+                errorText={errorText}
+                ref={ref}
+                numberFormRef={numberFormRef}
+                onBlur={onBlur}
+                onSubmitEditing={onSubmitEditing}
+            >
+                <NumberForm.TextInput
+                    symbol={symbol}
+                    position="prefix"
+                    decimals={decimals}
+                    maxLength={amountMaxLength}
+                    hideSymbol={hideCurrencySymbol}
+                    accessibilityLabel={label}
+                    label={label}
+                    disabled={disabled}
+                    autoFocus={autoFocus}
+                    autoGrowExtraSpace={autoGrowExtraSpace}
+                    autoGrowMarginSide={autoGrowMarginSide}
+                    onFocus={onFocus}
+                    prefixStyle={styles.colorMuted}
+                />
+            </NumberForm>
+        );
+    }
 
     return (
         <NumberWithSymbolForm
@@ -128,7 +162,7 @@ function AmountForm({
                 }
             }}
             numberFormRef={numberFormRef}
-            symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+            symbol={symbol}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             isSymbolPressable={isCurrencyPressable}
             hideSymbol={hideCurrencySymbol}
