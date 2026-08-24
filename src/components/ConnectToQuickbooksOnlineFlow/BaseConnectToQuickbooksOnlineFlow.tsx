@@ -42,7 +42,6 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.QBO);
-    // IES shows the production/sandbox selector in development and staging so testers can pick the OAuth configuration.
     const shouldShowConnectionOptions = !!isIntuitEnterpriseSuite && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) && !isAuthError;
     const [isConnectionOptionsPopoverOpen, setIsConnectionOptionsPopoverOpen] = useState(shouldShowConnectionOptions);
     const [connectionOptionsPopoverPosition, setConnectionOptionsPopoverPosition] = useState<AnchorPosition | null>(null);
