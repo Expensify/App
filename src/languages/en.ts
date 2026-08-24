@@ -2739,7 +2739,7 @@ const translations = {
             successHeading: 'Successful connection',
             successDescription: 'Thanks for connecting to Plaid!',
             failureHeading: 'Unsuccessful connection',
-            failureDescription: 'Please try again or <concierge-link>reach out to Concierge</concierge-link>.',
+            failureDescription: '<muted-text>Please try again or <concierge-link>reach out to Concierge</concierge-link>.</muted-text>',
             wrongAccountHeading: 'Wrong bank account',
             wrongAccountDescription: 'Please select the matching bank account in Plaid.',
         },
