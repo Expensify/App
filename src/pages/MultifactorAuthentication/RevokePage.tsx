@@ -237,7 +237,7 @@ function MultifactorAuthenticationRevokePage() {
                             )}
                             {otherDeviceCount > 0 && (
                                 <RevokeRow
-                                    title={translate('multifactorAuthentication.revoke.otherDevices', otherDeviceCount)}
+                                    title={translate('multifactorAuthentication.revoke.otherDevices', {count: otherDeviceCount})}
                                     isLoading={isOtherDevicesLoading}
                                     onPress={() => {
                                         showConfirmModal(otherDevicesConfirmMode());
