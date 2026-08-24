@@ -2114,7 +2114,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   subMenuItems,
               };
 
-        // Move-eligibility only sees the loaded page; the backend enforces it on the full set
+        // Move-eligibility only sees the loaded page. The backend enforces it on the full set.
         const moveOwnerAccountIDs = new Set<number>();
         let moveHasUnknownOwner = false;
         for (const id of selectedTransactionsKeys) {

@@ -2066,6 +2066,8 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         }),
     };
 
+    // The query-based all-matching path above already called API.write and returned, so this branch only runs for the
+    // explicit-transaction move. The two writes are mutually exclusive and never fire within the same invocation.
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
         optimisticData,

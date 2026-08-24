@@ -18,13 +18,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isManualDistanceRequest as isManualDistanceRequestUtil, isOdometerDistanceRequest as isOdometerDistanceRequestUtil, isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
 
@@ -34,7 +33,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo, useState} from 'react';
@@ -59,19 +57,7 @@ function SearchTransactionsChangeReport() {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
 
-    /** The backend resolves an "all matching" move from the query, so it needs the query and its hash together.
-     *  Without them only the loaded page moves while the UI claims otherwise. */
-    const getAllMatchingQueryParams = (): {jsonQuery?: string; hash?: number} => {
-        // The query can't express unchecked rows, so sending it would move them back in
-        if (!areAllMatchingItemsSelected || !isEmptyObject(excludedTransactions ?? {})) {
-            return {};
-        }
-        if (!currentSearchQueryJSON) {
-            Log.warn('[SearchTransactionsChangeReport] All matching expenses are selected but the search query is unavailable; only the loaded expenses will be moved.');
-            return {};
-        }
-        return {jsonQuery: serializeQueryJSONForBackend(currentSearchQueryJSON), hash: currentSearchQueryJSON.hash};
-    };
+    const allMatchingQueryParams = getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
 
     /**
      * A queued all-matching move would replay a stale query on reconnect: the hash resolves the match set at
@@ -79,7 +65,7 @@ function SearchTransactionsChangeReport() {
      * swept in. The upstream check in `useSearchBulkActions` only runs while opening this RHP, so re-check here in
      * case the connection dropped after. Block the query-based move and ask the user to reconnect (same as export).
      */
-    const shouldBlockOfflineAllMatchingMove = () => isOffline && !!getAllMatchingQueryParams().jsonQuery;
+    const shouldBlockOfflineAllMatchingMove = () => isOffline && !!allMatchingQueryParams.jsonQuery;
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
@@ -226,7 +212,7 @@ function SearchTransactionsChangeReport() {
                 selfDMReportActions,
                 delegateAccountID,
                 getCurrencyDecimals,
-                ...getAllMatchingQueryParams(),
+                ...allMatchingQueryParams,
             });
             clearSelectedTransactions();
         });
@@ -326,7 +312,7 @@ function SearchTransactionsChangeReport() {
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
-            ...getAllMatchingQueryParams(),
+            ...allMatchingQueryParams,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -355,7 +341,7 @@ function SearchTransactionsChangeReport() {
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
-            ...getAllMatchingQueryParams(),
+            ...allMatchingQueryParams,
         });
         clearSelectedTransactions();
         Navigation.goBack();

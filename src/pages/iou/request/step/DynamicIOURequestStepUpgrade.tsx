@@ -26,6 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
+import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -36,7 +37,6 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
@@ -50,7 +50,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -153,12 +152,12 @@ function DynamicIOURequestStepUpgrade({
                 [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
             };
 
-            // The all-matching query has to travel through the upgrade flow too, or only the loaded page moves
-            // Unchecked rows can't be expressed in the query, so exclusions keep the explicit list
-            const allMatchingQueryParams =
-                areAllMatchingItemsSelected && isEmptyObject(excludedTransactions ?? {}) && currentSearchQueryJSON
-                    ? {jsonQuery: serializeQueryJSONForBackend(currentSearchQueryJSON), hash: currentSearchQueryJSON.hash}
-                    : {};
+            // The all-matching query has to travel through the upgrade flow too, or only the loaded page moves.
+            // The confirmation button stays enabled offline, so recheck connectivity here. A queued query-based move
+            // would replay a stale query on reconnect (the hash resolves the match set at backend execution time),
+            // sweeping in expenses that started matching while offline, so drop the query params when offline and
+            // fall back to moving the frozen explicit list.
+            const allMatchingQueryParams = isOffline ? {} : getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
 
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
@@ -293,6 +292,7 @@ function DynamicIOURequestStepUpgrade({
         areAllMatchingItemsSelected,
         currentSearchQueryJSON,
         excludedTransactions,
+        isOffline,
     ]);
 
     const participant = transaction?.participants?.[0];
