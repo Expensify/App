@@ -80,14 +80,13 @@ function removeLastSegment(gpsPoints: GPSPoint[][]) {
     });
 }
 
-function initGpsDraft(reportID: string, unit: Unit, accountID?: number) {
+function initGpsDraft(reportID: string, unit: Unit) {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: [[]],
         isTracking: true,
         distanceInMeters: 0,
         reportID,
         unit,
-        accountID,
     });
 }
 
