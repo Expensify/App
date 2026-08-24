@@ -1,4 +1,4 @@
-import {useNumberFormContext} from '@components/NumberForm/context';
+import {useNumberFormActions, useNumberFormState} from '@components/NumberForm/context';
 import type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent} from '@components/NumberForm/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -29,7 +29,8 @@ const getNewSelection = (oldSelection: NumberSelection, previousLength: number, 
 
 function useNumberFormInputLogic({decimals = 0, maxLength, position = 'prefix', ref, onBlur: inputOnBlur, onKeyPress}: NumberFormInputBaseProps) {
     const {fromLocaleDigit, numberFormat, toLocaleDigit} = useLocalize();
-    const {allowNegative, errorText, externalValue, inputRef, numberFormRef, onBlur, onSubmitEditing, setValue, value} = useNumberFormContext();
+    const {allowNegative, errorText, externalValue, value} = useNumberFormState();
+    const {inputRef, numberFormRef, onBlur, onSubmitEditing, setValue} = useNumberFormActions();
 
     const numberRef = useRef<string | undefined>(undefined);
     const forwardDeletePressedRef = useRef(false);

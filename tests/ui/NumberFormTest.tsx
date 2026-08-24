@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import NumberForm, {useNumberFormContext} from '@components/NumberForm';
+import NumberForm, {useNumberFormActions, useNumberFormState} from '@components/NumberForm';
 import type {NumberFormProps} from '@components/NumberForm';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -10,7 +10,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 function ContextReadout() {
-    const {value, allowNegative, errorText, setValue, onBlur} = useNumberFormContext();
+    const {value, allowNegative, errorText} = useNumberFormState();
+    const {setValue, onBlur} = useNumberFormActions();
 
     return (
         <View>
@@ -45,7 +46,7 @@ function ContextReadout() {
 }
 
 function RapidValueUpdater({onPreviousValues}: {onPreviousValues: (values: string[]) => void}) {
-    const {setValue} = useNumberFormContext();
+    const {setValue} = useNumberFormActions();
 
     return (
         <PressableWithFeedback

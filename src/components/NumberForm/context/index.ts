@@ -1,1 +1,1 @@
-export {NumberFormActionsContext, NumberFormStateContext, useNumberFormContext} from './NumberFormContext';
+export {NumberFormActionsContext, NumberFormStateContext, useNumberFormActions, useNumberFormState} from './NumberFormContext';

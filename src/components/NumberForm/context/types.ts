@@ -28,6 +28,4 @@ type NumberFormActionsContextValue = {
     setValue: (value: string, options?: SetValueOptions) => string;
 };
 
-type NumberFormContext = NumberFormStateContextValue & NumberFormActionsContextValue;
-
-export type {NumberFormActionsContextValue, NumberFormContext, NumberFormStateContextValue, SetValueOptions};
+export type {NumberFormActionsContextValue, NumberFormStateContextValue, SetValueOptions};

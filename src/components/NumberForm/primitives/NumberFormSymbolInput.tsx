@@ -1,5 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import {NumberFormActionsContext, NumberFormStateContext, useNumberFormContext} from '@components/NumberForm/context';
+import {NumberFormActionsContext, NumberFormStateContext, useNumberFormActions, useNumberFormState} from '@components/NumberForm/context';
 import type {NumberFormActionsContextValue, NumberFormStateContextValue, SetValueOptions} from '@components/NumberForm/context/types';
 import useNumberFormInputLogic from '@components/NumberForm/hooks/useNumberFormInputLogic';
 import type {NumberFormRef, NumberFormSymbolInputProps} from '@components/NumberForm/types';
@@ -112,8 +112,8 @@ function NumberFormSymbolInputContent({isNegative, clearNegative, ...props}: Num
 }
 
 function NumberFormSymbolInput(props: NumberFormSymbolInputProps) {
-    const numberFormContext = useNumberFormContext();
-    const {allowNegative, errorText, externalValue, inputRef, numberFormRef, onBlur, onSubmitEditing, setValue: contextSetValue, value} = numberFormContext;
+    const {allowNegative, errorText, externalValue, value} = useNumberFormState();
+    const {inputRef, numberFormRef, onBlur, onSubmitEditing, setValue: contextSetValue} = useNumberFormActions();
     const canonicalValueRef = useRef(value);
     const numberFormInputRef = useRef<NumberFormRef | null>(null);
 
