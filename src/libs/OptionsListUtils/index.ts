@@ -1939,6 +1939,7 @@ function createFilteredOptionList(
         // so its reference signals that the underlying report actions changed.
         sortedActions,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDsByReportID,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {

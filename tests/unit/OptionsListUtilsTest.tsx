@@ -11898,18 +11898,24 @@ describe('OptionsListUtils', () => {
             },
         };
 
-        const buildGroupChatOption = (pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>) => {
-            clearFilteredOptionListCache();
-            const optionList = createFilteredOptionList(
-                PERSONAL_DETAILS,
-                {[`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`]: groupChatReport},
-                MOCK_REPORT_ATTRIBUTES_DERIVED,
-                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
-                allPolicies,
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, pendingDeleteMemberAccountIDsByReportID},
-            );
+        // Hoisted so every input other than the pending deletions keeps the same reference, which is what lets the
+        // cached (isSearching: false) path below actually hit the cache instead of missing on a fresh reports object.
+        const reports = {[`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`]: groupChatReport};
+
+        const buildGroupChatOption = (pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>, isSearching = true) => {
+            const optionList = createFilteredOptionList(PERSONAL_DETAILS, reports, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching,
+                pendingDeleteMemberAccountIDsByReportID,
+            });
             return optionList.reports.find((option) => option.item.reportID === GROUP_CHAT_REPORT_ID);
         };
+
+        beforeEach(() => {
+            clearFilteredOptionListCache();
+        });
 
         it('keeps every member in the group chat icon when nothing is pending removal', () => {
             expect(buildGroupChatOption()?.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
@@ -11917,6 +11923,12 @@ describe('OptionsListUtils', () => {
 
         it('leaves the members pending removal out of the group chat icon', () => {
             expect(buildGroupChatOption({[GROUP_CHAT_REPORT_ID]: ['4']})?.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
+        });
+
+        it('rebuilds the cached option list when a member becomes pending removal', () => {
+            // The non-search path caches its result, so the pending deletions have to be part of the cache inputs.
+            expect(buildGroupChatOption(undefined, false)?.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
+            expect(buildGroupChatOption({[GROUP_CHAT_REPORT_ID]: ['4']}, false)?.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
         });
     });
 });
