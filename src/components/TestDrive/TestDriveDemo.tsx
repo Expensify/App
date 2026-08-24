@@ -40,7 +40,6 @@ function TestDriveDemo() {
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [hasConciergeReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -71,7 +70,6 @@ function TestDriveDemo() {
                     reportID: conciergeReportID,
                     introSelected,
                     betas,
-                    conciergeChat,
                     hasReportActions: hasConciergeReportActions,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -106,7 +104,6 @@ function TestDriveDemo() {
         parentReportAction,
         delegateEmail,
         conciergeReportID,
-        conciergeChat,
         introSelected,
         betas,
     ]);

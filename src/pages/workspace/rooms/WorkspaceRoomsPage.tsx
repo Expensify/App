@@ -55,8 +55,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatRoomsSelector(policyID, reportNameValuePairs)});
@@ -89,15 +87,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
                 // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
                 // shouldMarkAsRead is false because the user only views the room details, not the conversation itself.
-                openReport({
-                    reportID: report.reportID,
-                    introSelected,
-                    conciergeChat,
-                    betas,
-                    shouldMarkAsRead: false,
-                    hasReportActions: !!hasReportActions?.[report.reportID],
-                    currentUserAccountID,
-                });
+                openReport({reportID: report.reportID, introSelected, betas, shouldMarkAsRead: false, hasReportActions: !!hasReportActions?.[report.reportID], currentUserAccountID});
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
                 return;
             }

@@ -39,7 +39,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
@@ -214,22 +213,12 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             reportID,
             introSelected,
             betas,
-            conciergeChat,
             hasReportActions: false,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });
-    }, [
-        isLoadingApp,
-        allReports,
-        introSelected,
-        betas,
-        conciergeChat,
-        session?.accountID,
-        guidedSetupAndTourStatus?.isSelfTourViewed,
-        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-    ]);
+    }, [isLoadingApp, allReports, introSelected, betas, session?.accountID, guidedSetupAndTourStatus?.isSelfTourViewed, guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow]);
 
     return null;
 }
