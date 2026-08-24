@@ -100,12 +100,9 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
     const rootState = navigationRef.getRootState();
     const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
     const mergedRoutes = [...rootState.routes, ...(adaptedState?.routes.filter((route) => !rootStateRouteNamesSet.has(route.name)) ?? [])];
-    // The merge above only appends routes whose top-level name isn't already present. When the onboarding modal
-    // navigator is already mounted, the computed target collapses onto the existing stack and the visible route
-    // can't actually change - but resetRoot({stale: true}) still re-runs react-navigation's useLinking.onStateChange,
-    // which calls history.replaceState(). A rapid burst of those no-op calls trips Safari's 100-per-10s replaceState
-    // cap and throws SecurityError. Skip resetRoot when the merged route list is identical to the current one,
-    // mirroring the idempotency guard linkTo already applies on the navigate side.
+    // Skip resetRoot when the merged route list is unchanged: resetRoot({stale: true}) still re-runs
+    // react-navigation's history.replaceState() even for this no-op, and a burst of those trips Safari's
+    // 100-per-10s replaceState cap (SecurityError). Mirrors the idempotency guard linkTo applies on navigate.
     const areRoutesUnchanged = mergedRoutes.length === rootState.routes.length && mergedRoutes.every((route, index) => route.name === rootState.routes.at(index)?.name);
     if (areRoutesUnchanged) {
         return;
