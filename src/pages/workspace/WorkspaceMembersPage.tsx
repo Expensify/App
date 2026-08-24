@@ -433,7 +433,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const invitedMemberIndex = tableMembers.findIndex((member) => invitedEmails.includes(member.login));
 
         if (invitedMemberIndex !== -1) {
-            tableRef.current?.scrollToIndex({index: invitedMemberIndex, animated: false});
+            tableRef.current?.scrollToIndex({
+                index: invitedMemberIndex,
+                animated: false,
+                viewPosition: 0.5,
+            });
             tableRef.current?.highlightItems(invitedEmails);
             clearInviteDraft(policyID);
         }

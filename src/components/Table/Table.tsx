@@ -19,13 +19,14 @@ import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 
+import type {TableListMetadata} from './buildTableListData';
 import type {TableContextValue} from './TableContext';
 import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
-import {getTableListMetadata} from './buildTableListData';
+import {getDataVisibleIndices, getListIndex, getTableListMetadata} from './buildTableListData';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -73,7 +74,7 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
     tableMethods: TableMethods<ColumnKey, FilterKey>,
     listRef: React.RefObject<FlashListRef<DataType> | null>,
     getProcessedData: () => Array<TableRow<DataType>>,
-    listDataRowOffset: number,
+    tableListMetadata: TableListMetadata,
 ): TableHandle<DataType, ColumnKey, FilterKey> {
     return new Proxy(tableMethods, {
         get: (target, property) => {
@@ -87,12 +88,45 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
 
             if (property === 'scrollToIndex') {
                 const scrollToIndex = listRef.current?.scrollToIndex;
-                if (listDataRowOffset === 0 || !scrollToIndex) {
+                if (tableListMetadata.listDataRowOffset === 0 || !scrollToIndex) {
                     return scrollToIndex;
                 }
 
-                return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) => {
-                    scrollToIndex({...params, index: params.index + listDataRowOffset});
+                return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) =>
+                    scrollToIndex({
+                        ...params,
+                        index: getListIndex(params.index, tableListMetadata),
+                    });
+            }
+
+            if (property === 'getLayout') {
+                const getLayout = listRef.current?.getLayout;
+                if (tableListMetadata.listDataRowOffset === 0 || !getLayout) {
+                    return getLayout;
+                }
+
+                return (index: number) => getLayout(getListIndex(index, tableListMetadata));
+            }
+
+            if (property === 'computeVisibleIndices') {
+                const computeVisibleIndices = listRef.current?.computeVisibleIndices;
+                if (tableListMetadata.listDataRowOffset === 0 || !computeVisibleIndices) {
+                    return computeVisibleIndices;
+                }
+
+                return () => getDataVisibleIndices(computeVisibleIndices(), tableListMetadata);
+            }
+
+            if (property === 'getFirstVisibleIndex') {
+                const computeVisibleIndices = listRef.current?.computeVisibleIndices;
+                const getFirstVisibleIndex = listRef.current?.getFirstVisibleIndex;
+                if (tableListMetadata.listDataRowOffset === 0 || !computeVisibleIndices) {
+                    return getFirstVisibleIndex;
+                }
+
+                return () => {
+                    const {startIndex} = getDataVisibleIndices(computeVisibleIndices(), tableListMetadata);
+                    return startIndex;
                 };
             }
 
@@ -361,16 +395,20 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     });
     const shouldRenderStickyHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
 
-    const tableListMetadata = getTableListMetadata({
-        listHeaderElement,
-        listHeaderComponent: listProps.ListHeaderComponent,
-        shouldRenderStickyHeader,
-    });
+    const tableListMetadata = useMemo(
+        () =>
+            getTableListMetadata({
+                listHeaderElement,
+                listHeaderComponent: listProps.ListHeaderComponent,
+                shouldRenderStickyHeader,
+            }),
+        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderStickyHeader],
+    );
     /**
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
      */
-    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata.listDataRowOffset));
+    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata));
 
     const handleMobileSelectionPress = () => {
         if (!mobileSelectionModalRowKey) {

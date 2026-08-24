@@ -6,16 +6,17 @@ import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibil
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
+import type {TableListMetadata} from './buildTableListData';
 
-import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind} from './buildTableListData';
+import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getListIndex, getSyntheticRowKind} from './buildTableListData';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
@@ -31,6 +32,30 @@ type TableBodyListProps = TableBodyProps & {
     /** Message shown when the filtered table is empty. */
     emptyMessage: string;
 };
+
+type ViewabilityInfo = {
+    viewableItems: Array<ViewToken<TableData>>;
+    changed: Array<ViewToken<TableData>>;
+};
+
+function getDataViewabilityInfo(info: ViewabilityInfo, metadata: TableListMetadata): ViewabilityInfo {
+    const getDataViewToken = (token: ViewToken<TableData>) => {
+        if (token.index === null) {
+            return token;
+        }
+
+        if (getSyntheticRowKind(token.index, metadata) !== 'data') {
+            return null;
+        }
+
+        return {...token, index: getDataIndex(token.index, metadata)};
+    };
+
+    return {
+        viewableItems: info.viewableItems.map(getDataViewToken).filter((token): token is ViewToken<TableData> => token !== null),
+        changed: info.changed.map(getDataViewToken).filter((token): token is ViewToken<TableData> => token !== null),
+    };
+}
 
 /**
  * Whether `TableBody` still renders when the table has no data rows because an empty-state or page-header list slot
@@ -99,6 +124,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         ListHeaderComponent,
         contentContainerStyle: listContentContainerStyle,
         getItemType,
+        initialScrollIndex,
         keyExtractor,
         onEndReached,
         onLoad,
@@ -106,8 +132,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         onScroll,
         onStartReached,
         onViewableItemsChanged,
+        overrideItemLayout,
         renderItem,
         stickyHeaderIndices,
+        viewabilityConfigCallbackPairs,
         ...restListProps
     } = listProps ?? {};
 
@@ -168,6 +196,33 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         },
         [onChangeStickyIndex],
     );
+
+    const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = useCallback(
+        (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)),
+        [onViewableItemsChanged, tableListMetadata],
+    );
+
+    const viewabilityConfigCallbackPairsForList = useMemo(
+        () =>
+            viewabilityConfigCallbackPairs?.map((pair) => ({
+                ...pair,
+                onViewableItemsChanged: pair.onViewableItemsChanged ? (info: ViewabilityInfo) => pair.onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)) : null,
+            })),
+        [tableListMetadata, viewabilityConfigCallbackPairs],
+    );
+
+    const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = useCallback(
+        (layout, item, index, maxColumns, extraData) => {
+            if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
+                return;
+            }
+
+            overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
+        },
+        [overrideItemLayout, tableListMetadata],
+    );
+
+    const initialScrollIndexForList = initialScrollIndex == null ? initialScrollIndex : getListIndex(initialScrollIndex, tableListMetadata);
 
     const renderListComponent = (component: typeof ListHeaderComponent | typeof ListEmptyComponent | typeof ListFooterComponent) => {
         if (!component) {
@@ -355,7 +410,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 getItemType={getItemTypeForList}
                 onEndReached={hasRows ? onEndReached : undefined}
                 onStartReached={hasRows ? onStartReached : undefined}
-                onViewableItemsChanged={hasRows ? onViewableItemsChanged : undefined}
+                initialScrollIndex={initialScrollIndexForList}
+                onViewableItemsChanged={hasRows && onViewableItemsChanged ? handleViewableItemsChanged : undefined}
+                overrideItemLayout={overrideItemLayout ? overrideItemLayoutForList : undefined}
+                viewabilityConfigCallbackPairs={hasRows ? viewabilityConfigCallbackPairsForList : undefined}
                 onScroll={(event) => {
                     trackScrollOffset(event);
                     onScroll?.(event);

@@ -67,7 +67,11 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerCompon
         if (!highlightedRow) {
             return;
         }
-        tableRef.current?.scrollToItem({item: highlightedRow, animated: false});
+        tableRef.current?.scrollToItem({
+            item: highlightedRow,
+            animated: false,
+            viewPosition: 0.5,
+        });
         tableRef.current?.highlightItems([highlightedRow.keyForList]);
     }, [highlightedReportID, rooms]);
 

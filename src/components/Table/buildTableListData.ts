@@ -55,6 +55,21 @@ function getDataIndex(index: number, metadata: TableListMetadata): number {
     return index - metadata.syntheticRowsBeforeData;
 }
 
+function getListIndex(index: number, metadata: TableListMetadata): number {
+    return index + metadata.syntheticRowsBeforeData;
+}
+
+function getDataVisibleIndices({startIndex, endIndex}: {startIndex: number; endIndex: number}, metadata: TableListMetadata) {
+    if (endIndex < metadata.syntheticRowsBeforeData) {
+        return {startIndex: -1, endIndex: -2};
+    }
+
+    return {
+        startIndex: Math.max(0, getDataIndex(startIndex, metadata)),
+        endIndex: getDataIndex(endIndex, metadata),
+    };
+}
+
 function getAdjustedStickyHeaderIndices(metadata: TableListMetadata, stickyHeaderIndices: SharedListProps<TableData>['stickyHeaderIndices']) {
     if (metadata.shouldRenderStickyHeader) {
         return [metadata.stickyTableHeaderIndex];
@@ -63,5 +78,5 @@ function getAdjustedStickyHeaderIndices(metadata: TableListMetadata, stickyHeade
     return stickyHeaderIndices;
 }
 
-export {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind, getTableListMetadata};
+export {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getDataVisibleIndices, getListIndex, getSyntheticRowKind, getTableListMetadata};
 export type {TableListMetadata};

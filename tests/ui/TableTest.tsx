@@ -17,10 +17,24 @@ import {StyleSheet, View} from 'react-native';
 
 type TestInstance = ReturnType<typeof screen.getByTestId>;
 
+type MockViewToken<T> = {
+    item: T;
+    key: string;
+    index: number | null;
+    isViewable: boolean;
+    timestamp: number;
+};
+
+type MockViewabilityInfo<T> = {
+    viewableItems: Array<MockViewToken<T>>;
+    changed: Array<MockViewToken<T>>;
+};
+
 type MockFlashListProps<T> = {
     data?: T[];
     renderItem?: (info: ListRenderItemInfo<T>) => React.ReactElement | null;
     keyExtractor?: (item: T, index: number) => string;
+    initialScrollIndex?: number | null;
     ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
     ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
     ListEmptyComponentStyle?: React.ComponentProps<typeof View>['style'];
@@ -32,13 +46,21 @@ type MockFlashListProps<T> = {
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
     onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
     onStartReached?: () => void;
-    onViewableItemsChanged?: () => void;
+    onViewableItemsChanged?: (info: MockViewabilityInfo<T>) => void;
+    overrideItemLayout?: (layout: {span?: number}, item: T, index: number, maxColumns: number, extraData?: unknown) => void;
     stickyHeaderIndices?: number[];
+    viewabilityConfigCallbackPairs?: Array<{
+        viewabilityConfig: object;
+        onViewableItemsChanged: ((info: MockViewabilityInfo<T>) => void) | null;
+    }>;
 };
 
 const mockFlashListScrollToIndex = jest.fn();
 const mockFlashListScrollToItem = jest.fn();
 const mockFlashListScrollToOffset = jest.fn();
+const mockFlashListGetLayout = jest.fn();
+const mockFlashListComputeVisibleIndices = jest.fn();
+const mockFlashListGetFirstVisibleIndex = jest.fn();
 const mockFlashListMount = jest.fn();
 const mockFlashListUnmount = jest.fn();
 const mockTextInputFocus = jest.fn();
@@ -158,6 +180,9 @@ jest.mock('@shopify/flash-list', () => {
                 scrollToIndex: typeof mockFlashListScrollToIndex;
                 scrollToItem: typeof mockFlashListScrollToItem;
                 scrollToOffset: typeof mockFlashListScrollToOffset;
+                getLayout: typeof mockFlashListGetLayout;
+                computeVisibleIndices: typeof mockFlashListComputeVisibleIndices;
+                getFirstVisibleIndex: typeof mockFlashListGetFirstVisibleIndex;
             }>,
         ) => {
             mockFlashListProps.push(props);
@@ -177,6 +202,9 @@ jest.mock('@shopify/flash-list', () => {
                 scrollToIndex: mockFlashListScrollToIndex,
                 scrollToItem: mockFlashListScrollToItem,
                 scrollToOffset: mockFlashListScrollToOffset,
+                getLayout: mockFlashListGetLayout,
+                computeVisibleIndices: mockFlashListComputeVisibleIndices,
+                getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
             }));
 
             return (
@@ -1473,6 +1501,158 @@ describe('Table', () => {
             });
         });
 
+        it('should translate index-bearing FlashList props around the synthetic table-header row', () => {
+            const props = createDefaultProps();
+            const onViewableItemsChanged = jest.fn();
+            const pairedOnViewableItemsChanged = jest.fn();
+            const overrideItemLayout = jest.fn();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    initialScrollIndex={2}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    overrideItemLayout={overrideItemLayout}
+                    viewabilityConfigCallbackPairs={[
+                        {
+                            viewabilityConfig: {itemVisiblePercentThreshold: 50},
+                            onViewableItemsChanged: pairedOnViewableItemsChanged,
+                        },
+                    ]}
+                >
+                    <Table.ListHeader>
+                        <Text>Page header</Text>
+                    </Table.ListHeader>
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const flashListProps = mockFlashListProps.at(-1);
+            const syntheticHeader = flashListProps?.data?.at(0);
+            const firstDataRow = flashListProps?.data?.at(1);
+            if (!flashListProps || !syntheticHeader || !firstDataRow) {
+                throw new Error('Expected synthetic and data rows to be supplied to FlashList');
+            }
+
+            expect(flashListProps.initialScrollIndex).toBe(3);
+
+            const layout = {};
+            flashListProps.overrideItemLayout?.(layout, syntheticHeader, 0, 1);
+            expect(overrideItemLayout).not.toHaveBeenCalled();
+            flashListProps.overrideItemLayout?.(layout, firstDataRow, 1, 1, 'extra');
+            expect(overrideItemLayout).toHaveBeenCalledWith(layout, firstDataRow, 0, 1, 'extra');
+
+            const viewabilityInfo = {
+                viewableItems: [
+                    {
+                        item: syntheticHeader,
+                        key: syntheticHeader.keyForList,
+                        index: 0,
+                        isViewable: true,
+                        timestamp: 1,
+                    },
+                    {
+                        item: firstDataRow,
+                        key: firstDataRow.keyForList,
+                        index: 1,
+                        isViewable: true,
+                        timestamp: 1,
+                    },
+                ],
+                changed: [
+                    {
+                        item: firstDataRow,
+                        key: firstDataRow.keyForList,
+                        index: 1,
+                        isViewable: false,
+                        timestamp: 1,
+                    },
+                ],
+            };
+            const expectedViewabilityInfo = {
+                viewableItems: [
+                    {
+                        item: firstDataRow,
+                        key: firstDataRow.keyForList,
+                        index: 0,
+                        isViewable: true,
+                        timestamp: 1,
+                    },
+                ],
+                changed: [
+                    {
+                        item: firstDataRow,
+                        key: firstDataRow.keyForList,
+                        index: 0,
+                        isViewable: false,
+                        timestamp: 1,
+                    },
+                ],
+            };
+
+            flashListProps.onViewableItemsChanged?.(viewabilityInfo);
+            flashListProps.viewabilityConfigCallbackPairs?.at(0)?.onViewableItemsChanged?.(viewabilityInfo);
+
+            expect(onViewableItemsChanged).toHaveBeenCalledWith(expectedViewabilityInfo);
+            expect(pairedOnViewableItemsChanged).toHaveBeenCalledWith(expectedViewabilityInfo);
+        });
+
+        it('should translate index-bearing FlashList ref methods and preserve the scroll promise', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            const scrollPromise = Promise.resolve();
+            const rowLayout = {x: 0, y: 100, width: 100, height: 40};
+            mockFlashListScrollToIndex.mockReturnValueOnce(scrollPromise);
+            mockFlashListGetLayout.mockReturnValueOnce(rowLayout);
+            mockFlashListComputeVisibleIndices.mockReturnValue({
+                startIndex: 0,
+                endIndex: 2,
+            });
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.ListHeader>
+                        <Text>Page header</Text>
+                    </Table.ListHeader>
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(tableRef.current?.scrollToIndex({index: 0, animated: false})).toBe(scrollPromise);
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+                index: 1,
+                animated: false,
+            });
+            expect(tableRef.current?.getLayout(0)).toBe(rowLayout);
+            expect(mockFlashListGetLayout).toHaveBeenCalledWith(1);
+            expect(tableRef.current?.computeVisibleIndices()).toEqual({
+                startIndex: 0,
+                endIndex: 1,
+            });
+            expect(tableRef.current?.getFirstVisibleIndex()).toBe(0);
+
+            mockFlashListComputeVisibleIndices.mockReturnValue({
+                startIndex: 0,
+                endIndex: 0,
+            });
+            expect(tableRef.current?.computeVisibleIndices()).toEqual({
+                startIndex: -1,
+                endIndex: -2,
+            });
+            expect(tableRef.current?.getFirstVisibleIndex()).toBe(-1);
+        });
+
         it('should forward scrollToIndex without offset when no synthetic rows are present', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
@@ -1734,7 +1914,7 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
             expect(mockFlashListProps.at(-1)?.onEndReached).toBe(onEndReached);
             expect(mockFlashListProps.at(-1)?.onStartReached).toBe(onStartReached);
-            expect(mockFlashListProps.at(-1)?.onViewableItemsChanged).toBe(onViewableItemsChanged);
+            expect(mockFlashListProps.at(-1)?.onViewableItemsChanged).toEqual(expect.any(Function));
             expect(mockFlashListMount).toHaveBeenCalledTimes(1);
             expect(mockFlashListUnmount).not.toHaveBeenCalled();
             expect(mockTextInputMount).toHaveBeenCalledTimes(1);

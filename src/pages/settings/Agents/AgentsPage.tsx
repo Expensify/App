@@ -140,7 +140,11 @@ function AgentsPage() {
         const tableAgents = tableRef.current?.getProcessedData() ?? [];
         const newAgentIndex = tableAgents.findIndex((agent) => newAgentKeys.includes(agent.keyForList));
         if (newAgentIndex !== -1) {
-            tableRef.current?.scrollToIndex({index: newAgentIndex, animated: false});
+            tableRef.current?.scrollToIndex({
+                index: newAgentIndex,
+                animated: false,
+                viewPosition: 0.5,
+            });
         }
         tableRef.current?.highlightItems(newAgentKeys);
     }, [agentKeys, prevAgentKeys]);
