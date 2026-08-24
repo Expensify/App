@@ -9,10 +9,10 @@
 // day oxlint exposes that option, this module and config/oxlint/plugins/rc-rules.mjs collapse into
 // twelve `react/*` lines in .oxlintrc.json and zero Node analysis.
 //
-// What it replaces: 12 of the 16 `rh/*` rules, which are `eslint-plugin-react-hooks` v7 rules that
-// analyze nothing themselves -- each one filters the compiler's diagnostics down to its own
-// category. Running the compiler in JavaScript once per file cost 52 s of a 121 s whole-repo run;
-// the Rust compiler does the same 6891 files in 5.2 s.
+// What it replaces: 12 `eslint-plugin-react-hooks` v7 rules that analyze nothing themselves -- each
+// one filters the compiler's diagnostics down to its own category. Running the compiler in JavaScript
+// once per file cost 52 s of a 121 s whole-repo run; the Rust compiler does the same 6891 files in
+// 5.2 s.
 //
 // Parity with the sidecar is the whole point, so `ENVIRONMENT` mirrors the environment the ESLint
 // plugin hands the compiler, at
@@ -62,10 +62,9 @@ const RULE_BY_CATEGORY = {
  * NOT in either table -- a rename, or one added by an `oxc-transform-react` bump -- throws instead
  * of silently becoming zero findings for a rule we do enforce.
  *
- * `Config` and `Gating` are here because `rh/config` and `rh/gating` are switched off alongside the
- * 12 they gate the analysis for: both need the whole 52 s JavaScript run to stay enabled, and
- * neither can fire in this repo, which passes the compiler no `gating`/`dynamicGating` options and
- * no per-rule options for the config validator to reject.
+ * `Config` and `Gating` are here because they are the two checks with no rc/* rule: both would need
+ * the whole 52 s JavaScript run to reach the compiler, and neither can fire in this repo, which passes
+ * it no `gating`/`dynamicGating` options and no per-rule options for the config validator to reject.
  */
 const IGNORED_CATEGORIES = new Set([
     'CapitalizedCalls',

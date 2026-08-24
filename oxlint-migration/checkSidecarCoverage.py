@@ -34,11 +34,11 @@ from ruleMap import is_on, js_plugin_rules, load_jsonc  # noqa: E402
 
 MANIFEST = os.path.join(HERE, 'port-probe', 'fixtures.manifest.json')
 
-# The four aliases this repo hand-hosts, rule by rule, in oxlint-migration/*.mjs. Every rule under them is
+# The aliases this repo hand-hosts, rule by rule, in config/oxlint/plugins/. Every rule under them is
 # a deliberate choice and has to be covered. The other aliases are whole npm plugins loaded by package
 # name; their rules are listed but not required to be covered, because oxlint runs the plugin's own
 # code for all of them and one fixture per plugin already proves the plugin loads and reports.
-HAND_HOSTED = {'core', 'hosted', 'rh', 'rulesdir'}
+HAND_HOSTED = {'core', 'hosted', 'rulesdir'}
 
 # Rules a fixture or a replayed case cannot express, each asserted by its own script instead.
 PROBE_EVIDENCE = {
@@ -66,20 +66,15 @@ PROBE_EVIDENCE = {
 
 # Sidecar rules deliberately left without evidence, with the reason. Empty is the goal; an entry here
 # is a decision someone made in the open, not a gap that went unnoticed.
-EXEMPT = {
-    'rh/component-hook-factories': (
-        'eslint-plugin-react-hooks 7.1.0 ships this as a deprecated stub -- makeDeprecatedRule returns a rule whose create() '
-        'returns {} -- so neither tool can report anything. Both configs keep it because ESLint lists it and the rule sets have to match'
-    ),
-}
+EXEMPT = {}
 
 
 def enabled_sidecar_rules():
     """oxlint rule id -> alias, for every rule the config turns on under a jsPlugin alias.
 
-    Keyed on the id the config writes, not on "some rule of that name is enabled somewhere": the rh
-    plugin hosts react-hooks/rules-of-hooks, but production runs oxlint's native port of that rule,
-    so `rh/rules-of-hooks` is off and covering it would test something the shipped config never runs.
+    Keyed on the id the config writes, not on "some rule of that name is enabled somewhere": an alias
+    may host a rule that production runs natively instead, and covering the aliased id would test
+    something the shipped config never runs.
     """
     aliases = set(js_plugin_rules().values())
     config = load_jsonc(os.path.join(ROOT, '.oxlintrc.json'))

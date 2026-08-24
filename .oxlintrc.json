@@ -3,7 +3,7 @@
     // comment saying which of three things it means, because "no findings today" is never the
     // reason a rule is off here:
     //   OFF, shadowed not dropped -- ESLint's own rule runs instead under a jsPlugin alias
-    //                               (core/, rh/, hosted/) because oxlint's native port diverges.
+    //                               (core/, hosted/) because oxlint's native port diverges.
     //   OFF, mirrors ESLint       -- ESLint has it off in the same scope; parity, not a gap.
     //   OFF, coverage gap         -- we want the rule, something specific blocks it. The reason is
     //                               on the line, and machine-readable in oxlint-migration/ruleMap.py
@@ -22,7 +22,6 @@
         {"name": "report-name-utils", "specifier": "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs"},
         {"name": "core", "specifier": "./config/oxlint/plugins/core-rules.mjs"},
         {"name": "hosted", "specifier": "./config/oxlint/plugins/hosted-rules.mjs"},
-        {"name": "rh", "specifier": "./config/oxlint/plugins/rh-plugin.mjs"},
         {"name": "rc", "specifier": "./config/oxlint/plugins/rc-rules.mjs"}
     ],
     "categories": {
@@ -814,10 +813,6 @@
         "jsx-a11y/scope": "error",
         "jsx-a11y/tabindex-no-positive": "error",
         "react/rules-of-hooks": "error",
-        // OFF, shadowed not dropped: the real eslint-plugin-react-hooks rule runs as
-        // `rh/exhaustive-deps`, wrapped in the lazy React Compiler gate that replicates ESLint's
-        // per-message suppression. Leaving the native port on would double-report.
-        "react/exhaustive-deps": "off",
         "typescript/dot-notation": [
             "error",
             {
@@ -869,19 +864,12 @@
                 "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated."
             }
         ],
-        // The 12 React Compiler rules now run as rc/* below, off the Rust compiler instead of the
-        // JavaScript one: config/oxlint/reactCompilerRust.mjs, 5.2 s over 6891 files against 52 s of
-        // a 121 s whole-repo run. ALL 14 compiler-category rh/* rules have to be off for that saving
-        // to exist -- any one of them still enabled pays for the whole shared JavaScript analysis,
-        // which has already been measured twice at 125 s and 123 s for configs that left rh/config
-        // and rh/gating on. rh/exhaustive-deps and rh/component-hook-factories stay: they read no
-        // compiler output and cost ~1 s between them.
-        "rh/refs": "off",
-        "rh/set-state-in-effect": "off",
-        "rh/preserve-manual-memoization": "off",
-        "rh/immutability": "off",
-        "rh/static-components": "off",
-        "rh/exhaustive-deps": "error",
+        // The 12 React Compiler rules run as rc/* below, on the Rust compiler rather than the
+        // JavaScript one: config/oxlint/reactCompilerRust.mjs, 5.2 s over 6891 files against 52 s for
+        // the JavaScript equivalent. Nothing here may enable a compiler-category rule from
+        // eslint-plugin-react-hooks: a single one pays for that whole shared JavaScript analysis,
+        // measured twice at 125 s and 123 s against 76 s today.
+        "react/exhaustive-deps": "error",
         "rc/refs": "error",
         "rc/set-state-in-effect": "error",
         "rc/set-state-in-render": "error",
@@ -1009,22 +997,13 @@
                 }
             }
         ],
-        "hosted/static-property-placement": ["error", "property assignment"],
-        "rh/component-hook-factories": "error",
-        // Off with the rest of the compiler-category rules, see the rc/* block above. These two are
-        // the only ones dropped rather than replaced: both need per-rule options to reach the
-        // compiler (a `gating`/`dynamicGating` source, or an option for the config validator to
-        // reject), which the shared per-file analysis behind rc/* deliberately does not take, and
-        // neither can fire in this repo because it passes them no options at all.
-        "rh/config": "off",
-        "rh/gating": "off",
-        "rh/error-boundaries": "off",
-        "rh/globals": "off",
-        "rh/incompatible-library": "off",
-        "rh/purity": "off",
-        "rh/set-state-in-render": "off",
-        "rh/unsupported-syntax": "off",
-        "rh/use-memo": "off"
+        "hosted/static-property-placement": ["error", "property assignment"]
+        // `config` and `gating` are the two compiler checks with no rc/* twin, and they are dropped
+        // rather than replaced: both need per-rule options to reach the compiler (a
+        // `gating`/`dynamicGating` source, or an option for the config validator to reject), which the
+        // shared per-file analysis behind rc/* deliberately does not take. Neither can fire in this
+        // repo, which passes them no options at all. Recorded as PORT_PLAN entries in
+        // oxlint-migration/ruleMap.py.
     },
     "overrides": [
         {

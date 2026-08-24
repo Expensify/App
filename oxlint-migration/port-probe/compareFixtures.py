@@ -67,8 +67,19 @@ def main():
         # compare positions, not just counts
         es_lines = sorted(line for _, line, _ in es_hits)
         ox_lines = sorted(line for _, line, _ in ox_hits)
+        # A rule may anchor its report on a different node in each tool while detecting the same
+        # violation. Such a case declares the oxlint lines it is allowed to land on, plus the reason,
+        # and is still held to the same count -- so a real miss (a line vanishing) still fails.
+        accepted_ox_lines = entry.get('oxlintLines')
         if len(es_hits) != expected:
             verdict, ok = f'FAIL: eslint found {len(es_hits)}, fixture claims {expected}', False
+        elif accepted_ox_lines is not None and not entry.get('whyOxlintLines'):
+            verdict, ok = 'FAIL: oxlintLines needs a whyOxlintLines saying why the anchors differ', False
+        elif accepted_ox_lines is not None:
+            if ox_lines != sorted(accepted_ox_lines):
+                verdict, ok = f'FAIL: oxlint {ox_lines}, manifest accepts {sorted(accepted_ox_lines)}', False
+            else:
+                verdict, ok = f'parity, anchor differs (eslint {es_lines})', True
         elif es_lines != ox_lines:
             verdict, ok = f'FAIL: lines differ (eslint {es_lines} vs oxlint {ox_lines})', False
         else:

@@ -3,9 +3,10 @@
 // Same rule ids ESLint uses, same categories, same lines -- only the engine underneath changes. See
 // config/oxlint/reactCompilerRust.mjs for why, and for the measurements.
 //
-// Prefix `rc`, because the other two are taken: `react` is reserved for oxlint's native plugin, and
-// `rh` still hosts `exhaustive-deps` and `component-hook-factories`, the two
-// `eslint-plugin-react-hooks` rules that read no compiler output and therefore stay in the sidecar.
+// Prefix `rc`, because `react` is reserved for oxlint's native plugin. The native `react/*` rules are
+// not usable for these 12: they skip any function reached by a `react-hooks/exhaustive-deps` or
+// `react-hooks/rules-of-hooks` disable comment, in either the eslint- or oxlint- spelling, which on
+// this repo silences up to 184 real findings. See config/oxlint/reactCompilerRust.mjs.
 //
 // Every rule is wrapped with `withEslintDirectiveIds(rule, 'react-hooks/<name>')`, so an existing
 // `// eslint-disable-next-line react-hooks/refs` keeps suppressing it now that the rule answers to

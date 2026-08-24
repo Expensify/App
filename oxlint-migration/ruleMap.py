@@ -200,10 +200,11 @@ def norm_ox(code):
         return OXLINT_RENAMES.get(rule, rule)
     if plugin == 'typescript':
         return f'@typescript-eslint/{rule}'
-    if plugin in ('rh', 'rc') or (plugin == 'react' and rule == 'exhaustive-deps'):
-        # 'rh' is the jsPlugin alias for eslint-plugin-react-hooks; 'rc' hosts the 12 React Compiler
-        # rules of that same plugin, reimplemented over the Rust compiler
-        # (config/oxlint/reactCompilerRust.mjs), so both normalize to the same ESLint names
+    if plugin == 'rc' or (plugin == 'react' and rule in ('exhaustive-deps', 'rules-of-hooks')):
+        # 'rc' hosts the 12 React Compiler rules of eslint-plugin-react-hooks, reimplemented over the
+        # Rust compiler (config/oxlint/reactCompilerRust.mjs); oxlint's native react/exhaustive-deps
+        # and react/rules-of-hooks are the same plugin's other two rules. All normalize to the ESLint
+        # names, which is also what their diagnostics and existing disable comments use.
         return f'react-hooks/{rule}'
     if plugin == 'hosted':
         return f'{HOSTED_RULE_ORIGIN[rule]}/{rule}'
@@ -229,7 +230,7 @@ def norm_ox_config(rule_id):
         return '@typescript-eslint/' + rule_id.split('/', 1)[1]
     if rule_id.startswith('core/'):
         return rule_id.split('/', 1)[1]
-    if rule_id.startswith('rh/') or rule_id.startswith('rc/'):
+    if rule_id.startswith('rc/'):
         return 'react-hooks/' + rule_id.split('/', 1)[1]
     if rule_id.startswith('hosted/'):
         rule = rule_id.split('/', 1)[1]

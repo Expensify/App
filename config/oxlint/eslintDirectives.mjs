@@ -1,7 +1,7 @@
 // Makes a jsPlugin-hosted rule answer to the rule id ESLint uses in disable comments.
 //
 // A rule hosted through `jsPlugins` gets whatever prefix we give it (`hosted/naming-convention`,
-// `rh/exhaustive-deps`), because `react-hooks`, `@typescript-eslint`, `react` and `import` are
+// `rc/refs`), because `react-hooks`, `@typescript-eslint`, `react` and `import` are
 // reserved for oxlint's native plugins. So an existing `// eslint-disable-next-line
 // @typescript-eslint/naming-convention` does not suppress `hosted/naming-convention`. Without this
 // module, 1173 directives in the repo hid 7378 findings from ESLint that oxlint still reported, and

@@ -7,7 +7,6 @@
         "../../config/oxlint/plugins/core-rules.mjs",
         "../../config/oxlint/plugins/hosted-rules.mjs",
         "../../config/oxlint/plugins/expensify-rules.mjs",
-        "../../config/oxlint/plugins/rh-plugin.mjs",
         "../../config/oxlint/plugins/rc-rules.mjs"
     ],
     "categories": {},
@@ -148,20 +147,17 @@
     },
     "overrides": [
         {
-            // The React Compiler rules, scoped to the rh* fixtures. Scoped rather than global because
-            // these analyze every file they see, and because the repo's own components in the other
-            // fixtures would report shapes no manifest entry claims. Severities and off switches are
+            // The React Compiler rules, scoped to the rh* fixtures (named for the sidecar plugin they
+            // were written against; the rules moved, the fixtures did not). Scoped rather than global
+            // because these analyze every file they see, and because the repo's own components in the
+            // other fixtures would report shapes no manifest entry claims. Severities are
             // production's: the 12 compiler rules run as rc/* over the Rust compiler
-            // (config/oxlint/reactCompilerRust.mjs) and their rh/* twins are off, because leaving any
-            // one of them on would run the JavaScript compiler as well. rules-of-hooks is absent on
-            // purpose -- production runs oxlint's native react/rules-of-hooks, not the sidecar copy,
-            // so covering it here would test a rule the shipped config does not run. rh/config and
-            // rh/gating are off and have no rc/ twin: see the PORT_PLAN entries in
-            // oxlint-migration/ruleMap.py for why they were dropped rather than ported.
+            // (config/oxlint/reactCompilerRust.mjs). `exhaustive-deps` is oxlint's native rule, which
+            // reads no compiler output. rules-of-hooks is absent on purpose -- production runs
+            // oxlint's native react/rules-of-hooks. `config` and `gating` have no rc/ twin: see the
+            // PORT_PLAN entries in oxlint-migration/ruleMap.py for why they were dropped.
             "files": ["**/rh*.tsx"],
             "rules": {
-                "rh/component-hook-factories": "error",
-                "rh/exhaustive-deps": "error",
                 "rc/error-boundaries": "error",
                 "rc/globals": "error",
                 "rc/immutability": "error",
@@ -174,6 +170,20 @@
                 "rc/static-components": "error",
                 "rc/unsupported-syntax": "error",
                 "rc/use-memo": "error"
+            }
+        },
+        {
+            // `exhaustive-deps` is production's native oxlint rule, so it needs the native react
+            // plugin loaded, and this config declares no global plugin list. Narrowed to the one
+            // fixture on purpose: `plugins` pulls in the react default category, which duplicates
+            // every rc/* rule, and over all of **/rh*.tsx that was 9 extra findings on 9 fixtures.
+            // The two offs are the default-category rules that still reach this file.
+            "files": ["**/rhExhaustiveDeps.tsx"],
+            "plugins": ["react"],
+            "rules": {
+                "react/exhaustive-deps": "error",
+                "react/set-state-in-effect": "off",
+                "react/rules-of-hooks": "off"
             }
         },
         {
