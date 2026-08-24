@@ -60,6 +60,7 @@
         "tests/tooling/CIGitLogic.test.ts",
         "scripts/applyPatches.ts",
         "scripts/lint.ts",
+        "scripts/typecheck.ts",
         "evals"
     ]
 }
