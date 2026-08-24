@@ -440,6 +440,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Trashcan,
                     text: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                    shouldSkipFocusRestore: true,
                     onSelected: async () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
                             showCannotDeleteOrDisableLastCategoryModal();
@@ -475,6 +476,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                    shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject),
                     onSelected: () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
                             showCannotDeleteOrDisableLastCategoryModal();
@@ -691,33 +693,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
 
                 {!isLoading && (
-                    <>
-                        {hasVisibleCategories && (
-                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
-                                    <ImportedFromAccountingSoftware
-                                        policyID={policyId}
-                                        currentConnectionName={currentConnectionName}
-                                        connectedIntegration={connectedIntegration}
-                                        translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
-                                    />
-                                ) : (
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                                )}
-                            </View>
-                        )}
-
-                        <WorkspaceCategoriesTable
-                            categories={categoryRows}
-                            selectionEnabled={canWriteCategories}
-                            selectedKeys={selectedCategoryKeys}
-                            emptyStateSubtitleText={subtitleText}
-                            emptyStateButtons={emptyStateButtons}
-                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
-                            shouldShowApproverColumn={shouldShowApproverColumn}
-                            onRowSelectionChange={setSelectedCategoryKeys}
-                        />
-                    </>
+                    <WorkspaceCategoriesTable
+                        categories={categoryRows}
+                        selectionEnabled={canWriteCategories}
+                        selectedKeys={selectedCategoryKeys}
+                        emptyStateSubtitleText={subtitleText}
+                        emptyStateButtons={emptyStateButtons}
+                        shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                        shouldShowApproverColumn={shouldShowApproverColumn}
+                        onRowSelectionChange={setSelectedCategoryKeys}
+                        headerComponent={hasVisibleCategories ? headerContent : undefined}
+                    />
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}
