@@ -88,7 +88,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const lastProcessedDataRef = useRef(spreadsheet?.data);
 
     useEffect(() => {
-        // Reset the flag when new spreadsheet data is loaded.
         if (spreadsheet?.data !== lastProcessedDataRef.current) {
             hasAppliedSavedMappings.current = false;
             lastProcessedDataRef.current = spreadsheet?.data;
