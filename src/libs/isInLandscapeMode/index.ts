@@ -33,4 +33,3 @@ function isInLandscapeMode(windowWidth: number = getViewportWidth(), windowHeigh
 }
 
 export default isInLandscapeMode;
-export {isTabletScreen};
