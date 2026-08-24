@@ -19,13 +19,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
-import AnnouncementSection from './AnnouncementSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
+import InsightsSection from './InsightsSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
-import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 import YourSpendSection from './YourSpendSection';
@@ -63,7 +62,11 @@ function HomePage() {
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
                     >
-                        {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
+                        {!shouldUseNarrowLayout && (
+                            <View style={styles.centeredContentWidthLimiter}>
+                                <QuickCreationActionsBar />
+                            </View>
+                        )}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                             {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                             {shouldUseNarrowLayout ? (
@@ -73,11 +76,10 @@ function HomePage() {
                                     <GettingStartedSection />
                                     <ForYouSection />
                                     <UpcomingTravelSection />
-                                    <RecentlyAddedSection />
                                     <YourSpendSection />
-                                    <SpendOverTimeSection />
+                                    <RecentlyAddedSection />
+                                    <InsightsSection />
                                     <DiscoverSection />
-                                    <AnnouncementSection />
                                 </>
                             ) : (
                                 <>
@@ -88,18 +90,17 @@ function HomePage() {
                                         <TimeSensitiveSection />
                                         <GettingStartedSection />
                                         <ForYouSection />
-                                        <RecentlyAddedSection />
-                                        <SpendOverTimeSection />
+                                        <InsightsSection />
                                     </View>
                                     <View
                                         testID="homePageRightColumn"
                                         style={styles.homePageRightColumn}
                                     >
                                         <FreeTrialSection />
-                                        <UpcomingTravelSection />
                                         <YourSpendSection />
+                                        <RecentlyAddedSection />
+                                        <UpcomingTravelSection />
                                         <DiscoverSection />
-                                        <AnnouncementSection />
                                     </View>
                                 </>
                             )}

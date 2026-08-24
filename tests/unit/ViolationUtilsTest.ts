@@ -1451,7 +1451,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
-        it('should add missingCategory violation when category is the Uncategorized sentinel and categories are required', () => {
+        it('should add missingCategory violation when category is the Uncategorized placeholder and categories are required', () => {
             transaction.category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
             const result = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction: transaction,
@@ -3039,7 +3039,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
 
-        it('does not add the violation when the vendorMatching beta is disabled, even with QBO configured', () => {
+        it('adds the violation when the vendorMatching beta is disabled but QBO is configured, because QBO (R1) is generally available', () => {
             isBetaEnabledSpy.mockImplementation(() => false);
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
@@ -3053,7 +3053,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
         });
 
         it('does not add the violation while the QBO vendor list is still hydrating (vendors undefined)', () => {
@@ -3099,7 +3099,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         describe('Xero (R4)', () => {
-            // Sentinel for "Xero connected, contacts not yet synced". Explicit symbol avoids the
+            // Placeholder for "Xero connected, contacts not yet synced". Explicit symbol avoids the
             // default-parameter trap where `undefined` would fall back to the populated default.
             const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
             const policyWithXeroVendorFeature = (
@@ -3573,7 +3573,7 @@ describe('getViolationTranslation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
         const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
+        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnectionViolationExpected,
         );
         const brokenCardConnection530ViolationExpected = translateLocal(
@@ -3585,7 +3585,7 @@ describe('getViolationTranslation', () => {
             CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             companyCardPageURL,
         );
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
+        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnection530ViolationExpected,
         );
     });
@@ -3625,6 +3625,7 @@ describe('getViolationTranslation', () => {
 
         it('should return formatted message with route distance in km', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3637,6 +3638,7 @@ describe('getViolationTranslation', () => {
 
         it('should return formatted message with route distance in miles', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3649,6 +3651,7 @@ describe('getViolationTranslation', () => {
 
         it('should return fallback message when routeDistanceMeters is zero', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3661,6 +3664,7 @@ describe('getViolationTranslation', () => {
 
         it('should return fallback message when routeDistanceMeters is undefined', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3672,6 +3676,7 @@ describe('getViolationTranslation', () => {
 
         it('should return fallback message when distanceUnit is undefined', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3685,6 +3690,7 @@ describe('getViolationTranslation', () => {
     describe('customUnitRateOutOfDateRange violation', () => {
         it('should return the formatted message when both start and end dates are present', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                     type: CONST.VIOLATION_TYPES.WARNING,
@@ -3702,6 +3708,7 @@ describe('getViolationTranslation', () => {
 
         it('should return the formatted message when only the start date is present', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                     type: CONST.VIOLATION_TYPES.WARNING,
@@ -3718,6 +3725,7 @@ describe('getViolationTranslation', () => {
 
         it('should return the formatted message when only the end date is present', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                     type: CONST.VIOLATION_TYPES.WARNING,
@@ -3758,6 +3766,7 @@ describe('getRBRMessages', () => {
     it('should return all violations and missing field error', () => {
         const missingFieldError = 'Missing required field';
         const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,
@@ -3772,6 +3781,7 @@ describe('getRBRMessages', () => {
 
     it('should filter out empty strings', () => {
         const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,

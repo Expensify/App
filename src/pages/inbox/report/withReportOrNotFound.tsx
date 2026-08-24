@@ -8,7 +8,6 @@ import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {
     ParticipantsNavigatorParamList,
@@ -86,6 +85,8 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             // with a `reportID` inherited from the surrounding report chain in the URL.
             const reportID = 'notificationReportID' in params ? params.notificationReportID : params.reportID;
             const [betas] = useOnyx(ONYXKEYS.BETAS);
+            const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+            const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -111,7 +112,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID});
+                openReport({reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, reportID, currentUserAccountID]);
 
@@ -128,17 +129,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    const reasonAttributes: SkeletonSpanReasonAttributes = {
-                        context: 'withReportOrNotFound',
-                        isLoadingReportData: isLoadingReportData !== false,
-                        shouldFetchReport,
-                    };
-                    return (
-                        <FullscreenLoadingIndicator
-                            shouldUseGoBackButton
-                            reasonAttributes={reasonAttributes}
-                        />
-                    );
+                    return <FullscreenLoadingIndicator shouldUseGoBackButton />;
                 }
 
                 if (shouldShowNotFoundPage) {
