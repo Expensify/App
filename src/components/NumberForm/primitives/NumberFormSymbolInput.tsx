@@ -29,23 +29,43 @@ type NumberFormSymbolInputContentProps = NumberFormSymbolInputProps & {
     clearNegative: () => void;
 };
 
-function NumberFormSymbolInputContent({isNegative, clearNegative, ...props}: NumberFormSymbolInputContentProps) {
-    const {
-        symbol = '',
-        hideSymbol = false,
-        style,
-        containerStyle,
-        symbolTextStyle,
-        negativeSymbolStyle,
-        autoGrow = true,
-        disableKeyboard,
-        hideFocusedState = true,
-        keyboardType,
-        isSymbolPressable = false,
-        onSymbolButtonPress,
-        maxLength,
-        ...rest
-    } = props;
+function NumberFormSymbolInputContent({
+    isNegative,
+    clearNegative,
+    symbol = '',
+    position,
+    decimals,
+    hideSymbol = false,
+    style,
+    ref,
+    onKeyPress,
+    onBlur,
+    accessibilityLabel,
+    autoFocus,
+    autoGrow = true,
+    autoGrowExtraSpace,
+    autoGrowMarginSide,
+    contentWidth,
+    containerStyle,
+    disabled,
+    disableKeyboard,
+    hideFocusedState = true,
+    keyboardType,
+    onFocus,
+    onPress,
+    prefixContainerStyle,
+    shouldAllowFocusInLandscapeMode,
+    shouldApplyPaddingToContainer,
+    shouldUseDefaultLineHeightForPrefix,
+    submitBehavior,
+    testID,
+    touchableInputWrapperStyle,
+    isSymbolPressable = false,
+    onSymbolButtonPress,
+    symbolTextStyle,
+    negativeSymbolStyle,
+    maxLength,
+}: NumberFormSymbolInputContentProps) {
     const {
         errorText,
         formattedNumber,
@@ -57,7 +77,14 @@ function NumberFormSymbolInputContent({isNegative, clearNegative, ...props}: Num
         numberFormat,
         selectionForRender,
         setNumber,
-    } = useNumberFormInputLogic({...props, maxLength});
+    } = useNumberFormInputLogic({
+        decimals,
+        maxLength,
+        position,
+        ref,
+        onBlur,
+        onKeyPress,
+    });
     const textInput = useRef<BaseTextInputRef | null>(null);
 
     const handleKeyPress = (event: Parameters<typeof inputHandleKeyPress>[0]) => {
@@ -74,13 +101,14 @@ function NumberFormSymbolInputContent({isNegative, clearNegative, ...props}: Num
     return (
         <>
             <TextInputWithSymbol
-                {...rest}
-                accessibilityLabel={rest.accessibilityLabel}
-                autoFocus={rest.autoFocus}
+                accessibilityLabel={accessibilityLabel}
+                autoFocus={autoFocus}
                 autoGrow={autoGrow}
-                autoGrowExtraSpace={rest.autoGrowExtraSpace}
-                autoGrowMarginSide={rest.autoGrowMarginSide}
+                autoGrowExtraSpace={autoGrowExtraSpace}
+                autoGrowMarginSide={autoGrowMarginSide}
                 containerStyle={containerStyle}
+                contentWidth={contentWidth}
+                disabled={disabled}
                 disableKeyboard={disableKeyboard}
                 formattedAmount={formattedNumber}
                 hideFocusedState={hideFocusedState}
@@ -91,19 +119,25 @@ function NumberFormSymbolInputContent({isNegative, clearNegative, ...props}: Num
                 negativeSymbolStyle={negativeSymbolStyle}
                 onBlur={handleBlur}
                 onChangeAmount={setNumber}
-                onFocus={rest.onFocus}
+                onFocus={onFocus}
                 onKeyPress={handleKeyPress}
-                onPress={rest.onPress}
+                onPress={onPress}
                 onSelectionChange={handleSelectionChange}
                 onSymbolButtonPress={onSymbolButtonPress}
                 placeholder={numberFormat(0)}
+                prefixContainerStyle={prefixContainerStyle}
                 ref={mergeRefs(textInput, handleInputRefFromLogic)}
                 selection={selectionForRender}
-                shouldAllowFocusInLandscapeMode={rest.shouldAllowFocusInLandscapeMode}
+                shouldAllowFocusInLandscapeMode={shouldAllowFocusInLandscapeMode}
+                shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+                shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
                 style={style}
                 symbol={symbol}
                 symbolPosition={inputPosition}
                 symbolTextStyle={symbolTextStyle}
+                submitBehavior={submitBehavior}
+                testID={testID}
+                touchableInputWrapperStyle={touchableInputWrapperStyle}
                 toggleNegative={undefined}
             />
             {!!errorText && <FormHelpMessage message={errorText} />}
