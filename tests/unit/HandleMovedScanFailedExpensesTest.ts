@@ -45,29 +45,45 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-function buildIOUAction(reportActionID: string, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+function buildIOUAction(reportActionID: string, reportID: string, transactionID = TRANSACTION_ID): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
         reportActionID,
         reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         created: '2026-08-24 10:00:00.000',
-        originalMessage: {IOUTransactionID: TRANSACTION_ID, IOUReportID: reportID, amount: 0, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+        originalMessage: {IOUTransactionID: transactionID, IOUReportID: reportID, amount: 0, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
         message: [],
     };
 }
 
-function buildRequest(data: Record<string, unknown>): Request<OnyxKey> {
-    return {command: 'PayMoneyRequest', data};
+/** Mirrors the pending-state cleanup that `getReportFromHoldRequestsOnyxData` already puts in successData for this flow. */
+function buildSuccessData(): AnyOnyxUpdate[] {
+    return [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`,
+            value: {[PREVIEW_ACTION_ID]: {pendingAction: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OPTIMISTIC_REPORT_ID}`,
+            value: {[OPTIMISTIC_IOU_ACTION_ID]: {pendingAction: null}},
+        },
+    ];
 }
 
 function buildPayRequest(overrides: Record<string, unknown> = {}): Request<OnyxKey> {
-    return buildRequest({
-        full: true,
-        chatReportID: CHAT_REPORT_ID,
-        iouReportID: PAID_REPORT_ID,
-        optimisticHoldReportID: OPTIMISTIC_REPORT_ID,
-        ...overrides,
-    });
+    return {
+        command: 'PayMoneyRequest',
+        data: {
+            full: true,
+            chatReportID: CHAT_REPORT_ID,
+            iouReportID: PAID_REPORT_ID,
+            optimisticHoldReportID: OPTIMISTIC_REPORT_ID,
+            ...overrides,
+        },
+        successData: buildSuccessData(),
+    } as Request<OnyxKey>;
 }
 
 function buildResponse(onyxData: AnyOnyxUpdate[]): Response<OnyxKey> {
@@ -82,21 +98,25 @@ function backendReportUpdate(): AnyOnyxUpdate {
     };
 }
 
-function backendReportActionsUpdate(): AnyOnyxUpdate {
+function backendReportActionsUpdate(transactionID = TRANSACTION_ID): AnyOnyxUpdate {
     return {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REAL_REPORT_ID}`,
-        value: {[REAL_IOU_ACTION_ID]: buildIOUAction(REAL_IOU_ACTION_ID, REAL_REPORT_ID)},
+        value: {[REAL_IOU_ACTION_ID]: buildIOUAction(REAL_IOU_ACTION_ID, REAL_REPORT_ID, transactionID)},
     };
 }
 
-function findUpdate(onyxData: AnyOnyxUpdate[] | undefined, key: string) {
-    return onyxData?.find((update) => update.key === key);
+function backendResponse(): Response<OnyxKey> {
+    return buildResponse([backendReportUpdate(), backendReportActionsUpdate()]);
+}
+
+function getSuccessData(request: Request<OnyxKey>): AnyOnyxUpdate[] {
+    return (request.successData ?? []) as AnyOnyxUpdate[];
 }
 
 /** The reconciliation appends its updates, so the last one for a key is the one it added. */
-function findAppendedUpdate(onyxData: AnyOnyxUpdate[] | undefined, key: string) {
-    return onyxData?.findLast((update) => update.key === key);
+function findAppended(request: Request<OnyxKey>, key: string) {
+    return getSuccessData(request).findLast((update) => update.key === key);
 }
 
 describe('HandleMovedScanFailedExpenses middleware', () => {
@@ -127,91 +147,110 @@ describe('HandleMovedScanFailedExpenses middleware', () => {
     });
 
     it('leaves a response for another command untouched', async () => {
-        const response = buildResponse([backendReportUpdate()]);
+        const request = {command: 'ApproveMoneyRequest', data: {}, successData: buildSuccessData()} as Request<OnyxKey>;
 
-        await handleMovedScanFailedExpenses(Promise.resolve(response), {command: 'ApproveMoneyRequest', data: {}} as Request<OnyxKey>, false);
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
 
-        expect(response.onyxData).toHaveLength(1);
+        expect(getSuccessData(request)).toHaveLength(2);
         expect(mockSetParams).not.toHaveBeenCalled();
     });
 
     it('leaves a hold split untouched, since it pays only part of the report and the backend reuses its optimistic report', async () => {
-        const response = buildResponse([backendReportUpdate()]);
+        const request = buildPayRequest({full: false});
 
-        await handleMovedScanFailedExpenses(Promise.resolve(response), buildPayRequest({full: false}), false);
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
 
-        expect(response.onyxData).toHaveLength(1);
+        expect(getSuccessData(request)).toHaveLength(2);
+        expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('leaves a failed payment to failureData, which rolls the move back on its own', async () => {
+        const request = buildPayRequest();
+        const response = backendResponse();
+        response.jsonCode = 400;
+
+        await handleMovedScanFailedExpenses(Promise.resolve(response), request, false);
+
+        expect(getSuccessData(request)).toHaveLength(2);
         expect(mockSetParams).not.toHaveBeenCalled();
     });
 
     it('retires the optimistic report and its report preview once the backend report arrives', async () => {
-        const response = buildResponse([backendReportUpdate(), backendReportActionsUpdate()]);
+        const request = buildPayRequest();
 
-        await handleMovedScanFailedExpenses(Promise.resolve(response), buildPayRequest(), false);
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
 
-        expect(findUpdate(response.onyxData, `${ONYXKEYS.COLLECTION.REPORT}${OPTIMISTIC_REPORT_ID}`)?.value).toBeNull();
-        expect(findUpdate(response.onyxData, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OPTIMISTIC_REPORT_ID}`)?.value).toBeNull();
-        expect(findUpdate(response.onyxData, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`)?.value).toEqual({[PREVIEW_ACTION_ID]: null});
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${OPTIMISTIC_REPORT_ID}`)?.value).toBeNull();
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OPTIMISTIC_REPORT_ID}`)?.value).toBeNull();
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`)?.value).toEqual({[PREVIEW_ACTION_ID]: null});
+    });
+
+    it('removes the report actions after successData clears their pending state, never before', async () => {
+        const request = buildPayRequest();
+
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
+
+        const successData = getSuccessData(request);
+        for (const key of [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OPTIMISTIC_REPORT_ID}`]) {
+            const clearsPendingState = successData.findIndex((update) => update.key === key);
+            const removes = successData.findLastIndex((update) => update.key === key);
+            expect(clearsPendingState).toBeGreaterThanOrEqual(0);
+            expect(removes).toBeGreaterThan(clearsPendingState);
+        }
     });
 
     it("re-parents the moved expense's transaction thread onto the backend report action", async () => {
-        const response = buildResponse([backendReportUpdate(), backendReportActionsUpdate()]);
+        const request = buildPayRequest();
 
-        await handleMovedScanFailedExpenses(Promise.resolve(response), buildPayRequest(), false);
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
 
-        expect(findUpdate(response.onyxData, `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`)?.value).toEqual({
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`)?.value).toEqual({
             parentReportID: REAL_REPORT_ID,
             parentReportActionID: REAL_IOU_ACTION_ID,
             chatReportID: REAL_REPORT_ID,
         });
-        expect(findAppendedUpdate(response.onyxData, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REAL_REPORT_ID}`)?.value).toEqual({
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REAL_REPORT_ID}`)?.value).toEqual({
             [REAL_IOU_ACTION_ID]: {childReportID: THREAD_REPORT_ID},
         });
     });
 
     it('moves every route showing the optimistic report onto the backend report before it is removed', async () => {
-        const response = buildResponse([backendReportUpdate(), backendReportActionsUpdate()]);
+        const request = buildPayRequest();
 
-        await handleMovedScanFailedExpenses(Promise.resolve(response), buildPayRequest(), false);
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
 
         expect(mockSetParams).toHaveBeenCalledWith({reportID: REAL_REPORT_ID}, 'report-route');
         expect(mockSetParams).toHaveBeenCalledWith({backTo: `/r/${REAL_REPORT_ID}`}, 'rhp-route');
     });
 
-    it('falls back to the workspace chat when the response does not identify the backend report', async () => {
-        const response = buildResponse([
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${PAID_REPORT_ID}`,
-                value: {reportID: PAID_REPORT_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE},
-            },
-        ]);
+    it('does not mistake a report that carries none of the moved expenses for the backend report', async () => {
+        const request = buildPayRequest();
+        const response = buildResponse([backendReportUpdate(), backendReportActionsUpdate('some-other-transaction')]);
 
-        await handleMovedScanFailedExpenses(Promise.resolve(response), buildPayRequest(), false);
+        await handleMovedScanFailedExpenses(Promise.resolve(response), request, false);
 
         expect(mockSetParams).toHaveBeenCalledWith({reportID: CHAT_REPORT_ID}, 'report-route');
-        expect(findUpdate(response.onyxData, `${ONYXKEYS.COLLECTION.REPORT}${OPTIMISTIC_REPORT_ID}`)?.value).toBeNull();
-        expect(findUpdate(response.onyxData, `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`)).toBeUndefined();
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`)).toBeUndefined();
     });
 
-    it('leaves a failed payment to failureData, which rolls the move back on its own', async () => {
-        const response = buildResponse([backendReportUpdate(), backendReportActionsUpdate()]);
-        response.jsonCode = 400;
+    it('falls back to the workspace chat when the response does not identify the backend report', async () => {
+        const request = buildPayRequest();
 
-        await handleMovedScanFailedExpenses(Promise.resolve(response), buildPayRequest(), false);
+        await handleMovedScanFailedExpenses(Promise.resolve(buildResponse([])), request, false);
 
-        expect(response.onyxData).toHaveLength(2);
-        expect(mockSetParams).not.toHaveBeenCalled();
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: CHAT_REPORT_ID}, 'report-route');
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${OPTIMISTIC_REPORT_ID}`)?.value).toBeNull();
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`)).toBeUndefined();
     });
 
     it('does nothing when the optimistic report is already gone', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OPTIMISTIC_REPORT_ID}`, null);
         await waitForBatchedUpdates();
-        const response = buildResponse([backendReportUpdate(), backendReportActionsUpdate()]);
+        const request = buildPayRequest();
 
-        await handleMovedScanFailedExpenses(Promise.resolve(response), buildPayRequest(), false);
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
 
-        expect(response.onyxData).toHaveLength(2);
+        expect(getSuccessData(request)).toHaveLength(2);
         expect(mockSetParams).not.toHaveBeenCalled();
     });
 });

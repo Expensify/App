@@ -59,6 +59,21 @@ function pointRoutesToReport(routes: NavigationRoute[], oldReportID: string, new
     }
 }
 
+/** The expenses the client optimistically moved into `optimisticReportID`, read back from the actions it created there. */
+function getMovedScanFailedTransactionIDs(optimisticReportID: string): Set<string> {
+    const transactionIDs = new Set<string>();
+    for (const reportAction of Object.values(getAllReportActions(optimisticReportID))) {
+        if (!isMoneyRequestAction(reportAction)) {
+            continue;
+        }
+        const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
+        if (transactionID) {
+            transactionIDs.add(transactionID);
+        }
+    }
+    return transactionIDs;
+}
+
 function getTransactionThreadsByParentActionID(allReports: Record<string, Report | undefined>, optimisticReportID: string): Map<string, string> {
     const threadIDByParentActionID = new Map<string, string>();
     for (const report of Object.values(allReports)) {
@@ -153,4 +168,4 @@ function reconcileMovedScanFailedReport(optimisticReportID: string, realReportID
 }
 
 export default reconcileMovedScanFailedReport;
-export {replaceReportIDInPath};
+export {getMovedScanFailedTransactionIDs, replaceReportIDInPath};
