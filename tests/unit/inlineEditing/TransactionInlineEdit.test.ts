@@ -526,7 +526,7 @@ describe('TransactionInlineEdit', () => {
 
         beforeEach(() => jest.clearAllMocks());
 
-        // Onyx is never initialised here, so the module-level transaction cache is empty. That is exactly
+        // Onyx is never initialized here, so the module-level transaction cache is empty. That is exactly
         // the state of a Search row the user has not opened: it exists only in the search snapshot.
         it.each([
             ['date', () => editTransactionDateInline(buildParams(), '2026-01-15', undefined), () => updateMoneyRequestDate, {value: '2026-01-15'}],
