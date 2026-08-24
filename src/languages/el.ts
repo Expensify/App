@@ -1258,7 +1258,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'Δεν προστέθηκαν κανόνες εμπόρων, καθώς υπάρχουν ήδη όλοι.' : 'Δεν έχουν προστεθεί κανόνες εμπόρου.';
             }
-
             return {
                 one: 'Προστέθηκε 1 κανόνας εμπόρου.',
                 other: `Έχουν προστεθεί ${count} κανόνες εμπόρων.`,
@@ -2739,16 +2738,16 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Παρακαλούμε επιβεβαιώστε τις δοκιμαστικές συναλλαγές',
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
-            plaidBrokenReconnect: 'Η σύνδεσή σας με το Plaid έχει διακοπεί. Συνδεθείτε ξανά για πιο ακριβές όριο τομέα',
-            plaidConnectForLimit: 'Συνδέστε το Plaid για πιο ακριβές όριο στην Κάρτα Expensify',
+            plaidBrokenReconnect: 'Διορθώστε τη σύνδεσή σας με το Plaid για πιο ακριβές όριο στην Κάρτα Expensify',
+            plaidConnectForLimit: 'Συνδεθείτε με το Plaid για πιο ακριβές όριο στην Κάρτα Expensify',
             connect: 'Σύνδεση',
         },
         linkPlaid: {
-            title: 'Σύνδεση με Plaid',
+            title: 'Σύνδεση με το Plaid',
             successHeading: 'Επιτυχής σύνδεση',
             successDescription: 'Ευχαριστούμε που συνδεθήκατε με το Plaid!',
             failureHeading: 'Ανεπιτυχής σύνδεση',
-            failureDescription: 'Δοκιμάστε ξανά ή <concierge-link>επικοινωνήστε με το Concierge</concierge-link>.',
+            failureDescription: '<muted-text>Παρακαλούμε δοκιμάστε ξανά ή <concierge-link>επικοινωνήστε με το Concierge</concierge-link>.</muted-text>',
             wrongAccountHeading: 'Λάθος τραπεζικός λογαριασμός',
             wrongAccountDescription: 'Παρακαλούμε επιλέξτε τον αντίστοιχο τραπεζικό λογαριασμό στο Plaid.',
         },

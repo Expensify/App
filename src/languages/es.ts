@@ -1182,7 +1182,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'No se han añadido reglas de comerciante, ya que todas ya existen.' : 'No se han añadido reglas de comerciante.';
             }
-
             return {
                 one: 'Se ha añadido 1 regla de comerciante.',
                 other: `Se han añadido ${count} reglas de comerciante.`,
@@ -2597,8 +2596,8 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Confirma las transacciones de prueba',
             accountRequiresAttention: 'Esta cuenta requiere atención',
             unlock: 'Desbloquear',
-            plaidBrokenReconnect: 'Tu conexión con Plaid está rota. Vuelve a conectarla para obtener un límite de dominio más preciso',
-            plaidConnectForLimit: 'Conéctate a Plaid para obtener un límite de la Tarjeta Expensify más preciso',
+            plaidBrokenReconnect: 'Repara tu conexión con Plaid para tener un límite de la Tarjeta Expensify más preciso',
+            plaidConnectForLimit: 'Conéctate a Plaid para tener un límite más preciso en la Tarjeta Expensify',
             connect: 'Conectar',
         },
         linkPlaid: {
@@ -2606,7 +2605,7 @@ const translations: TranslationDeepObject<typeof en> = {
             successHeading: 'Conexión correcta',
             successDescription: '¡Gracias por conectarte a Plaid!',
             failureHeading: 'Conexión fallida',
-            failureDescription: 'Inténtalo de nuevo o <concierge-link>contacta con Concierge</concierge-link>.',
+            failureDescription: '<muted-text>Por favor, inténtalo de nuevo o <concierge-link>contacta con Concierge</concierge-link>.</muted-text>',
             wrongAccountHeading: 'Cuenta bancaria incorrecta',
             wrongAccountDescription: 'Selecciona la cuenta bancaria correspondiente en Plaid.',
         },
