@@ -1460,8 +1460,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? '卡' : '银行账户';
             return isCurrentUser
-                ? `. 款项正在汇往您的${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这可能需要最多 10 个工作日。`
-                : `. 资金正在汇往 ${submitterLogin} 的 ${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这可能需要最多 10 个工作日。`;
+                ? `. 资金正在汇往您的${creditBankAccount ? `末尾为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。通常需要 4–5 个工作日。`
+                : `。汇款正在转往 ${submitterLogin} 的 ${creditBankAccount ? `末尾为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。通常需要 4–5 个工作日。`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `使用直接存款（ACH）${creditBankAccount ? `至尾号为 ${creditBankAccount} 的银行账户。` : '. '}${expectedDate ? `预计将在 ${expectedDate} 前完成报销。` : '这通常需要 4–5 个工作日。'}`,

@@ -1590,8 +1590,8 @@ const translations = {
         }) => {
             const paymentMethod = isCard ? 'card' : 'bank account';
             return isCurrentUser
-                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`
-                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`;
+                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This generally takes 4-5 business days.`
+                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This generally takes 4-5 business days.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` with direct deposit (ACH)${creditBankAccount ? ` to the bank account ending in ${creditBankAccount}. ` : '. '}${expectedDate ? `The reimbursement is estimated to complete by ${expectedDate}.` : 'This generally takes 4-5 business days.'}`,

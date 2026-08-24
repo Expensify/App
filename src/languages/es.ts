@@ -1512,8 +1512,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'tarjeta' : 'cuenta bancaria';
             return isCurrentUser
-                ? `. El dinero está en camino a tu${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`
-                : `. El dinero está en camino a la cuenta bancaria de ${submitterLogin}${creditBankAccount ? ` terminada en ${creditBankAccount}` : ''} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`;
+                ? `. El dinero va en camino a tu ${creditBankAccount ? `cuenta bancaria terminada en ${creditBankAccount}` : 'cuenta'} (pagado a través de ${paymentMethod}). Normalmente tarda entre 4 y 5 días laborables.`
+                : `. El dinero va en camino a la ${creditBankAccount ? `cuenta bancaria terminada en ${creditBankAccount}` : 'cuenta'} de ${submitterLogin} (pagado mediante ${paymentMethod}). Normalmente tarda 4-5 días laborables.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` con depósito directo (ACH)${creditBankAccount ? ` a la cuenta bancaria terminada en ${creditBankAccount}. ` : '. '}${expectedDate ? `Se estima que el reembolso se completará para el ${expectedDate}.` : 'Esto generalmente toma de 4 a 5 días hábiles.'}`,
