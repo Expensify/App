@@ -63,7 +63,7 @@ function UserListItemContent<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
@@ -138,13 +138,13 @@ function UserListItemContent<TItem extends ListItem>({
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}
-                    text={Str.removeSMSDomain(item.text ?? '')}
+                    text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
                     style={[styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre, item.alternateText ? styles.mb1 : null]}
                 />
                 {!!item.alternateText && (
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
-                        text={Str.removeSMSDomain(item.alternateText ?? '')}
+                        text={Str.isSMSLogin(item.alternateText ?? '') ? formatPhoneNumber(item.alternateText ?? '') : (item.alternateText ?? '')}
                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         forwardedFSClass={forwardedFSClass}
                     />
