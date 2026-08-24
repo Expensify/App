@@ -116,10 +116,6 @@ When you download the receipts on a report, a message tells you how many of the 
 - **Expense-level templates** (Basic Export, All Data - Expense Level Export) create one row per expense. Use these when you need detailed data for each individual expense.
 - **Report-level templates** (All Data - Report Level Export) create one row per report with summary data. Use these when you need an overview of each report as a whole.
 
-## Why don't I see the Canadian Multiple Tax Export template?
-
-The **Canadian Multiple Tax Export** template only appears when the workspace's output currency is set to CAD. If you export reports from a workspace that uses any other output currency, this template is hidden. When you bulk export reports from more than one workspace, the template only appears if every selected report belongs to a workspace that outputs in CAD.
-
 ## Can I customize which columns appear in the CSV export?
 
 Yes. Select **Export current view** to download a CSV that matches the columns currently shown on the **Reports** page. Adjust which columns appear by selecting **Display** > **Edit columns**. You can also select a custom export template during export, if your Workspace Admin has created one.
