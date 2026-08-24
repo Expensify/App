@@ -206,7 +206,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const isMobileSelectionEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
