@@ -180,4 +180,22 @@ describe('MapView utils', () => {
             expect(utils.isSingleSegmentRoute([])).toBe(true);
         });
     });
+
+    describe('getMapboxLanguage', () => {
+        it('passes locales that are already valid Mapbox codes through unchanged', () => {
+            expect(utils.getMapboxLanguage('en')).toBe('en');
+            expect(utils.getMapboxLanguage('es')).toBe('es');
+            expect(utils.getMapboxLanguage('fr')).toBe('fr');
+            expect(utils.getMapboxLanguage('de')).toBe('de');
+        });
+
+        it('remaps locales whose value differs from the Mapbox code', () => {
+            expect(utils.getMapboxLanguage('pt-BR')).toBe('pt');
+            expect(utils.getMapboxLanguage('zh-hans')).toBe('zh-Hans');
+        });
+
+        it('returns undefined when there is no locale', () => {
+            expect(utils.getMapboxLanguage(undefined)).toBeUndefined();
+        });
+    });
 });

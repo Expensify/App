@@ -65,7 +65,7 @@ function MapViewImpl({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -197,6 +197,28 @@ function MapViewImpl({
             resizeObserver?.disconnect();
         };
     }, [mapRef]);
+
+    // cspell:ignore styledata
+    // Keep the map labels in the user's preferred app locale, reapplying whenever the map or locale changes.
+    useEffect(() => {
+        if (!mapRef) {
+            return;
+        }
+
+        const map = mapRef.getMap();
+        const applyLanguage = () => map.setLanguage(utils.getMapboxLanguage(preferredLocale));
+
+        if (map.isStyleLoaded()) {
+            applyLanguage();
+            return;
+        }
+
+        // The style must be loaded before labels can be localized, so defer until it is ready.
+        map.once('styledata', applyLanguage);
+        return () => {
+            map.off('styledata', applyLanguage);
+        };
+    }, [mapRef, preferredLocale]);
 
     useImperativeHandle(
         ref,
