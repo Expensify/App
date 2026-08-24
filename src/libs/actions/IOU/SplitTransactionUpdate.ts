@@ -1982,11 +1982,8 @@ function updateSplitTransactions({
         }
     }
 
-    // API.write() applies optimisticData synchronously, so the destination screen re-renders from the
-    // transaction, report and report-action collections this write touches while the press is still
-    // trying to paint. Inside the split-expenses flow there is always a navigation to hide behind, so
-    // defer the write until that screen transition has finished. Outside it there is no transition to
-    // wait on, and a default barrier would stall the write for ~2s, so write immediately instead.
+    // optimisticData is applied synchronously, re-rendering the destination screen mid-transition.
+    // Defer the write until the transition ends, unless there is none to wait on.
     const writeSplit = <TCommand extends WriteCommand>(command: TCommand, parameters: ApiRequestCommandParameters[TCommand]) => {
         if (!isFromSplitExpensesFlow) {
             apiWrite(command, parameters, onyxData);
