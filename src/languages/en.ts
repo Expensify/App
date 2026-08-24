@@ -5012,6 +5012,9 @@ const translations = {
         },
         qbo: {
             connectedTo: 'Connected to',
+            entity: 'Entity',
+            entitySelectDescription: 'Select the entity to sync with this workspace.',
+            connectNewEntity: 'Connect a new entity',
             importDescription: (integrationName = 'QuickBooks Online') => `Choose which coding configurations to import from ${integrationName} to Expensify.`,
             classes: 'Classes',
             locations: 'Locations',
