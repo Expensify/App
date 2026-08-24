@@ -90,9 +90,13 @@ function requestTravelAccess() {
 }
 
 async function getTravelRiskApproval(): Promise<boolean> {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the status determines whether to enter the travel enablement flow
-    const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRAVEL_RISK_APPROVAL, null, {});
-    return response?.travelRiskApproved === true;
+    try {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the status determines whether to enter the travel enablement flow
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRAVEL_RISK_APPROVAL, null, {});
+        return response?.travelRiskApproved === true;
+    } catch {
+        return false;
+    }
 }
 
 function clearTravelSignupRequest() {
