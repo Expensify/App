@@ -506,7 +506,7 @@ function linkPlaidToBankAccount(bankAccountID: number, publicToken: string, poli
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: {[bankAccountID]: {isLoading: false}},
+                value: {[bankAccountID]: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}},
             },
         ],
     };
