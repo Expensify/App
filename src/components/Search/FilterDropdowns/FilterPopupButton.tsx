@@ -124,7 +124,6 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             ref={anchorRef}
             style={wrapperStyle}
         >
-            123
             {/* Dropdown Trigger */}
             {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
             {/* Dropdown overlay. Gated on hasEverExpanded so the (potentially heavy) content subtree isn't mounted

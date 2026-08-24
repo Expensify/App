@@ -63,10 +63,11 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's dock decision (bottom-docked only when isSmallScreenWidth)
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.p4});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.p4});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);

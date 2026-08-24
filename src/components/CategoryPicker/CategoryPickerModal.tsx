@@ -87,8 +87,6 @@ function CategoryPickerModal({
                     selectedCategory={selectedCategory}
                     policyID={policyID}
                     onSubmit={handleCategorySelect}
-                    // Only add content bottom safe-area padding on the bottom-docked (small-screen) popover; the wide
-                    // anchored popover never had container bottom padding to relocate, and skip it while the keyboard is up.
                     addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
                 />

@@ -104,7 +104,6 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
             shouldPreventScrollOnFocus
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            {' '}
             <View style={bottomSafeAreaPaddingStyle}>
                 <MenuItemAction
                     title={translate('common.select')}

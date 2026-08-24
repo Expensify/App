@@ -86,7 +86,7 @@ function PDFDownloadModal({
     }, [hasFinishedPDFDownload, isVisible, onDownloadPDF]);
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: true,
+        addBottomSafeAreaPadding: isSmallScreenWidth,
         addOfflineIndicatorBottomSafeAreaPadding: false,
         style: [styles.flexRow, styles.m5],
     });

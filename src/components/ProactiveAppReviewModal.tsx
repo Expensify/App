@@ -33,7 +33,11 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
     const {translate} = useLocalize();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.m5});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: shouldUseNarrowLayout,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: styles.m5,
+    });
 
     return (
         <Modal

@@ -107,7 +107,7 @@ function DecisionModal({
         >
             <ScrollView
                 contentContainerStyle={[styles.p5, styles.pb5]}
-                addBottomSafeAreaPadding
+                addBottomSafeAreaPadding={isSmallScreenWidth}
             >
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
