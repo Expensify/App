@@ -31,15 +31,18 @@ type AccountListItem = ListItem & {
     value: DualEntryAccount['id'];
 };
 
-function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
+function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const companyCardAccountID = dualentryConfig?.export?.creditCardAccountID;
-    const expensifyCardAccountID = dualentryConfig?.export?.expensifyCardAccountID ?? companyCardAccountID;
+    // An empty string means the custom Expensify Card account was cleared, so fall back to the company card account
+    const customExpensifyCardAccountID = dualentryConfig?.export?.expensifyCardAccountID;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty string is the "cleared" marker and must fall back to the company card account
+    const expensifyCardAccountID = customExpensifyCardAccountID || companyCardAccountID;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
@@ -60,7 +63,7 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.expensifyCardAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.expensifyCardAccount.description')}</Text>
         </View>
     );
 
@@ -69,8 +72,8 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualentry.noAccountsFound')}
-            subtitle={translate('workspace.dualentry.noAccountsFoundDescription')}
+            title={translate('workspace.dualEntry.noAccountsFound')}
+            subtitle={translate('workspace.dualEntry.noAccountsFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
@@ -90,8 +93,8 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="DualEntryCompanyCardAccountPage"
-            title="workspace.dualentry.expensifyCardAccount.label"
+            displayName="DualEntryExpensifyCardAccountPage"
+            title="workspace.dualEntry.expensifyCardAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             shouldBeBlocked={!isExpensifyCardsEnabled}
@@ -110,4 +113,4 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(DualEntryCompanyCardAccountPage);
+export default withPolicyConnections(DualEntryExpensifyCardAccountPage);

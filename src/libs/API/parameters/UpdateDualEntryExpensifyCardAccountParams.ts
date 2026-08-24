@@ -1,8 +1,8 @@
 import type {DualEntryAccount} from '@src/types/onyx/Policy';
 
-type UpdateDualEntryCreditCardAccountParams = {
+type UpdateDualEntryExpensifyCardAccountParams = {
     policyID: string;
-    expensifyCardAccountID: DualEntryAccount['id'];
+    creditCardAccountID: DualEntryAccount['id'];
 };
 
-export default UpdateDualEntryCreditCardAccountParams;
+export default UpdateDualEntryExpensifyCardAccountParams;

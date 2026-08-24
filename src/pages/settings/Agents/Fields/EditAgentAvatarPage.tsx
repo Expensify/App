@@ -1,7 +1,7 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
 import AvatarPageFooter from '@components/AvatarPageFooter';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -159,11 +159,11 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
             >
                 <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
                     <Avatar
-                        containerStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                        imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                        containerStyles={styles.alignSelfCenter}
+                        imageStyles={styles.alignSelfCenter}
                         source={previewSource}
                         avatarID={accountID}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         type={CONST.ICON_TYPE_AVATAR}
                     />
                     <AttachmentPicker
@@ -172,15 +172,16 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                     >
                         {({openPicker}) => (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         )}
                     </AttachmentPicker>
                 </View>
@@ -205,7 +206,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                                     <Avatar
                                         type={CONST.ICON_TYPE_AVATAR}
                                         source={local}
-                                        size={CONST.AVATAR_SIZE.MEDIUM}
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
                                         containerStyles={styles.avatarSelectorContainer}
                                     />
                                 </PressableWithFeedback>

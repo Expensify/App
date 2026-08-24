@@ -65,7 +65,6 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             showTooltip={showTooltip}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem
-            rightHandSideComponent={item.rightElement}
         >
             <>
                 {!!item.singleIcon && (
@@ -82,7 +81,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         text={item.text ?? ''}
                         style={[
                             styles.optionDisplayName,
-                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
                             styles.pre,
                             item.alternateText ? styles.mb1 : null,

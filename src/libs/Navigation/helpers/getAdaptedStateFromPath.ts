@@ -14,7 +14,6 @@ import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList} fr
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -82,23 +81,6 @@ function isRouteWithReportID(route: NavigationRoute): route is Route<string, {re
 }
 
 /**
- * Get the appropriate screen name for RHP_TO_SEARCH lookup.
- * Split tabs (amount, percentage, date) are nested routes within SPLIT_EXPENSE/SPLIT_EXPENSE_SEARCH.
- * When a split tab route is accessed from search context (path contains '/search'),
- * we use SPLIT_EXPENSE_SEARCH for the mapping lookup instead of the tab name.
- */
-function getSearchScreenNameForRoute(route: NavigationRoute): string {
-    const splitTabNames = Object.values(CONST.TAB.SPLIT) as string[];
-    const isSplitTabRoute = splitTabNames.includes(route.name);
-
-    if (isSplitTabRoute && route.path?.includes('/search')) {
-        return SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH;
-    }
-
-    return route.name;
-}
-
-/**
  * @param route - The (focused) route to find a full screen route for.
  * @param isDeeplink - Whether the state is being built from a path (deeplink / browser refresh / cold
  *   load) as opposed to in-app navigation. When true, deeplink-only relations (e.g. RHP_TO_SEARCH_DEEPLINK)
@@ -138,11 +120,10 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
         return getMatchingFullScreenRoute(focusedStateForBackToRoute, isDeeplink);
     }
 
-    const routeNameForLookup = getSearchScreenNameForRoute(route);
     // Deeplink-only relations provide a default search screen underneath the RHP when the state is
     // built from a path. They are ignored for in-app navigation so the RHP can open over any fullscreen.
-    const matchingSearchScreen = RHP_TO_SEARCH[routeNameForLookup];
-    const matchingDeeplinkSearchScreen = isDeeplink ? RHP_TO_SEARCH_DEEPLINK[routeNameForLookup] : undefined;
+    const matchingSearchScreen = RHP_TO_SEARCH[route.name];
+    const matchingDeeplinkSearchScreen = isDeeplink ? RHP_TO_SEARCH_DEEPLINK[route.name] : undefined;
     const resolvedSearchScreen = matchingSearchScreen ?? matchingDeeplinkSearchScreen;
     if (resolvedSearchScreen) {
         const paramsFromRoute = getParamsFromRoute(resolvedSearchScreen);
@@ -450,17 +431,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
-
-    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
-    if (normalizedPath === CONST.SIGNIN_ROUTE) {
-        normalizedPath = '/';
-    }
-
-    // `/Home` (capital H) has no route mapping — the config maps SCREENS.HOME to lowercase 'home' — so it would
-    // fall through to NOT_FOUND. Redirect legacy/cached `/Home` paths to the root instead.
-    if (normalizedPath === `/${SCREENS.HOME}`) {
-        normalizedPath = '/';
-    }
 
     const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {

@@ -21,8 +21,8 @@ function DualEntryImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const enableNewCategories = dualentryConfig?.enableNewCategories ?? false;
     const hasTaxRates = !!dualentryData?.taxRates?.length;
     const syncTaxRates = dualentryConfig?.coding?.syncTaxRates ?? false;
@@ -40,11 +40,11 @@ function DualEntryImportPage({policy}: WithPolicyConnectionsProps) {
             shouldBeBlocked
         >
             <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.importDescription')}</Text>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.importDescription')}</Text>
             </View>
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.accounts')}
-                subtitle={translate('workspace.dualentry.accountTypesDescription')}
+                subtitle={translate('workspace.dualEntry.accountTypesDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
@@ -53,9 +53,9 @@ function DualEntryImportPage({policy}: WithPolicyConnectionsProps) {
                 disabled
             />
             <ToggleSettingOptionRow
-                title={translate('workspace.dualentry.enableNewAccountsTitle')}
-                subtitle={translate('workspace.dualentry.enableNewAccountsDescription')}
-                switchAccessibilityLabel={translate('workspace.dualentry.enableNewAccountsTitle')}
+                title={translate('workspace.dualEntry.enableNewAccountsTitle')}
+                subtitle={translate('workspace.dualEntry.enableNewAccountsDescription')}
+                switchAccessibilityLabel={translate('workspace.dualEntry.enableNewAccountsTitle')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={enableNewCategories}
@@ -66,7 +66,7 @@ function DualEntryImportPage({policy}: WithPolicyConnectionsProps) {
             />
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <View style={[styles.mv3, styles.mh5]}>
-                <Text>{translate('workspace.dualentry.classificationsImport')}</Text>
+                <Text>{translate('workspace.dualEntry.classificationsImport')}</Text>
             </View>
             {dualentryData?.classifications?.map((classification) => {
                 const mapping = dualentryConfig?.coding?.fieldMappings?.[classification.id];

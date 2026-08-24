@@ -89,6 +89,7 @@ describe('cleanAndTransformState', () => {
             [ONYXKEYS.NETWORK]: 'remove3',
             [ONYXKEYS.CREDENTIALS]: 'remove4',
             [ONYXKEYS.PREFERRED_THEME]: 'remove5',
+            [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: true,
             keepThis: 'value',
         });
 
@@ -104,5 +105,6 @@ describe('cleanAndTransformState', () => {
         expect(result).not.toHaveProperty(ONYXKEYS.NETWORK);
         expect(result).not.toHaveProperty(ONYXKEYS.CREDENTIALS);
         expect(result).not.toHaveProperty(ONYXKEYS.PREFERRED_THEME);
+        expect(result).not.toHaveProperty(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
     });
 });

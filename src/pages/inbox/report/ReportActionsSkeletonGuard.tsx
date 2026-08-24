@@ -1,5 +1,6 @@
+import useBackfillWhenNoVisibleActions from '@hooks/useBackfillWhenNoVisibleActions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
-import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
 import useStartConciergeSession from '@hooks/useStartConciergeSession';
@@ -30,10 +31,23 @@ type ReportActionsSkeletonGuardProps = {
  *
  */
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
-    const {readinessSignals, state, actions} = useReportActionsListModel(reportID);
-    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton, shouldShowInitialSkeleton} = computeReportActionsSkeletonState(readinessSignals);
+    const isReportLoadPending = useIsReportLoadPending(reportID);
+    const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
+    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton} = computeReportActionsSkeletonState(readinessSignals);
 
-    const {report, isConciergeMainDM, oldestUnreadReportAction, hasOnceLoadedReportActions, hasCachedReportActions} = readinessSignals;
+    const {
+        isConciergeMainDM,
+        oldestUnreadReportAction,
+        hasOnceLoadedReportActions,
+        hasCachedReportActions,
+        isMissingReportActions,
+        hasOlderActions,
+        hasNewerActions,
+        isOffline,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
+        oldestReportActionID,
+    } = readinessSignals;
 
     // Side effects that must run whenever the chat list is shown, including while the skeleton renders.
     useCopySelectionHelper();
@@ -47,7 +61,18 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         hasCachedReportActions,
     });
 
-    useMarkOpenReportEndOnSkeleton(report, shouldShowInitialSkeleton);
+    useBackfillWhenNoVisibleActions({
+        reportID,
+        isMissingReportActions,
+        hasOlderActions,
+        hasNewerActions,
+        isOffline,
+        isReportLoadPending,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
+        oldestReportActionID,
+        loadOlderChats: actions.loadOlderChats,
+    });
 
     if (shouldShowLoadingSkeleton) {
         return (

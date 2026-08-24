@@ -24,7 +24,6 @@ import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID} 
 import {getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -53,11 +52,12 @@ import {Animated, ScrollView, View} from 'react-native';
 
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
 
-const loadingAppReasonAttributes: SkeletonSpanReasonAttributes = {context: 'MoneyRequestReportView.isLoadingApp'};
-
 type MoneyRequestReportViewProps = {
     /** The report */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** Report ID from the route, known before the report itself loads */
+    reportIDFromRoute: string | undefined;
 
     /** Loading state for report */
     reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
@@ -99,24 +99,21 @@ function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) 
     Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
 }
 
-function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void; reasonAttributes: SkeletonSpanReasonAttributes}) {
+function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void}) {
     return (
         <View
             style={[styles.flex1]}
             onLayout={onLayout}
         >
             <View style={[styles.appContentHeader, styles.borderBottom]}>
-                <ReportHeaderSkeletonView
-                    onBackButtonPress={() => {}}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
             <ReportActionsSkeletonView />
         </View>
     );
 }
 
-function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -154,7 +151,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
+    const isReportLoadPending = useIsReportLoadPending(reportID);
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     }, [reportID]);
@@ -165,9 +162,9 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportLoadingState, isOffline);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportLoadingState, isReportLoadPending, isOffline);
 
-    const shouldShowOpenReportLoadingSkeleton = !!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
+    const shouldShowOpenReportLoadingSkeleton = !!(isReportLoadPending && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
 
     const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
@@ -211,23 +208,16 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         };
     }, [reportID]);
 
-    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
+    const shouldShowEmptyActionsSkeleton = reportActions.length === 0;
+    const shouldShowAppLoadSkeleton = !!report && isAppLoadPending;
+    // These skeletons render before the report lands in Onyx, so the mark uses the route id.
+    useMarkOpenReportEndOnSkeleton(reportIDFromRoute, shouldShowOpenReportLoadingSkeleton || shouldShowEmptyActionsSkeleton || shouldShowAppLoadSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {
-        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'MoneyRequestReportView.InitialLoadingSkeleton',
-            isLoadingInitialReportActions: !!isLoadingInitialReportActions,
-            shouldWaitForTransactions,
-        };
-        return (
-            <InitialLoadingSkeleton
-                styles={styles}
-                reasonAttributes={skeletonReasonAttributes}
-            />
-        );
+        return <InitialLoadingSkeleton styles={styles} />;
     }
 
-    if (reportActions.length === 0) {
+    if (shouldShowEmptyActionsSkeleton) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
@@ -235,10 +225,10 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         return;
     }
 
-    if (isAppLoadPending) {
+    if (shouldShowAppLoadSkeleton) {
         return (
             <View style={styles.flex1}>
-                <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
+                <ReportHeaderSkeletonView />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? <ReportFooter /> : null}
             </View>

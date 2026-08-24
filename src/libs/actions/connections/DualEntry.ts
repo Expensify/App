@@ -28,9 +28,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DualEntryAutoSync, DualEntryCoding, DualEntryConnectionsConfig, DualEntryExport, DualEntrySync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
 
 function connectToDualEntry(policyID: string, apiKey: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
@@ -75,7 +75,7 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             [settingName]: settingValue ?? null,
                             pendingFields: {
@@ -97,7 +97,7 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [settingName]: null,
@@ -115,7 +115,7 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             [settingName]: oldSettingValue ?? null,
                             pendingFields: {
@@ -146,7 +146,7 @@ function prepareDualEntryCodingOnyxData<TSettingName extends keyof DualEntryCodi
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             coding: {
                                 [settingName]: settingValue ?? null,
@@ -170,7 +170,7 @@ function prepareDualEntryCodingOnyxData<TSettingName extends keyof DualEntryCodi
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [settingName]: null,
@@ -188,7 +188,7 @@ function prepareDualEntryCodingOnyxData<TSettingName extends keyof DualEntryCodi
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             coding: {
                                 [settingName]: oldSettingValue ?? null,
@@ -223,7 +223,7 @@ function prepareDualEntryFieldMappingOnyxData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             coding: {
                                 fieldMappings: {
@@ -249,7 +249,7 @@ function prepareDualEntryFieldMappingOnyxData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [fieldOfflineFeedbackKey]: null,
@@ -267,7 +267,7 @@ function prepareDualEntryFieldMappingOnyxData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             coding: {
                                 fieldMappings: {
@@ -302,7 +302,7 @@ function prepareDualEntryExportOnyxData<TSettingName extends keyof DualEntryExpo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             export: {
                                 [settingName]: settingValue ?? null,
@@ -326,7 +326,7 @@ function prepareDualEntryExportOnyxData<TSettingName extends keyof DualEntryExpo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [settingName]: null,
@@ -344,7 +344,7 @@ function prepareDualEntryExportOnyxData<TSettingName extends keyof DualEntryExpo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             export: {
                                 [settingName]: oldSettingValue ?? null,
@@ -372,7 +372,7 @@ function prepareDualEntryAutoSyncOnyxData(policyID: string, enabled: DualEntryAu
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             autoSync: {
                                 enabled,
@@ -396,7 +396,7 @@ function prepareDualEntryAutoSyncOnyxData(policyID: string, enabled: DualEntryAu
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [CONST.DUALENTRY_CONFIG.AUTO_SYNC]: null,
@@ -414,7 +414,7 @@ function prepareDualEntryAutoSyncOnyxData(policyID: string, enabled: DualEntryAu
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             autoSync: {
                                 enabled: oldEnabled ?? null,
@@ -447,7 +447,7 @@ function prepareDualEntrySyncOnyxData<TSettingName extends keyof DualEntrySync>(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             sync: {
                                 [settingName]: settingValue ?? null,
@@ -471,7 +471,7 @@ function prepareDualEntrySyncOnyxData<TSettingName extends keyof DualEntrySync>(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [settingName]: null,
@@ -489,7 +489,7 @@ function prepareDualEntrySyncOnyxData<TSettingName extends keyof DualEntrySync>(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             sync: {
                                 [settingName]: oldSettingValue ?? null,
@@ -510,8 +510,8 @@ function prepareDualEntrySyncOnyxData<TSettingName extends keyof DualEntrySync>(
     return {optimisticData, successData, failureData};
 }
 
-function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['companyID'], oldSubsidiaryID?: DualEntryConnectionsConfig['companyID']) {
-    const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.COMPANY_ID, subsidiaryID, oldSubsidiaryID ?? null);
+function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: DualEntryConnectionsConfig['subsidiaryID']) {
+    const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateDualEntrySubsidiaryParams = {
         policyID,
         subsidiaryID,
@@ -596,7 +596,7 @@ function updateDualEntryExpensifyCardAccount(
     const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID, expensifyCardAccountID, oldExpensifyCardAccountID ?? null);
     const parameters: UpdateDualEntryExpensifyCardAccountParams = {
         policyID,
-        expensifyCardAccountID,
+        creditCardAccountID: expensifyCardAccountID,
     };
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT, parameters, onyxData);
 }
@@ -664,7 +664,7 @@ function updateDualEntrySyncTravelInvoicingSettlements(
     enabled: DualEntrySync['syncTravelInvoicingSettlements'],
     oldEnabled?: DualEntrySync['syncTravelInvoicingSettlements'],
 ) {
-    const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS, enabled, oldEnabled ?? null);
     const parameters: UpdateDualEntrySyncTravelInvoicingSettlementsParams = {
         policyID,
         enabled,
@@ -679,7 +679,7 @@ function updateDualEntryTravelInvoicingSettlementsAccount(
 ) {
     const onyxData = prepareDualEntrySyncOnyxData(
         policyID,
-        CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+        CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
         travelInvoicingSettlementsBankAccountID,
         oldTravelInvoicingSettlementsBankAccountID ?? null,
     );
@@ -697,7 +697,7 @@ function updateDualEntryTravelInvoicingPayableAccount(
 ) {
     const onyxData = prepareDualEntryExportOnyxData(
         policyID,
-        CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID,
+        CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
         travelInvoicingPayableAccountID,
         oldTravelInvoicingPayableAccountID ?? null,
     );

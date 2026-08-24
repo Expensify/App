@@ -43,7 +43,7 @@ import {createSidebarReportsCollection, createSidebarTestData} from '../utils/co
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, getCurrencyDecimalsLocal, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -137,18 +137,18 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
 
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
-                    {},
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
+                    reportErrors: {},
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
         });
@@ -169,18 +169,18 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
                     reportErrors,
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -196,18 +196,18 @@ describe('SidebarUtils', () => {
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    true,
-                    {},
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: true,
+                    reportErrors: {},
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_VIOLATIONS);
         });
@@ -240,18 +240,18 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
                     reportErrors,
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -272,18 +272,18 @@ describe('SidebarUtils', () => {
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
                     reportErrors,
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -316,18 +316,18 @@ describe('SidebarUtils', () => {
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reportAction} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
                     reportErrors,
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reportAction).toMatchObject<ReportAction>(MOCK_REPORT_ACTION);
         });
@@ -342,18 +342,18 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: chatReportR14932,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result).toBeNull();
         });
@@ -369,6 +369,7 @@ describe('SidebarUtils', () => {
             };
 
             const optionDataPinned = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report: MOCK_REPORT_PINNED,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -380,6 +381,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
@@ -389,8 +391,10 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
 
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report: MOCK_REPORT_UNPINNED,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -402,6 +406,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
@@ -411,6 +416,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
 
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -455,18 +461,18 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: chatReportR14932,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result).toBeNull();
         });
@@ -544,18 +550,18 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
             const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
 
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: chatReport,
                 chatReport,
-                chatReport,
-                MOCK_REPORT_ACTIONS,
-                false,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
                 reportErrors,
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived: isReportArchived.current,
+            });
 
             // Then: RBR should appear on the chat for the expense report
             expect(result).not.toBeNull();
@@ -623,18 +629,18 @@ describe('SidebarUtils', () => {
             });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: chatReportR14932,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result).not.toBeNull();
             expect(result?.reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
@@ -717,18 +723,18 @@ describe('SidebarUtils', () => {
             expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    policyExpenseChat,
-                    policyExpenseChat,
-                    {} as OnyxEntry<ReportActions>,
-                    true,
-                    {},
-                    {[transactionKey]: transaction},
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: policyExpenseChat,
+                    chatReport: policyExpenseChat,
+                    reportActions: {} as OnyxEntry<ReportActions>,
+                    hasViolations: true,
+                    reportErrors: {},
+                    transactions: {[transactionKey]: transaction},
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     transactionViolations,
-                    false,
-                ) ?? {};
+                    isReportArchived: false,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
         });
@@ -791,18 +797,18 @@ describe('SidebarUtils', () => {
             };
 
             // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
-            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                MOCK_CHAT_REPORT,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                {},
-                false,
-            );
+            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: MOCK_CHAT_REPORT,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: {},
+                isReportArchived: false,
+            });
 
             expect(onlineResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -864,18 +870,18 @@ describe('SidebarUtils', () => {
             };
 
             // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
-            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                MOCK_CHAT_REPORT,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                true,
-                CURRENT_USER_ACCOUNT_ID,
-                {},
-                false,
-            );
+            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: MOCK_CHAT_REPORT,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: true,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: {},
+                isReportArchived: false,
+            });
 
             // Then: no single transaction thread is identified, so the receipt error is not surfaced via that path.
             expect(offlineResult).toBeNull();
@@ -924,7 +930,7 @@ describe('SidebarUtils', () => {
                     participantAccountIDs: [actorAccountID],
                 },
             };
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, '', transaction);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, '', transaction);
 
             await act(async () => {
                 await Onyx.set(ONYXKEYS.SESSION, {accountID: 55555});
@@ -943,36 +949,36 @@ describe('SidebarUtils', () => {
             const reportErrors = {someError: 'Some error occurred'};
 
             // When: the passed currentUserAccountID matches the action's actor, the smartscan action is flagged as requiring attention.
-            const matchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                chatReport,
+            const matchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: chatReport,
                 chatReport,
                 reportActions,
-                false,
+                hasViolations: false,
                 reportErrors,
                 transactions,
-                false,
-                actorAccountID,
-                {},
-                false,
+                isOffline: false,
+                currentUserAccountID: actorAccountID,
+                transactionViolations: {},
+                isReportArchived: false,
                 reports,
-            );
+            });
             expect(matchingResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
             expect(matchingResult?.reportAction?.reportActionID).toBe(reportPreviewAction.reportActionID);
 
             // When: the passed currentUserAccountID does NOT match, the action is not attributed to the current user, so no smartscan action is returned.
-            const nonMatchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                chatReport,
+            const nonMatchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: chatReport,
                 chatReport,
                 reportActions,
-                false,
+                hasViolations: false,
                 reportErrors,
                 transactions,
-                false,
-                actorAccountID + 1,
-                {},
-                false,
+                isOffline: false,
+                currentUserAccountID: actorAccountID + 1,
+                transactionViolations: {},
+                isReportArchived: false,
                 reports,
-            );
+            });
             expect(nonMatchingResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
             expect(nonMatchingResult?.reportAction).toBeUndefined();
         });
@@ -1493,8 +1499,88 @@ describe('SidebarUtils', () => {
                 translate: translateWithHiddenMarker,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('HiddenMarker');
+        });
+
+        it('resolves the policy expense chat workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            // A translate that tags the "unavailable" workspace copy so we can prove getPolicyName used the provided translate
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the admin room workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the invoice room receiver name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
         });
 
         it('do not return pronouns in the welcome message text when it is group chat', async () => {
@@ -1527,6 +1613,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                            formatPhoneNumber,
                         });
                         expect(result.messageHtml).toContain('This chat is with');
                         expect(result.messageHtml).toContain('<user-details accountid="1">');
@@ -1559,6 +1646,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageHtml).toContain('<user-details accountid="1">Email One</user-details>');
@@ -1590,6 +1678,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toMatch(/^This chat is with .+ and .+\.$/);
             expect(result.messageText).toContain(' and ');
@@ -1623,6 +1712,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toMatch(/^This chat is with .+, .+, and .+\.$/);
             expect(result.messageText).toContain(', and ');
@@ -1658,11 +1748,6 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        const reportAttributes: Record<string, ReportAttributes> = {
-                            [MOCK_REPORT.reportID]: createMock<ReportAttributes>({
-                                reportName: 'Report (archived)',
-                            }),
-                        };
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
                             policy: undefined,
@@ -1671,8 +1756,9 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                            reportAttributes,
+                            derivedReportName: 'Report (archived)',
                             isReportArchived: isReportArchived.current,
+                            formatPhoneNumber,
                         });
                     })
 
@@ -1712,6 +1798,7 @@ describe('SidebarUtils', () => {
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                             isReportArchived: isReportArchived.current,
+                            formatPhoneNumber,
                         });
                     })
 
@@ -1753,6 +1840,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             expect(result.messageText).toContain('Client Corporation');
@@ -1789,6 +1877,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             // When invoiceReceiverPolicy is undefined (individual payer), it should handle gracefully
@@ -1825,6 +1914,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             // Should not contain invoice-specific messaging
@@ -1858,12 +1948,6 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const reportAttributes: Record<string, ReportAttributes> = {
-                [archivedInvoiceRoom.reportID]: createMock<ReportAttributes>({
-                    reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
-                }),
-            };
-
             const result = SidebarUtils.getWelcomeMessage({
                 report: archivedInvoiceRoom,
                 policy: senderPolicy,
@@ -1872,9 +1956,10 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                reportAttributes,
+                derivedReportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
+                formatPhoneNumber,
             });
 
             // Should show archived message
@@ -1909,6 +1994,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             // Should still return a message, even if invoiceReceiverPolicy is missing
@@ -1944,6 +2030,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe('Concierge can answer questions, update expenses, and more.');
         });
@@ -1973,6 +2060,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageText).not.toContain('Concierge');
@@ -1995,6 +2083,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toBeUndefined();
             expect(result.messageText).toBeUndefined();
@@ -2015,6 +2104,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBeTruthy();
             expect(result.messageText).not.toContain('Concierge');
@@ -2053,6 +2143,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: true,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe("This is where you'll track expenses.");
         });
@@ -2099,6 +2190,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: true,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('will submit expenses to');
         });
@@ -2136,6 +2228,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: false,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('will submit expenses to');
         });
@@ -2174,6 +2267,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: true,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toBe('Custom workspace description');
         });
@@ -2222,6 +2316,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2233,6 +2328,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2240,6 +2336,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -2288,6 +2385,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2299,6 +2397,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2306,6 +2405,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -2329,6 +2429,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2340,6 +2441,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2347,6 +2449,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the custom tax name to "VAT" (previously "Sales Tax")');
@@ -2369,6 +2472,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2380,6 +2484,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2387,6 +2492,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")');
@@ -2409,6 +2515,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2420,6 +2527,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2427,6 +2535,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
@@ -2455,6 +2564,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2466,6 +2576,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2473,6 +2584,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
@@ -2495,6 +2607,7 @@ describe('SidebarUtils', () => {
             });
 
             const enabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2506,6 +2619,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: enabledAction,
                 lastActionReport: undefined,
@@ -2513,6 +2627,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(enabledResult?.alternateText).toBe('enabled the company card purchases requirement');
@@ -2528,6 +2643,7 @@ describe('SidebarUtils', () => {
             });
 
             const disabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2539,7 +2655,323 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
+                lastAction: disabledAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(disabledResult?.alternateText).toBe('disabled the company card purchases requirement');
+        });
+
+        it('returns the correct alternate text for UPDATE_REQUIRES_CATEGORY action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const enabledAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY,
+                originalMessage: {enabled: true},
+            };
+            const enabledReportActions: ReportActions = {[enabledAction.reportActionID]: enabledAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, enabledReportActions);
+            });
+
+            const enabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: enabledAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(enabledResult?.alternateText).toBe('enabled the expense categorization requirement');
+
+            const disabledAction: ReportAction = {
+                ...createRandomReportAction(3),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY,
+                originalMessage: {enabled: false},
+            };
+            const disabledReportActions: ReportActions = {[disabledAction.reportActionID]: disabledAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, disabledReportActions);
+            });
+
+            const disabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: disabledAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(disabledResult?.alternateText).toBe('disabled the expense categorization requirement');
+        });
+
+        it('returns the correct alternate text for UPDATE_REQUIRES_TAG action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const enabledAction: ReportAction = {
+                ...createRandomReportAction(4),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG,
+                originalMessage: {enabled: true},
+            };
+            const enabledReportActions: ReportActions = {[enabledAction.reportActionID]: enabledAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, enabledReportActions);
+            });
+
+            const enabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: enabledAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(enabledResult?.alternateText).toBe('enabled the expense tagging requirement');
+
+            const disabledAction: ReportAction = {
+                ...createRandomReportAction(5),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG,
+                originalMessage: {enabled: false},
+            };
+            const disabledReportActions: ReportActions = {[disabledAction.reportActionID]: disabledAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, disabledReportActions);
+            });
+
+            const disabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: disabledAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(disabledResult?.alternateText).toBe('disabled the expense tagging requirement');
+        });
+
+        it('returns the correct alternate text for UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const companyPaysAction: ReportAction = {
+                ...createRandomReportAction(6),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                originalMessage: {preference: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY},
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[companyPaysAction.reportActionID]: companyPaysAction});
+            });
+
+            const companyPaysResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: companyPaysAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(companyPaysResult?.alternateText).toBe('updated the currency conversion fee setting to "Company pays"');
+
+            const employeePaysAction: ReportAction = {
+                ...createRandomReportAction(7),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                originalMessage: {preference: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE},
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[employeePaysAction.reportActionID]: employeePaysAction});
+            });
+
+            const employeePaysResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: employeePaysAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(employeePaysResult?.alternateText).toBe('updated the currency conversion fee setting to "Employee pays"');
+        });
+
+        it('returns the correct alternate text for UPDATE_AUTO_HARVESTING action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const enabledAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                originalMessage: {value: true},
+            };
+            const enabledReportActions: ReportActions = {[enabledAction.reportActionID]: enabledAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, enabledReportActions);
+            });
+
+            const enabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                formatPhoneNumber,
+                lastAction: enabledAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(enabledResult?.alternateText).toBe('enabled submissions');
+
+            const disabledAction: ReportAction = {
+                ...createRandomReportAction(3),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                originalMessage: {value: false},
+            };
+            const disabledReportActions: ReportActions = {[disabledAction.reportActionID]: disabledAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, disabledReportActions);
+            });
+
+            const disabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                formatPhoneNumber,
                 lastAction: disabledAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
@@ -2548,7 +2980,7 @@ describe('SidebarUtils', () => {
                 reportAttributesDerived: undefined,
             });
 
-            expect(disabledResult?.alternateText).toBe('disabled the company card purchases requirement');
+            expect(disabledResult?.alternateText).toBe('disabled submissions');
         });
 
         it('returns the correct alternate text for ADD_CARD_FEED action', async () => {
@@ -2568,6 +3000,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2579,6 +3012,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2586,6 +3020,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('added card feed "Visa Commercial"');
@@ -2608,6 +3043,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2619,6 +3055,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2626,6 +3063,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('removed card feed "Amex Corporate"');
@@ -2648,6 +3086,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2659,6 +3098,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2666,6 +3106,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('renamed card feed to "New Feed" (previously "Old Feed")');
@@ -2688,6 +3129,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2699,6 +3141,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2706,6 +3149,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('assigned user@example.com "US Bank" company card ending in 1234');
@@ -2728,6 +3172,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2739,6 +3184,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2746,6 +3192,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
@@ -2768,6 +3215,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2779,6 +3227,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2786,6 +3235,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
@@ -2808,6 +3258,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2819,6 +3270,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2826,6 +3278,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
@@ -2876,6 +3329,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2887,6 +3341,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2894,6 +3349,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             // Then the alternate text should show @Hidden.
@@ -2929,6 +3385,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -2942,11 +3399,13 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -2973,6 +3432,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -2986,6 +3446,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     isReportArchived: true,
                     lastActionReport: undefined,
@@ -2993,6 +3454,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
 
                     reportAttributesDerived: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -3016,6 +3478,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3029,11 +3492,13 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -3157,6 +3622,7 @@ describe('SidebarUtils', () => {
                 };
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: policyExpenseChat,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3169,12 +3635,14 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
 
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
 
                     reportAttributesDerived: mockReportAttributesDerived,
                 });
@@ -3205,6 +3673,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3218,11 +3687,13 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -3281,6 +3752,7 @@ describe('SidebarUtils', () => {
                     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
                 });
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3292,12 +3764,14 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -3345,6 +3819,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3356,12 +3831,14 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -3397,6 +3874,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3410,6 +3888,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -3417,6 +3896,7 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: report.lastMessageText,
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe('You: someMessage');
@@ -3491,6 +3971,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: {...iouReportR14932, lastActorAccountID: session.accountID},
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3502,6 +3983,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3514,6 +3996,7 @@ describe('SidebarUtils', () => {
                             [lastAction.reportActionID]: true,
                         },
                     },
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -3619,6 +4102,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3630,6 +4114,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3637,6 +4122,7 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test action',
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -3709,6 +4195,7 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3720,12 +4207,14 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -3810,6 +4299,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: dmChat,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3822,22 +4312,27 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: lastReportPreviewAction,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: managerID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
 
@@ -3920,6 +4415,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: dmChat,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3932,22 +4428,27 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: lastReportPreviewAction,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: managerID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });
@@ -3962,6 +4463,7 @@ describe('SidebarUtils', () => {
 
                 // When getOptionData is called with matching conciergeReportID
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3972,6 +4474,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -3979,6 +4482,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 // Then isConciergeChat should be true
@@ -3994,6 +4498,7 @@ describe('SidebarUtils', () => {
 
                 // When getOptionData is called with non-matching conciergeReportID
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -4004,6 +4509,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -4011,6 +4517,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 // Then isConciergeChat should be false
@@ -4025,6 +4532,7 @@ describe('SidebarUtils', () => {
 
                 // When getOptionData is called with empty conciergeReportID
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -4035,6 +4543,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -4042,6 +4551,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 // Then isConciergeChat should be false
@@ -4073,6 +4583,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -4084,6 +4595,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -4091,6 +4603,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
@@ -4858,6 +5371,7 @@ describe('SidebarUtils', () => {
          */
         function callGetOptionData(report: Report, lastAction: ReportAction, policy?: Policy) {
             return SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -4869,6 +5383,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -4876,6 +5391,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: '',
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
         }
 

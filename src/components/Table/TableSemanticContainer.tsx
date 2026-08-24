@@ -1,4 +1,9 @@
+import ScrollView from '@components/ScrollView';
+
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {LayoutChangeEvent} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -20,6 +25,26 @@ type TableSemanticContainerProps = {
     /** Number of columns, including the leading selection column when present. */
     columnCount: number;
 
+    /**
+     * Whether `TableBody` still renders content while the table is empty (e.g. an empty-state or header list slot is
+     * supplied). When it does, it keeps its own `role="rowgroup"`, so the `role="table"` wrapper must be preserved to
+     * avoid orphaned table semantics.
+     */
+    rendersBodyWhenEmpty: boolean;
+
+    /**
+     * The width the rows need when the columns are too wide to fit. Set only in that case, and it makes the header/body
+     * run scroll horizontally as one, so the header stays aligned with the rows it labels.
+     */
+    scrollWidth: number | undefined;
+
+    /**
+     * Measures the width the table's columns have to share. This node is the right thing to measure because it keeps the
+     * table's own width even while its content overflows and scrolls, so measuring it can't feed back into the widths it
+     * produced.
+     */
+    onLayout: ((event: LayoutChangeEvent) => void) | undefined;
+
     /** Table children — expected to contain a contiguous `TableHeader`/`TableBody` run. */
     children: React.ReactNode;
 };
@@ -31,11 +56,23 @@ type TableSemanticContainerProps = {
  * narrow card layout. Header and body are contiguous in every table, so grouping the consecutive run keeps a single
  * table container while preserving child order.
  */
-function TableSemanticContainer({isEnabled, title, rowCount, columnCount, children}: TableSemanticContainerProps) {
+function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, scrollWidth, onLayout, children}: TableSemanticContainerProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     if (!isEnabled) {
         return children;
+    }
+
+    // An empty table whose header/body both render null has no tabular content for a screen reader, so skip the wrapper
+    // to avoid an extra flex:1 node next to the empty-state view that would share its height and shift it upward. (When
+    // the body still renders it keeps its own role="rowgroup", so `rendersBodyWhenEmpty` keeps the wrapper.)
+    //
+    // Use `React.Children.toArray` so the children's top-level keys (`.0`, `.1`, …) match the wrapped branch below;
+    // otherwise React remounts a child across the empty↔non-empty boundary — for `Table.FilterBar` that runs its
+    // unmount cleanup and wipes the active search string.
+    if (rowCount === 0 && !rendersBodyWhenEmpty) {
+        return React.Children.toArray(children);
     }
 
     const renderedChildren: React.ReactNode[] = [];
@@ -46,14 +83,37 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, childr
             return;
         }
 
-        renderedChildren.push(
+        const rowGroupContainer = (
             <View
                 key={`tableSemanticContainer-${renderedChildren.length}`}
                 style={[styles.flex1, styles.mnh0]}
+                // The columns are measured against this node while the table fits, and against the scroll view below once
+                // it doesn't. Either way the measured node keeps the table's own width rather than growing with the
+                // content, so measuring it can't feed back into the widths it produced.
+                onLayout={scrollWidth ? undefined : onLayout}
                 {...getTableContainerAccessibilityProps(true, title, rowCount, columnCount)}
             >
                 {rowGroup}
-            </View>,
+            </View>
+        );
+
+        // The columns don't fit, so the header and the body scroll horizontally as one and stay aligned. The content
+        // container carries the width they need, and the rows fill it, matching how the Search table scrolls.
+        renderedChildren.push(
+            scrollWidth ? (
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator
+                    key={`tableSemanticContainerScroll-${renderedChildren.length}`}
+                    style={[styles.flex1, styles.mnh0]}
+                    contentContainerStyle={StyleUtils.getWidthStyle(scrollWidth)}
+                    onLayout={onLayout}
+                >
+                    {rowGroupContainer}
+                </ScrollView>
+            ) : (
+                rowGroupContainer
+            ),
         );
         rowGroup = [];
     };

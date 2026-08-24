@@ -15,8 +15,9 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
+import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SelectedTransactionInfo} from '@components/Search/types';
+import type {SearchColumnType, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -48,7 +49,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -872,10 +873,11 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         category: '',
         comment: {comment: ''},
         created: '2024-12-21',
-        submitted: undefined,
-        approved: undefined,
+        submitted: '',
+        approved: '',
         posted: '',
         exported: '',
+        exportedTo: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -937,9 +939,10 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         comment: {comment: ''},
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
-        approved: undefined,
+        approved: '',
         posted: '',
         exported: '',
+        exportedTo: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -1011,9 +1014,10 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         comment: {comment: ''},
         created: '2025-03-05',
         submitted: '2025-03-05',
-        approved: undefined,
+        approved: '',
         posted: '',
         exported: '',
+        exportedTo: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -1080,9 +1084,10 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         comment: {comment: ''},
         created: '2025-03-05',
         submitted: '2025-03-05',
-        approved: undefined,
+        approved: '',
         posted: '',
         exported: '',
+        exportedTo: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -1177,6 +1182,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         reportID: '123456789',
         reportName: 'Expense Report #123',
         exported: '',
+        submitted: '',
+        approved: '',
+        exportedTo: '',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -1219,7 +1227,10 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
+                submitted: '',
+                approved: '',
                 exported: '',
+                exportedTo: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: '',
                 formattedTo: '',
@@ -1276,8 +1287,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         submitted: '2024-12-21 13:05:20',
-        approved: undefined,
+        approved: '',
         exported: '',
+        exportedTo: '',
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1347,7 +1359,10 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 category: '',
                 comment: {comment: ''},
                 created: '2024-12-21',
+                submitted: '2024-12-21 13:05:20',
+                approved: '',
                 exported: '',
+                exportedTo: '',
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
@@ -1411,8 +1426,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         chatType: undefined,
         created: '2025-03-05 16:34:27',
         submitted: '2025-03-05',
-        approved: undefined,
+        approved: '',
         exported: '',
+        exportedTo: '',
         currency: 'VND',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1493,7 +1509,10 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 category: '',
                 comment: {comment: ''},
                 created: '2025-03-05',
+                submitted: '2025-03-05',
+                approved: '',
                 exported: '',
+                exportedTo: '',
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
@@ -1559,7 +1578,10 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 category: '',
                 comment: {comment: ''},
                 created: '2025-03-05',
+                submitted: '2025-03-05',
+                approved: '',
                 exported: '',
+                exportedTo: '',
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
@@ -1621,6 +1643,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         exported: '',
+        submitted: '',
+        approved: '',
+        exportedTo: '',
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Draft',
@@ -2601,6 +2626,7 @@ describe('SearchUIUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
             // report1 has ownerAccountID: adminAccountID, so submitterAccountID is not the owner
             const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: searchResults.data,
                 currentAccountID: submitterAccountID,
@@ -2619,6 +2645,7 @@ describe('SearchUIUtils', () => {
         test('Should show `View` as primary action instead of `Submit` when the current user is not the report owner (report view)', async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
             const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: searchResults.data,
                 currentAccountID: submitterAccountID,
@@ -2638,6 +2665,7 @@ describe('SearchUIUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             // report1 has ownerAccountID: adminAccountID, so adminAccountID is the owner
             const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: searchResults.data,
                 currentAccountID: adminAccountID,
@@ -2657,6 +2685,7 @@ describe('SearchUIUtils', () => {
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
             const [filteredReportActions, allReportActionsLength] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.CHAT,
                 data: searchResults.data,
                 currentAccountID: 2074551,
@@ -2675,6 +2704,7 @@ describe('SearchUIUtils', () => {
         it('should return getTransactionsSections result when groupBy is undefined', () => {
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResults.data,
                     currentAccountID: adminAccountID,
@@ -2705,6 +2735,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: testSearchResults.data,
                     currentAccountID: 2074551,
@@ -2724,7 +2755,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 58;
+            const expectedPropertyCount = 59;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2744,6 +2775,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: testSearchResults.data,
                     currentAccountID: 2074551,
@@ -2765,8 +2797,64 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 55;
+            const expectedPropertyCount = 58;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
+        });
+
+        it('should derive exportedTo from every export action of the report', () => {
+            const exportedReportID = 'exported-to-report';
+            const exportedTransactionID = 'exported-to-transaction';
+            const data = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${exportedReportID}`]: {...report1, reportID: exportedReportID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${exportedTransactionID}`]: {
+                    ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                    transactionID: exportedTransactionID,
+                    reportID: exportedReportID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${exportedReportID}`]: {
+                    exportCSV: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
+                        created: '2024-12-21 13:05:20',
+                        message: [],
+                        reportActionID: 'exportCSV',
+                        reportID: exportedReportID,
+                    },
+                    exportXero: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                        created: '2024-12-22 13:05:20',
+                        originalMessage: {label: CONST.EXPORT_LABELS.XERO},
+                        message: [],
+                        reportActionID: 'exportXero',
+                        reportID: exportedReportID,
+                    },
+                },
+            } as OnyxTypes.SearchResults['data'];
+
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionListItemType,
+            )[0];
+
+            const exportedTransaction = result.find((item) => item.transactionID === exportedTransactionID);
+
+            // Every destination the report was exported to is part of the sort value, so reports showing the same set
+            // of "Exported to" icons sort next to each other.
+            expect(exportedTransaction?.exportedTo).toBe(`${CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV}, ${CONST.EXPORT_LABELS.XERO}`);
         });
 
         it('should return getReportSections result when type is EXPENSE REPORT', async () => {
@@ -2776,6 +2864,7 @@ describe('SearchUIUtils', () => {
             await waitForBatchedUpdates();
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: searchResults.data,
                     currentAccountID: adminAccountID,
@@ -2804,6 +2893,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: localSearchResults,
                     currentAccountID: 2074551,
@@ -2832,6 +2922,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: localSearchResults,
                     currentAccountID: 2074551,
@@ -2873,6 +2964,7 @@ describe('SearchUIUtils', () => {
             // Without onyxPersonalDetailsList, the report owner avatar is not found — not the custom URL
             const [resultWithoutOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutPersonalDetails,
                     currentAccountID: 2074551,
@@ -2892,6 +2984,7 @@ describe('SearchUIUtils', () => {
             // With onyxPersonalDetailsList, the custom avatar from Onyx fills the gap
             const [resultWithOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutPersonalDetails,
                     currentAccountID: 2074551,
@@ -2926,6 +3019,7 @@ describe('SearchUIUtils', () => {
             // API response provides its own avatar — should take precedence over Onyx
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: {
                         ...searchResults.data,
@@ -2983,6 +3077,7 @@ describe('SearchUIUtils', () => {
 
             const [resultWithoutOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutManager,
                     currentAccountID: 2074551,
@@ -3002,6 +3097,7 @@ describe('SearchUIUtils', () => {
 
             const [resultWithOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutManager,
                     currentAccountID: 2074551,
@@ -3040,6 +3136,7 @@ describe('SearchUIUtils', () => {
 
             const [resultWithoutOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutActor,
                     currentAccountID: 2074551,
@@ -3060,6 +3157,7 @@ describe('SearchUIUtils', () => {
 
             const [resultWithOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutActor,
                     currentAccountID: 2074551,
@@ -3095,6 +3193,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: {
                         ...searchResults.data,
@@ -3155,6 +3254,7 @@ describe('SearchUIUtils', () => {
             };
 
             const resultTransactionFirst = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: testDataTransactionFirst,
                 currentAccountID: 2074551,
@@ -3167,6 +3267,7 @@ describe('SearchUIUtils', () => {
                 reportAttributesDerivedValue: {},
             })[0];
             const resultReportFirst = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: testDataReportFirst,
                 currentAccountID: 2074551,
@@ -3192,6 +3293,7 @@ describe('SearchUIUtils', () => {
         it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByFrom.data,
                     currentAccountID: 2074551,
@@ -3211,6 +3313,7 @@ describe('SearchUIUtils', () => {
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
             const [result] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: {...searchResultsGroupByFrom.data, personalDetailsList: {}},
                 currentAccountID: 2074551,
@@ -3238,6 +3341,7 @@ describe('SearchUIUtils', () => {
             const mockCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {policy1: mockCardFeed};
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByCard.data,
                     currentAccountID: 2074551,
@@ -3332,6 +3436,7 @@ describe('SearchUIUtils', () => {
 
             const [sections] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data,
                     currentAccountID: adminAccountID,
@@ -3363,6 +3468,7 @@ describe('SearchUIUtils', () => {
         it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByWithdrawalID.data,
                     currentAccountID: 2074551,
@@ -3391,6 +3497,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: staleCacheData,
                     currentAccountID: 2074551,
@@ -3412,6 +3519,7 @@ describe('SearchUIUtils', () => {
         it('should return getCategorySections result when type is EXPENSE and groupBy is category', () => {
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByCategory.data,
                     currentAccountID: 2074551,
@@ -3446,6 +3554,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyCategory,
                     currentAccountID: 2074551,
@@ -3514,6 +3623,7 @@ describe('SearchUIUtils', () => {
 
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByMonth.data,
                     currentAccountID: 2074551,
@@ -3550,6 +3660,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDifferentMonths,
                     currentAccountID: 2074551,
@@ -3573,6 +3684,7 @@ describe('SearchUIUtils', () => {
         it('should calculate sortKey correctly for month groups', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByMonth.data,
                     currentAccountID: 2074551,
@@ -3657,6 +3769,7 @@ describe('SearchUIUtils', () => {
 
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByYear.data,
                     currentAccountID: 2074551,
@@ -3691,6 +3804,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDifferentYears,
                     currentAccountID: 2074551,
@@ -3714,6 +3828,7 @@ describe('SearchUIUtils', () => {
         it('should calculate sortKey correctly for year groups', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByYear.data,
                     currentAccountID: 2074551,
@@ -4098,6 +4213,7 @@ describe('SearchUIUtils', () => {
 
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByQuarter.data,
                     currentAccountID: 2074551,
@@ -4134,6 +4250,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDifferentQuarters,
                     currentAccountID: 2074551,
@@ -4157,6 +4274,7 @@ describe('SearchUIUtils', () => {
         it('should calculate sortKey correctly for quarter groups', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByQuarter.data,
                     currentAccountID: 2074551,
@@ -4222,6 +4340,7 @@ describe('SearchUIUtils', () => {
 
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByWeek.data,
                     currentAccountID: 2074551,
@@ -4256,6 +4375,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDifferentWeeks,
                     currentAccountID: 2074551,
@@ -4299,6 +4419,7 @@ describe('SearchUIUtils', () => {
         it('should generate transactionsQueryJSON with valid hash for category sections', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByCategory.data,
                     currentAccountID: 2074551,
@@ -4363,6 +4484,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithUnicode,
                     currentAccountID: 2074551,
@@ -4409,6 +4531,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithSpecialChars,
                     currentAccountID: 2074551,
@@ -4444,6 +4567,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithLongNames,
                     currentAccountID: 2074551,
@@ -4484,6 +4608,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithHtmlEntities,
                     currentAccountID: 2074551,
@@ -4512,6 +4637,7 @@ describe('SearchUIUtils', () => {
         it('should return getMerchantSections result when type is EXPENSE and groupBy is merchant', () => {
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByMerchant.data,
                     currentAccountID: 2074551,
@@ -4547,6 +4673,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyMerchant,
                     currentAccountID: 2074551,
@@ -4581,6 +4708,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyMerchant,
                     currentAccountID: 2074551,
@@ -4634,6 +4762,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDefaultMerchant,
                     currentAccountID: 2074551,
@@ -4686,6 +4815,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithPartialMerchant,
                     currentAccountID: 2074551,
@@ -4738,6 +4868,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithUnknownMerchant,
                     currentAccountID: 2074551,
@@ -4811,6 +4942,7 @@ describe('SearchUIUtils', () => {
         it('should generate transactionsQueryJSON with valid hash for merchant sections', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByMerchant.data,
                     currentAccountID: 2074551,
@@ -4876,6 +5008,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithUnicode,
                     currentAccountID: 2074551,
@@ -4923,6 +5056,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithSpecialChars,
                     currentAccountID: 2074551,
@@ -4948,6 +5082,7 @@ describe('SearchUIUtils', () => {
         it('should return getTagSections result when type is EXPENSE and groupBy is tag', () => {
             expect(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByTag.data,
                     currentAccountID: 2074551,
@@ -4978,6 +5113,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEscapedTag,
                     currentAccountID: 2074551,
@@ -5018,6 +5154,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyTag,
                     currentAccountID: 2074551,
@@ -5051,6 +5188,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithUntagged,
                     currentAccountID: 2074551,
@@ -5105,6 +5243,7 @@ describe('SearchUIUtils', () => {
         it('should generate transactionsQueryJSON with valid hash for tag sections', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByTag.data,
                     currentAccountID: 2074551,
@@ -5183,6 +5322,7 @@ describe('SearchUIUtils', () => {
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: taskData,
                     currentAccountID: taskCreatorAccountID,
@@ -5200,9 +5340,8 @@ describe('SearchUIUtils', () => {
             expect(result).toHaveLength(1);
             expect(count).toBe(1);
             expect(result.at(0)?.reportName).toBe('Fix the login bug');
-            // formatPhoneNumber replaces regular spaces with non-breaking spaces (\u00A0)
-            expect(result.at(0)?.formattedAssignee).toBe('Task\u00A0Assignee');
-            expect(result.at(0)?.formattedCreatedBy).toBe('Task\u00A0Creator');
+            expect(result.at(0)?.formattedAssignee).toBe('Task Assignee');
+            expect(result.at(0)?.formattedCreatedBy).toBe('Task Creator');
             expect(result.at(0)?.keyForList).toBe(taskReportID);
         });
 
@@ -5255,6 +5394,7 @@ describe('SearchUIUtils', () => {
             });
 
             const [result] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.TASK,
                 data: taskData,
                 currentAccountID: taskCreatorAccountID,
@@ -5297,6 +5437,7 @@ describe('SearchUIUtils', () => {
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
             const [result] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
                 type: CONST.SEARCH.DATA_TYPES.TASK,
                 data: taskData,
                 currentAccountID: 33333,
@@ -5320,6 +5461,7 @@ describe('SearchUIUtils', () => {
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: nonTaskData,
                     currentAccountID: 1,
@@ -5391,6 +5533,7 @@ describe('SearchUIUtils', () => {
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: multiTaskData,
                     currentAccountID: creatorID,
@@ -5449,6 +5592,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: taskDataWithHTML,
                     currentAccountID: creatorID,
@@ -5506,6 +5650,7 @@ describe('SearchUIUtils', () => {
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: mixedData,
                     currentAccountID: creatorID,
@@ -5565,6 +5710,7 @@ describe('SearchUIUtils', () => {
             // conciergeReportID is undefined, simulating the case where it hasn't been loaded from Onyx yet
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: taskData,
                     currentAccountID: creatorID,
@@ -5618,6 +5764,7 @@ describe('SearchUIUtils', () => {
             function getComputedFields(data: typeof searchResults.data) {
                 const sections = getSectionsByType(
                     SearchUIUtils.getSections({
+                        dateFnsLocale: undefined,
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         data,
                         currentAccountID: adminAccountID,
@@ -5736,6 +5883,7 @@ describe('SearchUIUtils', () => {
             function getAvatarFields(data: typeof searchResults.data) {
                 const sections = getSectionsByType(
                     SearchUIUtils.getSections({
+                        dateFnsLocale: undefined,
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         data,
                         currentAccountID: adminAccountID,
@@ -5847,6 +5995,21 @@ describe('SearchUIUtils', () => {
             };
         }
 
+        // `getSections` only routes to `getReportSections` for `expense-report`, so an `expense` query never
+        // exercises that path in production.
+        function makeExpenseReportQueryJSON(status: string[] | undefined, isNegated = false) {
+            return {
+                ...makeExpenseQueryJSON(status, isNegated),
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                inputQuery: 'type:expense-report' as const,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    right: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                },
+            };
+        }
+
         describe('getTransactionsSections filtering and edge cases', () => {
             const filterTestReportID = 'filter-report-1';
             const filterTestTxID = 'filter-tx-1';
@@ -5873,6 +6036,7 @@ describe('SearchUIUtils', () => {
             function callGetTransactionsSections(data: typeof searchResults.data, options: Record<string, unknown> = {}) {
                 return getSectionsByType(
                     SearchUIUtils.getSections({
+                        dateFnsLocale: undefined,
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         data,
                         currentAccountID: adminAccountID,
@@ -6183,6 +6347,50 @@ describe('SearchUIUtils', () => {
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
                 expect(item?.category).toBe('Travel');
             });
+
+            it('should populate submitted/approved from live actions missing from the snapshot (offline submit/approve reflected in the Expenses view)', () => {
+                const submittedAt = '2024-12-20 08:00:00';
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: {
+                            'submitted-1': {
+                                reportActionID: 'submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: submittedAt,
+                            },
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: approvedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.submitted).toBe(submittedAt);
+                expect(item?.approved).toBe(approvedAt);
+            });
+
+            it('should keep submitted/approved blank for a still-Open (never submitted) report even if unrelated live actions exist', () => {
+                const data = makeFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.submitted).toBe('');
+                expect(item?.approved).toBe('');
+            });
+
+            it('should keep submitted blank for a still-Open report even when the snapshot already has a submitted date (backend can set it before an actual submit)', () => {
+                const data = makeFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN, submitted: '2024-12-20 08:00:00'});
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.submitted).toBe('');
+            });
         });
 
         describe('getReportSections filtering and edge cases', () => {
@@ -6211,6 +6419,7 @@ describe('SearchUIUtils', () => {
             function callGetReportSections(data: typeof searchResults.data, options: Record<string, unknown> = {}) {
                 return getSectionsByType(
                     SearchUIUtils.getSections({
+                        dateFnsLocale: undefined,
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         data,
                         currentAccountID: adminAccountID,
@@ -6285,6 +6494,46 @@ describe('SearchUIUtils', () => {
                 const loadingSet = new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${rptFilterReportID}`]);
                 const [sections] = callGetReportSections(data, {
                     queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]),
+                    isActionLoadingSet: loadingSet,
+                });
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should exclude a submitted report from the drafts filter on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should keep a draft report under the drafts filter on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should exclude a paid report from the approved filter on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.APPROVED])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should show every report when an expense-report query has no status filter', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON(undefined)});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should honor a negated status filter on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING], true)});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should keep a report visible while its action is loading on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const loadingSet = new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${rptFilterReportID}`]);
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS]),
                     isActionLoadingSet: loadingSet,
                 });
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
@@ -6538,6 +6787,426 @@ describe('SearchUIUtils', () => {
                 expect(item?.firstApproverAccountID).toBeUndefined();
                 expect(item?.formattedFirstApprover).toBe('');
             });
+
+            it('should populate firstApprover/firstApproved from a live APPROVED action missing from the snapshot (offline approve)', () => {
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(approvedAt);
+                expect(item?.firstApproverAccountID).toBe(approverAccountID);
+                expect(item?.formattedFirstApprover).toBeTruthy();
+            });
+
+            it('should keep the earliest approval when both the snapshot and live actions have one', () => {
+                const snapshotApprovedAt = '2024-12-20 08:00:00';
+                const liveApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: snapshotApprovedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: liveApprovedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(snapshotApprovedAt);
+                expect(item?.firstApproverAccountID).toBe(approverAccountID);
+            });
+
+            it('should clear firstApprover/firstApproved when the report was unapproved after the approval', () => {
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-20 08:00:00',
+                            },
+                            'unapproved-1': {
+                                reportActionID: 'unapproved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-21 10:00:00',
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe('');
+                expect(item?.firstApproverAccountID).toBeUndefined();
+                expect(item?.formattedFirstApprover).toBe('');
+            });
+
+            it('should clear firstApprover/firstApproved when a live UNAPPROVED action follows the snapshot approval (offline unapprove)', () => {
+                const approvedAt = '2024-12-20 08:00:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                            },
+                            {
+                                reportActionID: 'optimistic-unapproved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-21 10:00:00',
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe('');
+                expect(item?.firstApproverAccountID).toBeUndefined();
+            });
+
+            it('should use the first approval after the latest UNAPPROVED action when the report was re-approved', () => {
+                const reApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-20 08:00:00',
+                            },
+                            'unapproved-1': {
+                                reportActionID: 'unapproved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-21 10:00:00',
+                            },
+                            'approved-2': {
+                                reportActionID: 'approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: reApprovedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(reApprovedAt);
+                expect(item?.firstApproverAccountID).toBe(adminAccountID);
+            });
+
+            it('should populate approved from a live APPROVED action missing from the snapshot when the report is optimistically fully approved (offline approve)', () => {
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe(approvedAt);
+            });
+
+            it('should keep approved blank when a live APPROVED action exists but the report is not yet optimistically fully approved (intermediate step of a multi-level workflow)', () => {
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe('');
+            });
+
+            it('should use the latest live APPROVED action when multiple exist', () => {
+                const earlierApprovedAt = '2024-12-20 08:00:00';
+                const latestApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: earlierApprovedAt,
+                            },
+                            {
+                                reportActionID: 'approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: latestApprovedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe(latestApprovedAt);
+            });
+
+            it('should prefer the snapshot approved date when it is newer than the live actions', () => {
+                const snapshotApprovedAt = '2024-12-25 07:00:00';
+                const liveApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    approved: snapshotApprovedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: liveApprovedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe(snapshotApprovedAt);
+            });
+
+            it('should use the newer live APPROVED action over a stale report approved date (offline re-approve after unapprove)', () => {
+                const staleApprovedAt = '2024-12-18 07:00:00';
+                const reApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    approved: staleApprovedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: reApprovedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe(reApprovedAt);
+            });
+
+            it('should clear the approved date for a report that is back to Outstanding while its approved date is still set (offline unapprove)', () => {
+                const staleApprovedAt = '2024-12-18 07:00:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    approved: staleApprovedAt,
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe('');
+            });
+
+            it('should clear the approved date for a report that is back to Draft while its approved date is still set', () => {
+                const staleApprovedAt = '2024-12-18 07:00:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    approved: staleApprovedAt,
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe('');
+            });
+
+            it('should populate submitted from a live SUBMITTED action missing from the snapshot when the report is optimistically submitted (offline submit)', () => {
+                const submittedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: submittedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe(submittedAt);
+            });
+
+            it('should keep submitted blank when the report has never been submitted (still Open) even if a live SUBMITTED action exists', () => {
+                const submittedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'stray-submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: submittedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe('');
+            });
+
+            it('should keep submitted blank for a still-Open report even when the snapshot already has a submitted date (backend can set it before an actual submit)', () => {
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN, submitted: '2024-12-20 08:00:00'});
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe('');
+            });
+
+            it('should prefer the snapshot submitted date when it is newer than the live actions', () => {
+                const snapshotSubmittedAt = '2024-12-25 07:00:00';
+                const liveSubmittedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    submitted: snapshotSubmittedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: liveSubmittedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe(snapshotSubmittedAt);
+            });
+
+            it('should use the newer live SUBMITTED action over a stale report submitted date (offline retract and resubmit)', () => {
+                const staleSubmittedAt = '2024-12-20 08:00:00';
+                const reSubmittedAt = '2024-12-21 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    submitted: staleSubmittedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-submitted-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: reSubmittedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe(reSubmittedAt);
+            });
+
+            it('should populate submitted/approved on nested transaction rows from live actions missing from the snapshot', () => {
+                const submittedAt = '2024-12-20 08:00:00';
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: submittedAt,
+                            },
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: approvedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                const nestedTransaction = item?.transactions.at(0);
+                expect(nestedTransaction?.submitted).toBe(submittedAt);
+                expect(nestedTransaction?.approved).toBe(approvedAt);
+            });
         });
     });
 
@@ -6760,6 +7429,55 @@ describe('SearchUIUtils', () => {
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-mar', 'bool-feb', 'bool-jan']);
         });
 
+        it('should sort the exported-to column by export name, with never exported rows first when ascending', () => {
+            // The backend sorts this column by the name of the export, so the local sort has to do the same instead of
+            // only sorting on whether the report was exported. Rows that were never exported have no name, so they end
+            // up at the top when ascending and at the bottom when descending.
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const exportedTransactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'exported-xero', keyForList: 'exported-xero', exported: '2024-03-03', exportedTo: CONST.EXPORT_LABELS.XERO},
+                {...baseTransaction, transactionID: 'not-exported', keyForList: 'not-exported', exported: '', exportedTo: ''},
+                {...baseTransaction, transactionID: 'exported-netsuite', keyForList: 'exported-netsuite', exported: '2024-01-01', exportedTo: CONST.EXPORT_LABELS.NETSUITE},
+                {
+                    ...baseTransaction,
+                    transactionID: 'exported-csv',
+                    keyForList: 'exported-csv',
+                    exported: '2024-02-02',
+                    exportedTo: CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV,
+                },
+            ];
+
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...exportedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...exportedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['not-exported', 'exported-csv', 'exported-netsuite', 'exported-xero']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([
+                'exported-xero',
+                'exported-netsuite',
+                'exported-csv',
+                'not-exported',
+            ]);
+        });
+
         it('should return getSortedReportData result when type is expense-report', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
@@ -6802,6 +7520,84 @@ describe('SearchUIUtils', () => {
                     CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 ),
             ).toStrictEqual(transactionWithdrawalIDGroupListItemsSorted);
+        });
+
+        it('should sort withdrawal-id groups by each conversion amount, leaving the settlements that did not convert at the empty end', () => {
+            const withConversion = (keyForList: string, debitedAmount?: number, creditedAmount?: number): TransactionWithdrawalIDGroupListItemType => ({
+                bankName: CONST.BANK_NAMES.CHASE,
+                entryID,
+                accountNumber,
+                debitPosted: '2025-08-12 17:11:22',
+                count: 4,
+                currency: 'USD',
+                total: 40,
+                state: 8,
+                groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                formattedWithdrawalID: '5',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+                shouldShowYearWithdrawn: true,
+                keyForList,
+                ...(debitedAmount ? {debitedAmount, debitedCurrency: 'USD'} : {}),
+                ...(creditedAmount ? {creditedAmount, creditedCurrency: 'GBP'} : {}),
+            });
+            const domestic = withConversion('group_domestic');
+            const smallConversion = withConversion('group_small', 1694, 1340);
+            const largeConversion = withConversion('group_large', 32200, 26886);
+            const groups = [smallConversion, domestic, largeConversion];
+
+            const sortGroups = (sortBy: SearchColumnType, sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, [...groups], localeCompare, translateLocal, sortBy, sortOrder, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID).map(
+                    (group) => group.keyForList,
+                );
+
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['group_domestic', 'group_small', 'group_large']);
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['group_domestic', 'group_small', 'group_large']);
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
+        });
+
+        it('should sort expense reports by each conversion amount, leaving the reports that did not convert at the empty end', () => {
+            const withConversion = (keyForList: string, debitedAmount?: number, creditedAmount?: number) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    currency: 'USD',
+                    transactions: [],
+                    ...(debitedAmount ? {debitedAmount, debitedCurrency: 'GBP'} : {}),
+                    ...(creditedAmount ? {creditedAmount, creditedCurrency: 'USD'} : {}),
+                });
+            const domestic = withConversion('report_domestic');
+            const smallConversion = withConversion('report_small', 1694, 2000);
+            const largeConversion = withConversion('report_large', 32200, 40000);
+            // Debited the most but reimbursed the least, so the two sides rank the reports differently
+            const reversedConversion = withConversion('report_reversed', 90000, 100);
+            const reports = [smallConversion, domestic, largeConversion, reversedConversion];
+
+            const sortReports = (sortBy: SearchColumnType, sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, sortBy, sortOrder).map((report) => report.keyForList);
+
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_domestic', 'report_small', 'report_large', 'report_reversed']);
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual([
+                'report_reversed',
+                'report_large',
+                'report_small',
+                'report_domestic',
+            ]);
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual([
+                'report_domestic',
+                'report_reversed',
+                'report_small',
+                'report_large',
+            ]);
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual([
+                'report_large',
+                'report_small',
+                'report_reversed',
+                'report_domestic',
+            ]);
         });
 
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
@@ -7187,6 +7983,7 @@ describe('SearchUIUtils', () => {
             // This is where formattedTag gets populated
             const [sections] = getSectionsByType(
                 SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyTag,
                     currentAccountID: 2074551,
@@ -7370,6 +8167,36 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+        });
+
+        it('should keep Submit visible without CTA buttons for group workspaces that are not CTA-eligible', () => {
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {
+                    policy1: createMock<OnyxTypes.Policy>({
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        owner: adminEmail,
+                        outputCurrency: 'USD',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        type: CONST.POLICY.TYPE.TEAM,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    }),
+                },
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+
+            expect(submitItem).toBeDefined();
+            expect(submitItem?.emptyState?.buttons).toEqual([]);
         });
 
         it('should hide submit, approve, pay, export, and top spenders for track intent users without workflows enabled', () => {
@@ -8433,6 +9260,23 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
+        it('should reject the requested hash when the response carries conflicting sort metadata', () => {
+            const results = makeSearchResults({
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+                },
+            });
+
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
         it('should return false when searchResults is undefined', () => {
             expect(SearchUIUtils.isSearchDataLoaded(undefined, queryJSON)).toBe(false);
         });
@@ -8441,7 +9285,7 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
         });
 
-        it('should return true on a response with no data that reached a terminal loaded state (type and hash match)', () => {
+        it('should return true on a terminal response without data that only carries the requested hash', () => {
             const results = makeSearchResults({
                 data: undefined,
                 errors: undefined,
@@ -8457,13 +9301,14 @@ describe('SearchUIUtils', () => {
                     state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
+            Reflect.deleteProperty(results.search, 'sortBy');
+            Reflect.deleteProperty(results.search, 'sortOrder');
+
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
-        it('should return true when the request reached a terminal error state', () => {
+        it('should use the requested hash when a loaded request preserves cached data and stale sort metadata', () => {
             const results = makeSearchResults({
-                data: undefined,
-                errors: undefined,
                 search: {
                     hasMoreResults: false,
                     hasResults: false,
@@ -8471,9 +9316,9 @@ describe('SearchUIUtils', () => {
                     hash: queryJSON?.hash ?? 0,
                     isLoading: false,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    sortBy: queryJSON?.sortBy ?? 'date',
-                    sortOrder: queryJSON?.sortOrder ?? 'desc',
-                    state: CONST.SEARCH.SNAPSHOT_STATE.ERROR,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
@@ -8547,9 +9392,8 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADING))).toBe(true);
         });
 
-        it('should return false for the terminal loaded and error states', () => {
+        it('should return false for the terminal loaded state', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADED))).toBe(false);
-            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.ERROR))).toBe(false);
         });
 
         it('should return false when the state is absent or searchResults is undefined', () => {
@@ -8908,6 +9752,46 @@ describe('SearchUIUtils', () => {
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.visibility.topCategories).toBe(false);
+        });
+
+        test('Should set hasEligibleGroupPolicies only for group workspaces', () => {
+            const groupPolicies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                }),
+            };
+
+            const personalPolicies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                }),
+            };
+
+            const groupResponse = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, groupPolicies, undefined);
+            const personalResponse = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, personalPolicies, undefined);
+
+            expect(groupResponse.hasEligibleGroupPolicies).toBe(true);
+            expect(personalResponse.hasEligibleGroupPolicies).toBe(false);
+        });
+
+        test('Should keep deleted group workspaces eligible when they still have errors', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    errors: {name: 'Workspace still has an error'},
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+
+            expect(response.hasEligibleGroupPolicies).toBe(true);
         });
 
         test('Should show Top Categories if at least one policy has categories enabled', () => {
@@ -9415,6 +10299,45 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('Test getSuggestedSearches Card accruals feed', () => {
+        const companyFeedID = 'fund1_oauth.chase.com';
+        const activeExpensifyCardFeedID = 'fund1_Expensify Card';
+
+        const getCardAccrualsFeedValues = (activeCardFeedID?: string, defaultFeedID?: string): unknown[] => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, defaultFeedID, undefined, [], activeCardFeedID);
+            const cardAccruals = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
+            const feedFilter = cardAccruals.searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED);
+            return (feedFilter?.filters ?? []).map((f) => f.value).filter(Boolean);
+        };
+
+        test('Should default Card accruals to the Expensify Card when the active workspace has one, even alongside a company feed', () => {
+            // Reported case: workspace has both an Expensify Card and a company/bank feed.
+            expect(getCardAccrualsFeedValues(activeExpensifyCardFeedID, companyFeedID)).toEqual([activeExpensifyCardFeedID]);
+        });
+
+        test('Should keep the company feed for Card accruals when the active workspace has no Expensify Card', () => {
+            // Also guards the multi-workspace regression: the resolver (useCardFeedsForDisplay) only passes an
+            // Expensify Card feed scoped to the active workspace, so an unrelated workspace's card is undefined here.
+            expect(getCardAccrualsFeedValues(undefined, companyFeedID)).toEqual([companyFeedID]);
+        });
+
+        test('Should not select any card feed for Card accruals when there are neither Expensify Card nor company feeds', () => {
+            const values = getCardAccrualsFeedValues(undefined, undefined);
+            expect(values).not.toContain(activeExpensifyCardFeedID);
+            expect(values).not.toContain(companyFeedID);
+        });
+
+        test('Should produce the same Card accruals hash for both call sites when they pass the same active Expensify Card feed', () => {
+            // SearchQueryProvider and the type menu must agree so the Card accruals tab highlights as active. The two
+            // real call sites differ in the `defaultFeedID` and `shouldShowExpensifyCard` args, so mirror that here to
+            // prove Card accruals is driven purely by `activeExpensifyCardFeedID` and doesn't split on those inputs.
+            const otherCompanyFeedID = 'fund2_oauth.chase.com';
+            const fromProvider = SearchUIUtils.getSuggestedSearches(adminAccountID, companyFeedID, undefined, [], activeExpensifyCardFeedID);
+            const fromMenu = SearchUIUtils.getSuggestedSearches(adminAccountID, otherCompanyFeedID, true, [], activeExpensifyCardFeedID);
+            expect(fromMenu[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash).toBe(fromProvider[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash);
+        });
+    });
+
     describe('Test getSuggestedSearches sort defaults', () => {
         test('Should default Top Categories to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
@@ -9480,6 +10403,143 @@ describe('SearchUIUtils', () => {
             const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, groupBy: CONST.SEARCH.GROUP_BY.FROM});
             expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
             expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM);
+        });
+
+        test('Should only show the conversion amount columns for reports whose reimbursement converted currencies', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED];
+            const domesticReport = {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
+            const crossBorderReport = {
+                ...domesticReport,
+                reportID: '2',
+                debitedAmount: 30000,
+                debitedCurrency: 'GBP',
+                creditedAmount: 37250,
+                creditedCurrency: 'USD',
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const domesticData: OnyxTypes.SearchResults['data'] = {[`${ONYXKEYS.COLLECTION.REPORT}${domesticReport.reportID}`]: domesticReport};
+            const crossBorderData: OnyxTypes.SearchResults['data'] = {...domesticData, [`${ONYXKEYS.COLLECTION.REPORT}${crossBorderReport.reportID}`]: crossBorderReport};
+
+            const domesticColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: domesticData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+
+            const crossBorderColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: crossBorderData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+
+            // Without a currency the amount cannot be rendered, so that column stays hidden.
+            const missingCurrencyData: OnyxTypes.SearchResults['data'] = {
+                ...domesticData,
+                [`${ONYXKEYS.COLLECTION.REPORT}${crossBorderReport.reportID}`]: {...crossBorderReport, creditedCurrency: undefined},
+            };
+            const missingCurrencyColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: missingCurrencyData,
+                visibleColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            });
+            expect(missingCurrencyColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(missingCurrencyColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+
+            const sortedColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: domesticData,
+                visibleColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+            });
+            expect(sortedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(sortedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+        });
+
+        test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
+            const domesticGroup = {
+                entryID: 1,
+                count: 1,
+                total: -10000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: CONST.BANK_NAMES.CHASE,
+                debitPosted: '2026-01-02',
+                state: 8,
+            };
+            const crossBorderGroup = {
+                ...domesticGroup,
+                entryID: 2,
+                debitedAmount: 10000,
+                debitedCurrency: 'USD',
+                creditedAmount: 9200,
+                creditedCurrency: 'EUR',
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const domesticData: OnyxTypes.SearchResults['data'] = {[`group_${domesticGroup.entryID}`]: domesticGroup};
+            const crossBorderData: OnyxTypes.SearchResults['data'] = {...domesticData, [`group_${crossBorderGroup.entryID}`]: crossBorderGroup};
+
+            const domesticColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: domesticData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+
+            const crossBorderColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: crossBorderData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+
+            // A group with no account number never reaches the list, so its amounts must not open a column either.
+            const unrenderedData: OnyxTypes.SearchResults['data'] = {...domesticData, [`group_${crossBorderGroup.entryID}`]: {...crossBorderGroup, accountNumber: ''}};
+            const unrenderedColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unrenderedData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(unrenderedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(unrenderedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+        });
+
+        test('Should hide a conversion amount column when its currency is missing', () => {
+            const groupMissingCreditedCurrency = {
+                entryID: 3,
+                count: 1,
+                total: -10000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: CONST.BANK_NAMES.CHASE,
+                debitPosted: '2026-01-02',
+                state: 8,
+                debitedAmount: 10000,
+                debitedCurrency: 'USD',
+                creditedAmount: 9200,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {[`group_${groupMissingCreditedCurrency.entryID}`]: groupMissingCreditedCurrency};
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+        });
+
+        test('Should keep the conversion amount column the groups are sorted by', () => {
+            const domesticGroup = {
+                entryID: 4,
+                count: 1,
+                total: -10000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: CONST.BANK_NAMES.CHASE,
+                debitPosted: '2026-01-02',
+                state: 8,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {[`group_${domesticGroup.entryID}`]: domesticGroup};
+
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data,
+                visibleColumns: [],
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+            });
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
         });
 
         test('Should hide To for strict default expense columns', () => {
@@ -10499,13 +11559,16 @@ describe('SearchUIUtils', () => {
         const introSelectedData: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
         const currentUserLogin = 'test@example.com';
         const currentUserAccountID = 1;
+        const personalDetails: OnyxTypes.PersonalDetailsList = {[currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserLogin}};
         const baseParams = {
             item: transactionListItem,
             introSelected: introSelectedData,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             backTo,
             currentUserLogin,
             currentUserAccountID,
             betas: undefined,
+            personalDetails,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: true,
             IOUTransactionID: threadReportID,
@@ -10531,6 +11594,7 @@ describe('SearchUIUtils', () => {
                 iouReportAction: reportAction1,
                 transaction: undefined,
                 transactionViolations: undefined,
+                personalDetails,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
             });
@@ -10613,7 +11677,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false});
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal);
 
             await waitForBatchedUpdates();
 
@@ -10625,7 +11689,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false});
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal);
 
             await waitForBatchedUpdates();
 
@@ -10637,7 +11701,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic transaction if the hasTransaction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false});
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal);
 
             await waitForBatchedUpdates();
 
@@ -10648,7 +11712,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, '456');
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, '456');
 
             await waitForBatchedUpdates();
 
@@ -11680,5 +12744,41 @@ describe('getViolationsFromSearchData', () => {
         const data = createMock<OnyxTypes.SearchResults['data']>({});
         Reflect.set(data, `${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1'});
         expect(SearchUIUtils.getViolationsFromSearchData(data)).toEqual({});
+    });
+});
+
+describe('splitGroupsIntoPairs', () => {
+    it('splits each group into a header + children container that keep the original group key in groupKeyForList', () => {
+        const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs(transactionReportGroupListItems);
+
+        expect(splitData).toHaveLength(transactionReportGroupListItems.length * 2);
+        // Sticky headers point at each header row (the even indices).
+        expect(stickyHeaderIndices).toEqual(transactionReportGroupListItems.map((_group, index) => index * 2));
+
+        // groupKeyForList must stay the original key, since both halves ask the selection about the group under it.
+        for (const [index, group] of transactionReportGroupListItems.entries()) {
+            expect(splitData.at(index * 2)).toMatchObject({
+                listItemType: GROUP_ITEM_TYPES.GROUP_HEADER,
+                keyForList: `header_${group.keyForList}`,
+                groupKeyForList: group.keyForList,
+            });
+            expect(splitData.at(index * 2 + 1)).toMatchObject({
+                listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER,
+                keyForList: `children_${group.keyForList}`,
+                groupKeyForList: group.keyForList,
+            });
+        }
+    });
+
+    it('passes non-group rows through unchanged', () => {
+        const leaf = transactionReportGroupListItems.at(0)?.transactions.at(0);
+        expect(leaf).toBeDefined();
+        if (!leaf) {
+            return;
+        }
+
+        const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs([leaf]);
+        expect(splitData).toEqual([leaf]);
+        expect(stickyHeaderIndices).toEqual([]);
     });
 });

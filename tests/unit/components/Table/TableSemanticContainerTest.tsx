@@ -27,13 +27,19 @@ jest.mock('@components/Table/TableBody', () => {
     return {__esModule: true, default: () => createElement(RNView, {testID: 'stub-body'})};
 });
 
-function renderContainer(children: React.ReactNode, isEnabled = true) {
+function renderContainer(
+    children: React.ReactNode,
+    {isEnabled = true, rowCount = 3, rendersBodyWhenEmpty = false}: {isEnabled?: boolean; rowCount?: number; rendersBodyWhenEmpty?: boolean} = {},
+) {
     render(
         <TableSemanticContainer
             isEnabled={isEnabled}
             title="Members"
-            rowCount={3}
+            rowCount={rowCount}
             columnCount={4}
+            rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+            scrollWidth={undefined}
+            onLayout={undefined}
         >
             {children}
         </TableSemanticContainer>,
@@ -42,7 +48,7 @@ function renderContainer(children: React.ReactNode, isEnabled = true) {
 
 describe('TableSemanticContainer', () => {
     it('does not add a table wrapper when semantics are disabled, but still renders the header/body', () => {
-        renderContainer([React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})], false);
+        renderContainer([React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})], {isEnabled: false});
 
         // The `role="table"` container is labelled by the title, so its absence means no wrapper was added.
         expect(screen.queryByLabelText('Members')).toBeNull();
@@ -74,5 +80,68 @@ describe('TableSemanticContainer', () => {
         expect(screen.getByTestId('filter-bar')).toBeTruthy();
         expect(within(table).queryByTestId('filter-bar')).toBeNull();
         expect(within(table).getByTestId('stub-header')).toBeTruthy();
+    });
+
+    it('skips the table wrapper for an empty table when the body renders nothing', () => {
+        renderContainer([React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})], {rowCount: 0});
+
+        // No `role="table"` wrapper, so the empty state keeps the full available height (no extra flex:1 sibling).
+        expect(screen.queryByLabelText('Members')).toBeNull();
+        expect(screen.getByTestId('stub-header')).toBeTruthy();
+        expect(screen.getByTestId('stub-body')).toBeTruthy();
+    });
+
+    it('keeps the table wrapper for an empty table when the body still renders', () => {
+        renderContainer([React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})], {rowCount: 0, rendersBodyWhenEmpty: true});
+
+        // The body still carries role="rowgroup" here, so the enclosing role="table" must be preserved.
+        const table = screen.getByLabelText('Members');
+        expect(table.props.role).toBe(CONST.ROLE.TABLE);
+        expect(within(table).getByTestId('stub-body')).toBeTruthy();
+    });
+
+    it('does not remount surrounding children when crossing the empty/non-empty boundary', () => {
+        // Guards the regression where the empty branch returned raw `children` (implicit keys) while the wrapped branch
+        // returns `React.Children.toArray(children)` (`.0`, `.1`, …). The key mismatch remounts surrounding children like
+        // `Table.FilterBar`, whose unmount cleanup wipes the active search string the moment a query stops matching.
+        let mountCount = 0;
+        let unmountCount = 0;
+        function TrackedFilterBar() {
+            React.useEffect(() => {
+                mountCount++;
+                return () => {
+                    unmountCount++;
+                };
+            }, []);
+            return <View testID="tracked-filter-bar" />;
+        }
+
+        // Passed as JSX siblings (no explicit keys) to mirror how tables render `Table.FilterBar`/`Table.Header`/`Table.Body`.
+        const element = (rowCount: number) => (
+            <TableSemanticContainer
+                isEnabled
+                title="Members"
+                rowCount={rowCount}
+                columnCount={4}
+                rendersBodyWhenEmpty={false}
+                scrollWidth={undefined}
+                onLayout={undefined}
+            >
+                <TrackedFilterBar />
+                <TableHeader />
+                <TableBody />
+            </TableSemanticContainer>
+        );
+
+        const {rerender} = render(element(3));
+        expect(mountCount).toBe(1);
+
+        // Query stops matching -> table empties (wrapper skipped) -> then data returns (wrapper restored).
+        rerender(element(0));
+        rerender(element(3));
+
+        // The filter bar instance survived both transitions, so its search-clearing cleanup never fired.
+        expect(unmountCount).toBe(0);
+        expect(mountCount).toBe(1);
     });
 });

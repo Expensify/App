@@ -8,22 +8,26 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CombinedCardFeeds, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
+import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockPolicyID = 'policy123';
 const workspaceAccountID = 11111111;
 
 // Custom feed (VCF) - commercial feed
-const mockCustomFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#${workspaceAccountID}` as CompanyCardFeedWithDomainID;
+const mockCustomFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#${workspaceAccountID}`;
 
-// Direct feed (Plaid) - has accountList
-const mockPlaidFeed: CompanyCardFeedWithDomainID = `plaid.ins_123#${workspaceAccountID}` as CompanyCardFeedWithDomainID;
+// Direct feed (Chase) - has accountList
+const mockDirectFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#${workspaceAccountID}`;
 
 const mockCustomFeedData = {
     [mockCustomFeed]: {
@@ -31,31 +35,31 @@ const mockCustomFeedData = {
         pending: false,
         domainID: workspaceAccountID,
         customFeedName: 'Custom VCF feed',
-        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA as CompanyCardFeed,
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
     },
 };
 
-const mockPlaidFeedData = {
-    [mockPlaidFeed]: {
+const mockDirectFeedData: CombinedCardFeeds = {
+    [mockDirectFeed]: {
         liabilityType: 'corporate',
         pending: false,
         domainID: workspaceAccountID,
-        customFeedName: 'Plaid Bank cards',
-        feed: 'plaid.ins_123' as CompanyCardFeed,
-        accountList: ['Plaid Checking 0000', 'Plaid Credit Card 3333'],
+        customFeedName: 'Chase Bank cards',
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+        accountList: ['Chase Checking 0000', 'Chase Credit Card 3333'],
         credentials: 'xxxxx',
         expiration: Date.now() / 1000 + 86400, // expires tomorrow
     },
 };
 
-const mockPolicy = {
+const mockPolicy = createMock<Policy>({
     id: mockPolicyID,
     policyAccountID: workspaceAccountID,
     employeeList: {
         'user1@example.com': {email: 'user1@example.com'},
         'user2@example.com': {email: 'user2@example.com'},
     },
-};
+});
 
 // Mock useOnyx hook
 jest.mock('@hooks/useOnyx', () => ({
@@ -129,10 +133,10 @@ describe('useAssignCard', () => {
         jest.clearAllMocks();
 
         // Default mock returns
-        (usePolicy as jest.Mock).mockReturnValue(mockPolicy);
-        (useNetwork as jest.Mock).mockReturnValue({isOffline: false, onReconnect: jest.fn()});
-        (useIsAllowedToIssueCompanyCard as jest.Mock).mockReturnValue(true);
-        (useOnyx as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+        jest.mocked(usePolicy).mockReturnValue(mockPolicy);
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
+        jest.mocked(useIsAllowedToIssueCompanyCard).mockReturnValue(true);
+        jest.mocked(useOnyx).mockReturnValue([undefined, {status: 'loaded'}]);
     });
 
     afterEach(async () => {
@@ -148,7 +152,7 @@ describe('useAssignCard', () => {
                     pending: true,
                 },
             };
-            (useCardFeeds as jest.Mock).mockReturnValue([pendingFeedData, {status: 'loaded'}, undefined]);
+            jest.mocked(useCardFeeds).mockReturnValue([pendingFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
 
             const {result} = renderHook(() =>
                 useAssignCard({
@@ -162,8 +166,8 @@ describe('useAssignCard', () => {
         });
 
         it('should return isAssigningCardDisabled true when user is not allowed to issue cards', () => {
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useIsAllowedToIssueCompanyCard as jest.Mock).mockReturnValue(false);
+            jest.mocked(useCardFeeds).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+            jest.mocked(useIsAllowedToIssueCompanyCard).mockReturnValue(false);
 
             const {result} = renderHook(() =>
                 useAssignCard({
@@ -177,7 +181,53 @@ describe('useAssignCard', () => {
         });
 
         it('should return isAssigningCardDisabled false when all conditions are met', () => {
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
+            jest.mocked(useCardFeeds).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: mockCustomFeed,
+                    policyID: mockPolicyID,
+                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                }),
+            );
+
+            expect(result.current.isAssigningCardDisabled).toBe(false);
+        });
+
+        /** Points the mocked useOnyx at a CARD_FEED_ERRORS value for the custom (commercial) feed. */
+        function mockFeedErrors(feedErrorState: Partial<CardFeedErrorState>) {
+            jest.mocked(useOnyx).mockImplementation((key) =>
+                key === ONYXKEYS.DERIVED.CARD_FEED_ERRORS
+                    ? [
+                          createMock<CardFeedErrors>({
+                              cardFeedErrors: {[mockCustomFeed]: {shouldShowRBR: false, hasFeedErrors: false, hasWorkspaceErrors: false, isFeedConnectionBroken: false, ...feedErrorState}},
+                          }),
+                          {status: 'loaded'},
+                      ]
+                    : [undefined, {status: 'loaded'}],
+            );
+        }
+
+        it('should return isAssigningCardDisabled true while the broken connection is still within the grace period', () => {
+            jest.mocked(useCardFeeds).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+            mockFeedErrors({isFeedConnectionBroken: true, shouldPromptBrokenConnection: true});
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: mockCustomFeed,
+                    policyID: mockPolicyID,
+                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                }),
+            );
+
+            expect(result.current.isAssigningCardDisabled).toBe(true);
+        });
+
+        // Past the grace period the feed stays flagged as broken so it can still be fixed, but assigning must not stay
+        // blocked: a commercial/CSV feed cannot be reconnected by a bank login, so blocking would never resolve.
+        it('should return isAssigningCardDisabled false once the broken connection is past the grace period', () => {
+            jest.mocked(useCardFeeds).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+            mockFeedErrors({isFeedConnectionBroken: true, shouldPromptBrokenConnection: false});
 
             const {result} = renderHook(() =>
                 useAssignCard({
@@ -193,25 +243,25 @@ describe('useAssignCard', () => {
 
     describe('assignCard function - offline handling', () => {
         it('should show offline modal for direct feed when offline', () => {
-            (useCardFeeds as jest.Mock).mockReturnValue([mockPlaidFeedData, {status: 'loaded'}, undefined]);
-            (useNetwork as jest.Mock).mockReturnValue({isOffline: true, onReconnect: jest.fn()});
+            jest.mocked(useCardFeeds).mockReturnValue([mockDirectFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+            jest.mocked(useNetwork).mockReturnValue({isOffline: true});
 
             const {result} = renderHook(() =>
                 useAssignCard({
-                    feedName: mockPlaidFeed,
+                    feedName: mockDirectFeed,
                     policyID: mockPolicyID,
                     setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
                 }),
             );
 
-            result.current.assignCard('Plaid Checking 0000', 'Plaid Checking 0000');
+            result.current.assignCard('Chase Checking 0000', 'Chase Checking 0000');
 
             expect(mockSetShouldShowOfflineModal).toHaveBeenCalledWith(true);
         });
 
         it('should not show offline modal for commercial feed when offline', () => {
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useNetwork as jest.Mock).mockReturnValue({isOffline: true, onReconnect: jest.fn()});
+            jest.mocked(useCardFeeds).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+            jest.mocked(useNetwork).mockReturnValue({isOffline: true});
 
             const {result} = renderHook(() =>
                 useAssignCard({
@@ -230,7 +280,7 @@ describe('useAssignCard', () => {
 
     describe('assignCard function - card identifiers', () => {
         it('should accept different cardName and cardID for commercial feeds', () => {
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
+            jest.mocked(useCardFeeds).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
 
             const {result} = renderHook(() =>
                 useAssignCard({
@@ -251,24 +301,58 @@ describe('useAssignCard', () => {
         });
 
         it('should accept same cardName and cardID for direct feeds', () => {
-            (useCardFeeds as jest.Mock).mockReturnValue([mockPlaidFeedData, {status: 'loaded'}, undefined]);
+            jest.mocked(useCardFeeds).mockReturnValue([mockDirectFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
 
             const {result} = renderHook(() =>
                 useAssignCard({
-                    feedName: mockPlaidFeed,
+                    feedName: mockDirectFeed,
                     policyID: mockPolicyID,
                     setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
                 }),
             );
 
-            const cardName = 'Plaid Checking 0000';
-            const cardID = 'Plaid Checking 0000';
+            const cardName = 'Chase Checking 0000';
+            const cardID = 'Chase Checking 0000';
 
             // For direct feeds, cardName equals cardID
             expect(cardName).toBe(cardID);
 
             // The hook should accept same values without throwing
             expect(() => result.current.assignCard(cardName, cardID)).not.toThrow();
+        });
+    });
+
+    describe('assignCard function - single active employee shortcut', () => {
+        it('should auto-assign to the single active employee, not the first (deleted) employee in the list', () => {
+            // Given a policy whose first (unfiltered) employee is pending deletion, leaving a single active employee later in the list
+            const policyWithDeletedFirstEmployee = createMock<Policy>({
+                id: mockPolicyID,
+                policyAccountID: workspaceAccountID,
+                employeeList: {
+                    'admin@example.com': {email: 'admin@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    'employee@example.com': {email: 'employee@example.com'},
+                },
+            });
+            jest.mocked(usePolicy).mockReturnValue(policyWithDeletedFirstEmployee);
+            jest.mocked(useCardFeeds).mockReturnValue([mockDirectFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: mockDirectFeed,
+                    policyID: mockPolicyID,
+                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                }),
+            );
+
+            result.current.assignCard('Chase Checking 0000', 'Chase Checking 0000');
+
+            // Then the flow jumps to confirmation pre-assigned to the single active employee (not the deleted admin)
+            expect(setAssignCardStepAndData).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                    cardToAssign: expect.objectContaining({email: 'employee@example.com'}),
+                }),
+            );
         });
     });
 });
