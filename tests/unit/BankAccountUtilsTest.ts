@@ -9,6 +9,8 @@ import {
     hasBankAccountAllowDebit,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
+    hasValidAccountDetailsInternationalFields,
+    hasValidInternationalBankAccountDetails,
     isBankAccountPartiallySetup,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
@@ -753,6 +755,35 @@ describe('BankAccountUtils', () => {
                 INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION,
                 INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION,
             ]);
+        });
+    });
+
+    describe('hasValidAccountDetailsInternationalFields', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('is true only when accountNumber is an IBAN and swiftBicCode is a SWIFT/BIC', () => {
+            expect(hasValidAccountDetailsInternationalFields(iban, swiftBicCode)).toBe(true);
+            expect(hasValidAccountDetailsInternationalFields('123456789', swiftBicCode)).toBe(false);
+            expect(hasValidAccountDetailsInternationalFields(iban, 'XXXX')).toBe(false);
+            expect(hasValidAccountDetailsInternationalFields(undefined, undefined)).toBe(false);
+        });
+    });
+
+    describe('hasValidInternationalBankAccountDetails', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('returns true when dedicated iban and swiftCode are valid even if account details are not', () => {
+            expect(hasValidInternationalBankAccountDetails(iban, swiftBicCode, '123456789', 'XXXX')).toBe(true);
+        });
+
+        it('returns true when accountNumber and swiftBicCode are valid even if dedicated fields are empty', () => {
+            expect(hasValidInternationalBankAccountDetails(undefined, undefined, iban, swiftBicCode)).toBe(true);
+        });
+
+        it('returns false when neither source has both a valid IBAN and SWIFT/BIC', () => {
+            expect(hasValidInternationalBankAccountDetails(iban, undefined, iban, 'XXXX')).toBe(false);
         });
     });
 

@@ -10,7 +10,7 @@ import useSubPage from '@hooks/useSubPage';
 
 import {clearCorpayBankAccountFields} from '@libs/actions/BankAccounts';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {hasValidInternationalBankAccountDetails} from '@libs/BankAccountUtils';
+import {hasValidAccountDetailsInternationalFields} from '@libs/BankAccountUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -102,10 +102,9 @@ function InternationalDepositAccountContent({
 
     const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]);
 
-    // Skip the international bank account details step when no collecting policy needs international details for the
-    // selected bank country, or when we already have them: the account number is an IBAN and a SWIFT/BIC code is set.
-    const skipInternationalBankAccountDetailsStep =
-        !shouldCollectInternationalDepositDetails || hasValidInternationalBankAccountDetails(values.iban, values.swiftCode, values.accountNumber, values.swiftBicCode);
+    // Skip only when collection isn't needed, or when the account details step already captured a real IBAN and
+    // SWIFT/BIC. Completing `iban`/`swiftCode` on the dedicated step must not omit it from the wizard.
+    const skipInternationalBankAccountDetailsStep = !shouldCollectInternationalDepositDetails || hasValidAccountDetailsInternationalFields(values.accountNumber, values.swiftBicCode);
 
     const startFrom = getInitialSubstep(values, fieldsMap, skipInternationalBankAccountDetailsStep);
 

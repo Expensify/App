@@ -286,6 +286,14 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
     return requiredDocuments;
 }
 
+function isValidIBAN(value?: string): boolean {
+    return CONST.BANK_ACCOUNT.REGEX.IBAN.test((value ?? '').trim());
+}
+
+function isValidSwiftBic(value?: string): boolean {
+    return CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test((value ?? '').trim());
+}
+
 /**
  * IBAN/SWIFT/BIC can come from either the dedicated `iban`/`swiftCode` fields filled in on the international bank
  * account details step, or from `accountNumber`/`swiftBicCode`, which the Corpay bank-details step already collects
@@ -293,9 +301,16 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
  * against the same formats because their own validation rules vary by country and don't guarantee an IBAN or a BIC.
  */
 function hasValidInternationalBankAccountDetails(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string) {
-    const isIBANValid = CONST.BANK_ACCOUNT.REGEX.IBAN.test((iban ?? '').trim()) || CONST.BANK_ACCOUNT.REGEX.IBAN.test((accountNumber ?? '').trim());
-    const isSwiftCodeValid = CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test((swiftCode ?? '').trim()) || CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test((swiftBicCode ?? '').trim());
-    return isIBANValid && isSwiftCodeValid;
+    return (isValidIBAN(iban) || isValidIBAN(accountNumber)) && (isValidSwiftBic(swiftCode) || isValidSwiftBic(swiftBicCode));
+}
+
+/**
+ * Whether the Corpay account details step already collected a real IBAN and SWIFT/BIC. That is the only case where
+ * the dedicated international details step can be omitted. Filled `iban`/`swiftCode` must not omit it, or the step
+ * disappears from the wizard after the user completes it.
+ */
+function hasValidAccountDetailsInternationalFields(accountNumber?: string, swiftBicCode?: string): boolean {
+    return isValidIBAN(accountNumber) && isValidSwiftBic(swiftBicCode);
 }
 
 /**
@@ -305,13 +320,13 @@ function hasValidInternationalBankAccountDetails(iban: string | undefined, swift
  */
 function getInternationalBankAccountDetailsValues(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string): {iban: string; swiftCode: string} {
     let resolvedIBAN = iban ?? '';
-    if (!resolvedIBAN && accountNumber && CONST.BANK_ACCOUNT.REGEX.IBAN.test(accountNumber.trim())) {
-        resolvedIBAN = accountNumber;
+    if (!resolvedIBAN && isValidIBAN(accountNumber)) {
+        resolvedIBAN = accountNumber ?? '';
     }
 
     let resolvedSwiftCode = swiftCode ?? '';
-    if (!resolvedSwiftCode && swiftBicCode && CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(swiftBicCode.trim())) {
-        resolvedSwiftCode = swiftBicCode;
+    if (!resolvedSwiftCode && isValidSwiftBic(swiftBicCode)) {
+        resolvedSwiftCode = swiftBicCode ?? '';
     }
 
     return {
@@ -326,8 +341,8 @@ function getInternationalBankAccountDetailsValues(iban: string | undefined, swif
  */
 function getDisabledInternationalBankAccountFields(accountNumber?: string, swiftBicCode?: string): {isIBANDisabled: boolean; isSwiftCodeDisabled: boolean} {
     return {
-        isIBANDisabled: CONST.BANK_ACCOUNT.REGEX.IBAN.test((accountNumber ?? '').trim()),
-        isSwiftCodeDisabled: CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test((swiftBicCode ?? '').trim()),
+        isIBANDisabled: isValidIBAN(accountNumber),
+        isSwiftCodeDisabled: isValidSwiftBic(swiftBicCode),
     };
 }
 
@@ -354,10 +369,10 @@ function getInternationalBankAccountDetailsErrors(
     translate: LocaleContextProps['translate'],
 ): Partial<Record<'iban' | 'swiftCode', string>> {
     const errors: Partial<Record<'iban' | 'swiftCode', string>> = {};
-    if (iban && !CONST.BANK_ACCOUNT.REGEX.IBAN.test(iban.trim())) {
+    if (iban && !isValidIBAN(iban)) {
         errors.iban = translate('bankAccount.error.iban');
     }
-    if (swiftCode && !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(swiftCode.trim())) {
+    if (swiftCode && !isValidSwiftBic(swiftCode)) {
         errors.swiftCode = translate('bankAccount.error.swiftCode');
     }
     return errors;
@@ -365,6 +380,7 @@ function getInternationalBankAccountDetailsErrors(
 
 export {
     hasValidInternationalBankAccountDetails,
+    hasValidAccountDetailsInternationalFields,
     getInternationalBankAccountDetailsValues,
     getDisabledInternationalBankAccountFields,
     shouldShowInternationalDetailOnConfirmation,

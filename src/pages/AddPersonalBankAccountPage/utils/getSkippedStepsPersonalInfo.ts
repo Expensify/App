@@ -9,11 +9,12 @@ import type {PrivatePersonalDetails} from '@src/types/onyx';
  * The international bank account details step sits at index 1 (right after the bank account details step),
  * so the legal name / address / phone number steps that follow it are at indexes 2, 3 and 4.
  */
-function getSkippedStepsPersonalInfo(data: Partial<PrivatePersonalDetails> | undefined, shouldSkipInternationalBankAccountDetails: boolean): number[] {
+function getSkippedStepsPersonalInfo(data: Partial<PrivatePersonalDetails> | undefined, shouldCollectInternationalDepositDetails: boolean): number[] {
     const currentAddress = getCurrentAddress(data);
     const skippedSteps = [];
 
-    if (shouldSkipInternationalBankAccountDetails) {
+    // US page 1 never has an IBAN or SWIFT/BIC, so this step is omitted only when collection is not needed.
+    if (!shouldCollectInternationalDepositDetails) {
         skippedSteps.push(1);
     }
 

@@ -12,12 +12,14 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollectInternationalDepositDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {shouldShowInternationalDetailOnConfirmation} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import {getAccountDetailsFieldsMap} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
 
@@ -52,6 +54,8 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {isOffline} = useNetwork();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(formValues.bankCountry);
+    const accountDetailsFields = getAccountDetailsFieldsMap(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS], shouldCollectInternationalDepositDetails);
 
     const getTitle = (field: CorpayFormField, fieldName: string) => {
         if ((field.valueSet ?? []).length > 0) {
@@ -114,7 +118,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         },
     ];
 
-    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {})) {
+    for (const [fieldName, field] of Object.entries(accountDetailsFields)) {
         summaryItems.push({
             id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),

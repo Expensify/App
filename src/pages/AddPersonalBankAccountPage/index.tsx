@@ -8,7 +8,6 @@ import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollect
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
-import {hasValidInternationalBankAccountDetails} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
@@ -148,14 +147,8 @@ function AddPersonalBankAccountPage() {
         addPersonalBankAccount(accountData, personalPolicyID);
     };
 
-    // Skip the international bank account details page when no collecting policy needs international details for a US
-    // bank account, or when this page already collected a valid IBAN and SWIFT/BIC code. Unlike the international flow,
-    // a US account number is never an IBAN, so this page is the only source of those values here.
-    const shouldSkipInternationalBankAccountDetails =
-        !shouldCollectInternationalDepositDetails || hasValidInternationalBankAccountDetails(personalBankAccount?.iban, personalBankAccount?.swiftCode);
-
     const pages = isManual ? pagesWithManualSetup : pagesWithPlaid;
-    const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails, shouldSkipInternationalBankAccountDetails)
+    const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails, shouldCollectInternationalDepositDetails)
         .map((index) => pages.at(index)?.pageName)
         .filter((pageName): pageName is NonNullable<typeof pageName> => !!pageName);
 
