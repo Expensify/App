@@ -60,6 +60,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         },
         isReady: () => true,
     },
+    // Mirrors the real helper, which resets the stack to TAB_NAVIGATOR, so the assertions below can keep
+    // checking the payload the navigator actually receives.
+    resetToAppRoot: () => {
+        mockNavigationReset({index: 0, routes: [{name: 'TabNavigator'}]});
+    },
 }));
 
 // Mock the session actions the page calls so `signInWithValidateCode` doesn't hit the API and the
