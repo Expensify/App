@@ -7,10 +7,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
+import {getAttachmentDir} from '@libs/actions/Attachment';
+import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
-import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
@@ -90,9 +90,19 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     //    higher-than-needed preview.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
-        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        {
+            photoResolution: {
+                width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH,
+                height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT,
+            },
+        },
         Platform.OS === 'ios'
-            ? {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}}
+            ? {
+                  videoResolution: {
+                      width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH,
+                      height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT,
+                  },
+              }
             : {videoResolution: {width: windowHeight, height: windowWidth}},
     ]);
     const cameraAspectRatio = getCameraAspectRatio(format, isInLandscapeMode);
@@ -109,7 +119,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         HapticFeedback.press();
     };
 
-    const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device});
+    const {handleCameraInitialized} = useCameraInitTelemetry({
+        cameraPermissionStatus,
+        device,
+    });
 
     const maybeCancelShutterSpan = () => {
         if (isMultiScanEnabled) {
@@ -160,24 +173,28 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         isCapturingPhoto.current = true;
         showBlink();
 
-        const path = getReceiptsUploadFolderPath();
+        const path = getAttachmentDir();
 
-        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
+        captureReceipt(camera.current, {
+            flash,
+            hasFlash,
+            isPlatformMuted,
+            path,
+            isInLandscapeMode,
+        })
             .then((photo: PhotoFile) => {
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-                return ReceiptStorage.adopt(photo.path);
-            })
-            .then((durableName) => {
+
                 if (isMultiScanEnabled) {
                     isCapturingPhoto.current = false;
                 } else {
                     setDidCapturePhoto(true);
                 }
 
-                const source = ReceiptStorage.toLocalUri(durableName);
+                const source = getPhotoSource(photo.path);
                 const cameraFile: FileObject = {
                     uri: source,
-                    name: durableName,
+                    name: photo.path,
                     type: 'image/jpeg',
                 };
 

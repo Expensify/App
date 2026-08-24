@@ -942,7 +942,9 @@ function addActions({
             lastActionCreated,
         });
         attachmentAction = attachment.reportAction;
-        cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
+        cacheAttachment({uri: file.uri ?? '', attachmentID, fileType: file.type}).catch((error) => {
+            Log.hmmm('[AttachmentCache] Failed to cache attachment', {message: (error as Error).message});
+        });
     }
 
     if (text && file) {
@@ -975,7 +977,9 @@ function addActions({
     });
 
     for (const attachment of attachments) {
-        cacheAttachment({attachmentID: attachment.attachmentID, uri: attachment.uri ?? ''});
+        cacheAttachment({uri: attachment.uri ?? '', attachmentID: attachment.attachmentID}).catch((error) => {
+            Log.hmmm('[AttachmentCache] Failed to cache markdown attachment', {message: (error as Error).message});
+        });
     }
 
     // Always prefer the file as the last action over text

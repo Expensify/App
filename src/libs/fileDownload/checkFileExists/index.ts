@@ -17,8 +17,8 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
 
     const rawPath = path.startsWith('file://') ? path.slice(7) : path;
 
-    // Receipts queued before ReceiptStorage sanitized on-disk filenames can still carry
-    // a literal "%23", which is indistinguishable from an encoded "#". Try decoded, then raw.
+    // Receipts queued before staging sanitized its filenames can still carry a literal "%23",
+    // which is indistinguishable from an encoded "#". Try decoded, then raw.
     const decodedPath = fileURIToPath(path);
 
     const statIsFile = (candidate: string) => RNFS.stat(candidate).then((fileStat) => fileStat.isFile());

@@ -17,17 +17,15 @@ import useNativeCamera from '@hooks/useNativeCamera';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {ensureAttachmentDir, getAttachmentDir, stageAttachment} from '@libs/actions/Attachment';
 import {setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
-import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOdometerImageUri} from '@libs/OdometerUtils';
-import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -48,7 +46,6 @@ import type {PhotoFile} from 'react-native-vision-camera';
 
 import React, {useRef} from 'react';
 import {Alert, StyleSheet, View} from 'react-native';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -130,12 +127,7 @@ function IOURequestStepOdometerImage({
             return;
         }
 
-        ReceiptStorage.adopt(sourceUri, filename)
-            .then((durableName) => ReceiptStorage.toLocalUri(durableName))
-            .catch((error: unknown) => {
-                logReceiptAdoptFailed({error, captureSource: 'gallery'});
-                return sourceUri;
-            })
+        stageAttachment({uri: sourceUri, fileName: filename})
             .then((uri) => {
                 setMoneyRequestOdometerImage(
                     transaction,
@@ -187,21 +179,11 @@ function IOURequestStepOdometerImage({
             },
         });
 
-        const path = getReceiptsUploadFolderPath();
+        const path = getAttachmentDir();
 
-        ReactNativeBlobUtil.fs
-            .isDir(path)
-            .then((isDir) => {
-                if (isDir) {
-                    return;
-                }
-
-                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
-                    Log.warn('Error creating the directory', error);
-                });
-            })
-            .catch((error: string) => {
-                Log.warn('Error checking if the directory exists', error);
+        ensureAttachmentDir()
+            .catch((error: unknown) => {
+                Log.warn('Error ensuring the attachment directory exists', error instanceof Error ? error.message : String(error));
             })
             .then(() => {
                 camera?.current
@@ -211,10 +193,18 @@ function IOURequestStepOdometerImage({
                         path,
                     })
                     .then((photo: PhotoFile) => {
-                        const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
+                        const imageObject: ImageObject = {
+                            file: photo,
+                            filename: photo.path,
+                            source: getPhotoSource(photo.path),
+                        };
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
                             .then(({file, filename, source}) =>
-                                ReceiptStorage.adopt(source, filename).then((durableName) => ({file, filename, source: ReceiptStorage.toLocalUri(durableName)})),
+                                stageAttachment({uri: source, fileName: filename}).then((durableSource) => ({
+                                    file,
+                                    filename,
+                                    source: durableSource,
+                                })),
                             )
                             .then(({file, filename, source}) => {
                                 setMoneyRequestOdometerImage(
@@ -398,7 +388,12 @@ function IOURequestStepOdometerImage({
                         />
                     </PressableWithFeedback>
                     {/* Empty View matching gallery size so justifyContentAround keeps the shutter exactly centered - it's the simplest solution */}
-                    <View style={{width: variables.iconSizeMenuItem, height: variables.iconSizeMenuItem}} />
+                    <View
+                        style={{
+                            width: variables.iconSizeMenuItem,
+                            height: variables.iconSizeMenuItem,
+                        }}
+                    />
                 </View>
             </View>
         </StepScreenWrapper>

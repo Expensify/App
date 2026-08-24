@@ -422,8 +422,10 @@
 "../../src/hooks/useAutocompleteSuggestions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useBulkDuplicateAction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useBulkPayOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/hooks/useCachedImageSource.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useCachedImageSource.ts"	"react-hooks/set-state-in-effect"	1
+"../../src/hooks/useCachedAttachmentSource/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/hooks/useCachedAttachmentSource/index.ts"	"react-hooks/set-state-in-effect"	1
+"../../src/hooks/useCachedAttachmentSource/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/hooks/useCachedAttachmentSource/index.native.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useCancellationType.ts"	"react-hooks/refs"	2
 "../../src/hooks/useCancellationType.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useCardFeedsForActivePolicies.ts"	"no-restricted-imports"	1
