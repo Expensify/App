@@ -30,7 +30,7 @@ type MovedTransactionActionProps = {
 
 function MovedTransactionAction({action, originalReport}: MovedTransactionActionProps) {
     const {translate} = useLocalize();
-    const {fromReportID, displayReportID} = parseMovedTransactionReportIDs(action);
+    const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(action);
 
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
     const [displayReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${displayReportID}`);
@@ -39,7 +39,7 @@ function MovedTransactionAction({action, originalReport}: MovedTransactionAction
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const derivedReportName = useDerivedReportNameByReportID(displayReportID);
-    const message = getMovedTransactionMessage({translate, movedReport: displayReport, fromReportID, derivedReportName});
+    const message = getMovedTransactionMessage({translate, movedReport: displayReport, fromReportID, toReportID, derivedReportName});
 
     if (hasReasoning(action)) {
         return (
