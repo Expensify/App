@@ -1528,8 +1528,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'κάρτα' : 'τραπεζικός λογαριασμός';
             return isCurrentUser
-                ? `. Τα χρήματα κατευθύνονται προς τον/την ${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} σας (πληρωμή μέσω ${paymentMethod}). Αυτό μπορεί να πάρει έως και 10 εργάσιμες ημέρες.`
-                : `. Τα χρήματα είναι καθ' οδόν προς τον/την ${submitterLogin}${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} (πληρωμή μέσω ${paymentMethod}). Αυτό μπορεί να χρειαστεί έως και 10 εργάσιμες ημέρες.`;
+                ? `. Τα χρήματα κατευθύνονται προς τον/την ${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} σας (πληρωμή μέσω ${paymentMethod}). Συνήθως αυτό χρειάζεται 4-5 εργάσιμες ημέρες.`
+                : `. Τα χρήματα κατευθύνονται προς τον/την ${submitterLogin}${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} (πληρωμή μέσω ${paymentMethod}). Συνήθως χρειάζονται 4-5 εργάσιμες ημέρες.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `με άμεση κατάθεση (ACH)${creditBankAccount ? `στον τραπεζικό λογαριασμό που λήγει σε ${creditBankAccount}.` : '. '}${expectedDate ? `Η αποζημίωση εκτιμάται ότι θα ολοκληρωθεί έως ${expectedDate}.` : 'Αυτό συνήθως διαρκεί 4–5 εργάσιμες ημέρες.'}`,

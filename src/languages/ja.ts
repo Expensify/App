@@ -1452,8 +1452,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'カード' : '銀行口座';
             return isCurrentUser
-                ? `. ${paymentMethod}で支払われた資金が、お客様の${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'}に向けて送金中です。最大で10営業日かかる場合があります。`
-                : `. ${submitterLogin} さんの ${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'} へ送金中です（${paymentMethod} で支払われます）。最大 10 営業日かかる場合があります。`;
+                ? `。${paymentMethod}で支払われた資金が${creditBankAccount ? `末尾が${creditBankAccount}の銀行口座` : 'アカウント'}に送金されています。通常、営業日4～5日ほどかかります。`
+                : `. ${paymentMethod} で支払いが行われ、${submitterLogin} の${creditBankAccount ? `末尾が${creditBankAccount}の銀行口座` : 'アカウント'} に送金中です。通常 4〜5 営業日かかります。`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `直接入金（ACH）で${creditBankAccount ? `${creditBankAccount}で終わる銀行口座へ。` : '. '}${expectedDate ? `払戻しは${expectedDate}までに完了する見込みです。` : '通常、営業日で4～5日かかります。'}`,
