@@ -55,8 +55,8 @@ async function seedStoryOnyxData() {
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [STORY_ACCOUNT_ID]: {
                 accountID: STORY_ACCOUNT_ID,
-                displayName: 'Alex Reed',
-                login: 'alex@example.com',
+                displayName: 'John Doe',
+                login: 'john@example.com',
             },
         }),
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${STORY_POLICY_ID}`, {
@@ -73,7 +73,7 @@ async function seedStoryOnyxData() {
     ]);
 }
 
-const STORY_TOOLTIP_DETAILS: DisplayNameWithTooltip[] = [{displayName: 'Alex Reed', accountID: STORY_ACCOUNT_ID, login: 'alex@example.com'}];
+const STORY_TOOLTIP_DETAILS: DisplayNameWithTooltip[] = [{displayName: 'John Doe', accountID: STORY_ACCOUNT_ID, login: 'john@example.com'}];
 
 function noop() {}
 
@@ -154,39 +154,43 @@ function Comparison() {
                         avatarID={STORY_ACCOUNT_ID}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         icon={icons.FallbackAvatar}
-                        title="Alex Reed"
-                        description="alex@example.com"
+                        title="John Doe"
+                        description="john@example.com"
                         titleWithTooltips={STORY_TOOLTIP_DETAILS}
                         shouldShowRightIcon
                         onPress={noop}
                     />
                 }
                 composable={
-                    <MenuItem.Root onPress={noop}>
-                        <MenuItem.Label>Assignee</MenuItem.Label>
-                        <MenuItem.Row>
-                            <MenuItem.Leading>
-                                <UserAvatar
-                                    source={icons.FallbackAvatar}
-                                    accountID={STORY_ACCOUNT_ID}
-                                />
-                            </MenuItem.Leading>
-                            <MenuItem.Content>
-                                <MenuItem.Title accessibilityLabel="Alex Reed">
-                                    <DisplayNames
-                                        fullTitle="Alex Reed"
-                                        displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
-                                        tooltipEnabled
-                                        numberOfLines={1}
+                    <>
+                        <View style={styles.ph5}>
+                            <MenuItem.Label>Assignee</MenuItem.Label>
+                        </View>
+                        <MenuItem.Root onPress={noop}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <UserAvatar
+                                        source={icons.FallbackAvatar}
+                                        accountID={STORY_ACCOUNT_ID}
                                     />
-                                </MenuItem.Title>
-                                <MenuItem.Description>alex@example.com</MenuItem.Description>
-                            </MenuItem.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title accessibilityLabel="John Doe">
+                                        <DisplayNames
+                                            fullTitle="John Doe"
+                                            displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
+                                            tooltipEnabled
+                                            numberOfLines={1}
+                                        />
+                                    </MenuItem.Title>
+                                    <MenuItem.Description>john@example.com</MenuItem.Description>
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    </>
                 }
             />
 
@@ -194,8 +198,8 @@ function Comparison() {
                 title="Avatar + title + 1-line description"
                 legacy={
                     <MenuItem
-                        title="Alexandra Reed-Fitzgerald"
-                        description="alexandra.reed.fitzgerald.with.a.very.long.address@example.com"
+                        title="John Doe"
+                        description="john.doe.with.a.very.long.email.address.for.truncation@example.com"
                         avatarID={STORY_ACCOUNT_ID}
                         icon={icons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
@@ -215,8 +219,8 @@ function Comparison() {
                                     />
                                 </MenuItem.Leading>
                                 <MenuItem.Content>
-                                    <MenuItem.Title>Alexandra Reed-Fitzgerald</MenuItem.Title>
-                                    <MenuItem.Description numberOfLines={1}>alexandra.reed.fitzgerald.with.a.very.long.address@example.com</MenuItem.Description>
+                                    <MenuItem.Title>John Doe</MenuItem.Title>
+                                    <MenuItem.Description numberOfLines={1}>john.doe.with.a.very.long.email.address.for.truncation@example.com</MenuItem.Description>
                                 </MenuItem.Content>
                             </MenuItem.Row>
                         </MenuItem.Root>
@@ -228,8 +232,8 @@ function Comparison() {
                 title="Avatar + title + description + chevron"
                 legacy={
                     <MenuItem
-                        title="Alex Reed"
-                        description="alex@example.com"
+                        title="John Doe"
+                        description="john@example.com"
                         avatarID={STORY_ACCOUNT_ID}
                         icon={icons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
@@ -248,8 +252,8 @@ function Comparison() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.Title>Alex Reed</MenuItem.Title>
-                                <MenuItem.Description>alex@example.com</MenuItem.Description>
+                                <MenuItem.Title>John Doe</MenuItem.Title>
+                                <MenuItem.Description>john@example.com</MenuItem.Description>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -259,8 +263,8 @@ function Comparison() {
                 }
                 preset={
                     <MenuItemEntity
-                        title="Alex Reed"
-                        description="alex@example.com"
+                        title="John Doe"
+                        description="john@example.com"
                         avatarSource={icons.FallbackAvatar}
                         accountID={STORY_ACCOUNT_ID}
                         onPress={noop}
@@ -274,7 +278,7 @@ function Comparison() {
                     <>
                         <Variant label="icon={FallbackAvatar} + displayInDefaultIconColor">
                             <MenuItem
-                                title="Jane Doe"
+                                title="John Doe"
                                 description="123 Main St, Springfield, IL 62704"
                                 icon={icons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}
@@ -287,7 +291,7 @@ function Comparison() {
                         </Variant>
                         <Variant label="disabled">
                             <MenuItem
-                                title="Jane Doe"
+                                title="John Doe"
                                 description="123 Main St, Springfield, IL 62704"
                                 icon={icons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}
@@ -302,7 +306,7 @@ function Comparison() {
                     <>
                         <Variant label="no avatarSource (default avatar for accountID)">
                             <MenuItemEntity
-                                title="Jane Doe"
+                                title="John Doe"
                                 description="123 Main St, Springfield, IL 62704"
                                 accountID={CONST.DEFAULT_NUMBER_ID}
                                 onPress={noop}
@@ -310,7 +314,7 @@ function Comparison() {
                         </Variant>
                         <Variant label="isDisabled">
                             <MenuItemEntity
-                                title="Jane Doe"
+                                title="John Doe"
                                 description="123 Main St, Springfield, IL 62704"
                                 accountID={CONST.DEFAULT_NUMBER_ID}
                                 isDisabled
@@ -334,7 +338,7 @@ function Comparison() {
                         </Variant>
                         <Variant label="With title (supporting-size description)">
                             <MenuItem
-                                title="Alex Reed"
+                                title="John Doe"
                                 description="Vacation delegate"
                                 shouldShowRightIcon
                                 onPress={noop}
@@ -360,7 +364,7 @@ function Comparison() {
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.Title>Alex Reed</MenuItem.Title>
+                                        <MenuItem.Title>John Doe</MenuItem.Title>
                                         <MenuItem.Description>Vacation delegate</MenuItem.Description>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
@@ -379,8 +383,8 @@ function Comparison() {
                     <>
                         <Variant label="DEFAULT (40)">
                             <MenuItem
-                                title="Alex Reed"
-                                description="alex@example.com"
+                                title="John Doe"
+                                description="john@example.com"
                                 avatarID={STORY_ACCOUNT_ID}
                                 icon={icons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}
@@ -389,8 +393,8 @@ function Comparison() {
                         </Variant>
                         <Variant label="SMALL (28)">
                             <MenuItem
-                                title="Alex Reed"
-                                description="alex@example.com"
+                                title="John Doe"
+                                description="john@example.com"
                                 avatarID={STORY_ACCOUNT_ID}
                                 icon={icons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}
@@ -400,8 +404,8 @@ function Comparison() {
                         </Variant>
                         <Variant label="X_SMALL (24)">
                             <MenuItem
-                                title="Alex Reed"
-                                description="alex@example.com"
+                                title="John Doe"
+                                description="john@example.com"
                                 avatarID={STORY_ACCOUNT_ID}
                                 icon={icons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}
@@ -423,8 +427,8 @@ function Comparison() {
                                         />
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.Title>Alex Reed</MenuItem.Title>
-                                        <MenuItem.Description>alex@example.com</MenuItem.Description>
+                                        <MenuItem.Title>John Doe</MenuItem.Title>
+                                        <MenuItem.Description>john@example.com</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>
                             </MenuItem.Root>
@@ -440,8 +444,8 @@ function Comparison() {
                                         />
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.Title>Alex Reed</MenuItem.Title>
-                                        <MenuItem.Description>alex@example.com</MenuItem.Description>
+                                        <MenuItem.Title>John Doe</MenuItem.Title>
+                                        <MenuItem.Description>john@example.com</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>
                             </MenuItem.Root>
@@ -457,8 +461,8 @@ function Comparison() {
                                         />
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.Title>Alex Reed</MenuItem.Title>
-                                        <MenuItem.Description>alex@example.com</MenuItem.Description>
+                                        <MenuItem.Title>John Doe</MenuItem.Title>
+                                        <MenuItem.Description>john@example.com</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>
                             </MenuItem.Root>
@@ -513,8 +517,8 @@ function Comparison() {
                 legacy={
                     <MenuItem
                         label="Assignee"
-                        title="Alex Reed"
-                        description="alex@example.com"
+                        title="John Doe"
+                        description="john@example.com"
                         iconAccountID={STORY_ACCOUNT_ID}
                         titleWithTooltips={STORY_TOOLTIP_DETAILS}
                         shouldShowRightIcon
@@ -534,15 +538,15 @@ function Comparison() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.Title accessibilityLabel="Alex Reed">
+                                <MenuItem.Title accessibilityLabel="John Doe">
                                     <DisplayNames
-                                        fullTitle="Alex Reed"
+                                        fullTitle="John Doe"
                                         displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
                                         tooltipEnabled
                                         numberOfLines={1}
                                     />
                                 </MenuItem.Title>
-                                <MenuItem.Description>alex@example.com</MenuItem.Description>
+                                <MenuItem.Description>john@example.com</MenuItem.Description>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -593,7 +597,7 @@ function Comparison() {
                 legacy={
                     <MenuItem
                         label="Assignee"
-                        title="Alex Reed"
+                        title="John Doe"
                         iconAccountID={STORY_ACCOUNT_ID}
                         avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                         disabled
@@ -614,7 +618,7 @@ function Comparison() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.Title>Alex Reed</MenuItem.Title>
+                                <MenuItem.Title>John Doe</MenuItem.Title>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
