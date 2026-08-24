@@ -137,8 +137,7 @@ function createPolicyTag({
 }: CreatePolicyTagParams) {
     const {policy, tags: policyTags} = policyData;
     const policyID = policy?.id;
-    const emptyTagList: PolicyTagList = {name: '', orderWeight: 0, required: false, tags: {}};
-    const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? emptyTagList;
+    const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
     const tagListsOptimisticData = {
         [policyTag.name]: {
