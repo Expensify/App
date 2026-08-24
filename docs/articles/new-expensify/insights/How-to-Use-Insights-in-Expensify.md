@@ -91,6 +91,20 @@ You can use Top Merchants to:
 
 ---
 
+## Violations by submitter
+
+Violations by submitter shows which members submitted the most expenses that broke your workspace rules in the previous calendar month. It’s available to Workspace Admins and Auditors on Control workspaces that have Rules enabled.
+
+You can use Violations by submitter to:
+
+- See who is repeatedly submitting expenses with policy violations
+- Spot compliance patterns without reviewing reports one by one
+- Prioritize coaching or policy guidance for specific members
+
+[Learn more about the Violations by submitter report](https://help.expensify.com/articles/new-expensify/insights/View-the-Violations-by-submitter-report)
+
+---
+
 ## How Insights work
 
 Each Insight is powered by Expensify's search query engine using grouping filters and operators to: 

@@ -70,7 +70,8 @@ You can use the following operators to filter expenses:
 - `amount:` / `purchase-amount:` – supports `=`, `>`, `<`, `>=`, `<=`
 - `status:` – unreported, draft, outstanding, approved, paid, done
 - `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`. Also supports comparisons (`date>=2024-01-01 date<=2024-01-31`) for date ranges
-- `has:` – attachment, receipt, category, tag
+- `has:` – attachment, receipt, category, tag, submitted-violation (expenses that had a violation when they were submitted)
+- `violation:` – filter by a specific violation type, such as a missing receipt or an amount over limit. Adding a `violation:` value automatically applies `has:submitted-violation`, so results are scoped to violations flagged at submission
 - `expense-type:` – cash, card, distance, per-diem
 - `receipt-type:` – ereceipt, itemized
 - `reimbursable:` and `billable:` – yes or no
@@ -205,6 +206,9 @@ Here are some common examples:
 
 - **Top spenders (table)**  
   `type:expense group-by:from date:last-month view:table`
+
+- **Violations by submitter (table)**  
+  `type:expense group-by:from date:last-month has:submitted-violation sort-by:group-expenses sort-order:desc view:table limit:10`
 
 - **Spend over time (line chart)**  
   `type:expense group-by:month date:year-to-date view:line`
