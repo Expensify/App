@@ -228,23 +228,30 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
 
 describe('handleReplaceFullscreenUnderRHP / handleRemoveFullscreenUnderRHP — shouldInsertPreMountBuffer', () => {
     it('inserts the buffer route directly under the RHP on the tab-switch path when shouldInsertPreMountBuffer is true', () => {
+        // Given a tab-switch pre-insert that needs protection from native RHP dismissal
         mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        // When the root state handler replaces the fullscreen destination
         const result = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(true), CONFIG_OPTIONS, stackRouter);
 
+        // Then the buffer sits next to the RHP so it intercepts an interrupted transition
         expect(getBufferRoute(result)?.key).toBe(`pre-mount-buffer-${makeRHPRoute().key}`);
         expect(result?.routes.at(-2)?.name).toBe(SCREENS.PRE_MOUNT_BUFFER);
         expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
 
     it('does not insert a buffer route on the tab-switch path when shouldInsertPreMountBuffer is false/undefined', () => {
+        // Given a tab-switch pre-insert that does not need swipe-dismiss protection
         mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        // When the root state handler replaces the fullscreen destination
         const result = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(false), CONFIG_OPTIONS, stackRouter);
 
+        // Then no buffer is added because the caller opted out of recovery routing
         expect(getBufferRoute(result)).toBeUndefined();
         expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
 
     it('inserts the buffer route directly under the RHP on the push path when shouldInsertPreMountBuffer is true', () => {
+        // Given a pushed fullscreen destination that needs protection from RHP dismissal
         const routeNames = [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
         const realStackRouter = StackRouter({});
         const configOptions: RouterConfigOptions = {routeNames, routeParamList: {}, routeGetIdList: {}};
@@ -254,14 +261,17 @@ describe('handleReplaceFullscreenUnderRHP / handleRemoveFullscreenUnderRHP — s
             makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, undefined, undefined, 'rhp-key'),
         ]);
 
+        // When the root state handler inserts the pushed destination
         const result = handleReplaceFullscreenUnderRHP(existing, makeAction(true), configOptions, realStackRouter);
 
+        // Then the buffer is adjacent to the RHP so recovery can remove the speculative push
         expect(getBufferRoute(result)?.key).toBe('pre-mount-buffer-rhp-key');
         expect(result?.routes.at(-2)?.name).toBe(SCREENS.PRE_MOUNT_BUFFER);
         expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
 
     it('does not insert a buffer route on the push path when shouldInsertPreMountBuffer is false/undefined', () => {
+        // Given a pushed fullscreen destination without swipe-dismiss buffering enabled
         const routeNames = [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
         const realStackRouter = StackRouter({});
         const configOptions: RouterConfigOptions = {routeNames, routeParamList: {}, routeGetIdList: {}};
@@ -271,17 +281,17 @@ describe('handleReplaceFullscreenUnderRHP / handleRemoveFullscreenUnderRHP — s
             makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, undefined, undefined, 'rhp-key'),
         ]);
 
+        // When the root state handler inserts the pushed destination
         const result = handleReplaceFullscreenUnderRHP(existing, makeAction(false), configOptions, realStackRouter);
 
+        // Then the route stack stays buffer-free because recovery was not requested
         expect(getBufferRoute(result)).toBeUndefined();
         expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
 
     it('cancel (tab restore) drops any buffer route left between the restored tab and the RHP', () => {
-        // Models the (already-guarded-against) case where a buffer route was somehow still in state at cancel
-        // time: Navigation.ts's removePreInsertedFullscreenIfNeeded always strips it via removeBufferRouteOnly
-        // before dispatching REMOVE_FULLSCREEN_UNDER_RHP, but the router itself must not silently keep it if that
-        // ever changes.
+        // Given a tab-switch buffer route that's still around at cancel time (normally stripped earlier;
+        // this is a defensive check in case that ever stops happening)
         mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
         const insertResult = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(true), CONFIG_OPTIONS, stackRouter);
         expect(getBufferRoute(insertResult)).not.toBeUndefined();
@@ -289,8 +299,10 @@ describe('handleReplaceFullscreenUnderRHP / handleRemoveFullscreenUnderRHP — s
             throw new Error('Expected handleReplaceFullscreenUnderRHP to return a state.');
         }
 
+        // When the root handler restores the original tab after cancellation
         const removeResult = handleRemoveFullscreenUnderRHP(insertResult, makeRemoveAction(NAVIGATORS.WORKSPACE_NAVIGATOR), CONFIG_OPTIONS, stackRouter);
 
+        // Then the leftover buffer is discarded so it cannot surface after the RHP closes
         expect(getBufferRoute(removeResult)).toBeUndefined();
         expect(removeResult?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });

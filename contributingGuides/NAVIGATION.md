@@ -284,7 +284,7 @@ See `IOURequestStepConfirmation.tsx` for the real reference implementation (subm
 > Only one component may own a pre-inserted route at a time (a single-pre-inserter invariant enforced by a module-level flag in `Navigation.ts`). `reveal()` logs a warning if it runs while a *different* flow's pre-insert flag is still set - that's a sign the previous owner didn't clean up.
 
 > [!NOTE]
-> For a **report** destination, pre-insert pushes it as a route between the origin and the RHP (`[origin, RHP] -> [origin, destination, RHP]`). For a **tab** target (e.g. Search), it's a tab switch instead (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. Which one happens is determined by the destination route, not by anything the caller configures.
+> When the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP instead (`[origin, RHP] -> [origin, destination, RHP]`). Which one happens is determined by the destination route, not by anything the caller configures.
 
 > [!NOTE]
 > See [PERF-18](../.claude/skills/coding-standards/rules/perf-18-use-pre-mount-destination.md) for the AI-review checklist covering this hook.

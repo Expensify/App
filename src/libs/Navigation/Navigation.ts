@@ -925,10 +925,9 @@ const dismissModalWithReport = (
         const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
-            // The topmost fullscreen already being this report means a live pre-insert/buffer transaction (if any)
-            // targets it too. Clear it through the same path reveal() uses before this dismiss fires - otherwise the
-            // buffer's 'state' listener sees the RHP disappear with no owner, treats it as an external dismissal, and
-            // atomically strips this same destination back to the pre-insert origin.
+            // Clear any pre-insert/buffer state for this report before dismissing, or the buffer logic
+            // sees the RHP disappear unexpectedly and reverts back to whatever was showing before this
+            // report was pre-inserted, replacing it even though it's already the report we want to end up on.
             if (getIsFullscreenPreInsertedUnderRHP()) {
                 clearFullscreenPreInsertedFlag();
             }
@@ -1107,24 +1106,15 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
     });
 }
 
-// Module-level state tracking the pre-inserted fullscreen route. This follows the same
-// pattern as other module-level navigation state in this file (e.g. pendingRoute).
-// It is only mutated from preInsertFullscreenUnderRHP / clearFullscreenPreInsertedFlag /
-// removePreInsertedFullscreenIfNeeded, which are always called from the JS thread.
+// Always set and cleared together - the route name is only meaningful while the flag is true.
 let isFullscreenPreInsertedUnderRHP = false;
 let preInsertedFullscreenRouteName: string | undefined;
 
-// Keyed native-stack buffer transaction (push or tab-switch pre-insert). While set, a neutral
-// SCREENS.PRE_MOUNT_BUFFER route sits directly under the RHP so a native swipe-dismiss paints
-// Buffer instead of the destination. Cleared by removeBufferRouteOnly() on confirm/cancel-while-
-// RHP-open, or by handleRHPClosedForBuffer() if the RHP got removed some other way (native swipe,
-// predictive-back).
+// Set while a neutral placeholder route sits directly under the RHP, so a native swipe-dismiss
+// reveals that placeholder instead of the real destination underneath.
 //
-// Gated on the root 'state' event, not transitionEnd, since transitionEnd(closing:true) never
-// fires on Android while animation is NONE. 'state' fires reliably on both platforms. (A prior
-// version raced a separate rAF-deferred tab restore against an early buffer-strip and leaked a
-// destination frame on iOS - removePreInsertedFullscreenIfNeeded now backs off when a buffer
-// transaction is live, so handleRHPClosedForBuffer's atomic reset is the only thing that runs.)
+// Watches the root 'state' event instead of transitionEnd, since transitionEnd never fires on
+// Android when the animation is none - 'state' fires reliably on both platforms.
 let bufferTransaction: {rhpRouteKey: string; bufferRouteKey: string; mode: 'push' | 'tab'; destinationRouteKey?: string} | undefined;
 let bufferStateListenerUnsubscribe: (() => void) | undefined;
 
@@ -1149,8 +1139,9 @@ function handleRHPClosedForBuffer() {
 
     DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
 
-    // RHP is gone but our transaction wasn't cleared by commit/cancel - something else removed it
-    // (native swipe, external dismissal). End state must be the origin, same as a normal cancel.
+    // Reaching here means the RHP is gone but commit/cancel never ran (they would have cleared
+    // bufferTransaction and returned above) - something else removed it (native swipe, external
+    // dismissal). Treat it the same as a normal cancel: end up back at the origin.
     bufferTransaction = undefined;
     clearBufferStateListener();
     isFullscreenPreInsertedUnderRHP = false;
@@ -1172,7 +1163,9 @@ function handleRHPClosedForBuffer() {
         return;
     }
 
-    // Push mode: strip both the speculative destination and Buffer atomically.
+    // Push path: this transaction pushed the destination as a new route rather than swapping it into
+    // a tab, so remove both it and Buffer in one dispatch - two dispatches would leave a render in
+    // between where only one of them is gone.
     const newRoutes = rootState.routes.filter((r) => r.key !== bufferRouteKey && r.key !== destinationRouteKey);
     navigationRef.current?.dispatch(
         CommonActions.reset({
@@ -1183,7 +1176,7 @@ function handleRHPClosedForBuffer() {
     );
 }
 
-/** Restores the route that was visible before a pre-mount buffer became stranded. */
+/** Restores the route that was visible before the pre-mount buffer route */
 function recoverFromPreMountBuffer() {
     const rootState = navigationRef.getRootState();
     if (rootState?.routes.at(-1)?.name !== SCREENS.PRE_MOUNT_BUFFER) {
@@ -1212,12 +1205,9 @@ function recoverFromPreMountBuffer() {
 }
 
 /**
- * Buffer is built directly into REPLACE_FULLSCREEN_UNDER_RHP's own dispatch
- * (GetStateForActionHandlers.ts), not a separate follow-up dispatch - a second dispatch was
- * racing the stale-state rehydration that action performs and could freeze a pre-rehydration
- * snapshot (tab index computed correctly, then clobbered back to the wrong value by the second
- * reset). This function only reads the already-landed state to
- * capture the transaction; it never dispatches.
+ * Reads the navigation state just after Buffer was inserted (in an earlier dispatch, not here) and,
+ * if Buffer really did land under the RHP, records it as `bufferTransaction` and starts watching for
+ * the RHP closing so it can be cleaned up.
  */
 function captureBufferTransaction(stateAfter: ReturnType<typeof navigationRef.getRootState>, wasTabSwitched: boolean) {
     if (Platform.OS === 'web' || !stateAfter) {
@@ -1244,6 +1234,7 @@ function captureBufferTransaction(stateAfter: ReturnType<typeof navigationRef.ge
     bufferStateListenerUnsubscribe = navigationRef.current?.addListener('state', handleRHPClosedForBuffer);
 }
 
+/** Removes just the Buffer route, leaving the pushed destination in place, and clears the transaction (including its own state listener). */
 function removeBufferRouteOnly() {
     if (!bufferTransaction) {
         return;
@@ -1270,17 +1261,12 @@ function removeBufferRouteOnly() {
 }
 
 /**
- * Whether a native swipe-back gesture on the currently open RHP would actually dismiss the whole
- * RHP, as opposed to just popping one step of its own inner stack.
+ * Whether a swipe-back gesture would dismiss the whole RHP, rather than just popping one screen off
+ * its inner stack. Only true when the inner stack has nothing left to pop back to - otherwise the
+ * swipe stays inside the RHP and never reaches it.
  *
- * The RHP (RightModalNavigator) wraps a per-flow inner stack (e.g. MoneyRequestModalStackNavigator).
- * A swipe is handled by whichever native stack currently owns the gesture: if the inner stack has a
- * route *before* the focused one, the swipe pops back to that inner screen and the outer RHP is never
- * touched. Only when the focused inner route is the first one (index 0, nothing to pop back to) does
- * the gesture bubble up and dismiss the RHP itself - that's the only case the pre-mount buffer guards.
- *
- * Defaults to true (assume the RHP can be dismissed) when the state can't be inspected, since that's
- * the existing, already-safe behavior - never silently skip the buffer on uncertain data.
+ * Defaults to true (assume dismissible) when the state can't be read, so the buffer never gets
+ * silently skipped on uncertain data.
  */
 function canNativeSwipeDismissRHP(): boolean {
     const rootState = navigationRef.getRootState();
@@ -1362,8 +1348,8 @@ function getPreInsertedFullscreenRouteName() {
     return preInsertedFullscreenRouteName;
 }
 
+/** Called once the pre-inserted destination is confirmed, so it should stay - only the Buffer route in front of it needs cleaning up. */
 function clearFullscreenPreInsertedFlag() {
-    // Confirm path: keep the destination, only remove Buffer.
     removeBufferRouteOnly();
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
@@ -1397,8 +1383,8 @@ function removePreInsertedFullscreenIfNeeded() {
     const isRHPStillOnTop = topRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
     if (isRHPStillOnTop && routeNameToRemove) {
-        // Cancel-before-dismissal: strip Buffer first so the destination is directly under RHP again,
-        // matching what REMOVE_FULLSCREEN_UNDER_RHP expects.
+        // Call this before dispatching below, so its listener teardown happens before this dispatch
+        // can trigger it.
         removeBufferRouteOnly();
         navigationRef.current?.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
@@ -1407,11 +1393,8 @@ function removePreInsertedFullscreenIfNeeded() {
         return;
     }
 
-    // RHP already dismissed elsewhere (native gesture, hardware back, predictive-back). If a buffer
-    // transaction is live, hand off entirely to handleRHPClosedForBuffer's atomic reset (restores
-    // the tab + strips Buffer in ONE dispatch) instead of doing the separate, rAF-deferred restore
-    // below - two independent dispatches here raced each other and leaked a destination frame
-    // (confirmed via manual testing), the same shape as the earlier tab-index-clobbering bug.
+    // Skip this if a buffer transaction is still live - something else already resets the tab and
+    // buffer together in one step. Doing it here too would race that and briefly show the wrong screen.
     if (bufferTransaction) {
         return;
     }

@@ -27,7 +27,7 @@ type FullScreenLoadingIndicatorProps = {
     /** Whether the "Go Back" button appears after a timeout. */
     shouldUseGoBackButton?: boolean;
 
-    /** Action used by the delayed "Go Back" button. */
+    /** Called when the "Go Back" button is pressed. */
     onGoBack?: () => void;
 
     /** The ID of the test to be used for testing */

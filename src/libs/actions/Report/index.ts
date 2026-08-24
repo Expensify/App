@@ -3225,7 +3225,7 @@ function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
 }
 
 /**
- * Removes a report promoted via `promoteDraftReportForPreMount` when the caller backs out before that promotion is confirmed by the backend.
+ * Removes a report created by `promoteDraftReportForPreMount`, for when the caller backs out before submission actually happens.
  */
 async function clearPromotedDraftReportForPreMount(reportID: string) {
     // Remove the report first. If the app terminates between these writes, startup cleanup consumes the remaining marker.

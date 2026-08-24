@@ -1007,6 +1007,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         }
 
         it('uses the transaction optimistic report ID for a brand-new P2P pre-mount and pay destination', async () => {
+            // Given a brand-new P2P recipient with no existing chat, so the screen must reuse the
+            // transaction's optimistic report ID rather than one a builder would otherwise mint
             const optimisticP2PReportID = 'optimistic-p2p-report-1';
             const transactionID = 'tx-new-p2p';
             let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
@@ -1063,10 +1065,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     </OnyxListItemProvider>,
                 );
 
+                // When the screen renders and resolves the P2P destination
                 await waitForBatchedUpdatesWithAct();
 
                 expect(getChatByParticipantsSpy).toHaveBeenCalled();
                 expect(getReusableP2PReportIDSpy).toHaveBeenCalledWith(expect.objectContaining({accountID: PARTICIPANT_ACCOUNT_ID}), optimisticP2PReportID);
+                // Then it pre-mounts the report at the transaction's own optimistic ID, not a different one
                 await waitFor(
                     () =>
                         expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(
@@ -1075,8 +1079,11 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     {timeout: 2000},
                 );
 
+                // When the user sends money
                 act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
 
+                // Then submission also uses that same optimistic report ID, so the pre-mounted screen ends up
+                // subscribed to the report that actually gets created
                 expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
                 expect(mockSendMoneyElsewhere).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
             } finally {

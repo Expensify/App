@@ -410,14 +410,9 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
  */
 
 /**
- * The buffer route only guards against a native swipe-back gesture popping the RHP before JS
- * cleanup runs. Web has no such gesture, so there's nothing for the buffer to protect against there.
- *
- * Only insert when the caller asks for it (`shouldInsertPreMountBuffer`): `preInsertFullscreenUnderRHP`
- * has real dwell time for a swipe to race, so it opts in. `revealRouteBeforeDismissingModal` dismisses
- * in the very next frame, programmatically, with no gesture involved, and never captures/clears the
- * buffer afterward - inserting one there would strand it on top after the dismiss instead of the
- * revealed destination.
+ * Guards against a native swipe-back gesture popping the RHP before JS cleanup runs; web has no such
+ * gesture. Only inserted when the caller opts in, since some callers dismiss synchronously with no
+ * gesture involved and never clear the buffer afterward - inserting one there would leave it stuck on top.
  */
 function buildPreMountBufferRoute(rhpRouteKey: string, shouldInsertPreMountBuffer: boolean | undefined): StackNavigationState<ParamListBase>['routes'][number] | undefined {
     if (Platform.OS === 'web' || !shouldInsertPreMountBuffer) {
@@ -477,9 +472,9 @@ function handleReplaceFullscreenUnderRHP(
         preInsertedOriginalTabRoute = existingTabState?.routes?.length
             ? existingTabRoute
             : ({...existingTabRoute, state: buildTabNavigatorNestedState({name: TAB_SCREENS[0]})} as StackNavigationState<ParamListBase>['routes'][number]);
-        // Build Buffer into this same dispatch. A separate follow-up dispatch races the stale-state
-        // rehydration this action just computed and can freeze a pre-rehydration snapshot, so
-        // Buffer must land atomically.
+        // Add Buffer to the routes this call returns, rather than as a separate dispatch afterward. A
+        // second dispatch would re-run state rehydration on top of the placeholder tab state built
+        // above, permanently locking in that placeholder instead of letting it resolve normally.
         const bufferRouteForTab = buildPreMountBufferRoute(rhpRoute.key, action.payload.shouldInsertPreMountBuffer);
         const newRoutes = [
             ...routesWithoutRHP.slice(0, tabNavIndex),

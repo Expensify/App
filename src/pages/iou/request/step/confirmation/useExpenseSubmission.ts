@@ -151,10 +151,9 @@ type UseExpenseSubmissionParams = {
     backToReport?: string;
 
     /**
-     * Called once trackExpense/requestMoney have passed all their upfront validation and a real optimistic write is
-     * guaranteed to run. A caller holding a pre-mount promotion marker (see promoteDraftReportForPreMount) must only
-     * clear it here - clearing any earlier risks leaving an orphaned promoted report row if validation then bails
-     * with no write, since nothing else is left to reconcile that marker afterward.
+     * Called once validation has passed and the write is guaranteed to happen. Clear a pre-mount
+     * promotion marker here, not earlier - clearing it before validation could pass risks orphaning
+     * the promoted report if validation then bails with no write.
      */
     onExpenseWriteWillStart?: () => void;
 };
@@ -423,12 +422,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
         onExpenseWriteWillStart?.();
 
-        // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
-        // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
-        // report at that same ID so the report the screen subscribes to is the one that actually gets created.
-        // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
-        // Keyed off the selected participant's own chat linkage, not the page-level `report` - that prop can stay
-        // bound to a previously-selected participant's chat when the user swaps recipients without remounting.
+        // For a brand-new P2P recipient, reuse the optimistic report ID the confirmation screen already
+        // committed to the transaction, so the chat report built here is the one the screen subscribes
+        // to - otherwise it'd wait forever on an ID that's never created.
         const transactionReportID = transaction?.reportID;
         const reusableP2PReportID = getReusableP2PReportID(participant, transactionReportID);
         const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
@@ -653,9 +649,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
                 existingChatReport = getReportOrDraftReport(participant.reportID);
             }
-            // Keep the pre-mounted report ID aligned with the report created for a brand-new P2P recipient.
-            // existingChatReport can belong to the previously selected recipient.
-            // Confirmation commits this ID for new recipients.
+            // The recipient can be swapped without this screen remounting, so `existingChatReport` above
+            // can still be whoever was selected before. Use the ID confirmation committed for the current
+            // pick instead, so the pre-mounted report stays aligned with a brand-new P2P recipient.
             const transactionReportID = transaction.reportID;
             // Reuse it so the pre-mounted screen subscribes to the report created on submission.
             const reusableP2PReportID = !isExpenseReport ? getReusableP2PReportID(participant, transactionReportID) : undefined;
@@ -874,10 +870,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
-        // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
-        // report at that same ID so the report the screen subscribes to is the one that actually gets created.
-        // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
+        // Same reasoning as above: reuse the confirmation screen's optimistic report ID for a brand-new
+        // P2P recipient, so the screen isn't left subscribed to a report ID that's never created.
         const isBrandNewP2PRecipient = !report && !participant.isPolicyExpenseChat && !participant.reportID;
         const optimisticChatReportID = isBrandNewP2PRecipient && !!transaction.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : undefined;
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);

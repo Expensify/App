@@ -176,11 +176,10 @@ function ReportFetchHandler() {
             return;
         }
 
-        // reportIDFromRoute is a client-generated optimistic ID for a chat that doesn't exist on the server yet (see
-        // getSubmitExpensePreMountDestinationRoute.ts, which pre-mounts this screen behind the confirmation RHP for a
-        // brand-new 1:1 recipient before submit). Calling openReport for it would 403 and latch the not-found page.
-        // Once the real submit writes the report into COLLECTION.REPORT under this same ID, reportOnyx?.reportID
-        // becomes truthy and normal fetching resumes.
+        // isPendingCreationFromRoute means reportIDFromRoute is a client-generated ID that doesn't exist
+        // on the server yet. Calling openReport for it would 403 and show the not-found page instead.
+        // Once the real submit creates the report under this ID, reportOnyx?.reportID becomes truthy
+        // and normal fetching resumes.
         if (isPendingCreationFromRoute && !reportOnyx?.reportID) {
             return;
         }
@@ -205,10 +204,9 @@ function ReportFetchHandler() {
             return;
         }
 
-        // promoteDraftReportForPreMount (see Report/index.ts) copies that same draft into COLLECTION.REPORT so the
-        // pre-mounted screen can render immediately, which makes the guard above stop protecting it - reportOnyx?.reportID
-        // is now truthy even though the row is still speculative. The promotion marker stays set until the real submit
-        // confirms or the caller backs out, so gate on it here too.
+        // A promoted draft gets copied into the real report collection so it can render immediately,
+        // which makes reportOnyx?.reportID truthy even though the row is still speculative - the guard
+        // above no longer catches it, so check the promotion marker directly instead.
         if (isPromotedForPreMount) {
             return;
         }
@@ -341,8 +339,9 @@ function ReportFetchHandler() {
         navigation.setParams({secureKey: undefined});
     }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
-    // isPendingCreation only protects the client-generated ID before submission. Remove it once the optimistic
-    // report exists locally so copied or restored links use the normal openReport path on other clients.
+    // isPendingCreation is only needed before the report exists. Clear it from the route params once it
+    // does, so a copied URL, restored navigation state, or reload doesn't carry the stale flag and skip
+    // fetching again later.
     useEffect(() => {
         if (!isPendingCreationFromRoute || !reportOnyx?.reportID) {
             return;

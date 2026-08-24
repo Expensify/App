@@ -244,6 +244,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
     describe('requestMoney path', () => {
         it('uses the transaction report ID for a brand-new P2P recipient optimistic chat', async () => {
+            // Given a new P2P recipient whose transaction already reserved a report ID
             const optimisticP2PReportID = 'reused-p2p-report-1';
             const transaction = buildTransaction({reportID: optimisticP2PReportID});
             const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue(undefined);
@@ -262,11 +263,13 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 );
                 await waitForBatchedUpdatesWithAct();
 
+                // When the request is created before a persisted chat can be resolved
                 await act(async () => {
                     result.current.createTransaction(false, false);
                 });
                 await waitForBatchedUpdatesWithAct();
 
+                // Then the reserved ID is forwarded so optimistic transaction and chat data align
                 expect(getChatByParticipantsSpy).toHaveBeenCalled();
                 expect(getReusableP2PReportIDSpy).toHaveBeenCalledWith(expect.objectContaining({accountID: 42}), optimisticP2PReportID);
                 expect(mockRequestMoneyAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));

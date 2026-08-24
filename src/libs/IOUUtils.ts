@@ -517,7 +517,7 @@ function resolveOptimisticChatReportID(participantAccountIDs: number[], existing
     return {optimisticChatReportID, chatReportID: optimisticChatReportID};
 }
 
-/** Returns the transaction report ID when it can be reused for a brand-new P2P chat. */
+/** Returns `transactionReportID` if the participant isn't a workspace and has no existing chat, so the ID can be reused for their new chat report; otherwise undefined. */
 function getReusableP2PReportID(participant: Participant, transactionReportID: string | undefined): string | undefined {
     const isBrandNewP2PRecipient = !participant.isPolicyExpenseChat && !participant.reportID;
     return isBrandNewP2PRecipient && !!transactionReportID && transactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transactionReportID : undefined;

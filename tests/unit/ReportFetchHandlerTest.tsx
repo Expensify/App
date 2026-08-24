@@ -43,13 +43,7 @@ function renderHandler() {
     );
 }
 
-/**
- * Regression tests for the pre-mount destination guards in ReportFetchHandler.
- *
- * reportIDFromRoute can be a client-generated optimistic ID for a chat/report that doesn't exist on the
- * server yet (see getSubmitExpensePreMountDestinationRoute.ts). Calling openReport for that ID 403s and
- * latches the not-found page, so these guards must suppress the fetch until the real row exists locally.
- */
+/** Regression tests for the guards that suppress openReport for a client-generated report ID that doesn't exist on the server yet. */
 describe('ReportFetchHandler', () => {
     beforeEach(async () => {
         mockOpenReport.mockClear();
@@ -64,55 +58,70 @@ describe('ReportFetchHandler', () => {
     });
 
     it('does NOT call openReport when isPendingCreation is set and the report does not exist locally yet', async () => {
+        // Given an optimistic destination that has not been created locally yet
         mockRouteParams = {reportID: REPORT_ID, isPendingCreation: 'true'};
 
+        // When the pre-mounted destination starts handling report fetches
         renderHandler();
         await waitForBatchedUpdates();
 
+        // Then fetching is deferred because the server cannot resolve the optimistic report ID
         expect(mockOpenReport).not.toHaveBeenCalled();
     });
 
     it('calls openReport again once the pre-mounted report exists locally and isPendingCreation clears', async () => {
+        // Given a pre-mounted report that has become locally available
         mockRouteParams = {reportID: REPORT_ID};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
         await waitForBatchedUpdates();
 
+        // When report fetching resumes after creation completes
         renderHandler();
         await waitForBatchedUpdates();
 
+        // Then the real report is fetched because its optimistic guard is no longer needed
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
     });
 
     it('clears isPendingCreation once the report exists locally', async () => {
+        // Given an optimistic route whose report has just become locally available
         mockRouteParams = {reportID: REPORT_ID, isPendingCreation: 'true'};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
         await waitForBatchedUpdates();
 
+        // When the handler observes the newly created report
         renderHandler();
         await waitForBatchedUpdates();
 
+        // Then the temporary route guard is removed because future fetches are safe
         expect(mockSetParams).toHaveBeenCalledWith({isPendingCreation: undefined});
     });
 
     it('does NOT call openReport while the promotion marker is set, even though the report row exists', async () => {
+        // Given a draft report promoted only for speculative pre-mounting
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${REPORT_ID}`, true);
         await waitForBatchedUpdates();
 
+        // When the handler sees the speculative report row
         renderHandler();
         await waitForBatchedUpdates();
 
+        // Then fetching stays blocked because the report is not committed on the server
         expect(mockOpenReport).not.toHaveBeenCalled();
     });
 
     it('calls openReport again once the promotion marker is cleared', async () => {
+        // Given a promoted report that has completed its speculative lifecycle
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${REPORT_ID}`, null);
         await waitForBatchedUpdates();
 
+        // When the handler observes that promotion is complete
         renderHandler();
         await waitForBatchedUpdates();
 
+        // Then normal fetching resumes because the report is now safe to request
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
     });
 });

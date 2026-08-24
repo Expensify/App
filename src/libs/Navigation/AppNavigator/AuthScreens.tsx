@@ -228,8 +228,8 @@ function AuthScreens() {
                             options={defaultScreenOptions}
                             getComponent={loadSubmitExpensePage}
                         />
-                        {/* No linking path, not deep-linkable. animation: none - it's a fake screen,
-                            insert/remove must be instant, not slide. */}
+                        {/* Internal placeholder screen, not reachable via a URL/deep link. animation: none so it
+                            appears and disappears instantly instead of sliding in. */}
                         <RootStack.Screen
                             name={SCREENS.PRE_MOUNT_BUFFER}
                             options={{...defaultScreenOptions, animation: 'none'}}

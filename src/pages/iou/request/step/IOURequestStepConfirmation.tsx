@@ -638,9 +638,9 @@ function IOURequestStepConfirmation({
     const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
     const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
 
-    // Resolve the selected P2P participant independently of the page-level report, which can still belong to the
-    // previously selected participant. Existing chats win; only a genuinely new chat reuses the transaction's stable
-    // optimistic reportID committed by useParticipantSubmission.
+    // The user can swap recipients here without a remount, so `report` can still lag behind the current
+    // pick. Resolve the P2P participant separately: existing chats win; only a genuinely new chat reuses
+    // the optimistic reportID useParticipantSubmission committed.
     const firstParticipant = participants.at(0);
     // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
     const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat;
@@ -689,16 +689,14 @@ function IOURequestStepConfirmation({
         ],
     );
 
-    // Draft promotion only applies to the employer-flow report (never the optimistic P2P case, which never has a
-    // draft to promote). Checking that explicitly - rather than relying solely on the route string matching a
-    // param-free report route - keeps this from silently breaking if the employer-flow route ever gains a query param.
+    // Excludes the optimistic P2P case explicitly (never has a draft to promote), rather than relying only
+    // on the route string, so this can't silently break if that route ever gains a query param.
     const preMountDestinationReportRoute = preMountDestinationReportID ? ROUTES.REPORT_WITH_ID.getRoute(preMountDestinationReportID) : undefined;
     const shouldPromoteDestinationDraft = !optimisticP2PDestinationReportID && !!preMountDestinationReportRoute && preMountDestinationRoute === preMountDestinationReportRoute;
 
-    // The zero-workspace "Submit to my employer" flow creates the draft policy expense chat report (with the
-    // reportID the real backend commit will eventually use) before this screen mounts - see DraftWorkspaceOpener /
-    // createDraftWorkspace. Copy it into COLLECTION.REPORT only when this report is the eligible pre-mount target.
-    // The backend success handler overwrites the same key with confirmed data once submit completes.
+    // DraftWorkspaceOpener creates a draft policy expense chat, under the reportID the real backend
+    // commit will eventually use, before this screen mounts. Copy it into the real report collection only
+    // when it's the eligible pre-mount target; the backend overwrites it with confirmed data on submit.
     useEffect(() => {
         if (!shouldPromoteDestinationDraft || !preMountDestinationReportID || destinationReport || !destinationReportDraft) {
             return;
@@ -712,8 +710,7 @@ function IOURequestStepConfirmation({
         shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
     });
 
-    // Register this after usePreMountDestination so its route cleanup removes the pre-mounted screen first. Only
-    // then is it safe to remove the speculative report row that screen may have been reading.
+    // Only remove the speculative report row once the pre-mounted screen reading it is confirmed gone.
     useEffect(() => {
         return () => {
             const promotedReportID = promotedDraftReportIDRef.current;
@@ -725,9 +722,8 @@ function IOURequestStepConfirmation({
 
             // eslint-disable-next-line react-hooks/exhaustive-deps
             if (hasSubmitIntent || formHasBeenSubmitted.current) {
-                // onExpenseWriteWillStart (passed to useExpenseSubmission) owns clearing the marker once the real
-                // write runs - it may race this cleanup, so leave both the ref and the marker alone here. Clearing
-                // early would leave the speculative row unmarked if the app dies before that write actually happens.
+                // The real write's own callback clears the marker once it runs, which may race this cleanup - leave
+                // it alone here, or the row could end up unmarked before that write actually happens.
                 return;
             }
 

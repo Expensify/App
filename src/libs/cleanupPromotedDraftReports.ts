@@ -24,10 +24,9 @@ function getPromotedDraftReportCleanupData(promotions: OnyxCollection<boolean>, 
 }
 
 /**
- * Reads the draft reports once to decide which speculative rows are safe to delete. This runs at startup from
- * cleanupPromotedDraftReports, before React mounts and outside of any component, so useOnyx is not available and
- * connectWithoutView is the only way to read the collection. The connection is disconnected in the first callback
- * because a single snapshot is all this cleanup needs and nothing here renders.
+ * Reads the draft reports once to decide which speculative rows are safe to delete. Runs before React mounts,
+ * outside any component, so there's no hook available - takes a single snapshot instead and disconnects
+ * immediately, since nothing here renders or needs to stay subscribed.
  */
 function cleanupReportDrafts(promotions: OnyxCollection<boolean>) {
     let reportDraftsConnection: ReturnType<typeof Onyx.connectWithoutView>;
@@ -49,8 +48,8 @@ function cleanupReportDrafts(promotions: OnyxCollection<boolean>) {
  * so only the stale promotion marker is removed and the real report is preserved.
  */
 function cleanupPromotedDraftReports() {
-    // Startup-only cleanup that runs before React mounts, so there is no component to hold a useOnyx subscription.
-    // connectWithoutView takes a single snapshot of the promotion markers and disconnects immediately in the callback.
+    // Same reasoning as cleanupReportDrafts above: no hook available yet, so take a single snapshot
+    // and disconnect immediately.
     let promotionsConnection: ReturnType<typeof Onyx.connectWithoutView>;
 
     function handlePromotions(promotions: OnyxCollection<boolean>) {
