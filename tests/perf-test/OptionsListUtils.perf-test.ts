@@ -331,7 +331,11 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] filterAndOrderOptions with multi-word search on large dataset', async () => {
         const largePersonalDetails = getMockedPersonalDetails(LARGE_PERSONAL_DETAILS_COUNT);
         const largeReports = getMockedReports(LARGE_REPORTS_COUNT) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
-        const largeOptionList = createFilteredOptionList(largePersonalDetails, largeReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: undefined});
+        const largeOptionList = createFilteredOptionList(largePersonalDetails, largeReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+            currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+            dateFnsLocale: undefined,
+            conciergeReportID: undefined,
+        });
 
         const {options: formattedOptions} = getValidOptions(
             {reports: largeOptionList.reports, personalDetails: largeOptionList.personalDetails},
