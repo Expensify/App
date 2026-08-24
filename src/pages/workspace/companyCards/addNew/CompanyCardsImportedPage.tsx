@@ -59,6 +59,8 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
+    const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
+
     const columnRoles: ColumnRole[] = (() => {
         const baseRoles: ColumnRole[] = [
             {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
@@ -70,8 +72,14 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             {text: translate('workspace.companyCards.addNewCard.csvColumns.currency'), value: CONST.CSV_IMPORT_COLUMNS.CURRENCY, isRequired: true},
         ];
 
+        const uniqueIDRole: ColumnRole = {text: translate('workspace.companyCards.addNewCard.csvColumns.uniqueID'), value: CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID};
+
         if (!shouldUseAdvancedFields) {
-            return baseRoles;
+            // A feed whose saved layout maps a Unique ID column has to keep offering that role, otherwise re-importing
+            // the same file from the feed's settings silently drops the mapping and duplicates every row. Only the role
+            // is offered: the saved index isn't applied, because a synthetic externalID index is indistinguishable
+            // from a real one.
+            return savedColumnMappings?.[CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID] === undefined ? baseRoles : [...baseRoles, uniqueIDRole];
         }
 
         const advancedRoles: ColumnRole[] = [
@@ -81,13 +89,12 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             {text: translate('workspace.companyCards.addNewCard.csvColumns.comment'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT},
             {text: translate('workspace.companyCards.addNewCard.csvColumns.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
             {text: translate('workspace.companyCards.addNewCard.csvColumns.tag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.uniqueID'), value: CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID},
+            uniqueIDRole,
         ];
 
         return [...baseRoles, ...advancedRoles];
     })();
 
-    const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
     const hasAppliedSavedMappings = useRef(false);
     const lastProcessedDataRef = useRef(spreadsheet?.data);
     const lastAdvancedFieldsRef = useRef(shouldUseAdvancedFields);
