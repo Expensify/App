@@ -42,7 +42,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocusVisible ? focusedBackgroundColor : theme.sidebar;
@@ -110,7 +110,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.text ?? '')}
+                                text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
                                 numberOfLines={isMultilineSupported ? 2 : 1}
                                 style={[
                                     styles.optionDisplayName,
@@ -124,7 +124,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                text={Str.isSMSLogin(item.alternateText ?? '') ? formatPhoneNumber(item.alternateText ?? '') : (item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}

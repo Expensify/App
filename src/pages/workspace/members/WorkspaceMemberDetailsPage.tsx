@@ -21,6 +21,7 @@ import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -33,7 +34,7 @@ import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPersonalDetailByEmail, getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -125,7 +126,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
-    const memberPersonalDetails = personalDetails?.[routeAccountID] ?? getPersonalDetailByEmail(memberLogin);
+    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const member = policy?.employeeList?.[memberLogin];
     const prevMember = usePrevious(member);
@@ -353,11 +354,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                 shouldRenderTransferOwnerButton(fundList) && (
                                     <ButtonDisabledWhenOffline
-                                        text={translate('workspace.people.transferOwner')}
                                         onPress={startChangeOwnershipFlow}
-                                        icon={icons.Transfer}
                                         style={styles.mb5}
-                                    />
+                                    >
+                                        <Button.Icon src={icons.Transfer} />
+                                        <Button.Text>{translate('workspace.people.transferOwner')}</Button.Text>
+                                    </ButtonDisabledWhenOffline>
                                 )
                             ) : (
                                 <Button

@@ -12,7 +12,7 @@ import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
+import Button from './ButtonComposed';
 import Text from './Text';
 
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
@@ -73,10 +73,9 @@ function FullScreenLoadingIndicator({
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>
                         </View>
-                        <Button
-                            text={translate('common.goBack')}
-                            onPress={() => onGoBack()}
-                        />
+                        <Button onPress={() => onGoBack()}>
+                            <Button.Text>{translate('common.goBack')}</Button.Text>
+                        </Button>
                     </View>
                 )}
             </View>

@@ -67,6 +67,14 @@ const pendingTransactionIDsSelector = (transactions: OnyxCollection<Transaction>
 
 const getLocalTransaction = (localTransactions: OnyxCollection<Transaction>, transactionID: string) => localTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
+type RecentlyAddedData = {
+    /** The expenses to show, most recently inserted first, capped at CONST.HOME.SECTION_VISIBLE_LIMIT */
+    transactions: RecentlyAddedExpense[];
+
+    /** False means the outcome is settled, so an empty `transactions` is the real answer and not a gap in knowledge. */
+    isAwaitingFirstResult: boolean;
+};
+
 /**
  * Returns the signed-in user's most recently added expenses, ordered by insertion timestamp (most recent first)
  * and capped at CONST.HOME.SECTION_VISIBLE_LIMIT. Ordering is independent of the expense date.
@@ -87,7 +95,7 @@ const getLocalTransaction = (localTransactions: OnyxCollection<Transaction>, tra
  * fall back to the snapshot and reappear as a live expense. Deleted IDs are therefore remembered and suppressed
  * until the snapshot stops listing them.
  */
-function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
+function useRecentlyAddedData(): RecentlyAddedData {
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -126,7 +134,6 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             queryJSON,
             searchKey: undefined,
             offset: 0,
-            isOffline,
             isLoading: false,
             shouldCalculateTotals: false,
             shouldUpdateLastSearchParams: false,
@@ -143,6 +150,16 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
     }, [isFocused, isOffline, hash]);
 
     const snapshotData = searchResults?.data;
+
+    const hasSearchErrors = Object.keys(searchResults?.errors ?? {}).length > 0;
+
+    // Every term below is terminal, so the slot resolves to rows or to the empty state rather than an endless skeleton.
+    // `state: loaded` cannot be read alone because failures reach it too, and snapshot data without `state` counts as
+    // terminal because the IOU optimistic update writes data without it.
+    // `SearchUIUtils.isSearchDataLoaded` is deliberately not reused: it recomputes hashes for sort round-tripping this
+    // fixed query never does.
+    const hasResolved = searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || !!snapshotData;
+    const isAwaitingFirstResult = !!queryJSON && !hasResolved && !hasSearchErrors && !isOffline;
 
     const {transactions, nextUnconfirmedTransactionIDs, nextDeletedTransactionIDs} = useMemo(() => {
         const data = snapshotData ?? {};
@@ -278,7 +295,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         setDeletedTransactionIDs(nextDeletedTransactionIDs);
     }
 
-    return {transactions};
+    return {transactions, isAwaitingFirstResult};
 }
 
 export {useRecentlyAddedData};

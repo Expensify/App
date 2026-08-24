@@ -52,6 +52,7 @@ import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
     isSelfDMSoleDestination,
+    isLookingAroundSearchRoutingActive,
     navigateToStartMoneyRequestStep,
     pickReportForPolicy,
     resolveOptimisticChatReportID,
@@ -277,6 +278,8 @@ function IOURequestStepConfirmation({
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;
@@ -667,6 +670,7 @@ function IOURequestStepConfirmation({
                 isCreatingTrackExpense,
                 isSelfDMDestination,
                 isOptimisticNewChatDestination: !!optimisticP2PDestinationReportID,
+                isLookingAroundUser,
                 isMovingTransactionFromTrackExpense,
             }),
         [
@@ -680,6 +684,7 @@ function IOURequestStepConfirmation({
             iouType,
             isCreatingTrackExpense,
             isSelfDMDestination,
+            isLookingAroundUser,
             isMovingTransactionFromTrackExpense,
         ],
     );
@@ -829,12 +834,16 @@ function IOURequestStepConfirmation({
         }
 
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
-            // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
+            // If the participants weren't automatically added to the transaction, then we should go back to the participants step.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
-                    compareParams: false,
-                });
+                Navigation.goBack(
+                    createDynamicRoute(
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType, transactionID: initialTransactionID, reportID: transaction?.reportID || reportID}),
+                        ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
+                    ),
+                    {compareParams: false},
+                );
                 return;
             }
 
@@ -1070,6 +1079,7 @@ function IOURequestStepConfirmation({
                             isFromGlobalCreate={isFromGlobalCreate}
                             iouType={iouType}
                             isSelfDMDestination={isSelfDMDestination}
+                            isLookingAroundUser={isLookingAroundUser}
                             requestType={requestType}
                             canDismissFromSearch={canDismissFromSearch}
                             gpsRequired={!!gpsRequired}
