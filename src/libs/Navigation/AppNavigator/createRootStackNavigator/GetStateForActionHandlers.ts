@@ -201,18 +201,30 @@ function getFocusedRouteIndex(navState: NavigationState | PartialState<Navigatio
     return typeof navState.index === 'number' && navState.routes[navState.index] !== undefined ? navState.index : 0;
 }
 
+function isNavigationPartialRoute(route: unknown): route is NavigationPartialRoute {
+    return typeof route === 'object' && route !== null && 'name' in route && typeof route.name === 'string';
+}
+
+function isNavigationStateWithRoutes(state: unknown): state is PartialState<NavigationState> {
+    return typeof state === 'object' && state !== null && 'routes' in state && Array.isArray(state.routes);
+}
+
+function hasReportParams(params: unknown): params is ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] {
+    return typeof params === 'object' && params !== null && 'reportID' in params && typeof params.reportID === 'string';
+}
+
 /**
  * Returns the focused child route from a navigator `state` (respects `index`).
  * Using `routes.at(-1)` is wrong for TabNavigator: tab order follows TAB_SCREENS, not selection.
  */
 function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialState<NavigationState> | undefined): NavigationPartialRoute | undefined {
     const focusedRouteIndex = getFocusedRouteIndex(navState);
-    return focusedRouteIndex === undefined ? undefined : (navState?.routes[focusedRouteIndex] as NavigationPartialRoute);
+    const focusedRoute = focusedRouteIndex === undefined ? undefined : navState?.routes[focusedRouteIndex];
+    return isNavigationPartialRoute(focusedRoute) ? focusedRoute : undefined;
 }
 
 function getKeylessRoute<R extends {key?: string}>(route: R): Omit<R, 'key'> {
-    const routeWithoutKey = {...route};
-    delete (routeWithoutKey as Partial<Pick<typeof routeWithoutKey, 'key'>>).key;
+    const {key, ...routeWithoutKey} = route;
     return routeWithoutKey;
 }
 
@@ -221,8 +233,8 @@ function areSameReportRoutes(firstRoute: NavigationPartialRoute | undefined, sec
         return false;
     }
 
-    const firstReportID = (firstRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | undefined)?.reportID;
-    const secondReportID = (secondRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | undefined)?.reportID;
+    const firstReportID = hasReportParams(firstRoute.params) ? firstRoute.params.reportID : undefined;
+    const secondReportID = hasReportParams(secondRoute.params) ? secondRoute.params.reportID : undefined;
 
     return typeof firstReportID === 'string' && firstReportID === secondReportID;
 }
@@ -238,11 +250,11 @@ function getTargetTabRoute(
     // doesn't have nested routes (e.g. cold-start through a deep link that opens straight into a modal),
     // fall back to the split navigator's default sidebar route so there is still something to pop back to.
     let mergedNestedState = focusedTargetTab.state;
-    const existingNestedRoutes = (existingTabRoute?.state as PartialState<NavigationState> | undefined)?.routes;
+    const existingNestedState = isNavigationStateWithRoutes(existingTabRoute?.state) ? existingTabRoute.state : undefined;
+    const existingNestedRoutes = existingNestedState?.routes;
     const newNestedRoutes = focusedTargetTab.state?.routes;
     const existingFirstRoute = existingNestedRoutes?.at(0);
     const newFirstRoute = newNestedRoutes?.at(0);
-    const existingNestedState = existingTabRoute?.state as PartialState<NavigationState> | undefined;
     const focusedExistingRoute = getFocusedRouteFromNavigatorState(existingNestedState);
     const focusedExistingRouteIndex = getFocusedRouteIndex(existingNestedState);
     const defaultSidebarRouteName = getSidebarRouteName(existingTabRoute?.name ?? focusedTargetTab.name);

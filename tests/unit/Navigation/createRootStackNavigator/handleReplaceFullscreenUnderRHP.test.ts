@@ -158,8 +158,12 @@ function getReportsSplitState(result: StackNavigationState<ParamListBase> | null
     return reportsSplitRoute?.state;
 }
 
+function hasReportParams(params: unknown): params is ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] {
+    return typeof params === 'object' && params !== null && 'reportID' in params && typeof params.reportID === 'string';
+}
+
 function getReportIDs(result: StackNavigationState<ParamListBase> | null) {
-    return getReportsSplitState(result)?.routes.map((route) => (route.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | undefined)?.reportID);
+    return getReportsSplitState(result)?.routes.map((route) => (hasReportParams(route.params) ? route.params.reportID : undefined));
 }
 
 function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> | null) {
@@ -220,7 +224,10 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(reportsState?.index).toBe(1);
         expect(routes?.at(0)?.key).toBeUndefined();
 
-        const restoredState = handleRemoveFullscreenUnderRHP(result as StackNavigationState<ParamListBase>, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
+        if (!result) {
+            throw new Error('Expected the report pre-insert to return a navigation state');
+        }
+        const restoredState = handleRemoveFullscreenUnderRHP(result, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
         expect(restoredState?.routes.at(0)).toEqual(earlierTabRoute);
         expect(getReportIDs(restoredState)).toEqual(['A']);
         expect(getReportsSplitState(restoredState)?.routes.at(0)?.key).toBe('report-a-key');
@@ -298,7 +305,10 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
             1,
         );
         const preInsertedState = handleReplaceFullscreenUnderRHP(originalState, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
-        const restoredState = handleRemoveFullscreenUnderRHP(preInsertedState as StackNavigationState<ParamListBase>, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
+        if (!preInsertedState) {
+            throw new Error('Expected the report pre-insert to return a navigation state');
+        }
+        const restoredState = handleRemoveFullscreenUnderRHP(preInsertedState, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
         const routes = getReportsSplitState(restoredState)?.routes;
         expect(getReportIDs(restoredState)).toEqual([undefined, 'A']);
         expect(routes?.at(0)?.key).toBe('inbox-key');
