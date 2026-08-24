@@ -1276,7 +1276,11 @@ const translations: TranslationDeepObject<typeof en> = {
         split: '分割',
         splitExpense: '経費を分割',
         splitDates: '日付を分割',
-        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} から ${endDate}（${count} 日間）`,
+        splitDateRange: ({startDate, endDate, count}: {startDate: string; endDate: string; count: number}) => ({
+            // Japanese has no grammatical plural, so both categories carry the same text.
+            one: `${startDate} から ${endDate}（${count} 日間）`,
+            other: `${startDate} から ${endDate}（${count} 日間）`,
+        }),
         splitExpenseSubtitle: (amount: string, merchant: string) => `${merchant}からの${amount}`,
         splitByPercentage: 'パーセンテージで分割',
         splitByDate: '日付ごとに分割',

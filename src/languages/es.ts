@@ -1287,7 +1287,10 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Dividir',
         splitExpense: 'Dividir gasto',
         splitDates: 'Fechas de división',
-        splitDateRange: (startDate, endDate, count) => `${startDate} al ${endDate} (${count} días)`,
+        splitDateRange: ({startDate, endDate, count}) => ({
+            one: `${startDate} al ${endDate} (1 día)`,
+            other: `${startDate} al ${endDate} (${count} días)`,
+        }),
         splitExpenseSubtitle: (amount, merchant) => `${amount} de ${merchant}`,
         splitByPercentage: 'Dividir por porcentaje',
         splitByDate: 'Dividir por fecha',

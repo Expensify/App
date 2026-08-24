@@ -1234,7 +1234,7 @@ function getFormattedSplitDateRange(startDate: string | undefined, endDate: stri
     if (!startPart || !endPart) {
         return '';
     }
-    return translateLocalize(locale, 'iou.splitDateRange', startPart, endPart, differenceInDays(end, start) + 1);
+    return translateLocalize(locale, 'iou.splitDateRange', {startDate: startPart, endDate: endPart, count: differenceInDays(end, start) + 1});
 }
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;

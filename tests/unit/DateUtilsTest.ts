@@ -754,6 +754,19 @@ describe('DateUtils', () => {
             const result = DateUtils.getFormattedSplitDateRange('2024-01-10', '2024-01-15', CONST.LOCALES.ES);
             expect(result).toBe('10 ene 2024 al 15 ene 2024 (6 días)');
         });
+
+        it('should use the singular form when the range is one day', () => {
+            const result = DateUtils.getFormattedSplitDateRange('2024-01-10', '2024-01-10', LOCALE);
+            expect(result).toBe('Jan 10, 2024 to Jan 10, 2024 (1 day)');
+        });
+
+        it('should select the singular form per locale, not English two-form rules', async () => {
+            await IntlStore.load(CONST.LOCALES.ES);
+            expect(DateUtils.getFormattedSplitDateRange('2024-01-10', '2024-01-10', CONST.LOCALES.ES)).toContain('(1 día)');
+            await IntlStore.load(CONST.LOCALES.PL);
+            expect(DateUtils.getFormattedSplitDateRange('2024-01-10', '2024-01-10', CONST.LOCALES.PL)).toContain('(1 dzień)');
+            expect(DateUtils.getFormattedSplitDateRange('2024-01-10', '2024-01-12', CONST.LOCALES.PL)).toContain('(3 dni)');
+        });
     });
 
     describe('formatCountdownTimer', () => {

@@ -1362,7 +1362,10 @@ const translations = {
         split: 'Split',
         splitExpense: 'Split expense',
         splitDates: 'Split dates',
-        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} to ${endDate} (${count} days)`,
+        splitDateRange: ({startDate, endDate, count}: {startDate: string; endDate: string; count: number}) => ({
+            one: `${startDate} to ${endDate} (1 day)`,
+            other: `${startDate} to ${endDate} (${count} days)`,
+        }),
         splitExpenseSubtitle: (amount: string, merchant: string) => `${amount} from ${merchant}`,
         splitByPercentage: 'Split by percentage',
         splitByDate: 'Split by date',

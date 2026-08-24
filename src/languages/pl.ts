@@ -1322,7 +1322,13 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Podziel',
         splitExpense: 'Podziel wydatek',
         splitDates: 'Podziel daty',
-        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} do ${endDate} (${count} dni)`,
+        splitDateRange: ({startDate, endDate, count}: {startDate: string; endDate: string; count: number}) => ({
+            // Polish inflects the noun only at 1; `few` and `many` share "dni" but must both be present to be selectable.
+            one: `${startDate} do ${endDate} (1 dzień)`,
+            few: `${startDate} do ${endDate} (${count} dni)`,
+            many: `${startDate} do ${endDate} (${count} dni)`,
+            other: `${startDate} do ${endDate} (${count} dni)`,
+        }),
         splitExpenseSubtitle: (amount: string, merchant: string) => `${amount} od ${merchant}`,
         splitByPercentage: 'Podziel procentowo',
         splitByDate: 'Podziel według daty',

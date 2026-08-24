@@ -1245,7 +1245,11 @@ const translations: TranslationDeepObject<typeof en> = {
         split: '拆分',
         splitExpense: '拆分报销',
         splitDates: '拆分日期',
-        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} 至 ${endDate}（${count} 天）`,
+        splitDateRange: ({startDate, endDate, count}: {startDate: string; endDate: string; count: number}) => ({
+            // Chinese has no grammatical plural, so both categories carry the same text.
+            one: `${startDate} 至 ${endDate}（${count} 天）`,
+            other: `${startDate} 至 ${endDate}（${count} 天）`,
+        }),
         splitExpenseSubtitle: (amount: string, merchant: string) => `来自 ${merchant} 的 ${amount}`,
         splitByPercentage: '按百分比分摊',
         splitByDate: '按日期拆分',

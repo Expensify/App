@@ -1293,7 +1293,11 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Dividir',
         splitExpense: 'Dividir despesa',
         splitDates: 'Dividir datas',
-        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} a ${endDate} (${count} dias)`,
+        splitDateRange: ({startDate, endDate, count}: {startDate: string; endDate: string; count: number}) => ({
+            // `one` covers 0 as well as 1 in Brazilian Portuguese, so it interpolates the count rather than hardcoding 1.
+            one: `${startDate} a ${endDate} (${count} dia)`,
+            other: `${startDate} a ${endDate} (${count} dias)`,
+        }),
         splitExpenseSubtitle: (amount: string, merchant: string) => `${amount} de ${merchant}`,
         splitByPercentage: 'Dividir por porcentagem',
         splitByDate: 'Dividir por data',

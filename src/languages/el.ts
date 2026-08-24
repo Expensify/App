@@ -1344,7 +1344,10 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Διαχωρισμός',
         splitExpense: 'Διαίρεση δαπάνης',
         splitDates: 'Διαχωρισμός ημερομηνιών',
-        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} έως ${endDate} (${count} ημέρες)`,
+        splitDateRange: ({startDate, endDate, count}: {startDate: string; endDate: string; count: number}) => ({
+            one: `${startDate} έως ${endDate} (1 ημέρα)`,
+            other: `${startDate} έως ${endDate} (${count} ημέρες)`,
+        }),
         splitExpenseSubtitle: (amount: string, merchant: string) => `${amount} από ${merchant}`,
         splitByPercentage: 'Διαχωρισμός ανά ποσοστό',
         splitByDate: 'Διαχωρισμός ανά ημερομηνία',

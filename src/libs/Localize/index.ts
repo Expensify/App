@@ -35,7 +35,16 @@ Onyx.connectWithoutView({
 // instance resolves its locale at construction, so one built before that locale's polyfill data has loaded is stuck
 // formatting in English for the lifetime of the app. Going through IntlStore.getCurrentLocale() avoids that, because
 // IntlStore only sets the current locale once every loader for it (translations, date-fns, Intl data) has resolved.
-const createConjunctionListFormat = (locale: Locale): Intl.ListFormat => new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+// Web installs no `ListFormat` polyfill, and it shipped later than every other Intl constructor this app relies on
+// (Firefox 78, Safari 14.1), so it is the one that can be genuinely absent rather than merely short of locale data.
+const createConjunctionListFormat = (locale: Locale): Intl.ListFormat | null => {
+    try {
+        return new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+    } catch (error) {
+        Log.warn('[Localize] Intl.ListFormat unavailable; falling back to a comma-separated list', {locale, error});
+        return null;
+    }
+};
 const memoizedCreateConjunctionListFormat = memoize(createConjunctionListFormat);
 
 const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
@@ -164,7 +173,10 @@ function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parame
     return translate(currentLocale, phrase, ...parameters);
 }
 
-function getPreferredListFormat(): Intl.ListFormat {
+/** The separator for runtimes with no `Intl.ListFormat`. Dropping the conjunction is cosmetic, dropping the items is not. */
+const LIST_FALLBACK_SEPARATOR = ', ';
+
+function getPreferredListFormat(): Intl.ListFormat | null {
     return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale());
 }
 
@@ -173,11 +185,17 @@ function getPreferredListFormat(): Intl.ListFormat {
  */
 function formatList(components: string[]) {
     const listFormat = getPreferredListFormat();
+    if (!listFormat) {
+        return components.join(LIST_FALLBACK_SEPARATOR);
+    }
     return listFormat.format(components);
 }
 
 function formatMessageElementList<E extends MessageElementBase>(elements: readonly E[]): ReadonlyArray<E | MessageTextElement> {
     const listFormat = getPreferredListFormat();
+    if (!listFormat) {
+        return elements.flatMap<E | MessageTextElement>((element, index) => (index === 0 ? [element] : [{kind: 'text', content: LIST_FALLBACK_SEPARATOR}, element]));
+    }
     const parts = listFormat.formatToParts(elements.map((e) => e.content));
     const resultElements: Array<E | MessageTextElement> = [];
 

@@ -1,3 +1,5 @@
+import {clearIntlFormatterCaches} from '@libs/IntlFormatterCaches';
+
 import IntlStore from '@src/languages/IntlStore';
 
 import Onyx from 'react-native-onyx';
@@ -109,6 +111,20 @@ describe('localize', () => {
             expect(Localize.formatList(input)).toBe(expectedOutput);
             await IntlStore.load(CONST.LOCALES.ES);
             expect(Localize.formatList(input)).toBe(expectedOutputES);
+        });
+
+        it('keeps every item when the runtime has no Intl.ListFormat', async () => {
+            await IntlStore.load(CONST.LOCALES.EN);
+            clearIntlFormatterCaches();
+            const throwingSpy = jest.spyOn(Intl, 'ListFormat').mockImplementation(() => {
+                throw new TypeError('Intl.ListFormat is not a constructor');
+            });
+
+            expect(Localize.formatList(['rory', 'vit', 'ionatan'])).toBe('rory, vit, ionatan');
+
+            throwingSpy.mockRestore();
+            clearIntlFormatterCaches();
+            expect(Localize.formatList(['rory', 'vit', 'ionatan'])).toBe('rory, vit, and ionatan');
         });
     });
 
