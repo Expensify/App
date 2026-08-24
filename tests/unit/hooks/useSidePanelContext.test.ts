@@ -5,6 +5,8 @@ import useSidePanelContext from '@pages/inbox/report/ReportActionCompose/useSide
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type * as ReactNavigationNative from '@react-navigation/native';
+
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -36,7 +38,7 @@ jest.mock('@hooks/useIsInSidePanel', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native'),
+    ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     useRoute: () => ({params: mockRouteParams}),
 }));
 
