@@ -1,6 +1,7 @@
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import {useSession} from '@components/OnyxListItemProvider';
 
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -53,6 +54,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
     const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
     const {isOffline} = useNetwork();
+    const session = useSession();
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
@@ -93,7 +95,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
             return;
         }
 
-        initGpsDraft(reportID, unit);
+        initGpsDraft(reportID, unit, session?.accountID);
         startGpsTripNotification(translate, reportID, unit);
     };
 
