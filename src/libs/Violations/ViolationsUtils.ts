@@ -725,7 +725,6 @@ const ViolationsUtils = {
         // The night count decides whether the violation reads as a nightly rate or a total, so an existing violation
         // carrying a different count has to be rebuilt rather than left in place.
         const expectedNights = reservationNights > 0 ? reservationNights : undefined;
-        const hasStaleOverLimitNights = hasOverLimitViolation && existingOverLimitViolation?.data?.nights !== expectedNights;
         const hasStaleCategoryOverLimitNights = hasCategoryOverLimitViolation && existingCategoryOverLimitViolation?.data?.nights !== expectedNights;
 
         // The category maxExpenseAmountNoReceipt and maxExpenseAmount settings override the respective policy settings.
@@ -864,7 +863,7 @@ const ViolationsUtils = {
             });
         }
 
-        if (canCalculateAmountViolations && hasOverLimitViolation && (!shouldShowOverLimitViolation || hasStaleOverLimitNights)) {
+        if (canCalculateAmountViolations && hasOverLimitViolation && !shouldShowOverLimitViolation) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
         }
 
@@ -874,8 +873,7 @@ const ViolationsUtils = {
 
         if (
             canCalculateAmountViolations &&
-            (((!hasOverLimitViolation || hasStaleOverLimitNights) && !!shouldShowOverLimitViolation) ||
-                ((!hasCategoryOverLimitViolation || hasStaleCategoryOverLimitNights) && shouldCategoryShowOverLimitViolation))
+            ((!hasOverLimitViolation && !!shouldShowOverLimitViolation) || ((!hasCategoryOverLimitViolation || hasStaleCategoryOverLimitNights) && shouldCategoryShowOverLimitViolation))
         ) {
             newTransactionViolations.push({
                 name: shouldCategoryShowOverLimitViolation ? CONST.VIOLATIONS.OVER_CATEGORY_LIMIT : CONST.VIOLATIONS.OVER_LIMIT,
@@ -1061,9 +1059,7 @@ const ViolationsUtils = {
                     ? translate('violations.overCategoryLimitPerNight', convertToDisplayString(amount, currency))
                     : translate('violations.overCategoryLimit', convertToDisplayString(amount, currency));
             case 'overLimit':
-                return violation.data?.nights
-                    ? translate('violations.overLimitPerNight', convertToDisplayString(amount, currency))
-                    : translate('violations.overLimit', convertToDisplayString(amount, currency));
+                return translate('violations.overLimit', convertToDisplayString(amount, currency));
             case 'overTripLimit':
                 return translate('violations.overTripLimit', convertToDisplayString(amount, currency));
             case 'overLimitAttendee':
