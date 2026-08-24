@@ -3564,8 +3564,10 @@ describe('getViolationTranslation', () => {
                 const withNights: TransactionViolation = {name, type: CONST.VIOLATION_TYPES.VIOLATION, data: {...limit, nights: 3}};
                 const withoutNights: TransactionViolation = {name, type: CONST.VIOLATION_TYPES.VIOLATION, data: limit};
 
-                expect(ViolationsUtils.getViolationTranslation({violation: withNights, translate: translateLocal, convertToDisplayString})).toBe(translateLocal(perNightKey, formattedLimit));
-                expect(ViolationsUtils.getViolationTranslation({violation: withoutNights, translate: translateLocal, convertToDisplayString})).toBe(
+                expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: withNights, translate: translateLocal, convertToDisplayString})).toBe(
+                    translateLocal(perNightKey, formattedLimit),
+                );
+                expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: withoutNights, translate: translateLocal, convertToDisplayString})).toBe(
                     translateLocal(defaultKey, formattedLimit),
                 );
             },
