@@ -1,4 +1,4 @@
-type CloudflareAuthRedirectOutcome =
+type CloudflareSignInOutcome =
     /** Every normal boot, every native boot, and every boot without QA auth configured */
     | 'not-a-callback'
     /** The code exchange started at boot. Terminal only for success or sign-out. A rejected exchange moves on to 'exchange-failed' */
@@ -12,15 +12,15 @@ type CloudflareAuthRedirectOutcome =
     /** No stored flow in this tab: a replayed callback URL, or one opened in a different tab */
     | 'no-pending-flow';
 
-type CloudflareAuthRedirectResult = {
-    outcome: CloudflareAuthRedirectOutcome;
+type CloudflareSignInResult = {
+    outcome: CloudflareSignInOutcome;
     errorMessage?: string;
 };
 
 /** Call once during boot, before any render. A no-op on every load that is not the callback */
-type ConsumeCloudflareAuthCallbackURL = () => CloudflareAuthRedirectOutcome;
+type FinishCloudflareSignInFromURL = () => CloudflareSignInOutcome;
 
 /** What the boot-time callback handling concluded, for UI that wants to surface a failed round trip */
-type GetCloudflareAuthRedirectOutcome = () => CloudflareAuthRedirectResult;
+type GetCloudflareSignInOutcome = () => CloudflareSignInResult;
 
-export type {CloudflareAuthRedirectOutcome, ConsumeCloudflareAuthCallbackURL, GetCloudflareAuthRedirectOutcome};
+export type {CloudflareSignInOutcome, FinishCloudflareSignInFromURL, GetCloudflareSignInOutcome};

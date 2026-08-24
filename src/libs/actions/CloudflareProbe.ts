@@ -9,9 +9,9 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 
 import {
-    beginCloudflareAuthRedirect,
+    redirectToCloudflareSignIn,
     getCloudflareSession,
-    getPendingCloudflareAuthCompletion,
+    getPendingCloudflareCodeExchange,
     isSessionNearExpiry,
     refreshCloudflareSession,
     waitForCloudflareSessionHydration,
@@ -40,7 +40,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
     try {
         await waitForCloudflareSessionHydration();
         // A callback boot may still be exchanging the code. Join it instead of starting a second round trip
-        const pendingCompletion = getPendingCloudflareAuthCompletion();
+        const pendingCompletion = getPendingCloudflareCodeExchange();
         if (pendingCompletion) {
             try {
                 await pendingCompletion;
@@ -52,12 +52,12 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
         const session = getCloudflareSession();
         if (!session) {
             // Never settles. Nothing below runs
-            await beginCloudflareAuthRedirect();
+            await redirectToCloudflareSignIn();
         } else if (isSessionNearExpiry(session)) {
             const refreshResult = await refreshCloudflareSession();
             if (refreshResult === 'reauth-required') {
                 if (shouldRedirectOnReauthRequired) {
-                    await beginCloudflareAuthRedirect();
+                    await redirectToCloudflareSignIn();
                 }
                 return {status: 'reauthRequired'};
             }
@@ -75,7 +75,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
         if (error instanceof Error && error.message === CF_REAUTH_REQUIRED) {
             if (shouldRedirectOnReauthRequired) {
                 try {
-                    await beginCloudflareAuthRedirect();
+                    await redirectToCloudflareSignIn();
                 } catch (redirectError) {
                     return {status: 'error', detail: redirectError instanceof Error ? redirectError.message : undefined};
                 }

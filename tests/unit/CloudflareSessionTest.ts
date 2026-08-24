@@ -252,7 +252,7 @@ describe('refreshCloudflareSession', () => {
     });
 });
 
-describe('beginCloudflareAuthRedirect', () => {
+describe('redirectToCloudflareSignIn', () => {
     it('stores the flow record before navigating — module memory does not survive the unload', async () => {
         // Given key material ready and a navigation spy that captures what sessionStorage held at the exact
         // moment the browser was asked to leave the page
@@ -263,7 +263,7 @@ describe('beginCloudflareAuthRedirect', () => {
         });
 
         // When the redirect begins
-        SessionActions.beginCloudflareAuthRedirect('http://localhost/settings/troubleshoot');
+        SessionActions.redirectToCloudflareSignIn('http://localhost/settings/troubleshoot');
         await waitForBatchedUpdates();
 
         expect(assignSpy).toHaveBeenCalledWith(AUTHORIZE_URL);
@@ -284,7 +284,7 @@ describe('beginCloudflareAuthRedirect', () => {
 
         // When the returned promise is observed after the navigation has been requested
         let isSettled = false;
-        SessionActions.beginCloudflareAuthRedirect().then(
+        SessionActions.redirectToCloudflareSignIn().then(
             () => {
                 isSettled = true;
             },
@@ -319,7 +319,7 @@ describe('beginCloudflareAuthRedirect', () => {
 
         // When the redirect begins, Then it must reject and stay on the page: navigating away without a
         // stored verifier would strand the flow with no way to exchange the code that comes back
-        await expect(SessionActions.beginCloudflareAuthRedirect()).rejects.toThrow('QuotaExceededError');
+        await expect(SessionActions.redirectToCloudflareSignIn()).rejects.toThrow('QuotaExceededError');
         expect(assignSpy).not.toHaveBeenCalled();
 
         Object.defineProperty(window, 'sessionStorage', {value: realSessionStorage, writable: true, configurable: true});
@@ -331,7 +331,7 @@ describe('beginCloudflareAuthRedirect', () => {
         jest.mocked(pkce.generatePKCEPair).mockReturnValue(pkceDeferred.promise);
 
         // When sign-out invalidates the flow before the key material arrives
-        const redirect = SessionActions.beginCloudflareAuthRedirect('http://localhost/settings/troubleshoot');
+        const redirect = SessionActions.redirectToCloudflareSignIn('http://localhost/settings/troubleshoot');
         sessionCleanup.runSessionCleanupCallbacks();
         pkceDeferred.resolve(PAIR_1);
 
@@ -347,8 +347,8 @@ describe('beginCloudflareAuthRedirect', () => {
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
 
         // When the button is pressed again before the unload completes
-        SessionActions.beginCloudflareAuthRedirect();
-        SessionActions.beginCloudflareAuthRedirect();
+        SessionActions.redirectToCloudflareSignIn();
+        SessionActions.redirectToCloudflareSignIn();
         await waitForBatchedUpdates();
 
         // Then the in-flight guard runs the flow only once: a second run would regenerate PKCE and overwrite
@@ -358,7 +358,7 @@ describe('beginCloudflareAuthRedirect', () => {
     });
 });
 
-describe('completeCloudflareAuthRedirect', () => {
+describe('exchangeCodeForCloudflareSession', () => {
     it('caches the session before persistence but resolves only after Onyx.set completed', async () => {
         // Given an exchange that succeeds while the Onyx persist is held open
         jest.mocked(oAuthClient.exchangeCode).mockResolvedValue(SESSION_A);
@@ -366,7 +366,7 @@ describe('completeCloudflareAuthRedirect', () => {
         const setSpy = jest.spyOn(Onyx, 'set').mockReturnValue(persistDeferred.promise);
 
         // When the redirect completion runs
-        const completion = SessionActions.completeCloudflareAuthRedirect({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
+        const completion = SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
         let isSettled = false;
         completion.then(() => {
             isSettled = true;
@@ -394,17 +394,17 @@ describe('completeCloudflareAuthRedirect', () => {
         jest.mocked(oAuthClient.exchangeCode).mockReturnValue(exchangeDeferred.promise);
 
         // When a second caller completes with the same code while the first is still in flight
-        const first = SessionActions.completeCloudflareAuthRedirect({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
-        expect(SessionActions.getPendingCloudflareAuthCompletion()).toBe(first);
+        const first = SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
+        expect(SessionActions.getPendingCloudflareCodeExchange()).toBe(first);
         // Then it must join the first: the authorization code is single-use, so a second exchange would burn
         // it at the server and fail both callers
-        expect(SessionActions.completeCloudflareAuthRedirect({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier})).toBe(first);
+        expect(SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier})).toBe(first);
         expect(oAuthClient.exchangeCode).toHaveBeenCalledTimes(1);
 
         // Then the pending handle is released once settled, so a future flow can start a fresh exchange
         exchangeDeferred.resolve(SESSION_A);
         await first;
-        expect(SessionActions.getPendingCloudflareAuthCompletion()).toBeNull();
+        expect(SessionActions.getPendingCloudflareCodeExchange()).toBeNull();
     });
 
     it('discards an exchange that resolves after sign-out, so the signed-out account is not resurrected', async () => {
@@ -413,7 +413,7 @@ describe('completeCloudflareAuthRedirect', () => {
         jest.mocked(oAuthClient.exchangeCode).mockReturnValue(exchangeDeferred.promise);
 
         // When sign-out bumps the session generation before the exchange resolves
-        const completion = SessionActions.completeCloudflareAuthRedirect({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
+        const completion = SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
         sessionCleanup.runSessionCleanupCallbacks();
         exchangeDeferred.resolve(SESSION_A);
 
@@ -429,7 +429,7 @@ describe('completeCloudflareAuthRedirect', () => {
         const setSpy = jest.spyOn(Onyx, 'set').mockRejectedValue(new Error('QuotaExceededError'));
 
         // When the completion runs, Then it still resolves
-        await expect(SessionActions.completeCloudflareAuthRedirect({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier})).resolves.toBeUndefined();
+        await expect(SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier})).resolves.toBeUndefined();
         // Then a failed persist is not a failed sign-in. The cache keeps the usable session and a reload self-heals
         expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
         setSpy.mockRestore();
@@ -439,7 +439,7 @@ describe('completeCloudflareAuthRedirect', () => {
         // Given a code exchange that is still in flight when the user presses Clear session
         const exchangeDeferred = Promise.withResolvers<CloudflareSession>();
         jest.mocked(oAuthClient.exchangeCode).mockReturnValue(exchangeDeferred.promise);
-        const completion = SessionActions.completeCloudflareAuthRedirect({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
+        const completion = SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
 
         // When the session is cleared before the exchange settles
         await SessionActions.clearCloudflareSession();
@@ -453,7 +453,7 @@ describe('completeCloudflareAuthRedirect', () => {
     it('exposes no pending completion before an exchange starts', () => {
         // Given a fresh module, When no exchange has started, Then the pending handle is null so boot code
         // never awaits work that will never run
-        expect(SessionActions.getPendingCloudflareAuthCompletion()).toBeNull();
+        expect(SessionActions.getPendingCloudflareCodeExchange()).toBeNull();
     });
 
     it('propagates an exchange failure and leaves the session empty', async () => {
@@ -464,9 +464,9 @@ describe('completeCloudflareAuthRedirect', () => {
 
         // When the completion runs, Then the failure must reach the caller. Only a fresh authorize round
         // trip can recover, and nothing is cached or left pending, because a failed exchange produced no session
-        await expect(SessionActions.completeCloudflareAuthRedirect({code: 'bad-code', codeVerifier: PAIR_1.codeVerifier})).rejects.toMatchObject({code: 'invalid_grant'});
+        await expect(SessionActions.exchangeCodeForCloudflareSession({code: 'bad-code', codeVerifier: PAIR_1.codeVerifier})).rejects.toMatchObject({code: 'invalid_grant'});
         expect(SessionActions.getCloudflareSession()).toBeNull();
-        expect(SessionActions.getPendingCloudflareAuthCompletion()).toBeNull();
+        expect(SessionActions.getPendingCloudflareCodeExchange()).toBeNull();
     });
 });
 

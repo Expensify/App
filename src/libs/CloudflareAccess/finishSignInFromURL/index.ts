@@ -7,11 +7,11 @@ import {getOAuthRedirectURI, isQAAuthConfigured} from '@libs/CloudflareAccess/Co
 import {OAuthError} from '@libs/CloudflareAccess/OAuthClient';
 import {consumePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
 
-import {completeCloudflareAuthRedirect} from '@userActions/CloudflareSession';
+import {exchangeCodeForCloudflareSession} from '@userActions/CloudflareSession';
 
-import type {CloudflareAuthRedirectOutcome, ConsumeCloudflareAuthCallbackURL, GetCloudflareAuthRedirectOutcome} from './types';
+import type {CloudflareSignInOutcome, FinishCloudflareSignInFromURL, GetCloudflareSignInOutcome} from './types';
 
-let lastOutcome: CloudflareAuthRedirectOutcome = 'not-a-callback';
+let lastOutcome: CloudflareSignInOutcome = 'not-a-callback';
 let lastErrorMessage: string | undefined;
 
 /** Same-origin only: this is the one stored field fed back into navigation, so it is treated as tainted */
@@ -30,7 +30,7 @@ function toSafeReturnPath(returnURL: string | undefined): string {
     }
 }
 
-const consumeCloudflareAuthCallbackURL: ConsumeCloudflareAuthCallbackURL = () => {
+const finishCloudflareSignInFromURL: FinishCloudflareSignInFromURL = () => {
     lastErrorMessage = undefined;
 
     if (!isQAAuthConfigured()) {
@@ -89,7 +89,7 @@ const consumeCloudflareAuthCallbackURL: ConsumeCloudflareAuthCallbackURL = () =>
 
     // Fire and forget. The catch records the failure as the observable outcome, since the completion promise
     // clears as it settles. It runs a microtask later, so it always lands after the synchronous 'exchanging'.
-    completeCloudflareAuthRedirect({code, codeVerifier: flow.codeVerifier}).catch((error: unknown) => {
+    exchangeCodeForCloudflareSession({code, codeVerifier: flow.codeVerifier}).catch((error: unknown) => {
         lastOutcome = 'exchange-failed';
         lastErrorMessage = error instanceof Error ? error.message : String(error);
     });
@@ -98,6 +98,6 @@ const consumeCloudflareAuthCallbackURL: ConsumeCloudflareAuthCallbackURL = () =>
     return lastOutcome;
 };
 
-const getCloudflareAuthRedirectOutcome: GetCloudflareAuthRedirectOutcome = () => ({outcome: lastOutcome, errorMessage: lastErrorMessage});
+const getCloudflareSignInOutcome: GetCloudflareSignInOutcome = () => ({outcome: lastOutcome, errorMessage: lastErrorMessage});
 
-export {consumeCloudflareAuthCallbackURL, getCloudflareAuthRedirectOutcome};
+export {finishCloudflareSignInFromURL, getCloudflareSignInOutcome};

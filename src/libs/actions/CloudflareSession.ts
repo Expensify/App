@@ -73,7 +73,7 @@ let isRedirectInFlight = false;
  * Navigates this tab to Cloudflare to start the authorize round trip. Never settles once navigation is
  * requested. The page is leaving. Rejects only if the flow record couldn't be stored.
  */
-async function beginCloudflareAuthRedirect(returnURL: string = window.location.href): Promise<never> {
+async function redirectToCloudflareSignIn(returnURL: string = window.location.href): Promise<never> {
     if (isRedirectInFlight) {
         // A second press while the first navigation is settling must not overwrite the stored flow
         return new Promise<never>(() => {});
@@ -99,12 +99,12 @@ async function beginCloudflareAuthRedirect(returnURL: string = window.location.h
     return new Promise<never>(() => {});
 }
 
-let redirectCompletionPromise: Promise<void> | null = null;
+let codeExchangePromise: Promise<void> | null = null;
 
-function completeCloudflareAuthRedirect({code, codeVerifier}: {code: string; codeVerifier: string}): Promise<void> {
+function exchangeCodeForCloudflareSession({code, codeVerifier}: {code: string; codeVerifier: string}): Promise<void> {
     const generation = sessionGeneration;
     // Single-flight: a caller joining mid-exchange must not burn the single-use authorization code twice
-    redirectCompletionPromise ??= exchangeCode({code, codeVerifier})
+    codeExchangePromise ??= exchangeCode({code, codeVerifier})
         .then((session) => {
             if (generation !== sessionGeneration) {
                 // Signed out mid-exchange
@@ -118,14 +118,14 @@ function completeCloudflareAuthRedirect({code, codeVerifier}: {code: string; cod
             });
         })
         .finally(() => {
-            redirectCompletionPromise = null;
+            codeExchangePromise = null;
         });
-    return redirectCompletionPromise;
+    return codeExchangePromise;
 }
 
 /** Non-null only mid-exchange, so callers join it instead of starting a second redirect */
-function getPendingCloudflareAuthCompletion(): Promise<void> | null {
-    return redirectCompletionPromise;
+function getPendingCloudflareCodeExchange(): Promise<void> | null {
+    return codeExchangePromise;
 }
 
 type CloudflareRefreshResult = 'refreshed' | 'skipped-newer-token' | 'reauth-required';
@@ -144,7 +144,7 @@ function withCrossTabRefreshLock(callback: () => Promise<CloudflareRefreshResult
 }
 
 /** Runs with the cross-tab lock held. The session is re-read here rather than captured by the caller */
-async function performCloudflareRefresh(staleAccessToken: string | undefined): Promise<CloudflareRefreshResult> {
+async function refreshCloudflareSessionUnderLock(staleAccessToken: string | undefined): Promise<CloudflareRefreshResult> {
     const generation = sessionGeneration;
     const current = sessionCache;
     if (!current?.refreshToken) {
@@ -195,7 +195,7 @@ function refreshCloudflareSession(staleAccessToken?: string): Promise<Cloudflare
         return refreshPromise;
     }
 
-    refreshPromise = withCrossTabRefreshLock(() => performCloudflareRefresh(staleAccessToken)).finally(() => {
+    refreshPromise = withCrossTabRefreshLock(() => refreshCloudflareSessionUnderLock(staleAccessToken)).finally(() => {
         refreshPromise = null;
     });
     return refreshPromise;
@@ -211,11 +211,11 @@ function clearCloudflareSession(): Promise<void> {
 }
 
 export {
-    beginCloudflareAuthRedirect,
+    redirectToCloudflareSignIn,
     clearCloudflareSession,
-    completeCloudflareAuthRedirect,
+    exchangeCodeForCloudflareSession,
     getCloudflareSession,
-    getPendingCloudflareAuthCompletion,
+    getPendingCloudflareCodeExchange,
     isSessionNearExpiry,
     refreshCloudflareSession,
     waitForCloudflareSessionHydration,
