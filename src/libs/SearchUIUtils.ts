@@ -4583,11 +4583,12 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
 }
 
 /**
- * The date column/filter reads "Created"/"Created date" only for report-style types: expense report and invoice
- * (invoice is treated like a report). Every other type (expense, trip, chat, task) keeps "Date".
+ * The date column/filter reads "Created"/"Created date" only for expense reports, whose date column renders a
+ * non-editable report-created timestamp. Every other type keeps "Date": invoice, expense and trip render the
+ * editable transaction date, and chat/task stay simple.
  */
 function isCreatedDateType(type?: SearchDataTypes): boolean {
-    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.INVOICE;
+    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 }
 
 function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTypes): TranslationPaths {
