@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 
 function DomainAlreadyExistsPage() {
-    const {asset: GlobeLock} = useMemoizedLazyAsset(() => loadIllustration('GlobeLock'));
+    const {asset: EarthWithControls} = useMemoizedLazyAsset(() => loadIllustration('EarthWithControls'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -27,7 +27,7 @@ function DomainAlreadyExistsPage() {
                 onBackButtonPress={goToDomainsList}
             />
             <ConfirmationPage
-                illustration={GlobeLock}
+                illustration={EarthWithControls}
                 heading={translate('domain.domainAlreadyExists.title')}
                 innerContainerStyle={styles.p10}
                 description={translate('domain.domainAlreadyExists.description')}
