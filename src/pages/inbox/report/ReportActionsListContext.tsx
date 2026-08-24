@@ -120,7 +120,6 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     return {
         shouldShowLoadingSkeleton,
         shouldShowDerivedTimingSkeleton,
-        shouldShowInitialSkeleton,
     };
 }
 
