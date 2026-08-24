@@ -2,6 +2,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,12 +43,18 @@ function ChatListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isSelected} = useRowSelection(item.keyForList);
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+    });
     const pressableStyle = [
         styles.selectionListPressableItemWrapper,
         styles.p0,
         styles.textAlignLeft,
         styles.overflowHidden,
-        // Background is applied on the parent wrapper, so keep this transparent
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         isSelected && styles.activeComponentBG,
         styles.mh0,
@@ -75,7 +82,7 @@ function ChatListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pressableWrapperStyle={[styles.mh5, {backgroundColor: theme.highlightBG, borderRadius: variables.componentBorderRadius}]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             hoverStyle={isSelected && styles.activeComponentBG}
             forwardedFSClass={fsClass}
         >
