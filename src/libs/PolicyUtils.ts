@@ -1039,6 +1039,13 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
 }
 
+function isTagInPolicy(tagValue: string, policyTags: OnyxEntry<PolicyTagLists>): boolean {
+    if (!policyTags) {
+        return false;
+    }
+    return Object.values(policyTags).some((tagList) => tagList?.tags?.[tagValue] && tagList.tags[tagValue].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+}
+
 /**
  * Checks if a policy has any custom categories (categories not in the default list)
  */
@@ -2955,6 +2962,7 @@ export {
     getTagListName,
     getTagLists,
     hasTags,
+    isTagInPolicy,
     hasCustomCategories,
     hasConfiguredRules,
     getTaxByID,

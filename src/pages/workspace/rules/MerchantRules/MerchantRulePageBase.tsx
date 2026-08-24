@@ -361,12 +361,13 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                 ...(hasTags()
                     ? policyTags
                           .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || getEnabledTags(tags, form?.tag ?? '', orderWeight).length > 0)
-                          .map(({name, orderWeight}) => {
+                          .map(({name, orderWeight, tags}) => {
                               const formTag = formTags.at(orderWeight);
+                              const isTagAvailable = formTag && tags[formTag] && tags[formTag].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                               return {
                                   key: `tag-${name}-${orderWeight}`,
                                   description: name,
-                                  title: formTag ? getCleanedTagName(formTag) : undefined,
+                                  title: isTagAvailable ? getCleanedTagName(formTag) : undefined,
                                   onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID, orderWeight)),
                                   icon: getItemIcon(icons.Tag),
                               };

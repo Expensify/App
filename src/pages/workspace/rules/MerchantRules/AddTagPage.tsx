@@ -35,7 +35,6 @@ function AddTagPage({route}: AddTagPageProps) {
 
     const tagItems = useMemo(() => {
         const tags: Array<{name: string; value: string}> = [];
-
         for (const tag of Object.values(tagList?.tags ?? {})) {
             if (tag.name !== formTag && !tag.enabled) {
                 continue;
