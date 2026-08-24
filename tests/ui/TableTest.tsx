@@ -50,7 +50,7 @@ type MockFlashListProps<T> = {
     overrideItemLayout?: (layout: {span?: number}, item: T, index: number, maxColumns: number, extraData?: unknown) => void;
     stickyHeaderIndices?: number[];
     viewabilityConfigCallbackPairs?: Array<{
-        viewabilityConfig: object;
+        viewabilityConfig: Record<string, unknown>;
         onViewableItemsChanged: ((info: MockViewabilityInfo<T>) => void) | null;
     }>;
 };
@@ -1550,14 +1550,14 @@ describe('Table', () => {
                 viewableItems: [
                     {
                         item: syntheticHeader,
-                        key: syntheticHeader.keyForList,
+                        key: 'synthetic-header',
                         index: 0,
                         isViewable: true,
                         timestamp: 1,
                     },
                     {
                         item: firstDataRow,
-                        key: firstDataRow.keyForList,
+                        key: 'first-data-row',
                         index: 1,
                         isViewable: true,
                         timestamp: 1,
@@ -1566,7 +1566,7 @@ describe('Table', () => {
                 changed: [
                     {
                         item: firstDataRow,
-                        key: firstDataRow.keyForList,
+                        key: 'first-data-row',
                         index: 1,
                         isViewable: false,
                         timestamp: 1,
@@ -1577,7 +1577,7 @@ describe('Table', () => {
                 viewableItems: [
                     {
                         item: firstDataRow,
-                        key: firstDataRow.keyForList,
+                        key: 'first-data-row',
                         index: 0,
                         isViewable: true,
                         timestamp: 1,
@@ -1586,7 +1586,7 @@ describe('Table', () => {
                 changed: [
                     {
                         item: firstDataRow,
-                        key: firstDataRow.keyForList,
+                        key: 'first-data-row',
                         index: 0,
                         isViewable: false,
                         timestamp: 1,
