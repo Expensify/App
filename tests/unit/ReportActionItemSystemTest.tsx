@@ -55,6 +55,7 @@ jest.mock('@hooks/useStyleUtils', () =>
         getCompactContentContainerStyles: () => ({alignItems: 'baseline'}),
         getSelectionButtonPressableStyle: () => ({}),
         getSelectionButtonContainerStyle: () => ({}),
+        getIconWidthAndHeightStyle: (_size: unknown, width: number, height: number) => ({width, height}),
         parseStyleFromFunction: (style: unknown) => style,
     })),
 );
