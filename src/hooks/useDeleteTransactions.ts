@@ -274,7 +274,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
                 const splitExpensesTotal = allChildTransactions.reduce((total, childTransaction) => {
                     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-                    return total + initSplitExpenseItemData(childTransaction, transactionReport).amount;
+                    return total + initSplitExpenseItemData(childTransaction, transactionReport, {getCurrencyDecimals}).amount;
                 }, 0);
                 const policyRecentlyUsedCategories =
                     allPolicyRecentlyUsedCategories?.[
@@ -298,7 +298,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     // up with an undefined reportID downstream.
                     const resolvedReportID = childTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : childTransaction?.reportID;
                     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${resolvedReportID}`];
-                    return initSplitExpenseItemData(childTransaction, transactionReport, {reportID: resolvedReportID});
+                    return initSplitExpenseItemData(childTransaction, transactionReport, {reportID: resolvedReportID, getCurrencyDecimals});
                 });
                 const remainingSplitExpensesTotal = remainingSplitExpenses.reduce((total, splitExpense) => total + splitExpense.amount, 0);
                 const updatedRemainingSplitExpenses =

@@ -4111,6 +4111,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import',
         getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/import` as const,
     },
+    POLICY_ACCOUNTING_INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/intuit-enterprise-suite/entity-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/intuit-enterprise-suite/entity-selector` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/accounts',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/accounts` as const,
