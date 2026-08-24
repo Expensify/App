@@ -1046,7 +1046,9 @@ function addActions({
         }
     }
 
-    if (isInSidePanel && isConciergeChat && sidePanelContext && commandName === WRITE_COMMANDS.ADD_COMMENT) {
+    // The side panel is web-only. On native the same context is threaded via the Concierge route's sourceReportID
+    // param (see useSidePanelContext), so gate on the context being present rather than on isInSidePanel.
+    if (isConciergeChat && sidePanelContext && commandName === WRITE_COMMANDS.ADD_COMMENT) {
         parameters.sidePanelContext = JSON.stringify(sidePanelContext);
     }
 
@@ -4249,6 +4251,9 @@ function navigateToConciergeChat(
     reportActionID?: string,
     // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
     personalDetails?: OnyxEntry<PersonalDetailsList>,
+    // The report the user was viewing when they opened Concierge from the side-pane button (native). Threaded onto
+    // the Concierge route so the composer can attach it as sidePanelContext, scoped to this navigation entry.
+    sourceReportID?: string,
 ) {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
@@ -4281,7 +4286,7 @@ function navigateToConciergeChat(
             Navigation.dismissModalWithReport(reportParams);
         }
     } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID, undefined, undefined, undefined, undefined, sourceReportID), linkToOptions);
     }
 }
 

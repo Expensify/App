@@ -4,11 +4,16 @@ import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {useRoute} from '@react-navigation/native';
 import {useMemo} from 'react';
 
 function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | undefined {
@@ -17,10 +22,21 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchSelectionContext();
+    // On native there is no side panel: the source report is threaded onto this Concierge screen's route params
+    // (see SidePanelButton/index.native.tsx). Reading it here keeps it scoped to this navigation entry, so a second
+    // Concierge screen pushed later (e.g. via search) has its own param and can't collide.
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const sourceReportID = route.params?.sourceReportID;
 
     return useMemo(() => {
-        if (conciergeReportID !== reportID || !isInSidePanel) {
+        if (conciergeReportID !== reportID) {
             return undefined;
+        }
+
+        // Native (no side panel): use the source report captured when Concierge Anywhere was opened via the sidebar
+        // button. Mirrors the {reportID} context the side panel builds on web.
+        if (!isInSidePanel) {
+            return sourceReportID ? {reportID: sourceReportID} : undefined;
         }
 
         const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;
@@ -63,7 +79,7 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
         }
 
         return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
-    }, [conciergeReportID, reportID, isInSidePanel, currentSearchQueryJSON?.type, currentRHPReportID, currentReportID, selectedTransactionIDs, selectedTransactions, selectedReports]);
+    }, [conciergeReportID, reportID, isInSidePanel, sourceReportID, currentSearchQueryJSON?.type, currentRHPReportID, currentReportID, selectedTransactionIDs, selectedTransactions, selectedReports]);
 }
 
 export default useSidePanelContext;

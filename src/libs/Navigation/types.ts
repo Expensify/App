@@ -2828,6 +2828,8 @@ type ReportsSplitNavigatorParamList = {
         referrer?: string;
         /** Submit-via-PDF secure access link key. When present, the viewer is validated and joined to the report. */
         secureKey?: string;
+        /** The report the user was viewing when they opened Concierge from the side-pane button (native), so Concierge can act on it. */
+        sourceReportID?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
