@@ -4239,6 +4239,7 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
 /**
  * Navigates to the 1:1 report with Concierge
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function navigateToConciergeChat(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,

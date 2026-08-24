@@ -36,7 +36,7 @@ jest.mock('@hooks/useIsInSidePanel', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual('@react-navigation/native'),
+    ...jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native'),
     useRoute: () => ({params: mockRouteParams}),
 }));
 
