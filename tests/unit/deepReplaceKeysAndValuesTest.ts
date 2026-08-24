@@ -1,28 +1,21 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
-import type {ReplaceableValue} from '@libs/deepReplaceKeysAndValues';
 
 describe('deepReplaceKeysAndValues', () => {
+    test('returns undefined for absent request data', () => {
+        expect(deepReplaceKeysAndValues(undefined, 'oldVal', 'newVal')).toBeUndefined();
+    });
+
     test.each([
-        [undefined, undefined],
-        [null, null],
-        [3, 3],
-        [true, true],
-        ['someString', 'someString'],
-        ['oldVal', 'newVal'],
-        ['prefix_oldVal', 'prefix_newVal'],
-        [
-            ['a', 'b', 'oldVal'],
-            ['a', 'b', 'newVal'],
-        ],
-        [
-            ['a', 'oldVal', 'c'],
-            ['a', 'newVal', 'c'],
-        ],
-        [
-            ['a', 'b', 'prefix_oldVal'],
-            ['a', 'b', 'prefix_newVal'],
-        ],
+        [{value: null}, {value: null}],
+        [{value: 3}, {value: 3}],
+        [{value: true}, {value: true}],
+        [{value: 'someString'}, {value: 'someString'}],
+        [{value: 'oldVal'}, {value: 'newVal'}],
+        [{value: 'prefix_oldVal'}, {value: 'prefix_newVal'}],
+        [{value: ['a', 'b', 'oldVal']}, {value: ['a', 'b', 'newVal']}],
+        [{value: ['a', 'oldVal', 'c']}, {value: ['a', 'newVal', 'c']}],
+        [{value: ['a', 'b', 'prefix_oldVal']}, {value: ['a', 'b', 'prefix_newVal']}],
         [
             {
                 a: '1',
@@ -123,11 +116,19 @@ describe('deepReplaceKeysAndValues', () => {
                 someOtherKey: 2,
             },
         ],
-    ])('transforms scenario value %s through the request-data record boundary', (input: ReplaceableValue, expected: ReplaceableValue) => {
-        expect(
-            input === undefined || (typeof input === 'object' && input !== null && !Array.isArray(input))
-                ? deepReplaceKeysAndValues(input, 'oldVal', 'newVal')
-                : deepReplaceKeysAndValues({value: input}, 'oldVal', 'newVal'),
-        ).toStrictEqual(expected === undefined || (typeof expected === 'object' && expected !== null && !Array.isArray(expected)) ? expected : {value: expected});
+    ])('transforms request-data record %#', (input: Record<string, unknown>, expected: Record<string, unknown>) => {
+        expect(deepReplaceKeysAndValues(input, 'oldVal', 'newVal')).toStrictEqual(expected);
+    });
+
+    test('preserves a File property', () => {
+        const file = new File(['content'], 'test.txt');
+
+        expect(deepReplaceKeysAndValues({value: file}, 'oldVal', 'newVal')).toStrictEqual({value: file});
+    });
+
+    test('preserves a Blob property', () => {
+        const blob = new Blob(['content']);
+
+        expect(deepReplaceKeysAndValues({value: blob}, 'oldVal', 'newVal')).toStrictEqual({value: blob});
     });
 });
