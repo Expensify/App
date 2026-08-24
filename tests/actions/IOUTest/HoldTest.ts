@@ -932,7 +932,7 @@ describe('actions/IOU/Hold', () => {
                 });
         });
 
-        test('should drop the optimistic report on success because the backend creates its own report', () => {
+        test('should keep the optimistic report in successData, so a user viewing it is never dropped onto a removed report', () => {
             const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
 
             return waitForBatchedUpdates()
@@ -950,7 +950,9 @@ describe('actions/IOU/Hold', () => {
                         shouldMoveScanFailedTransactions: true,
                     });
 
-                    expect(result.successData).toEqual(
+                    // The backend answers with a report of its own, so the optimistic one still has to go — but only once
+                    // that report is known, which is what the HandleMovedScanFailedExpenses middleware reconciles.
+                    expect(result.successData).not.toEqual(
                         expect.arrayContaining([
                             expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`, value: null}),
                             expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticHoldReportID}`, value: null}),

@@ -1,5 +1,6 @@
 import FailureTracking from './FailureTracking';
 import handleDeletedAccount from './HandleDeletedAccount';
+import HandleMovedScanFailedExpenses from './HandleMovedScanFailedExpenses';
 import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
 import LoadTest from './LoadTest';
 import Logging from './Logging';
@@ -9,4 +10,16 @@ import RecordFullReconnectTime from './RecordFullReconnectTime';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
 import SupportalPermission from './SupportalPermission';
 
-export {HandleUnusedOptimisticID, LoadTest, Logging, Reauthentication, RecordFullReconnectTime, FailureTracking, SaveResponseInOnyx, Pagination, handleDeletedAccount, SupportalPermission};
+export {
+    HandleMovedScanFailedExpenses,
+    HandleUnusedOptimisticID,
+    LoadTest,
+    Logging,
+    Reauthentication,
+    RecordFullReconnectTime,
+    FailureTracking,
+    SaveResponseInOnyx,
+    Pagination,
+    handleDeletedAccount,
+    SupportalPermission,
+};
