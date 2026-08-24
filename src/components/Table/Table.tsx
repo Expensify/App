@@ -8,12 +8,14 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {canMeasureText} from '@libs/measureTextWidth';
 
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
+import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {TableContextValue} from './TableContext';
@@ -28,6 +30,7 @@ import {shouldUseTableSemantics} from './tableAccessibility';
 import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableContext from './TableContext';
 import TableSemanticContainer from './TableSemanticContainer';
+import useDynamicColumnWidths from './useDynamicColumnWidths';
 
 /**
  * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
@@ -194,6 +197,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     children,
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
+    shouldUseDynamicColumns = false,
     onRowSelectionChange,
     onSearchStringChange,
     ...listProps
@@ -241,6 +245,27 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const listRef = useRef<FlashListRef<DataType>>(null);
 
+    const [tableWidth, setTableWidth] = useState(0);
+
+    const handleTableLayout = (event: LayoutChangeEvent) => {
+        setTableWidth(event.nativeEvent.layout.width);
+    };
+
+    // Narrow and medium layouts render as cards with no columns to size, and native can't measure text, so both keep the
+    // static tracks and never measure the table.
+    const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
+
+    // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
+    // searches or filters instead of reflowing on every keystroke.
+    const {gridTemplateColumns: dynamicGridTemplateColumns, scrollWidth: dynamicScrollWidth} = useDynamicColumnWidths<DataType, ColumnKey>({
+        columns,
+        data,
+        tableWidth,
+        isEnabled: isDynamicSizingEnabled,
+        // In the wide layout the checkbox column is rendered whenever selection is enabled.
+        hasSelectionColumn: !!selectionEnabled,
+    });
+
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
         ...filterMethods,
         ...sortMethods,
@@ -275,6 +300,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         processedData,
         originalDataLength,
         columns,
+        dynamicGridTemplateColumns,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
@@ -310,6 +336,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                scrollWidth={dynamicScrollWidth}
+                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {children}
             </TableSemanticContainer>

@@ -6,12 +6,20 @@ import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, s
 import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {
+    calculateDefaultReimbursable,
+    getExistingTransactionID,
+    isLookingAroundSearchRoutingActive,
+    isSelfDMSoleDestination,
+    navigateToConfirmationPage,
+    navigateToParticipantPage,
+} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -76,6 +84,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
+    /** Whether the app is offline. Offline suppresses the LOOKING_AROUND self-DM -> Search routing. */
+    isOffline?: boolean;
     draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
@@ -208,11 +218,17 @@ function handleMoneyRequestStepDistanceNavigation({
     getCurrencyDecimals,
     participants,
     participantsPolicyTags,
+    isOffline = false,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
     const distanceRequestType = getDistanceRequestType(transaction);
+    // Derived here (rather than read from Onyx) from the onboarding choice the calling component/hook already passes in.
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
+    // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
+    // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
     const selectedRouteDistance = getSelectedRouteDistance(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
@@ -268,12 +284,15 @@ function handleMoneyRequestStepDistanceNavigation({
             });
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
-            const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
+            const distanceTaxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '');
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
             if (isCreatingTrackExpense && participant) {
                 submitWithDismissFirst({
+                    isFromGlobalCreate: transactionIsFromGlobalCreate,
+                    isLookingAroundUser,
+                    isSelfDMDestination,
                     // trackExpense is a void action with no navigation params; submitWithDismissFirst owns dismiss/reveal and cleanup runs after.
                     executeWrite: (overrides) => {
                         trackExpense({
@@ -342,6 +361,8 @@ function handleMoneyRequestStepDistanceNavigation({
                             backToReport,
                             optimisticChatReportID,
                             linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                            isLookingAroundUser,
+                            isSelfDMDestination,
                         });
                     },
                     destinationReportID: report?.reportID ?? selfDMReport?.reportID,
@@ -359,6 +380,9 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceDestinationReportID = report?.reportID;
 
             submitWithDismissFirst({
+                isFromGlobalCreate: transactionIsFromGlobalCreate,
+                isLookingAroundUser,
+                isSelfDMDestination,
                 executeWrite: (overrides) => {
                     const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
                         report,
@@ -423,6 +447,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         backToReport,
                         optimisticChatReportID,
                         linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                        isLookingAroundUser,
+                        isSelfDMDestination,
                     });
                 },
                 destinationReportID: distanceDestinationReportID,

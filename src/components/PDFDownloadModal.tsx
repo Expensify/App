@@ -11,7 +11,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
+import Button from './ButtonComposed';
 import Header from './Header';
 import Icon from './Icon';
 import Modal from './Modal';
@@ -119,7 +119,7 @@ function PDFDownloadModal({
                     </View>
                     <Button
                         style={[styles.mt3, styles.noSelect]}
-                        success={shouldUseSuccessButton && hasFinishedPDFDownload}
+                        variant={shouldUseSuccessButton && hasFinishedPDFDownload ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                         onPress={() => {
                             if (!hasFinishedPDFDownload) {
                                 onClose();
@@ -131,8 +131,9 @@ function PDFDownloadModal({
                                 onClose();
                             }
                         }}
-                        text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
-                    />
+                    >
+                        <Button.Text>{hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}</Button.Text>
+                    </Button>
                 </View>
                 <PressableWithFeedback
                     onPress={onClose}
