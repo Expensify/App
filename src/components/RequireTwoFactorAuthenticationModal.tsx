@@ -48,7 +48,8 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
     const StyleUtils = useStyleUtils();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Safe']);
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
     return (
         <Modal
             onClose={onCancel}

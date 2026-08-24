@@ -35,7 +35,7 @@ function MoneyRequestReportTransactionLongPressModal({isMobileSelectionModeEnabl
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const [isVisible, setIsVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState('');
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     useImperativeHandle(ref, () => ({
         show: (transactionID: string) => {

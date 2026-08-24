@@ -85,7 +85,11 @@ function PDFDownloadModal({
         shouldAutoDownloadPDF.current = false;
     }, [hasFinishedPDFDownload, isVisible, onDownloadPDF]);
 
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.flexRow, styles.m5]});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: [styles.flexRow, styles.m5],
+    });
 
     return (
         <Modal

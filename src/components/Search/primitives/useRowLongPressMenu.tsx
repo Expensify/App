@@ -48,7 +48,7 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {toggle} = useSearchRowSelectionActions();
     const route = useRoute();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
