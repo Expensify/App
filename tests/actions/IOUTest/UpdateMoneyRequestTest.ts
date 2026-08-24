@@ -582,6 +582,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const {onyxData} = getUpdateTrackExpenseParams(
                 transactionID,
+                undefined,
                 transactionThreadReport.reportID,
                 {amount: 20000},
                 createRandomPolicy(1),
@@ -2018,7 +2019,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
-            const {params} = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, {distance: 5.555}, fakePolicy, undefined, {
+            const {params} = getUpdateTrackExpenseParams(transactionID, undefined, transactionThreadReportID, {distance: 5.555}, fakePolicy, undefined, {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -2091,15 +2092,14 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const {onyxData} = getUpdateTrackExpenseParams(
                 transactionID,
+                undefined,
                 transactionThreadReportID,
                 {created: '2026-06-15'},
                 fakePolicy,
                 undefined,
                 {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
                 snapshotHash,
-                undefined,
-                undefined,
-                [],
+                {currentTransactionViolations: []},
             );
 
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;

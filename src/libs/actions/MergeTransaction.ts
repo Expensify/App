@@ -330,13 +330,14 @@ function getOnyxTargetTransactionData({
     if (isUnreportedExpense) {
         data = getUpdateTrackExpenseParams(
             targetTransaction.transactionID,
+            targetTransaction,
             targetTransactionThreadReport?.reportID,
             filteredTransactionChanges,
             policy,
             delegateAccountID,
             {getCurrencyDecimals, getCurrencySymbol},
             undefined,
-            shouldBuildOptimisticModifiedExpenseReportAction,
+            {shouldBuildOptimisticModifiedExpenseReportAction},
         );
     } else {
         data = getUpdateMoneyRequestParams({
