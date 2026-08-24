@@ -18,7 +18,6 @@ import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -388,18 +387,24 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
     const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     // Handles the case when there are multiple logins for the same account.
     // Currently, the only known case where this happens is when a user gets invited
-    // with their secondary login.
-    // This happens because we only have the secondary login when
-    // we're inviting the user, but the backend always returns the primary login,
+    // with their secondary login. This happens because we only have the secondary login
+    // when we're inviting the user, but the backend always returns the primary login,
     // so we end up with both stored in Onyx.
+    // policy.primaryLoginsInvited records that secondary -> primary mapping, so we only expand
+    // to the login paired with a selected member. We must NOT use "missing personal details" as the
+    // signal, because that would sweep in every other member whose details aren't loaded and delete them too.
     const selectedMemberEmailsWithDuplicates: string[] = [...selectedMemberEmails];
-    for (const employeeEmail of Object.keys(policy?.employeeList ?? {})) {
-        const personalDetails = getPersonalDetailByEmail(employeeEmail);
-        // If we don't have the personal details, it means it's a secondary login
-        if (personalDetails) {
-            continue;
+    const primaryLoginsInvited = policy?.primaryLoginsInvited ?? {};
+    const employeeList = policy?.employeeList ?? {};
+    for (const [secondaryLogin, primaryLogin] of Object.entries(primaryLoginsInvited)) {
+        // If the selected member is the secondary login, also remove its primary login (and vice versa),
+        // but only when the paired login actually exists in the employeeList.
+        if (selectedMemberEmails.includes(secondaryLogin) && primaryLogin in employeeList && !selectedMemberEmailsWithDuplicates.includes(primaryLogin)) {
+            selectedMemberEmailsWithDuplicates.push(primaryLogin);
         }
-        selectedMemberEmailsWithDuplicates.push(employeeEmail);
+        if (selectedMemberEmails.includes(primaryLogin) && secondaryLogin in employeeList && !selectedMemberEmailsWithDuplicates.includes(secondaryLogin)) {
+            selectedMemberEmailsWithDuplicates.push(secondaryLogin);
+        }
     }
 
     for (const email of selectedMemberEmailsWithDuplicates) {

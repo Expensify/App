@@ -30,7 +30,7 @@ function MessageEditCancelButton({onCancel, testID, ...restProps}: MessageEditCa
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
-    const closeButtonStyles = [styles.composerSizeButton, {marginVertical: styles.composerSizeButton.marginHorizontal}];
+    const closeButtonStyles = [styles.composerSizeButton];
 
     return (
         <View {...restProps}>
