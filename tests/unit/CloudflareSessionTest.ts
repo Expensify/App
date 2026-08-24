@@ -470,7 +470,7 @@ describe('completeCloudflareAuthRedirect', () => {
     });
 });
 
-describe('unconfigured builds', () => {
+describe('builds without QA auth configured', () => {
     it('subscribes to nothing and still resolves hydration, so no caller can hang', async () => {
         // Given a build where QA auth is not configured
         jest.resetModules();
@@ -482,7 +482,7 @@ describe('unconfigured builds', () => {
         // When the actions module is imported
         const sessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
 
-        // Then nothing subscribed to the QA session key, so unconfigured apps pay no cost for the feature and
+        // Then nothing subscribed to the QA session key, so apps without QA auth configured pay no cost for the feature and
         // importing the module pulls in unrelated modules that legitimately subscribe to their own keys,
         // so the claim is specifically that nothing connected to the QA session key
         const connectedKeys = connectSpy.mock.calls.map(([connection]) => connection.key);

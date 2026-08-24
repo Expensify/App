@@ -86,13 +86,13 @@ describe('consumeCloudflareAuthCallbackURL', () => {
     });
 
     it('is a no-op when QA auth is not configured', () => {
-        // Given QA auth is unconfigured (no CLIENT_ID), even though the URL and a stored flow look like a real callback
+        // Given QA auth is not configured (no CLIENT_ID), even though the URL and a stored flow look like a real callback
         mockQAAuth.CLIENT_ID = '';
         arrangeCallbackURL('?code=auth-code-1&state=state-1');
         pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
 
         // When the boot-time handler runs
-        // Then it must treat the boot as not-a-callback: an unconfigured build could never have legitimately started a flow, so the code must not be exchanged
+        // Then it must treat the boot as not-a-callback: a build without QA auth configured could never have legitimately started a flow, so the code must not be exchanged
         expect(authRedirectCallback.consumeCloudflareAuthCallbackURL()).toBe('not-a-callback');
         expect(sessionActions.completeCloudflareAuthRedirect).not.toHaveBeenCalled();
     });

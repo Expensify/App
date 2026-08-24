@@ -179,7 +179,7 @@ describe('config', () => {
     });
 
     it('rejects an http API root even when every value is present', () => {
-        // Given an otherwise complete config whose API root is plain http. When checked, then it must count as unconfigured, because a bearer token must never travel over cleartext
+        // Given an otherwise complete config whose API root is plain http. When checked, then it must count as not configured, because a bearer token must never travel over cleartext
         mockQAAuth.API_ROOT = 'http://qa.example.com/';
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('http://qa.example.com/api/OpenApp')).toBe(false);
