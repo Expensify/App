@@ -8651,7 +8651,7 @@ describe('initSplitExpenseItemData', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {getCurrencyDecimals: () => 2});
 
         expect(splitExpense.transactionID).toBe('123');
         expect(splitExpense.amount).toBe(100);
@@ -8705,6 +8705,7 @@ describe('initSplitExpenseItemData', () => {
             created: '2024-01-01',
             merchant: 'Custom Merchant',
             customUnit,
+            getCurrencyDecimals: () => 2,
         });
 
         expect(splitExpense.transactionID).toBe('999');
@@ -8751,7 +8752,7 @@ describe('initSplitExpenseItemData', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {getCurrencyDecimals: () => 2});
 
         expect(splitExpense.waypoints).toEqual(transaction.comment?.waypoints);
         expect(splitExpense.odometerStart).toBe(1000);
@@ -9815,7 +9816,7 @@ describe('createDistanceRequest', () => {
         expect(result.transactionID).toBeTruthy();
     });
 
-    it('flags the created transaction for the "Expense added" growl on a global-create distance request', async () => {
+    it('flags the created transaction for Search highlight on a global-create distance request', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         const result = createDistanceRequest({
@@ -9825,8 +9826,8 @@ describe('createDistanceRequest', () => {
 
         await waitForBatchedUpdates();
 
-        const growlSignal = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
-        expect(growlSignal?.[result.transactionID]).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+        const highlight = await getOnyxValue(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE);
+        expect(Object.keys(highlight?.[CONST.SEARCH.DATA_TYPES.EXPENSE] ?? {})).toContain(result.transactionID);
     });
 
     it('flags the new transaction for the 1→2 highlight fallback when added to an expense report that already has one transaction', async () => {

@@ -5209,11 +5209,16 @@ function getFeedOptions(
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+    domains?: OnyxCollection<OnyxTypes.Domain>,
+    expensifyCardSettings?: OnyxCollection<OnyxTypes.ExpensifyCardSettings>,
 ) {
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards))
-        .map<SingleSelectItem<string>>((cardFeed) => ({
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards, policies, domains, expensifyCardSettings))
+        .map<MultiSelectItem<string>>((cardFeed) => ({
             text: cardFeed.name,
             value: cardFeed.id,
+            // Domain/workspace shown as a second line so same-type feeds can be told apart.
+            alternateText: cardFeed.subtitle,
         }))
         .sort((a, b) => localeCompare(a.text, b.text));
 }
