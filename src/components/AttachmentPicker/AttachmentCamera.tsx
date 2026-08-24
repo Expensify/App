@@ -1,3 +1,6 @@
+/**
+ * In-app VisionCamera modal used by the native AttachmentPicker.
+ */
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
