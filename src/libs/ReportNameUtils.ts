@@ -999,15 +999,6 @@ function computeChatThreadReportName(
         return translate('parentReportAction.deletedMessage');
     }
 
-    // Concierge titles each of its threads with a summary of the question, so prefer that over the question itself.
-    if (
-        report.reportName &&
-        report.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME &&
-        isConciergeChatReport(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`], conciergeReportID)
-    ) {
-        return report.reportName;
-    }
-
     const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
     const reportActionMessage = getReportActionText(parentReportAction).replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
     if (isAttachment && reportActionMessage) {
@@ -1019,6 +1010,15 @@ function computeChatThreadReportName(
         parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
     ) {
         return translate('parentReportAction.hiddenMessage');
+    }
+
+    // Concierge titles each of its threads with a summary of the question, so prefer that over the question itself.
+    if (
+        report.reportName &&
+        report.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME &&
+        isConciergeChatReport(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`], conciergeReportID)
+    ) {
+        return report.reportName;
     }
     if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
         return reportActionMessage;
