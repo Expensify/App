@@ -29,6 +29,7 @@ const RECEIPT_HEIGHT = variables.w40;
 const MERCHANT_LINE_HEIGHT = variables.fontSizeNormalHeight;
 const LABEL_LINE_HEIGHT = variables.lineHeightNormal;
 const TEXT_LINE_GAP = 4;
+
 // Every row but the last carries a 1px `borderBottom`, which the uniform loader height cannot express.
 const SEPARATORS_HEIGHT = CONST.HOME.SECTION_VISIBLE_LIMIT - 1;
 const ITEM_HEIGHT = ROW_VERTICAL_PADDING + Math.max(RECEIPT_HEIGHT, MERCHANT_LINE_HEIGHT + TEXT_LINE_GAP + LABEL_LINE_HEIGHT);
@@ -38,6 +39,7 @@ const AMOUNT_WIDTH = 56;
 const TYPE_WIDTH = 40;
 const DATE_WIDTH = 64;
 const separatorsSpacerStyle = {height: SEPARATORS_HEIGHT};
+
 // ItemListSkeletonView adds `mr5` to every row, so without this offset the right-aligned bars land past the svg and clip.
 const ROW_RIGHT_MARGIN = 20;
 
@@ -65,6 +67,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
     const renderSkeletonItem = (args: {itemIndex: number}) => {
         const textX = RECEIPT_WIDTH + COLUMN_GAP;
         const merchantWidth = getMerchantSkeletonWidth(args.itemIndex);
+
         // Centred as a block against the taller receipt, as the row's flex column is.
         const textBlockHeight = MERCHANT_LINE_HEIGHT + TEXT_LINE_GAP + LABEL_LINE_HEIGHT;
         const blockTop = (ITEM_HEIGHT - textBlockHeight) / 2;
