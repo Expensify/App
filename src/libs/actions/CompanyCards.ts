@@ -1283,7 +1283,7 @@ function importCSVCompanyCards({
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
         promptKeyParams: {
-            transactions: transactionsCount,
+            count: transactionsCount,
         },
         pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
     };
