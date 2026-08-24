@@ -3128,6 +3128,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
         getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/fx-expense-account-selector',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/fx-expense-account-selector` as const,
+    },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'workspaces/:policyID/accounting/:connection/card-reconciliation',
         getRoute: (policyID?: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => {
