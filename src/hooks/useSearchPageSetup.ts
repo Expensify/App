@@ -84,8 +84,10 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             lastSavedSearchHash = hash;
         }
 
-        // A stale-after-reload pending request can be restarted via dedup, but skip when a live request is already in flight.
-        if (isSnapshotDataLoaded && (!isInitialSearchPending || isSnapshotSearchLoading)) {
+        // A pending initial request may be stale after reload and can be restarted through request deduplication.
+        // Pagination must not restart page one. When data is loaded and a request THIS instance already
+        // fired is still in flight, skip — it's not stale, it's our own active request (e.g. a totals upgrade).
+        if (isSnapshotDataLoaded && (!isInitialSearchPending || (isSnapshotSearchLoading && requestedHashesRef.current.has(hash)))) {
             return;
         }
 
