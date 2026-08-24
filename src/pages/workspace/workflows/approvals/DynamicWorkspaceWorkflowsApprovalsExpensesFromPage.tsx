@@ -10,7 +10,9 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
@@ -21,7 +23,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -63,8 +64,12 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const employeeAndApprovalMembersPersonalDetails = usePersonalDetailsByLogins([
+        ...Object.keys(policy?.employeeList ?? {}),
+        ...(approvalWorkflow?.members ?? []).map((member) => member.email),
+    ]);
 
-    const personalDetailLogins = useMemo(() => Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])), [personalDetails]);
+    const shouldInitializeSearch = useRunAfterTransitions(true);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
@@ -88,7 +93,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
         includeRecentReports: false,
-        shouldInitialize: true,
+        shouldInitialize: shouldInitializeSearch,
     });
 
     useEffect(() => {
@@ -137,7 +142,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 let accountID = Number(policyMemberEmailsToAccountIDs[normalizeLogin(member.email)] ?? '');
                 const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
 
-                const personalDetail = getPersonalDetailByEmail(member.email);
+                const personalDetail = employeeAndApprovalMembersPersonalDetails[member.email];
 
                 // Fall back when getMemberAccountIDsForWorkspace can't resolve an accountID — for
                 // example a freshly invited user whose personal details haven't fully synced yet
@@ -153,7 +158,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                     }
                 }
 
-                const login = personalDetailLogins?.[accountID] ?? member.email;
+                const login = personalDetails?.[accountID]?.login ?? member.email;
                 const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
                 const avatar = member.avatar ?? personalDetail?.avatar;
 
@@ -194,14 +199,14 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         return Object.values(employees)
             .filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((employee) => {
-                const personalDetail = getPersonalDetailByEmail(employee.email ?? '');
+                const personalDetail = employeeAndApprovalMembersPersonalDetails[employee.email ?? ''];
                 return {
                     email: employee.email ?? '',
                     displayName: personalDetail?.displayName ?? employee.email ?? '',
                     avatar: personalDetail?.avatar,
                 };
             });
-    }, [policy?.employeeList]);
+    }, [policy?.employeeList, employeeAndApprovalMembersPersonalDetails]);
 
     const allApprovers = useMemo(() => {
         const members: SelectionListApprover[] = [...selectedMembers];
@@ -490,7 +495,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
                 if (newMember && existingApproverEmail) {
                     const memberName = Str.removeSMSDomain(newMember.text ?? newMember.login ?? '');
-                    const approverDetails = getPersonalDetailByEmail(existingApproverEmail);
+                    const approverDetails = employeeAndApprovalMembersPersonalDetails[existingApproverEmail];
                     const approverName = Str.removeSMSDomain(approverDetails?.displayName ?? existingApproverEmail);
 
                     showConfirmModal({
@@ -510,7 +515,17 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
             applySelection(members);
         },
-        [policy?.employeeList, invitedEmailsToAccountIDsDraft, route.params.policyID, isCreateAction, selectedMembers, membersInExistingWorkflows, showConfirmModal, translate],
+        [
+            policy?.employeeList,
+            employeeAndApprovalMembersPersonalDetails,
+            invitedEmailsToAccountIDsDraft,
+            route.params.policyID,
+            isCreateAction,
+            selectedMembers,
+            membersInExistingWorkflows,
+            showConfirmModal,
+            translate,
+        ],
     );
 
     return (
