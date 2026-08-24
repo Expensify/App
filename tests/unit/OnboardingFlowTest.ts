@@ -1,4 +1,3 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import {getOnboardingInitialPath, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
@@ -7,6 +6,8 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import {findFocusedRoute} from '@react-navigation/native';
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(),
@@ -307,7 +308,7 @@ describe('OnboardingFlow', () => {
         });
 
         it('should not call resetRoot when the merged route list is unchanged (no-op that would still fire replaceState)', () => {
-            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.ONBOARDING.PRIVATE_DOMAIN});
+            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.ONBOARDING.PRIVATE_DOMAIN, params: {}});
             // Resolved target focuses a different route name, so the name-only guard passes through to the merge check.
             mockedFindFocusedRoute.mockReturnValue({key: 'focused-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
             mockedGetRootState.mockReturnValue({routes: [{key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]} as ReturnType<typeof navigationRef.getRootState>);
@@ -329,7 +330,7 @@ describe('OnboardingFlow', () => {
         });
 
         it('should not call resetRoot when the resolved route name already matches the current route', () => {
-            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
+            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS, params: {}});
             mockedFindFocusedRoute.mockReturnValue({key: 'focused-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
             mockedGetRootState.mockReturnValue({routes: [{key: 'home', name: SCREENS.HOME}]} as ReturnType<typeof navigationRef.getRootState>);
 
