@@ -64,7 +64,7 @@ describe('findColumnName auto-mapping for company card imports', () => {
     });
 
     // The renamed fields (Purchase amount, Purchase currency, Description) and Original transaction date
-    // have no auto-detect logic and must stay manual-select — auto-detection matches raw header text,
+    // have no auto-detect logic and must stay manual-select. Auto-detection matches raw header text,
     // not the display labels.
     it.each(['Purchase amount', 'Original amount', 'Purchase currency', 'Original currency', 'Original transaction date', 'Description'])(
         'leaves the "%s" header unmapped so it stays manual-select',
