@@ -587,6 +587,9 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
+    // Whether the MoveFilesOutOfDocuments migration has rewritten attachment record paths, so later launches skip the collection scan
+    ATTACHMENT_RECORD_PATHS_MIGRATED: 'attachmentRecordPathsMigrated',
+
     // Stores last visited path
     LAST_VISITED_PATH: 'lastVisitedPath',
 
@@ -1785,6 +1788,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN]: boolean;
+    [ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED]: boolean;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
