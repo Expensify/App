@@ -82,6 +82,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                 <ConfirmationPage
                     heading={translate('walletPage.linkPlaid.successHeading')}
                     description={translate('walletPage.linkPlaid.successDescription')}
+                    descriptionStyle={styles.textSupportingNormal}
                     illustration={illustrations.BankCheck}
                     shouldShowButton
                     onButtonPress={() => Navigation.goBack(backPath)}
@@ -98,6 +99,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                 <ConfirmationPage
                     heading={translate('walletPage.linkPlaid.wrongAccountHeading')}
                     description={translate('walletPage.linkPlaid.wrongAccountDescription')}
+                    descriptionStyle={styles.textSupportingNormal}
                     illustration={illustrations.BankX}
                     shouldShowButton
                     onButtonPress={() => Navigation.goBack(backPath)}
