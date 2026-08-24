@@ -33,7 +33,7 @@ describe('HttpUtils', () => {
     it.each([
         ['Transaction already created.', WRITE_COMMANDS.REQUEST_MONEY],
         ['The request has already been paid', WRITE_COMMANDS.PAY_MONEY_REQUEST],
-        // The API layer can re-wrap Auth's 400 as a 666; before #98314 that form matched neither guard.
+        // The API layer can re-wrap Auth's 400 as a 666.
         ['400 Unique Constraints Violation', WRITE_COMMANDS.CREATE_DISTANCE_REQUEST],
     ])('maps the jsonCode-666 rejection "%s" to ALREADY_CREATED', async (message, command) => {
         mockFetchResponse(message);
