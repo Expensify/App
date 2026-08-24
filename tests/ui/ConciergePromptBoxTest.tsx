@@ -68,8 +68,6 @@ jest.mock('@components/PopoverMenu', () => ({
     },
 }));
 
-// Translating to the key keeps the queries below independent of the copy. The date only has to exist for the
-// greeting header to render; nothing here asserts it.
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
