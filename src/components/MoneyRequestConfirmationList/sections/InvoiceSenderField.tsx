@@ -1,10 +1,10 @@
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import MenuItem from '@components/MenuItem';
 import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/MenuItemDescription';
+import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,7 +20,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {emailSelector} from '@selectors/Session';
 import React from 'react';
-import {View} from 'react-native';
 
 type InvoiceSenderFieldProps = {
     /** The selected participants */
@@ -44,7 +43,6 @@ const createCanUpdateSenderWorkspaceSelector =
         isFromGlobalCreate && !isInvoiceRoomParticipant && canSendInvoice(policies ?? null, currentUserLogin);
 
 function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, transaction}: InvoiceSenderFieldProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const senderPolicyID = selectedParticipants.find((participant) => participant.isSender)?.policyID;
@@ -64,46 +62,42 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, trans
     const isInteractive = !isReadOnly && !!canUpdateSenderWorkspace;
 
     return (
-        <>
-            <View style={[styles.ph5, styles.mt2]}>
-                <MenuItem.Label>{translate('workspace.invoices.sendFrom')}</MenuItem.Label>
-            </View>
-            <MenuItem.Root
-                onPress={
-                    isInteractive
-                        ? () => {
-                              if (!transaction?.transactionID) {
-                                  return;
-                              }
-                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SEND_FROM.path));
+        <MenuItemWithLabel
+            label={translate('workspace.invoices.sendFrom')}
+            onPress={
+                isInteractive
+                    ? () => {
+                          if (!transaction?.transactionID) {
+                              return;
                           }
-                        : undefined
-                }
-                isDisabled={didConfirm}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SEND_FROM_FIELD}
-            >
-                <MenuItem.Row>
-                    <MenuItem.Leading>
-                        <WorkspaceAvatar
-                            source={senderWorkspace?.avatarURL}
-                            name={senderWorkspace?.name ?? ''}
-                            avatarID={senderWorkspace?.id ?? CONST.DEFAULT_NUMBER_ID}
-                        />
-                    </MenuItem.Leading>
-                    <MenuItem.Content>
-                        {!!senderWorkspace?.name && <MenuItem.Title>{senderWorkspace.name}</MenuItem.Title>}
-                        <MenuItem.Description variant={senderWorkspace?.name ? MENU_ITEM_DESCRIPTION_VARIANT.SUPPORTING : MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>
-                            {translate('workspace.common.workspace')}
-                        </MenuItem.Description>
-                    </MenuItem.Content>
-                    {isInteractive && (
-                        <MenuItem.Trailing>
-                            <MenuItem.Chevron />
-                        </MenuItem.Trailing>
-                    )}
-                </MenuItem.Row>
-            </MenuItem.Root>
-        </>
+                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SEND_FROM.path));
+                      }
+                    : undefined
+            }
+            isDisabled={didConfirm}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SEND_FROM_FIELD}
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <WorkspaceAvatar
+                        source={senderWorkspace?.avatarURL}
+                        name={senderWorkspace?.name ?? ''}
+                        avatarID={senderWorkspace?.id ?? CONST.DEFAULT_NUMBER_ID}
+                    />
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    {!!senderWorkspace?.name && <MenuItem.Title>{senderWorkspace.name}</MenuItem.Title>}
+                    <MenuItem.Description variant={senderWorkspace?.name ? MENU_ITEM_DESCRIPTION_VARIANT.SUPPORTING : MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>
+                        {translate('workspace.common.workspace')}
+                    </MenuItem.Description>
+                </MenuItem.Content>
+                {isInteractive && (
+                    <MenuItem.Trailing>
+                        <MenuItem.Chevron />
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+        </MenuItemWithLabel>
     );
 }
 

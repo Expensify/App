@@ -33,7 +33,6 @@ import MenuItemRow from './layout/MenuItemRow';
 import MenuItemTrailing from './layout/MenuItemTrailing';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
 import MenuItemDescription from './leaves/text/MenuItemDescription';
-import MenuItemLabel from './leaves/text/MenuItemLabel';
 import MenuItemTitle from './leaves/text/MenuItemTitle';
 import MenuItemChevron from './leaves/trailing/MenuItemChevron';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
@@ -46,7 +45,6 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     Content: MenuItemContent,
     Trailing: MenuItemTrailing,
     Icon: MenuItemIcon,
-    Label: MenuItemLabel,
     Title: MenuItemTitle,
     Description: MenuItemDescription,
     Chevron: MenuItemChevron,

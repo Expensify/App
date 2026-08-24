@@ -3,6 +3,7 @@ import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -32,7 +33,6 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {useRoute} from '@react-navigation/native';
 import {addMinutes} from 'date-fns';
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
@@ -111,10 +111,7 @@ function ScheduleCallConfirmationPage() {
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.gap3, styles.pb3]}>
                     <Text style={[styles.mb2, styles.ph5, styles.colorMuted]}>{translate('scheduledCall.confirmation.description')}</Text>
-                    <MenuItem.Root>
-                        <View style={styles.mb2}>
-                            <MenuItem.Label>{translate('scheduledCall.confirmation.setupSpecialist')}</MenuItem.Label>
-                        </View>
+                    <MenuItemWithLabel label={translate('scheduledCall.confirmation.setupSpecialist')}>
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <ReportActionAvatars
@@ -127,7 +124,7 @@ function ScheduleCallConfirmationPage() {
                                 {!!guideDetails?.login && <MenuItem.Description>{guideDetails.login}</MenuItem.Description>}
                             </MenuItem.Content>
                         </MenuItem.Row>
-                    </MenuItem.Root>
+                    </MenuItemWithLabel>
                     <MenuItemWithTopDescription
                         title={dateTimeString}
                         description={translate('scheduledCall.confirmation.dateTime')}

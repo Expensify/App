@@ -46,16 +46,19 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
     const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
+    const vacationDelegateName = vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin;
+
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
             errors={errors}
             errorRowStyles={styles.mh5}
             onClose={onCloseError}
+            style={!!vacationDelegateName && styles.mt4}
         >
             <MenuItemField
                 label={translate('common.vacationDelegate')}
-                value={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
+                value={vacationDelegateName}
                 onPress={onPress}
             >
                 <MenuItem.Leading>
@@ -65,7 +68,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                     />
                 </MenuItem.Leading>
                 <MenuItem.Content>
-                    <MenuItem.Title>{vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin ?? ''}</MenuItem.Title>
+                    <MenuItem.Title>{vacationDelegateName ?? ''}</MenuItem.Title>
                     {!!fallbackVacationDelegateLogin && <MenuItem.Description numberOfLines={1}>{fallbackVacationDelegateLogin}</MenuItem.Description>}
                 </MenuItem.Content>
             </MenuItemField>

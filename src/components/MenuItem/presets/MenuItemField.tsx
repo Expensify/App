@@ -1,14 +1,9 @@
-import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
-import MenuItemLabel from '@components/MenuItem/leaves/text/MenuItemLabel';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 import MenuItemRightLabel from '@components/MenuItem/leaves/trailing/MenuItemRightLabel';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
@@ -17,9 +12,9 @@ import type {PropsWithChildren} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import MenuItemEmptyField from './MenuItemEmptyField';
+import MenuItemWithLabel from './MenuItemWithLabel';
 
 type MenuItemFieldProps = PropsWithChildren &
     WithSentryLabel &
@@ -42,7 +37,6 @@ type MenuItemFieldProps = PropsWithChildren &
 
 /** The field MenuItem preset — a form field whose value the user picks on another screen */
 function MenuItemField({label, value, isRequired = false, onPress, isDisabled = false, sentryLabel, testID, children}: MenuItemFieldProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     if (!value && !!onPress) {
@@ -60,26 +54,22 @@ function MenuItemField({label, value, isRequired = false, onPress, isDisabled = 
     }
 
     return (
-        <>
-            <View style={[styles.mh5, styles.mt3]}>
-                <MenuItemLabel>{label}</MenuItemLabel>
-            </View>
-            <MenuItemRoot
-                onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
-                isDisabled={isDisabled}
-                sentryLabel={sentryLabel}
-                testID={testID}
-            >
-                <MenuItemRow>
-                    {children}
-                    {!!onPress && (
-                        <MenuItemTrailing>
-                            <MenuItemChevron />
-                        </MenuItemTrailing>
-                    )}
-                </MenuItemRow>
-            </MenuItemRoot>
-        </>
+        <MenuItemWithLabel
+            label={label}
+            onPress={onPress}
+            isDisabled={isDisabled}
+            sentryLabel={sentryLabel}
+            testID={testID}
+        >
+            <MenuItemRow>
+                {children}
+                {!!onPress && (
+                    <MenuItemTrailing>
+                        <MenuItemChevron />
+                    </MenuItemTrailing>
+                )}
+            </MenuItemRow>
+        </MenuItemWithLabel>
     );
 }
 
