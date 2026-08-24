@@ -67,12 +67,16 @@ function getActionIDByTransactionID(value: Record<string, unknown>): Map<string,
     return actionIDByTransactionID;
 }
 
+function isOtherReport(reportID: string, {optimisticReportID, chatReportID, iouReportID}: MovedScanFailedContext): boolean {
+    return !!reportID && reportID !== optimisticReportID && reportID !== iouReportID && reportID !== chatReportID;
+}
+
 /**
- * Finds the report the backend created for the moved expenses by evidence rather than by shape: it is the report in the
- * response, other than the one that was paid, that carries an action for an expense the client had moved into the
- * optimistic report. Returns undefined when nothing in the response claims one of those expenses.
+ * The strongest signal: a report in the response, other than the one that was paid, already carries an action for an
+ * expense the client had moved into the optimistic report. Only available when the response happens to include the new
+ * report's actions.
  */
-function findRealReport(onyxData: ResponseUpdate[], {optimisticReportID, chatReportID, iouReportID}: MovedScanFailedContext, movedTransactionIDs: Set<string>): RealReport | undefined {
+function findReportClaimingMovedExpense(onyxData: ResponseUpdate[], context: MovedScanFailedContext, movedTransactionIDs: Set<string>): string | undefined {
     if (!movedTransactionIDs.size) {
         return undefined;
     }
@@ -81,17 +85,60 @@ function findRealReport(onyxData: ResponseUpdate[], {optimisticReportID, chatRep
             continue;
         }
         const reportID = update.key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length);
-        if (!reportID || reportID === optimisticReportID || reportID === iouReportID || reportID === chatReportID) {
+        if (!isOtherReport(reportID, context)) {
             continue;
         }
-        const actionIDByTransactionID = getActionIDByTransactionID(update.value);
-        const claimsMovedExpense = [...actionIDByTransactionID.keys()].some((transactionID) => movedTransactionIDs.has(transactionID));
-        if (!claimsMovedExpense) {
-            continue;
+        const claimsMovedExpense = [...getActionIDByTransactionID(update.value).keys()].some((transactionID) => movedTransactionIDs.has(transactionID));
+        if (claimsMovedExpense) {
+            return reportID;
         }
-        return {reportID, actionIDByTransactionID};
     }
     return undefined;
+}
+
+/**
+ * The fallback signal, used because the payment response carries the new report itself far more often than it carries
+ * that report's actions: the one expense report the response introduces for this workspace chat which is neither the
+ * report that was paid nor the optimistic one. More than one candidate is treated as no candidate.
+ */
+function findNewExpenseReportForChat(onyxData: ResponseUpdate[], context: MovedScanFailedContext): string | undefined {
+    const candidates = new Set<string>();
+    for (const update of onyxData) {
+        if (!update.key?.startsWith(ONYXKEYS.COLLECTION.REPORT) || !isRecord(update.value)) {
+            continue;
+        }
+        const reportID = update.key.slice(ONYXKEYS.COLLECTION.REPORT.length);
+        if (!isOtherReport(reportID, context) || update.value.type !== CONST.REPORT.TYPE.EXPENSE || update.value.chatReportID !== context.chatReportID) {
+            continue;
+        }
+        candidates.add(reportID);
+    }
+    return candidates.size === 1 ? candidates.values().next().value : undefined;
+}
+
+/** Collects the report actions the response carries for `reportID`, which may be none. */
+function collectActionIDsForReport(onyxData: ResponseUpdate[], reportID: string): Map<string, string> {
+    let actionIDByTransactionID = new Map<string, string>();
+    for (const update of onyxData) {
+        if (update.key !== `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` || !isRecord(update.value)) {
+            continue;
+        }
+        actionIDByTransactionID = new Map([...actionIDByTransactionID, ...getActionIDByTransactionID(update.value)]);
+    }
+    return actionIDByTransactionID;
+}
+
+/**
+ * Identifies the report the backend created for the moved expenses. Returns undefined when the response does not point
+ * at exactly one such report — the reconciliation is then skipped entirely, because sending the user to a report that
+ * is only a guess is worse than leaving the optimistic one in place.
+ */
+function findRealReport(onyxData: ResponseUpdate[], context: MovedScanFailedContext, movedTransactionIDs: Set<string>): RealReport | undefined {
+    const reportID = findReportClaimingMovedExpense(onyxData, context, movedTransactionIDs) ?? findNewExpenseReportForChat(onyxData, context);
+    if (!reportID) {
+        return undefined;
+    }
+    return {reportID, actionIDByTransactionID: collectActionIDsForReport(onyxData, reportID)};
 }
 
 /**
@@ -120,7 +167,11 @@ const handleMovedScanFailedExpenses: Middleware = (requestResponse, request) =>
 
         const onyxData: ResponseUpdate[] = response.onyxData ?? [];
         const realReport = findRealReport(onyxData, context, getMovedScanFailedTransactionIDs(context.optimisticReportID));
-        const updates = reconcileMovedScanFailedReport(context.optimisticReportID, realReport?.reportID, realReport?.actionIDByTransactionID ?? new Map<string, string>());
+        if (!realReport) {
+            return response;
+        }
+
+        const updates = reconcileMovedScanFailedReport(context.optimisticReportID, realReport.reportID, realReport.actionIDByTransactionID);
         if (!updates.length) {
             return response;
         }

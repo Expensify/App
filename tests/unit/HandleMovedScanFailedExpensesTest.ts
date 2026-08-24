@@ -223,24 +223,74 @@ describe('HandleMovedScanFailedExpenses middleware', () => {
         expect(mockSetParams).toHaveBeenCalledWith({backTo: `/r/${REAL_REPORT_ID}`}, 'rhp-route');
     });
 
-    it('does not mistake a report that carries none of the moved expenses for the backend report', async () => {
+    it('still reconciles when the response carries the backend report but none of its actions', async () => {
         const request = buildPayRequest();
-        const response = buildResponse([backendReportUpdate(), backendReportActionsUpdate('some-other-transaction')]);
 
-        await handleMovedScanFailedExpenses(Promise.resolve(response), request, false);
+        await handleMovedScanFailedExpenses(Promise.resolve(buildResponse([backendReportUpdate()])), request, false);
 
-        expect(mockSetParams).toHaveBeenCalledWith({reportID: CHAT_REPORT_ID}, 'report-route');
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: REAL_REPORT_ID}, 'report-route');
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${OPTIMISTIC_REPORT_ID}`)?.value).toBeNull();
+        // Without the backend actions there is nothing to re-parent the thread onto, so it is left for the next fetch.
         expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`)).toBeUndefined();
     });
 
-    it('falls back to the workspace chat when the response does not identify the backend report', async () => {
+    it('does nothing at all when the response does not identify the backend report', async () => {
         const request = buildPayRequest();
 
         await handleMovedScanFailedExpenses(Promise.resolve(buildResponse([])), request, false);
 
-        expect(mockSetParams).toHaveBeenCalledWith({reportID: CHAT_REPORT_ID}, 'report-route');
-        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${OPTIMISTIC_REPORT_ID}`)?.value).toBeNull();
-        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`)).toBeUndefined();
+        expect(getSuccessData(request)).toHaveLength(2);
+        expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('never sends a route to the workspace chat, which would render an expense report screen with no expenses', async () => {
+        const request = buildPayRequest();
+        const chatOnlyResponse = buildResponse([
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`,
+                value: {reportID: CHAT_REPORT_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT},
+            },
+        ]);
+
+        await handleMovedScanFailedExpenses(Promise.resolve(chatOnlyResponse), request, false);
+
+        expect(mockSetParams).not.toHaveBeenCalled();
+        expect(getSuccessData(request)).toHaveLength(2);
+    });
+
+    it('does nothing when the response introduces more than one candidate report, rather than guessing', async () => {
+        const request = buildPayRequest();
+        const ambiguousResponse = buildResponse([
+            backendReportUpdate(),
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}999`,
+                value: {reportID: '999', chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE},
+            },
+        ]);
+
+        await handleMovedScanFailedExpenses(Promise.resolve(ambiguousResponse), request, false);
+
+        expect(mockSetParams).not.toHaveBeenCalled();
+        expect(getSuccessData(request)).toHaveLength(2);
+    });
+
+    it('prefers the report that already carries a moved expense over any other new report', async () => {
+        const request = buildPayRequest();
+        const response = buildResponse([
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}999`,
+                value: {reportID: '999', chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE},
+            },
+            backendReportUpdate(),
+            backendReportActionsUpdate(),
+        ]);
+
+        await handleMovedScanFailedExpenses(Promise.resolve(response), request, false);
+
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: REAL_REPORT_ID}, 'report-route');
     });
 
     it('does nothing when the optimistic report is already gone', async () => {

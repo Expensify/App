@@ -90,14 +90,14 @@ function getTransactionThreadsByParentActionID(allReports: Record<string, Report
  * backend has answered with the report it actually created for them.
  *
  * The backend does not reuse `optimisticHoldReportID` for this split, so the optimistic report has to go — but it must
- * never be dropped from under the user. Every route showing it is pointed at `realReportID` first (falling back to
- * the workspace chat when the backend report cannot be identified), and each expense's transaction thread is re-parented
- * onto the backend report action so the open expense keeps resolving.
+ * never be dropped from under the user. Every route showing it is pointed at `realReportID` first, and each expense's
+ * transaction thread is re-parented onto the backend report action so the open expense keeps resolving. Callers only
+ * reach this once the backend report is known; guessing a destination would strand the user on the wrong report.
  *
  * Returns the updates to apply alongside the response rather than writing them, so the swap lands in the same Onyx
  * transaction as the backend data and the user never observes an in-between state.
  */
-function reconcileMovedScanFailedReport(optimisticReportID: string, realReportID: string | undefined, realActionIDByTransactionID: Map<string, string>): AnyOnyxUpdate[] {
+function reconcileMovedScanFailedReport(optimisticReportID: string, realReportID: string, realActionIDByTransactionID: Map<string, string>): AnyOnyxUpdate[] {
     const allReports = getAllReports();
     const optimisticReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`];
     if (!optimisticReport) {
@@ -128,40 +128,36 @@ function reconcileMovedScanFailedReport(optimisticReportID: string, realReportID
         });
     }
 
-    if (realReportID) {
-        const threadIDByParentActionID = getTransactionThreadsByParentActionID(allReports ?? {}, optimisticReportID);
-
-        for (const optimisticAction of Object.values(getAllReportActions(optimisticReportID))) {
-            if (!isMoneyRequestAction(optimisticAction)) {
-                continue;
-            }
-            const transactionID = getOriginalMessage(optimisticAction)?.IOUTransactionID;
-            const threadReportID = threadIDByParentActionID.get(optimisticAction.reportActionID);
-            const realReportActionID = transactionID ? realActionIDByTransactionID.get(transactionID) : undefined;
-            if (!threadReportID || !realReportActionID) {
-                continue;
-            }
-
-            updates.push(
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`,
-                    value: {parentReportID: realReportID, parentReportActionID: realReportActionID, chatReportID: realReportID},
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${realReportID}`,
-                    value: {[realReportActionID]: {childReportID: threadReportID}},
-                },
-            );
+    const threadIDByParentActionID = getTransactionThreadsByParentActionID(allReports ?? {}, optimisticReportID);
+    for (const optimisticAction of Object.values(getAllReportActions(optimisticReportID))) {
+        if (!isMoneyRequestAction(optimisticAction)) {
+            continue;
         }
+        const transactionID = getOriginalMessage(optimisticAction)?.IOUTransactionID;
+        const threadReportID = threadIDByParentActionID.get(optimisticAction.reportActionID);
+        // The response does not always carry the backend report's actions; without them the thread keeps its own data
+        // and is re-parented by the backend on the next fetch.
+        const realReportActionID = transactionID ? realActionIDByTransactionID.get(transactionID) : undefined;
+        if (!threadReportID || !realReportActionID) {
+            continue;
+        }
+
+        updates.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`,
+                value: {parentReportID: realReportID, parentReportActionID: realReportActionID, chatReportID: realReportID},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${realReportID}`,
+                value: {[realReportActionID]: {childReportID: threadReportID}},
+            },
+        );
     }
 
-    // Without the backend report the workspace chat is the only destination that is guaranteed to still exist,
-    // and landing there still beats leaving the user on a report that is about to be removed.
-    const destinationReportID = realReportID ?? chatReportID;
-    if (destinationReportID && navigationRef.isReady()) {
-        pointRoutesToReport(navigationRef.getRootState()?.routes ?? [], optimisticReportID, destinationReportID);
+    if (navigationRef.isReady()) {
+        pointRoutesToReport(navigationRef.getRootState()?.routes ?? [], optimisticReportID, realReportID);
     }
 
     return updates;
