@@ -42,27 +42,24 @@ type NumberFormInputBaseProps = {
 
     /** Callback for keyboard events received by the numeric input. */
     onKeyPress?: (event: NumberFormInputKeyPressEvent) => void;
-} & Omit<
-    Pick<
-        BaseTextInputProps,
-        | 'accessibilityLabel'
-        | 'autoFocus'
-        | 'autoGrowExtraSpace'
-        | 'autoGrowMarginSide'
-        | 'contentWidth'
-        | 'disabled'
-        | 'disableKeyboard'
-        | 'keyboardType'
-        | 'onBlur'
-        | 'onFocus'
-        | 'prefixContainerStyle'
-        | 'shouldApplyPaddingToContainer'
-        | 'shouldUseDefaultLineHeightForPrefix'
-        | 'submitBehavior'
-        | 'testID'
-        | 'touchableInputWrapperStyle'
-    >,
-    'onKeyPress'
+} & Pick<
+    BaseTextInputProps,
+    | 'accessibilityLabel'
+    | 'autoFocus'
+    | 'autoGrowExtraSpace'
+    | 'autoGrowMarginSide'
+    | 'contentWidth'
+    | 'disabled'
+    | 'disableKeyboard'
+    | 'keyboardType'
+    | 'onBlur'
+    | 'onFocus'
+    | 'prefixContainerStyle'
+    | 'shouldApplyPaddingToContainer'
+    | 'shouldUseDefaultLineHeightForPrefix'
+    | 'submitBehavior'
+    | 'testID'
+    | 'touchableInputWrapperStyle'
 >;
 
 type NumberFormSymbolInputProps = NumberFormInputBaseProps &
