@@ -35,15 +35,39 @@ type SuppressedBan = {
     line: number;
 };
 
-const DISABLE_DIRECTIVE_REGEX = /(?:\/\/\s*eslint-disable(?<lineKind>-next-line|-line)?(?<lineArgs>[^\n]*)|\/\*\s*eslint-disable(?<blockKind>-next-line|-line)?(?<blockArgs>[\s\S]*?)\*\/)/g;
-const ENABLE_DIRECTIVE_REGEX = /(?:\/\/\s*eslint-enable(?<lineArgs>[^\n]*)|\/\*\s*eslint-enable(?<blockArgs>[\s\S]*?)\*\/)/g;
+type DirectiveMatch = {
+    index: number;
+    text: string;
+    kind?: string;
+    args: string;
+};
 
-function directiveKind(match: RegExpMatchArray): string | undefined {
-    return match.groups?.lineKind ?? match.groups?.blockKind;
+function collectDirectiveMatches(source: string, directive: 'disable' | 'enable'): DirectiveMatch[] {
+    const matches: DirectiveMatch[] = [];
+    const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, source);
+    while (scanner.scan() !== ts.SyntaxKind.EndOfFileToken) {
+        const token = scanner.getToken();
+        if (token !== ts.SyntaxKind.SingleLineCommentTrivia && token !== ts.SyntaxKind.MultiLineCommentTrivia) {
+            continue;
+        }
+        const index = scanner.getTokenStart();
+        const text = scanner.getTokenText();
+        const body = text.startsWith('//') ? text.slice(2) : text.slice(2, -2);
+        const directiveMatch = body.match(new RegExp(`^\\s*eslint-${directive}(?<kind>-next-line|-line)?(?<args>[\\s\\S]*)$`));
+        if (!directiveMatch) {
+            continue;
+        }
+        matches.push({index, text, kind: directiveMatch.groups?.kind, args: directiveMatch.groups?.args ?? ''});
+    }
+    return matches;
 }
 
-function directiveArgs(match: RegExpMatchArray): string {
-    return match.groups?.lineArgs ?? match.groups?.blockArgs ?? '';
+function directiveKind(match: DirectiveMatch): string | undefined {
+    return match.kind;
+}
+
+function directiveArgs(match: DirectiveMatch): string {
+    return match.args;
 }
 
 function unwrapExpression(node: ts.Expression): ts.Expression {
@@ -96,10 +120,10 @@ function lineNumberAtOffset(source: string, offset: number): number {
     return source.slice(0, offset).split('\n').length;
 }
 
-function blanketDirectiveCoversCall(source: string, match: RegExpMatchArray, callOffsets: number[], enableMatches: RegExpMatchArray[]): boolean {
+function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, callOffsets: number[], enableMatches: DirectiveMatch[]): boolean {
     const directiveLine = lineNumberAtOffset(source, match.index ?? 0);
     const kind = directiveKind(match);
-    const directiveEnd = (match.index ?? 0) + match[0].length;
+    const directiveEnd = match.index + match.text.length;
     return callOffsets.some((callOffset) => {
         const callLine = lineNumberAtOffset(source, callOffset);
         if (kind === '-line') {
@@ -112,7 +136,7 @@ function blanketDirectiveCoversCall(source: string, match: RegExpMatchArray, cal
             return false;
         }
         const reenabled = enableMatches.some((enableMatch) => {
-            const enableOffset = enableMatch.index ?? -1;
+            const enableOffset = enableMatch.index;
             if (enableOffset <= directiveEnd || enableOffset >= callOffset) {
                 return false;
             }
@@ -130,15 +154,15 @@ function blanketDirectiveCoversCall(source: string, match: RegExpMatchArray, cal
 function collectDisableDirectivesFromSource(source: string, file: string): SuppressedBan[] {
     const bans: SuppressedBan[] = [];
     const callOffsets = collectOnyxConnectCallOffsets(source, file);
-    const enableMatches = [...source.matchAll(ENABLE_DIRECTIVE_REGEX)];
-    for (const match of source.matchAll(DISABLE_DIRECTIVE_REGEX)) {
+    const enableMatches = collectDirectiveMatches(source, 'enable');
+    for (const match of collectDirectiveMatches(source, 'disable')) {
         const args = directiveArgs(match);
         const targetsBan = directiveTargetsBan(args);
         const coversBan = isBlanketDirective(args) && blanketDirectiveCoversCall(source, match, callOffsets, enableMatches);
         if (!targetsBan && !coversBan) {
             continue;
         }
-        const prefix = source.slice(0, match.index ?? 0);
+        const prefix = source.slice(0, match.index);
         const line = prefix.split('\n').length;
         bans.push({file, line});
     }
