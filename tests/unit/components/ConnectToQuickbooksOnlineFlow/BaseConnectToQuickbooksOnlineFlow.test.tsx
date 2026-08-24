@@ -124,6 +124,30 @@ describe('BaseConnectToQuickbooksOnlineFlow', () => {
         expect(mockPopoverMenu).not.toHaveBeenCalled();
     });
 
+    it('connects to sandbox immediately for Intuit Enterprise Suite on staging', async () => {
+        setEnvironment(CONST.ENVIRONMENT.STAGING);
+        const onConnect = renderFlow({isIntuitEnterpriseSuite: true});
+
+        await waitFor(() => {
+            expect(onConnect).toHaveBeenCalledTimes(1);
+        });
+
+        expect(onConnect).toHaveBeenCalledWith(true);
+        expect(mockPopoverMenu).not.toHaveBeenCalled();
+    });
+
+    it('connects to production immediately for QuickBooks Online on staging', async () => {
+        setEnvironment(CONST.ENVIRONMENT.STAGING);
+        const onConnect = renderFlow({isIntuitEnterpriseSuite: false});
+
+        await waitFor(() => {
+            expect(onConnect).toHaveBeenCalledTimes(1);
+        });
+
+        expect(onConnect).toHaveBeenCalledWith(false);
+        expect(mockPopoverMenu).not.toHaveBeenCalled();
+    });
+
     it.each([
         ['production', 0, false],
         ['sandbox', 1, true],

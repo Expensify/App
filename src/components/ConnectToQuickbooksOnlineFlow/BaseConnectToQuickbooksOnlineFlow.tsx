@@ -64,7 +64,9 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
         enablePolicyTaxes(policyID, false);
         // Reconnect starts from the overflow menu, so there is no connection button to anchor this popover to.
         if (!shouldShowConnectionOptions) {
-            onConnect(false);
+            // IES on staging must use the sandbox OAuth configuration; all other non-DEV connections use production.
+            const isSandbox = isIntuitEnterpriseSuite && environment === CONST.ENVIRONMENT.STAGING;
+            onConnect(isSandbox);
         }
     }, [onConnect, policyID, shouldShowConnectionOptions]);
 
