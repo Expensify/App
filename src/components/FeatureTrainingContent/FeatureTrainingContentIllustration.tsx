@@ -11,7 +11,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import Accessibility from '@libs/Accessibility';
 import {isMobile} from '@libs/Browser';
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import {getIsOffline} from '@libs/NetworkState';
 
 import variables from '@styles/variables';
@@ -76,11 +75,10 @@ function FeatureTrainingContentIllustration({
     const styles = useThemeStyles();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Hands']);
-    const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const videoStatus = useVideoStatus();
-    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     const animationRef = useRef<LottieView | null>(null);
     useEffect(() => {

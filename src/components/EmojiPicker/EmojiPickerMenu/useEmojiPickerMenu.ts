@@ -1,5 +1,6 @@
 import emojis from '@assets/emojis';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,7 +11,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
 import {getHeaderEmojis, getSpacersIndexes, mergeEmojisWithFrequentlyUsedEmojis, processFrequentlyUsedEmojis, suggestEmojis} from '@libs/EmojiUtils';
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import calculateModalHeightInLandscapeMode from '@src/utils/calculateModalHeightInLandscapeMode';
@@ -32,10 +32,10 @@ const useEmojiPickerMenu = () => {
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
     const {preferredLocale} = useLocalize();
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
-    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const {keyboardActiveHeight} = useKeyboardState();
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+    const isInLandscapeMode = useIsInLandscapeMode();
     const {top: topSafeAreaInset} = useSafeAreaInsets();
 
     /**

@@ -13,8 +13,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
-
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -66,11 +64,10 @@ function FeatureTrainingCarousel({
     const theme = useTheme();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const {isKeyboardActive} = useKeyboardState();
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     const [currentPage, setCurrentPage] = useState(0);
     const [carouselViewportWidth, setCarouselViewportWidth] = useState(0);
