@@ -21719,8 +21719,8 @@ describe('ReportUtils', () => {
             expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBe(false);
             expect(getReportActionWithSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBeUndefined();
 
-            // Restore original transaction for subsequent tests
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            // Restore original transaction for subsequent tests (Onyx.set fully replaces, clearing pendingAction)
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
         });
 
@@ -21821,6 +21821,73 @@ describe('ReportUtils', () => {
 
             expect(hasSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBe(false);
             expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBeUndefined();
+        });
+
+        it('should NOT flag a track-expense action when its linked transaction is pending deletion (revert / delete)', () => {
+            // isSplitOrTrackAction also covers the track-expense branch, so a DELETE-pending track transaction with
+            // missing fields must clear the RBR too. Guards the OR against a future refactor that splits the paths.
+            const trackTransactionID = '575';
+            const trackAction: ReportAction = {
+                ...createRandomReportAction(Number(trackTransactionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: trackTransactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [currentUserAccountID],
+                },
+            };
+            // Same missing-fields shape as the split test above, but the transaction is queued for deletion.
+            const trackTransaction: Transaction = {
+                ...createRandomTransaction(Number(trackTransactionID)),
+                transactionID: trackTransactionID,
+                amount: 0,
+                merchant: 'Lunch',
+                modifiedMerchant: '',
+                created: testDate,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${trackTransactionID}`]: trackTransaction,
+            };
+
+            expect(hasSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toBe(false);
+            expect(getReportActionWithSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toBeUndefined();
+        });
+
+        it('should flag a track-expense action when its linked transaction has missing smartscan fields', () => {
+            // Positive control for the track branch: a non-DELETE track transaction with missing fields still lights the RBR.
+            const trackTransactionID = '585';
+            const trackAction: ReportAction = {
+                ...createRandomReportAction(Number(trackTransactionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: trackTransactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [currentUserAccountID],
+                },
+            };
+            const trackTransaction: Transaction = {
+                ...createRandomTransaction(Number(trackTransactionID)),
+                transactionID: trackTransactionID,
+                amount: 0,
+                merchant: 'Lunch',
+                modifiedMerchant: '',
+                created: testDate,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${trackTransactionID}`]: trackTransaction,
+            };
+
+            expect(hasSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toBe(true);
+            expect(getReportActionWithSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toEqual(trackAction);
         });
 
         it('should NOT flag a split-bill action when its linked transaction has all required fields', () => {
