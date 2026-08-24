@@ -13,11 +13,10 @@ import CLI from 'expensify-common/CLI';
 
 const projectRoot = `${import.meta.dir}/..`;
 
-// TypeScript 7 is installed under the `typescript7` alias because typescript-eslint still needs the
-// classic compiler API that only TypeScript 6 exposes, so both live in node_modules at once. Several
-// packages there declare a `tsc` bin and npm picks the winner for node_modules/.bin/tsc on its own,
-// so address the compiler by path to guarantee which one runs.
-const tsc = `${projectRoot}/node_modules/typescript7/bin/tsc`;
+// typescript-eslint still needs the TypeScript 6 compiler API, so it requires `@typescript/typescript6`
+// (see the patches under patches/@typescript-eslint/). The root `typescript` package is TypeScript 7.
+// Invoke that bin by path so a leftover `.bin/tsc` from `@typescript/old` cannot win.
+const tsc = `${projectRoot}/node_modules/typescript/bin/tsc`;
 
 /** Project directories, relative to the repo root, that `npm run typecheck` and CI check. */
 const DEFAULT_PROJECTS = ['.', 'tests/tooling', 'server', 'server/victory-chart-renderer', 'scripts'];

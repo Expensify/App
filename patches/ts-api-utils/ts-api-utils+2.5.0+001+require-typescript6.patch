@@ -1,0 +1,12 @@
+diff --git a/node_modules/ts-api-utils/lib/index.cjs b/node_modules/ts-api-utils/lib/index.cjs
+index 4208526..807cb5d 100644
+--- a/node_modules/ts-api-utils/lib/index.cjs
++++ b/node_modules/ts-api-utils/lib/index.cjs
+@@ -1,6 +1,6 @@
+ 'use strict';
+ 
+-var ts9 = require('typescript');
++var ts9 = require('@typescript/typescript6');
+ 
+ function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
+ 
