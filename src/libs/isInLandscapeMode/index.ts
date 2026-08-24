@@ -8,33 +8,28 @@ function isTabletScreen(): boolean {
 
 const isMobilePhoneWeb = isMobile() && !isTabletScreen();
 
-/**
- * Returns whether the device is currently in landscape orientation.
- */
-function getIsLandscapeOrientation(): boolean {
-    const orientationType = window.screen?.orientation?.type;
-    if (orientationType) {
-        return orientationType.startsWith('landscape');
-    }
+const screenShortSide = Math.min(window.screen.width, window.screen.height);
+const screenLongSide = Math.max(window.screen.width, window.screen.height);
 
-    // Legacy iOS Safari (before 16.4) doesn't support the Screen Orientation API.
-    const legacyOrientation = (window as {orientation?: number}).orientation;
-    if (typeof legacyOrientation === 'number') {
-        return Math.abs(legacyOrientation) === 90;
-    }
-
-    return window.screen.width > window.screen.height;
+function getViewportWidth(): number {
+    return window.visualViewport?.width ?? window.innerWidth;
 }
 
 /**
- * windowWidth and windowHeight should be passed to keep the check reactive (see useResponsiveLayout()).
- * Version without params is needed for getIsNarrowLayout()
+ * Returns whether the device is currently in landscape orientation. Returns false on tablets and non-mobile browsers.
+ * Derived from the width instead of the Screen Orientation API (its `change` event lands in a different task than
+ * `resize`, causing a flicker) and instead of the height (the soft keyboard shrinks height).
  */
-function isInLandscapeMode(): boolean;
-function isInLandscapeMode(windowWidth: number, windowHeight: number): boolean;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isInLandscapeMode(windowWidth?: number, windowHeight?: number): boolean {
-    return isMobilePhoneWeb && getIsLandscapeOrientation();
+function isInLandscapeMode(windowWidth: number = getViewportWidth(), windowHeight?: number): boolean {
+    if (!isMobilePhoneWeb) {
+        return false;
+    }
+
+    const distanceToLongSide = Math.abs(windowWidth - screenLongSide);
+    const distanceToShortSide = Math.abs(windowWidth - screenShortSide);
+
+    return distanceToLongSide < distanceToShortSide;
 }
 
 export default isInLandscapeMode;

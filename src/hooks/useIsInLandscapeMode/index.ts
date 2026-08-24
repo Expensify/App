@@ -1,85 +1,16 @@
-import {isMobile} from '@libs/Browser';
-import isInLandscapeMode, {isTabletScreen} from '@libs/isInLandscapeMode';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {useSyncExternalStore} from 'react';
-
-// Tablets and desktops never report landscape mode, so there is nothing to listen for on them.
-const shouldTrackOrientation = isMobile() && !isTabletScreen();
-const subscribers = new Set<() => void>();
-let cachedValue = isInLandscapeMode();
-let isListenerAttached = false;
-
-function handleOrientationChange() {
-    const nextValue = isInLandscapeMode();
-
-    if (nextValue === cachedValue) {
-        return;
-    }
-
-    cachedValue = nextValue;
-    for (const callback of subscribers) {
-        callback();
-    }
-}
-
-function addOrientationChangeListener() {
-    const orientation = window.screen?.orientation;
-
-    if (orientation) {
-        orientation.addEventListener('change', handleOrientationChange);
-        return;
-    }
-
-    window.addEventListener('resize', handleOrientationChange);
-}
-
-function removeOrientationChangeListener() {
-    const orientation = window.screen?.orientation;
-
-    if (orientation) {
-        orientation.removeEventListener('change', handleOrientationChange);
-        return;
-    }
-
-    window.removeEventListener('resize', handleOrientationChange);
-}
-
-function subscribe(callback: () => void): () => void {
-    if (!shouldTrackOrientation) {
-        return () => {};
-    }
-
-    subscribers.add(callback);
-
-    if (!isListenerAttached) {
-        addOrientationChangeListener();
-        isListenerAttached = true;
-        // The orientation can change while nothing is subscribed and no listener is attached, so refresh the cache once we start listening again.
-        handleOrientationChange();
-    }
-
-    return () => {
-        subscribers.delete(callback);
-
-        if (subscribers.size > 0) {
-            return;
-        }
-
-        removeOrientationChangeListener();
-        isListenerAttached = false;
-    };
-}
-
-function getSnapshot(): boolean {
-    return cachedValue;
-}
+import isInLandscapeMode from '@libs/isInLandscapeMode';
 
 /**
- * Returns whether device that is currently in landscape orientation.
- * It checks whether device is a mobile before subscribing to orientation changes.
+ * Returns whether the device is currently in landscape orientation.
+ * If component already uses useResponsiveLayout, it will return the value from that hook.
+ * If component already uses useWindowDimensions, use @libs/isInLandscapeMode instead.
  */
 function useIsInLandscapeMode(): boolean {
-    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+    const {windowWidth, windowHeight} = useWindowDimensions();
+
+    return isInLandscapeMode(windowWidth, windowHeight);
 }
 
 export default useIsInLandscapeMode;
