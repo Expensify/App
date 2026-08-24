@@ -114,6 +114,24 @@ function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> 
 }
 
 /**
+ * Determines whether a report field was imported from an accounting integration.
+ *
+ * A field is treated as integration-imported when either signal is present:
+ * - `origin` is set (the automated action or integration that added the field), or
+ * - `externalIDs` is non-empty (external IDs imported from the integration).
+ *
+ * Manually-created fields are created with no `origin` and an empty `externalIDs`
+ * (see `src/libs/actions/Policy/ReportField.ts`), so they are never treated as imported.
+ */
+function isReportFieldImportedFromIntegration(reportField: PolicyReportField | undefined | null): boolean {
+    if (!reportField) {
+        return false;
+    }
+
+    return !!reportField.origin || (reportField.externalIDs?.length ?? 0) > 0;
+}
+
+/**
  * Returns the list of unsupported {report:*} formula parts in the initial value.
  * Used to validate formula report fields so unsupported tokens (e.g. {report:i}) are rejected with a clear error.
  */
@@ -221,4 +239,5 @@ export {
     getUnsupportedReportFieldFormulaParts,
     hasFormulaPartsInInitialValue,
     isReportFieldNameExisting,
+    isReportFieldImportedFromIntegration,
 };

@@ -29,9 +29,9 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getConnectedIntegration, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
-import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+import {getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -84,26 +84,20 @@ function WorkspaceReportFieldsPage({
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
-    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const hasImportedReportField = Object.values(policy?.fieldList ?? {}).some(isReportFieldImportedFromIntegration);
 
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    const onDisabledOrganizeSwitchPress = () => {
-        if (!hasAccountingConnections) {
+    const onDisabledReportFieldsSwitchPress = () => {
+        if (!hasImportedReportField) {
             return;
         }
 
         showConfirmModal({
-            title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
-            prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
-            confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
-            cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM || !policyID) {
-                return;
-            }
-
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            title: translate('workspace.reportFields.disableReportFields'),
+            prompt: translate('workspace.reportFields.cannotDisableImportedReportFields'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
         });
     };
 
@@ -321,8 +315,8 @@ function WorkspaceReportFieldsPage({
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
-                                disabled={hasAccountingConnections || !canWriteReportFields}
-                                disabledAction={withReadOnlyFallback(onDisabledOrganizeSwitchPress)}
+                                disabled={!canWriteReportFields || (!!policy?.areReportFieldsEnabled && hasImportedReportField)}
+                                disabledAction={withReadOnlyFallback(onDisabledReportFieldsSwitchPress)}
                                 showLockIcon={!canWriteReportFields}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
@@ -335,7 +329,7 @@ function WorkspaceReportFieldsPage({
                                                     maintainVisibleContentPosition={{disabled: true}}
                                                 />
                                             </View>
-                                            {!hasAccountingConnections && canWriteReportFields && (
+                                            {canWriteReportFields && (
                                                 <MenuItem
                                                     onPress={() => {
                                                         setInitialCreateReportFieldsForm();
