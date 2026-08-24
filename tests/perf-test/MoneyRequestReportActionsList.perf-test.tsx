@@ -2,6 +2,7 @@ import {act, screen} from '@testing-library/react-native';
 
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 
 import type Navigation from '@libs/Navigation/Navigation';
@@ -11,6 +12,8 @@ import {setHasRadio} from '@libs/NetworkState';
 import {ActionListContext} from '@pages/inbox/ActionListContext';
 import {ReactionListContext} from '@pages/inbox/ReactionListContext';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
@@ -50,12 +53,15 @@ jest.mock('@rnmapbox/maps', () => ({
     setAccessToken: jest.fn(),
 }));
 
-beforeAll(() =>
+beforeAll(() => {
     Onyx.init({
         keys: ONYXKEYS,
         evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-    }),
-);
+    });
+    // Register the derived-value computations (e.g. VISIBLE_REPORT_ACTIONS): without this the derived
+    // keys never update in the test, hiding production re-render behavior from the measurements.
+    initOnyxDerivedValues();
+});
 
 const mockOnLayout = jest.fn();
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
@@ -67,6 +73,13 @@ const mockReactionListContextValue = {
     showReactionList: () => {},
     hideReactionList: () => {},
     isActiveReportAction: () => false,
+};
+// Transaction items resolve their highlight animation via ScreenWrapper's transition status; the
+// perf harness renders no ScreenWrapper, so provide a settled one.
+const screenWrapperStatusContextValue = {
+    didScreenTransitionEnd: true,
+    isSafeAreaTopPaddingApplied: false,
+    isSafeAreaBottomPaddingApplied: false,
 };
 
 const TEST_USER_ACCOUNT_ID = 1;
@@ -144,7 +157,9 @@ function MoneyRequestReportActionsListWrapper() {
                 <SearchContextProvider>
                     <ReactionListContext.Provider value={mockReactionListContextValue}>
                         <ActionListContext.Provider value={actionListContextValue}>
-                            <MoneyRequestReportActionsList onLayout={mockOnLayout} />
+                            <ScreenWrapperStatusContext.Provider value={screenWrapperStatusContextValue}>
+                                <MoneyRequestReportActionsList onLayout={mockOnLayout} />
+                            </ScreenWrapperStatusContext.Provider>
                         </ActionListContext.Provider>
                     </ReactionListContext.Provider>
                 </SearchContextProvider>
@@ -156,6 +171,25 @@ function MoneyRequestReportActionsListWrapper() {
 test('[MoneyRequestReportActionsList] should render the unified list with 500 reportActions and 10 transactions stored', async () => {
     const scenario = async () => {
         await screen.findByTestId('money-request-report-actions-list');
+    };
+    await waitForBatchedUpdates();
+    await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
+});
+
+test('[MoneyRequestReportActionsList] should not re-render when an unrelated report receives new actions', async () => {
+    const UNRELATED_REPORT_ID = '999';
+    const scenario = async () => {
+        await screen.findByTestId('money-request-report-actions-list');
+        // Each merge recomputes the VISIBLE_REPORT_ACTIONS derived value app-wide; the list under test
+        // must not re-render because its own report's slice is unchanged.
+        for (let i = 0; i < 5; i++) {
+            const newAction = ReportTestUtils.getFakeReportAction(600 + i, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: `2023-09-14 00:00:0${i}.000`});
+            // eslint-disable-next-line no-await-in-loop
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${UNRELATED_REPORT_ID}`, {[newAction.reportActionID]: newAction});
+                await waitForBatchedUpdates();
+            });
+        }
     };
     await waitForBatchedUpdates();
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
