@@ -1,8 +1,6 @@
 import extractNavigationKeys from '@libs/Navigation/helpers/extractNavigationKeys';
 import getLastVisibleRHPRouteKey from '@libs/Navigation/helpers/getLastVisibleRHPRouteKey';
 
-import NAVIGATORS from '@src/NAVIGATORS';
-
 import type {NavigationState} from '@react-navigation/native';
 
 type VisibleRHPKeys = {
@@ -26,12 +24,9 @@ function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: s
     }
 
     // Undefined once a fullscreen navigator covers the RHP, which is what makes clearing the keys by hand unnecessary.
+    // A covered RHP needs no guard of its own: its screens are still in the state below, so the displayed check rejects them.
     const lastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
     const lastRHPRoute = state.routes.find((route) => route.key === lastVisibleRHPRouteKey);
-
-    if (!lastRHPRoute && state.routes.some((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)) {
-        return emptyRHPKeysState;
-    }
 
     // An RHP whose own stack has not been populated yet says nothing about its screens, so none of them is treated as displayed or as dismissing.
     if (lastRHPRoute && !lastRHPRoute.state?.routes) {

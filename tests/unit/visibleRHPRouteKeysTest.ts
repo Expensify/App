@@ -83,4 +83,12 @@ describe('getVisibleRHPKeys', () => {
 
         expect(getVisibleRHPKeys(state, ['secondWide', 'firstWide'], ['superWideKey']).visibleWideRHPRouteKeys).toEqual(['secondWide', 'firstWide']);
     });
+
+    it('holds a dismissing RHP at its width even while an older RHP sits covered below a fullscreen navigator', () => {
+        // The top RHP has left the state but is still animating out, while the covered one below is still in the state.
+        const state = buildRootState([reportsSplit, rhpWithChildren(['coveredKey']), searchFullscreen]);
+
+        expect(getVisibleRHPKeys(state, ['dismissingKey'], [])).toEqual({visibleWideRHPRouteKeys: ['dismissingKey'], visibleSuperWideRHPRouteKeys: []});
+        expect(getVisibleRHPKeys(state, ['coveredKey'], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
+    });
 });
