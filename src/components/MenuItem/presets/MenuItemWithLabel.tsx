@@ -23,7 +23,7 @@ function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, tes
 
     return (
         <View>
-            <View style={[styles.ph5, styles.pv1]}>
+            <View style={[styles.ph5, styles.pv1, isDisabled && styles.opacitySemiTransparent]}>
                 <Text style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}>{label}</Text>
             </View>
             <MenuItemRoot
