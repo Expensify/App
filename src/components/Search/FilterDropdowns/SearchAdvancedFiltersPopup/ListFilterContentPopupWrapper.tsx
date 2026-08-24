@@ -19,7 +19,7 @@ function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initial
             isNegated={isNegated}
             type={type}
             policyID={policyID}
-            style={[styles.mt6]}
+            style={[styles.mt6, styles.flex1]}
             selectionListTextInputStyle={[!isFilterKeyNegatable && [styles.pt5, styles.pb1]]}
             selectionListStyle={{contentContainerStyle: [isFilterKeyNegatable ? styles.pb2 : styles.pv2]}}
             onChange={(newValue) => onChange(newValue, isNegated)}

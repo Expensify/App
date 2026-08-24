@@ -13,6 +13,7 @@ import {
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
     isReportOwner,
@@ -21,7 +22,12 @@ import {
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {
+    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
+    hasOnlyPendingCardTransactions,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
@@ -38,7 +44,9 @@ import React from 'react';
 
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -80,7 +88,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID),
     });
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -89,6 +96,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
     });
+    const delegateAccountID = useDelegateAccountID();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
@@ -109,6 +117,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -148,11 +157,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const integrationNameFromExportMessage = isExported ? getIntegrationNameFromExportMessageUtils(reportActions) : null;
 
     const connectedIntegration = getValidConnectedIntegration(policy);
-    const connectedIntegrationName = connectedIntegration
-        ? translate('workspace.accounting.connectionName', {
-              connectionName: connectedIntegration,
-          })
-        : '';
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
@@ -177,13 +182,13 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            expenseReportCurrentNextStepDeprecated: nextStep,
             betas,
             userBillingGracePeriodEnds,
             amountOwed,
@@ -197,6 +202,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 startApprovedAnimation();
             },
             delegateEmail,
+            delegateAccountID,
             isTrackIntentUser,
         });
         if (skipAnimation) {
@@ -205,13 +211,24 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
     };
 
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+    });
+
     const handleSubmitReport = (skipAnimation = false) => {
         if (!moneyRequestReport || shouldBlockSubmit) {
             return;
         }
 
         if (hasOnlyPendingCardTransactions(transactions)) {
-            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
+            return;
+        }
+
+        if (hasOnlyHeldExpenses(transactions)) {
+            showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 
@@ -229,13 +246,14 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 return;
             }
             submitReport({
+                getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
                 policy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: nextStep,
+                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 onSubmitted: () => {
@@ -246,6 +264,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 },
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                delegateAccountID,
                 submitterLogin,
                 isTrackIntentUser,
             });
@@ -268,13 +287,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const actions: Record<string, SecondaryActionEntry> = {
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
-            text: shouldShowMarkAsDone({
-                policy,
-                report: moneyRequestReport,
-                isTrackIntentUser,
-            })
-                ? translate('common.markAsDone')
-                : translate('common.submit'),
+            text: shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit'),
             icon: expensifyIcons.Send,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SUBMIT,
             onSelected: () => handleSubmitReport(),
@@ -313,7 +326,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions, isTrackIntentUser);
+                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -321,7 +334,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions, isTrackIntentUser);
+                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
@@ -356,7 +369,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, isTrackIntentUser);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -411,7 +424,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, isTrackIntentUser);
+                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -445,7 +458,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport, isTrackIntentUser);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, chatReport, isTrackIntentUser);
             },
         },
     };

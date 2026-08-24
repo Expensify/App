@@ -48,6 +48,7 @@ import {clearPreInsertedOriginalTabRoute, getPreInsertedOriginalTabRoute} from '
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveTabName from './helpers/getActiveTabName';
+import getFocusedReportParams from './helpers/getFocusedReportParams';
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -82,6 +83,9 @@ const SET_UP_2FA_SCREENS = new Set<string>([
     SCREENS.TWO_FACTOR_AUTH.SUCCESS,
     SCREENS.TWO_FACTOR_AUTH.DISABLED,
     SCREENS.TWO_FACTOR_AUTH.DISABLE,
+    SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD,
+    SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW,
+    SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH,
 ]);
 
 const MFA_FLOW_SCREENS = new Set<string>(Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION));
@@ -190,6 +194,12 @@ function canNavigate(methodName: string, params: CanNavigateParams = {}): boolea
  * Extracts from the topmost report its id.
  */
 const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
+
+/**
+ * Extracts the report ID the user is focused on across RHP, central-pane inbox, and search fullscreen.
+ * Prefer this over getTopmostReportId when suppressing notifications; getTopmostReportId only reads the central-pane report.
+ */
+const getFocusedReportId = (state = navigationRef.getState()) => getFocusedReportParams(state)?.reportID;
 
 /**
  * Extracts from the topmost report its action id.
@@ -893,11 +903,12 @@ function dismissModal({ref = navigationRef, afterTransition, waitForTransition}:
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  * @param options.onBeforeNavigate - Called before performing navigation with whether the report will be opened (true) or we only dismiss because already on that report (false).
+ * @param options.forceReplace - If true, the report is opened by replacing the topmost report screen instead of pushing on top of it. Use this when the screen we dismiss back onto has been deleted (e.g. after merging its only expense away), so it is removed from the stack instead of lingering underneath and flashing a "not found" page when the user taps back.
  */
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
     ref = navigationRef,
-    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void; afterTransition?: () => void},
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void; afterTransition?: () => void; forceReplace?: boolean},
 ) => {
     const dismissAndOpenReport = () => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
@@ -921,7 +932,7 @@ const dismissModalWithReport = (
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         dismissModal({
             afterTransition: () => {
-                navigate(reportRoute, {afterTransition: options?.afterTransition});
+                navigate(reportRoute, {afterTransition: options?.afterTransition, forceReplace: options?.forceReplace});
             },
         });
     };
@@ -1278,6 +1289,7 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
+    getFocusedReportId,
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,

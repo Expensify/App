@@ -24,6 +24,24 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// FilterPopupButton (rendered by the filter bar triggers) imports useIsFocused from @react-navigation/core,
+// which needs a NavigationContainer unless mocked
+jest.mock('@react-navigation/core', () => {
+    const actualNavCore = jest.requireActual<typeof Navigation>('@react-navigation/core');
+    return {
+        ...actualNavCore,
+        useIsFocused: jest.fn(() => true),
+    };
+});
+
+// The settings popover renders MenuItemWithTopDescription, which reads the ScreenWrapper transition context
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    __esModule: true,
+    default: () => ({
+        didScreenTransitionEnd: true,
+    }),
+}));
+
 // Mock useLocalize hook
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -39,7 +57,10 @@ jest.mock('@hooks/useThemeStyles', () =>
         flexGrow1: {},
         flex1: {},
         mt5: {},
-        mh5: {},
+        // The dynamic column widths read these spacing values to work out how much room the columns have to share.
+        mh5: {marginHorizontal: 20},
+        ph3: {paddingHorizontal: 12},
+        gap3: {gap: 12},
         mt3: {},
         flexRow: {},
         appBG: {},
@@ -51,7 +72,7 @@ jest.mock('@hooks/useThemeStyles', () =>
         textMicroBoldSupporting: {},
         textAlignRight: {},
         pr1: {},
-        ml1: {},
+        ml1: {marginLeft: 4},
         lh16: {},
         ph5: {},
         pt3: {},

@@ -1,6 +1,7 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
 
+import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +13,6 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import colors from '@styles/theme/colors';
 
@@ -38,12 +38,8 @@ function ForYouSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    // HAS_LOADED_APP flips to true once the first OpenApp completes and persists across reconnects.
-    // Gating the skeleton on it prevents the section from flashing skeleton on every foreground/reconnect
-    // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
-    const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const {shouldShowSkeleton: isInitialLoad} = useAppLoadSkeletonState({isLoadingReportData});
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -107,7 +103,7 @@ function ForYouSection() {
                     iconFill: colors.tangerine500,
                     translationKey: 'homePage.forYouSection.reviewExpenses' as const,
                     handler: reviewExpenses,
-                    buttonProps: {danger: true} as const,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 },
                 {
                     key: 'submit',
@@ -166,7 +162,7 @@ function ForYouSection() {
 
     const renderTodoItems = () => (
         <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {todoItems.map(({key, count, icon, iconBackgroundColor, iconFill, translationKey, handler, buttonProps}) => (
+            {todoItems.map(({key, count, icon, iconBackgroundColor, iconFill, translationKey, handler, buttonVariant}) => (
                 <BaseWidgetItem
                     key={key}
                     icon={icon}
@@ -175,13 +171,11 @@ function ForYouSection() {
                     title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}
                     onCtaPress={handler}
-                    buttonProps={buttonProps ?? {success: true}}
+                    buttonVariant={buttonVariant ?? CONST.BUTTON_VARIANT.SUCCESS}
                 />
             ))}
         </View>
     );
-
-    const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData);
 
     // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
     useEffect(() => {
@@ -193,13 +187,7 @@ function ForYouSection() {
 
     const renderContent = () => {
         if (isInitialLoad) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'ForYouSection.ForYouSkeleton',
-                isLoadingApp,
-                isLoadingReportData,
-                hasLoadedApp,
-            };
-            return <ForYouSkeleton reasonAttributes={reasonAttributes} />;
+            return <ForYouSkeleton />;
         }
 
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;

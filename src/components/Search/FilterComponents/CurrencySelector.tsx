@@ -22,6 +22,7 @@ function CurrencySelector({value = [], selectionListTextInputStyle, selectionLis
             items={currencyOptions}
             autoFocus={autoFocus}
             isSearchable
+            isNegatable
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
             footer={footer}

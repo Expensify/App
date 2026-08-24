@@ -7,12 +7,14 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {canMeasureText} from '@libs/measureTextWidth';
 
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
+import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
@@ -22,7 +24,11 @@ import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
+import {shouldUseTableSemantics} from './tableAccessibility';
+import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableContext from './TableContext';
+import TableSemanticContainer from './TableSemanticContainer';
+import useDynamicColumnWidths from './useDynamicColumnWidths';
 
 /**
  * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
@@ -189,6 +195,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     children,
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
+    shouldUseDynamicColumns = false,
     onRowSelectionChange,
     onSearchStringChange,
     ...listProps
@@ -227,13 +234,34 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         methods: selectionMethods,
         mobileSelectionModalRowKey,
         middleware: selectionMiddleware,
-    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
+    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, activeSearchString, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
     const selectionData = selectionMiddleware(sortedData);
 
     const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
+
+    const [tableWidth, setTableWidth] = useState(0);
+
+    const handleTableLayout = (event: LayoutChangeEvent) => {
+        setTableWidth(event.nativeEvent.layout.width);
+    };
+
+    // Narrow and medium layouts render as cards with no columns to size, and native can't measure text, so both keep the
+    // static tracks and never measure the table.
+    const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
+
+    // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
+    // searches or filters instead of reflowing on every keystroke.
+    const {gridTemplateColumns: dynamicGridTemplateColumns, scrollWidth: dynamicScrollWidth} = useDynamicColumnWidths<DataType, ColumnKey>({
+        columns,
+        data,
+        tableWidth,
+        isEnabled: isDynamicSizingEnabled,
+        // In the wide layout the checkbox column is rendered whenever selection is enabled.
+        hasSelectionColumn: !!selectionEnabled,
+    });
 
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
         ...filterMethods,
@@ -269,9 +297,12 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         processedData,
         originalDataLength,
         columns,
+        dynamicGridTemplateColumns,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
+        initialSortColumn,
+        narrowLayoutSortColumn,
         activeSearchString,
         tableMethods,
         hasActiveFilters,
@@ -284,9 +315,29 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         onSearchStringChange,
     };
 
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
+    // The selection checkbox renders as an extra leading column when selection is enabled (always visible in the wide
+    // web layout where semantics apply), so it has to be counted alongside the configured data columns.
+    const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
+
+    // When empty, `TableBody` still renders (keeping its role="rowgroup") if an empty-state or header list slot is
+    // supplied, so the semantic wrapper must be preserved then to avoid orphaned table semantics.
+    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps);
+
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            {children}
+            <TableSemanticContainer
+                isEnabled={isTableSemanticsEnabled}
+                title={title}
+                rowCount={processedData.length}
+                columnCount={semanticColumnCount}
+                rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                scrollWidth={dynamicScrollWidth}
+                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
+            >
+                {children}
+            </TableSemanticContainer>
 
             <Modal
                 shouldPreventScrollOnFocus

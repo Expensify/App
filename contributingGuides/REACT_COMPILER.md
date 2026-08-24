@@ -4,11 +4,11 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-React Compiler is enabled in the web build pipeline via `oxc-transform` (the Rust React Compiler) and in the Metro (mobile) build pipeline via `babel-plugin-react-compiler`. Because these are two different implementations, they don't always memoize a file the same way: a file can be auto-memoized on native but not on web, or vice versa. To catch that, both the CI check and the ESLint processor run BOTH compilers, via the shared helpers in `config/reactCompiler/` (`checkWithBabel.mjs`, `checkWithOxc.mjs`, and `checkBoth.mjs`).
+React Compiler is enabled in the web build pipeline via `oxc-transform-react` (the Rust React Compiler) and in the Metro (mobile) build pipeline via `babel-plugin-react-compiler`. Because these are two different implementations, they don't always memoize a file the same way: a file can be auto-memoized on native but not on web, or vice versa. To catch that, both the CI check and the ESLint processor run BOTH compilers, via the shared helpers in `config/reactCompiler/` (`checkWithBabel.mjs`, `checkWithOxc.mjs`, and `checkBoth.mjs`).
 
 ## React Compiler CI check
 
-A CI check runs on every PR that modifies `.ts` or `.tsx` files. For each changed file it runs both `babel-plugin-react-compiler` and `oxc-transform` and reports, for each, whether the file compiles and whether it is actually memoized.
+A CI check runs on every PR that modifies `.ts` or `.tsx` files. For each changed file it runs both `babel-plugin-react-compiler` and `oxc-transform-react` and reports, for each, whether the file compiles and whether it is actually memoized.
 
 ### What the CI check enforces
 

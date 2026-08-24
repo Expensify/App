@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NewLogin} from '@src/types/onyx';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import redirectToSignIn from '../../src/libs/actions/SignInRedirect';
@@ -169,6 +170,29 @@ describe('actions/User', () => {
         });
     });
 
+    describe('dismissMarketingWindow', () => {
+        it('should dismiss the supplied marketing update key optimistically', async () => {
+            const updateKey = 'productUpdateJuly2026';
+
+            UserActions.dismissMarketingWindow(updateKey);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DISMISS_MARKETING_WINDOW,
+                {updateKey},
+                {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+                            value: updateKey,
+                        },
+                    ],
+                },
+            );
+        });
+    });
+
     describe('verifyAddSecondaryLoginCode', () => {
         it('should call API.write with correct parameters', async () => {
             // Given a validate code
@@ -324,6 +348,31 @@ describe('actions/User', () => {
                 expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
                 expect(optimisticUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: anyNumber}));
                 expect(failureUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: null}));
+            });
+        });
+
+        it('should forward no reason to the backend when called without params (e.g. physical-card shipping)', () => {
+            // When requestValidateCodeAction is called with no params
+            UserActions.requestValidateCodeAction();
+
+            return waitForBatchedUpdates().then(() => {
+                // Then RESEND_VALIDATE_CODE is sent with a null payload, so the backend uses the generic email copy
+                expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
+                expect(mockAPI.write.mock.calls.at(0)?.[1]).toBeNull();
+            });
+        });
+
+        it('should forward the reveal reason and card ID to the backend so the card-reveal email is sent', () => {
+            // Given a virtual card being revealed via the missing-personal-details flow
+            const reasonCardID = 885522;
+
+            // When requestValidateCodeAction is called with the reveal reason
+            UserActions.requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID});
+
+            return waitForBatchedUpdates().then(() => {
+                // Then RESEND_VALIDATE_CODE carries the reason/card ID the backend keys the templated email off
+                expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
+                expect(mockAPI.write.mock.calls.at(0)?.[1]).toEqual({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID});
             });
         });
     });

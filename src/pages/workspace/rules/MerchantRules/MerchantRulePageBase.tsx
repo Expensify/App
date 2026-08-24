@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +31,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {getCleanedTagName, getMatchingVendorByID, getTagLists, hasVendorFeature, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -53,12 +54,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
     ruleID?: string;
+    /** Pre-scopes the category default when creating a rule (e.g. from the category details RHP). */
+    initialCategoryName?: string;
     titleKey: TranslationPaths;
     testID: string;
 };
@@ -80,7 +83,7 @@ type SectionType = {
 
 const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
     if (value === undefined) {
-        return '';
+        return translate('common.dontChange');
     }
     return translate(value ? 'common.yes' : 'common.no');
 };
@@ -108,7 +111,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
     return translate('workspace.rules.merchantRules.confirmError');
 };
 
-function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRulePageBaseProps) {
+function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -129,32 +132,53 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
+    const didInitializeCreateDraftRef = useRef(false);
+
+    // The "Set vendor to" row gate below reads policy.connections (via hasVendorFeature and
+    // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page requiring
+    // connections is opened. This editor only fetches categories and tags, so prefetch connections
+    // here unconditionally so the row appears and resolves the stored vendor once connections
+    // hydrate. It can't be narrowed by hasVendorFeature, because that itself depends on the
+    // connection data being fetched. The hook already skips the fetch when the app is offline, when
+    // the workspace has no accounting connection, and when the data has already been fetched.
+    usePolicyConnectionsPrefetch(policy, true);
 
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
 
-    // Initialize the form with existing rule data (for edit mode)
+    // Initialize the form with existing rule data (for edit mode), or a pre-scoped category for create
     useEffect(() => {
-        if (!isEditing || !existingRule) {
+        if (isEditing) {
+            if (!existingRule) {
+                return;
+            }
+            // Convert the operator to matchType for the form
+            // 'eq' = exact match, 'contains' = contains match
+            const matchType = existingRule.filters?.operator;
+            // Convert HTML comment back to markdown for editing
+            const commentMarkdown = existingRule.comment ? Parser.htmlToMarkdown(existingRule.comment) : undefined;
+            setDraftMerchantRule({
+                merchantToMatch: existingRule.filters?.right,
+                matchType,
+                merchant: existingRule.merchant,
+                category: existingRule.category,
+                tag: existingRule.tag,
+                tax: existingRule.tax?.field_id_TAX?.externalID,
+                vendorID: existingRule.vendorID,
+                comment: commentMarkdown,
+                reimbursable: existingRule.reimbursable,
+                billable: existingRule.billable,
+            });
             return;
         }
-        // Convert the operator to matchType for the form
-        // 'eq' = exact match, 'contains' = contains match
-        const matchType = existingRule.filters?.operator;
-        // Convert HTML comment back to markdown for editing
-        const commentMarkdown = existingRule.comment ? Parser.htmlToMarkdown(existingRule.comment) : undefined;
-        setDraftMerchantRule({
-            merchantToMatch: existingRule.filters?.right,
-            matchType,
-            merchant: existingRule.merchant,
-            category: existingRule.category,
-            tag: existingRule.tag,
-            tax: existingRule.tax?.field_id_TAX?.externalID,
-            comment: commentMarkdown,
-            reimbursable: existingRule.reimbursable,
-            billable: existingRule.billable,
-        });
-    }, [isEditing, existingRule]);
+
+        if (!initialCategoryName || didInitializeCreateDraftRef.current) {
+            return;
+        }
+
+        didInitializeCreateDraftRef.current = true;
+        setDraftMerchantRule({category: initialCategoryName});
+    }, [isEditing, existingRule, initialCategoryName]);
 
     // Clear the form on unmount
     useEffect(() => () => clearDraftMerchantRule(), []);
@@ -200,6 +224,28 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     };
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
+
+    const isVendorFeatureEnabled = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isOnXero = isXeroActiveMatchingSource(policy);
+    const vendorFieldLabel = translate(isOnXero ? 'common.supplier' : 'common.vendor');
+    // Mirror the rule-summary fallback so an already-stored vendor never renders as unset while the row still saves it:
+    // resolved name when available, the "unavailable" copy once the vendor list has synced without a match, otherwise the raw stored ID.
+    // Scope the lookup to the active vendor-matching integration (not the permissive `findVendorByID`) so a vendorID that only
+    // resolves against a stale/inactive connection surfaces as "unavailable" here, matching how the picker and violation logic treat it.
+    const getVendorDisplayName = () => {
+        if (!form?.vendorID) {
+            return undefined;
+        }
+        const resolvedVendorName = getMatchingVendorByID(policy, form.vendorID)?.name;
+        if (resolvedVendorName) {
+            return resolvedVendorName;
+        }
+        if (isMatchingVendorListLoaded(policy)) {
+            return translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+        }
+        return form.vendorID;
+    };
+    const vendorDisplayName = getVendorDisplayName();
 
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     const taxDisplayName = () => {
@@ -382,6 +428,15 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                           icon: getItemIcon(icons.InvoiceGeneric),
                       }
                     : undefined,
+                isVendorFeatureEnabled
+                    ? {
+                          key: 'vendorID',
+                          description: vendorFieldLabel,
+                          title: vendorDisplayName,
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID)),
+                          icon: getItemIcon(icons.Basket),
+                      }
+                    : undefined,
                 {
                     key: 'description',
                     description: translate('common.description'),
@@ -525,7 +580,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
         >
             <ScreenWrapper

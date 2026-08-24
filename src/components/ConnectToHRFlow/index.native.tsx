@@ -62,10 +62,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
 
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context: 'ConnectToHRFlow'}}
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 

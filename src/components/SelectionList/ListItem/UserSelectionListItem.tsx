@@ -10,7 +10,6 @@ import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 
-import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -47,12 +46,12 @@ function UserSelectionListItem<TItem extends ListItem>({
 
         // If the emails are not in the same private domain, we just return the users email
         if (!areEmailsFromSamePrivateDomain(login, currentUserPersonalDetails.login ?? '')) {
-            return Str.removeSMSDomain(login);
+            return formatPhoneNumber(login);
         }
 
         // Otherwise, the emails are a part of the same private domain, so we can remove the domain and just show username
         return login.split('@').at(0);
-    }, [currentUserPersonalDetails.login, item.login]);
+    }, [currentUserPersonalDetails.login, item.login, formatPhoneNumber]);
 
     const userDisplayName = useMemo(() => {
         return getDisplayNameForParticipant({
@@ -88,7 +87,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <View style={styles.mentionSuggestionsAvatarContainer}>
                         <Avatar
                             source={item.icons.at(0)?.source}
-                            size={CONST.AVATAR_SIZE.SMALLER}
+                            size={CONST.AVATAR_SIZE.X_SMALL}
                             name={item.icons.at(0)?.name}
                             avatarID={item.icons.at(0)?.id}
                             type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
@@ -101,7 +100,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={userDisplayName}
-                        style={[styles.flexShrink0, styles.optionDisplayName, isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
+                        style={[styles.flexShrink0, styles.optionDisplayName, styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
                     />
                     {!!userHandle && (
                         <TextWithTooltip

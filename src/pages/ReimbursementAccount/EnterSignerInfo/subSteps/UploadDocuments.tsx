@@ -9,7 +9,7 @@ import UploadFile from '@components/UploadFile';
 import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getEnvironmentURL} from '@libs/Environment/Environment';
@@ -30,7 +30,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
-type UploadDocumentsProps = SubStepProps & {policyID: string};
+type UploadDocumentsProps = SubPageProps & {policyID: string};
 
 function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const {translate} = useLocalize();
