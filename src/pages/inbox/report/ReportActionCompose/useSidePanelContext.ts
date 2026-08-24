@@ -5,6 +5,7 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';

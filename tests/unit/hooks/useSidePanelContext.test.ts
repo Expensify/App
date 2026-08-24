@@ -28,10 +28,16 @@ let mockSearchState: {
     selectedTransactions: {},
     selectedReports: [],
 };
+let mockRouteParams: {sourceReportID?: string} = {};
 
 jest.mock('@hooks/useIsInSidePanel', () => ({
     __esModule: true,
     default: () => mockIsInSidePanel,
+}));
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual('@react-navigation/native'),
+    useRoute: () => ({params: mockRouteParams}),
 }));
 
 jest.mock('@hooks/useCurrentReportID', () => ({
@@ -56,6 +62,7 @@ function resetMocks() {
         selectedTransactions: {},
         selectedReports: [],
     };
+    mockRouteParams = {};
 }
 
 describe('useSidePanelContext', () => {
@@ -75,11 +82,19 @@ describe('useSidePanelContext', () => {
         return renderHook(() => useSidePanelContext(reportID));
     }
 
-    it('returns undefined when not in the side panel', async () => {
+    it('returns undefined when not in the side panel and no source report is on the route', async () => {
         mockIsInSidePanel = false;
         const {result} = await renderWithConciergeReport();
         await waitForBatchedUpdates();
         expect(result.current).toBeUndefined();
+    });
+
+    it('returns the route source report when not in the side panel (native Concierge Anywhere)', async () => {
+        mockIsInSidePanel = false;
+        mockRouteParams = {sourceReportID: 'source_report'};
+        const {result} = await renderWithConciergeReport();
+        await waitForBatchedUpdates();
+        expect(result.current).toEqual({reportID: 'source_report'});
     });
 
     it('returns undefined when reportID does not match conciergeReportID', async () => {
