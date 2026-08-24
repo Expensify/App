@@ -1,10 +1,11 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ReportFieldFilterContent from '@components/Search/FilterComponents/AdvancedFilters/ReportFieldFilterContent';
 import type {ReportFieldFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx';
 
 import React, {useState} from 'react';
@@ -21,17 +22,15 @@ function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: 
             <ReportFieldFilterContent
                 values={values}
                 selectedField={selectedField}
-                largeButton
+                size={CONST.BUTTON_SIZE.LARGE}
                 onFieldSelected={setSelectedField}
                 onChange={(newValues) => setValues((prevValues) => ({...prevValues, ...newValues}))}
             />
             {!selectedField && (
                 <Button
                     style={[styles.ph5, styles.pb5, styles.pt3, styles.mtAuto]}
-                    success
-                    large
-                    text={translate('common.confirm')}
-                    pressOnEnter
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => {
                         if (!values) {
                             return;
@@ -39,7 +38,10 @@ function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: 
 
                         onChange(values);
                     }}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             )}
         </View>
     );

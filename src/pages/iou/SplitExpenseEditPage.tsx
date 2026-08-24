@@ -18,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +37,7 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
@@ -60,7 +60,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
@@ -146,8 +146,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, effectivePolicy, parentReport, isProduction);
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
-    const reportAttributes = useReportAttributes();
-    const reportName = deprecatedGetReportName(currentReport, reportAttributes) || parentReport?.reportName;
+    const derivedCurrentReportName = useDerivedReportNameByReportID(currentReport?.reportID);
+    const reportName = getReportName(currentReport, derivedCurrentReportName) || parentReport?.reportName;
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
 
     // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original
@@ -238,12 +238,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
                     if (isManualDistance) {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
-                                CONST.IOU.ACTION.EDIT,
-                                CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                reportID,
-                                Navigation.getActiveRoute(),
+                            createDynamicRoute(
+                                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                    reportID,
+                                ),
                             ),
                         );
                         return;
@@ -251,12 +252,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
                     initDraftSplitExpenseDataForEdit(originalTransactionDraft, splitExpenseTransactionID, reportID, CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID);
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.SPLIT_EXPENSE,
-                            CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID,
-                            reportID,
-                            Navigation.getActiveRoute(),
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
+                                CONST.IOU.ACTION.EDIT,
+                                CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID,
+                                reportID,
+                            ),
                         ),
                     );
                 }}
@@ -271,12 +273,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                 errorText={getErrorForField('customUnitRateID')}
                 style={[styles.moneyRequestMenuItem]}
                 onPress={() => {
-                    const rateRoute = ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                        CONST.IOU.ACTION.EDIT,
-                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                        reportID,
-                        Navigation.getActiveRoute(),
+                    const rateRoute = createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT_EXPENSE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
                     );
 
                     // SelfDM split whose source workspace is gone and user has no other paid workspace:
@@ -286,13 +284,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                     // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
                     if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action: CONST.IOU.ACTION.EDIT,
-                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                reportID,
-                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                            }),
+                            createDynamicRoute(
+                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    action: CONST.IOU.ACTION.EDIT,
+                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                    reportID,
+                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                }),
+                            ),
                         );
                         return;
                     }
@@ -328,12 +328,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             title={currentDescription}
                             onPress={() => {
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                        reportID,
-                                        Navigation.getActiveRoute(),
+                                    createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                                            CONST.IOU.ACTION.EDIT,
+                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                            reportID,
+                                        ),
                                     ),
                                 );
                             }}
@@ -362,14 +363,16 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     );
                                     if (shouldNavigateToUpgradePath) {
                                         Navigation.navigate(
-                                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                action: CONST.IOU.ACTION.EDIT,
-                                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                                reportID,
-                                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                                backTo: categoryRoute,
-                                            }),
+                                            createDynamicRoute(
+                                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                    action: CONST.IOU.ACTION.EDIT,
+                                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                    reportID,
+                                                    upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                                    upgradeBackTo: categoryRoute,
+                                                }),
+                                            ),
                                         );
                                         return;
                                     }
@@ -431,12 +434,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             numberOfLinesTitle={2}
                             onPress={() => {
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                        reportID,
-                                        Navigation.getActiveRoute(),
+                                    createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT_EXPENSE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
                                     ),
                                 );
                             }}
@@ -460,7 +459,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.w100, styles.mb4]}
                                 onPress={() => {
-                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID);
+                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID, getCurrencyDecimals);
                                     Navigation.goBack(backTo);
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REMOVE_SPLIT_BUTTON}
@@ -483,6 +482,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     isSelfDMSplit,
                                     personalPolicy?.outputCurrency,
                                     getCurrencySymbol,
+                                    allPolicies,
                                 );
                                 Navigation.goBack(backTo);
                             }}
