@@ -28,6 +28,7 @@ import type {
     BankAccountList,
     Beta,
     BillingGraceEndPeriod,
+    CardList,
     IntroSelected,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -149,6 +150,7 @@ import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
+    canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
@@ -262,6 +264,7 @@ import {
     getOriginalAmount,
     getOriginalAmountForDisplay,
     getOriginalCurrency,
+    getOriginalTransactionWithSplitInfo,
     getPostedDate,
     getRateID,
     getRecentTransactions,
@@ -2989,6 +2992,89 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
     }
 
     return true;
+}
+
+type GetEligibleTransactionsToAddParams = {
+    transactions: OnyxCollection<Transaction>;
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    cardList: OnyxEntry<CardList>;
+    currentUserAccountID: number | undefined;
+    reportID: string;
+    allOpenReports: Record<string, true> | undefined;
+    openReportDrafts: Record<string, true> | undefined;
+};
+
+/**
+ * Returns the transactions that can be added to the supplied expense or IOU report.
+ */
+function getEligibleTransactionsToAdd({
+    transactions,
+    report,
+    policy,
+    cardList,
+    currentUserAccountID,
+    reportID,
+    allOpenReports,
+    openReportDrafts,
+}: GetEligibleTransactionsToAddParams): Transaction[] {
+    if (!transactions) {
+        return [];
+    }
+
+    const isIOU = isIOUReport(report);
+    return Object.values(transactions).filter((transaction): transaction is Transaction => {
+        if (!transaction) {
+            return false;
+        }
+
+        const isUnreported = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || transaction.reportID === '';
+        if (isIOU && !isUnreported) {
+            return false;
+        }
+
+        // Split expenses can't be moved to a 1:1 DM chat, so they must not be offered when adding to an IOU report
+        if (isIOU) {
+            const originalTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
+            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+            if (isExpenseSplit) {
+                return false;
+            }
+        }
+
+        const isOnOpenExpenseReport = !!(transaction.reportID && (allOpenReports?.[transaction.reportID] ?? openReportDrafts?.[transaction.reportID]));
+        if (!isUnreported && !isOnOpenExpenseReport) {
+            return false;
+        }
+
+        // Don't show expenses that are already on the current report
+        if (transaction.reportID === reportID) {
+            return false;
+        }
+
+        // Check if the transaction belongs to the current user by verifying card ownership
+        if (transaction.cardID) {
+            const card = cardList?.[transaction.cardID];
+            if (card?.accountID !== currentUserAccountID) {
+                return false;
+            }
+        }
+
+        const transactionAmount = getTransactionDetails(transaction)?.amount ?? 0;
+        if (isIOU && transactionAmount <= 0) {
+            return false;
+        }
+
+        if (isPerDiemRequest(transaction)) {
+            // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
+            const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
+            const perDiemCustomUnitID = transaction.comment?.customUnit?.customUnitID;
+
+            return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
+        }
+
+        return true;
+    });
 }
 
 /**
@@ -14294,6 +14380,7 @@ export {
     getBankAccountRoute,
     getInvoiceReceiverPolicyID,
     getInvoiceReceiverPersonalDetail,
+    getEligibleTransactionsToAdd,
     getChatByParticipants,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
