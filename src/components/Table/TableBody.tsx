@@ -4,6 +4,7 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+import useScrollEnabled from '@hooks/useScrollEnabled';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
@@ -96,6 +97,7 @@ function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListH
  */
 function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ...props}: TableBodyListProps) {
     const styles = useThemeStyles();
+    const scrollEnabled = useScrollEnabled();
     const [isListLoaded, setIsListLoaded] = useState(false);
     const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
     const [activeStickyHeaderIndex, setActiveStickyHeaderIndex] = useState(-1);
@@ -419,6 +421,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     onScroll?.(event);
                 }}
                 {...restListProps}
+                scrollEnabled={scrollEnabled}
             />
         </View>
     );
