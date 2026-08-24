@@ -159,7 +159,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native',
-                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isFlashUsed || isInLandscapeMode ? 'photo' : 'snapshot',
+                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isFlashUsed || isInLandscapeMode ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
                 [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: isFlashUsed,
             },
         });
