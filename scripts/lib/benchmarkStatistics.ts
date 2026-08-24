@@ -1,3 +1,6 @@
+import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {dirname, extname} from 'node:path';
+
 type BenchmarkStats = {
     runs: number;
     average: number;
@@ -9,6 +12,38 @@ type BenchmarkStats = {
     min: number;
     max: number;
 };
+
+type BenchmarkSample = {
+    run: number;
+    span: string;
+    durationMs: number;
+};
+
+type BenchmarkMetricResult = {
+    samples: number[];
+    stats?: BenchmarkStats;
+};
+
+type BenchmarkResultTableRow = {
+    span: string;
+    runs: number;
+    average: string;
+    p50: string;
+    p75: string;
+    p90: string;
+    p95: string;
+    p99: string;
+    min: string;
+    max: string;
+};
+
+type ExportBenchmarkResultsOptions = {
+    inputPaths: readonly string[];
+    outputPath: string;
+};
+
+const BENCHMARK_SAMPLE_HEADER = 'run,span,duration_ms';
+const BENCHMARK_RESULTS_HEADER = 'span,runs,average,p50,p75,p90,p95,p99,min,max';
 
 function percentileFromSortedValues(sortedValues: readonly number[], fraction: number): number {
     if (fraction < 0 || fraction > 1) {
@@ -58,5 +93,106 @@ function benchmarkStats(samples: readonly number[]): BenchmarkStats {
     };
 }
 
-export {benchmarkStats, percentile};
-export type {BenchmarkStats};
+function benchmarkMetrics(samples: readonly BenchmarkSample[], spanNames?: readonly string[]): Record<string, BenchmarkMetricResult> {
+    const samplesBySpan = new Map<string, number[]>();
+    for (const sample of samples) {
+        const spanSamples = samplesBySpan.get(sample.span) ?? [];
+        spanSamples.push(sample.durationMs);
+        samplesBySpan.set(sample.span, spanSamples);
+    }
+
+    const metricSpanNames = spanNames ?? [...samplesBySpan.keys()];
+    return Object.fromEntries(
+        metricSpanNames.map((spanName) => {
+            const spanSamples = samplesBySpan.get(spanName) ?? [];
+            return [spanName, {samples: spanSamples, stats: spanSamples.length > 0 ? benchmarkStats(spanSamples) : undefined}];
+        }),
+    );
+}
+
+function benchmarkResultTable(metrics: Readonly<Record<string, BenchmarkMetricResult>>): BenchmarkResultTableRow[] {
+    return Object.entries(metrics).map(([span, metric]) => ({
+        span,
+        runs: metric.samples.length,
+        average: metric.stats?.average.toFixed(2) ?? 'N/A',
+        p50: metric.stats?.p50.toFixed(2) ?? 'N/A',
+        p75: metric.stats?.p75.toFixed(2) ?? 'N/A',
+        p90: metric.stats?.p90.toFixed(2) ?? 'N/A',
+        p95: metric.stats?.p95.toFixed(2) ?? 'N/A',
+        p99: metric.stats?.p99.toFixed(2) ?? 'N/A',
+        min: metric.stats?.min.toFixed(2) ?? 'N/A',
+        max: metric.stats?.max.toFixed(2) ?? 'N/A',
+    }));
+}
+
+function benchmarkResultsOutputPath(sampleOutputPath: string): string {
+    const extension = extname(sampleOutputPath);
+    const outputPathWithoutExtension = extension ? sampleOutputPath.slice(0, -extension.length) : sampleOutputPath;
+    return `${outputPathWithoutExtension}-results.csv`;
+}
+
+function benchmarkSamplesCsv(samples: readonly BenchmarkSample[]): string[] {
+    return [BENCHMARK_SAMPLE_HEADER, ...samples.map((sample) => [sample.run, sample.span, sample.durationMs].join(','))];
+}
+
+function benchmarkResultsCsv(table: readonly BenchmarkResultTableRow[]): string[] {
+    return [BENCHMARK_RESULTS_HEADER, ...table.map((row) => [row.span, row.runs, row.average, row.p50, row.p75, row.p90, row.p95, row.p99, row.min, row.max].join(','))];
+}
+
+function writeBenchmarkCsv(outputPath: string, csvRows: readonly string[]): void {
+    mkdirSync(dirname(outputPath), {recursive: true});
+    writeFileSync(outputPath, [...csvRows, ''].join('\n'));
+}
+
+function writeBenchmarkSamples(outputPath: string, samples: readonly BenchmarkSample[]): void {
+    writeBenchmarkCsv(outputPath, benchmarkSamplesCsv(samples));
+}
+
+function writeBenchmarkResults(outputPath: string, table: readonly BenchmarkResultTableRow[]): void {
+    writeBenchmarkCsv(outputPath, benchmarkResultsCsv(table));
+}
+
+function readBenchmarkSamples(inputPath: string): BenchmarkSample[] {
+    const [header, ...rows] = readFileSync(inputPath, 'utf8').trim().split(/\r?\n/);
+    if (header !== BENCHMARK_SAMPLE_HEADER) {
+        throw new Error(`Invalid benchmark sample header in ${inputPath}. Expected: ${BENCHMARK_SAMPLE_HEADER}`);
+    }
+
+    return rows.filter(Boolean).map((row, rowIndex) => {
+        const [runValue, span, durationValue, unexpectedValue] = row.split(',');
+        const run = Number(runValue);
+        const durationMs = Number(durationValue);
+        if (unexpectedValue !== undefined || !Number.isSafeInteger(run) || run <= 0 || !span || !Number.isFinite(durationMs)) {
+            throw new Error(`Invalid benchmark sample in ${inputPath} on row ${rowIndex + 2}: ${row}`);
+        }
+        return {run, span, durationMs};
+    });
+}
+
+function exportBenchmarkResults(options: ExportBenchmarkResultsOptions): BenchmarkResultTableRow[] {
+    if (options.inputPaths.length === 0) {
+        throw new Error('At least one benchmark sample file is required.');
+    }
+    const samples = options.inputPaths.flatMap(readBenchmarkSamples);
+    if (samples.length === 0) {
+        throw new Error('No benchmark samples were found in the input files.');
+    }
+    const table = benchmarkResultTable(benchmarkMetrics(samples));
+    writeBenchmarkResults(options.outputPath, table);
+    return table;
+}
+
+export {
+    benchmarkMetrics,
+    benchmarkResultTable,
+    benchmarkResultsCsv,
+    benchmarkResultsOutputPath,
+    benchmarkSamplesCsv,
+    benchmarkStats,
+    exportBenchmarkResults,
+    percentile,
+    readBenchmarkSamples,
+    writeBenchmarkResults,
+    writeBenchmarkSamples,
+};
+export type {BenchmarkMetricResult, BenchmarkResultTableRow, BenchmarkSample, BenchmarkStats, ExportBenchmarkResultsOptions};

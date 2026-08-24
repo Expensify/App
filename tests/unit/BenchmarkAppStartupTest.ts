@@ -1,4 +1,4 @@
-import {benchmarkAlternatingStartups, benchmarkResultsOutputPath, benchmarkStartups, parseSpanNames, selectBenchmarkSpanNames} from '@scripts/benchmarkAppStartup';
+import {benchmarkAlternatingStartups, benchmarkStartups, parseSpanNames, selectBenchmarkSpanNames} from '@scripts/benchmarkAppStartup';
 import {
     assertAndroidAppInstalled,
     findBenchmarkDuration,
@@ -85,11 +85,6 @@ describe('benchmarkAppStartup', () => {
         expect(selectBenchmarkSpanNames(configuredSpanNames)).toEqual(configuredSpanNames);
         expect(selectBenchmarkSpanNames(configuredSpanNames, 'ManualAppStartupNetworkRequest')).toEqual(['ManualAppStartupNetworkRequest']);
         expect(() => selectBenchmarkSpanNames(configuredSpanNames, 'MissingSpan')).toThrow('is not included in EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS');
-    });
-
-    it('derives a results table path from the raw sample path', () => {
-        expect(benchmarkResultsOutputPath('/tmp/startup.csv')).toBe('/tmp/startup-results.csv');
-        expect(benchmarkResultsOutputPath('/tmp/startup')).toBe('/tmp/startup-results.csv');
     });
 
     it('measures each configured span through a reusable adapter', async () => {

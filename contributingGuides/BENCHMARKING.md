@@ -84,6 +84,23 @@ nr benchmark-app-startup ios 20 \
     --results-output .benchmarks/startup-results.csv
 ```
 
+### Create a results table from existing samples
+
+Use the `results` command to recalculate and export the statistics table from one or more raw sample CSV files. Samples from all input files are combined by span, the table is printed to the terminal, and `.benchmarks/results.csv` is written by default.
+
+```shell
+nr benchmark-app-startup results \
+    --input-files .benchmarks/startup-samples-a.csv,.benchmarks/startup-samples-b.csv
+```
+
+Use `--results-output` to choose a different destination:
+
+```shell
+nr benchmark-app-startup results \
+    --input-files .benchmarks/startup-samples.csv \
+    --results-output .benchmarks/startup-results.csv
+```
+
 ### Compare two installed apps
 
 Pass `--app-id-a` and `--app-id-b` to enable alternating comparison mode. The two application IDs or bundle identifiers must identify different apps that are already installed on the device. The script warms up each app once, then measures app A followed by app B for every run, keeping the two apps interleaved on the same device without reinstalling either one.
@@ -111,9 +128,9 @@ nr benchmark-app-startup ios 20 --cold \
     --wait-time 30
 ```
 
-The script runs with Bun and also exports `benchmarkAppStartups`, `benchmarkAppStartupsAlternating`, and `benchmarkStartups`. Other local tooling can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior. This guide does not assume that an existing PGO script has adopted these exports.
+The script runs with Bun and also exports `benchmarkAppStartups`, `benchmarkAppStartupsAlternating`, and `benchmarkStartups`. Other local tooling can install an artifact and invoke the same benchmark implementation. Statistics calculation, raw sample parsing, and CSV result writing live in `scripts/lib/benchmarkStatistics.ts`, while the lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts`. This guide does not assume that an existing PGO script has adopted these exports.
 
-Pure percentile and summary-statistics calculations live in `scripts/lib/benchmarkStatistics.ts`. Scripts that already have numeric samples can reuse that module without importing device commands, filesystem output, or startup orchestration.
+The percentile and summary-statistics functions in `scripts/lib/benchmarkStatistics.ts` remain side-effect free. Callers can use those calculations independently or opt into the same module's sample-file parsing and CSV export helpers without importing device commands or startup orchestration.
 
 Android benchmark logs are scoped to the PID launched for each application ID. This prevents log events from the other installed comparison binary from being counted in the current sample.
 

@@ -1,19 +1,20 @@
 #!/usr/bin/env bun
 
 import CLI from 'expensify-common/CLI';
-import {mkdirSync, writeFileSync} from 'node:fs';
-import {dirname, extname, join, resolve} from 'node:path';
+import {dirname, join, resolve} from 'node:path';
 import process from 'node:process';
 
-import type {BenchmarkStats} from './lib/benchmarkStatistics';
+import type {BenchmarkMetricResult, BenchmarkSample} from './lib/benchmarkStatistics';
 import type {BenchmarkLogEvent, NativeAppBenchmarkAdapter, PlatformName, StartupMode} from './lib/nativeAppBenchmark';
 
-import {benchmarkStats} from './lib/benchmarkStatistics';
+import {benchmarkMetrics, benchmarkResultTable, benchmarkResultsOutputPath, exportBenchmarkResults, writeBenchmarkResults, writeBenchmarkSamples} from './lib/benchmarkStatistics';
 import {PLATFORM_NAMES, createNativeAppBenchmarkAdapter} from './lib/nativeAppBenchmark';
 
 const DEFAULT_RUNS = 20;
 const DEFAULT_WAIT_TIME_SECONDS = 30;
 const BENCHMARK_SPANS_ENVIRONMENT_VARIABLE = 'EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS';
+const RESULTS_COMMAND = 'results';
+const BENCHMARK_COMMANDS = [...PLATFORM_NAMES, RESULTS_COMMAND] as const;
 
 type BenchmarkRunOptions = {
     mode: StartupMode;
@@ -47,22 +48,6 @@ type BenchmarkAppStartupsAlternatingOptions = BenchmarkAlternatingStartupsOption
     appIDA: string;
     appIDB: string;
     deviceIdentifier?: string;
-};
-type BenchmarkMetricResult = {
-    samples: number[];
-    stats?: BenchmarkStats;
-};
-type BenchmarkResultTableRow = {
-    span: string;
-    runs: number;
-    average: string;
-    p50: string;
-    p75: string;
-    p90: string;
-    p95: string;
-    p99: string;
-    min: string;
-    max: string;
 };
 type BenchmarkResult = {
     metrics: Record<string, BenchmarkMetricResult>;
@@ -157,75 +142,31 @@ async function measureStartup(
     return adapter.launchAndCollect({spanNames: options.spanNames, waitTimeSeconds: options.waitTimeSeconds, waitUntilSpan: options.waitUntilSpan});
 }
 
-function recordBenchmarkEvents(events: BenchmarkLogEvent[], spanNames: string[], samplesBySpan: Map<string, number[]>, csvRows: string[], runNumber: number): string[] {
+function recordBenchmarkEvents(events: BenchmarkLogEvent[], spanNames: string[], samples: BenchmarkSample[], runNumber: number): string[] {
     const eventsBySpan = new Map(events.map((event) => [event.span, event]));
     return spanNames.map((spanName) => {
         const event = eventsBySpan.get(spanName);
         if (!event) {
             return `${spanName}=not observed`;
         }
-        samplesBySpan.get(spanName)?.push(event.durationMs);
-        csvRows.push(`${runNumber},${spanName},${event.durationMs}`);
+        samples.push({run: runNumber, span: spanName, durationMs: event.durationMs});
         return `${spanName}=${event.durationMs}ms`;
     });
 }
 
-function createBenchmarkMetrics(spanNames: string[], samplesBySpan: Map<string, number[]>): Record<string, BenchmarkMetricResult> {
-    return Object.fromEntries(
-        spanNames.map((spanName) => {
-            const samples = samplesBySpan.get(spanName) ?? [];
-            return [spanName, {samples, stats: samples.length > 0 ? benchmarkStats(samples) : undefined}];
-        }),
-    );
-}
-
-function benchmarkMetricTable(metrics: Record<string, BenchmarkMetricResult>): BenchmarkResultTableRow[] {
-    return Object.entries(metrics).map(([span, metric]) => ({
-        span,
-        runs: metric.samples.length,
-        average: metric.stats?.average.toFixed(2) ?? 'N/A',
-        p50: metric.stats?.p50.toFixed(2) ?? 'N/A',
-        p75: metric.stats?.p75.toFixed(2) ?? 'N/A',
-        p90: metric.stats?.p90.toFixed(2) ?? 'N/A',
-        p95: metric.stats?.p95.toFixed(2) ?? 'N/A',
-        p99: metric.stats?.p99.toFixed(2) ?? 'N/A',
-        min: metric.stats?.min.toFixed(2) ?? 'N/A',
-        max: metric.stats?.max.toFixed(2) ?? 'N/A',
-    }));
-}
-
-function benchmarkResultsOutputPath(outputPath: string): string {
-    const extension = extname(outputPath);
-    const outputPathWithoutExtension = extension ? outputPath.slice(0, -extension.length) : outputPath;
-    return `${outputPathWithoutExtension}-results.csv`;
-}
-
-function benchmarkMetricTableCsv(table: BenchmarkResultTableRow[]): string[] {
-    return [
-        'span,runs,average,p50,p75,p90,p95,p99,min,max',
-        ...table.map((row) => [row.span, row.runs, row.average, row.p50, row.p75, row.p90, row.p95, row.p99, row.min, row.max].join(',')),
-    ];
-}
-
-function writeBenchmarkOutput(outputPath: string, csvRows: string[]): void {
-    mkdirSync(dirname(outputPath), {recursive: true});
-    writeFileSync(outputPath, [...csvRows, ''].join('\n'));
-}
-
 function createBenchmarkRecorder(options: BenchmarkRecorderOptions): BenchmarkRecorder {
-    const samplesBySpan = new Map(options.spanNames.map((spanName) => [spanName, [] as number[]]));
-    const sampleCsvRows = ['run,span,duration_ms'];
+    const samples: BenchmarkSample[] = [];
     const resultsOutputPath = options.resultsOutputPath ?? benchmarkResultsOutputPath(options.outputPath);
 
     return {
         record(events: BenchmarkLogEvent[], runNumber: number): string[] {
-            return recordBenchmarkEvents(events, options.spanNames, samplesBySpan, sampleCsvRows, runNumber);
+            return recordBenchmarkEvents(events, options.spanNames, samples, runNumber);
         },
         complete(label?: string): BenchmarkResult {
-            const metrics = createBenchmarkMetrics(options.spanNames, samplesBySpan);
-            const table = benchmarkMetricTable(metrics);
-            writeBenchmarkOutput(options.outputPath, sampleCsvRows);
-            writeBenchmarkOutput(resultsOutputPath, benchmarkMetricTableCsv(table));
+            const metrics = benchmarkMetrics(samples, options.spanNames);
+            const table = benchmarkResultTable(metrics);
+            writeBenchmarkSamples(options.outputPath, samples);
+            writeBenchmarkResults(resultsOutputPath, table);
             if (label) {
                 console.log(label);
             }
@@ -347,9 +288,9 @@ async function main(): Promise<void> {
     const cli = new CLI({
         positionalArgs: [
             {
-                name: 'platform',
-                description: `Native platform to benchmark (${PLATFORM_NAMES.join(', ')})`,
-                parse: (value): PlatformName => parseChoice(value, PLATFORM_NAMES, 'Platform'),
+                name: 'command',
+                description: `Native platform to benchmark (${PLATFORM_NAMES.join(', ')}) or ${RESULTS_COMMAND} to summarize sample files`,
+                parse: (value) => parseChoice(value, BENCHMARK_COMMANDS, 'Command'),
             },
             {
                 name: 'runs',
@@ -359,6 +300,10 @@ async function main(): Promise<void> {
             },
         ],
         namedArgs: {
+            'input-files': {
+                description: 'Comma-separated raw sample CSV files for the results command',
+                required: false,
+            },
             span: {
                 description: 'Only measure this whitelisted Sentry span',
                 required: false,
@@ -433,7 +378,29 @@ async function main(): Promise<void> {
     });
     /* eslint-enable @typescript-eslint/naming-convention */
 
-    const platform = parseChoice(String(cli.positionalArgs.platform), PLATFORM_NAMES, 'Platform');
+    const command = parseChoice(String(cli.positionalArgs.command), BENCHMARK_COMMANDS, 'Command');
+    const inputFiles = cli.namedArgs['input-files'];
+    const resultsOutputPath = cli.namedArgs['results-output'];
+    if (command === RESULTS_COMMAND) {
+        const inputPaths = inputFiles
+            ?.split(',')
+            .map((inputPath) => inputPath.trim())
+            .filter(Boolean)
+            .map((inputPath) => resolve(inputPath));
+        if (!inputPaths || inputPaths.length === 0) {
+            fail('Supply at least one raw sample CSV file with --input-files.');
+        }
+        const outputPath = resolve(resultsOutputPath ?? join(rootDirectory, '.benchmarks', 'results.csv'));
+        const table = exportBenchmarkResults({inputPaths, outputPath});
+        console.table(table);
+        console.log(`Recorded benchmark results in ${outputPath}`);
+        return;
+    }
+    if (inputFiles !== undefined) {
+        fail('--input-files is only supported by the results command.');
+    }
+
+    const platform: PlatformName = command;
     const configuredSpanNames = parseSpanNames(environmentString(BENCHMARK_SPANS_ENVIRONMENT_VARIABLE));
     const spanNames = selectBenchmarkSpanNames(configuredSpanNames, cli.namedArgs.span);
     const waitUntilSpan = cli.namedArgs['wait-until-span'];
@@ -452,7 +419,6 @@ async function main(): Promise<void> {
     const appPathB = cli.namedArgs['app-path-b'];
     const outputPathA = cli.namedArgs['output-a'];
     const outputPathB = cli.namedArgs['output-b'];
-    const resultsOutputPath = cli.namedArgs['results-output'];
     const resultsOutputPathA = cli.namedArgs['results-output-a'];
     const resultsOutputPathB = cli.namedArgs['results-output-b'];
     const metricLabel = cli.namedArgs.span?.replaceAll(/[^a-zA-Z0-9_-]/g, '-') ?? 'all-spans';
@@ -540,27 +506,14 @@ if (isDirectRun) {
     });
 }
 
-export {
-    benchmarkAppStartupsAlternating,
-    benchmarkAlternatingStartups,
-    benchmarkAppStartups,
-    benchmarkMetricTable,
-    benchmarkMetricTableCsv,
-    benchmarkResultsOutputPath,
-    benchmarkStartups,
-    createBenchmarkRecorder,
-    parseSpanNames,
-    selectBenchmarkSpanNames,
-};
+export {benchmarkAppStartupsAlternating, benchmarkAlternatingStartups, benchmarkAppStartups, benchmarkStartups, createBenchmarkRecorder, parseSpanNames, selectBenchmarkSpanNames};
 export type {
     BenchmarkAlternatingResult,
     BenchmarkAlternatingStartupsOptions,
     BenchmarkAppStartupsAlternatingOptions,
     BenchmarkAppStartupsOptions,
-    BenchmarkMetricResult,
     BenchmarkRecorder,
     BenchmarkRecorderOptions,
     BenchmarkResult,
-    BenchmarkResultTableRow,
     BenchmarkStartupsOptions,
 };
