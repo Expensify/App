@@ -10,3 +10,13 @@ index 4208526..807cb5d 100644
  
  function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
  
+diff --git a/node_modules/ts-api-utils/lib/index.js b/node_modules/ts-api-utils/lib/index.js
+index 5902556..dbd2a86 100644
+--- a/node_modules/ts-api-utils/lib/index.js
++++ b/node_modules/ts-api-utils/lib/index.js
+@@ -1,4 +1,4 @@
+-import ts9 from 'typescript';
++import ts9 from '@typescript/typescript6';
+ 
+ // src/comments.ts
+ function forEachToken(node, callback, sourceFile = node.getSourceFile()) {

@@ -5,9 +5,9 @@
 - Reason:
 
     ```
-    typescript-eslint pulls in ts-api-utils, which `require('typescript')`s the classic compiler API.
+    typescript-eslint pulls in ts-api-utils, which imports the classic compiler API from `typescript`.
     The repo's root `typescript` is TypeScript 7 so that `tsc` is the native compiler.
-    Point the require at `@typescript/typescript6` so type-aware lint keeps working.
+    Point the CJS require and ESM import at `@typescript/typescript6` so type-aware lint keeps working.
     ```
 
 - Upstream PR/issue: https://github.com/typescript-eslint/typescript-eslint/issues/10940

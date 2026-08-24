@@ -363,6 +363,7 @@
     "wait-port": "^0.2.9"
   },
   "overrides": {
+    "typescript": "$typescript",
     "@typescript-eslint/eslint-plugin": "8.58.1",
     "@typescript-eslint/parser": "8.58.1",
     "@typescript-eslint/typescript-estree": "8.61.0",
