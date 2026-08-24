@@ -5,21 +5,22 @@ import {
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
+    resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import type {WriteCommand} from '@libs/API/types';
 
 import type {AnyRequest} from '@src/types/onyx/Request';
+
+import type {OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 describe('RequestConflictUtils', () => {
     it.each([['OpenApp'], ['ReconnectApp']])('resolveDuplicationConflictAction when %s do not exist in the queue should push %i', (command) => {
         const persistedRequests = [{command: 'OpenReport'}, {command: 'AddComment'}, {command: 'CloseAccount'}];
-        const commandToFind = command as WriteCommand;
-        const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === commandToFind);
+        const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === command);
         expect(result).toEqual({conflictAction: {type: 'push'}});
     });
 
@@ -28,8 +29,7 @@ describe('RequestConflictUtils', () => {
         ['ReconnectApp', 2],
     ])('resolveDuplicationConflictAction when %s exist in the queue should replace at index %i', (command, index) => {
         const persistedRequests = [{command: 'OpenApp'}, {command: 'AddComment'}, {command: 'ReconnectApp'}];
-        const commandToFind = command as WriteCommand;
-        const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === commandToFind);
+        const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === command);
         expect(result).toEqual({conflictAction: {type: 'replace', index}});
     });
 
@@ -148,6 +148,37 @@ describe('RequestConflictUtils', () => {
         });
     });
 
+    it('resolveEditCommentWithNewAddCommentRequest should drop the queued attachment when the edit removed it', () => {
+        const reportActionID = '2';
+        const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'attachment removed'};
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, true);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'attachment removed'}},
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should keep the queued attachment when the edit kept it', () => {
+        const reportActionID = '2';
+        const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local'}, attachmentID: '5'},
+                },
+            },
+        });
+    });
+
     it.each(enablePolicyFeatureCommand)('resolveEnableFeatureConflicts should return push when the same enable feature API is not found', (commandName) => {
         const persistedRequests = [{command: commandName, data: {policyID: '1', enabled: true}}];
         const parameters = {policyID: '2', enabled: false};
@@ -171,37 +202,37 @@ describe('RequestConflictUtils', () => {
     describe('resolveOpenReportDuplicationConflictAction', () => {
         it('returns push when no matching OpenReport for the reportID exists in the queue', () => {
             const persistedRequests = [{command: 'OpenApp'}, {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '2'}}];
-            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1'});
             expect(result).toEqual({conflictAction: {type: 'push'}});
         });
 
         it('returns noAction when the queued OpenReport carries guidedSetupData', () => {
             const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', guidedSetupData: '[{}]'}}];
-            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1'});
             expect(result).toEqual({conflictAction: {type: 'noAction'}});
         });
 
         it('returns noAction when the queued request carries accountIDList but the new one has no participants', () => {
             const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '10,20'}}];
-            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1'});
             expect(result).toEqual({conflictAction: {type: 'noAction'}});
         });
 
         it('replaces when the new request also carries an accountIDList', () => {
             const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '10,20'}}];
-            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '10,20'} as never);
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1', accountIDList: '10,20'});
             expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
         });
 
         it('replaces when neither queued nor new request has participants', () => {
             const persistedRequests = [{command: 'OpenApp'}, {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
-            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1'});
             expect(result).toEqual({conflictAction: {type: 'replace', index: 1}});
         });
 
         it('replaces when the queued request has no participants but the new request does', () => {
             const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
-            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '10,20'} as never);
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1', accountIDList: '10,20'});
             expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
         });
     });
@@ -209,13 +240,13 @@ describe('RequestConflictUtils', () => {
     describe('resolveDetachReceiptConflicts', () => {
         it('returns push when no replace-receipt requests match transactionID', () => {
             const persistedRequests = [{command: 'OpenReport'}, {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '2'}}, {command: 'CloseAccount'}];
-            const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
+            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'});
             expect(result).toEqual({conflictAction: {type: 'push'}});
         });
 
         it('returns push when exactly one replace-receipt request matches transactionID', () => {
             const persistedRequests = [{command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}}];
-            const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
+            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'});
             expect(result).toEqual({conflictAction: {type: 'push'}});
         });
 
@@ -228,20 +259,21 @@ describe('RequestConflictUtils', () => {
                 {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
             ];
 
-            const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
+            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'});
             expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 2], pushNewRequest: true}});
         });
     });
 
+    const openApp = (): AnyRequest => ({command: WRITE_COMMANDS.OPEN_APP});
+    const fullReconnect = (): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP});
+    const drop = {conflictAction: {type: 'noAction'}};
+    const push = {conflictAction: {type: 'push'}};
+
     describe('resolveReconnectDuplicationConflictAction', () => {
-        const openApp = (): AnyRequest => ({command: WRITE_COMMANDS.OPEN_APP});
-        const fullReconnect = (): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP});
         const incrementalReconnect = (updateIDFrom: number): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP, data: {updateIDFrom}});
 
         // Redundant incoming reconnect is dropped (noAction); a wider one is pushed. A wider one also
         // deletes a narrower request that is only queued (redundant now), but can't delete an in-flight one.
-        const drop = {conflictAction: {type: 'noAction'}};
-        const push = {conflictAction: {type: 'push'}};
         const replaceQueued = {conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}};
         it.each([
             ['full', 'full', drop, drop, fullReconnect(), fullReconnect()],
@@ -259,9 +291,9 @@ describe('RequestConflictUtils', () => {
         });
 
         // OpenApp only ever appears on the live side here (it covers an incoming reconnect because it
-        // re-fetches everything). An incoming OpenApp does not use this resolver: it dedupes through the
-        // generic resolveDuplicationConflictAction, covered by the resolveDuplicationConflictAction tests
-        // above and end-to-end by "OpenApp should replace same requests" in tests/actions/SessionTest.ts.
+        // re-fetches everything). An incoming OpenApp does not use this resolver: it goes through
+        // resolveOpenAppDuplicationConflictAction, covered below and end-to-end by "OpenApp should replace
+        // same requests" in tests/actions/SessionTest.ts.
         it('pushes when no reconnect-family request is live', () => {
             expect(resolveReconnectDuplicationConflictAction([], null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
         });
@@ -272,6 +304,21 @@ describe('RequestConflictUtils', () => {
             expect(resolveReconnectDuplicationConflictAction(persistedRequests, null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
             // A queued full reconnect alongside unrelated commands still covers an incoming incremental one.
             expect(resolveReconnectDuplicationConflictAction([...persistedRequests, fullReconnect()], null, incrementalReconnect(500))).toEqual({conflictAction: {type: 'noAction'}});
+        });
+    });
+
+    describe('resolveOpenAppDuplicationConflictAction', () => {
+        const replaceQueued = (index: number) => ({conflictAction: {type: 'replace', index}});
+        it.each([
+            ['an OpenApp is in flight', [], openApp(), true, drop],
+            ['an OpenApp is in flight and the caller opted out', [], openApp(), false, push],
+            ['an OpenApp is both in flight and queued', [openApp()], openApp(), true, drop],
+            ['only a reconnect is in flight', [], fullReconnect(), true, push],
+            ['nothing is live', [], null, true, push],
+            ['an OpenApp is queued behind unrelated commands', [{command: 'AddComment'}, openApp()], null, true, replaceQueued(1)],
+            ['an OpenApp is queued and the caller opted out', [openApp()], null, false, replaceQueued(0)],
+        ])('%s', (_case, persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean, expected) => {
+            expect(resolveOpenAppDuplicationConflictAction(persistedRequests, ongoingRequest, shouldDedupeWithInFlight)).toEqual(expected);
         });
     });
 });

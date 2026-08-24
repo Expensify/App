@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import Modal from '@components/Modal';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -48,7 +48,7 @@ function MoneyRequestReportTransactionLongPressModal({isMobileSelectionModeEnabl
             onClose={() => setIsVisible(false)}
             shouldPreventScrollOnFocus
         >
-            <MenuItem
+            <MenuItemAction
                 title={translate('common.select')}
                 icon={expensifyIcons.CheckSquare}
                 onPress={() => {
