@@ -1883,8 +1883,18 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
     );
 }
 
+/**
+ * Finds the broken-connection violation that drives the money-request header status and its personal-card
+ * suppression. It intentionally excludes the `brokenCardConnection530` subtype (scraper being fixed on
+ * Expensify's side): 530 keeps its own dedicated `brokenConnection530Error` header regardless of card type,
+ * so it must never be swallowed by the personal-card suppression.
+ */
 function getBrokenConnectionViolation(transactionViolations: TransactionViolation[] | undefined): TransactionViolation | undefined {
-    return transactionViolations?.find(isBrokenConnectionViolation);
+    return transactionViolations?.find(
+        (violation) =>
+            violation.name === CONST.VIOLATIONS.RTER &&
+            (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH),
+    );
 }
 
 function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
