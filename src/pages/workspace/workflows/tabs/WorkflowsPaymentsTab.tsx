@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -64,8 +65,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const isGlobalReimbursementsBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS);
-    const isGlobalReimbursementFXBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX);
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
     const isWalletConnectionStatusBetaEnabled = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -391,32 +391,29 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             />
                         </OfflineWithFeedback>
                     )}
-                    {policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
-                        canWritePayments &&
-                        isGlobalReimbursementsBetaEnabled &&
-                        isGlobalReimbursementFXBetaEnabled && (
-                            <OfflineWithFeedback
-                                pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
-                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
-                                onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
-                                errorRowStyles={[styles.mt3]}
-                            >
-                                <MenuItemWithTopDescription
-                                    title={
-                                        policy?.globalReimbursementFXPreferCompany
-                                            ? translate('workflowsCurrencyConversionFeesPage.companyPays')
-                                            : translate('workflowsCurrencyConversionFeesPage.employeePays')
-                                    }
-                                    titleStyle={styles.textNormalThemeText}
-                                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                                    description={translate('workflowsCurrencyConversionFeesPage.title')}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID))}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                />
-                            </OfflineWithFeedback>
-                        )}
+                    {policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && canWritePayments && isGlobalReimbursementFXEnabled && (
+                        <OfflineWithFeedback
+                            pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
+                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                            onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                            errorRowStyles={[styles.mt3]}
+                        >
+                            <MenuItemWithTopDescription
+                                title={
+                                    policy?.globalReimbursementFXPreferCompany
+                                        ? translate('workflowsCurrencyConversionFeesPage.companyPays')
+                                        : translate('workflowsCurrencyConversionFeesPage.employeePays')
+                                }
+                                titleStyle={styles.textNormalThemeText}
+                                descriptionTextStyle={styles.textLabelSupportingNormal}
+                                description={translate('workflowsCurrencyConversionFeesPage.title')}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID))}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                 </>
             }
             isActive={policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}
