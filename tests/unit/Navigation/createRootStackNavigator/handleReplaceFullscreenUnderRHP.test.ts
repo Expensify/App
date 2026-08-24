@@ -135,6 +135,13 @@ const staleDistanceRatesDeepLinkParams = {
     },
 };
 
+const staleLongFormDeepLinkParams = {
+    state: {
+        index: 0,
+        routes: [{name: NAVIGATORS.WORKSPACE_NAVIGATOR}],
+    },
+};
+
 describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () => {
     it('seeds [WORKSPACES_LIST, split] when the workspace tab was never mounted (guards iOS swipe-back regression #93003)', () => {
         mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
@@ -200,6 +207,16 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
     it('removes stale distance-settings deep-link hints when revealing a newly created workspace', () => {
         mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
         const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleDistanceRatesDeepLinkParams);
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(result);
+        expect(splitParams).toEqual({policyID: 'NEW'});
+        expect(tabParams).toBeUndefined();
+    });
+
+    it('removes a stale long-form deep-link hint when revealing a newly created workspace', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleLongFormDeepLinkParams);
         const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
 
         const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(result);

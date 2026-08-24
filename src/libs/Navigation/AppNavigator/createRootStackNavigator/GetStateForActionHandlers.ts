@@ -5,6 +5,7 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
+import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -62,15 +63,15 @@ function getSidebarRouteName(routeName: string): string | undefined {
 
 // RN's deep-link initial-state hint keys, per `getStateFromParams` in
 // @react-navigation/core/src/useNavigationBuilder.tsx. Stripped only when `params.screen` is
-// set so legitimate user keys (e.g. `path`, `initial`) on non-hydrated routes survive.
+// set or `params.state` contains nested routes, so legitimate user keys on non-hydrated routes survive.
 const STALE_DEEP_LINK_PARAM_KEYS = new Set(['state', 'screen', 'params', 'path', 'initial']);
 
-/** Removes the RN deep-link hint chain from `route.params` when triggered by `params.screen`. */
+/** Removes the RN deep-link hint chain from `route.params`. */
 function withSanitizedDeepLinkParams<R extends {params?: unknown}>(route: R, focusParams: unknown): R {
     const rParamsRecord =
-        route.params && typeof route.params === 'object' && !Array.isArray(route.params) && 'screen' in route.params && typeof route.params.screen === 'string' ? route.params : undefined;
+        isRecord(route.params) && (typeof route.params.screen === 'string' || (isRecord(route.params.state) && Array.isArray(route.params.state.routes))) ? route.params : undefined;
 
-    // RN stores nested deep-link instructions under params.screen/params.params.
+    // RN stores nested deep-link instructions under params.screen/params.params or params.state.
     const looksLikeDeepLinkInitialState = !!rParamsRecord;
 
     // Remove only RN's hint keys; keep any real params that were stored next to them.
