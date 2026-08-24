@@ -1970,7 +1970,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            return shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction);
+            return shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction);
         });
     });
 
@@ -2018,7 +2018,7 @@ function getVisibleTransactionViolations(
         transactionViolations.filter(
             (violation) =>
                 !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy) &&
-                shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
+                shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, currentUserAccountID, shouldShowRterForSettledReport, transaction),
         ),
     );
 }
@@ -2031,10 +2031,11 @@ function shouldShowViolation(
     policy: OnyxEntry<Policy>,
     violationName: ViolationName,
     currentUserEmail: string,
+    currentUserAccountID: number,
     shouldShowRterForSettledReport = true,
     transaction?: OnyxEntry<Transaction>,
 ): boolean {
-    const isSubmitter = isCurrentUserSubmitter(iouReport);
+    const isSubmitter = isCurrentUserSubmitter(iouReport, currentUserAccountID);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
@@ -2044,7 +2045,7 @@ function shouldShowViolation(
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
         // Submitters are not shown this notice because they cannot act on it, but a submitter who is also the report's
         // approver is the person who has to approve it manually, so they still need to know why it was not auto-approved.
-        return isPolicyAdmin(policy) && (!isSubmitter || isReportManager(iouReport)) && isProcessingReport(iouReport);
+        return isPolicyAdmin(policy) && (!isSubmitter || isReportManager(iouReport, currentUserAccountID)) && isProcessingReport(iouReport);
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
@@ -2087,7 +2088,7 @@ function allHavePendingRTERViolation(
         const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy)?.filter(
             (violation) =>
                 // Further filter to only violations visible to the current user
-                shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction),
+                shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction),
         );
         // Check if there is pending rter violation in the filtered violations
         return hasPendingRTERViolation(filteredTransactionViolations);
