@@ -8494,6 +8494,9 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
+        ADD_WORK_EMAIL: 'addWorkEmail',
+        VALIDATE_EMAIL: 'validateEmail',
+        JOIN_WORKSPACE: 'joinWorkspace',
     },
 
     MODAL_EVENTS: {
