@@ -38,6 +38,13 @@ import type AttachmentPickerProps from './types';
 
 import AttachmentCamera from './AttachmentCamera';
 
+/**
+ * Delay before running the deferred picker/camera launch inside onModalHide. Gives the popover a
+ * frame to finish dismissing on iOS; launching immediately closes the gallery/camera along with the
+ * popover.
+ */
+const MODAL_DISMISS_DELAY_MS = 200;
+
 const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
     pdf: String(types.pdf),
     doc: String(types.doc),
@@ -205,7 +212,7 @@ function AttachmentPicker({
 
     /**
      * Launch the in-app VisionCamera instead of the external system camera.
-     * Opens the camera modal directly — bypasses the promise-based selectItem flow.
+     * Opens the camera modal directly and bypasses the promise-based selectItem flow.
      * handleCameraCapture / handleCameraClose handle completion.
      */
     const launchInAppCamera = useCallback(() => {
@@ -571,7 +578,7 @@ function AttachmentPicker({
         (item: Item) => {
             /* Items with onPress (e.g. the in-app camera) handle their own flow and don't go
              * through the promise-based pickAttachment chain. Defer the launch to onModalHide so
-             * the camera modal only presents after the popover has fully dismissed — presenting a
+             * the camera modal only presents after the popover has fully dismissed. Presenting a
              * second modal while the first is still dismissing fails silently on iOS, which is what
              * caused the "camera doesn't open"/"app loads infinitely" regressions. */
             if ('onPress' in item) {
@@ -579,7 +586,7 @@ function AttachmentPicker({
                     setTimeout(() => {
                         item.onPress();
                         delete onModalHide.current;
-                    }, 200);
+                    }, MODAL_DISMISS_DELAY_MS);
                 };
                 close();
                 return;
@@ -605,7 +612,7 @@ function AttachmentPicker({
                             onClosed.current();
                             delete onModalHide.current;
                         });
-                }, 200);
+                }, MODAL_DISMISS_DELAY_MS);
             };
             close();
         },

@@ -154,7 +154,8 @@ function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, support
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
-    const focusCamera = useCallback((point: Point) => focusCameraAtPoint(cameraRef, point), [cameraRef]);
+    // React Compiler auto-memoizes this closure based on cameraRef, so no manual useCallback is needed.
+    const focusCamera = (point: Point) => focusCameraAtPoint(cameraRef, point);
 
     const tapGesture = Gesture.Tap()
         .enabled(supportsFocus)
