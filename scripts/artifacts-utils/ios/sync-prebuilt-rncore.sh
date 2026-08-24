@@ -5,10 +5,14 @@
 # .last_build_configuration marker so replace-rncore-version.js, running right after this,
 # re-extracts from the tarballs. Needed because our tarball path carries no patches version,
 # so a version change is invisible to CocoaPods and it can keep a stale extraction.
+#
+# Expected Xcode environment variables:
+#   PODS_ROOT
 set -euo pipefail
 
 TARBALLS_STAMP="$PODS_ROOT/ReactNativeCore-artifacts/.artifacts-version"
 PREBUILT_DIR="$PODS_ROOT/React-Core-prebuilt"
+readonly TARBALLS_STAMP PREBUILT_DIR
 
 # No stamp: the last install built react-native from source — nothing to sync.
 [ -f "$TARBALLS_STAMP" ] || exit 0
