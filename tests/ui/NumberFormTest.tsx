@@ -1,13 +1,14 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import NumberForm, {useNumberFormActions, useNumberFormState} from '@components/NumberForm';
-import type {NumberFormProps} from '@components/NumberForm';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import React from 'react';
 import {View} from 'react-native';
+
+type NumberFormProps = React.ComponentProps<typeof NumberForm>;
 
 function ContextReadout() {
     const {value, allowNegative, errorText} = useNumberFormState();

@@ -9,4 +9,4 @@ const NumberForm = Object.assign(NumberFormComponent, {
 
 export default NumberForm;
 export {useNumberFormActions, useNumberFormState} from './context';
-export type {NumberFormProps, NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps} from './types';
+export type {NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps} from './types';

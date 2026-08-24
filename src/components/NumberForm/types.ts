@@ -1,6 +1,6 @@
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ForwardedRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 type NumberFormInputPosition = 'prefix' | 'suffix';
@@ -91,32 +91,4 @@ type NumberFormSymbolInputProps = NumberFormInputBaseProps &
 
 type NumberFormTextInputProps = NumberFormInputBaseProps & Pick<BaseTextInputProps, 'inputMode' | 'label' | 'onSubmitEditing' | 'prefixStyle' | 'suffixStyle'>;
 
-type NumberFormProps = {
-    /** The canonical number value shared by composed primitives. */
-    value?: string;
-
-    /** Called when a composed primitive changes the canonical value. */
-    onInputChange?: (value: string) => void;
-
-    /** Whether negative values are allowed. The canonical value always stores its sign. */
-    allowNegative?: boolean;
-
-    /** Error supplied by FormProvider. */
-    errorText?: string;
-
-    /** Form callback supplied by InputWrapper. */
-    onBlur?: BaseTextInputProps['onBlur'];
-
-    /** Submit callback supplied by InputWrapper. */
-    onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
-
-    /** Reference to the underlying text input, supplied by InputWrapper. */
-    ref?: ForwardedRef<BaseTextInputRef>;
-
-    /** Reference exposing the number editing imperative API. */
-    numberFormRef?: ForwardedRef<NumberFormRef>;
-
-    children: ReactNode;
-};
-
-export type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent, NumberFormProps, NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps};
+export type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent, NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps};
