@@ -37,7 +37,7 @@ function UnreportedTransactionAction({action, originalReport}: UnreportedTransac
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const derivedReportName = useDerivedReportNameByReportID(fromReportID);
-    const unreportedTransactionMessage = getUnreportedTransactionMessage({translate, fromReport, derivedReportName});
+    const unreportedTransactionMessage = getUnreportedTransactionMessage({translate, fromReport, fromReportID, derivedReportName});
 
     if (hasReasoning(action)) {
         return (
