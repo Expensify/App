@@ -32,7 +32,7 @@ import useWindowDimensions from './useWindowDimensions';
 const popoverDimensions = {
     width: CONST.POPOVER_DROPDOWN_WIDTH,
     height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-    minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
+    portraitHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
 };
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
@@ -70,7 +70,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         if (!isInLandscapeMode) {
             // Portrait uses the dedicated fixed height for this popover (`POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT`),
             // so the intent stays explicit rather than silently coupling to the generic dropdown max.
-            return popoverDimensions.minHeight;
+            return popoverDimensions.portraitHeight;
         }
 
         const contentHeightLandscapeMode = calculateModalHeightInLandscapeMode(windowHeight, topSafeAreaInset, keyboardActiveHeight);

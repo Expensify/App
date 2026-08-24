@@ -458,11 +458,10 @@ function ReportSubmitToContent({
         [handleSubmit, translate, keyboardActiveHeight, isInLandscapeMode, shouldUseNarrowLayout],
     );
 
-    // The popover height is owned in a single place (`innerContainerStyle` in `useReportSubmitToPopover`); this
-    // content just fills whatever height the popover gives it via `flex1`. Dropping the old `getMinimumHeight` floor
-    // here is what lets the recipient list scroll inside a constant-size popover instead of resizing the popover when
-    // the list collapses to the empty / "No results found" state. `FixedFooter` already pads 20px below the Confirm
-    // button, so no extra bottom padding is added here.
+    // The wrapper `View` in `useReportSubmitToPopover` owns the popover height, and this content fills it via `flex1`.
+    // Dropping the old `getMinimumHeight` floor lets the recipient list scroll inside a constant-size popover instead
+    // of resizing it on the empty / "No results found" state. No bottom padding is added here because `FixedFooter`
+    // already pads 20px below the Confirm button.
     const containerStyle = [styles.w100, styles.flex1, styles.pt3];
 
     if (shouldShowNotFoundView) {
