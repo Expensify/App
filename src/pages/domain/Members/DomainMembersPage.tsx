@@ -56,7 +56,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
+    const illustrations = useMemoizedLazyIllustrations(['LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -121,7 +121,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 keyForList: String(accountID),
                 accountID,
                 login,
-                name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+                name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                 email: formatPhoneNumber(login),
                 groupName: group?.details.name ?? '-',
                 errors: getLatestError(customProps?.errors),
@@ -195,9 +195,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             text: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.CLOSE_ACCOUNT,
             icon: icons.RemoveMembers,
-            onSelected: () => {
-                setIsModalVisible(true);
-            },
+            shouldSkipFocusRestore: true,
+            onSelected: () => setIsModalVisible(true),
         },
         {
             text: translate('domain.members.moveToGroup'),
@@ -303,8 +302,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     <HeaderWithBackButton
                         title={translate('domain.domainMembers')}
                         onBackButtonPress={Navigation.goBack}
-                        icon={illustrations.Profile}
                         shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldUseHeadlineHeader
                         shouldDisplayHelpButton
                     />
                     <ScrollView
@@ -346,7 +345,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 domainAccountID={domainAccountID}
                 members={members}
                 headerTitle={translate('domain.members.title')}
-                headerIcon={illustrations.Profile}
                 headerContent={getHeaderButtons()}
                 selectedMembers={selectedMembers}
                 setSelectedMembers={setSelectedMembers}

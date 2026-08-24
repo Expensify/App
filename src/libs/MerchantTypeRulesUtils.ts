@@ -4,8 +4,8 @@ import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseD
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
+import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import type {Policy} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 
@@ -15,7 +15,7 @@ import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
@@ -115,11 +115,13 @@ function getMerchantCodingRulesTableData({
         return [];
     }
 
+    const isOnXero = isXeroActiveMatchingSource(policy);
     const fieldLabels = {
         category: translate('common.category').toLowerCase(),
         tag: translate('common.tag').toLowerCase(),
         description: translate('common.description').toLowerCase(),
         tax: translate('common.tax').toLowerCase(),
+        vendor: translate(isOnXero ? 'common.supplier' : 'common.vendor').toLowerCase(),
     };
 
     return Object.entries(codingRules)
@@ -127,7 +129,14 @@ function getMerchantCodingRulesTableData({
         .map(([ruleID, rule]: [string, CodingRule]) => {
             const merchantName = rule.filters?.right ?? '';
             const hasOnlyMerchantRename =
-                !!rule.merchant && !rule.category && !rule.tag && !rule.comment && !rule.tax?.field_id_TAX?.value && rule.reimbursable === undefined && rule.billable === undefined;
+                !!rule.merchant &&
+                !rule.category &&
+                !rule.tag &&
+                !rule.comment &&
+                !rule.tax?.field_id_TAX?.value &&
+                !rule.vendorID &&
+                rule.reimbursable === undefined &&
+                rule.billable === undefined;
             const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
 
             const actions: string[] = [];
@@ -146,6 +155,11 @@ function getMerchantCodingRulesTableData({
             }
             if (rule.tax?.field_id_TAX?.value) {
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
+            }
+            if (rule.vendorID) {
+                const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+                const vendorValue = getVendorRuleDisplayValue(policy, rule.vendorID, unavailableLabel);
+                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, vendorValue));
             }
             if (rule.reimbursable !== undefined) {
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
@@ -192,4 +206,12 @@ function getExpenseDefaultsTableData({
     return [...merchantRules, ...merchantTypeRules];
 }
 
-export {getDefaultMccGroupCategory, getExpenseDefaultsTableData, getMerchantTypeRuleFormFromMccGroup, isDefaultMccGroupID, isMerchantTypeRuleKey, saveMerchantTypeRule};
+export {
+    getDefaultMccGroupCategory,
+    getExpenseDefaultsTableData,
+    getMerchantCodingRulesTableData,
+    getMerchantTypeRuleFormFromMccGroup,
+    isDefaultMccGroupID,
+    isMerchantTypeRuleKey,
+    saveMerchantTypeRule,
+};

@@ -1,11 +1,12 @@
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import React from 'react';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import FixedFooter from './FixedFooter';
 
@@ -40,13 +41,14 @@ function AvatarPageFooter({validationError, phraseParam = {}, isDirty, onSave}: 
                 />
             )}
             <Button
-                large
-                success
-                text={translate('common.save')}
+                size={CONST.BUTTON_SIZE.LARGE}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={!isDirty}
                 onPress={onSave}
-                pressOnEnter
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.save')}</Button.Text>
+            </Button>
         </FixedFooter>
     );
 }
