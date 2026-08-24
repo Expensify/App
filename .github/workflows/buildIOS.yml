@@ -29,8 +29,8 @@ on:
         default: 'false'
       download-dsyms:
         description: Download the prebuilt react-native dSYMs so Sentry can symbolicate its native frames. Off by default - it adds two large downloads per build.
-        type: string
-        default: 'false'
+        type: boolean
+        default: false
 
     outputs:
       IOS_VERSION:
@@ -55,7 +55,7 @@ jobs:
     runs-on: blacksmith-12vcpu-macos-latest
     env:
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
-      RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS: ${{ inputs.download-dsyms == 'true' && '1' || '0' }}
+      RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS: ${{ inputs.download-dsyms && '1' || '0' }}
     outputs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
       ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
