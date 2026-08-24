@@ -27,7 +27,7 @@ type UpgradeIntroViewProps = {
     /** Icon shown in the top-left of the card. When omitted, the icon is hidden. */
     iconSrc?: IconAsset;
 
-    /** Whether the icon renders at illustration size (48) without avatar border styles. */
+    /** Whether the icon renders at the large avatar size without avatar border styles. */
     isIllustration?: boolean;
 
     /** Extra styles applied to the illustration icon. */
@@ -86,7 +86,7 @@ function UpgradeIntroView({
 
     const subscriptionLink = subscriptionPlan ? `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute())}` : CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
 
-    const iconSize = isIllustration ? 48 : StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT);
+    const iconSize = StyleUtils.getAvatarSize(isIllustration ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.DEFAULT);
     const iconStyles = isIllustration ? iconAdditionalStyles : StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR);
 
     return (
