@@ -14,7 +14,6 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
-import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -130,7 +129,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [onboardingFeaturesMap] = useOnyx(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP);
-    const {isKeyboardActive} = useKeyboardState();
 
     const isKnownIntegration = isIntegrationKey(onboardingUserReportedIntegration);
     let initialSelectedIntegration: AccountingOptionKey | undefined;
@@ -265,7 +263,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         );
     }
 
-    const shouldContinueButtonBeFixed = !isKeyboardActive || !isInLandscapeMode;
     const continueButton = (
         <>
             {!!error && (
@@ -336,9 +333,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     />
                 )}
 
-                {!shouldContinueButtonBeFixed && <View style={[styles.pt8]}>{continueButton}</View>}
+                {isInLandscapeMode && <View style={[styles.pt8]}>{continueButton}</View>}
             </ScrollView>
-            {shouldContinueButtonBeFixed && <FixedFooter style={[styles.pt3, styles.ph5]}>{continueButton}</FixedFooter>}
+            {!isInLandscapeMode && <FixedFooter style={[styles.pt3, styles.ph5]}>{continueButton}</FixedFooter>}
         </ScreenWrapper>
     );
 }
