@@ -85,7 +85,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
-import React, {useCallback, useContext, useEffect, useRef} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -225,11 +225,9 @@ function ReportActionItem({
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
-    useRecyclingEffect(
-        useCallback(() => {
-            downloadedPreviews.current = [];
-        }, []),
-    );
+    useRecyclingEffect(() => {
+        downloadedPreviews.current = [];
+    });
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useReportActionItemState(!!isReportActionLinked);
 
