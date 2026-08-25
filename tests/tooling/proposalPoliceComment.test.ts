@@ -24,7 +24,7 @@ const mockCreateComment = jest.fn<(repo: string, issueNumber: number, body: stri
 const mockMinimizeCommentAsSpam = jest.fn<(commentNodeID: string) => Promise<void>>();
 const mockUpdateComment = jest.fn<(params: {comment_id: number; body: string}) => Promise<void>>();
 
-const mockPromptResponses = jest.fn<() => Promise<{text: string; responseID: string}>>();
+const mockPromptResponses = jest.fn<(params: {input: string}) => Promise<{text: string; responseID: string}>>();
 const mockCreateConversation = jest.fn<(items?: ResponseInputItem[]) => Promise<Conversation>>();
 const mockAddConversationItems = jest.fn<(conversationID: string, items: ResponseInputItem[]) => Promise<void>>();
 const mockListConversationItems = jest.fn<(conversationID: string) => Promise<ConversationItem[]>>();
@@ -235,7 +235,7 @@ describe('proposalPoliceComment', () => {
 
         await run();
 
-        expect(mockPromptResponses).toHaveBeenCalledWith(expect.objectContaining({input: expect.stringContaining('<author_context>trusted:')}));
+        expect(mockPromptResponses.mock.calls[0]?.[0].input).toContain('<author_context>trusted:');
         expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
         expect(mockCreateComment).not.toHaveBeenCalled();
     });
