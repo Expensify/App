@@ -371,6 +371,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         transactionID,
                         reportAction: action,
                         iouReport: undefined,
+                        // Self-DM tracked expenses have no IOU report to key the "spent"/"owes" preview wording on, so there's nothing to pass here.
                         iouReportTransactions: [],
                         chatIOUReport: undefined,
                         transactions: duplicateTransactions,
