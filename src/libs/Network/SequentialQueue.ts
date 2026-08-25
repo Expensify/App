@@ -299,51 +299,25 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
-    // A ReadNewestAction queued while offline carries the lastReadTime from the moment the user opened the
-    // report offline. Messages the user sent offline in that same report only get their server-assigned
-    // `created` on replay, which is later than that queued time — so the read no longer covers the user's own
-    // messages and the report comes back unread after reconnect. Move the read forward to the server time of
-    // the user's own replayed message, which the user has necessarily already seen.
-    //
-    // Known limitations, deliberately left as-is (see PR #94738 discussion):
-    // - Only fires when the read is processed AFTER the offline comment(s). readNewestAction dedupes via
-    //   resolveDuplicationConflictAction, which replaces an already-queued read in place, so a read queued
-    //   before the comment stays ahead of it and keeps its original time (same as production today).
-    // - The bump can move lastReadTime past another user's message that reached the server during the offline
-    //   window. Production already hides that case in the LHN (isUnread() treats a report whose newest action
-    //   is the current user's as read), so this is not a new user-visible regression.
-    // - The mutation below is in-memory only; an app kill between persisting and sending replays the original
-    //   time, which is the pre-fix behavior.
+    // Messages sent offline get their real time from the server on replay, which is newer than the time the
+    // queued read carries. That leaves the report unread, so move the read up to our own message's time.
+    // Out of scope: a read queued before the comment (it stays ahead in the queue), a message from someone
+    // else in the same window, and losing the change below if the app is killed before the request is sent.
     if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
         const reportID = requestToProcess.data?.reportID;
-        // MarkAsUnread is the only command the backend lets move lastReadTime backward, and an explicit unread
-        // from the user must always win over this reconciliation (per the backend note on PR #94738). When one
-        // is still queued for this report it runs after this read, and its optimistic data has already moved
-        // the local lastReadTime back — bumping and mirroring here would show the report as read locally while
-        // the server has it unread. Stand down entirely in that ordering and keep the pre-fix behavior.
+        // Marking a message unread must always win, so skip everything while one is queued for this report.
         const hasPendingSameReportMarkAsUnread =
             typeof reportID === 'string' && getAllPersistedRequests().some((request) => request.command === WRITE_COMMANDS.MARK_AS_UNREAD && request.data?.reportID === reportID);
         if (typeof reportID === 'string' && !hasPendingSameReportMarkAsUnread && reportsWithProcessedOfflineComments.has(reportID)) {
             const recordedTime = reportsWithProcessedOfflineComments.get(reportID);
             const currentLastReadTime = typeof requestToProcess.data?.lastReadTime === 'string' ? requestToProcess.data.lastReadTime : '';
-            // Only ever move the read forward. A stale/older recorded time must never pull lastReadTime
-            // back behind what the read already covers.
             if (recordedTime && recordedTime > currentLastReadTime) {
                 requestToProcess.data = {
                     ...requestToProcess.data,
                     lastReadTime: recordedTime,
-                };
-                // The read's optimisticData already merged the stale lastReadTime into Onyx when this
-                // request was queued (while offline). That merge only ran once, so it never sees this bump —
-                // mirror it into Onyx now so the origin device's own report also reflects the corrected read
-                // time immediately, instead of only sending the corrected value to the server.
-                // eslint-disable-next-line rulesdir/prefer-actions-set-data -- correcting a request-specific optimistic value already owned by this queue, not general report state
+                }; // eslint-disable-next-line rulesdir/prefer-actions-set-data -- fixing this queue's own request value, not general report state
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastReadTime: recordedTime});
-            }
-            // Deliberately NOT deleting the map entry here: this code runs BEFORE the request is sent, and a
-            // transient failure rolls the request back for retry with its persisted (pre-bump) payload — the
-            // retried read must be able to re-derive the bump from this map, which is safe because the bump is
-            // forward-only and idempotent. Entries are cleared when the queue fully drains (see flush()).
+            } // Keep the entry: a retried request comes back with the old time and needs fixing again.
         }
     }
 
@@ -356,20 +330,14 @@ function process(): Promise<void> {
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
-            // Track offline comments so we can reconcile the following ReadNewestAction.
+            // Remember the server time of messages sent offline, for the read above.
             if (requestToProcess.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(requestToProcess.command)) {
                 const reportID = requestToProcess.data?.reportID;
                 const reportActionID = requestToProcess.data?.reportActionID;
                 if (typeof reportID === 'string' && typeof reportActionID === 'string') {
                     let serverTimestamp = '';
-                    // Read the server-assigned `created` of the specific action we just sent (matched by our
-                    // own reportActionID) rather than the report's aggregate lastVisibleActionCreated. The
-                    // aggregate reflects the newest action on the whole report — if another user's message
-                    // reached the server first, it can be later than our own comment, and using it would
-                    // over-bump lastReadTime past a message we never saw. Scoping to our own action ID
-                    // guarantees we only ever record our own comment's time. We intentionally do NOT fall back
-                    // to a local "now" or to the aggregate report time when this entry is absent: a missing or
-                    // ambiguous signal should mean no bump, not a risky guess.
+                    // Match our own reportActionID, not the report's lastVisibleActionCreated, which can be
+                    // someone else's newer action. No match means we record nothing.
                     for (const update of response?.onyxData ?? []) {
                         if (update.key !== `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`) {
                             continue;
@@ -378,10 +346,8 @@ function process(): Promise<void> {
                         if (!value || typeof value !== 'object') {
                             continue;
                         }
-                        // Object.entries/values on a plain object has no type-safe overload for this TS lib
-                        // target (it resolves to `any`), so read the single key we care about directly instead
-                        // of enumerating. The value is re-validated with typeof/`in` immediately below.
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- reading one known key off an object already confirmed non-null; re-validated below
+                        // Read the one key we need; Object.entries/values isn't type safe here.
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- one known key off an object already checked for null; validated below
                         const actionValue: unknown = (value as Record<string, unknown>)[reportActionID];
                         if (!actionValue || typeof actionValue !== 'object' || !('created' in actionValue)) {
                             continue;
@@ -626,8 +592,7 @@ function flush(shouldResetPromise = true) {
 
                 isSequentialQueueRunning = false;
 
-                // Offline-comment tracking is only meaningful within a single queue drain. Clear it once the
-                // queue is fully drained so a stale entry can't leak across flushes and bump an unrelated read.
+                // The remembered times only apply to this run, so drop them when the queue is empty.
                 if (!hasRemainingRequests) {
                     reportsWithProcessedOfflineComments.clear();
                 }

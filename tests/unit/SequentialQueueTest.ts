@@ -620,12 +620,9 @@ describe('SequentialQueue - offline read reconciliation', () => {
     const otherUserActionID = 'other-user-comment-1';
 
     /**
-     * Mocks the network layer so that an offline AddComment resolves with a reportActions onyxData update
-     * carrying the given server-assigned `created` time for reportActionID, and every other command resolves
-     * with no data. `otherActionCreated`, if provided, adds a second, unrelated report action to the same
-     * response (simulating another user's message reaching the server around the same time) to verify it's
-     * never picked up. Returns the spy alongside a capture object recording the lastReadTime the queue sends
-     * for the ReadNewestAction, for assertions.
+     * Fakes the network: an offline AddComment returns a server time for our own action, everything else returns
+     * empty. `otherActionCreated` adds another user's action to the same response. Also records the lastReadTime
+     * the queue sends for the read.
      */
     function mockProcessWithMiddleware(commentServerTime: string | undefined, otherActionCreated?: string) {
         const capture: {readLastReadTime?: string} = {};
@@ -644,10 +641,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
             }
             return Promise.resolve();
         };
-        // processWithMiddleware is generic over the Onyx key of the request/response; the mock only needs to
-        // read/return command-shaped data, so it's implemented against the widened AnyRequest/OnyxKey and
-        // installed via a cast rather than reproducing the generic signature.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- generic mock installed against a widened, non-generic implementation
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the mock only needs command and data, so skip the generic signature
         const spy = jest.spyOn(RequestModule, 'processWithMiddleware').mockImplementation(mockImpl as typeof RequestModule.processWithMiddleware);
         return {spy, capture};
     }
@@ -657,7 +651,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
 
     let offlineSpy: jest.SpyInstance;
     beforeEach(() => {
-        // The reconciliation only runs while draining online (the reconnect path), so keep process() unblocked.
+        // This only runs while the queue drains after reconnecting, so keep the queue unblocked.
         offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
     });
     afterEach(() => {
@@ -725,7 +719,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
-            // The recorded comment time is older, so the read keeps its own (newer) lastReadTime.
+            // The remembered time is older, so the read keeps its own newer time.
             expect(capture.readLastReadTime).toBe(newerReadTime);
         } finally {
             processSpy.mockRestore();
@@ -734,7 +728,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
 
     it('does not bump the read when the report had no offline comment, so a later message from another user stays unread', async () => {
         const staleReadTime = '2026-01-01 09:00:00.000';
-        // No comment is pushed, so nothing is recorded for the report.
+        // No comment is sent, so there is nothing to remember for this report.
         const {spy: processSpy, capture} = mockProcessWithMiddleware(undefined);
         try {
             SequentialQueue.pause();
@@ -752,7 +746,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
     it('ignores a later timestamp from another user action in the same response, bumping only to its own comment time', async () => {
         const staleReadTime = '2026-01-01 09:00:00.000';
         const ownCommentServerTime = '2026-01-01 10:00:00.000';
-        // Another user's message reached the server after our own comment, in the same AddComment response.
+        // Another user's message landed after ours, in the same response.
         const otherUserServerTime = '2026-01-01 12:00:00.000';
         const {spy: processSpy, capture} = mockProcessWithMiddleware(ownCommentServerTime, otherUserServerTime);
         try {
@@ -763,7 +757,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
-            // Bumped to our own comment's time only — never to the other user's later message.
+            // Uses our own comment's time, not the other user's later one.
             expect(capture.readLastReadTime).toBe(ownCommentServerTime);
         } finally {
             processSpy.mockRestore();
@@ -775,13 +769,12 @@ describe('SequentialQueue - offline read reconciliation', () => {
         const earlierReadTime = '2026-01-01 08:00:00.000';
         const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
         try {
-            // Flush 1: an offline comment drains with NO following read. The recorded entry must be cleared.
+            // First run: a comment with no read after it. The remembered time must be dropped.
             await SequentialQueue.push(buildComment());
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
-            // Flush 2: a read arrives whose own time is earlier than flush 1's comment time. A leaked entry
-            // would over-bump it forward to the stale comment time; a cleared map leaves it untouched.
+            // Second run: an earlier read time, which a leftover value would wrongly move forward.
             await SequentialQueue.push(buildRead(earlierReadTime));
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
@@ -805,7 +798,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
-            // The recording is per report, so another report's comment must never bump this read.
+            // Times are remembered per report, so another report's comment must not change this read.
             expect(capture.readLastReadTime).toBe(staleReadTime);
         } finally {
             processSpy.mockRestore();
@@ -813,9 +806,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
     });
 
     it('does not bump the read while a same-report MarkAsUnread is still queued, so the explicit unread survives', async () => {
-        // MarkAsUnread runs after the read and wins on the server; its optimistic data already moved the local
-        // lastReadTime backward. Bumping here would mirror a forward time into Onyx and show the report as read
-        // locally while the server has it unread.
+        // MarkAsUnread runs last and wins, and it already set the older time in Onyx.
         const staleReadTime = '2026-01-01 09:00:00.000';
         const commentServerTime = '2026-01-01 10:00:00.000';
         const markAsUnread: AnyRequest = {command: WRITE_COMMANDS.MARK_AS_UNREAD, data: {reportID, lastReadTime: '2026-01-01 08:00:00.000'}, initiatedOffline: true};
@@ -836,10 +827,8 @@ describe('SequentialQueue - offline read reconciliation', () => {
     });
 
     it('documents a known boundary: a read already queued ahead of the offline comment is not bumped', async () => {
-        // readNewestAction dedupes via replace-in-place (resolveDuplicationConflictAction), so a read that was
-        // queued before the comment keeps its original position ahead of it and the comment's timestamp is
-        // recorded too late for it. That ordering keeps the current production behavior — deliberately left
-        // out of scope for this fix rather than reordering the queue.
+        // readNewestAction replaces a queued read in place, so this read stays ahead of the comment and we
+        // learn its time too late. Left as today's behavior on purpose.
         const staleReadTime = '2026-01-01 09:00:00.000';
         const commentServerTime = '2026-01-01 10:00:00.000';
         const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
@@ -858,9 +847,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
     });
 
     it('keeps the recorded comment time after a read consumes it, so a retried/subsequent read in the same drain can still be bumped', async () => {
-        // The bump runs BEFORE the read is sent; a transient failure rolls the request back and replays its
-        // persisted (pre-bump) payload, so the map entry must survive consumption for the retry to re-derive
-        // the bump. Two same-report reads in one drain prove the entry isn't deleted per-consume.
+        // A failed read is retried with its old data, so the remembered time has to survive the first read.
         const staleReadTime = '2026-01-01 09:00:00.000';
         const commentServerTime = '2026-01-01 10:00:00.000';
         const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
