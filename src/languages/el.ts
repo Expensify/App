@@ -10230,6 +10230,19 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης, επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση.';
+                    }
+                    return isMarkAsCash
+                        ? `Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης, επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Σημειώστε την ως μετρητά για να την αγνοήσετε ή <a href="${connectionLink}">επανασυνδεθείτε</a> για να αντιστοιχίσετε την απόδειξη.`
+                        : `Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης, επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. <a href="${connectionLink}">Επανασυνδεθείτε</a> για να αντιστοιχίσετε την απόδειξη.`;
+                }
+                return isAdmin
+                    ? `Η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. <a href="${companyCardPageURL}">Επανασυνδέστε για να αντιστοιχίσετε την απόδειξη</a>`
+                    : 'Η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Ζητήστε από ένα διαχειριστή να την επανασυνδέσει για να γίνει αντιστοίχιση της απόδειξης.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';
@@ -10252,6 +10265,10 @@ ${reportName}`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Η απόδειξη εκκρεμεί λόγω κατεστραμμένης σύνδεσης τράπεζας. Παρακαλώ επιλύστε το στις <a href="${workspaceCompanyCardRoute}">εταιρικές κάρτες</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Η απόδειξη εκκρεμεί λόγω προβλήματος στη σύνδεση με την τράπεζα. Παρακαλείστε να ζητήσετε από έναν διαχειριστή χώρου εργασίας να το επιλύσει.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Η απόδειξη εκκρεμεί επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Παρακαλώ επιλύστε το στις <a href="${workspaceCompanyCardRoute}">εταιρικές κάρτες</a>.</muted-text-label>`,
+        memberReauthConnectionError:
+            'Η απόδειξη εκκρεμεί επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Παρακαλείστε να ζητήσετε από έναν διαχειριστή χώρου εργασίας να το επιλύσει.',
         markAsCashToIgnore: 'Σημειώστε ως μετρητά για να την αγνοήσετε και να ζητήσετε πληρωμή.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {

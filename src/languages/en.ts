@@ -10139,6 +10139,19 @@ const translations = {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection.";
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return "Can't auto-match receipt because your bank connection needs re-authentication.";
+                    }
+                    return isMarkAsCash
+                        ? `Can't auto-match receipt because your bank connection needs re-authentication. Mark as cash to ignore, or <a href="${connectionLink}">reconnect</a> to match the receipt.`
+                        : `Can't auto-match receipt because your bank connection needs re-authentication. <a href="${connectionLink}">Reconnect</a> to match the receipt.`;
+                }
+                return isAdmin
+                    ? `Bank connection needs re-authentication. <a href="${companyCardPageURL}">Reconnect to match receipt</a>`
+                    : 'Bank connection needs re-authentication. Ask an admin to reconnect to match receipt.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return "Can't auto-match receipt due to broken bank connection.";
@@ -10162,6 +10175,9 @@ const translations = {
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Receipt pending because your bank connection needs re-authentication. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
+        memberReauthConnectionError: 'Receipt pending because your bank connection needs re-authentication. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
