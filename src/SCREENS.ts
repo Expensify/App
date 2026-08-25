@@ -512,6 +512,7 @@ const SCREENS = {
         ACCOUNTING: {
             ROOT: 'Policy_Accounting',
             QUICKBOOKS_ONLINE_SETUP: 'Policy_Accounting_Quickbooks_Online_Setup',
+            INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR: 'Policy_Accounting_Intuit_Enterprise_Suite_Entity_Selector',
             QUICKBOOKS_ONLINE_IMPORT: 'Policy_Accounting_Quickbooks_Online_Import',
             QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
             QUICKBOOKS_ONLINE_CLASSES: 'Policy_Accounting_Quickbooks_Online_Import_Classes',
@@ -544,6 +545,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Fx_Expense_Account_Selector',
             QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Classes_Displayed_As',
             QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Customers_Displayed_As',
             QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Locations_Displayed_As',

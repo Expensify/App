@@ -1,4 +1,5 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists/index';
+import Log from '@libs/Log';
 
 import type RNFS from 'react-native-fs';
 
@@ -97,6 +98,40 @@ describe('checkFileExists', () => {
         mockStat.mockRejectedValue(new Error('File not found'));
         const result = await checkFileExists('/nonexistent/path');
         expect(result).toBe(false);
+    });
+
+    it('should log the stat error code so a locked device is distinguishable from a missing file', async () => {
+        // Given a stat that fails the way a locked device fails it
+        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+        mockStat.mockRejectedValue(Object.assign(new Error('Operation not permitted'), {code: 'EPERM'}));
+
+        // When the file is checked
+        const result = await checkFileExists('/var/mobile/Containers/sharedFiles/locked.jpg');
+
+        // Then it still reports missing, but the code reaches telemetry
+        expect(result).toBe(false);
+        expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('stat failed'), false, {event: 'statFailed', code: 'EPERM'});
+
+        logInfoSpy.mockRestore();
+    });
+
+    it('should log the locked-device code, not the raw-path fallback code', async () => {
+        // Given an encoded path whose decoded file is locked, and whose raw form does not exist
+        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+        const decodedPath = '/var/mobile/Containers/sharedFiles/Receipt #42.pdf';
+        mockStat.mockImplementation((candidate: string) =>
+            Promise.reject(candidate === decodedPath ? Object.assign(new Error('Operation not permitted'), {code: 'EPERM'}) : Object.assign(new Error('File not found'), {code: 'ENOENT'})),
+        );
+
+        // When the file is checked
+        const result = await checkFileExists('file:///var/mobile/Containers/sharedFiles/Receipt%20%2342.pdf');
+
+        // Then telemetry carries the decoded-path error, because the raw fallback never existed
+        expect(result).toBe(false);
+        expect(logInfoSpy).toHaveBeenCalledTimes(1);
+        expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('stat failed'), false, {event: 'statFailed', code: 'EPERM'});
+
+        logInfoSpy.mockRestore();
     });
 
     it('should return false when path is a directory', async () => {

@@ -373,6 +373,8 @@ const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
+const policyACHAccountNumberSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.accountNumber;
+
 function isAdminForPolicyByIDSelector(policyID?: string) {
     return (policies: OnyxCollection<Policy> | null): boolean => {
         if (!policyID) {
@@ -428,6 +430,7 @@ export {
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
+    policyACHAccountNumberSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };
