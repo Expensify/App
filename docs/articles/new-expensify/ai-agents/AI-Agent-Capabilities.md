@@ -37,7 +37,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that approve expense reports
 
-**Goal:** Marks Outstanding (submitted) expense report as Approved, moving it to the reimbursement queue as **Ready to Pay** .
+**Goal:** Approves an Outstanding (submitted) expense report and sends it onward through the workspace's approval workflow — to the next approver when one is configured, or to the reimbursement queue as **Ready to Pay** when this is the final approval.
 
 To accomplish this, include phrases like:
 - Approve expense reports that meet my workspace rules
@@ -46,6 +46,7 @@ To accomplish this, include phrases like:
 - Approve reports when all receipts are attached
 - Automatically approve reports from trusted submitters
 - Approve reports that have already been reviewed by a first-level approver
+- Forward reports that follow all of my rules to the next approver
 
 ---
 

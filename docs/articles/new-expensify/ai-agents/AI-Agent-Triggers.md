@@ -319,6 +319,13 @@ To react to this event, include phrases like:
 - When SmartScan cannot read a receipt
 - When OCR extraction is incomplete or fails
 
+**A charge imported from a card feed was matched to an expense the person had already entered or scanned, and the two were merged into one expense. The surviving expense carries the amount and the card details the feed reported. The card can be a company card or the person's own card, so this does not by itself make the expense a company card expense.**
+
+To react to this event, include phrases like:
+- When an imported card charge is matched to an expense someone already entered
+- When the imported amount replaces the amount someone typed in
+- When card and receipt details need to be checked against policy rules after a merge
+
 ---
 
 ## How to write instructions for comment and money request events
@@ -880,4 +887,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 120 events AI Agents can react to.*
+*This reference covers all 121 events AI Agents can react to.*
