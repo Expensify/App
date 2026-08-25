@@ -80,12 +80,10 @@ module PatchedIOSArtifacts
 
         target = installer.pods_project.targets.find { |t| t.name == 'React-Core-prebuilt' }
         phase = target&.shell_script_build_phases&.find { |p| p.name.to_s.include?('[RNCore] Replace') }
-        unless phase
-            log("The [RNCore] Replace build phase was not found; the extracted prebuilt React Core won't follow version changes.", :error)
-            return
-        end
+        raise "#{LOG_PREFIX} The [RNCore] Replace build phase was not found on the React-Core-prebuilt target, " \
+              'so the extracted prebuilt React Core would keep following a stale artifact version.' unless phase
 
-        prelude = %(bash "#{File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/ios/sync-prebuilt-rncore.sh')}"\n)
+        prelude = %(bash "#{File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/ios/sync-prebuilt-rncore.sh')}" || exit 1\n)
         phase.shell_script = prelude + phase.shell_script unless phase.shell_script.start_with?(prelude)
     end
 
