@@ -107,7 +107,7 @@ function DynamicNewTaskPage() {
     const confirmButtonRef = useRef<View>(null);
 
     const navigateToAssignee = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path));
-    const navigateToShareDestination = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path));
+    const navigateToShareDestination = task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path));
 
     useEffect(() => {
         if (!task?.parentReportID) {
@@ -256,7 +256,7 @@ function DynamicNewTaskPage() {
                             {shareDestination?.displayName ? (
                                 <MenuItemWithLabel
                                     label={translate('common.share')}
-                                    onPress={task?.parentReportID ? undefined : navigateToShareDestination}
+                                    onPress={navigateToShareDestination}
                                 >
                                     <MenuItem.Row>
                                         <MenuItem.Leading>
