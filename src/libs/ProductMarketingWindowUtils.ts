@@ -3,6 +3,7 @@ import August2026PromoEmployeesImage from '@assets/images/august2026-promo-emplo
 
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -10,6 +11,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {hasVendorFeature} from './PolicyUtils';
 
@@ -52,10 +54,12 @@ type ProductMarketingAnnouncementVariant = {
     getCtaRoute: (context: ProductMarketingCtaContext) => Route;
 };
 
+type ProductMarketingAnnouncementUpdateKey = ValueOf<typeof CONST.MARKETING_WINDOW_UPDATE_KEYS>;
+
 /** A single product marketing announcement with audience-targeted content variants. */
 type ProductMarketingAnnouncement = {
     /** Stable key shared by every audience variant of this product update. A later update must use a new key. */
-    updateKey: string;
+    updateKey: ProductMarketingAnnouncementUpdateKey;
 
     /** Variant shown to users who are an admin on at least one active workspace. Admin prevails when a user is both member and admin. */
     admin: ProductMarketingAnnouncementVariant;
@@ -70,7 +74,7 @@ type ProductMarketingAnnouncement = {
  * announcement is dismissed, nothing is shown until a later release replaces it with a new update key.
  */
 const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null = {
-    updateKey: 'productUpdateAugust2026',
+    updateKey: CONST.MARKETING_WINDOW_UPDATE_KEYS.PRODUCT_UPDATE_AUGUST_2026,
     admin: {
         visual: {type: 'image', source: August2026PromoAdminsImage},
         heading: 'productMarketingWindow.roleTypes.admin.heading',
@@ -92,9 +96,15 @@ const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null
     },
 };
 
-/** Whether the given announcement was already dismissed by the user. */
+/**
+ * Whether the given announcement was already dismissed by the user.
+ * If the dismissed key from the BE doesn't exist in the client-side keys, we know that the user is on an older client
+ * (and has seen a newer announcement on a different client), so we dont need to show the modal
+ */
 function isProductMarketingAnnouncementDismissed(announcement: ProductMarketingAnnouncement | null, lastDismissedMarketingWindow: OnyxEntry<string>): boolean {
-    return !!announcement && announcement.updateKey === lastDismissedMarketingWindow;
+    const isAnnouncementDismissed = !!announcement && announcement.updateKey === lastDismissedMarketingWindow;
+    const isStale = !!lastDismissedMarketingWindow && !(Object.values(CONST.MARKETING_WINDOW_UPDATE_KEYS) as string[]).includes(lastDismissedMarketingWindow);
+    return isAnnouncementDismissed || isStale;
 }
 
 /**
