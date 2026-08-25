@@ -50,6 +50,7 @@
     "lint": "bun scripts/lint.ts",
     "lint-oxlint": "oxlint .",
     "compare-oxlint": "./oxlint-migration/compareFullRepo.sh",
+    "compare-oxlint-warm": "./oxlint-migration/compareWarmCache.sh",
     "oxlint-rule-inventory": "python3 oxlint-migration/listAllRules.py --json oxlint-migration/rule-inventory.json",
     "oxlint-rule-fixtures": "python3 oxlint-migration/port-probe/compareFixtures.py",
     "oxlint-rule-availability": "python3 oxlint-migration/listAllRules.py --available --json oxlint-migration/rule-availability.json",
