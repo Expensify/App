@@ -1,6 +1,8 @@
 /**
  * Navigates between Workspace settings while keeping the wide-layout sidebar policy in sync.
  */
+import {isWorkspaceNavigatorRouteName} from '@libs/Navigation/helpers/isNavigatorName';
+import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -10,66 +12,28 @@ import SCREENS from '@src/SCREENS';
 
 const WORKSPACE_ROUTE_PATTERN = /^\/?workspaces\/[^/]+(\/.*)?$/;
 
-type NavigationRouteWithState = {
-    /** Name of the screen or navigator represented by this route. */
-    name?: string;
-
-    /** Key used to target navigation updates at this route. */
-    key?: string;
-
-    /** Route parameters needed to identify the Workspace shown in the sidebar. */
-    params?: {
-        /** ID of the Workspace currently shown in the sidebar. */
-        policyID?: string;
-    };
-
-    /** Nested navigator state used to locate the Workspace sidebar route. */
-    state?: {
-        /** Key of the nested navigator state. */
-        key?: string;
-
-        /** Child routes contained in the nested navigator. */
-        routes?: NavigationRouteWithState[];
-    };
-};
-
-function findWorkspaceSidebarRoute(route: NavigationRouteWithState | undefined): {sidebarRoute: NavigationRouteWithState; splitStateKey?: string} | undefined {
-    if (!route) {
-        return undefined;
-    }
-
-    if (route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-        const sidebarRoute = route.state?.routes?.find((nestedRoute) => nestedRoute.name === SCREENS.WORKSPACE.INITIAL);
-        if (sidebarRoute?.key) {
-            return {sidebarRoute, splitStateKey: route.state?.key};
-        }
-    }
-
-    const routes = route.state?.routes ?? [];
-    for (let index = routes.length - 1; index >= 0; index--) {
-        const workspaceSidebarRoute = findWorkspaceSidebarRoute(routes.at(index));
-        if (workspaceSidebarRoute) {
-            return workspaceSidebarRoute;
-        }
-    }
-
-    return undefined;
-}
-
-function getActiveWorkspaceSidebarRoute(): {sidebarRoute: NavigationRouteWithState; splitStateKey?: string} | undefined {
+function getActiveWorkspaceSidebarRoute(): {sidebarRouteKey: string; splitStateKey?: string; policyID?: string} | undefined {
     if (!navigationRef.isReady()) {
         return undefined;
     }
 
     const routes = navigationRef.getRootState().routes;
-    for (let index = routes.length - 1; index >= 0; index--) {
-        const workspaceSidebarRoute = findWorkspaceSidebarRoute(routes.at(index));
-        if (workspaceSidebarRoute) {
-            return workspaceSidebarRoute;
-        }
+    const tabNavigatorRoute = routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const workspaceNavigatorRoute = getTabState(tabNavigatorRoute)?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+    const workspaceSplitRoute =
+        workspaceNavigatorRoute?.state?.routes.findLast((route) => isWorkspaceNavigatorRouteName(route.name)) ?? routes.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
+    if (workspaceSplitRoute?.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+        return undefined;
     }
 
-    return undefined;
+    const sidebarRoute = workspaceSplitRoute.state?.routes.find((route) => route.name === SCREENS.WORKSPACE.INITIAL);
+    if (!sidebarRoute?.key) {
+        return undefined;
+    }
+
+    const params = sidebarRoute.params;
+    const policyID = params && typeof params === 'object' && 'policyID' in params && typeof params.policyID === 'string' ? params.policyID : undefined;
+    return {sidebarRouteKey: sidebarRoute.key, splitStateKey: workspaceSplitRoute.state?.key, policyID};
 }
 
 function navigateToWorkspaceSettingsRoute(targetRoute: Route, policyID: string, shouldUseNarrowLayout: boolean) {
@@ -88,8 +52,8 @@ function navigateToWorkspaceSettingsRoute(targetRoute: Route, policyID: string, 
     }
 
     const workspaceSidebarRoute = getActiveWorkspaceSidebarRoute();
-    if (workspaceSidebarRoute?.sidebarRoute.key && workspaceSidebarRoute.sidebarRoute.params?.policyID !== policyID) {
-        Navigation.setParams({policyID}, workspaceSidebarRoute.sidebarRoute.key, workspaceSidebarRoute.splitStateKey);
+    if (workspaceSidebarRoute && workspaceSidebarRoute.policyID !== policyID) {
+        Navigation.setParams({policyID}, workspaceSidebarRoute.sidebarRouteKey, workspaceSidebarRoute.splitStateKey);
     }
 
     Navigation.navigate(targetRoute);
