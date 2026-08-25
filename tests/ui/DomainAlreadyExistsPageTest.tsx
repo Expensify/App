@@ -13,6 +13,7 @@ import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/typ
 
 import DomainAlreadyExistsPage from '@pages/domain/DomainAlreadyExistsPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -81,7 +82,7 @@ describe('DomainAlreadyExistsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('enables the button when there is no pending request, and pressing it sends the request and navigates back', async () => {
+    it('enables the button when there is no pending request, and pressing it sends the request and navigates back after success', async () => {
         // Given no pending adminship request exists yet
         renderDomainAlreadyExistsPage();
         await waitForBatchedUpdatesWithAct();
@@ -93,8 +94,27 @@ describe('DomainAlreadyExistsPage', () => {
         fireEvent.press(button);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the request is sent and the user is taken back to the domains list
+        // Then the request is sent, but the user stays on the page while it is pending
         expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, {domainAccountID: DOMAIN_ACCOUNT_ID}, expect.anything());
+        expect(goBackSpy).not.toHaveBeenCalled();
+
+        const onyxData = getRequestAdminshipOnyxData();
+        const pendingActionsKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${DOMAIN_ACCOUNT_ID}` as const;
+        const optimisticPendingUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', pendingActionsKey, Onyx.METHOD.MERGE);
+        expect(optimisticPendingUpdate.value).toEqual({requestAdminship: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+        await act(async () => {
+            await Onyx.merge(pendingActionsKey, {requestAdminship: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the request succeeds, the user is taken back to the domains list
+        const successPendingUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', pendingActionsKey, Onyx.METHOD.MERGE);
+        expect(successPendingUpdate.value).toEqual({requestAdminship: null});
+        await act(async () => {
+            await Onyx.merge(pendingActionsKey, {requestAdminship: null});
+        });
+        await waitForBatchedUpdatesWithAct();
+
         expect(goBackSpy).toHaveBeenCalledWith(ROUTES.DOMAINS_LIST.getRoute());
     });
 
