@@ -245,13 +245,15 @@ function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCateg
             continue;
         }
 
+        // expenseLimitType and commentHint can be set without a rule existing, so gate on the rule predicates
+        // themselves - otherwise a category carrying no rule would still patch (and force-enable) the target.
+        if (!hasExplicitFlagAmount(sourceCategory.maxExpenseAmount) && !categoryHasAnyRequireFieldsRule(sourceCategory) && !sourceCategory.commentHint) {
+            continue;
+        }
+
         const categoryPatch: Partial<PolicyCategory> = {};
         for (const field of CATEGORY_RULE_FIELDS) {
-            if (sourceCategory[field] === undefined || sourceCategories?.[field].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                continue;
-            }
-
-            if (!hasExplicitFlagAmount(sourceCategory.maxExpenseAmount) && !categoryHasAnyRequireFieldsRule(sourceCategory) && !sourceCategory.commentHint) {
+            if (sourceCategory[field] === undefined || sourceCategory.pendingFields?.[field] === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 continue;
             }
             // The CATEGORY_RULE_FIELDS values are typed as keyof PolicyCategory, so this assignment is safe.
