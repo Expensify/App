@@ -1,5 +1,8 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -1247,6 +1250,47 @@ describe('TransactionUtils', () => {
         it('returns true while a distance/rate edit is regenerating the receipt', () => {
             expect(TransactionUtils.hasPendingDistanceReceiptRegeneration(generateTransaction({pendingFields: {waypoints: UPDATE}}))).toBe(true);
             expect(TransactionUtils.hasPendingDistanceReceiptRegeneration(generateTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
+        });
+    });
+
+    describe('hasDistanceRouteErrors', () => {
+        it('returns false when the route is clean', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction())).toBe(false);
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
+        });
+
+        it('returns true for a route or waypoint error', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
+        });
+
+        it('ignores errors that say nothing about the route, such as a failed payment', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
+        });
+    });
+
+    describe('isMapBasedDistanceRequest', () => {
+        const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        const PDF_RECEIPT = {source: 'https://www.expensify.com/receipts/w_abc123.pdf', filename: 'w_abc123.pdf'};
+
+        function generateMapDistanceTransaction(values: Partial<Transaction> = {}): Transaction {
+            return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, receipt: PDF_RECEIPT, ...values});
+        }
+
+        // New Expensify draws its own distance e-receipt for these, so the generated PDF beside them is never shown.
+        it('is true for a map distance expense whichever receipt it stores', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction())).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
+        });
+
+        it('is true for a GPS distance expense, which also has a route to draw', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(true);
+        });
+
+        it('is false for odometer and non-distance expenses, which keep their own receipt', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}))).toBe(false);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateTransaction({receipt: undefined}))).toBe(false);
         });
     });
 
@@ -4698,6 +4742,36 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     it('returns true when the user entered a waypoint', () => {
         const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
+    });
+});
+
+describe('isTransactionSubmittable', () => {
+    it('returns true for a transaction that is on hold', () => {
+        const transaction = generateTransaction({comment: {hold: 'holdID'}});
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+
+    it('returns true for a transaction that is not on hold', () => {
+        const transaction = generateTransaction();
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+});
+
+describe('showHeldExpensesBlockModal', () => {
+    it('shows a confirm modal explaining that a report with only held expenses cannot be submitted', () => {
+        const showConfirmModal = jest.fn();
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters);
+
+        TransactionUtils.showHeldExpensesBlockModal(showConfirmModal, mockTranslate);
+
+        expect(showConfirmModal).toHaveBeenCalledWith({
+            title: mockTranslate('iou.error.unableToSubmitReport'),
+            prompt: mockTranslate('iou.error.allExpensesOnHoldDescription'),
+            confirmText: mockTranslate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     });
 });
 

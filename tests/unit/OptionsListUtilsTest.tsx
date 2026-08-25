@@ -5,6 +5,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import SEARCH_ROUTER_OPTIONS_CONFIG from '@components/Search/SearchRouter/searchRouterOptionsConfig';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -879,6 +880,12 @@ describe('OptionsListUtils', () => {
 
         // createFilteredOptionList caches results at module level; clear it so tests stay order-independent.
         clearFilteredOptionListCache();
+
+        // Onyx.clear() models sign-out and empties PERSONAL_DETAILS_LIST. Report-holder option text
+        // resolves via ReportUtils.allPersonalDetails (the live connect), so restore the list the
+        // same way a signed-in session would after login.
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await waitForBatchedUpdates();
     });
 
     describe('getSearchOptions()', () => {
@@ -2109,6 +2116,35 @@ describe('OptionsListUtils', () => {
             // Then hydration from the cached clone matches the fresh lazy build and the eager path
             expect(cachedResults.personalDetails).toEqual(firstResults.personalDetails);
             expect(cachedResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('serves the SearchRouter empty-query list from the cache on the second build', () => {
+            // Given the config the SearchRouter warm-up and SearchAutocompleteList both build with
+            const {maxRecentReports, includeP2P, deferContactsUntilSearch} = SEARCH_ROUTER_OPTIONS_CONFIG;
+            const options = {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                maxRecentReports,
+                includeP2P,
+                deferContactsUntilSearch,
+                isSearching: false,
+            };
+            clearFilteredOptionListCache();
+
+            // When the warm-up builds the list and the first open builds it again from the same Onyx snapshots
+            const warmed = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, options);
+            const opened = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, options);
+
+            // Then the open gets a clone of the warm build instead of rebuilding it, contacts stay deferred,
+            // and typing is a separate entry that still builds them
+            expect(opened.reports.at(0)).not.toBe(warmed.reports.at(0));
+            expect(opened.reports.at(0)?.icons).toBe(warmed.reports.at(0)?.icons);
+            expect(warmed.personalDetails).toHaveLength(0);
+            expect(
+                createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {...options, isSearching: true})
+                    .personalDetails.length,
+            ).toBeGreaterThan(0);
         });
 
         it('should hydrate with the build-time inputs, keeping brickRoadIndicator without any caller-provided data', () => {
@@ -6715,6 +6751,35 @@ describe('OptionsListUtils', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getRequiresCategoryMessage(translateLocal, action));
+        });
+        it.each([
+            [CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY, 'updated the currency conversion fee setting to "Company pays"'],
+            [CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE, 'updated the currency conversion fee setting to "Employee pays"'],
+        ])('UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE action with the %s preference', async (preference, expectedMessage) => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {preference},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(expectedMessage);
         });
         it('UPDATE_AUTO_HARVESTING action', async () => {
             const report: Report = createRandomReport(0, undefined);

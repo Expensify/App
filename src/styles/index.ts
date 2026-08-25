@@ -2432,7 +2432,8 @@ const staticStyles = (theme: ThemeColors) =>
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
                 // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
-                paddingHorizontal: variables.avatarChatSpacing,
+                paddingRight: variables.avatarChatSpacing,
+                paddingLeft: variables.composerTextInputPaddingLeft,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
@@ -2470,11 +2471,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 5,
             ...flex.flexRow,
             flex: 1,
-        },
-
-        textInputComposeBorder: {
-            borderLeftWidth: 1,
-            borderColor: theme.bordersBold,
         },
 
         chatItemSubmitButton: {
@@ -2561,13 +2557,19 @@ const staticStyles = (theme: ThemeColors) =>
 
         composerSizeButton: {
             alignSelf: 'center',
-            height: 32,
-            width: 32,
+            alignItems: 'center',
+            height: 40,
+            width: 40,
             padding: 6,
             marginHorizontal: 3,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
+        },
+
+        messageEditCancelButtonWrapper: {
+            justifyContent: 'flex-end',
+            paddingBottom: 3,
         },
 
         chatItemPDFAttachmentLoading: {
@@ -3504,9 +3506,18 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            // This should "hide" the right border of the last avatar
-            marginRight: -2,
+            // This should "hide" the outer border of the first and last avatar, which matches the card background
+            marginLeft: -variables.avatarBorderWidthSmall,
+            marginRight: -variables.avatarBorderWidthSmall,
             marginBottom: 0,
+        },
+
+        // textMicroBold with a tighter line height, so the from/to cells line up with the rest of the expense preview metadata
+        moneyRequestPreviewParticipantsText: {
+            color: theme.text,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
         },
 
         moneyRequestLoadingHeight: {
@@ -6645,10 +6656,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
             aspectRatio: 2.2,
         },
-        dateIconSize: {
-            width: variables.iconSizeExtraLarge,
-            height: variables.iconSizeExtraLarge,
-        },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,
@@ -6998,16 +7005,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: '100%',
         }),
 
-        getCenteredModalOuterView: (shouldUseNarrowLayout: boolean) =>
+        getCenteredModalOuterView: (shouldDockToBottom: boolean) =>
             ({
-                justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+                justifyContent: shouldDockToBottom ? 'flex-end' : 'center',
             }) as const,
 
-        getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
-            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+        getCenteredModalInnerView: (shouldDockToBottom: boolean, width?: number, height?: DimensionValue) => {
+            const borderBottomRadius = shouldDockToBottom ? 0 : variables.componentBorderRadiusLarge;
 
             return {
-                width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
+                width: shouldDockToBottom ? '100%' : (width ?? variables.featureTrainingModalWidth),
                 // No default height - the card hugs its content (children must have intrinsic height)
                 height,
                 maxHeight: '100%' as const,

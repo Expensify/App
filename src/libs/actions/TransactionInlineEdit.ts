@@ -6,7 +6,7 @@ import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtil
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getTagLists, isGroupPolicy, isMultiLevelTags} from '@libs/PolicyUtils';
+import {getTagLists, isGroupPolicy, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -178,6 +178,7 @@ type TransactionEditPermissionsParams = {
 
 type GetIouParamsInput = {
     transactionID: string;
+    transaction: OnyxEntry<Transaction>;
     parentReport: OnyxEntry<Report>;
     parentReportAction: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
@@ -212,6 +213,7 @@ type TransactionInlineEditParams = GetIouParamsInput & {
  */
 function getIouParamsForTransaction({
     transactionID,
+    transaction,
     parentReport,
     parentReportAction,
     transactionThreadReport,
@@ -230,7 +232,6 @@ function getIouParamsForTransaction({
     getCurrencyDecimals,
     getCurrencySymbol,
 }: GetIouParamsInput) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const isUnreportedExpense = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -324,9 +325,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
 function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
-
-    if (!isValidMerchant(newMerchant, transaction, params.parentReport)) {
+    if (!isValidMerchant(newMerchant, params.transaction, params.parentReport)) {
         return;
     }
 
@@ -374,7 +373,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
     // Keep the existing currency — only the amount is changing from the search table
     const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
     // Recalculate tax from the existing tax code and the new amount
-    const taxCode = iouParams.transaction?.taxCode ?? '';
+    const taxCode = resolveCurrentTaxCode(iouParams.policy, iouParams.transaction?.taxCode ?? '');
     const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
     const decimals = params.getCurrencyDecimals(getCurrency(iouParams.transaction));
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
