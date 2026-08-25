@@ -340,7 +340,7 @@ function getCommuterExclusionDisplayData(customUnit: TransactionCustomUnit | und
 /**
  * Whether a workspace's commuter exclusion applies to a distance expense of this request type.
  *
- * Only a distance the app itself measured describes a route the workspace can recognise a commute in, so a manually
+ * Only a distance the app itself measured describes a route the workspace can recognize a commute in, so a manually
  * entered or odometer distance is reimbursed in full.
  */
 function isCommuterExclusionApplicableToRequestType(iouRequestType: IOURequestType | undefined): boolean {

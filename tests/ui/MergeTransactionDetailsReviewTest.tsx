@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -11,6 +12,7 @@ import DynamicConfirmationPage from '@pages/TransactionMerge/DynamicConfirmation
 import DynamicDetailsReviewPage from '@pages/TransactionMerge/DynamicDetailsReviewPage';
 
 import CONST from '@src/CONST';
+import type {IOURequestType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -28,6 +30,15 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
 
+// The auto-merge entry point navigates itself, which the test drives by rendering the destination page directly
+jest.mock('@libs/Navigation/Navigation', () => {
+    const actualNavigation = jest.requireActual<{default: Record<string, unknown>}>('@libs/Navigation/Navigation');
+    return {
+        __esModule: true,
+        default: {...actualNavigation.default, navigate: jest.fn()},
+    };
+});
+
 const Stack = createPlatformStackNavigator<Record<string, {transactionID: string}>>();
 
 // Expose each field row's description and title so the rendered distance can be read back
@@ -43,6 +54,7 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
 TestHelper.setupGlobalFetchMock();
 
 const MERGE_TRANSACTION_ID = 'mergeDistanceTransaction';
+const DISTANCE_RATE_ID = 'distanceRateOfTheExcludingWorkspace';
 const EXCLUDING_POLICY_ID = 'policyThatExcludesCommuterDistance';
 const PLAIN_POLICY_ID = 'policyThatExcludesNothing';
 const EXCLUDING_REPORT_ID = '4444';
@@ -190,5 +202,106 @@ describe('Merging distance expenses across workspaces', () => {
         expect(mergeTransaction?.customUnit?.commuterExclusion).toBeUndefined();
         expect(mergeTransaction?.customUnit?.reimbursableDistance).toBeUndefined();
         expect(mergeTransaction?.amount).toBe(449);
+    });
+});
+
+describe('Merging identical distance expenses without conflicts', () => {
+    // Identical expenses on the same report leave nothing to resolve, so the merge skips the details review page and
+    // builds the whole merge transaction in one pass
+    const buildIdenticalExpense = (iouRequestType: IOURequestType): Transaction => {
+        const expense = buildDistanceExpense('firstTransaction', EXCLUDING_REPORT_ID, '10.20 mi @ $1.00 / mi', 10.2);
+        return {
+            ...expense,
+            iouRequestType,
+            comment: {...expense.comment, customUnit: {...expense.comment?.customUnit, customUnitRateID: DISTANCE_RATE_ID}},
+        };
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    const setUpAndMerge = async (iouRequestType: IOURequestType) => {
+        // The second expense is a copy so that every field matches and the merge has nothing to resolve
+        const firstExpense = buildIdenticalExpense(iouRequestType);
+        const secondExpense = {...firstExpense, transactionID: 'secondTransaction'};
+        const report = buildReport(EXCLUDING_REPORT_ID, EXCLUDING_POLICY_ID, 'Report that deducts');
+
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${EXCLUDING_POLICY_ID}`, excludingPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXCLUDING_REPORT_ID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${firstExpense.transactionID}`, firstExpense);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondExpense.transactionID}`, secondExpense);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            setupMergeTransactionDataAndNavigate(
+                MERGE_TRANSACTION_ID,
+                [firstExpense, secondExpense],
+                (a: string, b: string) => a.localeCompare(b),
+                () => 2,
+                [report],
+                false,
+                false,
+                [excludingPolicy, excludingPolicy],
+            );
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        return getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${MERGE_TRANSACTION_ID}`);
+    };
+
+    const renderConfirmationPage = async () => {
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <NavigationContainer ref={navigationRef}>
+                    <Stack.Navigator>
+                        <Stack.Screen
+                            name={SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE}
+                            component={DynamicConfirmationPage}
+                            initialParams={{transactionID: MERGE_TRANSACTION_ID}}
+                        />
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+    };
+
+    it('carries the distance and rate through to the confirmation page alongside the exclusion', async () => {
+        // Given two identical map distance expenses on a report of a workspace that excludes 1 commuter mile
+        // When they are merged with nothing to resolve
+        const mergeTransaction = await setUpAndMerge(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+
+        // Then the distance and rate reach the merge transaction rather than being replaced by the exclusion alone
+        expect(mergeTransaction?.customUnit?.quantity).toBe(10.2);
+        expect(mergeTransaction?.customUnit?.customUnitRateID).toBe(DISTANCE_RATE_ID);
+        expect(mergeTransaction?.customUnit?.commuterExclusion).toBe(1);
+        expect(mergeTransaction?.customUnit?.reimbursableDistance).toBe(9.2);
+        expect(mergeTransaction?.amount).toBe(920);
+
+        // And the confirmation page renders the reimbursable distance against the distance it was deducted from
+        await renderConfirmationPage();
+        // Matched loosely because the unit label reads as either "mi" or "miles", depending on the field's short form flag
+        expect(screen.getByTestId('field-Distance • Original: 10.20 mi')).toHaveTextContent(/^9\.20 (mi|miles)$/);
+    });
+
+    it('deducts nothing from a manually entered distance, which the workspace cannot recognize a commute in', async () => {
+        // Given two identical manual distance expenses on a report of a workspace that excludes 1 commuter mile
+        // When they are merged with nothing to resolve
+        const mergeTransaction = await setUpAndMerge(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+
+        // Then the whole distance is reimbursed, the same as creating the expense on that workspace would do
+        expect(mergeTransaction?.customUnit?.quantity).toBe(10.2);
+        expect(mergeTransaction?.customUnit?.customUnitRateID).toBe(DISTANCE_RATE_ID);
+        expect(mergeTransaction?.customUnit?.commuterExclusion).toBeUndefined();
+        expect(mergeTransaction?.customUnit?.reimbursableDistance).toBeUndefined();
+        expect(mergeTransaction?.amount).toBe(1020);
+
+        // And the confirmation page renders the whole distance, with no distance deducted from it
+        await renderConfirmationPage();
+        expect(screen.getByTestId('field-Distance')).toHaveTextContent(/^10\.20 (mi|miles)$/);
     });
 });
