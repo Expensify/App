@@ -1,14 +1,6 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
-import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
 
@@ -16,6 +8,22 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './params';
+import type {
+    AllConnectionName,
+    ConnectionName,
+    Country,
+    DelegateRole,
+    OnboardingTask,
+    OnyxInputOrEntry,
+    OriginalMessageReportPreview,
+    OriginalMessageSettlementAccountLocked,
+    PersonalRulesModifiedFields,
+    PolicyConnectionSyncStage,
+    PolicyRulesModifiedFields,
+    ReportAction,
+    SageIntacctMappingName,
+    ViolationDataType,
+} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 
 type StateValue = {
@@ -1622,7 +1630,7 @@ const translations = {
         basedOnAI: 'based on past activity',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `based on <a href="${rulesLink}">workspace rules</a>` : 'based on workspace rule'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Invoice Report #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Invoice Report #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
         movedToPersonalSpace: 'moved expense to personal space',
@@ -1933,7 +1941,7 @@ const translations = {
             pageTitle: 'Select the details you want to keep:',
             noDifferences: 'No differences found between the transactions',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'an' : 'a';
+                const article = startsWithVowel(field) ? 'an' : 'a';
                 return `Please select ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Please select attendees',

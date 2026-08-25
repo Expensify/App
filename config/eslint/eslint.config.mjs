@@ -715,46 +715,20 @@ const config = defineConfig([
     },
 
     {
-        files: ['server/**/*.ts', 'server/**/*.tsx'],
+        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts'],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'server/tsconfig.json'),
+                project: path.resolve(projectRoot, 'tsconfig.bun.json'),
                 projectService: false,
             },
         },
     },
 
     {
-        // Its own project because `@types/bun`'s globals conflict with the app's, so it is excluded from
-        // the root tsconfig and would otherwise belong to no project at all.
-        files: ['evals/**/*.ts'],
+        files: ['.github/**/*.{ts,tsx,js}', 'web/proxy.ts', 'config/**/*.{ts,tsx,mts,mjs,cjs,js}'],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'evals/tsconfig.json'),
-                projectService: false,
-            },
-        },
-    },
-
-    {
-        // CIGitLogic is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
-        // be pointed at the project that does own it. See tests/tooling/README.md.
-        files: ['tests/tooling/CIGitLogic.test.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: path.resolve(projectRoot, 'tests/tooling/tsconfig.json'),
-                projectService: false,
-            },
-        },
-    },
-
-    {
-        // Bun-only scripts are excluded from the root tsconfig because they need @types/bun, so type-aware rules
-        // have to be pointed at the project that owns them. See scripts/tsconfig.json.
-        files: ['scripts/applyPatches.ts', 'scripts/lint.ts', 'scripts/typecheck.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: path.resolve(projectRoot, 'scripts/tsconfig.json'),
+                project: path.resolve(projectRoot, 'tsconfig.node.json'),
                 projectService: false,
             },
         },

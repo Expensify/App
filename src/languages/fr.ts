@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -1553,7 +1552,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnMCC: ({rulesLink}: {rulesLink: string}) =>
             rulesLink ? `en fonction des <a href="${rulesLink}">règles de l’espace de travail</a>` : 'en fonction de la règle de l’espace de travail',
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `pour ${comment}` : 'dépense'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Note de frais de facture n° ${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Note de frais de facture n° ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} envoyé${comment ? `pour ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `a déplacé la dépense de l’espace personnel vers ${workspaceName ?? `discuter avec ${reportName}`}`,
         movedToPersonalSpace: 'a déplacé la dépense vers l’espace personnel',
@@ -1879,7 +1878,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Sélectionnez les détails que vous souhaitez conserver :',
             noDifferences: 'Aucune différence trouvée entre les transactions',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'un' : 'un';
+                const article = startsWithVowel(field) ? 'un' : 'un';
                 return `Veuillez sélectionner ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Veuillez sélectionner les participants',
