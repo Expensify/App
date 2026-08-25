@@ -40,13 +40,11 @@ function renderTextInput(onInputChange: jest.Mock, numberFormRef?: React.Ref<Num
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <NumberForm
                 value={value}
+                decimals={2}
                 onInputChange={onInputChange}
                 numberFormRef={numberFormRef}
             >
-                <NumberForm.TextInput
-                    decimals={2}
-                    testID={INPUT_TEST_ID}
-                />
+                <NumberForm.TextInput testID={INPUT_TEST_ID} />
             </NumberForm>
         </ComposeProviders>,
     );

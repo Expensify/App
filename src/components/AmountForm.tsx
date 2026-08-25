@@ -119,6 +119,8 @@ function AmountForm({
             <NumberForm
                 value={value ?? ''}
                 onInputChange={onInputChange}
+                decimals={decimals}
+                maxLength={amountMaxLength}
                 errorText={errorText}
                 ref={ref}
                 numberFormRef={numberFormRef}
@@ -128,8 +130,6 @@ function AmountForm({
                 <NumberForm.TextInput
                     symbol={symbol}
                     position="prefix"
-                    decimals={decimals}
-                    maxLength={amountMaxLength}
                     hideSymbol={hideCurrencySymbol}
                     accessibilityLabel={label}
                     label={label}

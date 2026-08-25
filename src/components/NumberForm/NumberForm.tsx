@@ -1,16 +1,17 @@
+import {useNumberEditController} from '@components/NumberInput';
+import type {NumberInputRef} from '@components/NumberInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef, ReactNode} from 'react';
 
-import {useLayoutEffect, useRef, useState} from 'react';
+import {useImperativeHandle} from 'react';
 
-import type {SetValueOptions} from './context/types';
-import type {NumberFormRef} from './types';
+import type {NumberFormActionsContextValue, NumberFormStateContextValue} from './context/types';
 
 import {NumberFormActionsContext, NumberFormStateContext} from './context';
 
 type NumberFormProps = {
-    /** The canonical number value shared by composed primitives. */
+    /** The canonical number value shared by composed primitives. Only a reset to an empty string re-initializes the editing state. */
     value?: string;
 
     /** Called when a composed primitive changes the canonical value. */
@@ -18,6 +19,12 @@ type NumberFormProps = {
 
     /** Whether negative values are allowed. The canonical value always stores its sign. */
     allowNegative?: boolean;
+
+    /** Number of decimal places accepted by the form. */
+    decimals?: number;
+
+    /** Maximum number of integer digits accepted by the form. */
+    maxLength?: number;
 
     /** Error supplied by FormProvider. */
     errorText?: string;
@@ -32,50 +39,41 @@ type NumberFormProps = {
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference exposing the number editing imperative API. */
-    numberFormRef?: ForwardedRef<NumberFormRef>;
+    numberFormRef?: ForwardedRef<NumberInputRef>;
 
     children: ReactNode;
 };
 
-function NumberForm({value = '', onInputChange, allowNegative = false, errorText, onBlur, onSubmitEditing, ref, numberFormRef, children}: NumberFormProps) {
-    const [currentValue, setCurrentValue] = useState(value);
-    const [previousValue, setPreviousValue] = useState(value);
-    const committedValueRef = useRef(value);
+function NumberForm({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, onBlur, onSubmitEditing, ref, numberFormRef, children}: NumberFormProps) {
+    const controller = useNumberEditController({value, onInputChange, allowNegative, decimals, maxLength, onBlur});
 
-    // Local edits can temporarily be ahead of the controlled prop, so previousValue tracks the last prop we saw instead of
-    // comparing currentValue with value. The ref tracks the latest internal value synchronously because state updates may be
-    // batched; this lets setValue report the correct previous value even when called more than once before a render.
-    // Keep externally controlled form values in sync with the editing state.
-    if (previousValue !== value) {
-        setPreviousValue(value);
-        setCurrentValue(value);
-    }
+    useImperativeHandle(numberFormRef, () => ({
+        clearSelection: controller.clearSelection,
+        getNumber: controller.getNumber,
+        updateNumber: controller.updateNumber,
+    }));
 
-    useLayoutEffect(() => {
-        committedValueRef.current = currentValue;
-    }, [currentValue]);
-
-    const setValue = (nextValue: string, options?: SetValueOptions) => {
-        const previousCommittedValue = committedValueRef.current;
-
-        committedValueRef.current = nextValue;
-        setCurrentValue(nextValue);
-
-        if (options?.notify !== false) {
-            onInputChange?.(nextValue);
-        }
-
-        return previousCommittedValue;
-    };
-
-    const stateContextValue = {
-        value: currentValue,
-        externalValue: value,
+    const stateContextValue: NumberFormStateContextValue = {
+        value: controller.value,
+        externalValue: controller.externalValue,
+        formattedNumber: controller.formattedNumber,
+        isNegative: controller.isNegative,
+        selection: controller.selection,
         allowNegative,
         errorText,
     };
 
-    const actionsContextValue = {inputRef: ref, numberFormRef, onBlur, onSubmitEditing, setValue};
+    const actionsContextValue: NumberFormActionsContextValue = {
+        setNumber: controller.setNumber,
+        updateNumber: controller.updateNumber,
+        getNumber: controller.getNumber,
+        clearSelection: controller.clearSelection,
+        handleSelectionChange: controller.handleSelectionChange,
+        handleKeyPress: controller.handleKeyPress,
+        handleBlur: controller.handleBlur,
+        onSubmitEditing,
+        inputRef: ref,
+    };
 
     return (
         <NumberFormStateContext.Provider value={stateContextValue}>
