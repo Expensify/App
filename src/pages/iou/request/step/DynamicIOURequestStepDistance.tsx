@@ -124,8 +124,6 @@ function DynamicIOURequestStepDistance({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -386,7 +384,6 @@ function DynamicIOURequestStepDistance({
         isDraft: shouldUseTransactionDraft(action),
         introSelected,
         betas,
-        conciergeChat,
         transactionWasSavedRef: transactionWasSaved,
     });
 

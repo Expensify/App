@@ -174,7 +174,6 @@ function AuthScreensInitHandler() {
                     reportID,
                     introSelected,
                     betas,
-                    conciergeChat,
                     hasReportActions: false,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

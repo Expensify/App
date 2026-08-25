@@ -117,8 +117,6 @@ function ReportFetchHandler() {
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -212,7 +210,6 @@ function ReportFetchHandler() {
         openReport({
             reportID: reportIDFromRoute,
             introSelected,
-            conciergeChat,
             reportActionID: reportActionIDFromRoute,
             participants: dmParticipants,
             betas,
@@ -254,7 +251,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
+        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -265,7 +262,6 @@ function ReportFetchHandler() {
         openReport({
             reportID: viewingPublicRoomReportID,
             introSelected,
-            conciergeChat,
             betas,
             hasReportActions: hasViewingPublicRoomReportActions,
             currentUserAccountID,

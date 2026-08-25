@@ -49,8 +49,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const hasReportActions = !!reportActions;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const originalReportID = useOriginalReportID(reportID, reportActionID ? (reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID] ?? {reportActionID}) : undefined);
@@ -79,8 +77,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             return;
         }
 
-        openReport({reportID: reportActionReportID, introSelected, conciergeChat, reportActionID, betas, hasReportActions, currentUserAccountID});
-    }, [reportActionReportID, shouldFetchReport, introSelected, conciergeChat, reportActionID, betas, hasReportActions, currentUserAccountID]);
+        openReport({reportID: reportActionReportID, introSelected, reportActionID, betas, hasReportActions, currentUserAccountID});
+    }, [reportActionReportID, shouldFetchReport, introSelected, reportActionID, betas, hasReportActions, currentUserAccountID]);
 
     const onCarouselAttachmentChange = (attachment: Attachment) => {
         const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({
