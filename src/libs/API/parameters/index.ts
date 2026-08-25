@@ -34,6 +34,7 @@ export type {default as SyncPolicyToMergeParams} from './SyncPolicyToMergeParams
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
 export type {default as SyncPolicyToFinancialForceParams} from './SyncPolicyToFinancialForceParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
+export type {default as SelectIntuitEnterpriseSuiteEntityParams} from './SelectIntuitEnterpriseSuiteEntityParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
 export type {default as SyncPolicyToRilletParams} from './SyncPolicyToRilletParams';
