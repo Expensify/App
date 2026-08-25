@@ -75,11 +75,11 @@ function HomePage() {
                             {shouldUseNarrowLayout ? (
                                 <>
                                     <FreeTrialSection />
-                                    <GettingStartedSection />
                                     <ForYouSection
                                         isConciergeMenuVisible={isConciergeMenuVisible}
                                         setIsConciergeMenuVisible={setIsConciergeMenuVisible}
                                     />
+                                    <GettingStartedSection />
                                     <UpcomingTravelSection />
                                     <YourSpendSection />
                                     <RecentlyAddedSection />
@@ -92,11 +92,11 @@ function HomePage() {
                                         testID="homePageLeftColumn"
                                         style={styles.homePageLeftColumn}
                                     >
-                                        <GettingStartedSection />
                                         <ForYouSection
                                             isConciergeMenuVisible={isConciergeMenuVisible}
                                             setIsConciergeMenuVisible={setIsConciergeMenuVisible}
                                         />
+                                        <GettingStartedSection />
                                         <InsightsSection />
                                     </View>
                                     <View
