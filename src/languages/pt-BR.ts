@@ -1593,6 +1593,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Ativar carteira',
         hold: 'Reter',
         sendToSomeone: 'Enviar para alguém',
+        submitToEmployer: 'Enviar para meu empregador',
         unhold: 'Remover bloqueio',
         holdExpense: () => ({
             one: 'Reter despesa',

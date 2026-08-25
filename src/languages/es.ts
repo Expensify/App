@@ -1649,6 +1649,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Solo aprobar',
         hold: 'Retener',
         sendToSomeone: 'Enviar a alguien',
+        submitToEmployer: 'Enviar a mi empleador',
         unhold: 'Desbloquear',
         holdEducationalTitle: '¿Deberías retener este gasto?',
         whatIsHoldExplain: 'Retener es como presionar "pausa" en un gasto hasta que estés listo para enviarlo.',

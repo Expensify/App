@@ -1670,6 +1670,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         sendToSomeone: 'Send to someone',
+        submitToEmployer: 'Submit to my employer',
         unhold: 'Remove hold',
         holdExpense: () => ({
             one: 'Hold expense',

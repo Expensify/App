@@ -1605,6 +1605,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Activer le portefeuille',
         hold: 'En attente',
         sendToSomeone: 'Envoyer à quelqu’un',
+        submitToEmployer: 'Soumettre à mon employeur',
         unhold: 'Supprimer la mise en attente',
         holdExpense: () => ({
             one: 'Mettre la dépense en attente',
