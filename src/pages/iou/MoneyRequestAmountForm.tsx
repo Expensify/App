@@ -59,6 +59,9 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
 
+    /** Fired when the visible amount sign changes */
+    onNegativeChange?: (isNegative: boolean) => void;
+
     /** The current tab we have navigated to in the expense modal. String that corresponds to the expense type. */
     selectedTab?: SelectedTabRequest;
 
@@ -107,6 +110,7 @@ function MoneyRequestAmountForm({
     onCurrencyButtonPress,
     onSubmitButtonPress,
     onAmountChange,
+    onNegativeChange,
     selectedTab = CONST.TAB_REQUEST.MANUAL,
     shouldKeepUserInput = false,
     chatReportID,
@@ -158,21 +162,19 @@ function MoneyRequestAmountForm({
     const toggleNegative = useCallback(() => {
         const nextIsNegative = !isNegative;
         setIsNegative(nextIsNegative);
+        onNegativeChange?.(nextIsNegative);
         // The sign flip bypasses the input's change handler, so report the newly signed value like a keystroke would
         const currentNumber = moneyRequestAmountInputRef.current?.getNumber() ?? '';
         onAmountChange?.(currentNumber && nextIsNegative ? `-${currentNumber}` : currentNumber);
-    }, [isNegative, onAmountChange]);
+    }, [isNegative, onAmountChange, onNegativeChange]);
 
     const clearNegative = useCallback(() => {
         setIsNegative(false);
-    }, []);
+        onNegativeChange?.(false);
+    }, [onNegativeChange]);
 
     const initializeIsNegative = useCallback((currentAmount: number) => {
-        if (currentAmount >= 0) {
-            setIsNegative(false);
-            return;
-        }
-        setIsNegative(true);
+        setIsNegative(currentAmount < 0);
     }, []);
 
     useEffect(() => {

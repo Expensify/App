@@ -138,7 +138,18 @@ function IOURequestStepAmount({
     // Mirrors the amount input, signed the same way the form composes it. `undefined` until the form reports
     // a change, so the baseline below stands in and a prefilled amount starts clean.
     const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+    const [initialIsNegative, setInitialIsNegative] = useState(() => transactionAmount < 0);
+    const [isAmountNegative, setIsAmountNegative] = useState(initialIsNegative);
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
+
+    useEffect(() => {
+        const currentSign = transactionAmount < 0;
+        setInitialIsNegative(currentSign);
+        setIsAmountNegative(currentSign);
+        setTypedAmount(undefined);
+        // The active request type is the tab identity. Reset only when the user changes tabs, not for Onyx updates.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [iouRequestType]);
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
@@ -147,6 +158,7 @@ function IOURequestStepAmount({
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
                 originalCurrency,
+                hasSignChanged: isAmountNegative !== initialIsNegative,
             }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -330,6 +342,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
                 onAmountChange={setTypedAmount}
+                onNegativeChange={setIsAmountNegative}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}

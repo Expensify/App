@@ -331,6 +331,30 @@ describe('ReportActionsUtils', () => {
 describe('getAmountHasUnsavedChanges', () => {
     const sameCurrency = {selectedCurrency: 'USD', originalCurrency: 'USD'};
 
+    it('flags a changed sign when the amount is empty', () => {
+        expect(
+            getAmountHasUnsavedChanges({
+                ...sameCurrency,
+                typedAmount: '',
+                committedAmount: 0,
+                isCreateEntry: true,
+                hasSignChanged: true,
+            }),
+        ).toBe(true);
+    });
+
+    it('does not flag an empty amount when the sign matches its initial value', () => {
+        expect(
+            getAmountHasUnsavedChanges({
+                ...sameCurrency,
+                typedAmount: '',
+                committedAmount: 0,
+                isCreateEntry: true,
+                hasSignChanged: false,
+            }),
+        ).toBe(false);
+    });
+
     describe('create entry (any input counts)', () => {
         it('flags a typed value', () => {
             expect(
