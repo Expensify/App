@@ -438,6 +438,23 @@ describe('Domain Search Router navigation source', () => {
         expect(buildNavigationSuggestions('example', [items], localeCompare)).toHaveLength(4);
     });
 
+    it('builds rows for every administrable Domain with Domain-scoped keys and context', () => {
+        const items = buildDomainNavigationItems({
+            domains: [createDomain(123, 'admin@example.com', currentUserAccountID), createDomain(456, 'admin@other.com', currentUserAccountID)],
+            currentUserAccountID,
+            icons: domainIcons,
+            getItemText: (translationKey) => labels.get(translationKey) ?? translationKey,
+            getDestinationText: (destination) => `Go to ${destination}`,
+            getDomainContext: (domainName) => domainName,
+            onSelect: jest.fn(),
+        });
+
+        expect(items).toHaveLength(8);
+        expect(items.filter((item) => item.keyForList?.startsWith('domain_123_'))).toHaveLength(4);
+        expect(items.filter((item) => item.keyForList?.startsWith('domain_456_'))).toHaveLength(4);
+        expect(items.map((item) => item.rightElement)).toEqual(['example.com', 'example.com', 'example.com', 'example.com', 'other.com', 'other.com', 'other.com', 'other.com']);
+    });
+
     it('composes Domain rows in the Search Router with their localized context', () => {
         const accessibleDomain = createDomain(123, 'admin@example.com', currentUserAccountID);
         const domainCollectionKey = `${ONYXKEYS.COLLECTION.DOMAIN}${accessibleDomain.accountID}`;
