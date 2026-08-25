@@ -33,6 +33,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
 
     const {
         activeSearchString,
+        hasSearchString,
         isEmptyResult,
         listRef,
         shouldUseNarrowTableLayout,
@@ -74,6 +75,17 @@ function TableSearchBar({label}: TableSearchBarProps) {
         // old row offset so the focused input stays in the viewport while the keyboard remains open.
         listRef.current?.scrollToOffset({offset: 0, animated: false});
     }, [isEmptyResult, listRef]);
+
+    useEffect(() => {
+        if (!hasSearchString || isEmptyResult || !isTextInputFocused(inputRef)) {
+            return;
+        }
+
+        // Filtering a focused search can leave the list at an offset that is no longer valid for the
+        // filtered data, even when some rows remain. Reset the old row offset so the input stays in the
+        // viewport while the keyboard remains open.
+        listRef.current?.scrollToOffset({offset: 0, animated: false});
+    }, [activeSearchString, hasSearchString, isEmptyResult, listRef]);
 
     const handleSearchStringChange = (text: string) => {
         updateSearchString(text);

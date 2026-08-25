@@ -2100,6 +2100,110 @@ describe('Table', () => {
             expect(screen.queryByTestId('row-3')).toBeNull();
         });
 
+        it('should correct a focused search offset when filtering to a non-empty subset', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            const searchInputNativeID: unknown = searchInput.props.nativeID;
+            fireEvent(searchInput, 'focus');
+            mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 1200}}});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, 'an');
+
+            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            expect(screen.getByTestId('row-2')).toBeTruthy();
+            expect(screen.getByTestId('row-5')).toBeTruthy();
+            expect(screen.queryByTestId('row-1')).toBeNull();
+            expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
+            expect(screen.getByTestId('search-input').props.value).toBe('an');
+            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
+        });
+
+        it('should not correct a focused search offset for a whitespace-only query', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent(searchInput, 'focus');
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, '   ');
+
+            expect(mockFlashListScrollToOffset).not.toHaveBeenCalled();
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+            expect(screen.getByTestId('row-5')).toBeTruthy();
+        });
+
+        it('should not repeat an empty-result offset correction for a whitespace-only query', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
+            const filterConfig: FilterConfig<'category'> = {
+                category: {
+                    label: 'Category',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
+                    options: [{label: 'Missing', value: 'missing'}],
+                },
+            };
+
+            render(
+                <Table<TestItem, TestColumnKey, 'category'>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={filterConfig}
+                    isItemInFilter={(item, filterValues) => filterValues.length === 0 || filterValues.includes(item.category)}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent(searchInput, 'focus');
+            act(() => {
+                tableRef.current?.updateFilter({key: 'category', value: ['missing']});
+            });
+            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, '   ');
+
+            expect(mockFlashListScrollToOffset).not.toHaveBeenCalled();
+        });
+
         it('should preserve ListHeader search state while filtering data', () => {
             const props = createDefaultProps();
 
