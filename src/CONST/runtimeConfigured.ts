@@ -12,6 +12,10 @@ import type {ConstRuntime} from './runtimeDefaults';
 
 import CONST_RUNTIME_DEFAULTS from './runtimeDefaults';
 
+/**
+ * Web and native builds resolve their platform files to this implementation, which replaces the
+ * Bun-safe defaults with values from React Native Config, key commands, styles, Onyx, and screens.
+ */
 const CONST_RUNTIME: ConstRuntime = {
     NEW_EXPENSIFY_URL: addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? CONST_RUNTIME_DEFAULTS.NEW_EXPENSIFY_URL),
     KEY_COMMANDS: {

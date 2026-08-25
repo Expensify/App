@@ -7,13 +7,12 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
+import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './params';
 import type {
     AllConnectionName,
     ConnectionName,
     Country,
     DelegateRole,
-    ExportAgainModalDescriptionParams,
-    ExportIntegrationSelectedParams,
     OnboardingTask,
     OnyxInputOrEntry,
     OriginalMessageReportPreview,

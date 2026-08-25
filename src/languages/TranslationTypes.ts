@@ -75,24 +75,11 @@ type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 type ViolationDataType = ValueOf<typeof CONST.MODIFIED_AMOUNT_VIOLATION_DATA>;
 
-type ExportAgainModalDescriptionParams = {
-    reportName: string;
-    connectionName: ConnectionName;
-    connectionNameFriendly?: string;
-};
-
-type ExportIntegrationSelectedParams = {
-    connectionName: ConnectionName;
-    connectionNameFriendly?: string;
-};
-
 export type {
     AllConnectionName,
     ConnectionName,
     Country,
     DelegateRole,
-    ExportAgainModalDescriptionParams,
-    ExportIntegrationSelectedParams,
     OnboardingTask,
     OnyxInputOrEntry,
     OriginalMessageReportPreview,

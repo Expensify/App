@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -1521,7 +1520,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: '過去のアクティビティに基づく',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `<a href="${rulesLink}">ワークスペースルール</a>に基づく` : 'ワークスペースのルールに基づく'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `${comment} 用` : '経費'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `請求書レポート #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} を送信済み${comment ? `${comment}用` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `経費を個人スペースから${workspaceName ?? `${reportName}とチャット`}に移動しました`,
         movedToPersonalSpace: '経費を個人スペースに移動しました',
@@ -1841,8 +1840,8 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: '保持したい詳細を選択してください:',
             noDifferences: '取引間に差異は見つかりませんでした',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'ある' : 'a';
-                return `${article} の${field}を選択してください`;
+                const article = startsWithVowel(field) ? '1つの' : 'a';
+                return `${article} ${field} を選択してください`;
             },
             pleaseSelectAttendees: '出席者を選択してください',
             selectAllDetailsError: '続行する前にすべての詳細を選択してください。',
@@ -9024,9 +9023,6 @@ ${reportName}`,
             reject: '却下',
             duplicateExpense: () => ({
                 one: '経費を複製',
-                // Japanese has no grammatical plural, so `Intl.PluralRules` selects `other` for every count,
-                // including 1. The single/bulk distinction here is semantic rather than grammatical, so `other`
-                // branches on the count itself to keep 一括 (bulk) on the multi-expense action only.
                 other: (count: number) => (count === 1 ? '経費を複製' : '経費を一括複製'),
             }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',

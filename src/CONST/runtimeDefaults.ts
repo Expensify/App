@@ -1,3 +1,7 @@
+/**
+ * Values that CONST needs from platform-specific modules, plus Bun-safe fallbacks.
+ * Keep this shape runtime-agnostic so translation tooling can import the full CONST barrel.
+ */
 type ConstRuntime = {
     NEW_EXPENSIFY_URL: string;
     KEY_COMMANDS: {

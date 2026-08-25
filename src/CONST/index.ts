@@ -22,6 +22,7 @@ import {sub as dateSubtract} from 'date-fns/sub';
 
 import CI from './CI';
 import {LOCALES} from './LOCALES';
+// Isolate runtime-specific dependencies so Bun can import CONST through the platformless fallback.
 import CONST_RUNTIME from './runtime';
 
 type DefaultPolicyTagLists = Record<

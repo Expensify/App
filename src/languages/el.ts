@@ -10,12 +10,11 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
 import type {ValueOf} from 'type-fest';
 
@@ -1265,7 +1264,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'Δεν προστέθηκαν κανόνες εμπόρων, καθώς υπάρχουν ήδη όλοι.' : 'Δεν έχουν προστεθεί κανόνες εμπόρου.';
             }
-
             return {
                 one: 'Προστέθηκε 1 κανόνας εμπόρου.',
                 other: `Έχουν προστεθεί ${count} κανόνες εμπόρων.`,
@@ -1597,7 +1595,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'βάσει προηγούμενης δραστηριότητας',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `βάσει των <a href="${rulesLink}">κανόνων του χώρου εργασίας</a>` : 'βάσει κανόνα χώρου εργασίας'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `για ${comment}` : 'δαπάνη'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Αναφορά τιμολογίου #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Αναφορά τιμολογίου #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `στάλθηκαν ${formattedAmount}${comment ? `για ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName, workspaceName) => `μετακινήθηκε η δαπάνη από τον προσωπικό χώρο στο ${workspaceName ?? `συνομιλήστε με τον/την ${reportName}`}`,
         movedToPersonalSpace: 'μετακινήθηκε η δαπάνη στον προσωπικό χώρο',
@@ -1916,7 +1914,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Επιλέξτε τις λεπτομέρειες που θέλετε να διατηρήσετε:',
             noDifferences: 'Δεν βρέθηκαν διαφορές μεταξύ των συναλλαγών',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'ένα' : 'α';
+                const article = startsWithVowel(field) ? 'ένα' : 'α';
                 return `Παρακαλούμε επιλέξτε ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Παρακαλώ επιλέξτε συμμετέχοντες',
