@@ -142,9 +142,10 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 >
                     {mountedFilters.map((filterKey) => (
                         // A backgrounded content stays mounted with the filter values frozen at its last visit, so moving
-                        // between filters neither re-renders it nor loses its state, and revealing it again is free.
-                        // `Activity` also keeps it out of layout while hidden and lets React render it at a lower priority
-                        // than the visible one when something both of them read changes underneath.
+                        // between filters neither re-renders it nor loses its state. `Activity` takes it out of layout and
+                        // unmounts its effects while it is hidden - so it holds no Onyx subscriptions of its own until it is
+                        // shown again - and lets React render it at a lower priority than the visible one when a context
+                        // both of them read changes underneath.
                         <Activity
                             key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
                             mode={filterKey === activeFilter ? 'visible' : 'hidden'}
