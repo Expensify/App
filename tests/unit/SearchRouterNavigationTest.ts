@@ -1,6 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
 
-import navigateToWorkspaceSettingsRoute from '@components/Search/SearchRouter/navigateToWorkspaceSettingsRoute';
 import {
     buildNavigationSuggestions,
     isNavigationIntentOnlyQuery,
@@ -19,6 +18,7 @@ import useNavigationSuggestions, {
 } from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
+import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
@@ -150,7 +150,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-jest.mock('@components/Search/SearchRouter/navigateToWorkspaceSettingsRoute', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute', () => jest.fn());
 
 const localeCompare = (firstValue: string, secondValue: string) => firstValue.localeCompare(secondValue);
 const mockIcon: IconAsset = () => null;

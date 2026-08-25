@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
@@ -49,7 +50,6 @@ import {View} from 'react-native';
 
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
-import navigateToWorkspaceSettingsRoute from './navigateToWorkspaceSettingsRoute';
 import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 

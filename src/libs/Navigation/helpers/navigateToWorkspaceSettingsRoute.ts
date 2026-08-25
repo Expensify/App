@@ -1,8 +1,6 @@
 /**
  * Navigates between Workspace settings while keeping the wide-layout sidebar policy in sync.
  */
-import {isWorkspaceNavigatorRouteName} from '@libs/Navigation/helpers/isNavigatorName';
-import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import WORKSPACE_TO_RHP from '@libs/Navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -10,6 +8,9 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {isWorkspaceNavigatorRouteName} from './isNavigatorName';
+import {getTabState} from './tabNavigatorUtils';
 
 function isWorkspaceSettingsScreen(screenName: string | undefined): boolean {
     return !!screenName && Object.hasOwn(WORKSPACE_TO_RHP, screenName);
