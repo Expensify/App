@@ -8,7 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getSavedSearchIconName, getSuggestedSearches, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
 
@@ -33,7 +33,7 @@ function getActiveKey(similarSearchHash: number, hasGroupPolicy: boolean, search
     return candidates.find((entry) => similarSearchHash === entry.similarSearchHash)?.key ?? reportsSearch.key;
 }
 
-function getActiveSavedSearch(savedSearches: OnyxEntry<SaveSearch>, hash: number, isOffline: boolean): {key: string; title: string} | undefined {
+function getActiveSavedSearch(savedSearches: OnyxEntry<SaveSearch>, hash: number, isOffline: boolean): {key: string; title: string; query: string} | undefined {
     if (!savedSearches) {
         return undefined;
     }
@@ -50,13 +50,13 @@ function getActiveSavedSearch(savedSearches: OnyxEntry<SaveSearch>, hash: number
         return undefined;
     }
     const [key, item] = entry;
-    return {key, title: item.name || item.query || key};
+    return {key, title: item.name || item.query || key, query: item.query};
 }
 
 function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil', 'Bookmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil', ...SAVED_SEARCH_ICON_NAMES]);
     const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const hasGroupPolicy = policyInfo?.hasGroupPolicy ?? false;
@@ -80,7 +80,7 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
 
     const activeSavedSearch = getActiveSavedSearch(savedSearches, queryJSON.hash, isOffline);
     if (activeSavedSearch) {
-        tabs.push({key: activeSavedSearch.key, icon: expensifyIcons.Bookmark, title: activeSavedSearch.title});
+        tabs.push({key: activeSavedSearch.key, icon: expensifyIcons[getSavedSearchIconName(activeSavedSearch.query)], title: activeSavedSearch.title});
     }
 
     const activeKey = activeSavedSearch?.key ?? getActiveKey(queryJSON.similarSearchHash, hasGroupPolicy, suggestedSearches);

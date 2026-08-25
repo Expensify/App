@@ -510,6 +510,7 @@ const CONST = {
 
     EXPORT_LABELS: {
         NETSUITE: 'NetSuite',
+        INTUIT_ENTERPRISE_SUITE: 'Intuit Enterprise Suite',
         QBO: 'QuickBooks Online',
         QBD: 'QuickBooks Desktop',
         XERO: 'Xero',
@@ -582,6 +583,7 @@ const CONST = {
     },
 
     ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
+    ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID: 'assignCardCardholderRowTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -632,6 +634,12 @@ const CONST = {
         US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
         CA: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
         AU: 'https://powerforms.docusign.net/2ff347bb-172a-4138-b1cd-4001a7c319b5?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+    },
+    // This allows us to know if we are on an older version of the app that does not support
+    // a new marketing window. Do not remove keys from this list, only add new ones
+    MARKETING_WINDOW_UPDATE_KEYS: {
+        PRODUCT_UPDATE_JULY_2026: 'productUpdateJuly2026',
+        PRODUCT_UPDATE_AUGUST_2026: 'productUpdateAugust2026',
     },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -1002,7 +1010,6 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
-        SUBMIT_2026: 'submit2026',
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
@@ -1015,6 +1022,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
     },
     BUTTON_STATES: {
@@ -1386,7 +1394,7 @@ const CONST = {
     ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
-    TRAVEL_INVOICING_HELP_URL: 'https://help.expensify.com/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace',
+    TRAVEL_BILLING_HELP_URL: 'https://help.expensify.com/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     UNLOCK_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -1561,6 +1569,8 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
+            SEND_TO_SOMEONE: 'sendToSomeone',
+            SEND_TO_EMPLOYER: 'sendToEmployer',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',
@@ -1705,6 +1715,9 @@ const CONST = {
                     ADD_AGENT_RULE: 'POLICYCHANGELOG_ADD_AGENT_RULE',
                     UPDATE_AGENT_RULE: 'POLICYCHANGELOG_UPDATE_AGENT_RULE',
                     DELETE_AGENT_RULE: 'POLICYCHANGELOG_DELETE_AGENT_RULE',
+                    ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
+                    UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
+                    REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
                     ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
                     ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
@@ -1767,6 +1780,7 @@ const CONST = {
                     UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
                     UPDATE_REQUIRES_CATEGORY: 'POLICYCHANGELOG_UPDATE_REQUIRES_CATEGORY',
                     UPDATE_REQUIRES_TAG: 'POLICYCHANGELOG_UPDATE_REQUIRES_TAG',
+                    UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE: 'POLICYCHANGELOG_UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
@@ -2200,6 +2214,13 @@ const CONST = {
             APPLY: 'StartupData.Apply',
             RENDER: 'StartupData.Render',
         },
+        /** Phases of the Search data load. Deliberately separate span names from SPAN_STARTUP_DATA so each metric keeps its own history in Sentry. */
+        SPAN_SEARCH_DATA: {
+            QUEUE: 'SearchData.Queue',
+            WAIT: 'SearchData.Wait',
+            DOWNLOAD: 'SearchData.Download',
+            APPLY: 'SearchData.Apply',
+        },
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
         SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
@@ -2300,6 +2321,7 @@ const CONST = {
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
+        ATTRIBUTE_REQUEST_ID: 'request_id',
         ATTRIBUTE_ATTEMPT: 'attempt',
         ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
         ATTRIBUTE_TIMED_OUT: 'timed_out',
@@ -2947,7 +2969,7 @@ const CONST = {
         NON_REIMBURSABLE: 'nonReimbursable',
         SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
         NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         AUTO_SYNC: 'autoSync',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         MAPPINGS: {
@@ -2984,9 +3006,10 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         ACCOUNTING_METHOD: 'accountingMethod',
-        TRAVEL_INVOICING_VENDOR: 'travelInvoicingVendorID',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_VENDOR: 'travelInvoicingVendorID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     XERO_CONFIG: {
@@ -3017,7 +3040,7 @@ const CONST = {
             REPORT_FIELD: 'REPORT_FIELD',
         },
         ACCOUNTING_METHOD: 'accountingMethod',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         DEFAULT_VENDOR: 'defaultVendor',
     },
 
@@ -3139,7 +3162,7 @@ const CONST = {
         ENTITY: 'entity',
         DIMENSION_PREFIX: 'dimension_',
         ACCOUNTING_METHOD: 'accountingMethod',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     SAGE_INTACCT: {
@@ -3237,8 +3260,8 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
-        TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
         PAYABLE_ACCT: 'payableAcct',
         JOURNAL_POSTING_PREFERENCE: 'journalPostingPreference',
@@ -3543,8 +3566,8 @@ const CONST = {
         BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',
         SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
-        SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
-        TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
         CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
     },
@@ -3594,17 +3617,18 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
         CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
+        EXPENSIFY_CARD_ACCOUNT_ID: 'expensifyCardAccountID',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         DEFAULT_VENDORID: 'defaultVendorID',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
         ACCOUNTING_METHOD: 'accountingMethod',
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',
         SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
-        SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
-        TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
         CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
     },
@@ -3631,6 +3655,12 @@ const CONST = {
     DUALENTRY_TAX_TYPE: {
         VAT: 'VAT',
         GST: 'GST',
+    },
+
+    DUALENTRY_ACCOUNT_TYPE: {
+        EXPENSE: 'expense',
+        CREDIT_CARD: 'credit_card',
+        BANK: 'bank',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -4379,6 +4409,7 @@ const CONST = {
             ACCOUNTING_INTEGRATION_ALIASES: {
                 INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
             },
+            INTUIT_ENTERPRISE_SUITE_SCOPE: 'app-foundations.custom-dimensions.read',
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -4578,6 +4609,7 @@ const CONST = {
     },
 
     HELP_DOC_LINKS: {
+        'Intuit Enterprise Suite': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Desktop': '',
         quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
@@ -4603,6 +4635,20 @@ const CONST = {
         // Rate amounts are stored as `Number(value) * 100` cents, which can introduce tiny floating-point errors. Meaningful
         // amounts differ by at least 0.01 cents, so this tolerance safely absorbs the float noise when matching government rates.
         GOVERNMENT_RATE_MATCH_TOLERANCE: 0.001,
+        // Currencies we can auto-update government mileage rates for, mapped to the publishing country
+        GOVERNMENT_RATE_CURRENCY_TO_COUNTRY: {
+            USD: 'US',
+            CAD: 'CA',
+            GBP: 'GB',
+            AUD: 'AU',
+        },
+        // Unit each country publishes its rates in
+        GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
+            US: 'mi',
+            GB: 'mi',
+            CA: 'km',
+            AU: 'km',
+        },
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
@@ -5459,7 +5505,6 @@ const CONST = {
         GO_TO_WORKSPACE: 'goToWorkspace',
         ERROR: 'error',
         TRACK: {
-            SUBMIT: 'submit',
             SUBMIT_TO_FRIEND: 'submitToFriend',
             SUBMIT_TO_EMPLOYER: 'submitToEmployer',
             CATEGORIZE: 'categorize',
@@ -6898,7 +6943,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            CENTRAL_TRAVEL_INVOICING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-invoicing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -7882,7 +7927,7 @@ const CONST = {
                 name: 'Intuit Enterprise Suite',
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.description` as const,
-                icon: 'QBOSquare',
+                icon: 'IntuitSquare',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
@@ -7973,6 +8018,15 @@ const CONST = {
                 title: 'workspace.upgrade.publicReceiptVisibility.title' as const,
                 description: 'workspace.upgrade.publicReceiptVisibility.description' as const,
                 icon: 'ReportReceipt',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
+            governmentDistanceRates: {
+                id: 'governmentDistanceRates' as const,
+                alias: 'auto-update-government-rates',
+                name: 'Auto-update government rates',
+                title: 'workspace.upgrade.governmentDistanceRates.title' as const,
+                description: 'workspace.upgrade.governmentDistanceRates.description' as const,
+                icon: 'CarIce',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             perDiem: {
@@ -8424,8 +8478,8 @@ const CONST = {
             EXCHANGE: 'EXCHANGE',
         },
         /**
-         * The Travel Invoicing feed type constant.
-         * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
+         * The Travel Billing feed type constant.
+         * This feed is used for Travel Billing cards which are separate from regular Expensify Cards.
          */
         PROGRAM_TRAVEL_US: 'TRAVEL_US',
         MONTHLY_SETTLEMENT_DATE: 'monthlySettlementDate',
@@ -8511,6 +8565,14 @@ const CONST = {
         FILTER_TYPE: {
             SINGLE_SELECT: 'singleSelect',
             MULTI_SELECT: 'multiSelect',
+        },
+
+        DYNAMIC_COLUMNS: {
+            /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
+            MEASURED_CANDIDATES_PER_COLUMN: 5,
+
+            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
 
@@ -9452,26 +9514,6 @@ const CONST = {
 
         // Cutoff for the "For You" new-vs-old segment: users whose free trial started on/after this date have the empty section hidden.
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
-        ANNOUNCEMENTS: [
-            {
-                title: 'Scoped admin roles, plus HR & AI updates',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
-                publishedDate: '2026-07-28',
-            },
-            {
-                title: 'The Expensify Card: Now in the UK & EU',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
-                publishedDate: '2026-07-20',
-            },
-            {
-                title: 'New feature: Consolidated travel billing',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
-                publishedDate: '2026-07-13',
-            },
-        ],
     },
 
     SECTION_LIST_ITEM_TYPE: {
@@ -9561,6 +9603,9 @@ const COUNTRIES_US_BANK_FLOW: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CO
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
+/** A country whose government mileage rates Expensify can auto-update */
+type GovernmentRateCountry = ValueOf<typeof CONST.CUSTOM_UNITS.GOVERNMENT_RATE_CURRENCY_TO_COUNTRY>;
+
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -9582,6 +9627,7 @@ type EnablePaymentsSubPageType =
 
 export type {
     Country,
+    GovernmentRateCountry,
     IOUAction,
     IOUType,
     IOURequestType,
