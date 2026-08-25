@@ -13,7 +13,6 @@ import createMock from '../utils/createMock';
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
-        getActiveRouteWithoutParams: jest.fn(),
         navigate: jest.fn(),
         setParams: jest.fn(),
     },
@@ -27,7 +26,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-function mockWorkspaceNavigationState(policyID: string) {
+function mockWorkspaceNavigationState(policyID: string, activeScreenName = SCREENS.WORKSPACE.WORKFLOWS) {
     jest.mocked(navigationRef).isReady.mockReturnValue(true);
     jest.mocked(navigationRef).getRootState.mockReturnValue(
         createMock<ReturnType<typeof navigationRef.getRootState>>({
@@ -42,14 +41,19 @@ function mockWorkspaceNavigationState(policyID: string) {
                     name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
                     state: {
                         key: 'split-state',
-                        index: 0,
-                        routeNames: [SCREENS.WORKSPACE.INITIAL],
+                        index: 1,
+                        routeNames: [SCREENS.WORKSPACE.INITIAL, activeScreenName],
                         type: 'stack',
                         stale: false,
                         routes: [
                             {
                                 name: SCREENS.WORKSPACE.INITIAL,
                                 key: 'workspace-sidebar',
+                                params: {policyID},
+                            },
+                            {
+                                name: activeScreenName,
+                                key: 'workspace-central',
                                 params: {policyID},
                             },
                         ],
@@ -60,7 +64,7 @@ function mockWorkspaceNavigationState(policyID: string) {
     );
 }
 
-function mockTabWorkspaceNavigationState(policyID: string) {
+function mockTabWorkspaceNavigationState(policyID: string, activeScreenName = SCREENS.WORKSPACE.WORKFLOWS) {
     jest.mocked(navigationRef).isReady.mockReturnValue(true);
     jest.mocked(navigationRef).getRootState.mockReturnValue(
         createMock<ReturnType<typeof navigationRef.getRootState>>({
@@ -95,14 +99,19 @@ function mockTabWorkspaceNavigationState(policyID: string) {
                                             name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
                                             state: {
                                                 key: 'split-state',
-                                                index: 0,
-                                                routeNames: [SCREENS.WORKSPACE.INITIAL],
+                                                index: 1,
+                                                routeNames: [SCREENS.WORKSPACE.INITIAL, activeScreenName],
                                                 type: 'stack',
                                                 stale: false,
                                                 routes: [
                                                     {
                                                         name: SCREENS.WORKSPACE.INITIAL,
                                                         key: 'workspace-sidebar',
+                                                        params: {policyID},
+                                                    },
+                                                    {
+                                                        name: activeScreenName,
+                                                        key: 'workspace-central',
                                                         params: {policyID},
                                                     },
                                                 ],
@@ -127,7 +136,7 @@ describe('navigateToWorkspaceSettingsRoute', () => {
     it('navigates directly on narrow layouts', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
 
-        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', true);
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', true, SCREENS.WORKSPACE.MEMBERS);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
         expect(Navigation.setParams).not.toHaveBeenCalled();
@@ -135,9 +144,7 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('navigates directly when the current page is not a Workspace setting', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.HOME);
-
-        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false, SCREENS.WORKSPACE.MEMBERS);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
         expect(Navigation.setParams).not.toHaveBeenCalled();
@@ -145,10 +152,9 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('navigates directly when the target page is not a Workspace setting', () => {
         const targetRoute = ROUTES.HOME;
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'));
         mockWorkspaceNavigationState('workspace-a');
 
-        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false, SCREENS.HOME);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
         expect(Navigation.setParams).not.toHaveBeenCalled();
@@ -156,12 +162,9 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('compares Workspace targets without query parameters while preserving them for navigation', () => {
         const targetRoute = ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a', CONST.TAB.WORKFLOWS.APPROVALS);
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(`/${ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a')}`);
-        jest.mocked(navigationRef).isReady.mockImplementation(() => {
-            throw new Error('The Workspace sidebar should not be inspected for the active destination');
-        });
+        mockWorkspaceNavigationState('workspace-a');
 
-        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-a', false);
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-a', false, SCREENS.WORKSPACE.WORKFLOWS);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
         expect(Navigation.setParams).not.toHaveBeenCalled();
@@ -169,10 +172,9 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('updates the sidebar policy before navigating to a different Workspace page', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(`/${ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a')}`);
         mockWorkspaceNavigationState('workspace-a');
 
-        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false, SCREENS.WORKSPACE.MEMBERS);
 
         expect(Navigation.setParams).toHaveBeenCalledWith({policyID: 'workspace-b'}, 'workspace-sidebar', 'split-state');
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
@@ -181,10 +183,9 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('updates the sidebar policy inside the Workspaces tab navigator', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(`/${ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a')}`);
         mockTabWorkspaceNavigationState('workspace-a');
 
-        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false, SCREENS.WORKSPACE.MEMBERS);
 
         expect(Navigation.setParams).toHaveBeenCalledWith({policyID: 'workspace-b'}, 'workspace-sidebar', 'split-state');
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
@@ -192,10 +193,9 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('updates the sidebar when switching to the same page in another Workspace', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(`/${ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a')}`);
-        mockWorkspaceNavigationState('workspace-a');
+        mockWorkspaceNavigationState('workspace-a', SCREENS.WORKSPACE.MEMBERS);
 
-        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false, SCREENS.WORKSPACE.MEMBERS);
 
         expect(Navigation.setParams).toHaveBeenCalledWith({policyID: 'workspace-b'}, 'workspace-sidebar', 'split-state');
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
@@ -203,10 +203,9 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('keeps the existing sidebar policy when changing pages in the same Workspace', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a');
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(`/${ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a')}`);
         mockWorkspaceNavigationState('workspace-a');
 
-        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-a', false);
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-a', false, SCREENS.WORKSPACE.MEMBERS);
 
         expect(Navigation.setParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);

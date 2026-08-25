@@ -3,6 +3,7 @@
  */
 import {isWorkspaceNavigatorRouteName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import WORKSPACE_TO_RHP from '@libs/Navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -10,9 +11,11 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-const WORKSPACE_ROUTE_PATTERN = /^\/?workspaces\/[^/]+(\/.*)?$/;
+function isWorkspaceSettingsScreen(screenName: string | undefined): boolean {
+    return !!screenName && Object.hasOwn(WORKSPACE_TO_RHP, screenName);
+}
 
-function getActiveWorkspaceSidebarRoute(): {sidebarRouteKey: string; splitStateKey?: string; policyID?: string} | undefined {
+function getActiveWorkspaceSidebarRoute(): {sidebarRouteKey: string; splitStateKey?: string; policyID?: string; activeScreenName?: string} | undefined {
     if (!navigationRef.isReady()) {
         return undefined;
     }
@@ -33,25 +36,26 @@ function getActiveWorkspaceSidebarRoute(): {sidebarRouteKey: string; splitStateK
 
     const params = sidebarRoute.params;
     const policyID = params && typeof params === 'object' && 'policyID' in params && typeof params.policyID === 'string' ? params.policyID : undefined;
-    return {sidebarRouteKey: sidebarRoute.key, splitStateKey: workspaceSplitRoute.state?.key, policyID};
+    return {sidebarRouteKey: sidebarRoute.key, splitStateKey: workspaceSplitRoute.state?.key, policyID, activeScreenName: workspaceSplitRoute.state?.routes.at(-1)?.name};
 }
 
-function navigateToWorkspaceSettingsRoute(targetRoute: Route, policyID: string, shouldUseNarrowLayout: boolean) {
+function navigateToWorkspaceSettingsRoute(targetRoute: Route, policyID: string, shouldUseNarrowLayout: boolean, targetScreenName: string) {
     if (shouldUseNarrowLayout) {
         Navigation.navigate(targetRoute);
         return;
     }
 
-    const activeRoute = Navigation.getActiveRouteWithoutParams().replace(/^\//, '');
-    const targetRouteWithoutParams = targetRoute.replace(/^\//, '').replace(/\?.*/, '');
-    const isWorkspaceSettingsTransition = WORKSPACE_ROUTE_PATTERN.test(targetRouteWithoutParams) && activeRoute !== targetRouteWithoutParams && WORKSPACE_ROUTE_PATTERN.test(activeRoute);
+    const workspaceSidebarRoute = getActiveWorkspaceSidebarRoute();
+    const isWorkspaceSettingsTransition =
+        isWorkspaceSettingsScreen(targetScreenName) &&
+        isWorkspaceSettingsScreen(workspaceSidebarRoute?.activeScreenName) &&
+        (workspaceSidebarRoute?.activeScreenName !== targetScreenName || workspaceSidebarRoute.policyID !== policyID);
 
     if (!isWorkspaceSettingsTransition) {
         Navigation.navigate(targetRoute);
         return;
     }
 
-    const workspaceSidebarRoute = getActiveWorkspaceSidebarRoute();
     if (workspaceSidebarRoute && workspaceSidebarRoute.policyID !== policyID) {
         Navigation.setParams({policyID}, workspaceSidebarRoute.sidebarRouteKey, workspaceSidebarRoute.splitStateKey);
     }

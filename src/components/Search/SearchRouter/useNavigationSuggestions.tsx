@@ -275,7 +275,7 @@ function buildWorkspaceNavigationItems({
                 return {
                     text: getDestinationText(itemText),
                     singleIcon: item.icon,
-                    action: () => navigateToWorkspaceSettingsRoute(item.getRoute(), policy.id, shouldUseNarrowLayout),
+                    action: () => navigateToWorkspaceSettingsRoute(item.getRoute(), policy.id, shouldUseNarrowLayout, item.screenName),
                     keyForList: `workspace_${policy.id}_${item.screenName}`,
                     rightElement: <WorkspaceIdentityCell policy={policy} />,
                     matchTerms: item.screenName === SCREENS.WORKSPACE.PROFILE ? [itemText, policy.name] : [itemText],

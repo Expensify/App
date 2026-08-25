@@ -553,7 +553,7 @@ describe('Workspace Search Router navigation source', () => {
         expect(overviewItem.rightElement.props.policy).toBe(policy);
 
         overviewItem?.action?.();
-        expect(navigateToWorkspaceSettingsRoute).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id), policy.id, false);
+        expect(navigateToWorkspaceSettingsRoute).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id), policy.id, false, SCREENS.WORKSPACE.PROFILE);
     });
 
     it('composes localized Workspace suggestions between Spend and Account with hook-level filtering and beta flags', () => {
