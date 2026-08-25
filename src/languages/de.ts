@@ -10714,6 +10714,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             title: 'Domain bereits eingerichtet. Zugriff anfragen?',
             description: 'Jemand hat diese Domain bereits in Expensify eingerichtet. Möchtest du Administratorzugriff anfragen?',
             requestAccess: 'Admin-Zugriff anfragen',
+            requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         },
         domainAdded: {
             title: 'Domain hinzugefügt',

@@ -10745,6 +10745,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             title: "Domaine déjà configuré. Demander l'accès ?",
             description: "Quelqu'un a déjà configuré ce domaine dans Expensify. Voulez-vous demander l'accès administrateur ?",
             requestAccess: "Demander l'accès administrateur",
+            requestAccessError: "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer.",
         },
         domainAdded: {
             title: 'Domaine ajouté',

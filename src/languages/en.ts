@@ -10864,6 +10864,7 @@ const translations = {
             title: 'Domain already set up. Request access?',
             description: 'Someone already set this domain up in Expensify. Want to request admin access?',
             requestAccess: 'Ask for admin access',
+            requestAccessError: "We couldn't send your request. Please try again.",
         },
         domainAdded: {
             title: 'Domain added',

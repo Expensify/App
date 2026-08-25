@@ -10645,6 +10645,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             title: 'Domein al ingesteld. Toegang aanvragen?',
             description: 'Iemand heeft dit domein al ingesteld in Expensify. Wil je beheerderstoegang aanvragen?',
             requestAccess: 'Beheerderstoegang aanvragen',
+            requestAccessError: 'We konden je aanvraag niet verzenden. Probeer het opnieuw.',
         },
         domainAdded: {
             title: 'Domein toegevoegd',

@@ -10916,6 +10916,7 @@ ${reportName}`,
             title: 'Dominio ya configurado. ¿Solicitar acceso?',
             description: 'Alguien ya configuró este dominio en Expensify. ¿Quieres solicitar acceso de administrador?',
             requestAccess: 'Solicitar acceso de administrador',
+            requestAccessError: 'No pudimos enviar tu solicitud. Por favor, inténtalo de nuevo.',
         },
         domainAdded: {
             title: 'Dominio añadido',

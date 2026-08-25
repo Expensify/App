@@ -10681,6 +10681,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             title: "Dominio già configurato. Vuoi richiedere l'accesso?",
             description: "Qualcuno ha già configurato questo dominio in Expensify. Vuoi richiedere l'accesso come amministratore?",
             requestAccess: "Richiedi l'accesso come amministratore",
+            requestAccessError: 'Non siamo riusciti a inviare la tua richiesta. Riprova.',
         },
         domainAdded: {
             title: 'Dominio aggiunto',

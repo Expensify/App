@@ -523,8 +523,10 @@ function clearSetPrimaryContactError(domainAccountID: number) {
  */
 function requestDomainAdminship(domainAccountID: number, currentUserAccountID: number, isTransientDomainEntry: boolean) {
     const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const;
+    const domainPendingActionsKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const;
+    const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: domainKey,
@@ -533,9 +535,27 @@ function requestDomainAdminship(domainAccountID: number, currentUserAccountID: n
                 domain_adminRequesters: {[currentUserAccountID]: 'read'},
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainErrorsKey,
+            value: {requestAdminshipError: null},
+        },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: null},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         isTransientDomainEntry
             ? {onyxMethod: Onyx.METHOD.SET, key: domainKey, value: null}
             : {
@@ -546,11 +566,31 @@ function requestDomainAdminship(domainAccountID: number, currentUserAccountID: n
                       domain_adminRequesters: {[currentUserAccountID]: null},
                   },
               },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainErrorsKey,
+            value: {requestAdminshipError: getMicroSecondOnyxErrorWithTranslationKey('domain.domainAlreadyExists.requestAccessError')},
+        },
     ];
 
     const params: RequestDomainAdminshipParams = {domainAccountID};
 
-    API.write(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears a failed adminship request's error so a future visit to this flow doesn't show a stale error from a previous attempt.
+ * Resets it only on the client's side, no server call is performed
+ */
+function clearRequestAdminshipError(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        requestAdminshipError: null,
+    });
 }
 
 function toggleConsolidatedDomainBilling(domainAccountID: number, domainName: string, useTechnicalContactBillingCard: boolean) {
@@ -2463,6 +2503,7 @@ export {
     setPrimaryContact,
     clearSetPrimaryContactError,
     requestDomainAdminship,
+    clearRequestAdminshipError,
     toggleConsolidatedDomainBilling,
     clearToggleConsolidatedDomainBillingErrors,
     addAdminToDomain,

@@ -10672,6 +10672,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             title: 'Domena jest już skonfigurowana. Poprosić o dostęp?',
             description: 'Ktoś już skonfigurował tę domenę w Expensify. Chcesz poprosić o dostęp administratora?',
             requestAccess: 'Poproś o dostęp administratora',
+            requestAccessError: 'Nie udało się wysłać Twojej prośby. Spróbuj ponownie.',
         },
         domainAdded: {
             title: 'Dodano domenę',

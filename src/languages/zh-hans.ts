@@ -10285,6 +10285,7 @@ ${reportName}`,
             title: '该域名已被设置。要申请访问权限吗？',
             description: '有人已经在 Expensify 中设置了此域名。要申请管理员权限吗？',
             requestAccess: '申请管理员权限',
+            requestAccessError: '我们无法发送你的请求。请重试。',
         },
         domainAdded: {
             title: '已添加域名',

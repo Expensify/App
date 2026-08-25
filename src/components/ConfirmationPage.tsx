@@ -76,6 +76,9 @@ type ConfirmationPageProps = {
     /** Additional style for the footer */
     footerStyle?: ViewStyle;
 
+    /** Component rendered inside the footer, above the buttons (e.g. an inline error message) */
+    footerComponent?: React.ReactNode;
+
     /** Additional style for the container */
     containerStyle?: ViewStyle;
 
@@ -102,6 +105,7 @@ function ConfirmationPage({
     descriptionStyle,
     ctaStyle,
     footerStyle,
+    footerComponent,
     containerStyle,
     innerContainerStyle,
 }: ConfirmationPageProps) {
@@ -156,6 +160,7 @@ function ConfirmationPage({
             </View>
             {(shouldShowSecondaryButton || shouldShowButton) && (
                 <FixedFooter style={footerStyle}>
+                    {footerComponent}
                     {shouldShowSecondaryButton && (
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}

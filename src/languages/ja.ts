@@ -10541,6 +10541,7 @@ ${reportName}`,
             title: 'このドメインはすでに設定されています。アクセスをリクエストしますか？',
             description: '誰かがこのドメインをExpensifyにすでに設定しています。管理者アクセスをリクエストしますか？',
             requestAccess: '管理者アクセスをリクエスト',
+            requestAccessError: 'リクエストを送信できませんでした。もう一度お試しください。',
         },
         domainAdded: {
             title: 'ドメインを追加しました',
