@@ -25,8 +25,7 @@
  * ```
  *
  * The `useNumberFormState` and `useNumberFormActions` hooks are also exported
- * for custom composed primitives, and `useNumberEditController` is exported for
- * other roots (NumberComposer) that own the same editing behavior.
+ * for custom composed primitives.
  */
 import NumberFormComponent from './NumberForm';
 import NumberFormTextInput from './primitives/NumberFormTextInput';
@@ -38,5 +37,4 @@ const NumberForm = Object.assign(NumberFormComponent, {
 
 export default NumberForm;
 export {useNumberFormActions, useNumberFormState} from './context';
-export {default as useNumberEditController} from './hooks/useNumberEditController';
 export type {NumberFormRef, NumberFormTextInputProps} from './types';

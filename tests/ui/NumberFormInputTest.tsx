@@ -192,6 +192,22 @@ describe('NumberForm.TextInput', () => {
         expect(screen.getByDisplayValue('12.5')).toBeOnTheScreen();
     });
 
+    it('accepts a pasted value with thousands separators when a period is present', async () => {
+        const onInputChange = jest.fn();
+
+        // Given an empty TextInput with two decimal places
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '', decimals: 2, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a value with thousands separators and a period is pasted
+        fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '1,234.56');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the commas are stripped as thousands separators (unified controller pipeline; the legacy text path rejected this)
+        expect(onInputChange).toHaveBeenLastCalledWith('1234.56');
+        expect(screen.getByDisplayValue('1234.56')).toBeOnTheScreen();
+    });
+
     it('rejects values that exceed the configured decimal precision', async () => {
         const onInputChange = jest.fn();
 
@@ -273,6 +289,18 @@ describe('NumberForm.TextInput', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the decimals are stripped and the parent is notified
+        expect(screen.getByDisplayValue('1')).toBeOnTheScreen();
+        expect(onInputChange).toHaveBeenLastCalledWith('1');
+    });
+
+    it('strips decimals at mount when the value is invalid for the decimals prop', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a value mounted with more decimal places than the root allows
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '1.25', decimals: 0, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the decimals are stripped at mount and the parent is notified, matching NumberWithSymbolForm
         expect(screen.getByDisplayValue('1')).toBeOnTheScreen();
         expect(onInputChange).toHaveBeenLastCalledWith('1');
     });

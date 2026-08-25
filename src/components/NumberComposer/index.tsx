@@ -23,8 +23,8 @@
  * </NumberComposer>
  * ```
  *
- * The `useNumberComposerState` and `useNumberComposerActions` hooks are also
- * exported for custom composed primitives. The number pad, layouts, controls,
+ * The `useNumberComposerActions` hook is also exported for custom composed
+ * primitives. The number pad, layouts, controls,
  * error, and footer primitives arrive in a later PR.
  */
 import NumberComposerComponent from './NumberComposer';
@@ -36,5 +36,5 @@ const NumberComposer = Object.assign(NumberComposerComponent, {
 });
 
 export default NumberComposer;
-export {useNumberComposerActions, useNumberComposerState} from './context';
+export {useNumberComposerActions} from './context';
 export type {NumberComposerRef, NumberComposerSymbolInputProps} from './types';

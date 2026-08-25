@@ -1,13 +1,13 @@
-import type {NumberFormInputBaseProps, NumberFormRef} from '@components/NumberForm/types';
+import type {NumberInputBaseProps, NumberInputRef} from '@components/NumberInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 /** NumberComposer exposes the same imperative editing contract as NumberForm. */
-type NumberComposerRef = NumberFormRef;
+type NumberComposerRef = NumberInputRef;
 
-type NumberComposerSymbolInputProps = NumberFormInputBaseProps &
-    Pick<BaseTextInputProps, 'onPress' | 'shouldAllowFocusInLandscapeMode'> & {
+type NumberComposerSymbolInputProps = NumberInputBaseProps &
+    Pick<BaseTextInputProps, 'onPress' | 'prefixCharacter' | 'prefixStyle' | 'shouldAllowFocusInLandscapeMode'> & {
         /** Whether the symbol can be pressed. Prefer the Composer currency control for new compositions. */
         isSymbolPressable?: boolean;
 

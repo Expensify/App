@@ -1,13 +1,8 @@
-import type {NumberFormInputKeyPressEvent} from '@components/NumberForm/types';
+import type {NumberInputKeyPressEvent, NumberInputSelection} from '@components/NumberInput/types';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef} from 'react';
 import type {BlurEvent} from 'react-native';
-
-type NumberComposerSelection = {
-    start: number;
-    end: number;
-};
 
 type NumberComposerStateContextValue = {
     /** The canonical signed value owned by the root. */
@@ -26,7 +21,7 @@ type NumberComposerStateContextValue = {
     isNegative: boolean;
 
     /** The selection to render, clamped to the displayed magnitude. */
-    selection: NumberComposerSelection;
+    selection: NumberInputSelection;
 
     /** Whether negative values are allowed. */
     allowNegative: boolean;
@@ -51,14 +46,14 @@ type NumberComposerActionsContextValue = {
     /** Toggles the sign of the canonical value and notifies the parent. The displayed magnitude does not change. */
     toggleSign: () => void;
 
-    /** Clears the whole value when it is negative. Used when backspace is pressed on an empty magnitude. */
+    /** Removes the negative sign from the canonical value, keeping the magnitude, and notifies the parent. */
     clearSign: () => void;
 
     /** Applies a native selection change, dropping the stale event emitted alongside a manual update. */
     handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
 
     /** Tracks forward-delete key presses. */
-    handleKeyPress: (event: NumberFormInputKeyPressEvent) => void;
+    handleKeyPress: (event: NumberInputKeyPressEvent) => void;
 
     /** Forwards blur to the root (InputWrapper) callback. */
     handleBlur: (event: BlurEvent) => void;
@@ -70,4 +65,4 @@ type NumberComposerActionsContextValue = {
     inputRef?: ForwardedRef<BaseTextInputRef>;
 };
 
-export type {NumberComposerActionsContextValue, NumberComposerSelection, NumberComposerStateContextValue};
+export type {NumberComposerActionsContextValue, NumberComposerStateContextValue};

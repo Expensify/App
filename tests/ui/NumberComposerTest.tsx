@@ -38,15 +38,23 @@ type RootProps = {
 };
 
 function SignControls() {
-    const {toggleSign} = useNumberComposerActions();
+    const {clearSign, toggleSign} = useNumberComposerActions();
 
     return (
-        <PressableWithFeedback
-            accessibilityLabel="Toggle sign"
-            accessibilityRole="button"
-            testID="ctx-toggleSign"
-            onPress={toggleSign}
-        />
+        <>
+            <PressableWithFeedback
+                accessibilityLabel="Toggle sign"
+                accessibilityRole="button"
+                testID="ctx-toggleSign"
+                onPress={toggleSign}
+            />
+            <PressableWithFeedback
+                accessibilityLabel="Clear sign"
+                accessibilityRole="button"
+                testID="ctx-clearSign"
+                onPress={clearSign}
+            />
+        </>
     );
 }
 
@@ -114,6 +122,22 @@ describe('NumberComposer.SymbolInput', () => {
         expect(screen.getByDisplayValue('12.5')).toBeOnTheScreen();
     });
 
+    it('pads a leading comma to "0." like a leading period', async () => {
+        const onInputChange = jest.fn();
+
+        // Given an empty SymbolInput with two decimal places
+        renderSymbolInput({symbol: '$'}, {decimals: 2, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a lone comma decimal separator is entered
+        fireEvent.changeText(screen.getByDisplayValue(''), ',');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is normalized to a leading zero and period (unified controller pipeline; the legacy symbol path rejected it)
+        expect(onInputChange).toHaveBeenLastCalledWith('0.');
+        expect(screen.getByDisplayValue('0.')).toBeOnTheScreen();
+    });
+
     it('rejects values that exceed the configured decimal precision', async () => {
         const onInputChange = jest.fn();
 
@@ -146,6 +170,22 @@ describe('NumberComposer.SymbolInput', () => {
         expect(screen.getByDisplayValue('12')).toBeOnTheScreen();
     });
 
+    it('rejects "-." when negative input is enabled', async () => {
+        const onInputChange = jest.fn();
+
+        // Given an empty SymbolInput that allows negative input
+        renderSymbolInput({}, {allowNegative: true, decimals: 2, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When an incomplete negative decimal is entered
+        fireEvent.changeText(screen.getByDisplayValue(''), '-.');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the invalid value is rejected
+        expect(onInputChange).not.toHaveBeenCalled();
+        expect(screen.getByDisplayValue('')).toBeOnTheScreen();
+    });
+
     it('uses maxLength for integer validation without forwarding it to the native input', async () => {
         // Given maxLength set for integer validation on the root
         renderSymbolInput({symbol: '$'}, {value: '12345678.99', decimals: 2, maxLength: 8});
@@ -153,6 +193,21 @@ describe('NumberComposer.SymbolInput', () => {
 
         // Then maxLength is not forwarded to the native input
         expect(screen.getByDisplayValue('12345678.99').props.maxLength).toBeUndefined();
+    });
+
+    it('strips decimals at mount when a signed value is invalid for the decimals prop', async () => {
+        const numberFormRef = React.createRef<NumberComposerRef>();
+        const onInputChange = jest.fn();
+
+        // Given a signed value mounted with more decimal places than the root allows
+        renderSymbolInput({}, {value: '-1.25', allowNegative: true, decimals: 0, numberFormRef, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the decimals are stripped at mount, the sign is preserved, and the parent is notified
+        expect(screen.getByDisplayValue('1')).toBeOnTheScreen();
+        expect(screen.getByText('-')).toBeOnTheScreen();
+        expect(numberFormRef.current?.getNumber()).toBe('-1');
+        expect(onInputChange).toHaveBeenLastCalledWith('-1');
     });
 
     it('forwards blur and the text-input ref', async () => {
@@ -312,6 +367,33 @@ describe('NumberComposer sign ownership', () => {
         expect(numberFormRef.current?.getNumber()).toBe('5');
         expect(onInputChange).toHaveBeenLastCalledWith('5');
         expect(screen.queryByText('-')).not.toBeOnTheScreen();
+    });
+
+    it('clearSign removes only the sign, keeping the magnitude, and notifies the parent', async () => {
+        const numberFormRef = React.createRef<NumberComposerRef>();
+        const onInputChange = jest.fn();
+
+        // Given a negative value and the sign controls
+        renderSymbolInput({}, {value: '-5', allowNegative: true, decimals: 2, numberFormRef, onInputChange}, <SignControls />);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the sign is cleared
+        fireEvent.press(screen.getByTestId('ctx-clearSign'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the sign is removed and the parent is notified
+        expect(numberFormRef.current?.getNumber()).toBe('5');
+        expect(onInputChange).toHaveBeenLastCalledWith('5');
+        expect(screen.queryByText('-')).not.toBeOnTheScreen();
+        expect(screen.getByDisplayValue('5')).toBeOnTheScreen();
+
+        // When the sign is cleared again on a non-negative value
+        fireEvent.press(screen.getByTestId('ctx-clearSign'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing changes and the parent is not notified again
+        expect(numberFormRef.current?.getNumber()).toBe('5');
+        expect(onInputChange).toHaveBeenCalledTimes(1);
     });
 
     it('toggleSign on an empty value places the caret after the minus so the next digit becomes negative', async () => {

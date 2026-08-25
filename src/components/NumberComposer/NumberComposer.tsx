@@ -1,4 +1,5 @@
-import useNumberEditController from '@components/NumberForm/hooks/useNumberEditController';
+import {useNumberEditController} from '@components/NumberInput';
+import type {NumberInputRef} from '@components/NumberInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef, ReactNode} from 'react';
@@ -6,7 +7,6 @@ import type {ForwardedRef, ReactNode} from 'react';
 import {useImperativeHandle} from 'react';
 
 import type {NumberComposerActionsContextValue, NumberComposerStateContextValue} from './context/types';
-import type {NumberComposerRef} from './types';
 
 import {NumberComposerActionsContext, NumberComposerStateContext} from './context';
 
@@ -55,7 +55,7 @@ type NumberComposerProps = {
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference exposing the number editing imperative API. */
-    numberFormRef?: ForwardedRef<NumberComposerRef>;
+    numberFormRef?: ForwardedRef<NumberInputRef>;
 
     children: ReactNode;
 };
@@ -86,11 +86,12 @@ function NumberComposer({value = '', onInputChange, allowNegative = false, decim
     };
 
     const clearSign = () => {
-        if (!controller.getNumber().startsWith('-')) {
+        const currentValue = controller.getNumber();
+        if (!currentValue.startsWith('-')) {
             return;
         }
 
-        controller.setValue('');
+        controller.setValue(currentValue.slice(1));
     };
 
     const stateContextValue: NumberComposerStateContextValue = {
@@ -125,4 +126,3 @@ function NumberComposer({value = '', onInputChange, allowNegative = false, decim
 }
 
 export default NumberComposer;
-export type {NumberComposerProps};

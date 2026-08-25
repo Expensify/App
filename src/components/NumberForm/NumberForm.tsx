@@ -1,3 +1,5 @@
+import {useNumberEditController} from '@components/NumberInput';
+import type {NumberInputRef} from '@components/NumberInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef, ReactNode} from 'react';
@@ -5,10 +7,8 @@ import type {ForwardedRef, ReactNode} from 'react';
 import {useImperativeHandle} from 'react';
 
 import type {NumberFormActionsContextValue, NumberFormStateContextValue} from './context/types';
-import type {NumberFormRef} from './types';
 
 import {NumberFormActionsContext, NumberFormStateContext} from './context';
-import useNumberEditController from './hooks/useNumberEditController';
 
 type NumberFormProps = {
     /** The canonical number value shared by composed primitives. Only a reset to an empty string re-initializes the editing state. */
@@ -39,7 +39,7 @@ type NumberFormProps = {
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference exposing the number editing imperative API. */
-    numberFormRef?: ForwardedRef<NumberFormRef>;
+    numberFormRef?: ForwardedRef<NumberInputRef>;
 
     children: ReactNode;
 };
@@ -83,4 +83,3 @@ function NumberForm({value = '', onInputChange, allowNegative = false, decimals 
 }
 
 export default NumberForm;
-export type {NumberFormProps};

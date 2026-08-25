@@ -1,5 +1,6 @@
 import {useNumberFormActions, useNumberFormState} from '@components/NumberForm/context';
-import type {NumberFormInputKeyPressEvent, NumberFormTextInputProps} from '@components/NumberForm/types';
+import type {NumberFormTextInputProps} from '@components/NumberForm/types';
+import type {NumberInputKeyPressEvent} from '@components/NumberInput';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
@@ -9,42 +10,46 @@ import CONST from '@src/CONST';
 
 import type {BlurEvent, TextInputSelectionChangeEvent} from 'react-native';
 
-function NumberFormTextInput(props: NumberFormTextInputProps) {
-    const {
-        symbol = '',
-        position = 'prefix',
-        hideSymbol = false,
-        ref,
-        onKeyPress,
-        onBlur,
-        accessibilityLabel,
-        autoFocus,
-        autoGrowExtraSpace,
-        autoGrowMarginSide,
-        contentWidth,
-        disabled,
-        disableKeyboard,
-        keyboardType,
-        inputMode,
-        label,
-        onFocus,
-        prefixContainerStyle,
-        prefixStyle,
-        shouldApplyPaddingToContainer,
-        shouldUseDefaultLineHeightForPrefix,
-        suffixStyle,
-        onSubmitEditing: inputOnSubmitEditing,
-        submitBehavior,
-        testID,
-        touchableInputWrapperStyle,
-        style,
-    } = props;
+/**
+ * Primitive text input rendered within a NumberForm root, connected to form context.
+ */
+function NumberFormTextInput({
+    symbol = '',
+    position = 'prefix',
+    hideSymbol = false,
+    ref,
+    onKeyPress,
+    onBlur,
+    accessibilityLabel,
+    autoFocus,
+    autoGrowExtraSpace,
+    autoGrowMarginSide,
+    contentWidth,
+    disabled,
+    disableKeyboard,
+    keyboardType,
+    inputMode,
+    label,
+    onFocus,
+    prefixContainerStyle,
+    prefixStyle,
+    shouldApplyPaddingToContainer,
+    shouldUseDefaultLineHeightForPrefix,
+    suffixStyle,
+    onSubmitEditing: inputOnSubmitEditing,
+    submitBehavior,
+    testID,
+    touchableInputWrapperStyle,
+    style,
+}: NumberFormTextInputProps) {
     const {errorText, formattedNumber, selection} = useNumberFormState();
     const {handleBlur, handleKeyPress, handleSelectionChange, inputRef, onSubmitEditing, setNumber} = useNumberFormActions();
 
-    const inputPosition = position === 'suffix' ? CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX : CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX;
+    const isSuffix = position === 'suffix';
+    const prefixCharacter = !hideSymbol && !isSuffix ? symbol : '';
+    const suffixCharacter = !hideSymbol && isSuffix ? symbol : '';
 
-    const handleInputKeyPress = (event: NumberFormInputKeyPressEvent) => {
+    const handleInputKeyPress = (event: NumberInputKeyPressEvent) => {
         handleKeyPress(event);
         onKeyPress?.(event);
     };
@@ -80,14 +85,14 @@ function NumberFormTextInput(props: NumberFormTextInputProps) {
             onKeyPress={handleInputKeyPress}
             onSelectionChange={(event: TextInputSelectionChangeEvent) => handleSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end)}
             onSubmitEditing={handleSubmitEditing}
-            prefixCharacter={hideSymbol || inputPosition !== CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX ? '' : symbol}
+            prefixCharacter={prefixCharacter}
             prefixContainerStyle={prefixContainerStyle}
             prefixStyle={prefixStyle}
             ref={mergeRefs(inputRef, ref)}
             selection={selection}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
-            suffixCharacter={hideSymbol || inputPosition !== CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX ? '' : symbol}
+            suffixCharacter={suffixCharacter}
             suffixStyle={suffixStyle}
             submitBehavior={submitBehavior}
             testID={testID}
