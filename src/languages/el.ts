@@ -1177,6 +1177,13 @@ const translations: TranslationDeepObject<typeof en> = {
             chartUnavailable: 'Το γράφημα δεν είναι διαθέσιμο',
             notEnoughData: 'Δεν έχουμε ακόμη αρκετά δεδομένα για να συμπληρώσουμε αυτό το γράφημα',
         },
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Καλημέρα, ${name}.` : 'Καλημέρα.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Καλησπέρα σας, ${name}.` : 'Καλό απόγευμα.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Καλησπέρα, ${name}.` : 'Καλησπέρα.'),
+            inputPlaceholder: 'Ζητήστε από το Concierge να αναλύσει τα έξοδά σας ή να λάβετε υποστήριξη',
+            inputPlaceholderMobile: 'Ρωτήστε το Concierge οτιδήποτε',
+        },
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
