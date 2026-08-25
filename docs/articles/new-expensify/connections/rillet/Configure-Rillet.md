@@ -9,7 +9,7 @@ internalScope: Audience is Workspace Admins configuring an existing Rillet conne
 
 Configure how Expensify imports accounting data from Rillet and exports expenses back to your accounting system.
 
-If you haven't connected Rillet yet, learn how to [connect to Rillet](/articles/new-expensify/Unlisted/Connect-to-Rillet).
+If you haven't connected Rillet yet, learn how to [connect to Rillet](/articles/new-expensify/connections/rillet/Connect-to-Rillet).
 
 Once configured, you can:
 
