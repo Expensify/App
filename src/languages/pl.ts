@@ -1542,8 +1542,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'karta' : 'konto bankowe';
             return isCurrentUser
-                ? `. Pieniądze są w drodze na twoje ${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'} (zapłacono przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`
-                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''} (zapłacono przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`;
+                ? `. Pieniądze są w drodze na twoje ${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'} (zapłacono przez ${paymentMethod}). To zazwyczaj zajmuje 4–5 dni roboczych.`
+                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''} (zapłacono przez ${paymentMethod}). To zazwyczaj zajmuje 4–5 dni roboczych.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` z wpłatą bezpośrednią (ACH)${creditBankAccount ? ` na konto bankowe kończące się na ${creditBankAccount}.` : '. '}${expectedDate ? `Zwrot kosztów powinien zostać zrealizowany do ${expectedDate}.` : 'To zazwyczaj zajmuje 4–5 dni roboczych.'}`,
@@ -1622,6 +1622,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Włącz portfel',
         hold: 'Wstrzymaj',
         sendToSomeone: 'Wyślij do kogoś',
+        submitToEmployer: 'Prześlij do mojego pracodawcy',
         unhold: 'Usuń blokadę',
         holdExpense: () => ({
             one: 'Wstrzymaj wydatek',
@@ -3157,7 +3158,13 @@ ${amount} dla ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
-    inboxTabs: {all: 'Wszystko', todo: 'Zadania do wykonania', unread: 'Nieprzeczytane'},
+    inboxTabs: {
+        all: 'Wszystko',
+        todo: 'Zadania do wykonania',
+        unread: 'Nieprzeczytane',
+        markAllAsRead: 'Oznacz wszystkie jako przeczytane',
+        markAllAsReadConfirmationPrompt: 'Czy na pewno chcesz oznaczyć wszystkie czaty jako przeczytane?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
         generatingPDF: 'Wygeneruj PDF',
@@ -4903,6 +4910,9 @@ ${amount} dla ${merchant} - ${date}`,
         },
         qbo: {
             connectedTo: 'Połączono z',
+            entity: 'Jednostka',
+            entitySelectDescription: 'Wybierz jednostkę do zsynchronizowania z tym miejscem pracy.',
+            connectNewEntity: 'Połącz nowy podmiot',
             importDescription: (integrationName = 'QuickBooks Online') => `Wybierz, które konfiguracje kodowania zaimportować z ${integrationName} do Expensify.`,
             classes: 'Zajęcia',
             locations: 'Lokalizacje',
@@ -6234,6 +6244,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
                 settings: {
                     autoAddTripName: {title: 'Dodaj nazwy podróży do wydatków', subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków za podróże zarezerwowane w Expensify.'},
+                    codingSync: {
+                        title: 'Synchronizuj kodowanie z Expensify Travel',
+                        subtitle: 'Przekaż kategorie, tagi i pola raportu tego workspace’u do Expensify Travel, żeby podróżujący odpowiadali na nie podczas rezerwacji.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -10167,6 +10181,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             title: 'Płatność',
             subtitle: 'Dodaj kartę, aby opłacić swoją subskrypcję Expensify.',
             addCardButton: 'Dodaj kartę płatniczą',
+            addPaymentCardTitle: 'Dodaj kartę płatniczą',
+            addCard: 'Dodaj kartę',
             cardInfo: (name: string, expiration: string, currency: string) => `Nazwa: ${name}, Data ważności: ${expiration}, Waluta: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Data Twojej następnej płatności to ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Karta kończąca się na ${cardNumber}`,
