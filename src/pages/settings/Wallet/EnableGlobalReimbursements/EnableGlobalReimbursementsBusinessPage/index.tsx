@@ -2,11 +2,13 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCorpayOnboardingFields} from '@libs/actions/BankAccounts';
+import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -43,6 +45,7 @@ const pages = [
 function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimbursementsBusinessPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const network = useNetwork();
     const bankAccountID = route.params?.bankAccountID;
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
     const currency = bankAccount?.bankCurrency ?? '';
@@ -61,6 +64,13 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     useEffect(() => {
         getCorpayOnboardingFields(country);
     }, [country]);
+
+    useEffect(() => {
+        if (network.isOffline) {
+            return;
+        }
+        getPaymentMethods();
+    }, [network.isOffline]);
 
     useEffect(() => {
         return clearErrors(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
