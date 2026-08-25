@@ -5838,6 +5838,27 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 label: 'Conto Expensify Card',
                 description: 'Scegli dove esportare le transazioni Expensify Card.',
             },
+            autoSyncDescription: 'Sincronizza DualEntry ed Expensify automaticamente, ogni giorno. I report si sincronizzano in tempo reale.',
+            accountingMethods: {
+                label: 'Metodo di esportazione',
+                description: 'Scegli quando esportare le spese.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Competenza',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate al momento dell’approvazione finale',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate quando saranno pagate',
+                },
+            },
+            syncReimbursedReports: 'Sincronizza i report rimborsati',
+            syncReimbursedReportsDescription: 'Quando un resoconto viene pagato tramite ACH, verrà generato un pagamento fattura su questo conto.',
+            billPaymentAccount: {label: 'Conto per il pagamento delle bollette', description: 'Scegli da dove pagare le fatture e creeremo il pagamento in DualEntry.'},
+            syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
+            settlementAccount: {label: 'Conto di regolamento Carta Expensify', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in DualEntry.'},
+            syncTravelInvoicingSettlements: 'Sincronizza le riconciliazioni di fatturazione viaggi',
+            travelInvoicingSettlementAccount: {label: 'Conto di regolamento fatturazione viaggi', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in DualEntry.'},
+            travelInvoicingPayableAccount: {label: 'Conto debiti per fatturazione di viaggio'},
         },
         type: {
             free: 'Gratis',

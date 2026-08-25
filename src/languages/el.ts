@@ -1258,7 +1258,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'Δεν προστέθηκαν κανόνες εμπόρων, καθώς υπάρχουν ήδη όλοι.' : 'Δεν έχουν προστεθεί κανόνες εμπόρου.';
             }
-
             return {
                 one: 'Προστέθηκε 1 κανόνας εμπόρου.',
                 other: `Έχουν προστεθεί ${count} κανόνες εμπόρων.`,
@@ -5986,6 +5985,30 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Λογαριασμός Expensify Card',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές της Expensify Card.',
             },
+            autoSyncDescription: 'Συγχρονίστε αυτόματα το DualEntry και το Expensify κάθε μέρα. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
+            accountingMethods: {
+                label: 'Μέθοδος εξαγωγής',
+                description: 'Επιλέξτε πότε θα εξαχθούν οι δαπάνες.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένη βάση',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Μετρητά',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν λάβουν την τελική έγκριση',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν πληρωθούν',
+                },
+            },
+            syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί μια πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
+            billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
+            syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
+            settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
+            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
+            travelInvoicingSettlementAccount: {
+                label: 'Λογαριασμός εκκαθάρισης τιμολόγησης ταξιδιών',
+                description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων τιμολόγησης ταξιδιών'},
         },
         type: {
             free: 'Δωρεάν',

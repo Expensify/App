@@ -1182,7 +1182,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'No se han añadido reglas de comerciante, ya que todas ya existen.' : 'No se han añadido reglas de comerciante.';
             }
-
             return {
                 one: 'Se ha añadido 1 regla de comerciante.',
                 other: `Se han añadido ${count} reglas de comerciante.`,
@@ -5761,6 +5760,27 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Cuenta de la Tarjeta Expensify',
                 description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
             },
+            autoSyncDescription: 'Sincroniza DualEntry y Expensify automáticamente, todos los días. Los informes se sincronizan en tiempo real.',
+            accountingMethods: {
+                label: 'Método de exportación',
+                description: 'Elige cuándo exportar los gastos.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados de forma definitiva',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando se paguen',
+                },
+            },
+            syncReimbursedReports: 'Sincronizar informes reembolsados',
+            syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
+            billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en DualEntry.'},
+            syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
+            settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
+            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
+            travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
+            travelInvoicingPayableAccount: {label: 'Cuenta a pagar por facturación de viajes'},
         },
         type: {
             free: 'Gratis',

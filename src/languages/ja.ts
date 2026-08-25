@@ -5775,6 +5775,27 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 label: 'Expensify カード口座',
                 description: 'Expensify カード取引のエクスポート先を選択してください。',
             },
+            autoSyncDescription: 'DualEntry と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
+            accountingMethods: {
+                label: 'エクスポート方法',
+                description: '経費をエクスポートするタイミングを選択します。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '立替経費は最終承認されるとエクスポートされます',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '実費精算は、支払い済みになるとエクスポートされます',
+                },
+            },
+            syncReimbursedReports: '精算済みレポートを同期',
+            syncReimbursedReportsDescription: 'レポートがACHで支払われると、この口座に支払伝票が作成されます。',
+            billPaymentAccount: {label: '支払口座', description: '請求書の支払い元を選択すると、DualEntry に支払いを作成します。'},
+            syncExpensifyCardSettlements: 'Expensify カードの清算を同期する',
+            settlementAccount: {label: 'Expensify カード精算口座', description: '精算口座を選択すると、DualEntry 内に支払を作成します。'},
+            syncTravelInvoicingSettlements: '出張請求の精算を同期する',
+            travelInvoicingSettlementAccount: {label: '出張請求の決済口座', description: '精算口座を選択すると、DualEntry 内に支払を作成します。'},
+            travelInvoicingPayableAccount: {label: '旅行請求買掛金勘定'},
         },
         type: {
             free: '無料',
@@ -9004,9 +9025,6 @@ ${reportName}`,
             reject: '却下',
             duplicateExpense: () => ({
                 one: '経費を複製',
-                // Japanese has no grammatical plural, so `Intl.PluralRules` selects `other` for every count,
-                // including 1. The single/bulk distinction here is semantic rather than grammatical, so `other`
-                // branches on the count itself to keep 一括 (bulk) on the multi-expense action only.
                 other: (count: number) => (count === 1 ? '経費を複製' : '経費を一括複製'),
             }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',

@@ -5856,6 +5856,27 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 label: 'Konto karty Expensify',
                 description: 'Wybierz miejsce eksportu transakcji kartą Expensify.',
             },
+            autoSyncDescription: 'Synchronizuj DualEntry i Expensify automatycznie, każdego dnia. Raporty synchronizują się w czasie rzeczywistym.',
+            accountingMethods: {
+                label: 'Metoda eksportu',
+                description: 'Wybierz, kiedy eksportować wydatki.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Memoria',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Gotówka',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
+                },
+            },
+            syncReimbursedReports: 'Synchronizuj zwrócone raporty',
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, na tym koncie zostanie wygenerowana płatność rachunku.',
+            billPaymentAccount: {label: 'Konto do płatności rachunków', description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w DualEntry.'},
+            syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
+            settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.'},
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Travel Invoicing',
+            travelInvoicingSettlementAccount: {label: 'Konto rozliczeniowe fakturowania podróży', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.'},
+            travelInvoicingPayableAccount: {label: 'Konto zobowiązań z tytułu faktur podróżnych'},
         },
         type: {
             free: 'Darmowy',

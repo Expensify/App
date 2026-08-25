@@ -5880,6 +5880,30 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 label: 'Compte Expensify Card',
                 description: 'Choisissez où exporter les transactions Expensify Card.',
             },
+            autoSyncDescription: 'Synchronisez DualEntry et Expensify automatiquement, chaque jour. Les notes de frais se synchronisent en temps réel.',
+            accountingMethods: {
+                label: 'Méthode d’export',
+                description: 'Choisissez quand exporter les dépenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Comptabilité d’engagement',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses personnelles seront exportées une fois l’approbation finale accordée',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses hors poche seront exportées une fois payées',
+                },
+            },
+            syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
+            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par ACH, un règlement de facture sera généré sur ce compte.',
+            billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans DualEntry.'},
+            syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
+            settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.'},
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            travelInvoicingSettlementAccount: {
+                label: 'Compte de règlement de facturation de voyage',
+                description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Compte fournisseur pour facturation de voyage'},
         },
         type: {
             free: 'Gratuit',

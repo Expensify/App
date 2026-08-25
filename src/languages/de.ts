@@ -5871,6 +5871,27 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 label: 'Expensify Card-Konto',
                 description: 'Wählen Sie aus, wohin die Expensify Card-Transaktionen exportiert werden sollen.',
             },
+            autoSyncDescription: 'Synchronisieren Sie DualEntry und Expensify automatisch, jeden Tag. Berichte werden in Echtzeit synchronisiert.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Abgrenzung',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen aus eigener Tasche werden nach endgültiger Genehmigung exportiert',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden exportiert, sobald sie bezahlt sind',
+                },
+            },
+            syncReimbursedReports: 'Erstattete Berichte synchronisieren',
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erzeugt.',
+            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie, von wo aus Rechnungen bezahlt werden sollen, und wir erstellen die Zahlung in DualEntry.'},
+            syncExpensifyCardSettlements: 'Abgleiche Expensify Karten-Abrechnungen synchronisieren',
+            settlementAccount: {label: 'Abrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.'},
+            syncTravelInvoicingSettlements: 'Reiseabrechnungs-Abgleiche synchronisieren',
+            travelInvoicingSettlementAccount: {label: 'Abrechnungskonto für Reiseabrechnungen', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.'},
+            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für Reiseabrechnungen'},
         },
         type: {
             free: 'Kostenlos',

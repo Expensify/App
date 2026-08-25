@@ -5831,6 +5831,27 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 label: 'Expensify Card-account',
                 description: 'Kies waar je Expensify Card-transacties naartoe wilt exporteren.',
             },
+            autoSyncDescription: 'Synchroniseer DualEntry en Expensify automatisch, elke dag. Rapporten worden in realtime gesynchroniseerd.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Kies wanneer je uitgaven exporteert.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Opgelopen basis',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Onkosten uit eigen zak worden geëxporteerd zodra ze definitief zijn goedgekeurd',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contante uitgaven worden geëxporteerd zodra ze zijn betaald',
+                },
+            },
+            syncReimbursedReports: 'Vergoede declaraties synchroniseren',
+            syncReimbursedReportsDescription: 'Als een rapport via ACH wordt betaald, wordt er in deze rekening een factuurbetaalopdracht aangemaakt.',
+            billPaymentAccount: {label: 'Rekening voor het betalen van rekeningen', description: 'Kies waarvan je rekeningen wilt betalen en wij maken de betaling aan in DualEntry.'},
+            syncExpensifyCardSettlements: 'Expensify Kaart-afrekeningen synchroniseren',
+            settlementAccount: {label: 'Rekening voor afwikkeling van Expensify Kaart', description: 'Kies je afrekenrekening en wij maken de betaling aan in DualEntry.'},
+            syncTravelInvoicingSettlements: 'Reisfacturatie-afrekeningen synchroniseren',
+            travelInvoicingSettlementAccount: {label: 'Reisfacturatie-afwikkelingsrekening', description: 'Kies je afrekenrekening en wij maken de betaling aan in DualEntry.'},
+            travelInvoicingPayableAccount: {label: 'Rekening crediteuren voor reisfacturatie'},
         },
         type: {
             free: 'Gratis',

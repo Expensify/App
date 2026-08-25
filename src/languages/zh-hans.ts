@@ -5641,6 +5641,27 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 label: 'Expensify Card 账户',
                 description: '选择 Expensify Card 交易的导出位置。',
             },
+            autoSyncDescription: '每天自动同步 DualEntry 和 Expensify。报告实时同步。',
+            accountingMethods: {
+                label: '导出方式',
+                description: '选择何时导出报销。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '权责发生制',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付报销将在最终批准后导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '个人垫付费用将在支付后导出',
+                },
+            },
+            syncReimbursedReports: '同步已报销报表',
+            syncReimbursedReportsDescription: '当通过 ACH 支付报表时，将在此账户中生成一笔账单付款。',
+            billPaymentAccount: {label: '账单支付账户', description: '选择从哪里支付账单，我们会在 DualEntry 中创建这笔付款。'},
+            syncExpensifyCardSettlements: '同步 Expensify 卡结算',
+            settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建付款。'},
+            syncTravelInvoicingSettlements: '同步差旅开票结算',
+            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建付款。'},
+            travelInvoicingPayableAccount: {label: '差旅开票应付账户'},
         },
         type: {
             free: '免费',

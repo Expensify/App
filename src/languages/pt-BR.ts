@@ -5831,6 +5831,30 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 label: 'Conta do Expensify Card',
                 description: 'Escolha para onde exportar as transações do Expensify Card.',
             },
+            autoSyncDescription: 'Sincronize DualEntry e Expensify automaticamente, todos os dias. Os relatórios são sincronizados em tempo real.',
+            accountingMethods: {
+                label: 'Método de exportação',
+                description: 'Escolha quando exportar as despesas.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Regime de competência',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas reembolsáveis serão exportadas quando forem aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas reembolsáveis serão exportadas quando forem pagas',
+                },
+            },
+            syncReimbursedReports: 'Sincronizar relatórios reembolsados',
+            syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento de conta será gerado nesta conta.',
+            billPaymentAccount: {label: 'Conta para pagamento de contas', description: 'Escolha de onde pagar as contas e nós criaremos o pagamento no DualEntry.'},
+            syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
+            settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e vamos criar o pagamento no DualEntry.'},
+            syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
+            travelInvoicingSettlementAccount: {
+                label: 'Conta de liquidação de faturamento de viagens',
+                description: 'Escolha sua conta de liquidação e vamos criar o pagamento no DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Conta a pagar de faturamento de viagens'},
         },
         type: {
             free: 'Grátis',
