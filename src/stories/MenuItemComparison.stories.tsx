@@ -7,10 +7,12 @@ import DisplayNames from '@components/DisplayNames';
 import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
 import MenuItem from '@components/MenuItem';
 import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/MenuItemDescription';
+import {MENU_ITEM_TITLE_VARIANT} from '@components/MenuItem/leaves/text/MenuItemTitle';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 
@@ -145,6 +147,225 @@ function Comparison() {
 
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
+            <SectionHeading title="Phase 3 — MenuItemWithTopDescription">{`The 84 call sites that unblock now that MenuItem.Title has a non-bold weight variant — one card per prop shape, in frequency order. MenuItemWithTopDescription is MenuItem + shouldShowBasicTitle + shouldShowDescriptionOnTop: the description sits above the title INSIDE the press target, and the title is regular weight. Composable reproduces both by declaring Description before Title in the Content column and passing MENU_ITEM_TITLE_VARIANT.BASIC. See menuitem-top-description-title-weight-migratable.md.`}</SectionHeading>
+
+            <Card
+                title="description, onPress, title"
+                note="31 sites — class A. The dominant shape. Column order alone gives description-on-top, since Content stacks its children."
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Sort by"
+                        title="Date"
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Description>Sort by</MenuItem.Description>
+                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Date</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, interactive, onPress, shouldShowRightIcon, title"
+                note="24 sites — class B. interactive gates the handler and the hover/press affordance, but legacy renders the chevron either way. Composable folds interactive into onPress={cond ? handler : undefined}; the chevron is then a separate decision, so the second variant keeps it to stay pixel-faithful to legacy."
+                legacy={
+                    <>
+                        <Variant label="interactive={true}">
+                            <MenuItemWithTopDescription
+                                description="Name"
+                                title="Standard rate"
+                                interactive
+                                shouldShowRightIcon
+                                onPress={noop}
+                            />
+                        </Variant>
+                        <Variant label="interactive={false} — chevron still rendered">
+                            <MenuItemWithTopDescription
+                                description="Name"
+                                title="Standard rate"
+                                interactive={false}
+                                shouldShowRightIcon
+                                onPress={noop}
+                            />
+                        </Variant>
+                    </>
+                }
+                composable={
+                    <>
+                        <Variant label="onPress passed">
+                            <MenuItem.Root onPress={noop}>
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.Description>Name</MenuItem.Description>
+                                        <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Standard rate</MenuItem.Title>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </Variant>
+                        <Variant label="onPress={undefined} — chevron kept explicitly">
+                            <MenuItem.Root>
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.Description>Name</MenuItem.Description>
+                                        <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Standard rate</MenuItem.Title>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </Variant>
+                    </>
+                }
+            />
+
+            <Card
+                title="description, interactive, title"
+                note="14 sites — class A. Read-only display row, no handler at all. Absent onPress already means non-interactive, so interactive drops on migration."
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Country"
+                        title="United States"
+                        interactive={false}
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Description>Country</MenuItem.Description>
+                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>United States</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, onPress, sentryLabel, title"
+                note="7 sites — class A. Identical render to the first shape; sentryLabel passes straight through to MenuItem.Root."
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Display"
+                        title="Comfortable"
+                        sentryLabel="menuItemComparisonStorySentryLabel"
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root
+                        onPress={noop}
+                        sentryLabel="menuItemComparisonStorySentryLabel"
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Description>Display</MenuItem.Description>
+                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Comfortable</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, disabled, onPress, title"
+                note="4 sites — class A. disabled maps to MenuItem.Root isDisabled."
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Role"
+                        title="Admin"
+                        disabled
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root
+                        onPress={noop}
+                        isDisabled
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Description>Role</MenuItem.Description>
+                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Admin</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, interactive, onPress, pressableTestID, shouldShowRightIcon, title"
+                note="2 sites — class B. Same render as the 24-site shape; pressableTestID maps to MenuItem.Root testID."
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Member"
+                        title="John Doe"
+                        interactive
+                        pressableTestID="menuItemComparisonStoryPressable"
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root
+                        onPress={noop}
+                        testID="menuItemComparisonStoryPressable"
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Description>Member</MenuItem.Description>
+                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>John Doe</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, disabled, interactive, key, onPress, pressableTestID, shouldShowRightIcon, title"
+                note="1 site — class B. The widest migratable shape, and still only Root props plus a chevron. key is React-level and does not migrate."
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Bank account"
+                        title="Chase ••••1234"
+                        interactive
+                        disabled
+                        pressableTestID="menuItemComparisonStoryPressableWide"
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root
+                        onPress={noop}
+                        isDisabled
+                        testID="menuItemComparisonStoryPressableWide"
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Description>Bank account</MenuItem.Description>
+                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Chase ••••1234</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
             <SectionHeading title="Phase 2 — avatars" />
 
             <Card
