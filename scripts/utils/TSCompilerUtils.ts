@@ -1,4 +1,4 @@
-import ts from 'typescript';
+import ts from '@typescript/typescript6';
 
 /**
  * Actions that can be taken when visiting a node in a transformer.
@@ -254,6 +254,10 @@ function extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDecla
     return undefined;
 }
 
+function isFunctionValuedProperty(node: ts.PropertyAssignment): boolean {
+    return ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer);
+}
+
 /**
  * Build a dot-notation path from a node by traversing up the AST to find property assignments.
  * Useful for building paths like "common.save" from a string literal node.
@@ -267,6 +271,9 @@ function buildDotNotationPath(node: ts.Node, rootNode?: ts.Node): string | null 
         if (ts.isPropertyAssignment(current)) {
             const key = extractKeyFromPropertyNode(current);
             if (key) {
+                if (isFunctionValuedProperty(current)) {
+                    pathParts.length = 0;
+                }
                 pathParts.unshift(key);
             }
         }

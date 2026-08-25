@@ -1023,6 +1023,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
     },
     BUTTON_STATES: {
@@ -1570,6 +1571,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
             SEND_TO_SOMEONE: 'sendToSomeone',
+            SEND_TO_EMPLOYER: 'sendToEmployer',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',
@@ -8564,6 +8566,14 @@ const CONST = {
         FILTER_TYPE: {
             SINGLE_SELECT: 'singleSelect',
             MULTI_SELECT: 'multiSelect',
+        },
+
+        DYNAMIC_COLUMNS: {
+            /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
+            MEASURED_CANDIDATES_PER_COLUMN: 5,
+
+            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
 

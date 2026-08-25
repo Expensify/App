@@ -94,6 +94,8 @@ You can use the following operators to filter reports:
 - `exported-to:` – filter by where reports or expenses were exported, such as a connected accounting integration.
 - `title:` – report title
 - `total:` – total amount with relative comparisons
+- `amount-debited:` – amount the company was debited when a report was reimbursed across currencies, in the settlement currency. Supports `=`, `>`, `<`, `>=`, `<=`
+- `amount-reimbursed:` – amount the member was reimbursed when a report was paid across currencies, in their deposit account's currency. Supports `=`, `>`, `<`, `>=`, `<=`
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
 - `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`

@@ -1,26 +1,16 @@
 # Expensify App
 
-## Repository Overview
+## HybridApp Architecture
 
-### Technology Stack
-
-- **Framework**: React Native
-- **Language**: TypeScript
-- **State Management**: React Native Onyx
-- **Navigation**: React Navigation
-- **Platforms**: iOS, Android, Web
-
-## HybridApp Architecture (Critical Context)
-
-**IMPORTANT**: The mobile application is built from the Mobile-Expensify submodule, not directly from the App repository.
-**IMPORTANT**: NewDot refers to the new Expensify App, OldDot or Expensify Classic refers to our Old expensify app and website
+- The mobile application is built from the Mobile-Expensify submodule, not directly from the App repository.
+- NewDot refers to the New Expensify App, OldDot or Expensify Classic refers to our Old expensify app and website
 
 ### Key Integration Points
 
 - App (NewDot) and Mobile-Expensify (OldDot) are combined into a single mobile application
 - The HybridApp module (`@expensify/react-native-hybrid-app`) manages transitions between OldDot and NewDot
-- Build process merges dotenv configurations from both repositories
-- Environment variables from Mobile-Expensify take precedence over App variables
+- Build process merges `.env` files from both repositories
+- Mobile-Expensify environment variables supersede App variables
 - Mobile builds **must** be initiated from the Mobile-Expensify directory
 
 ### Build Modes
@@ -29,153 +19,23 @@
 - **HybridApp**: Combined OldDot + NewDot (mobile apps)
 - Controlled via `STANDALONE_NEW_DOT` environment variable
 
-## Core Architecture & Structure
-
-### Entry Points
-
-- `src/App.tsx`: Main application component with provider hierarchy
-- `src/Expensify.tsx`: Core application logic and initialization
-- `src/HybridAppHandler.tsx`: Manages HybridApp transitions and authentication
-- `index.js`: React Native entry point
-
-### Provider Architecture
-
-The application uses a nested provider structure for context management:
-
-1. **SplashScreenStateContextProvider**: Manages splash screen visibility
-2. **InitialURLContextProvider**: Handles deep linking
-3. **ThemeProvider**: Theme management
-4. **LocaleContextProvider**: Internationalization
-5. **OnyxListItemProvider**: Data layer provider
-6. **SafeAreaProvider**: Device safe areas
-7. **PopoverContextProvider**: Global popover state
-8. **KeyboardProvider**: Keyboard state management
-
-### Data Layer
-
-- **Onyx**: Custom data persistence layer for offline-first functionality
-- **ONYXKEYS.ts**: Centralized key definitions for data store
-- Supports optimistic updates and conflict resolution
-
-## Key Features & Modules
-
-### Core Functionality
-
-1. **Expense Management**
-   - Receipt scanning and SmartScan
-   - Expense creation and editing
-   - Distance tracking
-   - Per diem support
-   - Split expenses
-
-2. **Reporting**
-   - Report creation and submission
-   - Approval workflows
-   - Report fields and custom attributes
-   - Bulk operations
-
-3. **Workspace/Policy Management**
-   - Policy creation and configuration
-   - Member management
-   - Categories, tags, and tax rates
-   - Accounting integration settings
-   - Approval workflows
-
-4. **Travel**
-   - Trip management
-   - Travel booking integration
-   - Travel policy enforcement
-
-5. **Search & Filtering**
-   - Advanced search with filters
-   - Saved searches
-   - Search parser (Peggy-based)
-
-6. **Payment & Cards**
-   - Expensify Card management
-   - Bank account connections (Plaid)
-   - Payment methods
-   - Company cards integration
-   - Wallet functionality
-
-7. **Accounting Integrations**
-   - QuickBooks Online
-   - Xero
-   - NetSuite
-   - Sage Intacct
-   - QuickBooks Desktop
-   - Generic accounting connections
-
-8. **Communication**
-   - Chat functionality
-   - Task management
-   - Mentions and notifications
-   - Thread organization
-
-9. **Invoice Management**
-   - Invoice creation and sending
-   - Invoice rooms
-
 ## Navigation & Routing
-
-### Structure
-
-- `src/SCREENS.ts`: Screen name constants
-- `src/ROUTES.ts`: Route definitions and builders
-- `src/NAVIGATORS.ts`: Navigator configuration
 
 ### Key Navigators
 
-- **ProtectedScreens**: Authenticated app screens
+- **AuthScreens**: Authenticated app screens
 - **PublicScreens**: Login and onboarding screens
-- **RHP (Right Hand Panel/Pane)**: Settings and details panel
+- **RHP (Right Hand Pane)**: Contextual panels — settings and details
 - **Central Pane**: Main content area
 - **LHN (Left Hand Navigation)**: Report list and navigation
-- **RHP**: Contextual panels and settings
 
 ## State Management
 
-### Onyx Keys Organization
-
-- **Session**: Authentication and user session
-- **Personal Details**: User profiles and preferences
-- **Reports**: Chat and expense reports
-- **Transactions**: Expense transactions
-- **Policy**: Workspace configuration
-- **Forms**: Form state management
-
-### Action Modules (`src/libs/actions/`)
-
-Major action categories:
-
-- `App.ts`: Application lifecycle
-- `IOU.ts`: Money requests and expenses
-- `Report.ts`: Report management
-- `Policy/`: Workspace operations
-- `User.ts`: User account operations
-- `Session.ts`: Authentication
-- `Search.ts`: Search operations
-- `Travel.ts`: Travel features
+Onyx (`react-native-onyx`) is our custom offline-first key-value store; keys are defined in `src/ONYXKEYS.ts`.
 
 ### Reading Onyx data (`useOnyx` vs `Onyx.connectWithoutView`)
-There are only two ways to read Onyx data:
-1. **`useOnyx`** (`@hooks/useOnyx`) — the default for anything a component renders.
-2. **`Onyx.connectWithoutView`** — only for non-render logic (module-level state in actions/libraries) that genuinely can't use `useOnyx`.
 
-Before either, prefer a **pure function** that receives the data as parameters: it does not read Onyx itself — the caller reads (with `useOnyx` or `Onyx.connectWithoutView`) and passes the data in. Do not add a new `Onyx.connectWithoutView` by copying existing usage — justify each one on its own with a comment explaining why it is needed. Using it in a component for performance requires `@frontend-performance` approval on Slack (link it in the PR description). See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview).
-
-## Build & Deployment
-
-### CI/CD Workflows
-
-Key GitHub Actions workflows:
-
-- `deploy.yml`: Production deployment
-- `preDeploy.yml`: Staging deployment
-- `testBuild.yml`: PR test builds
-- `test.yml`: Unit tests
-- `typecheck.yml`: TypeScript validation
-- `lint.yml`: Code quality checks
+Prefer pure functions taking data as params over direct Onyx reads — callers read and pass data in. When a read is needed, use **`useOnyx`** (`@hooks/useOnyx`) by default; reach for **`Onyx.connectWithoutView`** only for non-render logic (actions/libraries) that genuinely can't use `useOnyx`. Don't copy-paste `Onyx.connectWithoutView` usages — justify each with a comment. Using it in components for perf needs `@frontend-performance` Slack approval linked in PR description. See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview).
 
 ## Related Repositories
 
@@ -188,52 +48,34 @@ Key GitHub Actions workflows:
 - Manages the HybridApp integration layer
 - **Submodule pointer**: bumped automatically by OSBotify on every merge to Mobile-Expensify `main`
 
-### expensify-common
-
-- **Purpose**: Shared libraries and utilities
-- Contains common validation, parsing, and utility functions
-- Used across multiple Expensify repositories
-
 ## Development Practices
 
 ### React Native Best Practices
 
 Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
 
-The skill provides guidance on:
-
-- **Performance**: FPS optimization, virtualized lists (FlashList), memoization, atomic state, animations
-- **Bundle & App Size**: Barrel imports, tree shaking, bundle analysis, R8 shrinking
-- **Startup (TTI)**: Hermes bytecode optimization, native navigation, deferred work
-- **Native Modules**: Turbo Module development, threading model, Swift/Kotlin/C++ patterns
-- **Memory**: JS and native memory leak detection and patterns
-- **Build Compliance**: Android 16KB page alignment (Google Play requirement)
-- **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
-
 ### Memoization
 
-React Compiler auto-memoizes object literals, callbacks, JSX, and derived values inside components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native/Jest (see `babel.config.js`) and `oxc-transform-react` on web (see `config/rsbuild/`). They do not always agree, so a file can be memoized on one platform but not the other. The compliance check and the ESLint processor both run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
+React Compiler auto-memoizes code in components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native/Jest (see `babel.config.js`) and `oxc-transform-react` on web (see `config/rsbuild/`). They do not behave identically. The compliance check and the ESLint processor run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
+
+Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that compile with React Compiler.
 
 ### Code Quality
 
-- **TypeScript**: Strict mode enabled
 - **ESLint**: Linter. Pre-existing violations are grandfathered via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).
-- **Oxfmt**: Code formatting - run `npm run fmt` after making changes
-- **Patch Management**: patch-package for dependency fixes
 
 ### Post-Edit Checklist (IMPORTANT)
 
 **ALWAYS run these steps after making code changes, before committing:**
 
 1. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
-2. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
+2. **TypeScript**: Run `npm run typecheck` after changes that may affect typing (types, interfaces, or function signatures). It runs the TypeScript 7 native compiler and is the required merge gate in CI.
 3. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
+4. **Spelling**: Run `npm run spell-changed -- <files you changed>` to catch spelling errors (cspell needs an explicit file list). CI validates with cspell, which remains the required merge gate.
 
 ### Testing
 
-- **Unit Tests**: Jest with React Native Testing Library. Tests for `.github/` and `scripts/` live in
-  `tests/tooling/` and run under `bun:test` (`npm run test:bun`) — see `tests/tooling/README.md`.
-- **Performance Tests**: Reassure framework
+App tests use Jest. Tests for `.github/` and `scripts/` live in `tests/tooling/` and run under `bun:test` (`npm run test:bun`) — see `tests/tooling/README.md`.
 
 ## Special Considerations
 
@@ -244,81 +86,12 @@ React Compiler auto-memoizes object literals, callbacks, JSX, and derived values
 - Queue-based request handling
 - Conflict resolution strategies
 
-### Mobile-Specific Notes
-
-- Push notifications via Airship
-- Mapbox integration for location features
-- Camera and gallery access
-
-### Security
-
-- Content Security Policy enforcement
-- Two-factor authentication support
-
-## Documentation Resources
-
-### Help Documentation
+## Customer-Facing Help Site
 
 - **NewDot Help**: https://help.expensify.com/new-expensify/hubs/
 - **OldDot/Expensify Classic Help**: https://help.expensify.com/expensify-classic/hubs/
 
-## Development Setup Requirements
-
-### Sentry analysis
-
-Use Sentry skill whenever user wants to analyze any data from Sentry. It may be: spans, metrics, crashes, crash free rate etc.
-
-## Command Reference
-
-### Common Tasks
-
-```bash
-# Install dependencies
-npm install
-
-# Clean build artifacts
-npm run clean
-
-# Type checking (tsgo, fast, for development only)
-npm run typecheck-tsgo
-
-# Type checking (tsc, CI production gate)
-npm run typecheck
-
-# Linting
-npm run lint
-
-# Format code with Oxfmt
-npm run fmt
-
-# Testing
-npm run test
-
-# Bun tests: server/ plus the repo's own tooling (.github/ and scripts/)
-npm run test:bun
-```
-
-### Platform Builds
-
-```bash
-# iOS build
-npm run ios
-
-# Android build
-npm run android
-
-# Web build
-npm run web
-```
-
 ## Development Environment
-
-### Dev Server
-
-- **Location**: Runs on HOST machine (not in VM)
-- **URL**: `https://dev.new.expensify.com:8082/`
-- **Start command**: `npm run web`
-- **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
 
 ### Browser Testing
 
@@ -326,40 +99,8 @@ Use the `/playwright-app-testing` skill to test and debug the App in a browser. 
 
 ### Mobile Device Testing
 
-Use the `/agent-device` skill to drive the App on iOS and Android (simulators or real devices) for interactive testing, performance profiling, bug reproduction, and device-specific debugging. Requires `npm install -g agent-device` - the skill's pre-flight check will surface the install instruction if missing.
+Use the `/agent-device` skill to drive the App on iOS and Android (simulators or real devices) for interactive testing, performance profiling, bug reproduction, and device-specific debugging.
 
-## Architecture Decisions
+### Sentry Analysis
 
-### React Native New Architecture
-
-- Fabric renderer enabled
-- TurboModules for native module integration
-- Hermes JavaScript engine
-
-### State Management Choice
-
-- Custom Onyx library for offline-first capabilities
-- Optimistic updates as default pattern
-- Centralized action layer for API calls
-- Direct key-value storage with automatic persistence
-
-### Navigation Strategy
-
-- React Navigation for cross-platform consistency
-- Custom navigation state management
-- Deep linking support
-
-## Known Integration Points
-
-### With Mobile-Expensify
-
-- Session sharing via HybridApp module
-- Navigation handoff between apps
-- Shared authentication state
-- Environment variable merging
-
-### With Backend Services
-
-- REST API communication
-- WebSocket connections via Pusher
-- Real-time synchronization
+Use the Sentry skill whenever the user wants to analyze any data from Sentry: spans, metrics, crashes, crash free rate, etc.
