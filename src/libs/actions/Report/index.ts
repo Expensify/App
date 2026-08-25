@@ -2596,7 +2596,20 @@ function navigateToAndOpenReport({
         return;
     }
 
+    // The create path above (createAndOpenNewOptimisticChat) enqueues an onboarding OpenReport carrying guidedSetupData
+    // whenever guided setup is still pending. When the DM already exists we take an existing-chat path instead, which would
+    // otherwise skip that OpenReport — breaking callers that rely on it being enqueued (e.g. the Concierge limit-increase
+    // reply must be stamped after the onboarding welcome message + tasks). So when onboarding is pending, enqueue the same
+    // onboarding OpenReport here too, so the create-path branch's assumption holds regardless of whether the DM already
+    // exists. getGuidedSetupDataForOpenReport de-dupes, so this won't duplicate onboarding. See https://github.com/Expensify/App/issues/99396.
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlow ?? false;
+    const isRegularOnboardingPending = !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted;
+    const isOnboardingPending = isRegularOnboardingPending || isSupportedPendingInviteOnboarding(introSelected);
+
     if (!shouldRevalidateExistingChat) {
+        if (isOnboardingPending) {
+            openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID});
+        }
         navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
         return;
     }
@@ -2621,8 +2634,9 @@ function navigateToAndOpenReport({
         },
     });
 
-    // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas, hasReportActions, currentUserAccountID});
+    // Re-open existing chats to re-validate server-side access and refresh stale local state. Pass hasCompletedGuidedSetupFlow
+    // so a pending onboarding OpenReport is enqueued here too (see the create-path assumption note above).
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID});
     navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
