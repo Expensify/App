@@ -189,7 +189,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDistance').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE]: () => require<ReactComponentModule>('@pages/iou/request/step/DynamicIOURequestStepDistanceRate').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepMerchant').default,
-    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepParticipants').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepParticipants').default,
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/WorkspaceCategoriesPage').default,
     [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsPage').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_EDIT_REPORT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestEditReport').default,
@@ -214,9 +214,9 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepTime').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepSubrate').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_RECEIPT_VIEW]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan/DynamicReceiptView').default,
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpenseCreateDateRagePage').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicSplitExpensePage').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicSplitExpensePage').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicSplitExpenseCreateDateRangePage').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpenseEditPage').default,
     [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/DistanceRequestStartPage').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceMap').default,
@@ -714,6 +714,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyReasonPage').default,
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyConfirmPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/QuickbooksOnlineSetupPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/IntuitEnterpriseSuiteEntitySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksChartOfAccountsPage').default,
@@ -733,6 +735,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksInvoiceAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksFxExpenseAccountSelectPage').default,
 
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroImportPage').default,
