@@ -9,11 +9,11 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCardName} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 
@@ -24,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import KeyboardUtils from '@src/utils/keyboard';
 
+import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 
 type CardNameStepProps = {
@@ -49,10 +50,11 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
+    const assigneeFirstName = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => personalDetail?.firstName);
     const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
     const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
 
-    const userName = getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
+    const userName = Str.removeSMSDomain(assigneeFirstName ? assigneeFirstName : (data?.assigneeEmail ?? ''));
     const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
