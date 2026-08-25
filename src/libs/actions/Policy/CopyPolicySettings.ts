@@ -2,13 +2,14 @@ import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
+import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists, PolicyCategory} from '@src/types/onyx';
 import type {CustomUnit, PolicyFeatureName} from '@src/types/onyx/Policy';
-import type {PolicyCategory} from '@src/types/onyx/PolicyCategory';
 
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
@@ -217,7 +218,7 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
 }
 
 /**
- * Mirror Backend logic for the category field of flag for review and field requirement
+ * The category fields the backend copies for Flag for review and Field requirements rules.
  */
 const CATEGORY_RULE_FIELDS = [
     'maxExpenseAmount',
@@ -246,7 +247,11 @@ function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCateg
 
         const categoryPatch: Partial<PolicyCategory> = {};
         for (const field of CATEGORY_RULE_FIELDS) {
-            if (sourceCategory[field] === undefined) {
+            if (sourceCategory[field] === undefined || sourceCategories?.[field].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
+            }
+
+            if (!hasExplicitFlagAmount(sourceCategory.maxExpenseAmount) && !categoryHasAnyRequireFieldsRule(sourceCategory) && !sourceCategory.commentHint) {
                 continue;
             }
             // The CATEGORY_RULE_FIELDS values are typed as keyof PolicyCategory, so this assignment is safe.
@@ -457,6 +462,7 @@ function buildCopyPolicySettingsData(
             const targetCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy.id}` as const;
             const previousCategories = allPolicyCategories?.[targetCategoriesKey];
             const categoryRulesPatch = previousCategories ? buildCategoryRulesPatch(sourceCategories, previousCategories) : undefined;
+            // We should only copy when there's matched target category
             if (previousCategories && categoryRulesPatch) {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
