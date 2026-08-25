@@ -39,7 +39,7 @@ runs:
 
     - id: stickydisk-node-modules
       if: steps.runner-info.outputs.use-sticky-disk == 'true'
-      uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+      uses: useblacksmith/stickydisk@74f3f01ab1392726dd6ee06904f0452b0ec1e151 # v1.6.0
       with:
         key: ${{ format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('normalized-package-lock.json', 'patches/**')) }}
         path: node_modules
@@ -47,7 +47,7 @@ runs:
 
     - id: stickydisk-old-dot-node-modules
       if: steps.runner-info.outputs.use-sticky-disk == 'true' && inputs.IS_HYBRID_BUILD == 'true'
-      uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+      uses: useblacksmith/stickydisk@74f3f01ab1392726dd6ee06904f0452b0ec1e151 # v1.6.0
       with:
         key: ${{ format('{0}-{1}-{2}-old-dot-node-modules-{3}', github.repository, runner.os, runner.arch, hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**')) }}
         path: Mobile-Expensify/node_modules
@@ -55,7 +55,7 @@ runs:
 
     - id: stickydisk-npm
       if: steps.runner-info.outputs.use-sticky-disk == 'true'
-      uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+      uses: useblacksmith/stickydisk@74f3f01ab1392726dd6ee06904f0452b0ec1e151 # v1.6.0
       with:
         key: ${{ format('{0}-{1}-{2}-npm', github.repository, runner.os, runner.arch) }}
         path: ~/.npm
