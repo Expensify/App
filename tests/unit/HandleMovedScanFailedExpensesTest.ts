@@ -72,9 +72,9 @@ function buildSuccessData(): AnyOnyxUpdate[] {
     ];
 }
 
-function buildPayRequest(overrides: Record<string, unknown> = {}): Request<OnyxKey> {
+function buildPayRequest(overrides: Record<string, unknown> = {}, command = 'PayMoneyRequest'): Request<OnyxKey> {
     return {
-        command: 'PayMoneyRequest',
+        command,
         data: {
             full: true,
             chatReportID: CHAT_REPORT_ID,
@@ -162,6 +162,15 @@ describe('HandleMovedScanFailedExpenses middleware', () => {
 
         expect(getSuccessData(request)).toHaveLength(2);
         expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('reconciles a wallet payment too, which moves scan-failed expenses the same way', async () => {
+        const request = buildPayRequest({}, 'PayMoneyRequestWithWallet');
+
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
+
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: REAL_REPORT_ID}, 'report-route');
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${OPTIMISTIC_REPORT_ID}`)?.value).toBeNull();
     });
 
     it('leaves a hold split untouched, since it pays only part of the report and the backend reuses its optimistic report', async () => {
