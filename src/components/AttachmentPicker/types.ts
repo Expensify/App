@@ -64,6 +64,14 @@ type AttachmentPickerProps = {
 
     /** When true, skip the Camera/Gallery/Document modal and open the document picker directly (native only). */
     shouldSkipAttachmentTypeModal?: boolean;
+
+    /**
+     * When true, the native picker scales selected images down to `CONST.MAX_IMAGE_DIMENSION` before handing
+     * them over, so a full-resolution bitmap is never decoded in our process. Intended for receipt flows,
+     * where resolution beyond that adds memory pressure without helping SmartScan. Leave off for flows
+     * where the user expects the original image, such as chat attachments and avatars. Native only.
+     */
+    shouldDownscaleImages?: boolean;
 };
 
 export default AttachmentPickerProps;

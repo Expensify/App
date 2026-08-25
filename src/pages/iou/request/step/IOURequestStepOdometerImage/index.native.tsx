@@ -355,6 +355,7 @@ function IOURequestStepOdometerImage({
                         }}
                         fileLimit={1}
                         shouldValidateImage={false}
+                        shouldDownscaleImages
                     >
                         {({openPicker}) => (
                             <PressableWithFeedback

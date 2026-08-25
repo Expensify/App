@@ -16,6 +16,14 @@ import BaseImage from './BaseImage';
 import getImageSource from './getImageSource';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
 
+/** Reads the URI out of a source, for the object-with-uri shape. Static assets and arrays return undefined. */
+function getSourceURI(source: ImageProps['source']): string | undefined {
+    if (typeof source === 'object' && source !== null && !Array.isArray(source) && 'uri' in source && typeof source.uri === 'string') {
+        return source.uri;
+    }
+    return undefined;
+}
+
 function Image({
     source: propsSource,
     shouldCalculateAspectRatioForWideImage = false,
@@ -119,6 +127,19 @@ function Image({
     });
 
     /**
+     * Callers almost always build the source inline (`source={{uri}}`), so a brand new object arrives on
+     * every parent render even when the image has not changed. Keying the memo below on that object would
+     * hand expo-image a new source each time, and expo-image treats a new source as a new image: it fetches
+     * and decodes it again. That is what produced the repeated GETs of the same receipt URLs, with no cache
+     * hits, in the sessions behind Sentry APP-4X.
+     *
+     * Keying on the URI instead keeps the resolved source referentially stable for as long as the image is
+     * the same. Static assets (numbers) are already stable, and any other shape falls back to the previous
+     * reference-identity behaviour.
+     */
+    const sourceKey = getSourceURI(propsSource) ?? propsSource;
+
+    /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
      */
@@ -138,8 +159,9 @@ function Image({
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
         // but we still need the image to reload sometimes (example : when the current session is expired)
         // by forcing a recalculation of the source (which value could indeed change) through the modification of the variable validSessionAge
+        // `sourceKey` stands in for `propsSource` on purpose - see the comment above.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [propsSource, isAuthTokenRequired, validSessionAge, isOffline]);
+    }, [sourceKey, isAuthTokenRequired, validSessionAge, isOffline]);
     useEffect(() => {
         if (!isAuthTokenRequired || source !== undefined) {
             return;
@@ -176,7 +198,19 @@ function Image({
 
 Image.displayName = 'Image';
 
-export default React.memo(
-    Image,
-    (prevProps: ImageProps, nextProps: ImageProps) => prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight,
-);
+export default React.memo(Image, (prevProps: ImageProps, nextProps: ImageProps) => {
+    if (prevProps.imageWidthToCalculateHeight !== nextProps.imageWidthToCalculateHeight) {
+        return false;
+    }
+
+    // Inline `{uri}` literals are a new object on every parent render, so reference equality reports a
+    // change for what is the same image. Compare the URI whenever both sides carry one, and fall back to
+    // reference identity for static assets and other shapes.
+    const prevSourceURI = getSourceURI(prevProps.source);
+    const nextSourceURI = getSourceURI(nextProps.source);
+    if (prevSourceURI !== undefined && nextSourceURI !== undefined) {
+        return prevSourceURI === nextSourceURI;
+    }
+
+    return prevProps.source === nextProps.source;
+});

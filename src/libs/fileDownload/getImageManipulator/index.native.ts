@@ -4,8 +4,8 @@ import {manipulateAsync} from 'expo-image-manipulator';
 
 import type ImageManipulatorConfig from './type';
 
-export default function getImageManipulator({fileUri, width, height, type, fileName}: ImageManipulatorConfig): Promise<FileObject> {
-    return manipulateAsync(fileUri ?? '', [{resize: {width, height}}]).then((result) => ({
+export default function getImageManipulator({fileUri, width, height, type, fileName, compress}: ImageManipulatorConfig): Promise<FileObject> {
+    return manipulateAsync(fileUri ?? '', [{resize: {width, height}}], compress === undefined ? undefined : {compress}).then((result) => ({
         uri: result.uri,
         width: result.width,
         height: result.height,

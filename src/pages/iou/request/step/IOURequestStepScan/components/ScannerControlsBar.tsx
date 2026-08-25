@@ -88,6 +88,7 @@ function ScannerControlsBar({
                 }}
                 fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
                 shouldValidateImage={false}
+                shouldDownscaleImages
             >
                 {({openPicker}) => (
                     <PressableWithFeedback
