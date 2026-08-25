@@ -44,7 +44,6 @@ type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     draftValues: OnyxEntry<PersonalDetailsForm>;
 
-    /** Optional custom header title */
     headerTitle?: string;
 
     /** Completion handler */

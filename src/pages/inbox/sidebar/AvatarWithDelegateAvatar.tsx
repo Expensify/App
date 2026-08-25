@@ -21,13 +21,10 @@ type AvatarWithDelegateAvatarProps = {
     /** Original account of delegate */
     delegateEmail: string;
 
-    /** Whether the avatar is hovered */
     isHovered?: boolean;
 
-    /** Whether the avatar is selected */
     isSelected?: boolean;
 
-    /** Style for the Avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 

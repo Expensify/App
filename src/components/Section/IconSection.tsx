@@ -14,10 +14,8 @@ import {View} from 'react-native';
 type IconSectionProps = {
     icon?: IconAsset;
     iconContainerStyles?: StyleProp<ViewStyle>;
-    /** The width of the icon. */
     width?: number;
 
-    /** The height of the icon. */
     height?: number;
 };
 

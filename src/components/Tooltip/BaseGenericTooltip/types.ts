@@ -3,10 +3,8 @@ import type {SharedTooltipProps} from '@components/Tooltip/types';
 import type {SharedValue} from 'react-native-reanimated';
 
 type BaseGenericTooltipProps = {
-    /** Window width */
     windowWidth: number;
 
-    /** Tooltip Animation value */
     animation: SharedValue<number>;
 
     /** The distance between the left side of the wrapper view and the left side of the window */
@@ -15,10 +13,8 @@ type BaseGenericTooltipProps = {
     /** The distance between the top of the wrapper view and the top of the window */
     yOffset: number;
 
-    /** The width of the tooltip's target */
     targetWidth: number;
 
-    /** The height of the tooltip's target */
     targetHeight: number;
 
     /** Minimum width for the tooltip */
@@ -35,10 +31,8 @@ type BaseGenericTooltipProps = {
     /** Handles what to do when hiding the tooltip */
     onHideTooltip?: () => void;
 
-    /** Whether the tooltip should teleport to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
 
-    /** Whether it is education tooltip */
     isEducationTooltip?: boolean;
 } & Pick<
     SharedTooltipProps,

@@ -39,7 +39,6 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
 
     shouldShowSuccessStyle?: boolean;
 
-    /** Ref for the inner ButtonWithDropdownMenu */
     dropdownMenuRef?: React.Ref<ButtonWithDropdownMenuRef>;
 
     /** Callback fired when the dropdown menu hides */

@@ -26,10 +26,8 @@ type SelectionDropdownProps = {
     selectedTransactionsOptions: Array<DropdownOption<string>>;
     selectedTransactionIDs: string[];
 
-    /** Whether the selection mode is pay-in */
     hasPayInSelectionMode: boolean;
 
-    /** Callback to select the payment */
     onSelectionModePaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
 
     /** Callback for the end of the onContinue trigger on option selection */
@@ -38,10 +36,8 @@ type SelectionDropdownProps = {
     /** Callback when a workspace policy payment option is selected */
     onWorkspacePolicySelect: (policy: Policy, triggerKYCFlow: TriggerKYCFlow) => void;
 
-    /** Reference to the KYC wall */
     kycWallRef: React.RefObject<KYCWallRef | null>;
 
-    /** Whether the popover content should be scrollable */
     shouldPopoverUseScrollView: boolean;
 };
 

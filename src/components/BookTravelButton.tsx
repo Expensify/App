@@ -40,10 +40,8 @@ type BookTravelButtonProps = WithSentryLabel & {
     text: string;
     activePolicyID?: string;
 
-    /** Whether to render the error message below the button */
     shouldRenderErrorMessageBelowButton?: boolean;
 
-    /** Function to set the shouldScrollToBottom state */
     setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
 
     shouldShowVerifyAccountModal?: boolean;

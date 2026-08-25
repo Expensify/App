@@ -10,16 +10,13 @@ type TextSelectorModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
-    /** Current value */
     value?: string;
 
-    /** Function to call when the user selects a item */
     onValueSelected?: (value: string) => void;
 
     /** Function to call when the user closes the modal */
     onClose: () => void;
 
-    /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 
     /** Whether to clear the input value when the modal closes */
@@ -28,7 +25,6 @@ type TextSelectorModalProps = {
     /** The ID used to uniquely identify the input in a Form */
     inputID: string;
 
-    /** Whether the field is required */
     required?: boolean;
 
     /** Custom validation function */
@@ -46,10 +42,8 @@ type TextSelectorModalProps = {
     Omit<TextProps, 'ref'>;
 
 type TextPickerProps = {
-    /** Item to display */
     value?: string;
 
-    /** A placeholder value to display */
     placeholder?: string;
 
     /** Form Error description */
@@ -67,13 +61,11 @@ type TextPickerProps = {
     /** Text to display under the main menu item */
     furtherDetails?: string;
 
-    /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 
     /** The ID used to uniquely identify the input in a Form */
     inputID: string;
 
-    /** Whether the field is required */
     required?: boolean;
 
     /** Custom validation function */
@@ -88,7 +80,6 @@ type TextPickerProps = {
     /** Whether to use strict HTML tag validation regex */
     shouldUseStrictHtmlTagValidation?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive' | 'wrapperStyle' | 'numberOfLinesTitle' | 'titleStyle' | 'descriptionTextStyle'> &
     TextProps;

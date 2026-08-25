@@ -164,7 +164,6 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
 type MoneyRequestViewProps = {
-    /** The report currently being looked at */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
     parentReportID?: string;

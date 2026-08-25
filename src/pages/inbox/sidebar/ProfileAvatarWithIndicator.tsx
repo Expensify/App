@@ -20,10 +20,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ProfileAvatarWithIndicatorProps = {
-    /** Whether the avatar is selected */
     isSelected?: boolean;
 
-    /** Avatar Container styles */
     containerStyles?: StyleProp<ViewStyle>;
 };
 

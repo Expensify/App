@@ -21,7 +21,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type PreferredWorkspaceToggleProps = {
-    /** The account ID of the domain */
     domainAccountID: number;
 
     /** The ID of the security group */

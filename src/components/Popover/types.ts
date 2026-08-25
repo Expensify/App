@@ -11,25 +11,19 @@ import type {Text, View} from 'react-native';
 
 type PopoverProps = BaseModalProps &
     ChildrenProps & {
-        /** The anchor position of the popover */
         anchorPosition?: PopoverAnchorPosition;
 
-        /** The anchor alignment of the popover */
         anchorAlignment?: AnchorAlignment;
 
-        /** The anchor ref of the popover */
         anchorRef: RefObject<View | HTMLDivElement | Text | null>;
 
-        /** Whether disable the animations */
         disableAnimation?: boolean;
 
         /** Whether we don't want to show overlay */
         withoutOverlay?: boolean;
 
-        /** The dimensions of the popover */
         popoverDimensions?: Dimensions;
 
-        /** The ref of the popover */
         withoutOverlayRef?: RefObject<View | HTMLDivElement>;
 
         /** Whether we want to show the popover on the right side of the screen */

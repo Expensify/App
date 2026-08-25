@@ -8,7 +8,6 @@ import type {Text, View} from 'react-native';
 
 type PopoverWithoutOverlayProps = ChildrenProps &
     Omit<BaseModalProps, 'type' | 'popoverAnchorPosition'> & {
-        /** The anchor position of the popover */
         anchorPosition?: {
             top?: number;
             right?: number;
@@ -16,16 +15,13 @@ type PopoverWithoutOverlayProps = ChildrenProps &
             left?: number;
         };
 
-        /** The anchor ref of the popover */
         anchorRef: RefObject<View | HTMLDivElement | Text | null>;
 
         /** Time in milliseconds for the modal entering animation */
         animationInTiming?: number;
 
-        /** Whether disable the animations */
         disableAnimation?: boolean;
 
-        /** The ref of the popover */
         withoutOverlayRef: RefObject<View | HTMLDivElement | null>;
 
         /** Whether we should display the popover below other modals (e.g. SidePanel, RHP) */

@@ -30,10 +30,8 @@ type MoneyRequestReportPreviewProps = {
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 
-    /** All the data of the action */
     action: ReportAction;
 
-    /** The associated chatReport */
     chatReportID: string | undefined;
 
     /** The chat report this preview belongs to */
@@ -82,7 +80,6 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 
-        /** MoneyRequestReportPreview's current width */
         currentWidth: number;
 
         /** Extra styles to pass to View wrapper */
@@ -94,7 +91,6 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** Callback passed to Component wrapper view's onLayout */
         onWrapperLayout: (e: LayoutChangeEvent) => void;
 
-        /** Callback to render a transaction preview item */
         renderTransactionItem: ListRenderItem<Transaction>;
 
         /** Called with the transactions in the order the carousel renders them */

@@ -29,10 +29,8 @@ type ReceiptEmptyStateProps = {
     /** Whether the receipt action is disabled */
     disabled?: boolean;
 
-    /** Whether the receipt is a thumbnail */
     isThumbnail?: boolean;
 
-    /** Whether the receipt is in the money request view */
     isInMoneyRequestView?: boolean;
 
     /** Whether the receipt empty state should extend to the full height of the container. */
@@ -46,7 +44,6 @@ type ReceiptEmptyStateProps = {
     /** Callback to be called when the image loads */
     onLoad?: () => void;
 
-    /** Whether it's displayed in Wide RHP */
     isDisplayedInWideRHP?: boolean;
 
     /** Callback to be called when a receipt is selected */

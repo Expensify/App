@@ -10,13 +10,10 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     /** The reportAction adjacent to `message` (either previous or next one) */
     nextMessage: OnyxTypes.ReportAction | undefined;
 
-    /** Is it the earliestReceivedOfflineMessage */
     isEarliestReceivedOfflineMessage: boolean;
 
-    /** Time for unreadMarker */
     unreadMarkerTime: string | undefined;
 
-    /** User accountID */
     currentUserAccountID: number;
 
     /** Map of reportActions saved via usePrev */
@@ -108,13 +105,11 @@ type GetUnreadMarkerReportActionParams = {
     /** Index of the earliest message received while offline, used to limit the scan range */
     earliestReceivedOfflineMessageIndex: number | undefined;
 
-    /** User accountID */
     currentUserAccountID: number;
 
     /** Map of reportActions saved via usePrev */
     prevSortedVisibleReportActionsObjects: OnyxTypes.ReportActions;
 
-    /** Time for unreadMarker */
     unreadMarkerTime: string | undefined;
 
     /** Whether the list is scrolled past the threshold where incoming actions are considered out of view */

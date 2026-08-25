@@ -23,10 +23,8 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type HangTightProps = {
-    /** ID of policy */
     policyID: string | undefined;
 
-    /** ID of bank account */
     bankAccountID: number;
 };
 

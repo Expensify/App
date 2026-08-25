@@ -39,7 +39,6 @@ type AgentRowData = TableData & {
 type AgentsTableProps = {
     ref?: React.Ref<TableHandle<AgentRowData, AgentsTableColumnKey, string>> | undefined;
 
-    /** The list of agents to render as rows */
     agents: AgentRowData[];
 
     /** Content rendered above the table header inside the scrollable list */
@@ -51,7 +50,6 @@ type AgentsTableProps = {
     /** Keys of the currently selected rows */
     selectedKeys: string[];
 
-    /** Called with the updated selected row keys when the selection changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 

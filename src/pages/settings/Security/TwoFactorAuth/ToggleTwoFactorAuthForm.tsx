@@ -17,7 +17,7 @@ import React from 'react';
 
 type BaseTwoFactorAuthFormProps = {
     // Set this to true in order to call the validateTwoFactorAuth action which is used when setting up 2FA for the first time.
-    // Set this to false in order to disable 2FA when a valid code is entered.
+    /** Set this to false in order to disable 2FA when a valid code is entered */
     validateInsteadOfDisable?: boolean;
 
     /** Callback that is called when the text input is focused */
@@ -26,7 +26,6 @@ type BaseTwoFactorAuthFormProps = {
     /** Whether the form should autofocus on mobile devices */
     shouldAutoFocusOnMobile?: boolean;
 
-    /** Reference to the outer element */
     ref: Ref<BaseTwoFactorAuthFormRef>;
 };
 

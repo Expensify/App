@@ -20,10 +20,8 @@ import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
 type PolicyIndicatorChecksResult = {
-    /** The policy error indicator status. */
     policyErrorStatus: IndicatorStatus | undefined;
 
-    /** The policy info indicator status. */
     policyInfoStatus: IndicatorStatus | undefined;
 
     /** The domain error indicator status. */

@@ -56,7 +56,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type MoneyReportViewProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
     /** Policy that the report belongs to */
@@ -65,10 +64,8 @@ type MoneyReportViewProps = {
     /** Indicates whether the iou report is a combine report */
     isCombinedReport?: boolean;
 
-    /** Indicates whether the total should be shown */
     shouldShowTotal?: boolean;
 
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
 
     pendingAction?: PendingAction;

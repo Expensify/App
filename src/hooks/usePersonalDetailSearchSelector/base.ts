@@ -39,13 +39,10 @@ type UseSearchSelectorConfig = {
     /** When set, only the logins in this set are turned into options */
     includeLoginsOnly?: Set<string>;
 
-    /** Whether to include recent reports */
     includeRecentReports?: boolean;
 
-    /** Whether to include current user */
     includeCurrentUser?: boolean;
 
-    /** Whether to include domain emails */
     includeDomainEmail?: boolean;
 
     /** Enable phone contacts integration */
@@ -60,10 +57,8 @@ type UseSearchSelectorConfig = {
     /** Initial selected options */
     initialSelected?: Set<string>;
 
-    /** Initial extra options */
     initialExtraOptions?: OptionData[];
 
-    /** Whether to initialize the hook */
     shouldInitialize?: boolean;
 
     /** Additional contact options to merge (used by platform-specific implementations) */
@@ -72,7 +67,6 @@ type UseSearchSelectorConfig = {
     /** Whether to filter with recent attendees */
     recentAttendees?: string[];
 
-    /** Whether to allow name-only options */
     shouldAllowNameOnlyOptions?: boolean;
 
     /** Whether to keep selected options in availableOptions instead of filtering them out */
@@ -81,7 +75,6 @@ type UseSearchSelectorConfig = {
     /** Whether to update selected options when in single select mode and a new option is selected */
     shouldUpdateSelectedOptionsOnSingleSelect?: boolean;
 
-    /** Initial Search Phrase */
     initialSearchPhrase?: string;
 };
 
@@ -89,13 +82,11 @@ type ContactState = {
     /** Current permission status */
     permissionStatus: PermissionStatus;
 
-    /** Whether to show import UI */
     showImportUI: boolean;
 
     /** Function to trigger contact import */
     importContacts: () => void;
 
-    /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
@@ -112,13 +103,11 @@ type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
 
-    /** Debounced search term */
     debouncedSearchTerm: string;
 
     /** Function to update search term */
     setSearchTerm: (value: string) => void;
 
-    /** Currently selected options */
     selectedOptions: OptionData[];
 
     /** Available (unselected) options */
@@ -133,7 +122,6 @@ type UseSearchSelectorReturn = {
     /** Function to reset selection state of an option */
     resetSelection: () => void;
 
-    /** Whether options are initialized */
     areOptionsInitialized: boolean;
 
     /** Contact-related state and functions (when enablePhoneContacts is true) */

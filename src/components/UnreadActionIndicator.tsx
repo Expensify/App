@@ -9,10 +9,8 @@ import {View} from 'react-native';
 import Text from './Text';
 
 type UnreadActionIndicatorProps = {
-    /** The ID of the report action */
     reportActionID: string | undefined;
 
-    /** Whether we should hide thread divider line */
     shouldHideThreadDividerLine?: boolean;
 };
 

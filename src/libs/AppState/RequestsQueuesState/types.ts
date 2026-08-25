@@ -23,7 +23,6 @@ type PersistedRequestsInfo = {
     /** Commands of queued requests for debugging */
     queuedCommands: string[];
 
-    /** Currently ongoing request state */
     ongoingRequestInfo?: OngoingRequestInfo;
 };
 
@@ -50,13 +49,10 @@ type LeaderInfo = {
  * Request queues and processing state.
  */
 type RequestQueuesInfo = {
-    /** Main queue state */
     mainQueue: MainQueueInfo;
 
-    /** Sequential queue state */
     sequentialQueue: SequentialQueueInfo;
 
-    /** Persisted requests state */
     persistedRequests: PersistedRequestsInfo;
 
     /** Leader state affecting requests */

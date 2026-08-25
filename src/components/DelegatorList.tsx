@@ -13,7 +13,6 @@ import MenuItem from './MenuItem';
 import Text from './Text';
 
 type DelegatorListProps = {
-    /** List of delegators */
     delegators?: string[];
 
     message: string;

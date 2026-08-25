@@ -81,7 +81,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
-        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 

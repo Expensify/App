@@ -24,13 +24,10 @@ type NavigationStateInfo = {
  * Session and authentication state.
  */
 type SessionStateInfo = {
-    /** Whether session is currently loading */
     isSessionLoading: boolean;
 
-    /** Whether authenticating with short-lived token */
     isAuthenticatingWithShortLivedToken: boolean;
 
-    /** Whether authenticating from network store */
     isAuthenticatingFromNetworkStore: boolean;
 };
 

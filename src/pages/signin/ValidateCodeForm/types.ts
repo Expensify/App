@@ -11,7 +11,6 @@ type ValidateCodeFormProps = {
 
     isVisible: boolean;
 
-    /** Reference to the outer element */
     ref: ForwardedRef<BaseValidateCodeFormRef>;
 };
 

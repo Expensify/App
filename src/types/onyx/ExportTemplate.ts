@@ -8,13 +8,10 @@ type ExportTemplate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The internal name of the template */
     templateName: string;
 
-    /** Type of the template */
     type: string;
 
-    /** Policy ID of the template */
     policyID: string | undefined;
 
-    /** Description of the template */
     description: string;
 }>;
 

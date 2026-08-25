@@ -10,7 +10,6 @@ type EmojiPickerMenuProps = {
 
     activeEmoji?: string;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 

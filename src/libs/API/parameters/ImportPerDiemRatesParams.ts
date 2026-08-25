@@ -1,8 +1,6 @@
 type ImportPerDiemRatesParams = {
-    /** ID of the policy */
     policyID: string;
 
-    /** Custom Unit ID of the per diem unit */
     customUnitID: string;
 
     /**

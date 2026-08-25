@@ -34,7 +34,6 @@ type SamlLoginSectionContentProps = {
     /** Whether SAML authentication is required for the domain. */
     isSamlRequired: boolean;
 
-    /** Whether Okta SCIM is enabled for the domain. */
     isOktaScimEnabled: boolean;
 };
 

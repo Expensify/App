@@ -2854,34 +2854,27 @@ function getTaskSections(
 }
 
 type CreateAndOpenSearchTransactionThreadParams = {
-    /** The transaction list item being opened */
     item: TransactionListItemType;
 
-    /** The intro selected by the user */
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
 
     /** The route to go back to after navigation */
     backTo: string;
 
-    /** The current user's login */
     currentUserLogin: string;
 
-    /** The current user's account ID */
     currentUserAccountID: number;
 
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
-    /** The Concierge chat report */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** The personal details of the participants */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
-    /** Whether the user has seen the self tour */
     isSelfTourViewed: boolean | undefined;
 
-    /** Whether the user has completed the guided setup flow */
     hasCompletedGuidedSetupFlow: boolean | undefined;
 
     /** Existing transaction thread report ID (childReportID), if any */

@@ -26,10 +26,8 @@ type VideoPlayerThumbnailProps = {
     /** Callback executed on thumbnail press. */
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-    /** Accessibility label for the thumbnail. */
     accessibilityLabel: string;
 
-    /** Whether the video is deleted */
     isDeleted?: boolean;
 };
 

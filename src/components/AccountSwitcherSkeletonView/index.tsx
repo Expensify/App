@@ -15,13 +15,10 @@ import {View} from 'react-native';
 import {Circle} from 'react-native-svg';
 
 type AccountSwitcherSkeletonViewProps = {
-    /** Whether to animate the skeleton view */
     shouldAnimate?: boolean;
 
-    /** The size of the avatar */
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** The width of the skeleton view */
     width?: number;
 
     /** Additional styles for the skeleton view */

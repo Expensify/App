@@ -42,7 +42,6 @@ type UseFormErrorManagementParams = {
     /** Policy categories, used for category validation */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
-    /** Personal details of the current user */
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Whether we are editing an existing split bill */

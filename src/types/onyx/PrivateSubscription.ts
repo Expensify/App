@@ -16,10 +16,8 @@ type PrivateSubscription = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** "corporate karma" setting */
     donateToExpensifyOrg?: true;
 
-    /** Subscription end date */
     endDate: string;
 
-    /** Subscription start date */
     startDate: string;
 
     /** Subscription variant. "yearly2018" - annual, "monthly2018" - pay-per-use */

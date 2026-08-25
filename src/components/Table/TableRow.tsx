@@ -37,10 +37,8 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibil
     /** Whether or not the table row is pressable or not */
     interactive: boolean;
 
-    /** Whether or not the table row should be disabled */
     disabled?: boolean;
 
-    /** The index of the row in the table */
     rowIndex: number;
 
     /** Attributes for when the client is offline and there is an error related to the table row */

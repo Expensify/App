@@ -76,7 +76,6 @@ type UseConfirmationValidationParams = {
     /** Participants selected for this IOU */
     selectedParticipants: Participant[];
 
-    /** Personal details of the current user */
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Whether we are editing an existing split bill */
@@ -115,7 +114,6 @@ type UseConfirmationValidationParams = {
     /** Truthy when the route to the confirmation page has a known error */
     routeError: string | null | undefined;
 
-    /** Whether the new manual expense flow is enabled */
     isNewManualExpenseFlowEnabled: boolean;
 
     /** Whether the confirmation fields are read-only (date is not inline-editable) */

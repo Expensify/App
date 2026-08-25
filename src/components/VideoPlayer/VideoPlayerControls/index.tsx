@@ -26,28 +26,22 @@ import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 
 type VideoPlayerControlsProps = {
-    /** Duration of a video. */
     duration: number;
 
     /** Position of progress pointer. */
     position: number;
 
-    /** Url of a video. */
     url: string;
 
-    /** Ref for video player. */
     videoPlayerRef: RefObject<VideoPlayer | null>;
 
-    /** Ref for video view component. */
     videoViewRef: RefObject<VideoView | null>;
 
-    /** Is video playing. */
     isPlaying: boolean;
 
     /** Defines if component should have small icons and tighter spacing inline. */
     small?: boolean;
 
-    /** Style of video player controls. */
     style?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Function to play and pause the video.  */

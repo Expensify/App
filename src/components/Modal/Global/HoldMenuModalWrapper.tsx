@@ -27,8 +27,10 @@ type HoldMenuModalWrapperProps = ModalProps & {
     hasNonHeldExpenses?: boolean;
     transactionCount: number;
     onConfirm?: (full: boolean) => void;
-    // Optional overrides for callers that source reports from a place other
-    // than the main report collection (e.g. Search rows render from a snapshot).
+    /**
+     * Optional overrides for callers that source reports from a place other
+     * than the main report collection (e.g. Search rows render from a snapshot).
+     */
     moneyRequestReport?: OnyxEntry<Report>;
     chatReport?: OnyxEntry<Report>;
 };

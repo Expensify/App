@@ -21,10 +21,8 @@ type AmountFormProps = {
     /** Should we allow negative number as valid input */
     shouldAllowNegative?: boolean;
 
-    /** Whether to allow flipping the amount */
     allowFlippingAmount?: boolean;
 
-    /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
 } & Partial<BaseTextInputProps>;
 

@@ -34,7 +34,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type MoneyRequestViewReportFieldsProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
     /** Policy that the report belongs to */

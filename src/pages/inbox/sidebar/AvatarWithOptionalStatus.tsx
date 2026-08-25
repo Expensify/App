@@ -11,13 +11,10 @@ import {View} from 'react-native';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type AvatarWithOptionalStatusProps = {
-    /** Emoji status */
     emojiStatus?: string;
 
-    /** Whether the avatar is selected */
     isSelected?: boolean;
 
-    /** Style for the Avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 

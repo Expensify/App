@@ -41,10 +41,8 @@ type CardDetailsProps = {
     /** Callback to navigate to update address page */
     onUpdateAddressPress?: () => void;
 
-    /** Card limit type */
     limitType?: CardLimitType;
 
-    /** Hint text for the card */
     cardHintText?: string;
 };
 
