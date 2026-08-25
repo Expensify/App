@@ -9976,31 +9976,31 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Beleg kann wegen unterbrochener Bankverbindung nicht automatisch zugeordnet werden.';
+                return 'Beleg kann aufgrund einer fehlerhaften Bankverbindung nicht automatisch zugeordnet werden.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
-                return 'Beleg kann wegen eines vorübergehenden Bankproblems nicht automatisch zugeordnet werden. Bitte versuche es später erneut.';
+                return 'Beleg kann aufgrund eines vorübergehenden Bankproblems nicht automatisch zugeordnet werden. Bitte versuchen Sie es später erneut.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Beleg kann wegen unterbrochener Bankverbindung nicht automatisch zugeordnet werden.';
+                    return 'Beleg kann aufgrund einer fehlerhaften Bankverbindung nicht automatisch zugeordnet werden.';
                 }
                 return isMarkAsCash
-                    ? `Beleg kann wegen einer unterbrochenen Kartenverbindung nicht automatisch zugeordnet werden. Markiere ihn als Barzahlung, um ihn zu ignorieren, oder <a href="${connectionLink}">repariere die Karte</a>, um den Beleg zuzuordnen.`
-                    : `Quittung kann aufgrund einer unterbrochenen Kartenverbindung nicht automatisch zugeordnet werden. <a href="${connectionLink}">Karte reparieren</a>, um die Quittung zuzuordnen.`;
+                    ? `Beleg kann aufgrund einer unterbrochenen Kartenverbindung nicht automatisch zugeordnet werden. Markieren Sie ihn als Barzahlung, um ihn zu ignorieren, oder <a href="${connectionLink}">reparieren Sie die Karte</a>, um den Beleg zuzuordnen.`
+                    : `Beleg kann wegen einer unterbrochenen Kartenverbindung nicht automatisch zugeordnet werden. <a href="${connectionLink}">Karte reparieren</a>, um den Beleg zuzuordnen.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Bankverbindung unterbrochen. <a href="${companyCardPageURL}">Erneut verbinden, um Beleg zuzuordnen</a>`
-                    : 'Bankverbindung unterbrochen. Bitte eine:n Admin bitten, die Verbindung wiederherzustellen, um den Beleg abzugleichen.';
+                    : 'Bankverbindung unterbrochen. Bitten Sie eine Administratorin oder einen Administrator, die Verbindung wiederherzustellen, um die Belege abzugleichen.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Bitte ${member} darum, es als Barzahlung zu markieren, oder warte 7 Tage und versuche es dann erneut` : 'Wartet auf Abgleich mit Kartentransaktion.';
+                return isAdmin ? `Bitten Sie ${member}, es als Barzahlung zu markieren, oder warten Sie 7 Tage und versuchen Sie es erneut` : 'Wartet auf Abgleich mit Kartentransaktion.';
             }
             return '';
         },
         brokenConnection530Error: 'Beleg ausstehend wegen unterbrochener Bankverbindung',
-        brokenConnection531Error: 'Beleg kann wegen eines vorübergehenden Bankproblems nicht automatisch zugeordnet werden. Bitte versuche es später erneut.',
+        brokenConnection531Error: 'Beleg kann aufgrund eines vorübergehenden Bankproblems nicht automatisch zugeordnet werden. Bitte versuchen Sie es später erneut.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Beleg ausstehend wegen unterbrochener Bankverbindung. Bitte in <a href="${workspaceCompanyCardRoute}">Firmenkarten</a> beheben.</muted-text-label>`,
         memberBrokenConnectionError: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte wende dich an eine Workspace-Admin, um das Problem zu beheben.',

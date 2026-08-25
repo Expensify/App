@@ -9007,9 +9007,6 @@ ${reportName}`,
             reject: '却下',
             duplicateExpense: () => ({
                 one: '経費を複製',
-                // Japanese has no grammatical plural, so `Intl.PluralRules` selects `other` for every count,
-                // including 1. The single/bulk distinction here is semantic rather than grammatical, so `other`
-                // branches on the count itself to keep 一括 (bulk) on the multi-expense action only.
                 other: (count: number) => (count === 1 ? '経費を複製' : '経費を一括複製'),
             }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
@@ -9815,31 +9812,31 @@ ${reportName}`,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return '銀行連携の不具合により、領収書を自動照合できません。';
+                return '銀行連携の不具合により、レシートを自動照合できません。';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
-                return '銀行側の一時的な問題により、領収書を自動照合できません。後でもう一度お試しください。';
+                return '一時的な銀行の問題により、レシートを自動照合できません。後でもう一度お試しください。';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return '銀行連携の不具合により、領収書を自動照合できません。';
+                    return '銀行連携の不具合により、レシートを自動照合できません。';
                 }
                 return isMarkAsCash
-                    ? `カード連携の不具合により領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">カードを修正</a>して領収書と照合してください。`
-                    : `カード連携が壊れているため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">カードの問題を解決</a>してください。`;
+                    ? `カード接続の問題により、領収書を自動照合できません。無視するには現金としてマークするか、領収書と照合するには<a href="${connectionLink}">カード接続を修正</a>してください。`
+                    : `カード連携に問題があるため、レシートを自動照合できません。レシートを照合するには、<a href="${connectionLink}">カードを修正</a>してください。`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `銀行連携が切断されました。<a href="${companyCardPageURL}">レシートと照合するために再接続</a>`
-                    : '銀行連携が切断されています。管理者に依頼して再接続し、領収書と照合してください。';
+                    ? `銀行連携が切断されました。<a href="${companyCardPageURL}">再接続して領収書を照合します</a>`
+                    : '銀行連携が切れています。管理者に依頼して再接続し、レシートと照合してください。';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `${member} に現金としてマークするよう依頼するか、7日待ってから再試行してください` : 'カード取引との照合待ちです。';
+                return isAdmin ? `${member} に現金としてマークするよう依頼するか、7日待ってから再度お試しください` : 'カード取引とのマージ待ちです。';
             }
             return '';
         },
         brokenConnection530Error: '銀行連携の不具合により領収書が保留されています',
-        brokenConnection531Error: '銀行側の一時的な問題により、領収書を自動照合できません。後でもう一度お試しください。',
+        brokenConnection531Error: '一時的な銀行の問題により、レシートを自動照合できません。後でもう一度お試しください。',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>銀行接続の不具合により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社カード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行連携の不具合により領収書が保留されています。ワークスペース管理者に対応を依頼してください。',

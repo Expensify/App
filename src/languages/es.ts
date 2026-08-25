@@ -1182,7 +1182,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'No se han añadido reglas de comerciante, ya que todas ya existen.' : 'No se han añadido reglas de comerciante.';
             }
-
             return {
                 one: 'Se ha añadido 1 regla de comerciante.',
                 other: `Se han añadido ${count} reglas de comerciante.`,
@@ -10180,35 +10179,43 @@ ${reportName}`,
         },
         customRules: (message) => message,
         reviewRequired: 'Revisión requerida',
-        rter: (brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash) => {
+        rter: (
+            brokenBankConnection: boolean,
+            isAdmin: boolean,
+            isTransactionOlderThan7Days: boolean,
+            member?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
+            companyCardPageURL?: string,
+            connectionLink?: string,
+            isPersonalCard?: boolean,
+            isMarkAsCash?: boolean,
+        ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
+                return 'No se puede conciliar automáticamente el recibo debido a una conexión bancaria interrumpida.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
-                return 'No se puede emparejar automáticamente el recibo debido a un problema temporal del banco. Vuelve a intentarlo más tarde.';
+                return 'No se puede conciliar automáticamente el recibo debido a un problema temporal con el banco. Por favor, inténtalo de nuevo más tarde.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
+                    return 'No se puede conciliar automáticamente el recibo debido a una conexión bancaria interrumpida.';
                 }
                 return isMarkAsCash
-                    ? `No se puede vincular automáticamente el recibo debido a un problema de conexión de la tarjeta. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">soluciona la conexión de la tarjeta</a> para asociar el recibo.`
-                    : `No se puede vincular automáticamente el recibo debido a un problema de conexión de la tarjeta. <a href="${connectionLink}">Soluciona la conexión de la tarjeta</a> para asociar el recibo.`;
+                    ? `No se puede asociar automáticamente el recibo debido a una conexión de tarjeta interrumpida. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">repara la tarjeta</a> para hacer coincidir el recibo.`
+                    : `No se puede conciliar automáticamente el recibo debido a una conexión de tarjeta rota. <a href="${connectionLink}">Repara la tarjeta</a> para conciliar el recibo.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Conexión bancaria interrumpida. <a href="${companyCardPageURL}">Vuelve a conectarte para emparejar el recibo</a>`
-                    : 'Conexión bancaria interrumpida. Pide a un administrador que la vuelva a conectar para emparejar el recibo.';
+                    ? `Conexión bancaria interrumpida. <a href="${companyCardPageURL}">Vuelve a conectar para hacer coincidir el recibo</a>`
+                    : 'Conexión bancaria interrumpida. Pide a un administrador que la vuelva a conectar para que coincida con el recibo.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin
-                    ? `Pide a ${member} que marque la transacción como efectivo o espera 7 días e inténtalo de nuevo`
-                    : 'Esperando a adjuntar automáticamente la transacción de tarjeta de crédito';
+                return isAdmin ? `Pídele a ${member} que lo marque como efectivo o espera 7 días y vuelve a intentarlo` : 'En espera de combinar con la transacción de la tarjeta.';
             }
             return '';
         },
         brokenConnection530Error: 'Recibo pendiente debido a una conexión bancaria rota',
-        brokenConnection531Error: 'No se puede emparejar automáticamente el recibo debido a un problema temporal del banco. Vuelve a intentarlo más tarde.',
+        brokenConnection531Error: 'No se puede conciliar automáticamente el recibo debido a un problema temporal con el banco. Por favor, inténtalo de nuevo más tarde.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}) =>
             `<muted-text-label>Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en <a href="${workspaceCompanyCardRoute}">Tarjetas de empresa</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
