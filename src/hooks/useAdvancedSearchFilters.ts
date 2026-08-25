@@ -86,6 +86,8 @@ const typeFiltersKeys = {
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS,
@@ -277,6 +279,7 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
             areInvoicesEnabled: policy.areInvoicesEnabled,
             isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
             fieldList: policy.fieldList,
+            archivedDate: policy.archivedDate,
         } as Policy;
     }
     return result;

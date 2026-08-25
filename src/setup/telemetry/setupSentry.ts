@@ -18,6 +18,12 @@ import * as Sentry from '@sentry/react-native';
 import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
+/**
+ * Schemes browser extensions inject code under. An error whose top stack frame lives at one of these
+ * URLs was thrown inside extension code, not ours, so there is nothing for us to act on.
+ */
+const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
+
 function setupSentry(): void {
     const integrations = [
         navigationIntegration,
@@ -44,6 +50,7 @@ function setupSentry(): void {
         release: `${pkg.name}@${pkg.version}`,
         // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
         ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
+        denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,

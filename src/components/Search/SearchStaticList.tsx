@@ -1,5 +1,5 @@
 import Checkbox from '@components/Checkbox';
-import {useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
@@ -16,6 +16,7 @@ import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,9 +77,10 @@ function SearchStaticList({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
+    const personalDetails = usePersonalDetails();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -99,6 +101,7 @@ function SearchStaticList({
         }
 
         const [filteredData] = getSections({
+            dateFnsLocale,
             type,
             data: searchData,
             currentAccountID: accountID,
@@ -136,16 +139,19 @@ function SearchStaticList({
 
         if (!item.reportAction?.childReportID) {
             const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            // betas and introSelected are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
+            // betas, introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
             createAndOpenSearchTransactionThread({
+                getCurrencyDecimals,
                 item,
                 introSelected: undefined,
+                conciergeChat: undefined,
                 backTo,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
                 betas: undefined,
+                personalDetails,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 IOUTransactionID: item.reportAction?.childReportID,
@@ -183,9 +189,10 @@ function SearchStaticList({
 
         const stateNum = item.report?.stateNum;
         const statusNum = item.report?.statusNum;
-        const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
-        const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
-        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate});
+        const isDeleted = isDeletedTransaction(item);
+        const statusText = getReportStatusTranslation({stateNum, statusNum, translate, isDeleted});
+        const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted);
+        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate, isDeleted});
 
         return (
             <PressableWithoutFeedback

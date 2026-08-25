@@ -53,14 +53,14 @@ type ApprovalWorkflowEditorProps = {
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const styles = useThemeStyles();
-    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const approverDescription = useCallback(
-        (index: number) => (approverCount > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
-        [approverCount, toLocaleOrdinal, translate],
+        (index: number) => (approverCount > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
+        [approverCount, toLocaleOrdinalWithWords, translate],
     );
 
     const getApprovalPendingAction = useCallback(

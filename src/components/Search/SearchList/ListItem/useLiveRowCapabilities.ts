@@ -49,7 +49,7 @@ type UseLiveRowCapabilitiesParams<T> = {
 function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabilitiesParams<T>): T {
     const {item, reportID, itemKey, snapshotData, snapshotActions, enabled} = params;
     const {currentSearchKey} = useSearchQueryContext();
-    const {currentSearchViolations} = useSearchResultsContext();
+    const {currentSearchTransactionsByReportID, currentSearchViolations} = useSearchResultsContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [liveReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
@@ -60,6 +60,7 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
     }
 
     const liveActionsArray = liveReportActions ? (Object.values(liveReportActions) as ReportAction[]) : snapshotActions;
+    const transactionsForReport = reportID ? currentSearchTransactionsByReportID.get(reportID) : undefined;
     const liveAllActions = getActions(
         snapshotData,
         currentSearchViolations,
@@ -70,8 +71,11 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
         bankAccountList,
         liveReportMetadata,
         liveActionsArray,
+        transactionsForReport,
     );
-    const liveAction = liveAllActions.length ? getPrimaryAction(liveAllActions, snapshotData, itemKey, currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID) : item.action;
+    const liveAction = liveAllActions.length
+        ? getPrimaryAction(liveAllActions, snapshotData, itemKey, currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, transactionsForReport)
+        : item.action;
     const liveCanPay = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.PAY);
     const liveCanApprove = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE);
     const liveCanSubmit = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT);

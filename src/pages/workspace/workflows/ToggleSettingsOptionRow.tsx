@@ -50,6 +50,12 @@ type ToggleSettingOptionRowProps = {
     /** When true with shouldPlaceSubtitleBelowSwitch, uses tighter title/subtitle spacing to match MenuItem rows */
     shouldUseCompactSubtitleSpacing?: boolean;
 
+    /**
+     * Pins the switch near the top of the row instead of centering it against the whole title+subtitle block. Use this
+     * where rows of differing subtitle heights swap in and out of the same spot (e.g. tabs), so the switch stays put.
+     */
+    shouldAnchorSwitchToTop?: boolean;
+
     /** Whether or not the text should be escaped */
     shouldEscapeText?: boolean;
 
@@ -117,6 +123,7 @@ function ToggleSettingOptionRow({
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldUseCompactSubtitleSpacing = false,
+    shouldAnchorSwitchToTop = false,
     shouldEscapeText = undefined,
     shouldParseSubtitle = false,
     wrapperStyle,
@@ -235,6 +242,9 @@ function ToggleSettingOptionRow({
     const shouldMakeContentPressable = isActive && onPress;
     const shouldShowTooltip = disabled && !!disabledText;
 
+    // Keeps a top-anchored switch level with where it sits today on a single-line subtitle, so only multi-line rows shift.
+    const anchoredSwitchStyle = shouldAnchorSwitchToTop ? styles.mt2 : undefined;
+
     const switchComponent = (
         <Switch
             disabledAction={disabledAction}
@@ -270,7 +280,14 @@ function ToggleSettingOptionRow({
                     />
                 )}
                 <View style={[styles.pRelative, styles.flex1]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10]}>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            shouldAnchorSwitchToTop ? styles.alignItemsStart : styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10,
+                        ]}
+                    >
                         <PressableWithoutFeedback
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             onPress={shouldMakeContentPressable ? onPress : undefined}
@@ -283,10 +300,10 @@ function ToggleSettingOptionRow({
                         </PressableWithoutFeedback>
                         {shouldShowTooltip ? (
                             <Tooltip text={disabledText}>
-                                <View>{switchComponent}</View>
+                                <View style={anchoredSwitchStyle}>{switchComponent}</View>
                             </Tooltip>
                         ) : (
-                            switchComponent
+                            <View style={anchoredSwitchStyle}>{switchComponent}</View>
                         )}
                     </View>
                     {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}

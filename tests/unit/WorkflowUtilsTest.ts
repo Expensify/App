@@ -34,6 +34,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import {buildPersonalDetails, convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -621,10 +622,10 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'alice@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'alice@example.com'),
                 owner: 'alice@example.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
                 'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
@@ -632,7 +633,7 @@ describe('WorkflowUtils', () => {
             };
 
             const {approvalWorkflows, availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
                 currentUserLogin: 'alice@example.com',
@@ -659,17 +660,17 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'admin@expensify.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'admin@expensify.com'),
                 owner: 'admin@expensify.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'admin@expensify.com': {accountID: 1, login: 'admin@expensify.com', displayName: 'Admin'},
                 'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
             };
 
             const {availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
                 currentUserLogin: 'admin@expensify.com',
@@ -691,17 +692,17 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'alice@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'alice@example.com'),
                 owner: 'alice@example.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
                 'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
             };
 
             const {availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
             });
@@ -726,10 +727,10 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'bob@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'bob@example.com'),
                 owner: 'alice@example.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
                 'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
@@ -737,7 +738,7 @@ describe('WorkflowUtils', () => {
             };
 
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
                 currentUserLogin: 'alice@example.com',
@@ -769,10 +770,10 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'bob@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'bob@example.com'),
                 owner: 'alice@example.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
                 'bob@example.com': {accountID: 2, login: 'bob@example.com', displayName: 'Bob'},
@@ -781,7 +782,7 @@ describe('WorkflowUtils', () => {
             };
 
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
                 currentUserLogin: 'alice@example.com',
@@ -806,7 +807,7 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'finalapprover@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'owner@example.com'),
                 owner: 'owner@example.com',
                 approver: 'owner@example.com',
@@ -820,7 +821,7 @@ describe('WorkflowUtils', () => {
                         },
                     },
                 },
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'unassigned@example.com': {accountID: 1, login: 'unassigned@example.com', displayName: 'Unassigned'},
                 'assigned@example.com': {accountID: 2, login: 'assigned@example.com', displayName: 'Assigned'},
@@ -829,7 +830,7 @@ describe('WorkflowUtils', () => {
             };
 
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
             });
@@ -1513,13 +1514,13 @@ describe('WorkflowUtils', () => {
     describe('getOpenConnectedToPolicyBusinessBankAccounts', () => {
         const matchingBankAccountID = 12345;
 
-        const policyWithACH = {
+        const policyWithACH = createMock<Policy>({
             ...createRandomPolicy(1),
             outputCurrency: 'USD',
             achAccount: {
                 bankAccountID: matchingBankAccountID,
             },
-        } as Policy;
+        });
 
         const openBusinessBankAccount = {
             bankCurrency: 'USD',

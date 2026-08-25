@@ -96,7 +96,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
         navigateFromReport(ids);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getPickerCaptureSource());
     });
 
@@ -109,16 +109,16 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
                         processReceipts([file], 'camera');
                         return;
                     }
-                    // Pre-warm the thumbnail cache before navigating so the confirm page
-                    // doesn't flash an un-thumbnail receipt.
-                    precacheReceiptImage(source).then(() => processReceipts([file], 'camera'));
+                    // Seed the receipt-image cache before navigating so the confirm page can resolve
+                    // the receipt synchronously instead of generating a thumbnail asynchronously.
+                    precacheReceiptImage(source);
+                    processReceipts([file], 'camera');
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
-            {ErrorModal}
         </>
     );
 }

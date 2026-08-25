@@ -8,9 +8,12 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CombinedCardFeeds, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
+import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 
 import Onyx from 'react-native-onyx';
 
@@ -190,6 +193,52 @@ describe('useAssignCard', () => {
 
             expect(result.current.isAssigningCardDisabled).toBe(false);
         });
+
+        /** Points the mocked useOnyx at a CARD_FEED_ERRORS value for the custom (commercial) feed. */
+        function mockFeedErrors(feedErrorState: Partial<CardFeedErrorState>) {
+            jest.mocked(useOnyx).mockImplementation((key) =>
+                key === ONYXKEYS.DERIVED.CARD_FEED_ERRORS
+                    ? [
+                          createMock<CardFeedErrors>({
+                              cardFeedErrors: {[mockCustomFeed]: {shouldShowRBR: false, hasFeedErrors: false, hasWorkspaceErrors: false, isFeedConnectionBroken: false, ...feedErrorState}},
+                          }),
+                          {status: 'loaded'},
+                      ]
+                    : [undefined, {status: 'loaded'}],
+            );
+        }
+
+        it('should return isAssigningCardDisabled true while the broken connection is still within the grace period', () => {
+            jest.mocked(useCardFeeds).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+            mockFeedErrors({isFeedConnectionBroken: true, shouldPromptBrokenConnection: true});
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: mockCustomFeed,
+                    policyID: mockPolicyID,
+                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                }),
+            );
+
+            expect(result.current.isAssigningCardDisabled).toBe(true);
+        });
+
+        // Past the grace period the feed stays flagged as broken so it can still be fixed, but assigning must not stay
+        // blocked: a commercial/CSV feed cannot be reconnected by a bank login, so blocking would never resolve.
+        it('should return isAssigningCardDisabled false once the broken connection is past the grace period', () => {
+            jest.mocked(useCardFeeds).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+            mockFeedErrors({isFeedConnectionBroken: true, shouldPromptBrokenConnection: false});
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: mockCustomFeed,
+                    policyID: mockPolicyID,
+                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                }),
+            );
+
+            expect(result.current.isAssigningCardDisabled).toBe(false);
+        });
     });
 
     describe('assignCard function - offline handling', () => {
@@ -270,6 +319,40 @@ describe('useAssignCard', () => {
 
             // The hook should accept same values without throwing
             expect(() => result.current.assignCard(cardName, cardID)).not.toThrow();
+        });
+    });
+
+    describe('assignCard function - single active employee shortcut', () => {
+        it('should auto-assign to the single active employee, not the first (deleted) employee in the list', () => {
+            // Given a policy whose first (unfiltered) employee is pending deletion, leaving a single active employee later in the list
+            const policyWithDeletedFirstEmployee = createMock<Policy>({
+                id: mockPolicyID,
+                policyAccountID: workspaceAccountID,
+                employeeList: {
+                    'admin@example.com': {email: 'admin@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    'employee@example.com': {email: 'employee@example.com'},
+                },
+            });
+            jest.mocked(usePolicy).mockReturnValue(policyWithDeletedFirstEmployee);
+            jest.mocked(useCardFeeds).mockReturnValue([mockDirectFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: mockDirectFeed,
+                    policyID: mockPolicyID,
+                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                }),
+            );
+
+            result.current.assignCard('Chase Checking 0000', 'Chase Checking 0000');
+
+            // Then the flow jumps to confirmation pre-assigned to the single active employee (not the deleted admin)
+            expect(setAssignCardStepAndData).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                    cardToAssign: expect.objectContaining({email: 'employee@example.com'}),
+                }),
+            );
         });
     });
 });

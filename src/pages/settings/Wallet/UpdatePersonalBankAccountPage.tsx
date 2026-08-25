@@ -12,8 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCompletedStepsForBankAccount} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
+import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 
 import Navigation from '@navigation/Navigation';
 
@@ -111,6 +111,7 @@ function UpdatePersonalBankAccountPage() {
     const [homeAddressDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
     const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const bankAccountID = personalBankAccount?.bankAccountID;
@@ -196,9 +197,10 @@ function UpdatePersonalBankAccountPage() {
             addressZipCode = '';
         }
 
+        // The BE reads companyPhone as the Plaid phone_number and assumes +1 for a bare 10 digit value, so send E.164.
+        // The form draft holds whatever the user typed, which can lack a calling code, so apply the country code here.
         const rawPhone = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? existingData?.companyPhone ?? '';
-        const parsed = parsePhoneNumber(rawPhone, {regionCode: CONST.COUNTRY.US});
-        const phoneNumber = parsed.number?.significant ?? '';
+        const phoneNumber = formatE164PhoneNumber(rawPhone, countryCode) ?? '';
 
         updatePersonalBankAccountInfo(personalBankAccount.bankAccountID, {
             legalFirstName,

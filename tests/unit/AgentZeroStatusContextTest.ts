@@ -48,9 +48,9 @@ jest.mock('@libs/actions/Report', () => {
     };
 });
 
-const mockClearAgentZeroProcessingIndicator = clearAgentZeroProcessingIndicator as jest.MockedFunction<typeof clearAgentZeroProcessingIndicator>;
-const mockSubscribeToReportReasoningEvents = subscribeToReportReasoningEvents as jest.MockedFunction<typeof subscribeToReportReasoningEvents>;
-const mockUnsubscribeFromReportReasoningChannel = unsubscribeFromReportReasoningChannel as jest.MockedFunction<typeof unsubscribeFromReportReasoningChannel>;
+const mockClearAgentZeroProcessingIndicator = jest.mocked(clearAgentZeroProcessingIndicator);
+const mockSubscribeToReportReasoningEvents = jest.mocked(subscribeToReportReasoningEvents);
+const mockUnsubscribeFromReportReasoningChannel = jest.mocked(unsubscribeFromReportReasoningChannel);
 
 const reportID = '123';
 const currentUserAccountID = 111;
@@ -714,14 +714,14 @@ describe('AgentZeroStatusContext', () => {
             originalSetTimeout = global.setTimeout;
             originalClearTimeout = global.clearTimeout;
 
-            jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
+            jest.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
                 if (ms === MAX_INDICATOR_DURATION_MS) {
                     const id = originalSetTimeout(() => {}, 0);
                     safetyTimerId = id;
                     return id;
                 }
                 return originalSetTimeout(callback, ms);
-            }) as typeof setTimeout);
+            });
 
             jest.spyOn(global, 'clearTimeout').mockImplementation((id) => {
                 if (id !== undefined && id !== null && id === safetyTimerId) {
@@ -921,7 +921,7 @@ describe('AgentZeroStatusContext', () => {
             originalClearTimeout = global.clearTimeout;
 
             // Intercept setTimeout to capture the 120s safety callback
-            jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
+            jest.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
                 if (ms === MAX_INDICATOR_DURATION_MS) {
                     const id = originalSetTimeout(() => {}, 0);
                     safetyCallback = callback;
@@ -929,7 +929,7 @@ describe('AgentZeroStatusContext', () => {
                     return id;
                 }
                 return originalSetTimeout(callback, ms);
-            }) as typeof setTimeout);
+            });
 
             jest.spyOn(global, 'clearTimeout').mockImplementation((id) => {
                 if (id !== undefined && id !== null && id === safetyTimerId) {

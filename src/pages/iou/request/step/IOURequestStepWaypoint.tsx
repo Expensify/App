@@ -1,6 +1,7 @@
 import AddressSearch from '@components/AddressSearch';
+import type {PredefinedPlace} from '@components/AddressSearch/types';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -47,7 +48,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
 // that the google autocomplete component expects for it's "predefined places" feature.
-function recentWaypointsSelector(waypoints: RecentWaypoint[] = []) {
+function recentWaypointsSelector(waypoints: RecentWaypoint[] = []): PredefinedPlace[] {
     return waypoints
         .slice(0, CONST.RECENT_WAYPOINTS_NUMBER)
         .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true && waypoint.lat != null && waypoint.lng != null)
@@ -58,6 +59,8 @@ function recentWaypointsSelector(waypoints: RecentWaypoint[] = []) {
                 location: {
                     lat: waypoint.lat ?? 0,
                     lng: waypoint.lng ?? 0,
+                    latitude: waypoint.lat ?? 0,
+                    longitude: waypoint.lng ?? 0,
                 },
             },
         }));
@@ -238,15 +241,16 @@ function IOURequestStepWaypoint({
                     footerContent={
                         !!waypointAddress && (
                             <Button
-                                text={translate('common.remove')}
                                 style={[styles.mb3]}
                                 onPress={() => {
                                     removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action), shouldPassSplitDraft ? splitDraftTransaction : undefined);
                                     goBack();
                                 }}
-                                large
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_REMOVE_BUTTON}
-                            />
+                            >
+                                <Button.Text>{translate('common.remove')}</Button.Text>
+                            </Button>
                         )
                     }
                 >

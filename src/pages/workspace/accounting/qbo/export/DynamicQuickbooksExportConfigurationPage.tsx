@@ -13,7 +13,7 @@ import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/acti
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import Navigation from '@navigation/Navigation';
@@ -46,9 +46,9 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
     const travelPayableAccount = creditCards?.find((account) => account.id === qboConfig?.travelInvoicingPayableAccountID);
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
     const shouldShowVendorMenuItems = useMemo(
         () => qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
@@ -83,13 +83,13 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
             title: qboConfig?.receivableAccount?.name,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
         },
-        ...(isTravelInvoicingEnabled
+        ...(isTravelBillingEnabled
             ? [
                   {
                       description: translate('workspace.common.travelInvoicing'),
-                      onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
+                      onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION.getRoute(policyID)),
                       title: travelPayableAccount?.name,
-                      subscribedSettings: [CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+                      subscribedSettings: [CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR, CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },
               ]
             : []),

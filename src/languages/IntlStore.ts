@@ -1,14 +1,16 @@
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import {LOCALES} from '@src/CONST/LOCALES';
 import type {Locale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type DynamicModule from '@src/types/utils/DynamicModule';
+import retryDynamicImport from '@src/utils/retryDynamicImport';
 
 import type {Locale as DateUtilsLocale} from 'date-fns';
 
+import * as Sentry from '@sentry/react-native';
 import {setDefaultOptions} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
@@ -33,6 +35,9 @@ function setAreTranslationsLoading(areTranslationsLoading: boolean) {
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, areTranslationsLoading);
 }
+
+// Scopes the dynamic-import retry state per locale
+const LOCALE_RETRY_KEY_PREFIX = 'locale:';
 
 class IntlStore {
     private static currentLocale: Locale | undefined = undefined;
@@ -214,6 +219,17 @@ class IntlStore {
         return this.currentLocale;
     }
 
+    /**
+     * Returns the date-fns locale to format dates in, which is undefined until that locale's date-fns module has loaded.
+     *
+     * Callers pass the locale they are rendering with so that a formatted date re-renders when the user switches
+     * language. That relies on `load()` populating `dateUtilsCache` before it sets `currentLocale`: the loader promise
+     * resolves first, so by the time anything can ask for the new locale its date-fns module is already cached.
+     */
+    public static getDateFnsLocale(locale: Locale | undefined) {
+        return locale ? this.dateUtilsCache.get(locale) : undefined;
+    }
+
     public static load(locale: Locale) {
         if (this.currentLocale === locale) {
             return Promise.resolve();
@@ -231,7 +247,9 @@ class IntlStore {
             });
         }
 
-        return loaderPromise()
+        // Retry through the shared recovery ladder: a locale chunk that 404s (stale app shell after a
+        // deploy) would otherwise reject unhandled and permanently block the boot splash gate in Expensify.tsx.
+        return retryDynamicImport(loaderPromise, `${LOCALE_RETRY_KEY_PREFIX}${locale}`)
             .then(() => {
                 this.currentLocale = locale;
                 // Set the default date-fns locale
@@ -239,15 +257,24 @@ class IntlStore {
                 if (dateUtilsLocale) {
                     setDefaultOptions({locale: dateUtilsLocale});
                 }
-            })
-            .then(() => {
                 setAreTranslationsLoading(false);
-            })
-            .finally(() => {
-                if (!localeSpan) {
-                    return;
+
+                if (localeSpan) {
+                    endSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
                 }
-                endSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
+            })
+            .catch((error: unknown) => {
+                if (localeSpan) {
+                    endSpanWithAttributes(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {[CONST.TELEMETRY.ATTRIBUTE_FAILED]: true});
+                }
+
+                // Recovery is exhausted: the locale never resolves and the boot splash intentionally stays up —
+                // with no translations in memory any screen would render raw translation keys. Report the cause
+                // so the stuck splash is diagnosable in Sentry.
+                Sentry.captureException(error, {
+                    fingerprint: ['locale-load-failed'],
+                    extra: {locale},
+                });
             });
     }
 

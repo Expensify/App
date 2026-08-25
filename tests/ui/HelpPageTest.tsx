@@ -67,7 +67,7 @@ describe('HelpPage', () => {
 
     it('shows the Book a call button on the account manager row and opens the calendar link when pressed', async () => {
         // Given an account manager with a calendar link
-        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(ACCOUNT_MANAGER_ACCOUNT_ID), accountManagerCalendarLink: CALENDAR_LINK});
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: ACCOUNT_MANAGER_ACCOUNT_ID, accountManagerCalendarLink: CALENDAR_LINK});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_MANAGER_ACCOUNT_ID]: {accountID: ACCOUNT_MANAGER_ACCOUNT_ID, login: 'am@example.com', displayName: ACCOUNT_MANAGER_NAME}});
         await waitForBatchedUpdates();
 

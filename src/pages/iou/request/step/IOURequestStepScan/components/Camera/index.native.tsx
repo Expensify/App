@@ -7,10 +7,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
@@ -165,17 +165,19 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
             .then((photo: PhotoFile) => {
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-
+                return ReceiptStorage.adopt(photo.path);
+            })
+            .then((durableName) => {
                 if (isMultiScanEnabled) {
                     isCapturingPhoto.current = false;
                 } else {
                     setDidCapturePhoto(true);
                 }
 
-                const source = getPhotoSource(photo.path);
+                const source = ReceiptStorage.toLocalUri(durableName);
                 const cameraFile: FileObject = {
                     uri: source,
-                    name: photo.path,
+                    name: durableName,
                     type: 'image/jpeg',
                 };
 

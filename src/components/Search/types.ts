@@ -199,6 +199,7 @@ type SearchQueryActionsValue = {
 
 type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
+    currentSearchTransactionsByReportID: Map<string, Transaction[]>;
     currentSearchViolations: OnyxCollection<TransactionViolation[]>;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
@@ -216,6 +217,8 @@ type SearchResultsActionsValue = {
 type SearchSelectionContextValue = {
     currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
+    /** Loaded transactions explicitly excluded from an all-matching selection. */
+    excludedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
     shouldTurnOffSelectionMode: boolean;
@@ -239,8 +242,20 @@ type SearchSelectionActionsValue = {
      * next one, so callers (e.g. the screen-level write actions) can read-modify-write without subscribing to — and
      * thus re-rendering on — selection state. Passing `data` derives `selectedReports` in the same commit; passing
      * `totalSelectableItemsCount` unchecks "select all matching" when the new selection no longer covers every item.
+     * `shouldPreserveAllMatchingSelection` keeps that mode active for row toggles and records removed rows as exclusions.
+     * `shouldClearAllMatchingSelectionWhenEmpty` exits that mode when no selected rows or additional results remain.
+     * `reconciledExcludedTransactions` refreshes or prunes exclusions when the underlying search data changes.
      */
-    applySelection: (updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions, options?: {data?: SearchData; totalSelectableItemsCount?: number}) => void;
+    applySelection: (
+        updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions,
+        options?: {
+            data?: SearchData;
+            totalSelectableItemsCount?: number;
+            shouldPreserveAllMatchingSelection?: boolean;
+            shouldClearAllMatchingSelectionWhenEmpty?: boolean;
+            reconciledExcludedTransactions?: SelectedTransactions;
+        },
+    ) => void;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
@@ -323,7 +338,12 @@ type SearchDateFilterKeys =
 
 type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}` | ReportFieldDateKey;
 
-type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+type SearchAmountFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED;
 type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
 
 type SearchFilterKey =
