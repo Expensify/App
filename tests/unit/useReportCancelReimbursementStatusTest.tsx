@@ -115,6 +115,15 @@ describe('useReportCancelReimbursementStatus', () => {
         expect(result.current).toBeUndefined();
     });
 
+    it('leaves the status unknown when the request fails', async () => {
+        mockGetReportCancelReimbursementStatus.mockRejectedValueOnce(new Error('server error'));
+
+        const {result} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
+        await waitForBatchedUpdates();
+
+        expect(result.current).toBeUndefined();
+    });
+
     it('does not show the previous answer again while the reconnected one is still loading', async () => {
         const {result, rerender} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
         await waitForBatchedUpdates();

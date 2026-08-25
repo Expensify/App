@@ -2007,8 +2007,8 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        // Today in the DB datetime format (UTC, no timezone suffix), so the cutoff has not passed yet
-        const today = new Date();
+        // Tomorrow in the DB datetime format (UTC, no timezone suffix), so the cutoff is always still ahead
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
         const ACTION_ID = 'action_id';
         const reportAction = createMock<ReportAction>({
             reportActionID: ACTION_ID,
@@ -2018,7 +2018,7 @@ describe('getSecondaryAction', () => {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
-            created: `${today.toISOString().slice(0, 10)} 00:01:00.000`,
+            created: `${tomorrow.toISOString().slice(0, 10)} 12:00:00.000`,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 

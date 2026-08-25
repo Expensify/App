@@ -25,12 +25,15 @@ export default function useReportCancelReimbursementStatus(report: OnyxEntry<Rep
         }
 
         let isCurrentRequest = true;
-        getReportCancelReimbursementStatus(reportIDToFetch).then((status) => {
-            if (!isCurrentRequest) {
-                return;
-            }
-            setFetchedStatus(status);
-        });
+        getReportCancelReimbursementStatus(reportIDToFetch)
+            .then((status) => {
+                if (!isCurrentRequest) {
+                    return;
+                }
+                setFetchedStatus(status);
+            })
+            // Leaving the status unknown keeps the option hidden, same as being offline.
+            .catch(() => {});
 
         return () => {
             isCurrentRequest = false;
