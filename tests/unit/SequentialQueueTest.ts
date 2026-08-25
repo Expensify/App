@@ -1,10 +1,10 @@
 import {resolveOpenAppDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import * as NetworkState from '@libs/NetworkState';
-import {flushQueue} from '@userActions/QueuedOnyxUpdates';
 
 import * as PersistedRequestsModule from '@userActions/PersistedRequests';
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
+import {flushQueue} from '@userActions/QueuedOnyxUpdates';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -664,7 +664,6 @@ describe('SequentialQueue - a write applies its own client-side data before the 
     const REPORT_ID = '1';
     const REPORT_ACTIONS_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
     const SERVER_ACTION_ID = '8888';
-    // Onyx keys errors by microsecond timestamp, so the key has to be a computed string rather than a literal.
     const ERROR_TIMESTAMP = '1786953970269479';
 
     let liveReportActions: ReportActions | undefined;
@@ -684,12 +683,16 @@ describe('SequentialQueue - a write applies its own client-side data before the 
         command: 'AddComment',
         data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, reportActionID, reportID: REPORT_ID},
         successData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[reportActionID]: {pendingAction: null, isOptimisticAction: null}}}],
-        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[reportActionID]: {pendingAction: null, isOptimisticAction: null, errors: {[ERROR_TIMESTAMP]: 'could not send'}}}}],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: REPORT_ACTIONS_KEY,
+                value: {[reportActionID]: {pendingAction: null, isOptimisticAction: null, errors: {[ERROR_TIMESTAMP]: 'could not send'}}},
+            },
+        ],
         finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[reportActionID]: {isLoading: false}}}],
     });
 
-    // Records what was on disk at the instant each request was removed from the queue. That instant is the crash window
-    // this whole mechanism is about: after it, nothing can replay the request, so anything not committed yet is lost.
     function snapshotsAtRemoval() {
         const snapshots: Array<ReportActions | undefined> = [];
         const removeFromQueue = PersistedRequestsModule.endRequestAndRemoveFromQueue;

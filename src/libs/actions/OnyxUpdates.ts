@@ -57,13 +57,10 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
     // The backend routes these through the response instead of Pusher, so applying them mid-drain replays the UI. See https://github.com/Expensify/App/issues/12775.
     const serverUpdateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
 
-    // For reads this commits the server data before the client-side data below. On the WRITE path queueOnyxUpdates
-    // resolves immediately, so the client-side data lands first and the server data follows at the drain.
     const onyxDataUpdatePromise = response.onyxData ? serverUpdateHandler(response.onyxData) : Promise.resolve();
 
     return onyxDataUpdatePromise
         .then(() => {
-            // Handle the request's success/failure data (client-side data)
             if (response.jsonCode === 200 && request.successData) {
                 return Onyx.update(request.successData);
             }
