@@ -13,6 +13,7 @@ import {View} from 'react-native';
 import Button from './ButtonComposed';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
+import Text from './Text';
 
 type ConnectionStatusMessageProps = {
     message?: string;
@@ -48,31 +49,28 @@ function ConnectionStatusMessage({
     }
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
+    const isSuccessStatus = statusTone === 'success';
     const messageTag = isDangerStatus ? 'rbr' : 'muted-text-label';
     const messageHTML = `<${messageTag}>${message ?? ''}</${messageTag}>`;
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-            {isDangerStatus && (
+            {(isDangerStatus || isSuccessStatus) && (
                 <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
                     <Icon
                         src={icons.DotIndicator}
-                        fill={theme.danger}
+                        fill={isDangerStatus ? theme.danger : theme.iconSuccessFill}
                     />
                 </View>
             )}
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
-                    <Icon
-                        src={icons.Exclamation}
-                        fill={theme.icon}
-                        size={CONST.ICON_SIZE.MEDIUM}
-                        additionalStyles={[styles.mr3]}
+            <View style={[styles.flex1, styles.flexRow]}>
+                {isSuccessStatus ? (
+                    <Text style={[styles.textLabelError, styles.textSuccess]}>{message}</Text>
+                ) : (
+                    <RenderHTML
+                        html={messageHTML}
+                        onLinkPress={onLinkPress}
                     />
                 )}
-                <RenderHTML
-                    html={messageHTML}
-                    onLinkPress={onLinkPress}
-                />
             </View>
         </View>
     );
