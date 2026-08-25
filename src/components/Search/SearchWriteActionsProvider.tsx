@@ -1,5 +1,4 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -92,9 +91,6 @@ type ReconcileSelectionParams = {
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
 
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
     /** Report name-value pairs collection, used for the change-report eligibility archived check */
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 
@@ -123,7 +119,6 @@ function useReconcileSelectionWithData({
     currentUserLogin,
     currentUserAccountID,
     selfDMReport,
-    isProduction,
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     shouldReconcileExcludedTransactions,
@@ -207,7 +202,6 @@ function useReconcileSelectionWithData({
                         reportNameValuePairs,
                         outstandingReportsByPolicyID,
                         selfDMReport,
-                        isProduction,
                         allowNegativeAmount: true,
                         parentReport: itemParentReport,
                     });
@@ -252,7 +246,6 @@ function useReconcileSelectionWithData({
                     reportNameValuePairs,
                     outstandingReportsByPolicyID,
                     selfDMReport,
-                    isProduction,
                     allowNegativeAmount: true,
                     parentReport: itemParentReport,
                 });
@@ -396,7 +389,6 @@ function SearchWriteActionsProvider({
     children,
 }: SearchWriteActionsProviderProps) {
     const isFocused = useIsFocused();
-    const {isProduction} = useEnvironment();
     const {isOffline} = useNetwork();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
@@ -432,7 +424,6 @@ function SearchWriteActionsProvider({
                         reportNameValuePairs,
                         outstandingReportsByPolicyID,
                         selfDMReport,
-                        isProduction,
                         parentReport: itemParentReport,
                     });
 
@@ -522,7 +513,6 @@ function SearchWriteActionsProvider({
                                     reportNameValuePairs,
                                     outstandingReportsByPolicyID,
                                     selfDMReport,
-                                    isProduction,
                                     allowNegativeAmount: true,
                                     parentReport: itemParentReport,
                                 });
@@ -571,7 +561,6 @@ function SearchWriteActionsProvider({
                                 reportNameValuePairs,
                                 outstandingReportsByPolicyID,
                                 selfDMReport,
-                                isProduction,
                                 allowNegativeAmount: true,
                                 parentReport: itemParentReport,
                             });
@@ -604,7 +593,6 @@ function SearchWriteActionsProvider({
                             reportNameValuePairs,
                             outstandingReportsByPolicyID,
                             selfDMReport,
-                            isProduction,
                             allowNegativeAmount: true,
                             parentReport: itemParentReport,
                         }),
@@ -627,7 +615,6 @@ function SearchWriteActionsProvider({
         currentUserLogin,
         currentUserAccountID: accountID,
         selfDMReport,
-        isProduction,
         reportNameValuePairs,
         outstandingReportsByPolicyID,
         shouldReconcileExcludedTransactions: type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!searchResultsData && searchResults?.search?.isLoading === false && !searchResults?.errors,

@@ -175,6 +175,7 @@ function WorkspaceHRPage({
                 />
                 <ScrollView
                     contentContainerStyle={styles.pt3}
+                    addBottomSafeAreaPadding
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
