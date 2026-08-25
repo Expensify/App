@@ -472,6 +472,7 @@
         "Amina",
         "anchorless",
         "androiddebugkey",
+        "androidpublisher",
         "androidx",
         "apksigner",
         "apktool",
@@ -1031,7 +1032,6 @@
         "trinet",
         "trivago",
         "trustcacerts",
-        "tsgo",
         "twocards",
         "uatp",
         "uimanager",
@@ -1140,6 +1140,7 @@
         "Refetched"
     ],
     "ignorePaths": [
+        ".github/actions/javascript/**/index.js",
         ".gitignore",
         "src/languages/de.ts",
         "src/languages/el.ts",

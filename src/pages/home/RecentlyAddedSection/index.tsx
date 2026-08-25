@@ -27,12 +27,12 @@ import React from 'react';
 
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
-import EmptyState from './EmptyState';
+import RecentlyAddedPlaceholder from './RecentlyAddedPlaceholder';
 import RecentlyAddedRow from './RecentlyAddedRow';
 import {useRecentlyAddedData} from './useRecentlyAddedData';
 
 function RecentlyAddedSection() {
-    const {transactions} = useRecentlyAddedData();
+    const {transactions, isAwaitingFirstResult} = useRecentlyAddedData();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -112,7 +112,9 @@ function RecentlyAddedSection() {
         <WidgetContainer
             title={translate('homePage.recentlyAddedSection.title')}
             titleRightContent={overflowMenu}
-            containerStyles={hasExpenses ? listBottomPadding : undefined}
+            // The skeleton stands in for the rows, so it needs their bottom padding to avoid a jump when they land.
+            // The empty state never had it, so it keeps its existing spacing.
+            containerStyles={hasExpenses || isAwaitingFirstResult ? listBottomPadding : undefined}
         >
             {hasExpenses ? (
                 transactions.map((expense, index) => (
@@ -126,7 +128,7 @@ function RecentlyAddedSection() {
                     />
                 ))
             ) : (
-                <EmptyState />
+                <RecentlyAddedPlaceholder shouldShowSkeleton={isAwaitingFirstResult} />
             )}
         </WidgetContainer>
     );

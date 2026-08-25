@@ -3298,7 +3298,7 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
     const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
         return specificGroupQueryJSON;
@@ -3426,7 +3426,7 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: end},
         ],
     });
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
     const transactionsQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     return {transactionsQueryJSON, start, end};
 }
@@ -5041,6 +5041,50 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     return typeMenuSections;
 }
 
+/**
+ * Icons used for each saved-search data type. Each asset already has the bookmark subscript baked in,
+ * so it can be rendered directly with the standard Expensicons component.
+ */
+const SAVED_SEARCH_TYPE_TO_ICON_NAME = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: 'ReceiptBookmark',
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: 'DocumentBookmark',
+    [CONST.SEARCH.DATA_TYPES.CHAT]: 'CommentBubbleBookmark',
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: 'InvoiceBookmark',
+    [CONST.SEARCH.DATA_TYPES.TRIP]: 'LuggageBookmark',
+    [CONST.SEARCH.DATA_TYPES.TASK]: 'TaskBookmark',
+} as const satisfies Record<SearchDataTypes, ExpensifyIconName>;
+
+/** Icon shown for a saved search whose query can't be resolved to a known/supported data type. */
+const SAVED_SEARCH_FALLBACK_ICON_NAME = 'Bookmark' satisfies ExpensifyIconName;
+
+type SavedSearchIconName = (typeof SAVED_SEARCH_TYPE_TO_ICON_NAME)[SearchDataTypes] | typeof SAVED_SEARCH_FALLBACK_ICON_NAME;
+
+/**
+ * Every icon a saved search row can render - one per data type plus the fallback. Derived from the map
+ * (and the fallback) above so callers load exactly the set `getSavedSearchIconName` can return, with no
+ * hand-kept second list to drift out of sync.
+ */
+const SAVED_SEARCH_ICON_NAMES: readonly SavedSearchIconName[] = [...Object.values(SAVED_SEARCH_TYPE_TO_ICON_NAME), SAVED_SEARCH_FALLBACK_ICON_NAME];
+
+/**
+ * Resolves the icon name for a saved search from its query type, falling back to the generic bookmark
+ * icon for queries that can't be parsed into a known data type - including queries whose type is present
+ * but outside the supported set (e.g. a hand-edited `type:test` URL), which have no entry in the map.
+ */
+function getSavedSearchIconName(query: string | undefined): SavedSearchIconName {
+    // This is the single place that decides what a missing/empty query means: it resolves to the generic
+    // fallback for every caller, and avoids passing an empty/undefined query into buildSearchQueryJSON -
+    // which would parse '' as the grammar default (type:expense) or throw on undefined and log a console error.
+    if (!query) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
+    const type = buildSearchQueryJSON(query)?.type;
+    if (!type) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
+    return SAVED_SEARCH_TYPE_TO_ICON_NAME[type] ?? SAVED_SEARCH_FALLBACK_ICON_NAME;
+}
+
 function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
     return {
         key,
@@ -5209,11 +5253,16 @@ function getFeedOptions(
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+    domains?: OnyxCollection<OnyxTypes.Domain>,
+    expensifyCardSettings?: OnyxCollection<OnyxTypes.ExpensifyCardSettings>,
 ) {
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards))
-        .map<SingleSelectItem<string>>((cardFeed) => ({
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards, policies, domains, expensifyCardSettings))
+        .map<MultiSelectItem<string>>((cardFeed) => ({
             text: cardFeed.name,
             value: cardFeed.id,
+            // Domain/workspace shown as a second line so same-type feeds can be told apart.
+            alternateText: cardFeed.subtitle,
         }))
         .sort((a, b) => localeCompare(a.text, b.text));
 }
@@ -6908,6 +6957,7 @@ export {
     getSections,
     getSuggestedSearchesVisibility,
     getSortedSections,
+    getSortedTransactionData,
     getViolationsFromSearchData,
     getTransactionsByReportID,
     isTransactionMatchWithGroupItem,
@@ -6937,6 +6987,9 @@ export {
     getSectionBadgeText,
     getItemBadgeText,
     createBaseSavedSearchMenuItem,
+    getSavedSearchIconName,
+    SAVED_SEARCH_FALLBACK_ICON_NAME,
+    SAVED_SEARCH_ICON_NAMES,
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,

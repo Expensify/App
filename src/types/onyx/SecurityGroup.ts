@@ -25,4 +25,19 @@ type SecurityGroup = {
     name?: string;
 };
 
+/**
+ * Per-domain entry stored in the MY_DOMAIN_SECURITY_GROUPS map, used to locate the user's security group.
+ * During the backend rollout this may still be the legacy `string` (the securityGroupID only) instead of the object form.
+ */
+type DomainSecurityGroupMembership =
+    | string
+    | {
+          /** ID of the user's security group within the domain */
+          securityGroupID: string;
+
+          /** Account ID of the domain that owns the security group shared NVP */
+          ownerAccountID: number;
+      };
+
 export default SecurityGroup;
+export type {DomainSecurityGroupMembership};

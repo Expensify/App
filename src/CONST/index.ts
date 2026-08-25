@@ -1013,7 +1013,6 @@ const CONST = {
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
-        RILLET: 'rillet',
         DUALENTRY: 'dualEntry',
         INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
@@ -1022,6 +1021,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
     },
     BUTTON_STATES: {
@@ -1429,6 +1429,8 @@ const CONST = {
         PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
+        SUPPORTAL_LOGIN_NEWDOT: (supportEmail: string, reason: string) =>
+            `_support/supportLoginNewDot?supportEmail=${encodeURIComponent(supportEmail)}&comment=${encodeURIComponent(reason)}`,
         AGENT_ZERO_TRACER: (agentZeroRequestID: string, shouldLoadFromLocalLogs: boolean) =>
             `_devportal/tools/tracer/?agentZeroRequestID=${encodeURIComponent(agentZeroRequestID)}${shouldLoadFromLocalLogs ? '&mode=locallogs' : ''}`,
     },
@@ -1569,6 +1571,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
             SEND_TO_SOMEONE: 'sendToSomeone',
+            SEND_TO_EMPLOYER: 'sendToEmployer',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',
@@ -8564,6 +8567,14 @@ const CONST = {
             SINGLE_SELECT: 'singleSelect',
             MULTI_SELECT: 'multiSelect',
         },
+
+        DYNAMIC_COLUMNS: {
+            /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
+            MEASURED_CANDIDATES_PER_COLUMN: 5,
+
+            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+        },
     },
 
     SENTRY_LABEL: {
@@ -8595,6 +8606,7 @@ const CONST = {
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
             FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
             FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
+            SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
         },
         FAB_MENU: {
             CREATE_EXPENSE: 'FABMenu-CreateExpense',
