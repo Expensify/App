@@ -162,7 +162,11 @@ function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERN
 
 function isInternationalBankAccountFieldLabel(label: string): boolean {
     const normalizedLabel = label.toLowerCase();
-    return CONST.CORPAY_FIELDS.INTERNATIONAL_BANK_ACCOUNT_LABEL_KEYWORDS.some((keyword) => normalizedLabel.includes(keyword));
+    return [CONST.CORPAY_FIELDS.IBAN_LABEL_KEYWORD, CONST.CORPAY_FIELDS.SWIFT_LABEL_KEYWORD].some((keyword) => normalizedLabel.includes(keyword));
+}
+
+function getCorpayFieldByLabelKeyword(fields: CorpayFieldsMap | undefined, keyword: string) {
+    return Object.values(fields ?? {}).find((field) => field.label.toLowerCase().includes(keyword));
 }
 
 function getAccountDetailsFieldsMap(accountDetailsFields: CorpayFieldsMap | undefined, shouldCollectInternationalDepositDetails: boolean): CorpayFieldsMap {
@@ -183,4 +187,4 @@ function getAccountDetailsFieldsMap(accountDetailsFields: CorpayFieldsMap | unde
     return nextFields;
 }
 
-export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors, getAccountDetailsFieldsMap};
+export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors, getAccountDetailsFieldsMap, getCorpayFieldByLabelKeyword};

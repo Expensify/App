@@ -5,6 +5,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+import type {CorpayFormField} from '@src/types/onyx/CorpayFields';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -294,6 +295,21 @@ function isValidSwiftBic(value?: string): boolean {
     return CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test((value ?? '').trim());
 }
 
+function doesValueMatchCorpayField(value: string | undefined, field?: CorpayFormField): boolean {
+    const trimmed = (value ?? '').trim();
+    if (!trimmed || !field) {
+        return false;
+    }
+    return field.validationRules.every((rule) => new RegExp(rule.regEx).test(trimmed));
+}
+
+function isSwiftBicCollectedOnAccountDetails(swiftBicCode?: string, corpaySwiftField?: CorpayFormField): boolean {
+    if (corpaySwiftField) {
+        return doesValueMatchCorpayField(swiftBicCode, corpaySwiftField);
+    }
+    return isValidSwiftBic(swiftBicCode);
+}
+
 /**
  * IBAN/SWIFT/BIC can come from either the dedicated `iban`/`swiftCode` fields filled in on the international bank
  * account details step, or from `accountNumber`/`swiftBicCode`, which the Corpay bank-details step already collects
@@ -305,12 +321,12 @@ function hasValidInternationalBankAccountDetails(iban: string | undefined, swift
 }
 
 /**
- * Whether the Corpay account details step already collected a real IBAN and SWIFT/BIC. That is the only case where
- * the dedicated international details step can be omitted. Filled `iban`/`swiftCode` must not omit it, or the step
- * disappears from the wizard after the user completes it.
+ * Whether the Corpay account details step already collected a real IBAN and a SWIFT value that matches that country's
+ * Corpay rules. That is the only case where the dedicated international details step can be omitted. Filled
+ * `iban`/`swiftCode` must not omit it, or the step disappears from the wizard after the user completes it.
  */
-function hasValidAccountDetailsInternationalFields(accountNumber?: string, swiftBicCode?: string): boolean {
-    return isValidIBAN(accountNumber) && isValidSwiftBic(swiftBicCode);
+function hasValidAccountDetailsInternationalFields(accountNumber?: string, swiftBicCode?: string, corpaySwiftField?: CorpayFormField): boolean {
+    return isValidIBAN(accountNumber) && isSwiftBicCollectedOnAccountDetails(swiftBicCode, corpaySwiftField);
 }
 
 /**
@@ -318,14 +334,20 @@ function hasValidAccountDetailsInternationalFields(accountNumber?: string, swift
  * dedicated `iban`/`swiftCode` fields weren't collected (e.g. the international bank account details step was
  * skipped because the Corpay bank-details step already gathered equivalent values).
  */
-function getInternationalBankAccountDetailsValues(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string): {iban: string; swiftCode: string} {
+function getInternationalBankAccountDetailsValues(
+    iban: string | undefined,
+    swiftCode: string | undefined,
+    accountNumber?: string,
+    swiftBicCode?: string,
+    corpaySwiftField?: CorpayFormField,
+): {iban: string; swiftCode: string} {
     let resolvedIBAN = iban ?? '';
     if (!resolvedIBAN && isValidIBAN(accountNumber)) {
         resolvedIBAN = accountNumber ?? '';
     }
 
     let resolvedSwiftCode = swiftCode ?? '';
-    if (!resolvedSwiftCode && isValidSwiftBic(swiftBicCode)) {
+    if (!resolvedSwiftCode && isSwiftBicCollectedOnAccountDetails(swiftBicCode, corpaySwiftField)) {
         resolvedSwiftCode = swiftBicCode ?? '';
     }
 
@@ -339,10 +361,14 @@ function getInternationalBankAccountDetailsValues(iban: string | undefined, swif
  * Locks the international-details IBAN or SWIFT/BIC input when the initial bank details page already collected
  * that value, so the user cannot submit a second conflicting copy.
  */
-function getDisabledInternationalBankAccountFields(accountNumber?: string, swiftBicCode?: string): {isIBANDisabled: boolean; isSwiftCodeDisabled: boolean} {
+function getDisabledInternationalBankAccountFields(
+    accountNumber?: string,
+    swiftBicCode?: string,
+    corpaySwiftField?: CorpayFormField,
+): {isIBANDisabled: boolean; isSwiftCodeDisabled: boolean} {
     return {
         isIBANDisabled: isValidIBAN(accountNumber),
-        isSwiftCodeDisabled: isValidSwiftBic(swiftBicCode),
+        isSwiftCodeDisabled: isSwiftBicCollectedOnAccountDetails(swiftBicCode, corpaySwiftField),
     };
 }
 
@@ -367,12 +393,13 @@ function getInternationalBankAccountDetailsErrors(
     iban: string | undefined,
     swiftCode: string | undefined,
     translate: LocaleContextProps['translate'],
+    isSwiftCodeDisabled = false,
 ): Partial<Record<'iban' | 'swiftCode', string>> {
     const errors: Partial<Record<'iban' | 'swiftCode', string>> = {};
     if (iban && !isValidIBAN(iban)) {
         errors.iban = translate('bankAccount.error.iban');
     }
-    if (swiftCode && !isValidSwiftBic(swiftCode)) {
+    if (swiftCode && !isSwiftCodeDisabled && !isValidSwiftBic(swiftCode)) {
         errors.swiftCode = translate('bankAccount.error.swiftCode');
     }
     return errors;

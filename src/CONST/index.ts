@@ -8344,7 +8344,8 @@ const CONST = {
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
         ACCOUNT_HOLDER_COUNTRY_KEY: 'accountHolderCountry',
-        INTERNATIONAL_BANK_ACCOUNT_LABEL_KEYWORDS: ['iban', 'swift'] as const,
+        IBAN_LABEL_KEYWORD: 'iban',
+        SWIFT_LABEL_KEYWORD: 'swift',
         BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
         ACCOUNT_HOLDER_FIELDS: [
             'accountHolderName',

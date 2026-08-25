@@ -1,7 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {getAccountDetailsFieldsMap, getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+import {getAccountDetailsFieldsMap, getCorpayFieldByLabelKeyword, getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
+import CONST from '@src/CONST';
 import type {CorpayFormField} from '@src/types/onyx/CorpayFields';
 
 const translate: LocaleContextProps['translate'] = (path, ...parameters) => {
@@ -64,13 +65,23 @@ describe('getAccountDetailsFieldsMap', () => {
     });
 });
 
+describe('getCorpayFieldByLabelKeyword', () => {
+    it('finds the SWIFT field by label text from Corpay', () => {
+        const swiftBicCode = createCorpayField('swiftBicCode', false, 'Swift Code');
+        const accountNumber = createCorpayField('accountNumber', true, 'Account Number');
+
+        expect(getCorpayFieldByLabelKeyword({swiftBicCode, accountNumber}, CONST.CORPAY_FIELDS.SWIFT_LABEL_KEYWORD)).toBe(swiftBicCode);
+        expect(getCorpayFieldByLabelKeyword({accountNumber}, CONST.CORPAY_FIELDS.SWIFT_LABEL_KEYWORD)).toBeUndefined();
+    });
+});
+
 describe('getValidationErrors', () => {
     it('uses Corpay validation rules for a required SWIFT field', () => {
         const swiftBicCode = createCorpayField('swiftBicCode', true, 'Swift Code', [{regEx: '^.{0,12}$', errorMessage: 'Swift must be less than 12 characters'}]);
         const fields = {swiftBicCode};
 
         expect(getValidationErrors(createFormValues(''), fields, translate)).toEqual({swiftBicCode: 'common.error.fieldRequired'});
-        expect(getValidationErrors(createFormValues('toolongswiftcode'), fields, translate)).toEqual({swiftBicCode: 'Swift must be less than 12 characters'});
-        expect(getValidationErrors(createFormValues('XXXXATXX'), fields, translate)).toEqual({});
+        expect(getValidationErrors(createFormValues('1234567890123'), fields, translate)).toEqual({swiftBicCode: 'Swift must be less than 12 characters'});
+        expect(getValidationErrors(createFormValues('ABCD1234'), fields, translate)).toEqual({});
     });
 });
