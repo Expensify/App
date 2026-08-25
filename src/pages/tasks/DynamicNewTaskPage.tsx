@@ -277,7 +277,7 @@ function DynamicNewTaskPage() {
                                             )}
                                             {!!shareDestination.subtitle && <MenuItem.Description>{shareDestination.subtitle}</MenuItem.Description>}
                                         </MenuItem.Content>
-                                        {!!navigateToShareDestination && (
+                                        {!task?.parentReportID && (
                                             <MenuItem.Trailing>
                                                 <MenuItem.Chevron />
                                             </MenuItem.Trailing>
