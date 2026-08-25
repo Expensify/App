@@ -1,12 +1,12 @@
 import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import MultiGestureIcon from '@components/Attachments/MultiGestureIcon';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
-import Button from '@components/Button';
-import DistanceEReceipt from '@components/DistanceEReceipt';
+import Button from '@components/ButtonComposed';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
+import ScaledDistanceEReceipt from '@components/ScaledDistanceEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -28,7 +28,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isMapBasedDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
@@ -255,6 +255,16 @@ function AttachmentView({
         );
     }
 
+    // New Expensify builds the distance e-receipt from the expense, which is why the server stores only the route
+    // map as the thumbnail for it to draw around. The generated PDF beside it is for Expensify Classic, which
+    // cannot build one in the frontend, and it prints the routed trip rather than what the expense bills. Showing
+    // that PDF here made the enlarged receipt contradict every other surface, so draw the card instead. This runs
+    // before the PDF branch below, which would otherwise return first.
+    // See https://github.com/Expensify/Expensify/issues/545298 and https://github.com/Expensify/App/issues/97013.
+    if (transaction && isMapBasedDistanceRequest(transaction)) {
+        return <ScaledDistanceEReceipt transaction={transaction} />;
+    }
+
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
     const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
@@ -314,14 +324,6 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !isOdometerDistanceRequest(transaction) && transaction) {
-        // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
-        const isImageReceiptSource = checkIsFileImage(source, file?.name);
-        if (!hasReceiptSource(transaction) || isImageReceiptSource) {
-            return <DistanceEReceipt transaction={transaction} />;
-        }
-    }
-
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
@@ -346,8 +348,6 @@ function AttachmentView({
                         <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
                     </View>
                     <Button
-                        text={translate('attachmentView.retry')}
-                        icon={icons.ArrowCircleClockwise}
                         onPress={() => {
                             if (isOffline) {
                                 return;
@@ -355,7 +355,10 @@ function AttachmentView({
                             setImageError(false);
                         }}
                         sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.RETRY_BUTTON}
-                    />
+                    >
+                        <Button.Icon src={icons.ArrowCircleClockwise} />
+                        <Button.Text>{translate('attachmentView.retry')}</Button.Text>
+                    </Button>
                 </View>
             );
         }

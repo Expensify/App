@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -22,13 +23,17 @@ import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
+import type ReactNative from 'react-native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
+import {addDays, format as formatDate, subDays} from 'date-fns';
 import React from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import currencyList from '../unit/currencyList.json';
+import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -100,9 +105,30 @@ jest.mock('@components/Navigation/TopBarWithLoadingBar', () => {
 });
 
 jest.mock('@components/MenuItem', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{testID: string; children?: React.ReactNode}>};
-    return ({title}: {title: string}) => ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`}, title);
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
+    return ({
+        title,
+        brickRoadIndicator,
+        badgeText,
+        isBadgeSuccess,
+        isBadgeCondensed,
+    }: {
+        title: string;
+        brickRoadIndicator?: string;
+        badgeText?: string;
+        isBadgeSuccess?: boolean;
+        isBadgeCondensed?: boolean;
+    }) =>
+        ReactMock.createElement(
+            ReactMock.Fragment,
+            null,
+            ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`}, title),
+            brickRoadIndicator ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-rbr`}, brickRoadIndicator) : null,
+            badgeText ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge`}, badgeText) : null,
+            isBadgeSuccess ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge-success`}) : null,
+            isBadgeCondensed ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge-condensed`}) : null,
+        );
 });
 
 const mockUsePermissions = jest.mocked(usePermissions);
@@ -112,7 +138,7 @@ const Stack = createPlatformStackNavigator<SettingsSplitNavigatorParamList>();
 
 function renderPage() {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrencyListContextProvider]}>
             <PortalProvider>
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={SCREENS.SETTINGS.ROOT}>
@@ -125,6 +151,10 @@ function renderPage() {
             </PortalProvider>
         </ComposeProviders>,
     );
+}
+
+function getMenuItemTitles() {
+    return screen.getAllByTestId(/^menu-item-/).flatMap((item) => item.children.filter((child): child is string => typeof child === 'string'));
 }
 
 describe('InitialSettingsPage - agent account', () => {
@@ -203,6 +233,20 @@ describe('InitialSettingsPage - agent account', () => {
             expect(screen.getByTestId('menu-item-Wallet')).toBeDefined();
             expect(screen.getByTestId('menu-item-Preferences')).toBeDefined();
             expect(screen.getByTestId('menu-item-Security')).toBeDefined();
+            expect(getMenuItemTitles()).toEqual([
+                'Profile',
+                'Wallet',
+                'Expense rules',
+                'Preferences',
+                'Copilot',
+                'Security',
+                'Help',
+                "What's new",
+                'About',
+                'Troubleshoot',
+                'Save the world',
+                'Sign out',
+            ]);
         });
     });
 
@@ -215,6 +259,7 @@ describe('InitialSettingsPage - agent account', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Subscription')).toBeDefined();
+            expect(getMenuItemTitles().slice(0, 3)).toEqual(['Profile', 'Subscription', 'Wallet']);
         });
     });
 
@@ -227,6 +272,74 @@ describe('InitialSettingsPage - agent account', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Subscription')).toBeDefined();
+        });
+    });
+
+    it('shows Subscription for an outstanding balance without an active subscription', async () => {
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(getMenuItemTitles().slice(0, 3)).toEqual(['Profile', 'Subscription', 'Wallet']);
+        });
+    });
+
+    it('preserves dynamic menu decorations and general menu ordering', async () => {
+        mockUseSubscriptionPlan.mockReturnValue(CONST.POLICY.TYPE.CORPORATE);
+        mockUsePermissions.mockReturnValue({isBetaEnabled: (beta: string) => beta === CONST.BETAS.CUSTOM_AGENT});
+        await setupUser('user@expensify.com');
+
+        const policy = createRandomPolicy(accountID, CONST.POLICY.TYPE.CORPORATE);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.USER_WALLET, {
+                tierName: CONST.WALLET.TIER_NAME.GOLD,
+                currentBalance: 12345,
+                errors: {wallet: 'Wallet error'},
+            });
+            await Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+                errorFields: {phoneNumber: {error: 'Invalid phone number'}},
+            });
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                device: {
+                    created: '2026-01-01',
+                    accountID,
+                    partnerID: CONST.PARTNER_ID.ANDROID,
+                    partnerUserID: 'device',
+                    lastLogin: '2026-01-01',
+                    validatedDate: null,
+                    errorFields: {revoke: {error: 'Unable to revoke device'}},
+                },
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                nameErrors: {error: 'Agent name error'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
+            await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('decoration-Profile-rbr').children).toEqual([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR]);
+            expect(screen.getByTestId('decoration-Wallet-rbr').children).toEqual([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR]);
+            expect(screen.getByTestId('decoration-Wallet-badge').children).toEqual(['$123.45']);
+            expect(screen.getByTestId('decoration-Security-rbr').children).toEqual([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR]);
+            expect(screen.getByTestId('decoration-Agents-rbr').children).toEqual([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR]);
+            expect(screen.getByTestId('decoration-Agents-badge').children).toEqual(['Beta']);
+            expect(screen.getByTestId('decoration-Subscription-badge').children).toEqual([expect.any(String)]);
+            expect(screen.getByTestId('decoration-Subscription-badge-success')).toBeDefined();
+            expect(screen.getByTestId('decoration-Subscription-badge-condensed')).toBeDefined();
+
+            const menuItemTitles = getMenuItemTitles();
+            expect(menuItemTitles.slice(menuItemTitles.indexOf('Help'))).toEqual(['Help', "What's new", 'About', 'Troubleshoot', 'Save the world', 'Sign out']);
         });
     });
 
@@ -251,6 +364,7 @@ describe('InitialSettingsPage - agent account', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Agents')).toBeDefined();
+            expect(getMenuItemTitles().slice(0, 5)).toEqual(['Profile', 'Wallet', 'Expense rules', 'Agents', 'Preferences']);
         });
     });
 });

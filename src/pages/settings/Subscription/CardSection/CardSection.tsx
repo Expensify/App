@@ -82,6 +82,7 @@ function CardSection() {
     const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isGrandfatheredFree] = useOnyx(ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE);
     const requestRefund = useCallback(() => {
@@ -139,6 +140,7 @@ function CardSection() {
             fundList,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
         }),
     );
 
@@ -168,6 +170,7 @@ function CardSection() {
                 fundList,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerTravelBillingGracePeriodEnd,
             }),
         );
     }, [
@@ -186,6 +189,7 @@ function CardSection() {
         fundList,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        ownerTravelBillingGracePeriodEnd,
     ]);
 
     const handleRetryPayment = () => {
@@ -240,37 +244,43 @@ function CardSection() {
             subtitleMuted
             banner={BillingBanner}
         >
-            <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
-                {!isEmptyObject(defaultCard?.accountData) && (
+            {!isEmptyObject(defaultCard?.accountData) && (
+                <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                     <PaymentCardDetails
                         card={defaultCard}
                         rightComponent={<CardSectionActions />}
                     />
-                )}
-            </View>
+                </View>
+            )}
 
-            <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
+            {isEmptyObject(defaultCard?.accountData) && (
+                <View style={styles.mb3}>
+                    <CardSectionDataEmpty />
+                </View>
+            )}
             {billingStatus?.isRetryAvailable !== undefined && (
                 <CardSectionButton
-                    text={translate('subscription.cardSection.retryPaymentButton')}
                     isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                     isLoading={subscriptionRetryBillingStatusPending}
                     onPress={handleRetryPayment}
                     style={[styles.w100, styles.mb3]}
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.RETRY_PAYMENT}
-                />
+                >
+                    <CardSectionButton.Text>{translate('subscription.cardSection.retryPaymentButton')}</CardSectionButton.Text>
+                </CardSectionButton>
             )}
             {hasCardAuthenticatedError(privateStripeCustomerID, amountOwed) && (
                 <CardSectionButton
-                    text={translate('subscription.cardSection.authenticatePayment')}
                     isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
                     isLoading={subscriptionRetryBillingStatusPending}
                     onPress={handleAuthenticatePayment}
                     style={[styles.w100, styles.mt5]}
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTHENTICATE_PAYMENT}
-                />
+                >
+                    <CardSectionButton.Text>{translate('subscription.cardSection.authenticatePayment')}</CardSectionButton.Text>
+                </CardSectionButton>
             )}
 
             {!!account?.hasPurchases && (
