@@ -84,8 +84,8 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['common.workspacesTabTitle', 'Workspaces'],
                 ['common.domains', 'Domains'],
                 ['initialSettingsPage.account', 'Account'],
-                ['domain.domainMembers', 'Members'],
-                ['domain.domainAdmins', 'Admins'],
+                ['domain.domainMembers', 'Domain members'],
+                ['domain.domainAdmins', 'Domain admins'],
                 ['domain.groups.title', 'Groups'],
                 ['domain.saml', 'SAML'],
                 ['common.profile', 'Profile'],
@@ -363,8 +363,8 @@ describe('Domain Search Router navigation source', () => {
     const adminAccessKey = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${currentUserAccountID}` as const;
     const defaultSecurityGroupIDKey = 'domain_defaultSecurityGroupID' as const;
     const labels = new Map([
-        ['domain.domainMembers', 'Members'],
-        ['domain.domainAdmins', 'Admins'],
+        ['domain.domainMembers', 'Domain members'],
+        ['domain.domainAdmins', 'Domain admins'],
         ['domain.groups.title', 'Groups'],
         ['domain.saml', 'SAML'],
     ]);
@@ -402,12 +402,12 @@ describe('Domain Search Router navigation source', () => {
             onSelect,
         });
 
-        expect(items.map((item) => item.text)).toEqual(['Go to Members', 'Go to Admins', 'Go to Groups', 'Go to SAML']);
+        expect(items.map((item) => item.text)).toEqual(['Go to Domain members', 'Go to Domain admins', 'Go to Groups', 'Go to SAML']);
         expect(items.map((item) => item.singleIcon)).toEqual([domainIcons.User, domainIcons.UserShield, domainIcons.Users, domainIcons.UserLock]);
         expect(items.map((item) => item.rightElement)).toEqual(['example.com', 'example.com', 'example.com', 'example.com']);
         expect(items.map((item) => item.matchTerms)).toEqual([
-            ['Members', 'example.com'],
-            ['Admins', 'example.com'],
+            ['Domain members', 'example.com'],
+            ['Domain admins', 'example.com'],
             ['Groups', 'example.com'],
             ['SAML', 'example.com'],
         ]);
@@ -433,7 +433,7 @@ describe('Domain Search Router navigation source', () => {
             onSelect: jest.fn(),
         });
 
-        expect(buildNavigationSuggestions('members', [items], localeCompare).map((item) => item.text)).toEqual(['Go to Members']);
+        expect(buildNavigationSuggestions('members', [items], localeCompare).map((item) => item.text)).toEqual(['Go to Domain members']);
         expect(buildNavigationSuggestions('example', [items], localeCompare)).toHaveLength(4);
     });
 
@@ -455,7 +455,7 @@ describe('Domain Search Router navigation source', () => {
         const {result} = renderHook(() => useNavigationSuggestions('members'));
 
         expect(result.current).toHaveLength(1);
-        expect(result.current.at(0)).toMatchObject({text: 'Go to Members', singleIcon: domainIcons.User});
+        expect(result.current.at(0)).toMatchObject({text: 'Go to Domain members', singleIcon: domainIcons.User});
         const rightElement = result.current.at(0)?.rightElement;
         expect(isValidElement<{text: string; icon: IconAsset}>(rightElement)).toBe(true);
         if (!isValidElement<{text: string; icon: IconAsset}>(rightElement)) {
