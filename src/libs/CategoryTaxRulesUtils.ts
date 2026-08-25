@@ -7,6 +7,7 @@ import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
 
+import {clearPolicyCategoryTaxErrors} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 
 const CATEGORY_TAX_RULE_KEY_PREFIX = 'category-tax:';
@@ -96,6 +97,10 @@ function getCategoryTaxRulesTableData({
             conditionText,
             ruleDescription,
             searchTokens: [decodedCategoryName, conditionText, ruleDescription, taxDisplayName],
+            pendingAction: rule.pendingAction,
+            errors: rule.errors ?? undefined,
+            onCloseError: () => clearPolicyCategoryTaxErrors(policy, categoryName),
+            disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             action: () => onNavigate(ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName)),
         };
     });

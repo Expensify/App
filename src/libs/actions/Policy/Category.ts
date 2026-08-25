@@ -1841,6 +1841,8 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
+    const isEditing = !!existingCategoryExpenseRule;
+    const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
     if (!existingCategoryExpenseRule) {
         updatedExpenseRules.push({
@@ -1857,6 +1859,7 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
                     value: categoryName,
                 },
             ],
+            pendingAction,
         });
     } else {
         const indexToUpdate = updatedExpenseRules.indexOf(existingCategoryExpenseRule);
@@ -1864,8 +1867,22 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
 
         if (expenseRule && indexToUpdate !== -1) {
             expenseRule.tax.field_id_TAX.externalID = taxID;
+            expenseRule.pendingAction = pendingAction;
+            expenseRule.errors = null;
         }
     }
+
+    // `expenseRules` is an array rather than a collection keyed by ID, and Onyx replaces arrays wholesale on merge, so
+    // every stage below has to write the complete array instead of patching the one rule that changed.
+    const withRuleStateForCategory = (rules: ExpenseRule[], state: Pick<ExpenseRule, 'pendingAction' | 'errors'>): ExpenseRule[] =>
+        rules.map((rule) => (rule.applyWhen.some((when) => when.value === categoryName) ? {...rule, ...state} : rule));
+
+    const failureErrors = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
+    // An edit reverts to the stored tax rate so a failed save doesn't leave the new value showing, while an add has no
+    // previous value to fall back to and keeps its row so the error has somewhere to render.
+    const failureExpenseRules = isEditing
+        ? withRuleStateForCategory(expenseRules, {pendingAction: null, errors: failureErrors})
+        : withRuleStateForCategory(updatedExpenseRules, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: failureErrors});
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -1879,13 +1896,27 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
                 },
             },
         ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        expenseRules: withRuleStateForCategory(updatedExpenseRules, {pendingAction: null, errors: null}),
+                    },
+                },
+            },
+        ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        expenseRules,
+                        // Keep the rule in place carrying the error rather than reverting the array, so the failure is
+                        // visible and can be dismissed instead of the row silently disappearing. An add keeps its ADD
+                        // pending action so dismissing the error knows to drop the row entirely.
+                        expenseRules: failureExpenseRules,
                     },
                 },
             },
@@ -1899,6 +1930,34 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
+}
+
+/**
+ * Dismisses the error on a category's tax default. A rule whose add never landed is dropped outright, since there is no
+ * stored rule left to show — matching how a failed coding rule is cleared.
+ */
+function clearPolicyCategoryTaxErrors(policy: OnyxEntry<Policy>, categoryName: string) {
+    if (!policy?.id) {
+        return;
+    }
+    const expenseRules = policy.rules?.expenseRules ?? [];
+    const matchesCategory = (rule: ExpenseRule) => rule.applyWhen.some((when) => when.value === categoryName);
+    const failedRule = expenseRules.find(matchesCategory);
+
+    if (!failedRule) {
+        return;
+    }
+
+    const updatedExpenseRules =
+        failedRule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+            ? expenseRules.filter((rule) => !matchesCategory(rule))
+            : expenseRules.map((rule) => (matchesCategory(rule) ? {...rule, errors: null} : rule));
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+        rules: {
+            expenseRules: updatedExpenseRules,
+        },
+    });
 }
 
 function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: string, areAttendeesRequired: boolean, policyCategories: PolicyCategories = {}) {
@@ -1979,6 +2038,7 @@ export {
     DEFAULT_MCC_GROUP,
     isDefaultMccGroupID,
     clearCategoryErrors,
+    clearPolicyCategoryTaxErrors,
     createPolicyCategory,
     deleteWorkspaceCategories,
     downloadCategoriesCSV,
