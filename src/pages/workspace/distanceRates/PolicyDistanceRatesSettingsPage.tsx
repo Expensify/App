@@ -28,6 +28,7 @@ import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {
     clearPolicyCommuterExclusionsErrors,
@@ -225,33 +226,22 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     </View>
                                 </OfflineWithFeedback>
                             )}
-                            <OfflineWithFeedback
-                                errors={getLatestErrorField(policy ?? {}, 'requireMapOrGPS')}
-                                errorRowStyles={styles.mh5}
+                            <ToggleSettingOptionRow
+                                title={translate('workspace.distanceRates.requireMapOrGPS')}
+                                subtitle={translate('workspace.distanceRates.requireMapOrGPSDescription')}
+                                switchAccessibilityLabel={translate('workspace.distanceRates.requireMapOrGPS')}
+                                shouldPlaceSubtitleBelowSwitch
+                                shouldUseCompactSubtitleSpacing
+                                wrapperStyle={[styles.mt2, styles.mh5]}
+                                isActive={isRequired}
+                                onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn)}
+                                disabled={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
+                                disabledAction={withReadOnlyFallback(isRequirementLockedByCommuterExclusions ? showRequirementLockedModal : undefined)}
+                                showLockIcon={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
                                 pendingAction={policy?.pendingFields?.requireMapOrGPS}
-                                onClose={() => clearPolicyRequireMapOrGPSErrors(policyID)}
-                            >
-                                <View style={[styles.mt2, styles.mb5, styles.mh5]}>
-                                    <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text
-                                            style={[styles.textNormal, styles.colorMuted]}
-                                            accessible={false}
-                                            aria-hidden
-                                        >
-                                            {translate('workspace.distanceRates.requireMapOrGPS')}
-                                        </Text>
-                                        <Switch
-                                            isOn={isRequired}
-                                            accessibilityLabel={translate('workspace.distanceRates.requireMapOrGPS')}
-                                            onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn)}
-                                            disabled={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
-                                            disabledAction={withReadOnlyFallback(isRequirementLockedByCommuterExclusions ? showRequirementLockedModal : undefined)}
-                                            showLockIcon={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
-                                        />
-                                    </View>
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.distanceRates.requireMapOrGPSDescription')}</Text>
-                                </View>
-                            </OfflineWithFeedback>
+                                errors={getLatestErrorField(policy ?? {}, 'requireMapOrGPS')}
+                                onCloseError={() => clearPolicyRequireMapOrGPSErrors(policyID)}
+                            />
                             {isCommuterExclusionsEnabled && (
                                 <OfflineWithFeedback
                                     errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
@@ -271,7 +261,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                         }
                                         description={translate('workspace.distanceRates.commuterExclusions.title')}
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
-                                        wrapperStyle={[styles.ph5, styles.mt3, styles.mb3]}
+                                        wrapperStyle={[styles.ph5, styles.mt3]}
                                     />
                                 </OfflineWithFeedback>
                             )}
