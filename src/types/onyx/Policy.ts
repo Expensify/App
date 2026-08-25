@@ -10,6 +10,7 @@ import type {ValueOf} from 'type-fest';
 import type * as OnyxTypes from '.';
 import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from './PolicyCore';
 import type {WorkspaceTravelSettings} from './TravelSettings';
 
 /** Distance units */
@@ -1318,9 +1319,6 @@ type SageIntacctConnectionData = {
 /** Mapping value for Sage Intacct */
 type SageIntacctMappingValue = ValueOf<typeof CONST.SAGE_INTACCT_MAPPING_VALUE>;
 
-/** Mapping names for Sage Intacct */
-type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
-
 /**
  * Sage Intacct dimension type
  */
@@ -2494,19 +2492,6 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig, MergeHRConnectionLastSync>;
 };
 
-/** All integration connections, including unsupported ones */
-type AllConnections = Connections & {
-    /** Quickbooks Desktop integration connection */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    quickbooksDesktop: any;
-};
-
-/** Names of integration connections */
-type ConnectionName = keyof Connections;
-
-/** Names of all integration connections */
-type AllConnectionName = keyof AllConnections;
-
 /** Merchant Category Code. This is a way to identify the type of merchant (and type of spend) when a credit card is swiped.  */
 type MccGroup = {
     /** Default category for provided MCC Group */
@@ -3208,9 +3193,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
-
-/** Stages of policy connection sync */
-type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 
 /** Names of policy connection services */
 type PolicyConnectionName = ConnectionName;

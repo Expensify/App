@@ -1823,23 +1823,22 @@ describe('generateTranslations', () => {
         });
 
         it('should handle satisfies expressions in nested objects', async () => {
-            const strings = {
-                common: {
-                    tasks: 'Tasks', // String value
-                },
-                onboarding: {
-                    tasks: {
-                        createWorkspaceTask: {
-                            title: 'Create a workspace',
-                            description: 'Create a workspace to get started',
-                        },
-                    },
-                },
-            };
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
-                const strings = ${JSON.stringify(strings)};
+                const strings = {
+                    common: {
+                        tasks: 'Tasks',
+                    },
+                    onboarding: {
+                        tasks: {
+                            createWorkspaceTask: {
+                                title: 'Create a workspace',
+                                description: 'Create a workspace to get started',
+                            },
+                        } satisfies Record<string, {title: string; description: string}>,
+                    },
+                };
                 export default strings;
             `),
                 'utf8',

@@ -1,4 +1,4 @@
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './types/params';
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
@@ -28,13 +28,6 @@ type ShareParams = {to: string};
 
 type UnshareParams = {to: string};
 
-type ExportAgainModalDescriptionParams = {
-    reportName: string;
-    connectionName: ConnectionName;
-    connectionNameFriendly?: string;
-};
-
-type ExportIntegrationSelectedParams = {connectionName: ConnectionName; connectionNameFriendly?: string};
 export type {
     ParentNavigationSummaryParams,
     StepCounterParams,

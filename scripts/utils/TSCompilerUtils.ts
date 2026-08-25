@@ -391,8 +391,9 @@ function objectHas(objectLiteral: ts.ObjectLiteralExpression, dotNotationPath: s
                     }
 
                     // Continue traversing - check if the next level is an object
-                    if (ts.isObjectLiteralExpression(property.initializer)) {
-                        currentNode = property.initializer;
+                    const initializer = isExpressionWithType(property.initializer) ? property.initializer.expression : property.initializer;
+                    if (ts.isObjectLiteralExpression(initializer)) {
+                        currentNode = initializer;
                         found = true;
                         break;
                     } else {

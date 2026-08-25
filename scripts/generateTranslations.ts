@@ -10,6 +10,7 @@ import hashStr from '@libs/StringUtils/hash';
 
 import {isTranslationTargetLocale, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+import en from '@src/languages/en';
 
 import type {TemplateExpression} from '@typescript/typescript6';
 
@@ -19,6 +20,8 @@ import * as dotenv from 'dotenv';
 import {Str} from 'expensify-common';
 import CLI from 'expensify-common/CLI';
 import fs from 'fs';
+// eslint-disable-next-line you-dont-need-lodash-underscore/get
+import get from 'lodash/get';
 import path from 'path';
 
 import type {DiffResult} from './utils/Git';
@@ -277,7 +280,9 @@ class TranslationGenerator {
                         const validatedPaths = new Set<string>();
                         const invalidPaths: string[] = [];
                         for (const rawPath of rawPaths) {
-                            if (TSCompilerUtils.objectHas(this.translationsNode, rawPath)) {
+                            // Custom source directories are used by tests and may not match the imported app translations.
+                            const pathExists = process.env.LANGUAGES_DIR ? TSCompilerUtils.objectHas(this.translationsNode, rawPath) : get(en, rawPath) !== undefined;
+                            if (pathExists) {
                                 validatedPaths.add(rawPath);
                             } else {
                                 invalidPaths.push(rawPath);

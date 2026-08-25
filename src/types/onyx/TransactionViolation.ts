@@ -4,6 +4,8 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 import type {ValueOf} from 'type-fest';
 
+import type {ViolationDataType} from './TransactionViolationCore';
+
 /**
  * Names of violations.
  * Derived from `CONST.VIOLATIONS` to maintain a single source of truth.
@@ -15,12 +17,6 @@ type ViolationName = ValueOf<typeof CONST.VIOLATIONS>;
  * Derived from `CONST.VIOLATION_TYPES` to maintain a single source of truth.
  */
 type ViolationType = ValueOf<typeof CONST.VIOLATION_TYPES>;
-
-/**
- * Types for the data in the modifiedAmount violation
- * Derived from CONST.VIOLATION_DATA_TYPES to maintain a single source of truth.
- */
-type ViolationDataType = ValueOf<typeof CONST.MODIFIED_AMOUNT_VIOLATION_DATA>;
 
 /** Model of transaction violation data */
 type TransactionViolationData = {

@@ -23,6 +23,8 @@ import type {ValueOf} from 'type-fest';
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
+import type {OnboardingTask, OnboardingTaskLinks} from './OnboardingTask';
+
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 
@@ -37,27 +39,6 @@ type GetOnboardingInitialPathParamsType = {
     isAccountValidated?: boolean;
     /** When set, startOnboardingFlow navigates here directly instead of re-deriving via getOnboardingInitialPath. */
     resumePath?: string;
-};
-
-type OnboardingTaskLinks = Partial<{
-    onboardingCompanySize: OnboardingCompanySize;
-    integrationName: string;
-    workspaceSettingsLink: string;
-    workspaceCategoriesLink: string;
-    workspaceTagsLink: string;
-    workspaceMoreFeaturesLink: string;
-    workspaceMembersLink: string;
-    workspaceAccountingLink: string;
-    workspaceConfirmationLink: string;
-    testDriveURL: string;
-    corporateCardLink: string;
-}>;
-
-type OnboardingTask = {
-    type: ValueOf<typeof CONST.ONBOARDING_TASK_TYPE>;
-    autoCompleted: boolean;
-    title: string | ((params: OnboardingTaskLinks) => string);
-    description: string | ((params: OnboardingTaskLinks) => string);
 };
 
 type OnboardingMessage = {
