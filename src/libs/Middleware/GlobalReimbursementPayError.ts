@@ -1,7 +1,7 @@
 import Log from '@libs/Log';
-import {isRecord} from '@libs/ObjectUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import type Request from '@src/types/onyx/Request';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -13,7 +13,9 @@ import type Middleware from './types';
 /**
  * Middleware that detects the Corpay pay modal signal sent by the backend when a pay attempt fails because the
  * workspace USD VBBA is not set up on Corpay. The backend sends an Onyx SET on corpayPayModal instead of writing
- * an inline error onto the report action.
+ * an inline error onto the report action. The client still runs its existing failureData to revert the report
+ * state, but the failureData entry that would tag the optimistic PAY action with an error is rewritten here so the
+ * orphan optimistic PAY action is cleanly removed (merged to null) instead of showing a red error.
  */
 const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
     responsePromise.then((response) => {
@@ -38,10 +40,12 @@ const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responseP
             }
 
             // Replace the action-error merge with an action-null merge so the orphan optimistic PAY action is
-            // removed instead of being tagged with a red error.
-            const value = update.value;
-            if (isRecord(value)) {
-                value[reportActionID] = null;
+            // removed instead of being tagged with a red error. Widened to AnyOnyxUpdate (matches the pattern used
+            // by Pagination/HandleUnusedOptimisticID) so the union-typed value can be indexed without an unsafe
+            // narrowing cast.
+            const widened = update as AnyOnyxUpdate;
+            if (widened.value) {
+                widened.value[reportActionID] = null;
             }
 
             return update;
