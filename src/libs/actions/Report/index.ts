@@ -4249,13 +4249,15 @@ function navigateToConciergeChat(
     reportActionID?: string,
     // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
     personalDetails?: OnyxEntry<PersonalDetailsList>,
-) {
+): Promise<void> {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
+    // A resolved promise is returned on every branch so callers can sequence work (e.g. another API.write) to run only
+    // after the concierge chat has been created/opened and its onboarding OpenReport enqueued. See https://github.com/Expensify/App/issues/99396.
     if (!conciergeReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
-        onServerDataReady().then(() => {
+        return onServerDataReady().then(() => {
             // If we don't have a chat with Concierge then create it
             if (!checkIfCurrentPageActive()) {
                 return;
@@ -4273,16 +4275,18 @@ function navigateToConciergeChat(
                 linkToOptions,
             });
         });
-    } else if (shouldDismissModal) {
+    }
+    if (shouldDismissModal) {
         const reportParams = {reportID: conciergeReportID, reportActionID};
         if (linkToOptions?.afterTransition) {
             Navigation.dismissModalWithReport(reportParams, undefined, {afterTransition: linkToOptions.afterTransition});
         } else {
             Navigation.dismissModalWithReport(reportParams);
         }
-    } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
+        return Promise.resolve();
     }
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
+    return Promise.resolve();
 }
 
 type BuildNewReportOptimisticDataParams = {
