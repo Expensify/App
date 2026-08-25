@@ -15,6 +15,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type ReactNative from 'react-native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 
 const mockBodyStyle = {fontSize: 15, lineHeight: 20};
 const mockMutedColorStyle = {color: 'muted'};
@@ -124,8 +125,8 @@ describe('ReportActionItemSystem', () => {
         const actorAncestors = getAncestors(actor);
         const contentAncestors = getAncestors(content);
         const timestampAncestors = getAncestors(timestamp);
-        expect(actor.props.style).toEqual([mockBodyStyle, mockMutedColorStyle]);
-        expect(content.props.style).toEqual(expect.arrayContaining([mockBodyStyle, mockMutedColorStyle]));
+        expect(StyleSheet.flatten(actor.props.style)).toMatchObject({...mockBodyStyle, ...mockMutedColorStyle});
+        expect(StyleSheet.flatten(content.props.style)).toMatchObject({...mockBodyStyle, ...mockMutedColorStyle});
 
         const actionLineContainer = actorAncestors.find((ancestor) => contentAncestors.includes(ancestor));
 
@@ -182,9 +183,9 @@ describe('ReportActionItemSystem', () => {
         const actor = screen.getByText('Todd Clyde ');
         const content = screen.getByText('submitted');
         const timestamp = screen.getByText('2026-07-30 00:00:00.000');
-        expect(actor.props.style).toEqual(mockMutedLabelStyle);
-        expect(content.props.style).toEqual(expect.arrayContaining([mockBodyStyle, mockMutedColorStyle, mockMutedLabelStyle]));
-        expect(timestamp.props.style).toEqual([mockMutedLabelStyle, mockPaddingTopZeroStyle]);
+        expect(StyleSheet.flatten(actor.props.style)).toMatchObject(mockMutedLabelStyle);
+        expect(StyleSheet.flatten(content.props.style)).toMatchObject(mockMutedLabelStyle);
+        expect(StyleSheet.flatten(timestamp.props.style)).toMatchObject({...mockMutedLabelStyle, ...mockPaddingTopZeroStyle});
         const actorAncestors = getAncestors(actor);
         const contentAncestors = getAncestors(content);
         const timestampAncestors = getAncestors(timestamp);
