@@ -53,6 +53,12 @@ type SubscriberProps = Omit<ProviderProps, 'children'> & {
 const NO_OP: NavigateGlobalCreateFn = () => {};
 const NavigateGlobalCreateContext = createContext<NavigateGlobalCreateFn>(NO_OP);
 
+// Queue navigation on the microtask instead of navigating synchronously: a sync navigate runs inside the shutter's
+// touch handler, so on release the touch resolves to the scan page's back button and pops the flow back to the scan step.
+function deferNavigate(fn: () => void) {
+    Promise.resolve().then(fn);
+}
+
 function useNavigateGlobalCreate(): NavigateGlobalCreateFn {
     return useContext(NavigateGlobalCreateContext);
 }
@@ -104,24 +110,28 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
             // If the user previously selected different participants in confirmation, preserve that choice
             if (transaction?.participants && transaction.participants.at(0)?.reportID !== targetReport?.reportID) {
                 const isTrackExpense = transaction.participants.at(0)?.reportID === selfDMReport?.reportID;
+                const preservedParticipants = transaction.participants;
+                const preservedReportID = transaction.reportID;
 
-                const setParticipantsPromises = transactionIDs.map((tid) => setMoneyRequestParticipants(tid, transaction.participants));
-                Promise.all(setParticipantsPromises).then(() => {
+                for (const tid of transactionIDs) {
+                    setMoneyRequestParticipants(tid, preservedParticipants);
+                }
+                deferNavigate(() => {
                     if (isTrackExpense) {
                         endScanProcessAndStartConfirmationMountSpan();
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
                     } else {
-                        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, transaction.reportID);
+                        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, preservedReportID);
                     }
                 });
                 return;
             }
 
-            const setParticipantsPromises = transactionIDs.map((tid) => {
+            for (const tid of transactionIDs) {
                 setTransactionReport(tid, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
-            });
-            Promise.all(setParticipantsPromises).then(() => {
+                setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
+            }
+            deferNavigate(() => {
                 endScanProcessAndStartConfirmationMountSpan();
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
             });
