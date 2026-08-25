@@ -5,12 +5,10 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 
 import variables from '@styles/variables';
 
 import type * as NativeNavigation from '@react-navigation/native';
-import type {ComponentType} from 'react';
 import type ReactNative from 'react-native';
 
 import React, {useState} from 'react';
@@ -47,19 +45,6 @@ jest.mock('@hooks/useNetwork', () =>
         isOffline: false,
     })),
 );
-
-jest.mock('@components/withKeyboardState', () => <TProps extends KeyboardStateContextValue>(Component: ComponentType<TProps>) => {
-    function WrappedComponent(props: Omit<TProps, keyof KeyboardStateContextValue>) {
-        return (
-            <Component
-                {...(props as TProps)}
-                isKeyboardShown={false}
-            />
-        );
-    }
-    WrappedComponent.displayName = `WrappedComponent`;
-    return WrappedComponent;
-});
 
 jest.mock('@react-navigation/stack', () => ({
     useCardAnimation: () => {},
