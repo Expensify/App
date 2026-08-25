@@ -1,4 +1,5 @@
 import classCallCheckNoiseFilterIntegration, {CLASS_CALL_CHECK_MESSAGE, isClassCallCheckNoise, THIRD_PARTY_CODE_TAG} from '@libs/telemetry/integrations/classCallCheckNoiseFilter';
+import {classCallCheckNoiseFilterIntegration as webClassCallCheckNoiseFilterIntegration} from '@libs/telemetry/integrations/index.web';
 
 import type {Client, ErrorEvent, Exception, StackFrame} from '@sentry/core';
 
@@ -117,6 +118,15 @@ describe('classCallCheckNoiseFilter', () => {
         it('passes anything else through untouched', () => {
             const event = buildClassCallCheckEvent([{filename: 'app:///76-f662df2d477d1a4f.bundle.js'}]);
             expect(processEvent(event)).toBe(event);
+        });
+    });
+
+    // `setupSentryIntegrationOrderTest` mocks the whole integrations module, so nothing there exercises the real
+    // web index. Web is the only platform this filter runs on, so assert the export is the real integration and
+    // not the `undefined` stub the native index ships.
+    describe('web export wiring', () => {
+        it('re-exports the real filter from the unmocked web index', () => {
+            expect(webClassCallCheckNoiseFilterIntegration).toBe(classCallCheckNoiseFilterIntegration);
         });
     });
 });
