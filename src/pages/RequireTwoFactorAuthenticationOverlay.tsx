@@ -69,7 +69,7 @@ function RequireTwoFactorAuthenticationOverlay() {
 
     const snapshotOnboardingResumePathIfNeeded = useCallback(() => {
         const activeRoute = Navigation.getActiveRoute();
-        if (activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+        if (activeRoute?.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
             updateOnboardingLastVisitedPath(activeRoute);
             return;
         }
