@@ -140,7 +140,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         // Concierge chat already exists but onboarding is still pending. ReportFetchHandler's onboarding OpenReport only
         // fires on its mount effect, which runs after this handler, so we enqueue the same OpenReport ourselves first to win
         // the ordering. We mirror ReportFetchHandler's isLoadingApp guard because guided-setup tasks need loaded policies to
-        // resolve their deep links (https://github.com/Expensify/App/issues/71742); when isLoadingApp is true we skip and let
+        // resolve their deep links (https://github.com/Expensify/App/issues/71742). When isLoadingApp is true we skip and let
         // ReportFetchHandler's deferred OpenReport run instead. Keep this guard as-is.
         if (isGuidedSetupPending && !isLoadingApp) {
             openReport({
