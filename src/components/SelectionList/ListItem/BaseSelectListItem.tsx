@@ -58,7 +58,7 @@ function BaseSelectListItem<TItem extends ListItem>({
     ];
     const subtitleStyle = [
         isAlternateTextMultilineSupported && styles.preWrap,
-        isAlternateTextMultilineSupported ? {maxWidth: alternateTextMaxWidth} : null,
+        isAlternateTextMultilineSupported ? StyleUtils.getMaximumWidth(alternateTextMaxWidth) : null,
         isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
     ];
 
