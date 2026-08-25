@@ -19,7 +19,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem, SearchKey} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getLastSearchQuery, getOverflowMenu as getOverflowMenuUtil, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {
+    createBaseSavedSearchMenuItem,
+    getLastSearchQuery,
+    getOverflowMenu as getOverflowMenuUtil,
+    savedSearchIDToSearchKey,
+    SAVED_SEARCH_FALLBACK_ICON_NAME,
+    SAVED_SEARCH_ICON_NAMES,
+} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -27,10 +34,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 
+import useSavedSearchIcons from './hooks/useSavedSearchIcons';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuItem from './SearchTypeMenuItem';
@@ -46,6 +55,7 @@ type SavedSearchMenuItemBuilderParams = {
     getOverflowMenu: (itemSavedSearchID: string, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
     itemStyle: SavedSearchMenuItem['style'];
     isCopied: boolean;
+    icon: IconAsset;
 };
 
 function buildSavedSearchMenuItem({
@@ -59,6 +69,7 @@ function buildSavedSearchMenuItem({
     getOverflowMenu,
     itemStyle,
     isCopied,
+    icon,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
     const savedSearchKey = savedSearchIDToSearchKey(key);
     const isItemFocused = savedSearchKey === currentSearchKey;
@@ -66,6 +77,7 @@ function buildSavedSearchMenuItem({
 
     return {
         ...baseMenuItem,
+        icon,
         role: CONST.ROLE.TAB,
         sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
         onPress: () => {
@@ -107,7 +119,7 @@ function SavedSearchList() {
 
     const {showDeleteModal} = useDeleteSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SAVED_SEARCH_ICON_NAMES, 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
     const {copiedID, handleShare} = useShareSavedSearch();
 
     const taxRates = getAllTaxRates(allPolicies);
@@ -137,6 +149,9 @@ function SavedSearchList() {
 
     const itemStyle = [styles.alignItemsCenter];
 
+    // Resolve each saved search's icon once per collection change (see useSavedSearchIcons for why).
+    const savedSearchIconNames = useSavedSearchIcons(savedSearches);
+
     const savedSearchesMenuItems = savedSearches
         ? Object.entries(savedSearches)
               .map(([key, item], index) => {
@@ -152,6 +167,7 @@ function SavedSearchList() {
                       getOverflowMenu,
                       itemStyle,
                       isCopied: copiedID === key,
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
                   });
               })
               .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
@@ -162,7 +178,7 @@ function SavedSearchList() {
             <SearchTypeMenuItem
                 key={item.key}
                 title={item.title ?? ''}
-                icon={expensifyIcons.Bookmark}
+                icon={item.icon}
                 focused={item.focused}
                 onPress={(event) => {
                     if (item.disabled || !item.onPress || !event) {
@@ -178,7 +194,6 @@ function SavedSearchList() {
         <MenuItemList
             menuItems={savedSearchesMenuItems}
             wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), styles.searchTypeMenuItemPadding]}
-            icon={expensifyIcons.Bookmark}
             iconWidth={variables.iconSizeNormal}
             iconHeight={variables.iconSizeNormal}
             shouldUseSingleExecution

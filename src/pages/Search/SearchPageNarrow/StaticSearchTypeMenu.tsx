@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getSavedSearchIconName, getSuggestedSearches, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
 
@@ -33,7 +33,7 @@ function getActiveKey(similarSearchHash: number, hasGroupPolicy: boolean, search
 
 function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil', 'Bookmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil', ...SAVED_SEARCH_ICON_NAMES]);
     const {currentSearchKey} = useSearchQueryContext();
     const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
     const activeSavedSearch = useActiveSavedSearch();
@@ -57,7 +57,7 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     }
 
     if (activeSavedSearch && currentSearchKey) {
-        tabs.push({key: currentSearchKey, icon: expensifyIcons.Bookmark, title: activeSavedSearch.name});
+        tabs.push({key: currentSearchKey, icon: expensifyIcons[getSavedSearchIconName(activeSavedSearch.query)], title: activeSavedSearch.name});
     }
 
     const activeKey = activeSavedSearch ? currentSearchKey : getActiveKey(queryJSON.similarSearchHash, hasGroupPolicy, suggestedSearches);

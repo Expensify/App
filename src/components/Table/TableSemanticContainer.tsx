@@ -26,9 +26,8 @@ type TableSemanticContainerProps = {
     columnCount: number;
 
     /**
-     * Whether `TableBody` still renders content while the table is empty (e.g. an empty-state or header list slot is
-     * supplied). When it does, it keeps its own `role="rowgroup"`, so the `role="table"` wrapper must be preserved to
-     * avoid orphaned table semantics.
+     * Whether `TableBody` still renders content while an inline-semantic table is empty (e.g. an empty-state or list
+     * header is supplied). Its `role="rowgroup"` then needs the enclosing `role="table"` wrapper.
      */
     rendersBodyWhenEmpty: boolean;
 
@@ -50,17 +49,18 @@ type TableSemanticContainerProps = {
 };
 
 /**
- * Wraps only the contiguous header/body run in the `role="table"` container so that surrounding controls (filter bar,
- * empty states, …) stay outside the ARIA table, where a screen reader would otherwise navigate into them as table
- * content. When semantics are disabled the children render as-is, avoiding an extra layout node on native and in the
- * narrow card layout. Header and body are contiguous in every table, so grouping the consecutive run keeps a single
- * table container while preserving child order.
+ * Wraps only the contiguous header/body run so that it can be measured and scrolled horizontally when dynamic columns
+ * are enabled. The same wrapper carries `role="table"` when table semantics are enabled, keeping surrounding controls
+ * (filter bar, empty states, …) outside the ARIA table. When neither layout handling nor semantics are needed, the
+ * children render as-is to avoid an extra layout node. Header and body are contiguous in every table, so grouping the
+ * consecutive run keeps a single table container while preserving child order.
  */
 function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, scrollWidth, onLayout, children}: TableSemanticContainerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    if (!isEnabled) {
+    const shouldWrapTableRun = isEnabled || onLayout !== undefined || scrollWidth !== undefined;
+    if (!shouldWrapTableRun) {
         return children;
     }
 
@@ -71,7 +71,7 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, render
     // Use `React.Children.toArray` so the children's top-level keys (`.0`, `.1`, …) match the wrapped branch below;
     // otherwise React remounts a child across the empty↔non-empty boundary — for `Table.FilterBar` that runs its
     // unmount cleanup and wipes the active search string.
-    if (rowCount === 0 && !rendersBodyWhenEmpty) {
+    if (isEnabled && rowCount === 0 && !rendersBodyWhenEmpty && onLayout === undefined && scrollWidth === undefined) {
         return React.Children.toArray(children);
     }
 
@@ -91,7 +91,7 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, render
                 // it doesn't. Either way the measured node keeps the table's own width rather than growing with the
                 // content, so measuring it can't feed back into the widths it produced.
                 onLayout={scrollWidth ? undefined : onLayout}
-                {...getTableContainerAccessibilityProps(true, title, rowCount, columnCount)}
+                {...getTableContainerAccessibilityProps(isEnabled, title, rowCount, columnCount)}
             >
                 {rowGroup}
             </View>

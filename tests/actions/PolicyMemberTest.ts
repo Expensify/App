@@ -1035,11 +1035,13 @@ describe('actions/PolicyMember', () => {
         });
 
         // For more details on what a detached member is, see https://github.com/Expensify/App/issues/75514#issuecomment-3568453686
-        it('should remove "detached" members', async () => {
+        it('should not remove unrelated members that only lack personal details', async () => {
             const policyID = '23456';
             const ownerEmail = 'owner@gmail.com';
             const userEmail = 'user@gmail.com';
-            const detachedUserEmail = 'detacheduser@gmail.com';
+            // Two members whose personal details aren't loaded, unrelated to the member being removed.
+            const missingDetailsEmail1 = 'missing1@gmail.com';
+            const missingDetailsEmail2 = 'missing2@gmail.com';
             const ownerAccountID = 1;
             const userAccountID = 4321;
 
@@ -1053,7 +1055,8 @@ describe('actions/PolicyMember', () => {
                 employeeList: {
                     [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
-                    [detachedUserEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [missingDetailsEmail1]: {role: CONST.POLICY.ROLE.USER},
+                    [missingDetailsEmail2]: {role: CONST.POLICY.ROLE.USER},
                 },
             };
 
@@ -1073,8 +1076,56 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Only the selected member is removed; the other missing-details members stay.
             expect(employeeList?.[userEmail]).toBeUndefined();
-            expect(employeeList?.[detachedUserEmail]).toBeUndefined();
+            expect(employeeList?.[missingDetailsEmail1]).toBeDefined();
+            expect(employeeList?.[missingDetailsEmail2]).toBeDefined();
+            expect(employeeList?.[ownerEmail]).toBeDefined();
+        });
+
+        it('should also remove the paired login of a member invited by a secondary login', async () => {
+            const policyID = '23456';
+            const ownerEmail = 'owner@gmail.com';
+            const primaryEmail = 'primary@gmail.com';
+            const secondaryEmail = 'secondary@gmail.com';
+            const ownerAccountID = 1;
+            const primaryAccountID = 4321;
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [ownerAccountID]: {login: ownerEmail},
+                [primaryAccountID]: {login: primaryEmail},
+            });
+
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                // primaryLoginsInvited maps the secondary login used at invite time to the primary login the backend returns.
+                primaryLoginsInvited: {[secondaryEmail]: primaryEmail},
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [primaryEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [secondaryEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Remove the primary (rendered) login; the paired secondary entry should be cleared as well.
+            Member.removeMembers(policy, [primaryEmail], {[primaryEmail]: primaryAccountID});
+
+            await waitForBatchedUpdates();
+
+            const employeeList = await new Promise<PolicyEmployeeList | undefined>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyResult) => {
+                        Onyx.disconnect(connection);
+                        resolve(policyResult?.employeeList);
+                    },
+                });
+            });
+
+            expect(employeeList?.[primaryEmail]).toBeUndefined();
+            expect(employeeList?.[secondaryEmail]).toBeUndefined();
             expect(employeeList?.[ownerEmail]).toBeDefined();
         });
     });

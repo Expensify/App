@@ -360,7 +360,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const submitSearch = useCallback(
         (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, policies);
             if (!updatedQuery) {
                 return;
             }
@@ -383,7 +383,17 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, currentUserAccountID, currentSearchHash, onRouterClose, setTextInputValue, setShouldResetSearchQuery, resetSearchKey, isFromSearchPageSearchButton],
+        [
+            autocompleteSubstitutions,
+            currentUserAccountID,
+            currentSearchHash,
+            onRouterClose,
+            setTextInputValue,
+            setShouldResetSearchQuery,
+            resetSearchKey,
+            isFromSearchPageSearchButton,
+            policies,
+        ],
     );
 
     const onListItemPress = useCallback(
@@ -423,7 +433,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
                     const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
-                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery, true)}\u00A0`;
+                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
                     onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 

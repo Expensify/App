@@ -24,7 +24,15 @@ import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
-import {getItemBadgeText, getLastSearchQuery, getOverflowMenu, savedSearchIDToSearchKey, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {
+    getItemBadgeText,
+    getLastSearchQuery,
+    getOverflowMenu,
+    savedSearchIDToSearchKey,
+    SAVED_SEARCH_FALLBACK_ICON_NAME,
+    SAVED_SEARCH_ICON_NAMES,
+    SEARCH_TYPE_MENU_ICON_NAMES,
+} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -38,6 +46,7 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import useSavedSearchIcons from './hooks/useSavedSearchIcons';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 
 type SearchTypeMenuNarrowProps = {
@@ -129,7 +138,10 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const {copiedID, handleShare} = useShareSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, 'Bookmark', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, ...SAVED_SEARCH_ICON_NAMES, 'Trashcan', 'LinkCopy', 'Checkmark']);
+
+    // Resolve each saved search's icon once per collection change (see useSavedSearchIcons for why).
+    const savedSearchIconNames = useSavedSearchIcons(savedSearches);
 
     const queryMap = new Map<SearchKey, {query: string; name?: string}>();
     const tabItems: Array<TabSelectorBaseItem<SearchKey>> = [];
@@ -156,10 +168,12 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   return {
                       key: savedSearchKey,
-                      icon: expensifyIcons.Bookmark,
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                       pendingAction: item.pendingAction,
+                      // Saved-search tabs opt into the long-press / right-click menu (share / delete) via onLongTabPress.
+                      shouldEnableLongPress: true,
                   };
               })
               .filter((item) => item !== null)

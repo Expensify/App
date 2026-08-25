@@ -174,6 +174,7 @@ import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
 import type SecurityGroup from './SecurityGroup';
+import type {DomainSecurityGroupMembership} from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
@@ -337,6 +338,7 @@ export type {
     Response,
     ScreenShareRequest,
     SecurityGroup,
+    DomainSecurityGroupMembership,
     SelectedTabRequest,
     Session,
     Task,
