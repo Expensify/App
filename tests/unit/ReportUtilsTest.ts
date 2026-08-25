@@ -6693,6 +6693,15 @@ describe('ReportUtils', () => {
             );
         });
 
+        it('keeps a name the author gave the attachment while it was still uploading', () => {
+            const syncedDocHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
+            const draft = 'Hello edited\n\n[124.csv](blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            expect(replaceLocalAttachmentReferences(draft, syncedDocHtml, reportActionID)).toBe(
+                `Hello edited\n\n[124.csv](https://www.expensify.com/chat-attachments/${reportActionID}/file.doc)`,
+            );
+        });
+
         it('does not re-add an attachment the user intentionally removed from the draft', () => {
             const draft = 'Hello edited, attachment deleted';
 
@@ -6728,6 +6737,12 @@ describe('ReportUtils', () => {
 
         it('returns nothing to re-append once the attachment has synced', () => {
             expect(getUploadingAttachmentHtmlFromComment(syncedImageHtml)).toBeUndefined();
+        });
+
+        it('returns nothing to re-append for a synced file attachment, so an edit replayed after the upload cannot park itself again', () => {
+            const syncedFileHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
+
+            expect(getUploadingAttachmentHtmlFromComment(syncedFileHtml)).toBeUndefined();
         });
 
         describe('buildEditedCommentWithAttachment', () => {

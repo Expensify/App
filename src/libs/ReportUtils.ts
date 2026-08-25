@@ -6783,7 +6783,13 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
             return '';
         }
         isReplaced = true;
-        return `${match.match(/^\n*/)?.at(0) ?? ''}${syncedAttachmentMarkdown}`;
+
+        // The synced tag carries the name the file was uploaded under, so a rename made during the upload loses to it.
+        const draftLabel = match.match(/^\n*!?\[([^\]]*)\]/)?.at(1);
+        const labelledAttachmentMarkdown = draftLabel
+            ? syncedAttachmentMarkdown.replace(/^(!?)\[[^\]]*\]/, (_reference, imagePrefix: string) => `${imagePrefix}[${draftLabel}]`)
+            : syncedAttachmentMarkdown;
+        return `${match.match(/^\n*/)?.at(0) ?? ''}${labelledAttachmentMarkdown}`;
     });
 }
 
