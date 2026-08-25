@@ -47,7 +47,7 @@ function GroupChatAvatar({reportID, size, containerStyle, fallbackDisplayName}: 
         // A group chat with no uploaded avatar stores an empty string, which has to fall through to the default avatar
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         source: report?.avatarUrl || getDefaultGroupAvatar(reportID),
-        id: -1,
+        id: CONST.DEFAULT_MISSING_ID,
         type: CONST.ICON_TYPE_AVATAR,
         // Until the report row arrives there are no participants to build a name from, so fall back to the display name
         name: report ? getGroupChatName(formatPhoneNumber, translate, undefined, true, report, pendingDeleteMemberAccountIDs, personalDetails) : fallbackDisplayName,
