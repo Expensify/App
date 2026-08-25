@@ -51,7 +51,7 @@
     // CIGitLogic, Bun-only scripts and everything under evals/ use Bun's APIs, so they need @types/bun, whose globals
     // conflict with this project's. They are type-checked by tests/tooling/tsconfig.json,
     // scripts/tsconfig.json and evals/tsconfig.json instead — see the comments there.
-"exclude": [
+    "exclude": [
         "**/node_modules/*",
         "**/dist/*",
         ".github/actions/**/index.js",
