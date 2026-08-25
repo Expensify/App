@@ -311,6 +311,7 @@ const config = defineConfig([
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
+            'rulesdir/no-raw-typography': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
@@ -657,6 +658,14 @@ const config = defineConfig([
         rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
     },
 
+    // The typography token files are where raw font sizes and line heights are defined.
+    {
+        files: ['src/styles/typography.ts', 'src/styles/variables.ts'],
+        rules: {
+            'rulesdir/no-raw-typography': 'off',
+        },
+    },
+
     // Restrict `computeReportName` imports everywhere except the one file that
     // legitimately consumes it. This block overrides the main `no-restricted-imports`
     // for ts/tsx files, so we re-apply the main `restrictedImportPaths`/`restrictedImportPatterns`
@@ -691,55 +700,20 @@ const config = defineConfig([
     },
 
     {
-        files: ['server/**/*.ts', 'server/**/*.tsx'],
+        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts'],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'server/tsconfig.json'),
+                project: path.resolve(projectRoot, 'tsconfig.bun.json'),
                 projectService: false,
             },
         },
     },
 
     {
-        // Its own project because `@types/bun`'s globals conflict with the app's, so it is excluded from
-        // the root tsconfig and would otherwise belong to no project at all.
-        files: ['evals/**/*.ts'],
+        files: ['.github/**/*.{ts,tsx,js}', 'web/proxy.ts', 'config/**/*.{ts,tsx,mts,mjs,cjs,js}'],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'evals/tsconfig.json'),
-                projectService: false,
-            },
-        },
-    },
-
-    {
-        // CIGitLogic is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
-        // be pointed at the project that does own it. See tests/tooling/README.md.
-        files: [
-            'tests/tooling/CIGitLogic.test.ts',
-            'tests/tooling/lintSeatbelt.test.ts',
-            'tests/tooling/lintPipeline.test.ts',
-            'tests/tooling/WorkerPool.test.ts',
-            'tests/tooling/workerPoolEchoWorker.ts',
-            'tests/tooling/workerPoolCrashWorker.ts',
-            'tests/tooling/workerPoolSelectiveCrashWorker.ts',
-            'tests/tooling/workerPoolExitWorker.ts',
-        ],
-        languageOptions: {
-            parserOptions: {
-                project: path.resolve(projectRoot, 'tests/tooling/tsconfig.json'),
-                projectService: false,
-            },
-        },
-    },
-
-    {
-        // lint.ts is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
-        // be pointed at the project that does own it. See scripts/tsconfig.json.
-        files: ['scripts/lint.ts', 'scripts/lint/**/*.ts', 'scripts/checkOnyxConnectBypass.ts', 'scripts/utils/Bench.ts', 'scripts/utils/WorkerPool.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: path.resolve(projectRoot, 'scripts/tsconfig.json'),
+                project: path.resolve(projectRoot, 'tsconfig.node.json'),
                 projectService: false,
             },
         },
