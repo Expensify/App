@@ -5035,6 +5035,49 @@ describe('OptionsListUtils', () => {
             expect(lhnOption?.alternateText).toBe('Spider-Man: hello');
             expect(searchAlternateText).toBe(lhnOption?.alternateText);
         });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT])(
+            'should keep the actor prefix for %s to match the generic LHN preview',
+            async (actionName) => {
+                // Given a room whose last action is a policy change log action that has no custom
+                // alternate text branch in SidebarUtils.getOptionData, so the LHN shows `Name: message`
+                const report = buildRoomReport({lastMessageText: 'updated a custom unit'});
+                await setReport(report);
+                const action = {
+                    ...buildAction(actionName, 3),
+                    message: [{type: 'COMMENT', html: 'updated a custom unit', text: 'updated a custom unit', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
+                } as ReportAction;
+
+                const lhnOption = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: undefined,
+                    oneTransactionThreadReport: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: PERSONAL_DETAILS,
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    conciergeReportID: undefined,
+                    invoiceReceiverPolicy: undefined,
+                    card: undefined,
+                    lastAction: action,
+                    translate: translateLocal,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    localeCompare,
+                    isReportArchived: false,
+                    lastActionReport: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                    formatPhoneNumber,
+                });
+
+                const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'updated a custom unit', isChatRoom: true};
+                const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
+
+                expect(lhnOption?.alternateText).toBe('Spider-Man: updated a custom unit');
+                expect(searchAlternateText).toBe(lhnOption?.alternateText);
+            },
+        );
     });
 
     describe('createFilteredOptionList()', () => {

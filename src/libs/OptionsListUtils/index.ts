@@ -480,6 +480,8 @@ function shouldShowLastActorDisplayName(
 // These POLICY_CHANGE_LOG actions have no custom alternate text branch in SidebarUtils.getOptionData,
 // so the LHN renders them with the generic `Name: message` prefix and search must keep the prefix too.
 const POLICY_CHANGE_LOG_ACTIONS_WITHOUT_CUSTOM_TEXT = new Set<string>([
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORIES,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REPLACE_CATEGORIES,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_REIMBURSEMENT,
@@ -525,8 +527,14 @@ function isActionWithCustomAlternateText(lastAction: OnyxEntry<ReportAction>): b
     );
 }
 
+/**
+ * Pieces of the chat preview line that the LHN renders for the last message.
+ */
 type ChatPreviewParts = {
+    /** The `Name: ` prefix identifying the author of the last message, or an empty string when no prefix should be shown */
     actorPrefix: string;
+
+    /** Replacement preview text for actions whose LHN alternate text embeds the actor (e.g. rename, leave room, invite/remove) */
     customAlternateText?: string;
 };
 
