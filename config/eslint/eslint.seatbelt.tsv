@@ -57,7 +57,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	62
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	59
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -243,7 +243,6 @@
 "../../src/components/MultifactorAuthentication/components/Modals/createCancelConfirmModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/MultifactorAuthentication/config/scenarios/ChangePIN.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MultifactorAuthentication/config/scenarios/DefaultUserInterface.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"no-restricted-imports"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"react-hooks/set-state-in-effect"	2
@@ -311,7 +310,6 @@
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/TransactionListItemWide.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Search/SearchList/ListItem/WithdrawalIDListItemHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/Search/SearchPageHeader/SearchActionsBarCreateButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchPageHeader/SearchFilterBar.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Search/SearchQueryProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchRouter/SearchRouter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -563,7 +561,7 @@
 "../../src/libs/Navigation/AppNavigator/Navigators/TabNavigator.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/TestToolsModalNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/WorkspaceSplitNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
+"../../src/libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/libs/Navigation/AppNavigator/createRootStackNavigator/useCustomRootStackNavigatorState/restoreTabNavigatorRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -695,7 +693,7 @@
 "../../src/libs/actions/ClearReportActionErrors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/CompanyCards.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/CompanyCards.ts"	"no-restricted-imports"	1
-"../../src/libs/actions/CompanyCards.ts"	"no-restricted-syntax"	5
+"../../src/libs/actions/CompanyCards.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Delegate.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Domain.ts"	"no-restricted-syntax"	1
@@ -890,7 +888,6 @@
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/EnablePayments/Wallet/PersonalInfo/substeps/DateOfBirthStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/EnablePayments/Wallet/utils/getSubstepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -966,7 +963,6 @@
 "../../src/pages/domain/Saml/SamlLoginSectionContent.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"no-restricted-imports"	1
-"../../src/pages/home/TimeSensitiveSection/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/home/YourSpendSection/useYourSpendData.ts"	"no-restricted-imports"	1
 "../../src/pages/inbox/ReactionListWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1015,9 +1011,9 @@
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/TravelMenuItem.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/useScanActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/sidebar/SidebarLinksData.tsx"	"react-hooks/refs"	1
+"../../src/pages/iou/DynamicSplitExpensePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/iou/DynamicSplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/iou/SplitExpensePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/iou/SplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/iou/SplitList/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/ParticipantSearchResults.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/iou/request/step/DistanceManualTabContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1119,7 +1115,6 @@
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceMembersPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1226,7 +1221,6 @@
 "../../src/pages/workspace/companyCards/addNew/DynamicAddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/companyCards/addNew/PlaidConnectionStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/pages/workspace/companyCards/addNew/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/expensifyCard/DynamicExpensifyCardLimitTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

@@ -204,6 +204,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
             icon: icons.RemoveMembers,
+            shouldSkipFocusRestore: true,
             onSelected: showRemoveMembersModal,
         },
     ];
@@ -233,6 +234,35 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             ? translate('common.members')
             : translate('common.details');
 
+    const reportParticipantsTableHeader = shouldShowInviteButton ? (
+        <View style={[styles.pl5, styles.pr5, styles.w100]}>
+            {shouldShowBulkActionsButton ? (
+                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    customText={translate('workspace.common.selected', {count: selectedMembers.length})}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    onPress={() => null}
+                    isSplitButton={false}
+                    options={bulkActionsButtonOptions}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                    isDisabled={!selectedMembers.length}
+                />
+            ) : (
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('workspace.invite.member')}</Button.Text>
+                </Button>
+            )}
+        </View>
+    ) : undefined;
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -255,39 +285,11 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                     }}
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, derivedReportName))}
                 />
-                <View style={[styles.pl5, styles.pr5]}>
-                    {shouldShowInviteButton && (
-                        <View style={styles.w100}>
-                            {shouldShowBulkActionsButton ? (
-                                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                    shouldAlwaysShowDropdownMenu
-                                    pressOnEnter
-                                    customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                                    size={CONST.BUTTON_SIZE.MEDIUM}
-                                    onPress={() => null}
-                                    isSplitButton={false}
-                                    options={bulkActionsButtonOptions}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                                    isDisabled={!selectedMembers.length}
-                                />
-                            ) : (
-                                <Button
-                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
-                                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                                >
-                                    <Button.Icon src={icons.Plus} />
-                                    <Button.Text>{translate('workspace.invite.member')}</Button.Text>
-                                </Button>
-                            )}
-                        </View>
-                    )}
-                </View>
+
                 <View style={[styles.w100, styles.flex1]}>
                     <ReportParticipantsTable
                         ref={tableRef}
+                        headerComponent={reportParticipantsTableHeader}
                         members={participants}
                         isGroupChat={isGroupChat}
                         selectionEnabled={isCurrentUserGroupChatAdmin}

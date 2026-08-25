@@ -22,6 +22,7 @@ import {
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
+    getDefaultChatEnabledPolicySelection,
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
     getEligibleBankAccountShareRecipients,
@@ -4357,6 +4358,35 @@ describe('getDefaultChatEnabledPolicy', () => {
 
     it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
         expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
+    });
+});
+
+describe('getDefaultChatEnabledPolicySelection', () => {
+    // createRandomPolicy randomizes these, so eligibility comes out flaky
+    const eligibleFields = {role: CONST.POLICY.ROLE.ADMIN, isJoinRequestPending: false, pendingAction: undefined, archivedDate: undefined};
+    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), ...eligibleFields, id: 'team1'};
+    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), ...eligibleFields, id: 'corporate1'};
+    const collection = {
+        [`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy,
+        [`${ONYXKEYS.COLLECTION.POLICY}${corporatePolicy.id}`]: corporatePolicy,
+    };
+
+    it('resolves the active policy from the collection by ID', () => {
+        expect(getDefaultChatEnabledPolicySelection(collection, undefined, corporatePolicy.id)).toEqual({
+            defaultChatEnabledPolicyID: corporatePolicy.id,
+            hasMultipleChatEnabledPolicies: true,
+        });
+    });
+
+    it('returns no default when the active policy is unknown and multiple workspaces are eligible', () => {
+        expect(getDefaultChatEnabledPolicySelection(collection, undefined, undefined)).toEqual({defaultChatEnabledPolicyID: undefined, hasMultipleChatEnabledPolicies: true});
+    });
+
+    it('returns the only eligible workspace and reports a single workspace', () => {
+        expect(getDefaultChatEnabledPolicySelection({[`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy}, undefined, undefined)).toEqual({
+            defaultChatEnabledPolicyID: teamPolicy.id,
+            hasMultipleChatEnabledPolicies: false,
+        });
     });
 });
 

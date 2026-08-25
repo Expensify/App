@@ -277,6 +277,11 @@ const compactPopoverMenuItemBaseStyle = {
     alignItems: 'center' as const,
 };
 
+// Square size and horizontal margin of the composer's attachment ("+") button, shared by
+// composerSizeButton and the concierge prompt box so its button column stays in sync.
+const COMPOSER_SIZE_BUTTON_SIZE = 40;
+const COMPOSER_SIZE_BUTTON_MARGIN = 3;
+
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
         ...spacing,
@@ -2558,13 +2563,40 @@ const staticStyles = (theme: ThemeColors) =>
         composerSizeButton: {
             alignSelf: 'center',
             alignItems: 'center',
-            height: 40,
-            width: 40,
+            height: COMPOSER_SIZE_BUTTON_SIZE,
+            width: COMPOSER_SIZE_BUTTON_SIZE,
             padding: 6,
-            marginHorizontal: 3,
+            marginHorizontal: COMPOSER_SIZE_BUTTON_MARGIN,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
+        },
+
+        messageEditCancelButtonWrapper: {
+            justifyContent: 'flex-end',
+            paddingBottom: 3,
+        },
+
+        // Fixed-width column reserving the composer size button's footprint (button + its horizontal margins) so the
+        // input width stays stable whether the button is centered or bottom-aligned.
+        composerButtonColumn: {
+            flexBasis: COMPOSER_SIZE_BUTTON_SIZE + COMPOSER_SIZE_BUTTON_MARGIN * 2,
+            flexGrow: 0,
+            flexShrink: 0,
+        },
+
+        // Absolute stack that fills the column height and reverses direction. The trailing element wraps away when
+        // there isn't room, and the button stays anchored to the bottom (flex-start in a reversed column).
+        composerButtonStack: {
+            display: 'flex',
+            flexDirection: 'column-reverse',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-start',
+            position: 'absolute',
+            height: '100%',
+            width: '100%',
+            overflow: 'hidden',
+            paddingVertical: COMPOSER_SIZE_BUTTON_MARGIN,
         },
 
         chatItemPDFAttachmentLoading: {
@@ -7000,16 +7032,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: '100%',
         }),
 
-        getCenteredModalOuterView: (shouldUseNarrowLayout: boolean) =>
+        getCenteredModalOuterView: (shouldDockToBottom: boolean) =>
             ({
-                justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+                justifyContent: shouldDockToBottom ? 'flex-end' : 'center',
             }) as const,
 
-        getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
-            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+        getCenteredModalInnerView: (shouldDockToBottom: boolean, width?: number, height?: DimensionValue) => {
+            const borderBottomRadius = shouldDockToBottom ? 0 : variables.componentBorderRadiusLarge;
 
             return {
-                width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
+                width: shouldDockToBottom ? '100%' : (width ?? variables.featureTrainingModalWidth),
                 // No default height - the card hugs its content (children must have intrinsic height)
                 height,
                 maxHeight: '100%' as const,
@@ -7245,6 +7277,25 @@ const plainStyles = (theme: ThemeColors) =>
                 marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
+
+        // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
+        // line it wraps away inside composerButtonStack (overflow hidden) and the button centers instead.
+        conciergePromptBoxButtonSpacer: {
+            flexGrow: 1,
+            flexShrink: 0,
+            minHeight: COMPOSER_SIZE_BUTTON_SIZE,
+        },
+
+        // Hidden probe that measures whether the long placeholder wraps. The paddingRight renders it a few px
+        // narrower than the composer so it wraps first, avoiding a flash at borderline widths.
+        conciergePromptBoxPlaceholderProbe: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            opacity: 0,
+            paddingRight: 24,
+        },
 
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({

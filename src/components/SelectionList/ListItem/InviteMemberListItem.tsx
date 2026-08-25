@@ -1,7 +1,7 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import {ListItemContext} from '@components/SelectionList/ListItemContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -27,7 +27,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     item,
     isFocused,
     isFocusVisible,
-    showTooltip,
+    showTooltip: shouldShowTooltip,
     isDisabled,
     canSelectMultiple,
     onSelectRow,
@@ -42,7 +42,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocusVisible ? focusedBackgroundColor : theme.sidebar;
@@ -62,7 +62,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            showTooltip={shouldShowTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
@@ -84,7 +84,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             {(hovered?: boolean) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
-                        <AvatarTooltipsProvider isEnabled={showTooltip}>
+                        <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
                             {accountID ? (
                                 <AccountAvatar
                                     accountID={accountID}
@@ -109,8 +109,8 @@ function InviteMemberListItem<TItem extends ListItem>({
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.text ?? '')}
+                                shouldShowTooltip={shouldShowTooltip}
+                                text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
                                 numberOfLines={isMultilineSupported ? 2 : 1}
                                 style={[
                                     styles.optionDisplayName,
@@ -123,13 +123,13 @@ function InviteMemberListItem<TItem extends ListItem>({
                         </View>
                         {!!item.alternateText && (
                             <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                shouldShowTooltip={shouldShowTooltip}
+                                text={Str.isSMSLogin(item.alternateText ?? '') ? formatPhoneNumber(item.alternateText ?? '') : (item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
                     </View>
-                    {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
+                    {!!item.rightElement && <ListItemContext.Provider value={{isFocused, shouldShowTooltip}}>{item.rightElement}</ListItemContext.Provider>}
                 </View>
             )}
         </ListItemWrapper>

@@ -530,6 +530,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN]: DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR]: {
+                            path: ROUTES.POLICY_ACCOUNTING_INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
@@ -590,6 +593,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: {
                             path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR]: {
+                            path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS]: {
                             path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS.route,
@@ -1821,9 +1827,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT]: ROUTES.MONEY_REQUEST_STEP_HOURS_EDIT.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
-                            path: ROUTES.SPLIT_EXPENSE.route,
-                            exact: true,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE]: {
+                            path: DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.path,
                             screens: {
                                 [CONST.TAB.SPLIT.AMOUNT]: {
                                     path: CONST.TAB.SPLIT.AMOUNT,
@@ -1836,9 +1841,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH]: {
-                            path: ROUTES.SPLIT_EXPENSE_SEARCH.route,
-                            exact: true,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH]: {
+                            path: DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.path,
                             screens: {
                                 [CONST.TAB.SPLIT.AMOUNT]: {
                                     path: CONST.TAB.SPLIT.AMOUNT,
@@ -1851,10 +1855,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
-                            path: ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE]: DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path,
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
                             path: ROUTES.SPLIT_EXPENSE_EDIT.route,
                             exact: true,
