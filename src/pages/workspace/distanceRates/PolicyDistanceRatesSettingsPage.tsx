@@ -21,7 +21,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getGovernmentRateCountryPhraseTranslationKey, isCommuterExclusionEnabled, isCurrencySupportedForAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
+import {getGovernmentRateCountryPhraseTranslationKey, isCommuterExclusionEnabled, isCurrencySupportedForAutoUpdate, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 
@@ -121,7 +121,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     // toggle is shown on and locked in that case, and the stored setting is left untouched so the admin's own
     // choice comes back if they stop excluding commutes.
     const isRequirementLockedByCommuterExclusions = isCommuterExclusionEnabled(policy);
-    const isMapOrGPSRequired = isRequirementLockedByCommuterExclusions || !!policy?.requireMapOrGPS;
+    const isRequired = isMapOrGPSRequired(policy);
 
     const showRequirementLockedModal = () => {
         showConfirmModal({
@@ -241,7 +241,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                             {translate('workspace.distanceRates.requireMapOrGPS')}
                                         </Text>
                                         <Switch
-                                            isOn={isMapOrGPSRequired}
+                                            isOn={isRequired}
                                             accessibilityLabel={translate('workspace.distanceRates.requireMapOrGPS')}
                                             onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn)}
                                             disabled={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
