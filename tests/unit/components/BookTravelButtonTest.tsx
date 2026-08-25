@@ -5,7 +5,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, getTravelRiskApproval, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 
@@ -26,6 +26,7 @@ const DEFAULT_POLICY_NAME = 'Default Workspace';
 const ADMIN_EMAIL = 'admin@company.com';
 const USER_LOGIN = 'user@company.com';
 const ENABLE_TRAVEL_ROUTE = ROUTES.TRAVEL_ENABLE.getRoute(POLICY_ID);
+const mockIsBetaEnabled = jest.fn(() => false);
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -45,6 +46,7 @@ jest.mock('@libs/actions/Travel', () => {
     return {
         ...actual,
         cleanupTravelProvisioningSession: jest.fn(),
+        getTravelRiskApproval: jest.fn(),
         requestTravelAccess: jest.fn(),
         setTravelProvisioningNextStep: jest.fn(),
     };
@@ -62,6 +64,8 @@ jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({environmentURL: 'https://dev.new.expensify.com', environment: 'development', isProduction: false, isDevelopment: true}),
 }));
+
+jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: mockIsBetaEnabled}));
 
 // A paid group workspace that already has a Spotnana company (provisioned) but has not accepted terms yet
 const provisionedPolicy: Policy = {
@@ -169,6 +173,26 @@ describe('BookTravelButton', () => {
             expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, POLICY_ID, ''));
             expect(Navigation.navigate).not.toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+        });
+    });
+
+    describe('when the domain is travel-risk-approved', () => {
+        it('navigates a validated admin to the enablement stepper without the travel beta', async () => {
+            await seedOnyx(true);
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...provisionedPolicy, travelSettings: undefined});
+                await waitForBatchedUpdatesWithAct();
+            });
+            jest.mocked(getTravelRiskApproval).mockResolvedValue(true);
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(getTravelRiskApproval).toHaveBeenCalledWith(POLICY_ID);
+            expect(requestTravelAccess).not.toHaveBeenCalled();
         });
     });
 

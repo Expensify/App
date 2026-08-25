@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
+import type {AcceptSpotnanaTermsParams, GetTravelRiskApprovalParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,6 +89,21 @@ function requestTravelAccess() {
     API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData});
 }
 
+async function getTravelRiskApproval(policyID?: string): Promise<boolean> {
+    try {
+        const params: GetTravelRiskApprovalParams = {policyID};
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the status determines whether to enter the travel enablement flow
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRAVEL_RISK_APPROVAL, params, {});
+        return response?.travelRiskApproved === true;
+    } catch {
+        return false;
+    }
+}
+
+function clearTravelSignupRequest() {
+    Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {lastTravelSignupRequestTime: null});
+}
+
 function setTravelProvisioningTaxID(taxID: string) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {taxID});
 }
@@ -111,7 +126,9 @@ function cleanupTravelProvisioningSession() {
 
 export {
     acceptSpotnanaTerms,
+    clearTravelSignupRequest,
     cleanupTravelProvisioningSession,
+    getTravelRiskApproval,
     requestTravelAccess,
     setTravelProvisioningDomain,
     setTravelProvisioningEnabledSteps,

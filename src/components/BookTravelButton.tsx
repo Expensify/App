@@ -10,7 +10,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, getTravelRiskApproval, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -101,7 +101,7 @@ function BookTravelButton({
         setShouldScrollToBottom?.(true);
     }, [errorMessage, setShouldScrollToBottom]);
 
-    const bookATrip = () => {
+    const bookATrip = async () => {
         setErrorMessage('');
 
         if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
@@ -176,6 +176,14 @@ function BookTravelButton({
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
                 return;
             }
+
+            const isTravelRiskApproved = await getTravelRiskApproval(activePolicyID);
+            if (isTravelRiskApproved) {
+                cleanupTravelProvisioningSession();
+                Navigation.navigate(ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID)));
+                return;
+            }
+
             if (shouldShowVerifyAccountModal) {
                 showConfirmModal({
                     title: translate('travel.verifyCompany.title'),
