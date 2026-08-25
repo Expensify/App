@@ -51,18 +51,14 @@ jest.mock('@pages/inbox/report/ReportActionItemDate', () => {
     };
 });
 
-jest.mock('@hooks/useThemeStyles', () => {
-    const styleProxy = new Proxy(
-        {
-            chatItemMessage: mockBodyStyle,
-            colorMuted: mockMutedColorStyle,
-            mutedTextLabel: mockMutedLabelStyle,
-            pt0: mockPaddingTopZeroStyle,
-        },
-        {get: (target, property) => (typeof property === 'string' ? (target[property as keyof typeof target] ?? {}) : {})},
-    );
-    return jest.fn(() => styleProxy);
-});
+jest.mock('@hooks/useThemeStyles', () =>
+    jest.fn(() => ({
+        chatItemMessage: mockBodyStyle,
+        colorMuted: mockMutedColorStyle,
+        mutedTextLabel: mockMutedLabelStyle,
+        pt0: mockPaddingTopZeroStyle,
+    })),
+);
 
 jest.mock('@hooks/useStyleUtils', () =>
     jest.fn(() => ({
