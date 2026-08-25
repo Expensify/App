@@ -42,8 +42,8 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
     Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
 
-        /** The text to display in the header */
-        headerText: string;
+        /** The text (or node) to display in the header */
+        headerText: string | ReactNode;
 
         /** Main content of the page */
         children: ((policyID: string | undefined, isUsingECard: boolean) => ReactNode) | ReactNode;

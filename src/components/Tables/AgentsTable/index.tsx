@@ -45,6 +45,12 @@ type AgentsTableProps = {
     /** Content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
 
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
+
     /** Whether rows can be selected (enables selection UI) */
     canSelectAgents: boolean;
 
@@ -55,7 +61,7 @@ type AgentsTableProps = {
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
+export default function AgentsTable({ref, agents, headerComponent, headerButton, selectionButton, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -107,7 +113,14 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
         );
     }
 
-    const searchBarComponent = <Table.FilterBar label={translate('agentsPage.findAgent')} />;
+    const searchBarComponent = (
+        <Table.FilterBar
+            label={translate('agentsPage.findAgent')}
+            selectionButton={selectionButton}
+        >
+            {headerButton}
+        </Table.FilterBar>
+    );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (

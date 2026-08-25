@@ -30,7 +30,7 @@ type ThreeDotsMenuItem = {
 
 type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Title of the Header */
-    title?: string;
+    title?: string | ReactNode;
 
     /** Subtitle of the header */
     subtitle?: ReactNode;

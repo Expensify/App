@@ -1028,6 +1028,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
         },
 
+        tableHeaderCogButton: {
+            height: 28,
+            width: 28,
+        },
+
         visuallyHidden: {
             ...visibility.hidden,
             overflow: 'hidden',

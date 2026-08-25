@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -27,7 +28,6 @@ import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -66,6 +66,8 @@ import {
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
+import variables from '@styles/variables';
+
 import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
@@ -96,7 +98,7 @@ function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefin
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -565,8 +567,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         canWriteTags,
     ]);
 
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
     const getSelectionButton = () => {
         // Without selection there are no bulk actions, so keep the normal header even if selection mode lingered from elsewhere.
         if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
@@ -740,21 +740,35 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             return null;
         }
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={isInLandscapeMode ? styles.flexGrow0 : styles.flexGrow1}
-                />
-            </View>
+            <ThreeDotsMenu
+                icon={expensifyIcons.Gear}
+                iconWidth={variables.iconSizeSmall}
+                iconHeight={variables.iconSizeSmall}
+                iconStyles={styles.tableHeaderCogButton}
+                menuItems={secondaryActions}
+                shouldSelfPosition
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
+            />
         );
     };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+
+    const tagsHeaderTitle = selectionModeHeader ? (
+        translate('common.selectMultiple')
+    ) : (
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <Text
+                numberOfLines={1}
+                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
+                accessibilityRole={CONST.ROLE.HEADER}
+                accessibilityLabel={translate('workspace.common.tags')}
+            >
+                {translate('workspace.common.tags')}
+            </Text>
+            {getHeaderButtons()}
+        </View>
+    );
 
     const getHeaderSubtitle = () => {
         if (!hasSyncError && isConnectionVerified && currentConnectionName) {
@@ -859,7 +873,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 >
                     <HeaderWithBackButton
                         shouldUseHeadlineHeader={!selectionModeHeader}
-                        title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
+                        title={tagsHeaderTitle}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         shouldDisplayHelpButton
                         onBackButtonPress={() => {
@@ -876,10 +890,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.goBack();
                         }}
-                    >
-                        {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                    </HeaderWithBackButton>
-                    {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    />
                     {(!hasVisibleTags || isLoading) && headerContent}
                     {isLoading && (
                         <ActivityIndicator

@@ -329,6 +329,8 @@ const translations: TranslationDeepObject<typeof en> = {
         groupCurrency: 'Moneda del grupo',
         rate: 'Tarifa',
         room: 'Sala',
+        agent: 'Agente',
+        rule: 'Regla',
         emptyLHN: {
             title: 'Woohoo! Todo al día.',
             subtitleText1: 'Encuentra un chat usando el botón',

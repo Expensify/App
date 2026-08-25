@@ -92,7 +92,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             size={CONST.BUTTON_SIZE.SMALL}
         >
             <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('domain.groups.createNewGroupButton')}</Button.Text>
+            <Button.Text>{translate('common.group')}</Button.Text>
         </Button>
     );
 

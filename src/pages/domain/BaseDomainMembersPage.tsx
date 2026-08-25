@@ -3,13 +3,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -79,7 +81,22 @@ function BaseDomainMembersPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
+    const headerTitleContent = useSelectionModeHeader ? (
+        translate('common.selectMultiple')
+    ) : (
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <Text
+                numberOfLines={1}
+                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
+                accessibilityRole={CONST.ROLE.HEADER}
+                accessibilityLabel={headerTitle}
+            >
+                {headerTitle}
+            </Text>
+            {headerContent}
+        </View>
+    );
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -90,15 +107,12 @@ function BaseDomainMembersPage({
                 testID="BaseDomainMembersPage"
             >
                 <HeaderWithBackButton
-                    title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
+                    title={headerTitleContent}
                     onBackButtonPress={onBackButtonPress ?? Navigation.goBack}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
                     shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                />
                 <DomainMembersTable
                     domainAccountID={domainAccountID}
                     members={members}

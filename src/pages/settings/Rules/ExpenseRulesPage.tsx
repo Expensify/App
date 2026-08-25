@@ -16,7 +16,6 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -131,34 +130,32 @@ function ExpenseRulesPage() {
         });
     }
 
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
-    const headerButton = isInSelectionMode ? (
-        <ButtonWithDropdownMenu
+    const newRuleButton = (
+        <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={CONST.BUTTON_SIZE.MEDIUM}
-            customText={translate('workspace.common.selected', {count: selectedRules.length})}
-            isDisabled={!selectedRules.length}
-            isSplitButton={false}
-            onPress={() => null}
-            options={headerDropdownOptions}
-            shouldAlwaysShowDropdownMenu
-            style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-            testID="ExpenseRulesPage-header-dropdown-menu-button"
-        />
-    ) : (
-        <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-            <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={navigateToNewRulePage}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
-            >
-                <Button.Icon src={icons.Plus} />
-                <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
-            </Button>
-        </View>
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+            onPress={navigateToNewRulePage}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.rule')}</Button.Text>
+        </Button>
     );
+
+    const getSelectionButton = () =>
+        isInSelectionMode ? (
+            <ButtonWithDropdownMenu
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.MEDIUM}
+                customText={translate('workspace.common.selected', {count: selectedRules.length})}
+                isDisabled={!selectedRules.length}
+                isSplitButton={false}
+                onPress={() => null}
+                options={headerDropdownOptions}
+                shouldAlwaysShowDropdownMenu
+                testID="ExpenseRulesPage-header-dropdown-menu-button"
+            />
+        ) : undefined;
 
     const expenseRulesSubtitle = (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
@@ -188,10 +185,7 @@ function ExpenseRulesPage() {
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
-            >
-                {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
-            </HeaderWithBackButton>
-            {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+            />
 
             {!hasRules && expenseRulesSubtitle}
 
@@ -208,6 +202,8 @@ function ExpenseRulesPage() {
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
                     headerComponent={hasRules ? expenseRulesSubtitle : undefined}
+                    headerButton={hasRules ? newRuleButton : undefined}
+                    selectionButton={getSelectionButton()}
                 />
             )}
 

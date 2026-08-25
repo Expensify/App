@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -29,7 +30,6 @@ import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -45,6 +45,8 @@ import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
+
+import variables from '@styles/variables';
 
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
@@ -423,8 +425,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         policyId,
     ]);
 
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
     const getSelectionButton = () => {
         if (!canWriteCategories || !(isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
             return undefined;
@@ -564,17 +564,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return null;
         }
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={!shouldDisplayButtonsInSeparateLine ? styles.flexGrow0 : styles.flexGrow1}
-                />
-            </View>
+            <ThreeDotsMenu
+                icon={icons.Gear}
+                iconWidth={variables.iconSizeSmall}
+                iconHeight={variables.iconSizeSmall}
+                iconStyles={styles.tableHeaderCogButton}
+                menuItems={secondaryActions}
+                shouldSelfPosition
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
+            />
         );
     };
 
@@ -594,6 +592,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isLoading = !isOffline && policyCategories === undefined;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+
+    const categoriesHeaderTitle = selectionModeHeader ? (
+        translate('common.selectMultiple')
+    ) : (
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <Text
+                numberOfLines={1}
+                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
+                accessibilityRole={CONST.ROLE.HEADER}
+                accessibilityLabel={translate('workspace.common.categories')}
+            >
+                {translate('workspace.common.categories')}
+            </Text>
+            {getHeaderButtons()}
+        </View>
+    );
 
     const headerContent = (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -667,7 +681,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             >
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
+                    title={categoriesHeaderTitle}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
@@ -684,10 +698,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
                         Navigation.goBack();
                     }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                />
 
                 {(!hasVisibleCategories || isLoading) && headerContent}
 

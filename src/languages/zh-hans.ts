@@ -339,6 +339,8 @@ const translations: TranslationDeepObject<typeof en> = {
         groupCurrency: '群组货币',
         rate: '评分',
         room: '房间',
+        agent: '代理',
+        rule: '规则',
         emptyLHN: {
             title: '哇哦！全部处理完了。',
             subtitleText1: '使用以下方式查找聊天',

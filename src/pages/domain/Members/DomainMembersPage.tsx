@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import type {DomainMemberRowData} from '@components/Tables/DomainMembersTable';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
@@ -23,7 +24,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
@@ -40,6 +40,7 @@ import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,7 +60,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => {
         setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
@@ -261,31 +261,26 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     };
 
     const getHeaderButtons = () => (
-        <View style={[styles.flexRow, styles.gap2]}>
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('common.more')}
-                brickRoadIndicator={hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                options={[
-                    {
-                        value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SETTINGS,
-                        text: translate('domain.common.settings'),
-                        icon: icons.Gear,
-                        onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
-                        brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                    },
-                    {
-                        text: translate('spreadsheet.downloadCSV'),
-                        icon: icons.Download,
-                        onSelected: onDownloadCSV,
-                        value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SAVE_TO_CSV,
-                    },
-                ]}
-                isSplitButton={false}
-                wrapperStyle={shouldDisplayButtonsInSeparateLine ? styles.flexGrow1 : styles.flexGrow0}
-            />
-        </View>
+        <ThreeDotsMenu
+            icon={icons.Gear}
+            iconWidth={variables.iconSizeSmall}
+            iconHeight={variables.iconSizeSmall}
+            iconStyles={styles.tableHeaderCogButton}
+            menuItems={[
+                {
+                    text: translate('domain.common.settings'),
+                    icon: icons.Gear,
+                    onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
+                    brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                },
+                {
+                    text: translate('spreadsheet.downloadCSV'),
+                    icon: icons.Download,
+                    onSelected: onDownloadCSV,
+                },
+            ]}
+            shouldSelfPosition
+        />
     );
 
     const addMemberButton = (
@@ -295,7 +290,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
         >
             <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('domain.members.addMember')}</Button.Text>
+            <Button.Text>{translate('common.member')}</Button.Text>
         </Button>
     );
 

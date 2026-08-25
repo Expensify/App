@@ -5,6 +5,8 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -30,6 +32,8 @@ import {isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUt
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,7 +85,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table', 'Gear']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -306,6 +310,25 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return null;
         }
 
+        return (
+            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={handleNewRule}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('workspace.rules.merchantRules.addRuleTitle')}</Button.Text>
+                </Button>
+            </View>
+        );
+    };
+
+    const getHeaderCog = () => {
+        if (shouldShowBulkActions || !shouldShowAddRuleButton) {
+            return null;
+        }
+
         const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
             getImportMerchantRulesOption({
                 policyID,
@@ -319,29 +342,33 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         ];
 
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={handleNewRule}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                >
-                    <Button.Icon src={icons.Plus} />
-                    <Button.Text>{translate('workspace.rules.merchantRules.addRuleTitle')}</Button.Text>
-                </Button>
-                <ButtonWithDropdownMenu
-                    // onPress is required by ButtonWithDropdownMenu but never fires for a non-split button, where pressing only opens the dropdown menu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    options={moreOptions}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
-                />
-            </View>
+            <ThreeDotsMenu
+                icon={icons.Gear}
+                iconWidth={variables.iconSizeSmall}
+                iconHeight={variables.iconSizeSmall}
+                iconStyles={styles.tableHeaderCogButton}
+                menuItems={moreOptions}
+                shouldSelfPosition
+            />
         );
     };
 
     const headerButtons = getHeaderContent();
+    const rulesHeaderTitle = selectionModeHeader ? (
+        translate('common.selectMultiple')
+    ) : (
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <Text
+                numberOfLines={1}
+                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
+                accessibilityRole={CONST.ROLE.HEADER}
+                accessibilityLabel={translate('workspace.common.rules')}
+            >
+                {translate('workspace.common.rules')}
+            </Text>
+            {getHeaderCog()}
+        </View>
+    );
     const rulesTabSelector = (
         <View style={[styles.flexShrink0, styles.w100]}>
             <View style={[styles.flexRow, styles.mb1, styles.w100]}>
@@ -372,7 +399,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
                 shouldUseScrollView={activeTab === RULES_TAB.GENERAL}
-                headerText={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.rules')}
+                headerText={rulesHeaderTitle}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 shouldUseHeadlineHeader={!selectionModeHeader}

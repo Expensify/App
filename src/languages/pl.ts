@@ -343,6 +343,8 @@ const translations: TranslationDeepObject<typeof en> = {
         groupCurrency: 'Waluta grupy',
         rate: 'Oceń',
         room: 'Pokój',
+        agent: 'Agent',
+        rule: 'Reguła',
         emptyLHN: {
             title: 'Hurra! Wszystko nadrobione.',
             subtitleText1: 'Znajdź czat za pomocą',

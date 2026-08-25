@@ -3,6 +3,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
 import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
+import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
@@ -11,8 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasDomainAdminsSettingsErrors} from '@libs/DomainUtils';
@@ -24,6 +24,8 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
+import variables from '@styles/variables';
 
 import {clearAdminError} from '@userActions/Domain';
 
@@ -45,7 +47,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     useDomainDocumentTitle(domainName, 'domain.domainAdmins');
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
 
@@ -105,7 +106,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         });
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const addAdminButton = isAdmin ? (
         <Button
@@ -114,26 +114,41 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
         >
             <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('domain.admins.addAdmin')}</Button.Text>
+            <Button.Text>{translate('common.admin')}</Button.Text>
         </Button>
     ) : undefined;
 
-    const headerContent = isAdmin ? (
-        <View style={[styles.flexRow, styles.gap2]}>
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
-                innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow0, styles.mb3] : undefined}
-            >
-                <Button.Icon
-                    src={hasSettingsErrors ? icons.DotIndicator : icons.Gear}
-                    fill={hasSettingsErrors ? theme.danger : undefined}
-                    hoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
-                />
-                <Button.Text>{translate('domain.common.settings')}</Button.Text>
-            </Button>
-        </View>
+    const settingsCog = isAdmin ? (
+        <ThreeDotsMenu
+            icon={icons.Gear}
+            iconWidth={variables.iconSizeSmall}
+            iconHeight={variables.iconSizeSmall}
+            iconStyles={styles.tableHeaderCogButton}
+            menuItems={[
+                {
+                    text: translate('domain.common.settings'),
+                    icon: icons.Gear,
+                    onSelected: () => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID)),
+                    brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                },
+            ]}
+            shouldSelfPosition
+        />
     ) : null;
+
+    const adminsHeaderTitle = (
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <Text
+                numberOfLines={1}
+                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
+                accessibilityRole={CONST.ROLE.HEADER}
+                accessibilityLabel={translate('domain.admins.title')}
+            >
+                {translate('domain.admins.title')}
+            </Text>
+            {settingsCog}
+        </View>
+    );
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -144,15 +159,12 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 testID="DomainAdminsPage"
             >
                 <HeaderWithBackButton
-                    title={translate('domain.admins.title')}
+                    title={adminsHeaderTitle}
                     onBackButtonPress={Navigation.goBack}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerContent}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                />
                 <DomainAdminsTable
                     domainAccountID={domainAccountID}
                     admins={admins}

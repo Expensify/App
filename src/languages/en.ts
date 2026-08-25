@@ -369,6 +369,8 @@ const translations = {
         groupCurrency: 'Group currency',
         rate: 'Rate',
         room: 'Room',
+        agent: 'Agent',
+        rule: 'Rule',
         emptyLHN: {
             title: 'Woohoo! All caught up.',
             subtitleText1: 'Find a chat using the',

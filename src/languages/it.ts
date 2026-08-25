@@ -340,6 +340,8 @@ const translations: TranslationDeepObject<typeof en> = {
         groupCurrency: 'Valuta del gruppo',
         rate: 'Valuta',
         room: 'Stanza',
+        agent: 'Agente',
+        rule: 'Regola',
         emptyLHN: {
             title: 'Fantastico! Sei in pari con tutto.',
             subtitleText1: 'Trova una chat usando la',

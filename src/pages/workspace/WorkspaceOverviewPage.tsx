@@ -2,7 +2,6 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/ButtonComposed';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -92,7 +91,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'Gear', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -266,7 +265,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         />
     );
 
-    const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
+    const dropdownMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>(null);
 
     const handleLeaveWorkspace = () => {
         if (!policy) {
@@ -281,7 +280,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (isLoadingBill) {
             return;
         }
-        dropdownMenuRef.current?.setIsMenuVisible(false);
+        dropdownMenuRef.current?.hidePopoverMenu();
     }, [isLoadingBill]);
 
     const handleBackButtonPress = () => {
@@ -408,24 +407,37 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
     }
 
-    const dropdownMenu = secondaryActions.length > 0 && (
-        <ButtonWithDropdownMenu
-            ref={dropdownMenuRef}
-            onPress={() => {}}
-            shouldAlwaysShowDropdownMenu
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
-            customText={translate('common.more')}
-            options={secondaryActions}
-            isSplitButton={false}
-            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
-        />
+    const settingsCog =
+        secondaryActions.length > 0 ? (
+            <ThreeDotsMenu
+                threeDotsMenuRef={dropdownMenuRef}
+                icon={expensifyIcons.Gear}
+                iconWidth={variables.iconSizeSmall}
+                iconHeight={variables.iconSizeSmall}
+                iconStyles={styles.tableHeaderCogButton}
+                menuItems={secondaryActions}
+                shouldSelfPosition
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
+            />
+        ) : null;
+
+    const overviewHeaderTitle = (
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <Text
+                numberOfLines={1}
+                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
+                accessibilityRole={CONST.ROLE.HEADER}
+                accessibilityLabel={translate('workspace.common.profile')}
+            >
+                {translate('workspace.common.profile')}
+            </Text>
+            {settingsCog}
+        </View>
     );
 
-    const headerButtons = readOnly ? (
-        dropdownMenu || null
-    ) : (
-        <View style={[styles.flexRow, styles.gap2]}>
-            {isPolicyAdmin && (
+    const headerButtons =
+        !readOnly && isPolicyAdmin ? (
+            <View style={[styles.flexRow, styles.gap2]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
@@ -437,10 +449,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     <Button.Icon src={expensifyIcons.UserPlus} />
                     <Button.Text>{translate('common.invite')}</Button.Text>
                 </Button>
-            )}
-            {dropdownMenu}
-        </View>
-    );
+            </View>
+        ) : null;
 
     const modals = (
         <>
@@ -486,7 +496,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     );
     return (
         <WorkspacePageWithSections
-            headerText={translate('workspace.common.profile')}
+            headerText={overviewHeaderTitle}
             route={route}
             // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
             shouldShowLoading={policy === undefined}

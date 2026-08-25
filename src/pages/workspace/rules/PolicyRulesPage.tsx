@@ -1,7 +1,8 @@
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
+import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,7 +11,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -22,6 +22,8 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,8 +55,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-    const icons = useMemoizedLazyExpensifyIcons(['Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Table']);
     const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -81,17 +82,30 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
         getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
     ];
 
-    const headerButtons = (
-        <ButtonWithDropdownMenu
-            onPress={() => {}}
-            shouldAlwaysShowDropdownMenu
-            customText={translate('common.more')}
-            options={moreOptions}
-            isSplitButton={false}
-            wrapperStyle={styles.flexGrow0}
-            style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
+    const headerCog = (
+        <ThreeDotsMenu
+            icon={icons.Gear}
+            iconWidth={variables.iconSizeSmall}
+            iconHeight={variables.iconSizeSmall}
+            iconStyles={styles.tableHeaderCogButton}
+            menuItems={moreOptions}
+            shouldSelfPosition
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.IMPORT_MERCHANT_RULES}
         />
+    );
+
+    const rulesHeaderTitle = (
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <Text
+                numberOfLines={1}
+                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
+                accessibilityRole={CONST.ROLE.HEADER}
+                accessibilityLabel={translate('workspace.common.rules')}
+            >
+                {translate('workspace.common.rules')}
+            </Text>
+            {headerCog}
+        </View>
     );
 
     return (
@@ -104,16 +118,14 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
                 shouldUseScrollView
-                headerText={translate('workspace.common.rules')}
+                headerText={rulesHeaderTitle}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
-                headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
                         <AgentPromotionalBanner
