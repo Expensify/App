@@ -10924,17 +10924,24 @@ function navigateToLinkedReportAction(
     }
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
+/**
+ * Checks whether a report is in a state where its contents can be reached at all: it exists, it is not archived, it is
+ * not on its way out, it did not fail to be created, and the person looking is signed in. Permission to write is left
+ * out on purpose, so this also covers read-only actions such as opening an attachment.
+ */
+function canUserInteractWithReport(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
     const reportErrors = getCreationReportErrors(report);
 
-    // If the expense report is marked for deletion, let us prevent any further write action.
+    // If the expense report is marked for deletion, let us prevent any further interaction.
     if (isMoneyRequestReportPendingDeletion(report)) {
         return false;
     }
 
-    return (
-        !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !deprecatedIsAnonymousUser && canWriteInReport(report)
-    );
+    return !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && !deprecatedIsAnonymousUser;
+}
+
+function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
+    return canUserInteractWithReport(report, isReportArchived) && isAllowedToComment(report) && canWriteInReport(report);
 }
 
 /**
@@ -14296,6 +14303,7 @@ export {
     canReportBeMentionedWithinPolicy,
     canSeeDefaultRoom,
     canShowReportRecipientLocalTime,
+    canUserInteractWithReport,
     canUserPerformWriteAction,
     chatIncludesChronos,
     chatIncludesChronosWithID,

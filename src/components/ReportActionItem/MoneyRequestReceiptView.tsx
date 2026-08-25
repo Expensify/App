@@ -43,6 +43,7 @@ import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {
     canCurrentUserEditExpense,
     canEditFieldOfMoneyRequest,
+    canUserInteractWithReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getCreationReportErrors,
     isInvoiceReport,
@@ -238,6 +239,7 @@ function MoneyRequestReceiptView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
+    const canInteractWithReport = !!canUserInteractWithReport(report, isReportArchived);
     const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction, currentUserAccountID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
@@ -546,12 +548,13 @@ function MoneyRequestReceiptView({
 
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
     // Adding a receipt changes the expense, so it takes the same expense-level permission the rest of the edit flow uses:
-    // someone only invited to look at it cannot post an attachment onto it. The field rules that decide whether a receipt
-    // may be replaced stay out of this, so a scanning or map-distance receipt still offers the button to the people above.
+    // whoever may not edit the expense may not attach to it either. The field rules that decide whether a receipt may be
+    // replaced stay out of this, so a scanning or map-distance receipt still offers the button to the people above.
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && canCurrentUserEditExpense(parentReportAction, moneyRequestReport, policy) && !mergeTransactionID;
-    // Expanding only opens the receipt to look at, so a conversation the user cannot post in should not take that away.
-    // It still follows the readonly prop, which suppresses every affordance in the duplicate and merge review flows.
-    const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly;
+    // Expanding only opens the receipt to look at, so it asks for none of the permission above: someone who may not edit
+    // the expense can still zoom in on it. The states that put the report itself out of reach still apply, as does the
+    // readonly prop, which suppresses every affordance in the duplicate and merge review flows.
+    const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -622,7 +625,7 @@ function MoneyRequestReceiptView({
             )}
             {(hasReceipt || !isEmptyObject(errors)) && (
                 <OfflineWithFeedback
-                    shouldDisableOpacity={canShowReceiptActions}
+                    shouldDisableOpacity={canExpandReceipt}
                     pendingAction={receiptPendingAction}
                     errors={errors}
                     errorRowStyles={[styles.mh4, !shouldShowReceiptEmptyState && styles.mt3]}

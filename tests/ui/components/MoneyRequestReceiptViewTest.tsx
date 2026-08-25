@@ -399,6 +399,65 @@ describe('MoneyRequestReceiptView', () => {
             expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
         });
 
+        it('hides both buttons when the expense is on its way out', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // Deleting the expense marks the action that created it, which puts the whole report beyond reach.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
+                    [TEST_ACTION_ID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides both buttons for an anonymous viewer', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides both buttons on an archived report', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // An IOU thread, because archiving leaves an expense report's receipts reachable on purpose.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, {type: CONST.REPORT.TYPE.IOU});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${TEST_REPORT_ID}`, {private_isArchived: '2025-02-14 08:12:19'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={{...testReport, type: CONST.REPORT.TYPE.CHAT}} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
         it('shows both action buttons for a map distance receipt', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMapDistanceReceipt);
