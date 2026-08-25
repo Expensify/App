@@ -425,137 +425,141 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const getHeaderButtons = () => {
-        if (!canWriteCategories && secondaryActions.length === 0) {
-            return null;
+    const getSelectionButton = () => {
+        if (!canWriteCategories || !(isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
+            return undefined;
         }
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
         const selectedCategoriesObject = selectedCategoryKeys.map((key) => policyCategories?.[key]);
 
-        if (canWriteCategories && (isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
-            if (!isThereAnyAccountingConnection) {
-                options.push({
-                    icon: icons.Trashcan,
-                    text: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
-                    value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    shouldSkipFocusRestore: true,
-                    onSelected: async () => {
-                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            showCannotDeleteOrDisableLastCategoryModal();
-                            return;
-                        }
+        if (!isThereAnyAccountingConnection) {
+            options.push({
+                icon: icons.Trashcan,
+                text: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
+                onSelected: async () => {
+                    if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
+                        showCannotDeleteOrDisableLastCategoryModal();
+                        return;
+                    }
 
-                        const {action} = await showConfirmModal({
-                            title: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
-                            prompt: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt'),
-                            confirmText: translate('common.delete'),
-                            cancelText: translate('common.cancel'),
-                            danger: true,
-                        });
-                        if (action === ModalActions.CONFIRM) {
-                            handleDeleteCategories();
-                        }
-                    },
-                });
-            }
-
-            const enabledCategories = selectedCategoryKeys.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
-            if (enabledCategories.length > 0) {
-                const categoriesToDisable = selectedCategoryKeys
-                    .filter((categoryName) => policyCategories?.[categoryName]?.enabled)
-                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
-                        acc[categoryName] = {
-                            name: categoryName,
-                            enabled: false,
-                        };
-                        return acc;
-                    }, {});
-                options.push({
-                    icon: icons.Close,
-                    text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
-                    value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
-                    shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject),
-                    onSelected: () => {
-                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            showCannotDeleteOrDisableLastCategoryModal();
-                            return;
-                        }
-                        clearTableSelection();
-                        setWorkspaceCategoryEnabled({
-                            policyData,
-                            categoriesToUpdate: categoriesToDisable,
-                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
-                            setupCategoryTaskReport,
-                            setupCategoryTaskParentReport,
-                            currentUserAccountID: currentUserPersonalDetails.accountID,
-                            hasOutstandingChildTask,
-                            parentReportAction,
-                            setupCategoriesAndTagsTaskReport,
-                            setupCategoriesAndTagsTaskParentReport,
-                            isSetupCategoriesAndTagsTaskParentReportArchived,
-                            setupCategoriesAndTagsHasOutstandingChildTask,
-                            setupCategoriesAndTagsParentReportAction,
-                            policyHasTags,
-                        });
-                    },
-                });
-            }
-
-            const disabledCategories = selectedCategoryKeys.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
-            if (disabledCategories.length > 0) {
-                const categoriesToEnable = selectedCategoryKeys
-                    .filter((categoryName) => !policyCategories?.[categoryName]?.enabled)
-                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
-                        acc[categoryName] = {
-                            name: categoryName,
-                            enabled: true,
-                        };
-                        return acc;
-                    }, {});
-                options.push({
-                    icon: icons.Checkmark,
-                    text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
-                    value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
-                    onSelected: () => {
-                        clearTableSelection();
-                        setWorkspaceCategoryEnabled({
-                            policyData,
-                            categoriesToUpdate: categoriesToEnable,
-                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
-                            setupCategoryTaskReport,
-                            setupCategoryTaskParentReport,
-                            currentUserAccountID: currentUserPersonalDetails.accountID,
-                            hasOutstandingChildTask,
-                            parentReportAction,
-                            setupCategoriesAndTagsTaskReport,
-                            setupCategoriesAndTagsTaskParentReport,
-                            isSetupCategoriesAndTagsTaskParentReportArchived,
-                            setupCategoriesAndTagsHasOutstandingChildTask,
-                            setupCategoriesAndTagsParentReportAction,
-                            policyHasTags,
-                        });
-                    },
-                });
-            }
-
-            return (
-                <ButtonWithDropdownMenu
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    size={CONST.BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
-                    options={options}
-                    isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                    isDisabled={!selectedCategoryKeys.length}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
-                    testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
-                />
-            );
+                    const {action} = await showConfirmModal({
+                        title: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                        prompt: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt'),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    });
+                    if (action === ModalActions.CONFIRM) {
+                        handleDeleteCategories();
+                    }
+                },
+            });
         }
+
+        const enabledCategories = selectedCategoryKeys.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
+        if (enabledCategories.length > 0) {
+            const categoriesToDisable = selectedCategoryKeys
+                .filter((categoryName) => policyCategories?.[categoryName]?.enabled)
+                .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
+                    acc[categoryName] = {
+                        name: categoryName,
+                        enabled: false,
+                    };
+                    return acc;
+                }, {});
+            options.push({
+                icon: icons.Close,
+                text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject),
+                onSelected: () => {
+                    if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
+                        showCannotDeleteOrDisableLastCategoryModal();
+                        return;
+                    }
+                    clearTableSelection();
+                    setWorkspaceCategoryEnabled({
+                        policyData,
+                        categoriesToUpdate: categoriesToDisable,
+                        isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+                        setupCategoryTaskReport,
+                        setupCategoryTaskParentReport,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        hasOutstandingChildTask,
+                        parentReportAction,
+                        setupCategoriesAndTagsTaskReport,
+                        setupCategoriesAndTagsTaskParentReport,
+                        isSetupCategoriesAndTagsTaskParentReportArchived,
+                        setupCategoriesAndTagsHasOutstandingChildTask,
+                        setupCategoriesAndTagsParentReportAction,
+                        policyHasTags,
+                    });
+                },
+            });
+        }
+
+        const disabledCategories = selectedCategoryKeys.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
+        if (disabledCategories.length > 0) {
+            const categoriesToEnable = selectedCategoryKeys
+                .filter((categoryName) => !policyCategories?.[categoryName]?.enabled)
+                .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
+                    acc[categoryName] = {
+                        name: categoryName,
+                        enabled: true,
+                    };
+                    return acc;
+                }, {});
+            options.push({
+                icon: icons.Checkmark,
+                text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                onSelected: () => {
+                    clearTableSelection();
+                    setWorkspaceCategoryEnabled({
+                        policyData,
+                        categoriesToUpdate: categoriesToEnable,
+                        isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+                        setupCategoryTaskReport,
+                        setupCategoryTaskParentReport,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        hasOutstandingChildTask,
+                        parentReportAction,
+                        setupCategoriesAndTagsTaskReport,
+                        setupCategoriesAndTagsTaskParentReport,
+                        isSetupCategoriesAndTagsTaskParentReportArchived,
+                        setupCategoriesAndTagsHasOutstandingChildTask,
+                        setupCategoriesAndTagsParentReportAction,
+                        policyHasTags,
+                    });
+                },
+            });
+        }
+
+        return (
+            <ButtonWithDropdownMenu
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                onPress={() => null}
+                shouldAlwaysShowDropdownMenu
+                size={CONST.BUTTON_SIZE.MEDIUM}
+                customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
+                options={options}
+                isSplitButton={false}
+                isDisabled={!selectedCategoryKeys.length}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
+                testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+            />
+        );
+    };
+
+    const getHeaderButtons = () => {
         if (secondaryActions.length === 0) {
             return null;
         }
@@ -706,6 +710,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onRowSelectionChange={setSelectedCategoryKeys}
                         headerComponent={hasVisibleCategories ? headerContent : undefined}
                         headerButton={addCategoryButton}
+                        selectionButton={getSelectionButton()}
                     />
                 )}
                 <DecisionModal

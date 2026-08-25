@@ -48,6 +48,9 @@ type DomainMembersTableProps = {
 
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
 /**
@@ -88,6 +91,7 @@ export default function DomainMembersTable({
     isItemInFilter,
     headerComponent,
     headerButton,
+    selectionButton,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -149,7 +153,14 @@ export default function DomainMembersTable({
     const shouldShowTableControls = !isEmpty;
     const tableHeaderComponent = composeTableListHeader(
         headerComponent,
-        shouldShowTableControls ? <Table.FilterBar label={translate('domain.members.findMember')}>{headerButton}</Table.FilterBar> : undefined,
+        shouldShowTableControls ? (
+            <Table.FilterBar
+                label={translate('domain.members.findMember')}
+                selectionButton={selectionButton}
+            >
+                {headerButton}
+            </Table.FilterBar>
+        ) : undefined,
     );
 
     return (

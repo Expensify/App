@@ -53,6 +53,9 @@ type WorkspaceCategoriesTableProps = {
 
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
 export default function WorkspaceCategoriesTable({
@@ -67,6 +70,7 @@ export default function WorkspaceCategoriesTable({
     onRowSelectionChange,
     headerComponent,
     headerButton,
+    selectionButton,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -153,7 +157,14 @@ export default function WorkspaceCategoriesTable({
         />
     );
 
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.categories.findCategory')}>{headerButton}</Table.FilterBar>;
+    const searchBarComponent = (
+        <Table.FilterBar
+            label={translate('workspace.categories.findCategory')}
+            selectionButton={selectionButton}
+        >
+            {headerButton}
+        </Table.FilterBar>
+    );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (

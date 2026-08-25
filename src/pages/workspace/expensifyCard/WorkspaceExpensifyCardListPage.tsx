@@ -210,30 +210,35 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
               },
           ]
         : [];
-    const getHeaderButtons = () => {
-        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3];
-
+    const getSelectionButton = () => {
         const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedCardIDs.length > 0;
 
-        if (shouldShowBulkSelectionDropdown) {
-            return (
-                <View style={headerButtonsRowStyle}>
-                    <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => {}}
-                        customText={translate('workspace.common.selected', {
-                            count: selectedCardIDs.length,
-                        })}
-                        options={bulkExportOptions}
-                        isSplitButton={false}
-                        shouldAlwaysShowDropdownMenu
-                        isDisabled={!selectedCardIDs.length}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.BULK_ACTIONS_DROPDOWN}
-                        wrapperStyle={[!isInLandscapeMode && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.flexShrink1]}
-                    />
-                </View>
-            );
+        if (!shouldShowBulkSelectionDropdown) {
+            return undefined;
         }
+
+        return (
+            <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                onPress={() => {}}
+                customText={translate('workspace.common.selected', {
+                    count: selectedCardIDs.length,
+                })}
+                options={bulkExportOptions}
+                isSplitButton={false}
+                shouldAlwaysShowDropdownMenu
+                isDisabled={!selectedCardIDs.length}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.BULK_ACTIONS_DROPDOWN}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+            />
+        );
+    };
+
+    const getHeaderButtons = () => {
+        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3];
 
         if (secondaryActions.length === 0) {
             return null;
@@ -369,6 +374,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         listFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
                         listContentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
                         headerButton={issueCardButton}
+                        selectionButton={getSelectionButton()}
                     />
                 </View>
             )}

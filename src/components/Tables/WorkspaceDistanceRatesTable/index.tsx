@@ -38,6 +38,9 @@ type WorkspaceDistanceRatesTableProps = {
 
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -56,6 +59,7 @@ function WorkspaceDistanceRatesTable({
     onRowSelectionChange,
     headerComponent,
     headerButton,
+    selectionButton,
 }: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -161,7 +165,14 @@ function WorkspaceDistanceRatesTable({
         />
     );
 
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.distanceRates.findRate')}>{headerButton}</Table.FilterBar>;
+    const searchBarComponent = (
+        <Table.FilterBar
+            label={translate('workspace.distanceRates.findRate')}
+            selectionButton={selectionButton}
+        >
+            {headerButton}
+        </Table.FilterBar>
+    );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (

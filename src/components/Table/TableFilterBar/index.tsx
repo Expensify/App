@@ -16,9 +16,12 @@ import TableSearchBar from './TableSearchBar';
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
     label: string;
+
+    /** When provided (e.g. rows are selected), replaces the entire bar with this bulk-actions button, matching the Search pages */
+    selectionButton?: React.ReactNode;
 }>;
 
-export default function TableFilterBar({label, children}: TableFilterBarProps) {
+export default function TableFilterBar({label, children, selectionButton}: TableFilterBarProps) {
     const styles = useThemeStyles();
     const {filterConfig, tableMethods, activeFilters, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
@@ -61,6 +64,14 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
 
     if (!originalDataLength) {
         return null;
+    }
+
+    if (selectionButton) {
+        return (
+            <View style={[styles.pb3, styles.ph5]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableFilterBarSelectionButton]}>{selectionButton}</View>
+            </View>
+        );
     }
 
     return (

@@ -37,9 +37,19 @@ type WorkspaceReportFieldListValuesTableProps = {
 
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
-export default function WorkspaceReportFieldListValuesTable({listValues, selectionEnabled, selectedKeys, onRowSelectionChange, headerButton}: WorkspaceReportFieldListValuesTableProps) {
+export default function WorkspaceReportFieldListValuesTable({
+    listValues,
+    selectionEnabled,
+    selectedKeys,
+    onRowSelectionChange,
+    headerButton,
+    selectionButton,
+}: WorkspaceReportFieldListValuesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
@@ -106,7 +116,12 @@ export default function WorkspaceReportFieldListValuesTable({listValues, selecti
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.reportFields.findReportField')}>{headerButton}</Table.FilterBar>
+            <Table.FilterBar
+                label={translate('workspace.reportFields.findReportField')}
+                selectionButton={selectionButton}
+            >
+                {headerButton}
+            </Table.FilterBar>
             <Table.EmptyState
                 title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                 subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}

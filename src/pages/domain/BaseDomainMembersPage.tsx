@@ -55,6 +55,9 @@ type BaseDomainMembersPageProps = {
 
     /** Action button (e.g. create) rendered in the table filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire table filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
 function BaseDomainMembersPage({
@@ -71,6 +74,7 @@ function BaseDomainMembersPage({
     shouldShowGroupFilter,
     shouldShowGroupColumn,
     headerButton,
+    selectionButton,
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -105,6 +109,7 @@ function BaseDomainMembersPage({
                     filterConfig={shouldShowGroupFilter ? filterConfig : undefined}
                     isItemInFilter={shouldShowGroupFilter ? isItemInFilter : undefined}
                     headerButton={headerButton}
+                    selectionButton={selectionButton}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

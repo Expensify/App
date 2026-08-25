@@ -397,19 +397,9 @@ function PolicyDistanceRatesPage({
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const headerButtons = canWriteDistanceRates ? (
-        <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-            {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldUseOptionIcon
-                    customText={translate('common.more')}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
-                />
-            ) : (
+    const getSelectionButton = () => {
+        if (!(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0)) {
+            return (
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     shouldAlwaysShowDropdownMenu
@@ -418,13 +408,31 @@ function PolicyDistanceRatesPage({
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1]}
-                    wrapperStyle={!isInLandscapeMode ? styles.w100 : undefined}
                     isSplitButton={false}
                     isDisabled={!selectedDistanceRates.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS_DROPDOWN}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
                 />
-            )}
+            );
+        }
+
+        return undefined;
+    };
+
+    const headerButtons = canWriteDistanceRates ? (
+        <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+            <ButtonWithDropdownMenu
+                onPress={() => {}}
+                shouldUseOptionIcon
+                customText={translate('common.more')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
+                options={secondaryActions}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow0}
+            />
         </View>
     ) : null;
 
@@ -495,6 +503,7 @@ function PolicyDistanceRatesPage({
                         canWriteDistanceRates={canWriteDistanceRates}
                         headerComponent={distanceRatesTableHeader}
                         headerButton={addRateButton}
+                        selectionButton={getSelectionButton()}
                     />
                 )}
             </ScreenWrapper>

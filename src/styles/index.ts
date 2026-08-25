@@ -5418,6 +5418,10 @@ const staticStyles = (theme: ThemeColors) =>
             marginVertical: -3,
         },
 
+        tableFilterBarSelectionButton: {
+            marginVertical: -4,
+        },
+
         filtersBar: {
             flexDirection: 'row',
             gap: 8,

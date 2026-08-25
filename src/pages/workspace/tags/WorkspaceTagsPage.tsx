@@ -567,33 +567,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const getHeaderButtons = () => {
-        if (!canWriteTags && secondaryActions.length === 0) {
-            return null;
+    const getSelectionButton = () => {
+        // Without selection there are no bulk actions, so keep the normal header even if selection mode lingered from elsewhere.
+        if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
+            return undefined;
         }
 
         const selectedTagsObject = selectedTagKeys.map((key) => policyTagLists.at(0)?.tags?.[key]);
         const selectedTagLists = selectedTagKeys.map((selectedTag) => policyTagLists.find((policyTagList) => policyTagList.name === selectedTag));
-
-        // Without selection there are no bulk actions, so keep the normal header even if selection mode lingered from elsewhere.
-        if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
-            if (secondaryActions.length === 0) {
-                return null;
-            }
-            return (
-                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        shouldAlwaysShowDropdownMenu
-                        customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={isInLandscapeMode ? styles.flexGrow0 : styles.flexGrow1}
-                    />
-                </View>
-            );
-        }
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
@@ -743,11 +724,33 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={options}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedTagKeys.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceTagsPage-header-dropdown-menu-button"
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
             />
+        );
+    };
+
+    const getHeaderButtons = () => {
+        if (secondaryActions.length === 0) {
+            return null;
+        }
+        return (
+            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={isInLandscapeMode ? styles.flexGrow0 : styles.flexGrow1}
+                />
+            </View>
         );
     };
 
@@ -897,6 +900,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onRowSelectionChange={setSelectedTagKeys}
                             headerComponent={hasVisibleTags ? headerContent : undefined}
                             headerButton={addTagButton}
+                            selectionButton={getSelectionButton()}
                         />
                     )}
                 </ScreenWrapper>

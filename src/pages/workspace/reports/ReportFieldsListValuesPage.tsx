@@ -179,7 +179,7 @@ function ReportFieldsListValuesPage({
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const getHeaderButtons = () => {
+    const getSelectionButton = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         if (canWriteReportFields && (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedKeys.length > 0)) {
             if (selectedKeys.length > 0 && !hasAccountingConnections) {
@@ -296,12 +296,17 @@ function ReportFieldsListValuesPage({
                     customText={translate('workspace.common.selected', {count: selectedKeys.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedKeys.length}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
                 />
             );
         }
     };
+
+    const getHeaderButtons = () => undefined;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
@@ -355,6 +360,7 @@ function ReportFieldsListValuesPage({
                     selectedKeys={selectedKeys}
                     onRowSelectionChange={setSelectedKeys}
                     headerButton={addValueButton}
+                    selectionButton={getSelectionButton()}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

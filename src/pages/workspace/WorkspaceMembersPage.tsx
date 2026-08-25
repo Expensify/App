@@ -732,12 +732,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const getHeaderButtons = () => {
-        if (!canWriteMembers) {
-            return null;
+    const getSelectionButton = () => {
+        if (!canWriteMembers || !(shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0)) {
+            return undefined;
         }
         const bulkActionOptions = getBulkActionsButtonOptions();
-        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
+        return (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
@@ -747,12 +747,22 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 options={bulkActionOptions}
                 shouldPopoverUseScrollView={getShouldPopoverUseScrollView(bulkActionOptions)}
                 isSplitButton={false}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceMembersPage-header-dropdown-menu-button"
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
             />
-        ) : (
+        );
+    };
+
+    const getHeaderButtons = () => {
+        if (!canWriteMembers) {
+            return null;
+        }
+        return (
             <View style={[styles.flexRow, styles.gap2]}>
                 <ButtonWithDropdownMenu
                     onPress={() => {}}
@@ -851,6 +861,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
                         headerButton={inviteMemberButton}
+                        selectionButton={getSelectionButton()}
                     />
                 </>
             )}

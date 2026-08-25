@@ -55,6 +55,9 @@ type WorkspaceMembersTableProps = {
 
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
 /** Width the member cell's avatar and the space after it take before the name and email start. */
@@ -82,6 +85,7 @@ export default function WorkspaceMembersTable({
     onRowSelectionChange,
     headerComponent,
     headerButton,
+    selectionButton,
 }: WorkspaceMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -344,7 +348,14 @@ export default function WorkspaceMembersTable({
             />
         );
     };
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.people.findMember')}>{headerButton}</Table.FilterBar>;
+    const searchBarComponent = (
+        <Table.FilterBar
+            label={translate('workspace.people.findMember')}
+            selectionButton={selectionButton}
+        >
+            {headerButton}
+        </Table.FilterBar>
+    );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (

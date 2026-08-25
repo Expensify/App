@@ -302,25 +302,9 @@ function WorkspaceTaxesPage({
         [icons.Gear, policyID, translate],
     );
 
-    const getHeaderButtons = () => {
-        if (!canWriteTaxes) {
-            return null;
-        }
-
+    const getSelectionButton = () => {
         if (!shouldShowBulkActionsButton) {
-            return (
-                <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        shouldUseOptionIcon
-                        customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
-                    />
-                </View>
-            );
+            return undefined;
         }
 
         return (
@@ -332,10 +316,33 @@ function WorkspaceTaxesPage({
                 customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedTaxesIDs.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS_DROPDOWN}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
             />
+        );
+    };
+
+    const getHeaderButtons = () => {
+        if (!canWriteTaxes) {
+            return null;
+        }
+
+        return (
+            <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    shouldUseOptionIcon
+                    customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
+                />
+            </View>
         );
     };
 
@@ -418,6 +425,7 @@ function WorkspaceTaxesPage({
                         onRowSelectionChange={setSelectedTaxesIDs}
                         headerComponent={hasVisibleTaxes ? headerContent : undefined}
                         headerButton={addTaxButton}
+                        selectionButton={getSelectionButton()}
                     />
                 )}
             </ScreenWrapper>
