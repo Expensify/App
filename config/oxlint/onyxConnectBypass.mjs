@@ -81,15 +81,15 @@ function withBypassReporting(rule, {grandfathered = GRANDFATHERED_BYPASSES, esli
             const existingExit = visitors['Program:exit'];
             return {
                 ...visitors,
-                'Program:exit'(node) {
+                'Program:exit': function (node) {
                     existingExit?.call(this, node);
                     const allowed = grandfathered.get(relativePath(filename)) ?? 0;
                     // Sorted by line and sliced the same way findNewBypasses does, so which
                     // occurrence counts as grandfathered matches the script it replaces.
-                    hidden
-                        .sort((first, second) => first.line - second.line)
-                        .slice(allowed)
-                        .forEach(({args}) => context.report(...args));
+                    const hiddenToReport = hidden.sort((first, second) => first.line - second.line).slice(allowed);
+                    for (const {args} of hiddenToReport) {
+                        context.report(...args);
+                    }
                 },
             };
         },

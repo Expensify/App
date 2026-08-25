@@ -426,10 +426,10 @@
         "import/no-webpack-loader-syntax": "error",
         "import/no-named-default": "error",
         "import/no-self-import": "error",
-        // OFF, coverage gap, not a rejection: oxlint's rule works and finds 529 real import cycles,
-        // while ESLint's copy is silently inert (0 findings). Turning it on is a code-cleanup
-        // project, so it waits for that cleanup rather than for tooling.
-        "import/no-cycle": "off",
+        // ON, and it is the one rule where oxlint is deliberately stricter than ESLint rather than
+        // mirroring it: ESLint enables this rule too but reports 0, while oxlint's implementation
+        // works. Every finding is a real cycle. Kept on so the cleanup has a number to work against.
+        "import/no-cycle": "error",
         "rulesdir/context-provider-split-values": "error",
         "rulesdir/no-acc-spread-in-reduce": "error",
         "rulesdir/no-api-in-views": "error",

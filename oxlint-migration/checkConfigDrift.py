@@ -51,7 +51,7 @@ LEDGER = {
     # -- Real differences this repo chose.
     'react/jsx-no-duplicate-props': (ACCEPTED, 'ESLint passes {ignoreCase: true}; oxlint\'s native port accepts no options at all and fails the config with "this rule does not accept configuration options", so the option cannot be mirrored. 0 findings on either tool today'),
     'react/jsx-no-undef': (ACCEPTED, 'same: ESLint passes {allowGlobals: true}, oxlint\'s port accepts no options. 0 findings on either tool today'),
-    'import/no-cycle': (ACCEPTED, 'off in oxlint on purpose. ESLint\'s copy is silently inert here while oxlint\'s native rule finds 529 real cycles, so enabling it is a separate cleanup rather than a mirror question'),
+    'import/no-cycle': (ACCEPTED, 'ESLint passes {maxDepth: "\u221e"}; oxlint rejects a string there ("invalid type: string, expected u32") and its default already behaves the same way on this repo, measured 748 = 748 over src with the option omitted and with maxDepth at u32::MAX. Enabled on both, and oxlint is the only one that reports: 534 real cycles against ESLint\'s 0'),
     'rulesdir/prefer-at': (ACCEPTED, 'needs typeChecker.isArrayType to tell arrays from records, which a jsPlugin cannot reach. Step 10a proposes unicorn/prefer-at on both linters instead'),
     'rulesdir/boolean-conditional-rendering': (ACCEPTED, 'needs the type of the && left operand, and no syntactic stand-in exists'),
     '@typescript-eslint/no-deprecated': (ACCEPTED, 'off for the 83 files in the write-site override. tsgolint reports writes to deprecated properties that typescript-eslint misses (typescript-eslint#10643), and no option separates reads from writes'),

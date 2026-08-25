@@ -1,5 +1,12 @@
 # Why we do not swap to Oxlint's native React Compiler rules
 
+**Status, 2026-08-25.** The two configs the commands below use (`native.oxlintrc.json` and
+`sidecar.oxlintrc.json`) were deleted: `rh/*` no longer exists, and Oxlint 1.79.0 replaced the aggregate
+rule this compared against. The commands are kept as a record of how the measurement was run, not as
+something to re-run. To run the 12 React Compiler rules in isolation today, use
+`npx oxlint -c oxlint-migration/rc-rust-probe.oxlintrc.json --no-ignore <path>`. The three `.tsx` files
+here are still live inputs to `npm run oxlint-react-compiler-rust`.
+
 Oxlint 1.79.0 ships native Rust ports of the React Compiler checks. Swapping our Node sidecar (`rh/*`)
 for them looks like free speed. This directory is the demo of what it actually costs, and of the fact
 that the cause is Oxlint's port rather than anything in our setup.

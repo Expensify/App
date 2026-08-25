@@ -1,9 +1,0 @@
-{
-    "plugins": [],
-    "categories": {},
-    "jsPlugins": [{"name": "rh", "specifier": "../../config/oxlint/plugins/rh-plugin.mjs"}],
-    "rules": {
-        "rh/refs": "error",
-        "rh/set-state-in-effect": "error"
-    }
-}
