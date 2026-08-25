@@ -2263,11 +2263,6 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',
             showBranchNameInTitle: 'Mostrar nome da branch no título do navegador',
-            betaOverrides: 'Substituições de betas',
-            betaOverridesDescription:
-                'As substituições se aplicam apenas a este dispositivo e afetam somente as verificações do frontend. Alternar uma beta fixa esse valor, que permanece até você redefinir. “Redefinir todas as substituições” limpa todas e retorna cada beta ao valor que sua conta tem no backend. Alguns recursos também são controlados pelo backend, então forçar a ativação de uma beta que sua conta não tem ainda pode falhar no nível da solicitação.',
-            resetAllOverrides: 'Redefinir todas as substituições',
-            overridden: 'Substituída',
         },
         security: 'Segurança',
         signOut: 'Sair',

@@ -2300,11 +2300,6 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
             showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
-            betaOverrides: 'Nadpisania bet',
-            betaOverridesDescription:
-                'Nadpisania dotyczą tylko tego urządzenia i wpływają wyłącznie na kontrole po stronie frontendu. Przełączenie bety przypina ją do tej wartości i pozostaje ona przypięta do czasu zresetowania. „Zresetuj wszystkie nadpisania” usuwa je wszystkie i przywraca każdej becie wartość, którą Twoje konto ma na backendzie. Niektóre funkcje są też kontrolowane przez backend, więc wymuszenie włączenia bety, której nie ma Twoje konto, może mimo to zakończyć się niepowodzeniem na poziomie żądania.',
-            resetAllOverrides: 'Zresetuj wszystkie nadpisania',
-            overridden: 'Nadpisana',
         },
         security: 'Bezpieczeństwo',
         signOut: 'Wyloguj się',

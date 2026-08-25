@@ -2269,11 +2269,6 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Gemarkeerde span-namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interactie.klik, navigatie, ui.laden',
             showBranchNameInTitle: 'Toon branchnaam in titel van browser',
-            betaOverrides: 'Bèta-overrides',
-            betaOverridesDescription:
-                'Overrides gelden alleen voor dit apparaat en zijn alleen van invloed op frontendcontroles. Als je een bèta omschakelt, wordt die op die waarde vastgezet en blijft dat totdat je hem reset. \'Alle overrides resetten\' wist ze allemaal en zet elke bèta terug op de waarde die je account in de backend heeft. Sommige functies worden ook door de backend bepaald, dus het geforceerd inschakelen van een bèta die je account niet heeft, kan alsnog mislukken op verzoekniveau.',
-            resetAllOverrides: 'Alle overrides resetten',
-            overridden: 'Overschreven',
         },
         security: 'Beveiliging',
         signOut: 'Afmelden',

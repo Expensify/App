@@ -2251,11 +2251,6 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
             showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
-            betaOverrides: 'ベータオーバーライド',
-            betaOverridesDescription:
-                'オーバーライドはこの端末にのみ適用され、フロントエンドのチェックにのみ影響します。ベータを切り替えるとその値に固定され、リセットするまで固定されたままです。「すべてのオーバーライドをリセット」はすべてを消去し、各ベータをアカウントがバックエンドで持つ値に戻します。一部の機能はバックエンドでも制御されているため、アカウントが持っていないベータを強制的に有効にしても、リクエストレベルで失敗する場合があります。',
-            resetAllOverrides: 'すべてのオーバーライドをリセット',
-            overridden: 'オーバーライド済み',
         },
         security: 'セキュリティ',
         signOut: 'サインアウト',

@@ -2195,11 +2195,6 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nombres de spans resaltados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
             showBranchNameInTitle: 'Mostrar nombre de rama en el título del navegador',
-            betaOverrides: 'Anulaciones de betas',
-            betaOverridesDescription:
-                'Las anulaciones solo se aplican a este dispositivo y solo afectan a las comprobaciones del frontend. Al activar o desactivar una beta, esta queda fijada en ese valor y permanece así hasta que la restablezcas. «Restablecer todas las anulaciones» las borra todas y devuelve cada beta al valor que tiene tu cuenta en el backend. Algunas funciones también están controladas por el backend, por lo que forzar la activación de una beta que tu cuenta no tiene puede fallar igualmente a nivel de solicitud.',
-            resetAllOverrides: 'Restablecer todas las anulaciones',
-            overridden: 'Anulada',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',
