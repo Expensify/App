@@ -52397,7 +52397,7 @@ var commentIntentExamples_default = import_expensify_common2.Str.dedent(`
     ${CONST_default.INTENT.NOT_AN_ATTEMPT} - a question about the issue.
 
     ___
-    @QichenZhu Would you like to take over here? Or propose a solution?
+    @reviewer Would you like to take over here? Or propose a solution?
     ___
     ${CONST_default.INTENT.NOT_AN_ATTEMPT} - coordination about transferring ownership of the issue, not a claim on the job.
 

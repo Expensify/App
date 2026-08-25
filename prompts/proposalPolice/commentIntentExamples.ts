@@ -76,7 +76,7 @@ export default Str.dedent(`
     ${CONST.INTENT.NOT_AN_ATTEMPT} - a question about the issue.
 
     ___
-    @QichenZhu Would you like to take over here? Or propose a solution?
+    @reviewer Would you like to take over here? Or propose a solution?
     ___
     ${CONST.INTENT.NOT_AN_ATTEMPT} - coordination about transferring ownership of the issue, not a claim on the job.
 
