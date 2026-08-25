@@ -7205,9 +7205,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
         distanceRates: {
             oopsNotSoFast: 'Ups! Nie tak szybko...',
             workspaceNeeds: 'Miejsce pracy musi mieć włączoną co najmniej jedną stawkę za dystans.',
-            requireMapOrGPSDescription: 'Wpis ręczny i z licznika zostanie wyłączony.',
+            requireMapOrGPSDescription: 'Ręczne wpisy i wprowadzanie stanu licznika przebiegu zostaną wyłączone.',
             requireMapOrGPSLockedByCommuterExclusions:
-                'Wykluczanie dojazdów do pracy wymaga trasy z mapy, więc wpis z GPS lub mapy jest już wymagany. Przestań wykluczać dojazdy do pracy, aby zmienić to ustawienie.',
+                'Wykluczanie dojazdów wymaga danych o trasie, więc gdy ta opcja jest włączona, zawsze jest potrzebny dystans z mapy lub GPS. Żeby zmienić to ustawienie, ustaw Wykluczaj dojazdy na „Nie wykluczaj dojazdów”.',
             commuterExclusions: {
                 title: 'Wyklucz dojazdy',
                 summaryDisabled: 'Bez wykluczenia dojazdów',
@@ -8573,29 +8573,29 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 case 'tags':
                     return `${enabled ? 'włączone' : 'wyłączone'} tagi`;
                 case 'workflows':
-                    return `${enabled ? 'włączone' : 'wyłączone'} przepływy pracy`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} procesy pracy`;
                 case 'distance rates':
-                    return `stawki za przejazdy ${enabled ? 'włączone' : 'wyłączone'}`;
+                    return `Stawki za przejazdy ${enabled ? 'włączone' : 'wyłączone'}`;
                 case 'accounting':
                     return `${enabled ? 'włączone' : 'wyłączone'} księgowość`;
                 case 'Expensify Cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} Karty Expensify`;
                 case 'travel invoicing':
-                    return `${enabled ? 'włączone' : 'wyłączone'} Zbiorcze rozliczenie podróży`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} Zbiorcze rozliczanie podróży`;
                 case 'company cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} karty firmowe`;
                 case 'invoicing':
-                    return `Fakturowanie ${enabled ? 'włączone' : 'wyłączone'}`;
+                    return `Wystawianie faktur ${enabled ? 'włączone' : 'wyłączone'}`;
                 case 'per diem':
-                    return `${enabled ? 'włączone' : 'wyłączone'} diety`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} diety dzienne`;
                 case 'receipt partners':
-                    return `${enabled ? 'włączone' : 'wyłączone'} paragonów od partnerów`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} paragonów partnerów`;
                 case 'rules':
                     return `${enabled ? 'włączone' : 'wyłączone'} reguły`;
                 case 'tax tracking':
-                    return `Śledzenie podatku ${enabled ? 'włączone' : 'wyłączone'}`;
+                    return `śledzenie podatków ${enabled ? 'włączone' : 'wyłączone'}`;
                 case 'require GPS or map entry for distance rates':
-                    return `${enabled ? 'włączono' : 'wyłączono'} wymóg wpisu z GPS lub mapy dla stawek za dystans`;
+                    return `${enabled ? 'włączono' : 'wyłączone'} wymagają GPS lub wprowadzenia na mapie dla stawek za przejazd`;
                 default:
                     return `${enabled ? 'włączone' : 'wyłączone'} ${featureName}`;
             }
@@ -9689,7 +9689,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         error: {
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
             mapOrGpsDistanceRequired: {
-                title: 'Wymagaj wpisu z GPS lub mapy',
+                title: 'Wymagaj GPS lub wpisania na mapie',
                 description: 'W tym obszarze roboczym wymagane są wydatki za przejazdy oparte na mapie lub śledzone za pomocą GPS.',
             },
         },

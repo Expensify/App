@@ -1182,7 +1182,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'No se han añadido reglas de comerciante, ya que todas ya existen.' : 'No se han añadido reglas de comerciante.';
             }
-
             return {
                 one: 'Se ha añadido 1 regla de comerciante.',
                 other: `Se han añadido ${count} reglas de comerciante.`,
@@ -7201,9 +7200,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
             workspaceNeeds: 'Un espacio de trabajo necesita al menos una tasa de distancia activa.',
-            requireMapOrGPSDescription: 'La entrada manual y por odómetro se desactivará.',
+            requireMapOrGPSDescription: 'Se deshabilitará la introducción manual y del cuentakilómetros.',
             requireMapOrGPSLockedByCommuterExclusions:
-                'Excluir los desplazamientos al trabajo requiere una ruta cartografiada, así que ya se exige la entrada por GPS o mapa. Deja de excluir los desplazamientos al trabajo para cambiar este ajuste.',
+                'Excluir desplazamientos necesita datos de ruta, por lo que la distancia del mapa o del GPS siempre es obligatoria mientras esté activado. Para cambiar esta configuración, establece Excluir desplazamientos en «No excluir desplazamientos».',
             commuterExclusions: {
                 title: 'Excluir desplazamientos al trabajo',
                 summaryDisabled: 'Sin exclusión por desplazamiento al trabajo',
@@ -8673,29 +8672,29 @@ ${reportName}`,
                 case 'tags':
                     return `${enabled ? 'habilitado' : 'desactivado'} etiquetas`;
                 case 'workflows':
-                    return `Flujos de trabajo ${enabled ? 'habilitado' : 'desactivado'}`;
+                    return `Flujos de trabajo de ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'distance rates':
-                    return `${enabled ? 'habilitado' : 'desactivado'} tarifas por distancia`;
+                    return `Tarifas de distancia ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'accounting':
-                    return `${enabled ? 'habilitado' : 'desactivado'} contabilidad`;
+                    return `contabilidad ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'Expensify Cards':
                     return `${enabled ? 'habilitado' : 'desactivado'} Tarjetas Expensify`;
                 case 'travel invoicing':
                     return `${enabled ? 'habilitado' : 'desactivado'} Facturación consolidada de viajes`;
                 case 'company cards':
-                    return `${enabled ? 'habilitado' : 'desactivado'} tarjetas de la empresa`;
+                    return `tarjetas de empresa ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'invoicing':
-                    return `Facturación ${enabled ? 'habilitado' : 'desactivado'}`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} facturación`;
                 case 'per diem':
-                    return `${enabled ? 'habilitado' : 'desactivado'} Per diem`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} per diem`;
                 case 'receipt partners':
                     return `${enabled ? 'habilitado' : 'desactivado'} socios de recibos`;
                 case 'rules':
-                    return `${enabled ? 'habilitado' : 'desactivado'} reglas`;
+                    return `Reglas de ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'tax tracking':
-                    return `seguimiento de impuestos ${enabled ? 'habilitado' : 'desactivado'}`;
+                    return `Seguimiento de impuestos ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'require GPS or map entry for distance rates':
-                    return `${enabled ? 'activado' : 'desactivado'} el requisito de entrada por GPS o mapa para las tasas de distancia`;
+                    return `${enabled ? 'activado' : 'desactivado'} requiere GPS o introducción en el mapa para las tasas de distancia`;
                 default:
                     return `${enabled ? 'habilitado' : 'desactivado'} ${featureName}`;
             }
@@ -10016,7 +10015,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual',
             mapOrGpsDistanceRequired: {
-                title: 'Requerir entrada por GPS o mapa',
+                title: 'Requerir GPS o introducción en el mapa',
                 description: 'Este espacio de trabajo requiere gastos de distancia basados en mapa o con seguimiento por GPS.',
             },
         },

@@ -7109,7 +7109,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             workspaceNeeds: 'ワークスペースには、少なくとも 1 つの有効な距離レートが必要です。',
             requireMapOrGPSDescription: '手動入力とオドメーター入力は無効になります。',
             requireMapOrGPSLockedByCommuterExclusions:
-                '通勤を除外するにはマップ上のルートが必要なため、GPS またはマップでの入力はすでに必須です。この設定を変更するには、通勤の除外を停止してください。',
+                '通勤を除外するにはルートデータが必要なため、この設定がオンの間は、常にマップまたは GPS による距離情報が必要です。この設定を変更するには、「通勤を除外」を「通勤を除外しない」に設定してください。',
             commuterExclusions: {
                 title: '通勤を除外',
                 summaryDisabled: '通勤除外なし',
@@ -8458,33 +8458,33 @@ ${reportName}`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
-                    return `${enabled ? '有効' : '無効'} 件のカテゴリ`;
+                    return `${enabled ? '有効' : '無効'} 個のカテゴリ`;
                 case 'tags':
                     return `${enabled ? '有効' : '無効'} 個のタグ`;
                 case 'workflows':
                     return `${enabled ? '有効' : '無効'} 個のワークフロー`;
                 case 'distance rates':
-                    return `${enabled ? '有効' : '無効'} 件の距離レート`;
+                    return `${enabled ? '有効' : '無効'} 距離レート`;
                 case 'accounting':
                     return `${enabled ? '有効' : '無効'} 会計`;
                 case 'Expensify Cards':
                     return `${enabled ? '有効' : '無効'} Expensify カード`;
                 case 'travel invoicing':
-                    return `${enabled ? '有効' : '無効'} 統合旅行請求`;
+                    return `${enabled ? '有効' : '無効'} 統合トラベル請求`;
                 case 'company cards':
-                    return `${enabled ? '有効' : '無効'} 件の会社カード`;
+                    return `${enabled ? '有効' : '無効'} 件の法人カード`;
                 case 'invoicing':
-                    return `${enabled ? '有効' : '無効'} 請求書作成`;
+                    return `${enabled ? '有効' : '無効'} の請求書作成`;
                 case 'per diem':
-                    return `${enabled ? '有効' : '無効'} 日当`;
+                    return `${enabled ? '有効' : '無効'} の日当`;
                 case 'receipt partners':
                     return `${enabled ? '有効' : '無効'} 件のレシートパートナー`;
                 case 'rules':
-                    return `${enabled ? '有効' : '無効'} 件のルール`;
+                    return `${enabled ? '有効' : '無効'} 個のルール`;
                 case 'tax tracking':
                     return `${enabled ? '有効' : '無効'} 税金の追跡`;
                 case 'require GPS or map entry for distance rates':
-                    return `距離レートで GPS またはマップでの入力の必須設定を${enabled ? 'オンにしました' : 'オフにしました'}`;
+                    return `${enabled ? 'オンになりました' : 'オフにしました'} は距離レートに GPS もしくは地図での入力が必要です`;
                 default:
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }
@@ -9012,9 +9012,6 @@ ${reportName}`,
             reject: '却下',
             duplicateExpense: () => ({
                 one: '経費を複製',
-                // Japanese has no grammatical plural, so `Intl.PluralRules` selects `other` for every count,
-                // including 1. The single/bulk distinction here is semantic rather than grammatical, so `other`
-                // branches on the count itself to keep 一括 (bulk) on the multi-expense action only.
                 other: (count: number) => (count === 1 ? '経費を複製' : '経費を一括複製'),
             }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
@@ -9562,7 +9559,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
             mapOrGpsDistanceRequired: {
-                title: 'GPS またはマップでの入力を必須にする',
+                title: 'GPS または地図での入力が必須です',
                 description: 'このワークスペースでは、地図に基づく距離精算または GPS で追跡された距離精算のいずれかが必要です。',
             },
         },

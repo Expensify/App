@@ -7184,9 +7184,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         distanceRates: {
             oopsNotSoFast: 'Oeps! Niet zo snel...',
             workspaceNeeds: 'Een workspace heeft minstens één ingeschakelde afstandstarief nodig.',
-            requireMapOrGPSDescription: 'Handmatige invoer en kilometerstandinvoer worden uitgeschakeld.',
+            requireMapOrGPSDescription: 'Handmatige invoer en kilometertellerinvoer worden uitgeschakeld.',
             requireMapOrGPSLockedByCommuterExclusions:
-                'Het uitsluiten van woon-werkverkeer vereist een route op de kaart, dus invoer via gps of kaart is al vereist. Stop met het uitsluiten van woon-werkverkeer om deze instelling te wijzigen.',
+                'Woon-werkverkeer uitsluiten heeft routedata nodig, dus een kaart- of GPS-afstand is altijd vereist zolang deze optie aanstaat. Om deze instelling te wijzigen, zet Woon-werkverkeer uitsluiten op ‘Woon-werkverkeer niet uitsluiten’.',
             commuterExclusions: {
                 title: 'Woon-werkverkeer uitsluiten',
                 summaryDisabled: 'Geen woon-werkuitzondering',
@@ -8550,7 +8550,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 case 'tags':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} labels`;
                 case 'workflows':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'}-workflows`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} workflows`;
                 case 'distance rates':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} afstandstarieven`;
                 case 'accounting':
@@ -8558,11 +8558,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 case 'Expensify Cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Expensify Kaarten`;
                 case 'travel invoicing':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Geconsolideerde reiskostenfacturatie`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Geconsolideerde reisfacturatie`;
                 case 'company cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bedrijfskaarten`;
                 case 'invoicing':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturering`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturatie`;
                 case 'per diem':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} dagvergoeding`;
                 case 'receipt partners':
@@ -8572,7 +8572,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 case 'tax tracking':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie`;
                 case 'require GPS or map entry for distance rates':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} de verplichte invoer via gps of kaart voor afstandstarieven`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} vereisen GPS of kaartinvoer voor afstandstarieven`;
                 default:
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} ${featureName}`;
             }
@@ -9662,7 +9662,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik de huidige locatie',
             mapOrGpsDistanceRequired: {
-                title: 'Invoer via gps of kaart vereisen',
+                title: 'GPS of kaartinvoer verplicht',
                 description: 'Deze workspace vereist afstandsdeclaraties die zijn gebaseerd op een kaart of via GPS worden bijgehouden.',
             },
         },
