@@ -75,6 +75,7 @@ function renderSubmission(overrides: Partial<UseParticipantSubmissionParams> = {
             isSplitRequest: false,
             isMovingTransactionFromTrackExpense: true,
             isFocused: true,
+            isWorkspacesOnly: false,
             ...overrides,
         }),
     );
@@ -98,10 +99,12 @@ describe('useParticipantSubmission goToNextStep backTo', () => {
         expect(mockGoBack).toHaveBeenCalledWith(expect.stringContaining('backTo='), {compareParams: false});
     });
 
-    it('anchors the SUBMIT backTo on the persistent self DM, not the tracked-expense source report (#99371)', () => {
-        // The expense-header "Submit to a friend" flow opens the picker anchored on the tracked-expense's source report.
-        // goToNextStep moves the transaction off that report, so the reconstructed backTo must instead point at the
-        // writable self DM — otherwise pressing back on the confirmation page lands on the NotFound "Not here" page.
+    it('anchors the SUBMIT picker guard on the self DM while keeping the source report as the base path (#99371, codex P2)', () => {
+        // The expense-header "Submit to a friend" flow opens the picker anchored on the tracked-expense's source report (R4).
+        // goToNextStep moves the transaction off that report, so the reconstructed backTo's picker reportID must instead point
+        // at the writable self DM (R3). Otherwise pressing back on the confirmation page lands on the NotFound "Not here" page.
+        // The central-pane base path must stay the source report (R4) so back does not swap the visible report out from under
+        // the user.
         mockFindSelfDMReportID.mockReturnValue('R3');
         const {result} = renderSubmission({reportID: 'R4'});
 
@@ -110,10 +113,27 @@ describe('useParticipantSubmission goToNextStep backTo', () => {
         });
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
-        const backToRoute = mockGoBack.mock.calls.at(0)?.at(0);
+        const backToRoute = decodeURIComponent(String(mockGoBack.mock.calls.at(0)?.at(0)));
         expect(backToRoute).toEqual(expect.stringContaining('backTo='));
-        expect(backToRoute).toEqual(expect.stringContaining('R3'));
-        expect(backToRoute).toEqual(expect.not.stringContaining('R4'));
+        // The picker's writable-report guard (its reportID param) targets the self DM, so back stays writable (#99371).
+        expect(backToRoute).toEqual(expect.stringContaining('reportID=R3'));
+        // The central-pane base path stays the report the user was viewing (source report R4), so back does not swap it.
+        expect(backToRoute).toEqual(expect.stringContaining('r/R4/expense-participants'));
+    });
+
+    it('carries isWorkspacesOnly into the reconstructed SUBMIT backTo so the employer picker stays workspaces-only on back (codex P1)', () => {
+        // "Submit to my employer" with multiple workspaces opens the picker with isWorkspacesOnly=true. A positive tracked
+        // expense cannot re-infer that restriction, so the reconstructed backTo must carry the flag or back shows individuals.
+        mockFindSelfDMReportID.mockReturnValue('R3');
+        const {result} = renderSubmission({reportID: 'R4', isWorkspacesOnly: true});
+
+        act(() => {
+            result.current.goToNextStep(undefined, [RECIPIENT]);
+        });
+
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        const backToRoute = decodeURIComponent(String(mockGoBack.mock.calls.at(0)?.at(0)));
+        expect(backToRoute).toEqual(expect.stringContaining('isWorkspacesOnly=true'));
     });
 
     it('passes an explicit backTo for the "Share with accountant" flow (SHARE moving a tracked expense)', () => {

@@ -80,6 +80,14 @@ function DynamicIOURequestStepParticipants({
         headerTitle = translate('workspace.invoices.sendInvoice');
     }
 
+    // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
+    // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
+    // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
+    const isWorkspacesOnly =
+        isWorkspacesOnlyFromRoute ||
+        (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction)) ||
+        (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
+
     const {addParticipant, goToNextStep} = useParticipantSubmission({
         reportID,
         initialTransactionID,
@@ -90,6 +98,7 @@ function DynamicIOURequestStepParticipants({
         isSplitRequest,
         isMovingTransactionFromTrackExpense,
         isFocused,
+        isWorkspacesOnly,
     });
     const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
@@ -133,13 +142,6 @@ function DynamicIOURequestStepParticipants({
         Navigation.goBack(backPath, {compareParams: false});
     };
 
-    // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
-    // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
-    // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
-    const isWorkspacesOnly =
-        isWorkspacesOnlyFromRoute ||
-        (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction)) ||
-        (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly
