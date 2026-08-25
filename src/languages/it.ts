@@ -9694,7 +9694,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         error: {
             selectSuggestedAddress: 'Seleziona un indirizzo suggerito o usa la posizione attuale',
             mapOrGpsDistanceRequired: {
-                title: 'Distanza da mappa o GPS richiesta',
+                title: 'Richiedi inserimento tramite GPS o mappa',
                 description: 'Questo spazio di lavoro richiede spese chilometriche basate su mappa o tracciate tramite GPS.',
             },
         },

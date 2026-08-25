@@ -9662,7 +9662,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik de huidige locatie',
             mapOrGpsDistanceRequired: {
-                title: 'Afstand van kaart of GPS vereist',
+                title: 'Invoer via gps of kaart vereisen',
                 description: 'Deze workspace vereist afstandsdeclaraties die zijn gebaseerd op een kaart of via GPS worden bijgehouden.',
             },
         },

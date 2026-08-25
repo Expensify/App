@@ -9316,7 +9316,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: '请选择一个推荐地址或使用当前位置',
             mapOrGpsDistanceRequired: {
-                title: '需要提供地图或 GPS 距离',
+                title: '要求使用 GPS 或地图录入',
                 description: '此工作区要求里程报销必须基于地图或通过 GPS 进行轨迹跟踪。',
             },
         },

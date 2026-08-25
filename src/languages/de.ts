@@ -9725,7 +9725,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         error: {
             selectSuggestedAddress: 'Bitte wählen Sie eine vorgeschlagene Adresse aus oder verwenden Sie den aktuellen Standort',
             mapOrGpsDistanceRequired: {
-                title: 'Karten- oder GPS-Entfernung erforderlich',
+                title: 'GPS- oder Karteneingabe verlangen',
                 description: 'Dieser Workspace erfordert entweder kartenbasierte oder GPS-verfolgte Entfernungskosten.',
             },
         },

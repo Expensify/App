@@ -3,14 +3,15 @@ import {
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     isCurrencySupportedForAutoUpdate,
-    isMapOrGPSRequired,
     isGovernmentRateUnmodified,
+    isMapOrGPSRequired,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
 import type {Policy} from '@src/types/onyx';
 import type {GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
 
+import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 
 describe('PolicyDistanceRatesUtils', () => {
@@ -160,7 +161,7 @@ describe('PolicyDistanceRatesUtils', () => {
     });
 
     describe('isMapOrGPSRequired', () => {
-        const buildPolicy = (policy: Partial<Policy>) => ({id: '1', name: 'Workspace', ...policy}) as Policy;
+        const buildPolicy = (policy: Partial<Policy>): Policy => ({...createRandomPolicy(0), ...policy});
 
         it('should return true when the workspace has the setting enabled', () => {
             expect(isMapOrGPSRequired(buildPolicy({requireMapOrGPS: true}))).toBe(true);

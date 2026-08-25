@@ -10016,7 +10016,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual',
             mapOrGpsDistanceRequired: {
-                title: 'Se requiere distancia por mapa o GPS',
+                title: 'Requerir entrada por GPS o mapa',
                 description: 'Este espacio de trabajo requiere gastos de distancia basados en mapa o con seguimiento por GPS.',
             },
         },

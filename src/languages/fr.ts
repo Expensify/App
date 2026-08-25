@@ -9755,7 +9755,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
             mapOrGpsDistanceRequired: {
-                title: 'Distance de carte ou GPS requise',
+                title: 'Exiger une saisie GPS ou cartographique',
                 description: 'Cet espace de travail requiert des dépenses kilométriques calculées soit sur la base d’une carte, soit suivies par GPS.',
             },
         },

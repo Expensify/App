@@ -9660,7 +9660,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         error: {
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
             mapOrGpsDistanceRequired: {
-                title: 'Distância de mapa ou GPS obrigatória',
+                title: 'Exigir entrada por GPS ou mapa',
                 description: 'Este espaço de trabalho exige despesas de distância baseadas em mapa ou rastreadas por GPS.',
             },
         },
