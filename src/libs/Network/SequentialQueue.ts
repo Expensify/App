@@ -253,61 +253,6 @@ function getQueueFlushedData() {
 }
 
 /**
- * The forward-bump reconciliation below only works when an offline ReadNewestAction is processed
- * AFTER the offline comment(s) for the same report, because it relies on that comment's server
- * timestamp having already been recorded in reportsWithProcessedOfflineComments. But readNewestAction
- * is deduped via writeWithNoDuplicatesConflictAction/resolveDuplicationConflictAction, which replaces
- * an already-queued read IN PLACE at its original index rather than pushing it to the tail. So if the
- * user's report was opened (queuing a read) before they sent an offline comment, the read can remain
- * ahead of the comment in the persisted queue, reach the server first with its stale lastReadTime, and
- * never get bumped.
- *
- * To guard against that ordering, check the request at the head of the queue every time we're about to
- * process it: if it's an offline ReadNewestAction and a not-yet-processed offline comment for the SAME
- * report is still queued behind it, move the read to the tail so the comment(s) go first. This only
- * reorders requests for that one report; everything else keeps its original relative order. Returns
- * null when no reorder is needed, or a promise that resolves once the reorder is persisted (the caller
- * should await it, then re-derive what to process next).
- */
-function deferOfflineReadBehindSameReportComments(persistedRequests: AnyRequest[]): Promise<void> | null {
-    const nextRequest = persistedRequests.at(0);
-    if (!nextRequest || nextRequest.command !== WRITE_COMMANDS.READ_NEWEST_ACTION || !nextRequest.initiatedOffline) {
-        return null;
-    }
-
-    const reportID = nextRequest.data?.reportID;
-    if (typeof reportID !== 'string') {
-        return null;
-    }
-
-    const hasLaterSameReportComment = persistedRequests
-        .slice(1)
-        .some((request) => !!request.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(request.command) && request.data?.reportID === reportID);
-    if (!hasLaterSameReportComment) {
-        return null;
-    }
-
-    // MarkAsUnread is the only command the server allows to move lastReadTime BACKWARD — stale reads are
-    // simply ignored, which is what makes this reorder safe in general. But deferring the read past a queued
-    // same-report MarkAsUnread would make the read run last and win, wiping the unread state the user
-    // explicitly asked for (offline flow: open report → comment → mark older message as unread). Keep the
-    // original order in that case so MarkAsUnread still runs last; the read's stale time is then harmless.
-    const hasLaterSameReportMarkAsUnread = persistedRequests.slice(1).some((request) => request.command === WRITE_COMMANDS.MARK_AS_UNREAD && request.data?.reportID === reportID);
-    if (hasLaterSameReportMarkAsUnread) {
-        return null;
-    }
-
-    Log.info('[SequentialQueue] Deferring offline ReadNewestAction behind a same-report offline comment still in queue', false, {reportID});
-    // Both calls mutate the in-memory queue synchronously before returning, so the reorder is visible to
-    // the very next process() call regardless of how long the disk write takes. We still await the writes
-    // here (rather than firing-and-forgetting) so callers — including tests that clear Onyx right after
-    // the queue reports idle — never race an in-flight write left over from this reorder.
-    const deleted = deletePersistedRequestsByIndices([0]);
-    const saved = savePersistedRequest(nextRequest);
-    return Promise.all([deleted, saved]).then(() => undefined);
-}
-
-/**
  * Process any persisted requests, when online, one at a time until the queue is empty.
  *
  * If a request fails due to some kind of network error, such as a request being throttled or when our backend is down, then we retry it with an exponential back off process until a response
@@ -348,30 +293,34 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
-    // Only reorder when there's no ongoing request — an ongoing request is already in flight and
-    // processNextPersistedRequest() would return it regardless of queue order.
-    const deferPromise = ongoingRequest ? null : deferOfflineReadBehindSameReportComments(persistedRequests);
-    if (deferPromise) {
-        return deferPromise.then(() => process());
-    }
-
     const requestToProcess = processNextPersistedRequest();
     if (!requestToProcess) {
         Log.info('[SequentialQueue] Unable to process. No next request to handle.');
         return Promise.resolve();
     }
 
-    // Offline ReadNewestAction carries a stale lastReadTime from when the user opened the report
-    // offline. If the user also sent messages offline, those messages get server-assigned timestamps
-    // that are later than the stale lastReadTime, causing the report to appear unread after reconnect.
-    // Only bump when the same report had offline comments processed earlier in this queue flush.
+    // A ReadNewestAction queued while offline carries the lastReadTime from the moment the user opened the
+    // report offline. Messages the user sent offline in that same report only get their server-assigned
+    // `created` on replay, which is later than that queued time — so the read no longer covers the user's own
+    // messages and the report comes back unread after reconnect. Move the read forward to the server time of
+    // the user's own replayed message, which the user has necessarily already seen.
+    //
+    // Known limitations, deliberately left as-is (see PR #94738 discussion):
+    // - Only fires when the read is processed AFTER the offline comment(s). readNewestAction dedupes via
+    //   resolveDuplicationConflictAction, which replaces an already-queued read in place, so a read queued
+    //   before the comment stays ahead of it and keeps its original time (same as production today).
+    // - The bump can move lastReadTime past another user's message that reached the server during the offline
+    //   window. Production already hides that case in the LHN (isUnread() treats a report whose newest action
+    //   is the current user's as read), so this is not a new user-visible regression.
+    // - The mutation below is in-memory only; an app kill between persisting and sending replays the original
+    //   time, which is the pre-fix behavior.
     if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
         const reportID = requestToProcess.data?.reportID;
-        // MarkAsUnread is the only command the server lets move lastReadTime backward, and the user's explicit
-        // unread must always win over this reconciliation. When a same-report MarkAsUnread is still queued
-        // behind this read, skip the bump entirely: the read goes out with its stale time (which the server
-        // ignores as a no-op), MarkAsUnread runs after it, and — just as importantly — the local Onyx mirror
-        // below never overwrites the backward lastReadTime the user's mark-as-unread already set optimistically.
+        // MarkAsUnread is the only command the backend lets move lastReadTime backward, and an explicit unread
+        // from the user must always win over this reconciliation (per the backend note on PR #94738). When one
+        // is still queued for this report it runs after this read, and its optimistic data has already moved
+        // the local lastReadTime back — bumping and mirroring here would show the report as read locally while
+        // the server has it unread. Stand down entirely in that ordering and keep the pre-fix behavior.
         const hasPendingSameReportMarkAsUnread =
             typeof reportID === 'string' && getAllPersistedRequests().some((request) => request.command === WRITE_COMMANDS.MARK_AS_UNREAD && request.data?.reportID === reportID);
         if (typeof reportID === 'string' && !hasPendingSameReportMarkAsUnread && reportsWithProcessedOfflineComments.has(reportID)) {
@@ -390,18 +339,6 @@ function process(): Promise<void> {
                 // time immediately, instead of only sending the corrected value to the server.
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data -- correcting a request-specific optimistic value already owned by this queue, not general report state
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastReadTime: recordedTime});
-                // The bump moves the read up to our own comment's server time, but another user's message can
-                // have reached the server INSIDE (staleReadTime, recordedTime] while this device was offline —
-                // a message the user never saw that the bumped read now claims to cover. We can't tell from
-                // clocks alone whether that happened, so record the window; unread logic checks the actual
-                // report actions against it once reconnect data arrives, and a genuine online read clears it.
-                // This is client-only bookkeeping, so it lives in ReportMetadata rather than on the report.
-                // Skip recording when the request carried no usable lastReadTime: an empty lower bound would
-                // make the window cover the report's entire history and flag long-read messages as unseen.
-                if (currentLastReadTime) {
-                    // eslint-disable-next-line rulesdir/prefer-actions-set-data -- request-specific bookkeeping owned by this queue, paired with the lastReadTime mirror above
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {unconfirmedReadWindow: {from: currentLastReadTime, to: recordedTime}});
-                }
             }
             // Deliberately NOT deleting the map entry here: this code runs BEFORE the request is sent, and a
             // transient failure rolls the request back for retry with its persisted (pre-bump) payload — the

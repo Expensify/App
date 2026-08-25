@@ -36,8 +36,6 @@ const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetada
 
 const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;
 
-const unconfirmedReadWindowSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.unconfirmedReadWindow;
-
 export {
     isActionLoadingSelector,
     hasOnceLoadedReportActionsSelector,
@@ -48,5 +46,4 @@ export {
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
     pendingDeleteMemberAccountIDsSelector,
-    unconfirmedReadWindowSelector,
 };

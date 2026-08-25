@@ -62,7 +62,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import {pendingNewTransactionIDsSelector, unconfirmedReadWindowSelector} from '@src/selectors/ReportMetaData';
+import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -155,9 +155,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     );
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
         selector: pendingNewTransactionIDsSelector,
-    });
-    const [unconfirmedReadWindow] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
-        selector: unconfirmedReadWindowSelector,
     });
     const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isFocused);
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
@@ -445,15 +442,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return lastIndex > -1 ? lastIndex : undefined;
     }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, reportActions, currentUserAccountID]);
 
-    // SequentialQueue can bump report.lastReadTime forward over an offline replay window that may contain
-    // another user's unseen message (see unconfirmedReadWindow in ReportMetadata). LHN unread state accounts
-    // for that via isUnread(), but the NEW divider is computed from lastReadTime alone — so while a window is
-    // active, seed the scan from the window's stale lower bound to keep the divider pointing at the unseen
-    // message. A window is ignored once lastReadTime has advanced past its upper bound (a newer read from any
-    // path supersedes it); it's cleared entirely by a genuine online read.
-    const isUnconfirmedReadWindowActive = !!unconfirmedReadWindow && reportLastReadTime <= unconfirmedReadWindow.to;
-    const effectiveUnreadMarkerTime = isUnconfirmedReadWindowActive && unconfirmedReadWindow.from < unreadMarkerTime ? unconfirmedReadWindow.from : unreadMarkerTime;
-
     /**
      * The reportActionID the unread marker should display above
      */
@@ -462,7 +450,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         earliestReceivedOfflineMessageIndex,
         currentUserAccountID,
         prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
-        unreadMarkerTime: effectiveUnreadMarkerTime,
+        unreadMarkerTime,
         isScrolledOverThreshold: scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD,
         isOffline,
         isReversed: true,
