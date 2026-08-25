@@ -15,15 +15,16 @@ import getEnvironment from './Environment/getEnvironment';
 // We use the async environment check because it works on all platforms
 let ENV_NAME: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
 let storedShouldUseStagingServer: boolean | undefined;
+let hasReadStoredShouldUseStagingServer = false;
 
-// Subscribed synchronously, and storing the value verbatim, so that the stored preference and the environment
-// can arrive in either order without one discarding the other. Note this does not cover the window before
-// getEnvironment() settles: ENV_NAME is PRODUCTION until then, which forces the production root regardless of
-// what is stored. Since it isn't connected to a UI anywhere, it's OK to use connectWithoutView()
+// Stored verbatim, so the preference and the environment can arrive in either order. Onyx calls back even for
+// an empty key, so the flag means the preference has been read, not that one was set. Since it isn't connected
+// to a UI anywhere, it's OK to use connectWithoutView()
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     callback: (value) => {
         storedShouldUseStagingServer = value;
+        hasReadStoredShouldUseStagingServer = true;
     },
 });
 
@@ -40,6 +41,11 @@ getEnvironment().then((envName) => {
 function shouldUseStagingServer(): boolean {
     // Toggling between APIs is not allowed on production and internal dev environment
     if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB) {
+        return false;
+    }
+
+    // An unread preference looks the same as an unset one, and defaulting to staging would ignore an opt-out
+    if (!hasReadStoredShouldUseStagingServer) {
         return false;
     }
 
