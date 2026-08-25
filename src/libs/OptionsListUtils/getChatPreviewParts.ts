@@ -302,4 +302,3 @@ function getChatPreviewParts({
 }
 
 export {getChatPreviewParts, getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName};
-export type {ChatPreviewParts};

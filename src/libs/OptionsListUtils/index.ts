@@ -234,7 +234,7 @@ import type {
     SectionForSearchTerm,
 } from './types';
 
-import {getChatPreviewParts, getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from './getChatPreviewParts';
+import {getChatPreviewParts} from './getChatPreviewParts';
 import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from './searchMatchUtils';
 
 /**
@@ -3698,8 +3698,6 @@ export {
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getLastActorDisplayName,
-    getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getNoneOption,
     getParticipantsOption,
@@ -3723,7 +3721,6 @@ export {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    shouldShowLastActorDisplayName,
     shouldUseBoldText,
     sortAlphabetically,
     personalDetailsComparator,

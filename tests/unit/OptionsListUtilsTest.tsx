@@ -29,8 +29,6 @@ import {
     formatSectionsFromSearchTerm,
     getAlternateText,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getLastActorDisplayName,
-    getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getParticipantsOption,
     getPolicyExpenseReportOption,
@@ -47,9 +45,9 @@ import {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    shouldShowLastActorDisplayName,
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
+import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from '@libs/OptionsListUtils/getChatPreviewParts';
 import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import Parser from '@libs/Parser';
 import {
