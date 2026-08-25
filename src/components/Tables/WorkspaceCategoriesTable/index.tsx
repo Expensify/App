@@ -1,6 +1,6 @@
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,6 +47,7 @@ type WorkspaceCategoriesTableProps = {
     emptyStateSubtitleText: React.ReactNode;
     emptyStateButtons: EmptyStateButton[] | undefined;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
 export default function WorkspaceCategoriesTable({
@@ -59,6 +60,7 @@ export default function WorkspaceCategoriesTable({
     emptyStateSubtitleText,
     emptyStateButtons,
     onRowSelectionChange,
+    headerComponent,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -145,6 +147,9 @@ export default function WorkspaceCategoriesTable({
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.categories.findCategory')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     return (
         <Table
             ref={ref}
@@ -160,7 +165,7 @@ export default function WorkspaceCategoriesTable({
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.categories.findCategory')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.categories.emptyCategories.title')}
                 subtitleText={emptyStateSubtitleText}

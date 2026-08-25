@@ -10,18 +10,26 @@ import {
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
 import type {NavigationSuggestionSourceItem} from '@components/Search/SearchRouter/SearchRouterHelpers';
 import * as CreateNavigationSuggestions from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
-import useNavigationSuggestions, {buildDomainNavigationItems, buildSpendNavigationItems, buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
+import useNavigationSuggestions, {
+    buildAccountNavigationItems,
+    buildDomainNavigationItems,
+    buildSpendNavigationItems,
+    buildTopLevelNavigationItems,
+} from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
+import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Domain} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -36,6 +44,7 @@ type MockSearchTypeMenuSectionsResult = {
 const mockUseSearchTypeMenuSections = jest.fn<MockSearchTypeMenuSectionsResult, [queryParams: unknown, isScreenFocused: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
 const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
+const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
 const mockClearSelectedTransactions = jest.fn();
 const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
 const currentUserAccountID = 1;
@@ -79,6 +88,9 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['domain.domainAdmins', 'Admins'],
                 ['domain.groups.title', 'Groups'],
                 ['domain.saml', 'SAML'],
+                ['common.profile', 'Profile'],
+                ['initialSettingsPage.security', 'Security'],
+                ['initialSettingsPage.help', 'Help'],
                 ['search.tabs.reports', 'Reports'],
                 ['search.tabs.expenses', 'Expenses'],
             ]);
@@ -95,6 +107,11 @@ jest.mock('@hooks/useOnyx', () => ({
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
     __esModule: true,
     default: (queryParams: unknown, isScreenFocused: boolean) => mockUseSearchTypeMenuSections(queryParams, isScreenFocused),
+}));
+
+jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({
+    __esModule: true,
+    default: () => mockUseSettingsNavigationMenuData(),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
@@ -154,6 +171,23 @@ function createSpendMenuItem(
         recentSearchHash: 1,
     };
 }
+
+function createSettingsMenuItem(translationKey: MenuData['translationKey'], screenName?: MenuData['screenName'], action = jest.fn()): MenuData {
+    return {
+        translationKey,
+        icon: mockIcon,
+        screenName,
+        sentryLabel: translationKey,
+        action,
+    };
+}
+
+beforeEach(() => {
+    mockUseSettingsNavigationMenuData.mockReturnValue({
+        accountMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.account', items: []},
+        generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
+    });
+});
 
 describe('Search Router navigation query helpers', () => {
     it.each([
@@ -667,5 +701,113 @@ describe('Spend Search Router navigation source', () => {
         const {result} = renderHook(() => useNavigationSuggestions('create expense'));
 
         expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense']);
+    });
+});
+
+describe('Account Search Router navigation source', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('reuses navigable Settings rows and excludes action-only and unsupported rows', () => {
+        const profileAction = jest.fn();
+        const securityAction = jest.fn();
+        const rightElement = 'Account';
+        const sections: MenuSection[] = [
+            {
+                sectionTranslationKey: 'initialSettingsPage.account',
+                items: [
+                    createSettingsMenuItem('common.profile', SCREENS.SETTINGS.PROFILE.ROOT, profileAction),
+                    createSettingsMenuItem('initialSettingsPage.security', SCREENS.SETTINGS.SECURITY, securityAction),
+                ],
+            },
+            {
+                sectionTranslationKey: 'initialSettingsPage.general',
+                items: [
+                    createSettingsMenuItem('initialSettingsPage.help', SCREENS.SETTINGS.HELP),
+                    createSettingsMenuItem('initialSettingsPage.whatIsNew'),
+                    createSettingsMenuItem('sidebarScreen.saveTheWorld', SCREENS.SETTINGS.SAVE_THE_WORLD),
+                    createSettingsMenuItem('initialSettingsPage.signOut'),
+                ],
+            },
+        ];
+        const labels = new Map<MenuData['translationKey'], string>([
+            ['common.profile', 'Profile'],
+            ['initialSettingsPage.security', 'Security'],
+            ['initialSettingsPage.help', 'Help'],
+        ]);
+
+        const items = buildAccountNavigationItems({
+            sections,
+            rightElement,
+            getItemText: (item) => labels.get(item.translationKey) ?? item.translationKey,
+            getDestinationText: (destination) => `Go to ${destination}`,
+        });
+
+        expect(items.map((item) => item.text)).toEqual(['Go to Profile', 'Go to Security', 'Go to Help']);
+        expect(items.map((item) => item.keyForList)).toEqual([`account_${SCREENS.SETTINGS.PROFILE.ROOT}`, `account_${SCREENS.SETTINGS.SECURITY}`, `account_${SCREENS.SETTINGS.HELP}`]);
+        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon]);
+        expect(items.map((item) => item.rightElement)).toEqual([rightElement, rightElement, rightElement]);
+
+        items.at(0)?.action?.();
+        items.at(1)?.action?.();
+        expect(profileAction).toHaveBeenCalledTimes(1);
+        expect(securityAction).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['password', '2fa', 'two factor', 'two-factor'])('matches Security with the confirmed "%s" keyword', (query) => {
+        const items = buildAccountNavigationItems({
+            sections: [
+                {
+                    sectionTranslationKey: 'initialSettingsPage.account',
+                    items: [createSettingsMenuItem('initialSettingsPage.security', SCREENS.SETTINGS.SECURITY)],
+                },
+            ],
+            rightElement: 'Account',
+            getItemText: () => 'Security',
+            getDestinationText: (destination) => `Go to ${destination}`,
+        });
+
+        expect(buildNavigationSuggestions(query, [items], localeCompare).map((item) => item.keyForList)).toEqual([`account_${SCREENS.SETTINGS.SECURITY}`]);
+    });
+
+    it('composes Account suggestions from the shared Settings menu with its icon and context', () => {
+        const securityIcon: IconAsset = () => null;
+        const accountContextIcon: IconAsset = () => null;
+        const securityAction = jest.fn();
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
+            ...spendIcons,
+            Home: mockIcon,
+            Inbox: mockIcon,
+            ReceiptMultiple: mockIcon,
+            Building: mockIcon,
+            Gear: accountContextIcon,
+        });
+        mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
+        mockUseSettingsNavigationMenuData.mockReturnValue({
+            accountMenuItemsData: {
+                sectionTranslationKey: 'initialSettingsPage.account',
+                items: [{...createSettingsMenuItem('initialSettingsPage.security', SCREENS.SETTINGS.SECURITY, securityAction), icon: securityIcon}],
+            },
+            generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
+        });
+
+        const {result} = renderHook(() => useNavigationSuggestions('password'));
+
+        expect(mockUseSettingsNavigationMenuData).toHaveBeenCalledTimes(1);
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)).toMatchObject({
+            text: 'Go to Security',
+            keyForList: `account_${SCREENS.SETTINGS.SECURITY}`,
+            singleIcon: securityIcon,
+            action: securityAction,
+        });
+
+        const rightElement = result.current.at(0)?.rightElement;
+        expect(isValidElement<{text: string; icon: IconAsset; iconSize: number; showTooltip: boolean}>(rightElement)).toBe(true);
+        if (!isValidElement<{text: string; icon: IconAsset; iconSize: number; showTooltip: boolean}>(rightElement)) {
+            throw new Error('Expected Account navigation context to be a React element');
+        }
+        expect(rightElement.props).toMatchObject({text: 'Account', icon: accountContextIcon, iconSize: variables.fontSizeLabel, showTooltip: false});
     });
 });
