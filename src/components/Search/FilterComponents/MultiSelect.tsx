@@ -41,10 +41,7 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;
 
-    /**
-     * Height of each row, used to estimate the popover height so short lists auto-expand to fit. Defaults to the
-     * single-line compact row height; pass `variables.optionRowHeight` when rows render a subtitle on a second line.
-     */
+    /** Custom height for each item in the list */
     itemHeight?: number;
 
     /** Search input placeholder. Defaults to 'common.search' when not provided. */
