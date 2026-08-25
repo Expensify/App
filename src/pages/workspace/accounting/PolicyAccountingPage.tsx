@@ -136,21 +136,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
-    const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
     const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
     const shouldShowIntuitEnterpriseSuiteIntegration = isBetaEnabled(CONST.BETAS.INTUIT_ENTERPRISE_SUITE) && (isCollectPolicy(policy) || isControlPolicy(policy));
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-                if (name === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
-                    return canUseRilletIntegration;
-                }
                 if (name === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
                     return canUseDualEntryIntegration;
                 }
                 return true;
             }),
-        [canUseRilletIntegration, canUseDualEntryIntegration],
+        [canUseDualEntryIntegration],
     );
     const accountingIntegrationOptions = useMemo(
         () =>
