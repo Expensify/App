@@ -353,7 +353,7 @@ function ComposerWithSuggestions({
     const ignoreEditSelectionResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const handleEditFocus = useCallback(() => {
-        focus(true, undefined, true);
+        focus(true, undefined, editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
         onFocus();
 
         if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
