@@ -140,26 +140,32 @@ filterKey
       return k;
     }
 
+// Each part carries the offset and width of the text it actually matched. Walking the parsed values instead would
+// under-count anything that was escaped, which shifts every range that follows it.
+// The nested-quote branch of quotedString is a sequence, so it yields [undefined, value] rather than a bare string.
+identifierPart
+  = part:(quotedString / alphanumeric) {
+      const value = Array.isArray(part) ? part.flat().filter(Boolean)[0] : part;
+      return {value, start: offset(), length: text().length};
+    }
+
 identifier
-  = parts:(quotedString / alphanumeric)|1.., ","| empty:","? {
+  = parts:identifierPart|1.., ","| empty:","? {
       const ends = location();
-      const value = parts.flat().filter(Boolean); // Filter out undefined values returned by the predicate
-      if (empty) {
-        value.push("");
-      }
-      let count = ends.start.offset;
       const result = [];
-      value.forEach((filter) => {
-        let word = filter;
+      parts.filter((part) => Boolean(part.value)).forEach((part) => {
+        let word = part.value;
         if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
           word = word.slice(1, -1);
         }
         result.push({
           value: word,
-          start: count,
-          length: filter.length,
+          start: part.start,
+          length: part.length,
         });
-        count += filter.length + 1;
       });
+      if (empty) {
+        result.push({value: "", start: ends.end.offset, length: 0});
+      }
       return result;
     }

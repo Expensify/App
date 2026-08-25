@@ -193,12 +193,14 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomExpensifyCard(2, {fundID: '6666'}),
         };
         const result = defaultExpensifyCardSelector(allCards);
-        expect(result).toEqual({
+        expect(result).toMatchObject({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
         });
+        // Expensify Card feeds now also carry a domain/workspace subtitle. Its exact value is derived from mock data, so we only assert its presence.
+        expect(typeof result?.subtitle).toBe('string');
     });
 
     it('Should return the first Expensify Card feed when mixed cards exist (some Expensify, some not)', () => {
@@ -209,12 +211,14 @@ describe('defaultExpensifyCardSelector', () => {
         };
 
         const result = defaultExpensifyCardSelector(allCards);
-        expect(result).toEqual({
+        expect(result).toMatchObject({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
         });
+        // Expensify Card feeds now also carry a domain/workspace subtitle. Its exact value is derived from mock data, so we only assert its presence.
+        expect(typeof result?.subtitle).toBe('string');
     });
 
     it('Should ignore Expensify Cards without fundID when other Expensify Cards with fundID exist', () => {
@@ -223,12 +227,14 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomExpensifyCard(2, {fundID: '5555'}),
         };
         const result = defaultExpensifyCardSelector(allCards);
-        expect(result).toEqual({
+        expect(result).toMatchObject({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
         });
+        // Expensify Card feeds now also carry a domain/workspace subtitle. Its exact value is derived from mock data, so we only assert its presence.
+        expect(typeof result?.subtitle).toBe('string');
     });
 });
 

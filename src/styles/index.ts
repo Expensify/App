@@ -2432,7 +2432,8 @@ const staticStyles = (theme: ThemeColors) =>
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
                 // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
-                paddingHorizontal: variables.avatarChatSpacing,
+                paddingRight: variables.avatarChatSpacing,
+                paddingLeft: variables.composerTextInputPaddingLeft,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
@@ -2470,11 +2471,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 5,
             ...flex.flexRow,
             flex: 1,
-        },
-
-        textInputComposeBorder: {
-            borderLeftWidth: 1,
-            borderColor: theme.bordersBold,
         },
 
         chatItemSubmitButton: {
@@ -2561,13 +2557,19 @@ const staticStyles = (theme: ThemeColors) =>
 
         composerSizeButton: {
             alignSelf: 'center',
-            height: 32,
-            width: 32,
+            alignItems: 'center',
+            height: 40,
+            width: 40,
             padding: 6,
             marginHorizontal: 3,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
+        },
+
+        messageEditCancelButtonWrapper: {
+            justifyContent: 'flex-end',
+            paddingBottom: 3,
         },
 
         chatItemPDFAttachmentLoading: {
@@ -7003,16 +7005,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: '100%',
         }),
 
-        getCenteredModalOuterView: (shouldUseNarrowLayout: boolean) =>
+        getCenteredModalOuterView: (shouldDockToBottom: boolean) =>
             ({
-                justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+                justifyContent: shouldDockToBottom ? 'flex-end' : 'center',
             }) as const,
 
-        getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
-            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+        getCenteredModalInnerView: (shouldDockToBottom: boolean, width?: number, height?: DimensionValue) => {
+            const borderBottomRadius = shouldDockToBottom ? 0 : variables.componentBorderRadiusLarge;
 
             return {
-                width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
+                width: shouldDockToBottom ? '100%' : (width ?? variables.featureTrainingModalWidth),
                 // No default height - the card hugs its content (children must have intrinsic height)
                 height,
                 maxHeight: '100%' as const,
