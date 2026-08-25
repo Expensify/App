@@ -1,15 +1,14 @@
 import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -22,7 +21,6 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openPolicyCategoriesPage, setPolicyCategoryTax} from '@libs/actions/Policy/Category';
@@ -137,7 +135,6 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
 function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCategoryTaxRuleFor, titleKey, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -615,28 +612,15 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                         >
                             {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
                         </Text>
-                        {isCategoryRule ? (
-                            // A category tax default only applies to expenses created after the rule is saved, so the
-                            // switch is replaced by a lock that explains itself rather than an off switch that looks toggleable.
-                            <PressableWithFeedback
-                                accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                                onPress={showCategoryRulesApplyGoingForwardExplainer}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CATEGORY_TAX_RULE_APPLY_TO_EXISTING_LOCK}
-                            >
-                                <Icon
-                                    src={icons.Lock}
-                                    fill={theme.icon}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                />
-                            </PressableWithFeedback>
-                        ) : (
-                            <Switch
-                                accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                                isOn={shouldUpdateMatchingTransactions}
-                                onToggle={setShouldUpdateMatchingTransactions}
-                            />
-                        )}
+                        {/* A category tax default only applies to expenses created after the rule is saved, so the switch
+                            is locked off. `disabled` draws the lock inside the thumb and routes the press to the explainer. */}
+                        <Switch
+                            accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                            isOn={!isCategoryRule && shouldUpdateMatchingTransactions}
+                            onToggle={setShouldUpdateMatchingTransactions}
+                            disabled={isCategoryRule}
+                            disabledAction={isCategoryRule ? showCategoryRulesApplyGoingForwardExplainer : undefined}
+                        />
                     </View>
                     {/* There is no set of existing expenses for a category rule to preview, so the button is hidden rather than locked. */}
                     {!isCategoryRule && (
@@ -724,13 +708,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                     {/* Reset only makes sense while a condition is set, and only on a rule that isn't already saved
                         against a category — an existing category rule is identified by its category. */}
                     {canWriteRules && isRulesRevampEnabled && !isEditingCategoryTaxRule && (hasMerchantCondition || hasCategoryCondition) && (
-                        <Button
-                            onPress={resetRule}
-                            style={[styles.mr2]}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_RESET}
-                        >
-                            <Button.Text>{translate('common.reset')}</Button.Text>
-                        </Button>
+                        <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
                     )}
                 </HeaderWithBackButton>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
