@@ -24,7 +24,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
+import Button from './ButtonComposed';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -127,10 +127,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     </View>
                     <Text style={styles.mb5}>{translate('exportDownload.preparingBody')}</Text>
                     <Button
-                        text={translate('exportDownload.sendFromConcierge')}
                         onPress={handleSendFromConcierge}
                         style={styles.w100}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.sendFromConcierge')}</Button.Text>
+                    </Button>
                 </>
             );
         }
@@ -141,16 +142,18 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
                     <Text style={styles.mb5}>{translate('exportDownload.conciergeBody')}</Text>
                     <Button
-                        success
-                        text={translate('exportDownload.goToConcierge')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={handleGoToConcierge}
                         style={styles.w100}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.goToConcierge')}</Button.Text>
+                    </Button>
                     <Button
-                        text={translate('exportDownload.dismiss')}
                         onPress={onClose}
                         style={[styles.w100, styles.mt3]}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.dismiss')}</Button.Text>
+                    </Button>
                 </>
             );
         }
@@ -161,10 +164,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.noReceiptsTitle')}</Text>
                     <Text style={styles.mb5}>{translate('exportDownload.noReceiptsBody')}</Text>
                     <Button
-                        text={translate('exportDownload.close')}
                         onPress={onClose}
                         style={styles.w100}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.close')}</Button.Text>
+                    </Button>
                 </>
             );
         }
@@ -201,11 +205,12 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
                     {renderPartialBody()}
                     <Button
-                        success
-                        text={translate('exportDownload.downloadFile')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={handleDownloadFile}
                         style={styles.w100}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.downloadFile')}</Button.Text>
+                    </Button>
                 </>
             );
         }
@@ -226,10 +231,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
                     {!!resolvedFailedBody && <Text style={styles.mb5}>{resolvedFailedBody}</Text>}
                     <Button
-                        text={translate('exportDownload.close')}
                         onPress={onClose}
                         style={styles.w100}
-                    />
+                    >
+                        <Button.Text>{translate('exportDownload.close')}</Button.Text>
+                    </Button>
                 </>
             );
         }

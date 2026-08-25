@@ -14,6 +14,7 @@ import {ProductTrainingContextProvider} from '@components/ProductTrainingContext
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import {SearchRouterContextProvider} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import SearchRouterWarmup from '@components/Search/SearchRouter/SearchRouterWarmup';
 import SupportalPermissionDeniedModal from '@components/SupportalPermissionDeniedModal';
 import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -71,6 +72,7 @@ import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAut
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import SubmitPlanWelcomeModalNavigator from './Navigators/SubmitPlanWelcomeModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
+import {loadRightModalNavigator, loadSearchRouterPage} from './searchRouterLazyLoaders';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
@@ -86,9 +88,6 @@ const loadConciergePage = () => require<ReactComponentModule>('../../../pages/Co
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
-
-const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
-const loadRightModalNavigator = () => require<ReactComponentModule>('./Navigators/RightModalNavigator').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -165,6 +164,7 @@ function AuthScreens() {
     return (
         <>
             <AuthScreensInitHandler />
+            <SearchRouterWarmup />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
