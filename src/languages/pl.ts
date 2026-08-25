@@ -6231,6 +6231,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
                 settings: {
                     autoAddTripName: {title: 'Dodaj nazwy podróży do wydatków', subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków za podróże zarezerwowane w Expensify.'},
+                    codingSync: {
+                        title: 'Synchronizuj kodowanie z Expensify Travel',
+                        subtitle: 'Przekaż kategorie, tagi i pola raportu tego workspace’u do Expensify Travel, żeby podróżujący odpowiadali na nie podczas rezerwacji.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

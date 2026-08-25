@@ -6211,6 +6211,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         title: 'Adicionar nomes de viagem às despesas',
                         subtitle: 'Adicione automaticamente os nomes das viagens às descrições das despesas para viagens reservadas no Expensify.',
                     },
+                    codingSync: {
+                        title: 'Sincronizar codificação com o Expensify Travel',
+                        subtitle: 'Envie as categorias, tags e campos de relatório deste workspace para o Expensify Travel para que os viajantes os respondam no momento da reserva.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
