@@ -143,6 +143,15 @@ describe('HandleMovedScanFailedExpenses middleware', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OPTIMISTIC_REPORT_ID}`, {
             [OPTIMISTIC_IOU_ACTION_ID]: buildIOUAction(OPTIMISTIC_IOU_ACTION_ID, OPTIMISTIC_REPORT_ID),
         });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {
+            reportID: CHAT_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            iouReportID: OPTIMISTIC_REPORT_ID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: OPTIMISTIC_REPORT_ID,
+        });
         await waitForBatchedUpdates();
     });
 
@@ -212,6 +221,56 @@ describe('HandleMovedScanFailedExpenses middleware', () => {
         expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REAL_REPORT_ID}`)?.value).toEqual({
             [REAL_IOU_ACTION_ID]: {childReportID: THREAD_REPORT_ID},
         });
+    });
+
+    it('moves the expense itself onto the backend report, so the report it now shows is not empty', async () => {
+        const request = buildPayRequest();
+
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
+
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`)?.value).toEqual({reportID: REAL_REPORT_ID});
+    });
+
+    it('leaves the expense alone when the response already puts it on a report', async () => {
+        const request = buildPayRequest();
+        const response = buildResponse([
+            backendReportUpdate(),
+            backendReportActionsUpdate(),
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
+                value: {transactionID: TRANSACTION_ID, reportID: REAL_REPORT_ID},
+            },
+        ]);
+
+        await handleMovedScanFailedExpenses(Promise.resolve(response), request, false);
+
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`)).toBeUndefined();
+    });
+
+    it('points the workspace chat at the backend report, so it does not keep the report that was removed', async () => {
+        const request = buildPayRequest();
+
+        await handleMovedScanFailedExpenses(Promise.resolve(backendResponse()), request, false);
+
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`)?.value).toEqual({iouReportID: REAL_REPORT_ID});
+    });
+
+    it('leaves the workspace chat alone when the response already says which report it points at', async () => {
+        const request = buildPayRequest();
+        const response = buildResponse([
+            backendReportUpdate(),
+            backendReportActionsUpdate(),
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`,
+                value: {reportID: CHAT_REPORT_ID, iouReportID: '999'},
+            },
+        ]);
+
+        await handleMovedScanFailedExpenses(Promise.resolve(response), request, false);
+
+        expect(findAppended(request, `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`)).toBeUndefined();
     });
 
     it('moves every route showing the optimistic report onto the backend report before it is removed', async () => {

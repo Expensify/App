@@ -116,6 +116,14 @@ function findNewExpenseReportForChat(onyxData: ResponseUpdate[], context: MovedS
     return candidates.size === 1 ? candidates.values().next().value : undefined;
 }
 
+/**
+ * Whether the response itself already sets `field` on `key`. The reconciliation updates ride in `successData` and are
+ * merged after the response, so they have to leave anything the backend sent alone instead of overwriting it.
+ */
+function hasResponseValueFor(onyxData: ResponseUpdate[], key: string, field: string): boolean {
+    return onyxData.some((update) => update.key === key && isRecord(update.value) && update.value[field] !== undefined);
+}
+
 /** Collects the report actions the response carries for `reportID`, which may be none. */
 function collectActionIDsForReport(onyxData: ResponseUpdate[], reportID: string): Map<string, string> {
     let actionIDByTransactionID = new Map<string, string>();
@@ -130,7 +138,7 @@ function collectActionIDsForReport(onyxData: ResponseUpdate[], reportID: string)
 
 /**
  * Identifies the report the backend created for the moved expenses. Returns undefined when the response does not point
- * at exactly one such report — the reconciliation is then skipped entirely, because sending the user to a report that
+ * at exactly one such report. The reconciliation is then skipped entirely, because sending the user to a report that
  * is only a guess is worse than leaving the optimistic one in place.
  */
 function findRealReport(onyxData: ResponseUpdate[], context: MovedScanFailedContext, movedTransactionIDs: Set<string>): RealReport | undefined {
@@ -144,12 +152,12 @@ function findRealReport(onyxData: ResponseUpdate[], context: MovedScanFailedCont
 /**
  * When a report is paid while it still holds a scan-failed expense, the client optimistically moves that expense into a
  * report of its own so the split is visible offline. The backend performs the same split but under its own report ID,
- * which leaves the optimistic report stranded — and strands the user with it if they are looking at it.
+ * which leaves the optimistic report stranded, and strands the user with it if they are looking at it.
  *
  * This middleware pairs the two: it reads the backend's report out of the response and hands it to the reconciliation.
  * The resulting updates are appended to the request's `successData` rather than to the response, so they land after the
- * pending-state cleanup that `successData` already carries — merging them the other way round would resurrect the very
- * report actions being removed. Running from the response (rather than from a subscription opened when Pay was pressed)
+ * pending-state cleanup that `successData` already carries. Merging them the other way round would resurrect the very
+ * report actions being removed. Running from the response, rather than from a subscription opened when Pay was pressed,
  * is what makes this survive a reload between going offline and reconnecting, since the queued request is replayed
  * through the same pipeline.
  */
@@ -171,7 +179,9 @@ const handleMovedScanFailedExpenses: Middleware = (requestResponse, request) =>
             return response;
         }
 
-        const updates = reconcileMovedScanFailedReport(context.optimisticReportID, realReport.reportID, realReport.actionIDByTransactionID);
+        const updates = reconcileMovedScanFailedReport(context.optimisticReportID, realReport.reportID, realReport.actionIDByTransactionID, (key, field) =>
+            hasResponseValueFor(onyxData, key, field),
+        );
         if (!updates.length) {
             return response;
         }

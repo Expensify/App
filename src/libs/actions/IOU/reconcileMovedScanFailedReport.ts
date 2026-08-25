@@ -1,3 +1,7 @@
+/**
+ * Builds the Onyx updates that retire the optimistic report created for scan-failed expenses on payment, and points
+ * navigation, the moved transactions and their threads at the report the backend created for them instead.
+ */
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {NavigationRoute} from '@libs/Navigation/types';
 import {getAllReportActions, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -27,8 +31,8 @@ function replaceReportIDInPath(path: string, oldReportID: string, newReportID: s
 }
 
 /**
- * Points every route that still references the report at `oldReportID` — through its own `reportID` param or through
- * an encoded `backTo` — at `newReportID`. Patching only the focused route is not enough: with an RHP open, the report
+ * Points every route that still references the report at `oldReportID`, through its own `reportID` param or through an
+ * encoded `backTo`, at `newReportID`. Patching only the focused route is not enough: with an RHP open, the report
  * screen underneath keeps the stale ID and renders the not-found page once the RHP is dismissed.
  */
 function pointRoutesToReport(routes: NavigationRoute[], oldReportID: string, newReportID: string) {
@@ -89,15 +93,24 @@ function getTransactionThreadsByParentActionID(allReports: Record<string, Report
  * Builds the Onyx updates that retire the optimistic report created for scan-failed expenses on payment, once the
  * backend has answered with the report it actually created for them.
  *
- * The backend does not reuse `optimisticHoldReportID` for this split, so the optimistic report has to go — but it must
- * never be dropped from under the user. Every route showing it is pointed at `realReportID` first, and each expense's
- * transaction thread is re-parented onto the backend report action so the open expense keeps resolving. Callers only
- * reach this once the backend report is known; guessing a destination would strand the user on the wrong report.
+ * The backend does not reuse `optimisticHoldReportID` for this split, so the optimistic report has to go, but it must
+ * never be dropped from under the user. Every route showing it is pointed at `realReportID` first, and the moved
+ * expenses, their transaction threads and the workspace chat follow it, so nothing is left pointing at a report that
+ * no longer exists. Callers only reach this once the backend report is known. Guessing a destination would strand the
+ * user on the wrong report.
+ *
+ * `hasResponseValue` tells whether the response already carries a field for a key. Whatever the backend sent wins,
+ * because these updates ride in `successData` and are merged on top of the response.
  *
  * Returns the updates to apply alongside the response rather than writing them, so the swap lands in the same Onyx
  * transaction as the backend data and the user never observes an in-between state.
  */
-function reconcileMovedScanFailedReport(optimisticReportID: string, realReportID: string, realActionIDByTransactionID: Map<string, string>): AnyOnyxUpdate[] {
+function reconcileMovedScanFailedReport(
+    optimisticReportID: string,
+    realReportID: string,
+    realActionIDByTransactionID: Map<string, string>,
+    hasResponseValue: (key: string, field: string) => boolean = () => false,
+): AnyOnyxUpdate[] {
     const allReports = getAllReports();
     const optimisticReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`];
     if (!optimisticReport) {
@@ -128,6 +141,16 @@ function reconcileMovedScanFailedReport(optimisticReportID: string, realReportID
         });
     }
 
+    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
+    const isChatPointingAtOptimisticReport = allReports?.[chatReportKey]?.iouReportID === optimisticReportID;
+    if (chatReportID && isChatPointingAtOptimisticReport && !hasResponseValue(chatReportKey, 'iouReportID')) {
+        updates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: chatReportKey,
+            value: {iouReportID: realReportID},
+        });
+    }
+
     const threadIDByParentActionID = getTransactionThreadsByParentActionID(allReports ?? {}, optimisticReportID);
     for (const optimisticAction of Object.values(getAllReportActions(optimisticReportID))) {
         if (!isMoneyRequestAction(optimisticAction)) {
@@ -135,7 +158,16 @@ function reconcileMovedScanFailedReport(optimisticReportID: string, realReportID
         }
         const transactionID = getOriginalMessage(optimisticAction)?.IOUTransactionID;
         const threadReportID = threadIDByParentActionID.get(optimisticAction.reportActionID);
-        // The response does not always carry the backend report's actions; without them the thread keeps its own data
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+        if (transactionID && !hasResponseValue(transactionKey, 'reportID')) {
+            updates.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: transactionKey,
+                value: {reportID: realReportID},
+            });
+        }
+
+        // The response does not always carry the backend report's actions. Without them the thread keeps its own data
         // and is re-parented by the backend on the next fetch.
         const realReportActionID = transactionID ? realActionIDByTransactionID.get(transactionID) : undefined;
         if (!threadReportID || !realReportActionID) {

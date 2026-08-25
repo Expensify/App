@@ -746,6 +746,59 @@ describe('actions/IOU/Hold', () => {
                 });
         });
 
+        test('should restore the transaction thread parent on rollback, so the thread does not point at a report that is gone', () => {
+            const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildScenario({
+                total: 300,
+                nonReimbursableTotal: 50,
+                unheldTotal: 200,
+                unheldNonReimbursableTotal: 30,
+                heldAmount: 100,
+            });
+            const threadReportID = '424242';
+            const heldActions = actionCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] ?? {};
+            const heldAction = Object.values(heldActions).at(0);
+            const heldActionID = heldAction?.reportActionID;
+            if (heldAction) {
+                heldAction.childReportID = threadReportID;
+            }
+            const threadReport = createMock<Report>({
+                reportID: threadReportID,
+                parentReportID: iouReport.reportID,
+                parentReportActionID: heldActionID,
+                chatReportID: iouReport.reportID,
+            });
+            const threadKey = `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`;
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, [threadKey]: threadReport, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        delegateAccountID: undefined,
+                        betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    });
+                    const move = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.REPORT);
+                    const rollback = result.failureData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.REPORT);
+                    const movedThread = Object.entries(move?.value ?? {}).find(([key]) => key === threadKey)?.[1];
+                    const restoredThread = Object.entries(rollback?.value ?? {}).find(([key]) => key === threadKey)?.[1];
+
+                    expect(movedThread).toEqual({
+                        parentReportActionID: expect.any(String),
+                        parentReportID: result.optimisticHoldReportID,
+                        chatReportID: result.optimisticHoldReportID,
+                    });
+                    expect(restoredThread).toEqual({
+                        parentReportActionID: heldActionID,
+                        parentReportID: iouReport.reportID,
+                        chatReportID: iouReport.reportID,
+                    });
+                });
+        });
+
         test('should not push a totals update when no held transactions exist', () => {
             const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildScenario({
                 total: 300,

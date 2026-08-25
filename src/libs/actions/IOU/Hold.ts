@@ -770,6 +770,7 @@ function getReportFromHoldRequestsOnyxData({
     }
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
+    const revertHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
     const addHoldReportActionsSuccess: OnyxCollection<NullishDeep<OnyxTypes.ReportAction>> = {};
     const deleteHoldReportActions: Record<string, Pick<OnyxTypes.ReportAction, 'message'>> = {};
@@ -809,6 +810,11 @@ function getReportFromHoldRequestsOnyxData({
                 parentReportActionID: reportActionID,
                 parentReportID: optimisticExpenseReport.reportID,
                 chatReportID: optimisticExpenseReport.reportID,
+            };
+            revertHeldReports[`${ONYXKEYS.COLLECTION.REPORT}${heldReport.reportID}`] = {
+                parentReportActionID: heldReport.parentReportActionID,
+                parentReportID: heldReport.parentReportID,
+                chatReportID: heldReport.chatReportID,
             };
         }
     }
@@ -955,6 +961,11 @@ function getReportFromHoldRequestsOnyxData({
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
             value: bringHeldTransactionsBack,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: `${ONYXKEYS.COLLECTION.REPORT}`,
+            value: revertHeldReports,
         },
     ];
 
