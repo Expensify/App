@@ -6841,18 +6841,13 @@ function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCom
     return !!localSource && !draftMarkdown.includes(localSource);
 }
 
-/** Whether an anchor tag, or a whole comment, still carries something that marks it as an attachment. */
 function hasAttachmentAnchorAttributes(html: string): boolean {
     return html.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE) || html.includes(CONST.ATTACHMENT_ID_ATTRIBUTE);
 }
 
 /**
- * Re-applies the attachment attributes of anchor tags that an edit round-trip dropped. The parser caches these
- * for images and videos but not for anchors, so an edited doc attachment would come back as an ordinary link:
- * rendered without its border and download icon, and downloaded without the auth token it needs.
- *
- * The server drops the source attribute from its response but keeps the attachment ID, so a second edit only has
- * the ID left to recognise the anchor by. Matching on either keeps repeated edits from degrading the attachment.
+ * The parser caches these attributes for images and videos but not for anchors, so an edited file attachment comes
+ * back as an ordinary link. The server keeps only the attachment ID, which is all a second edit has left to match on.
  */
 function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalCommentHtml: string | undefined): string {
     if (!originalCommentHtml || !hasAttachmentAnchorAttributes(originalCommentHtml) || !newCommentHtml.includes('<a ')) {
