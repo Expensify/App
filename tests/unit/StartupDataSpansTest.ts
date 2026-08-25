@@ -110,7 +110,7 @@ describe('StartupData.Apply / StartupData.Render placement', () => {
     it('records a single apply and render phase when a 407 forces reauthentication', () => {
         // handleExpiredSession retries by calling processWithMiddleware again from inside the still-pending
         // original call, so one login must not produce one pair of spans per attempt.
-        jest.mocked(reauthenticate).mockResolvedValue(true);
+        jest.mocked(reauthenticate).mockResolvedValue({wasSuccessful: true});
         let openAppCalls = 0;
         mockFetch.mockAPICommand(WRITE_COMMANDS.OPEN_APP, () => {
             openAppCalls += 1;
