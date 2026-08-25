@@ -281,7 +281,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.queryByText(adminHeading)).toBeNull();
 
         await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [SECOND_USER_ACCOUNT_ID]: buildPersonalDetails(SECOND_USER_EMAIL, SECOND_USER_ACCOUNT_ID, 'Second User'),
             });
@@ -290,6 +290,14 @@ describe('ProductMarketingWindowManager', () => {
                 accountID: SECOND_USER_ACCOUNT_ID,
             });
             await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(memberHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
             await waitForBatchedUpdatesWithAct();
         });
 

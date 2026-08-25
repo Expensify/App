@@ -79,8 +79,8 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     // OpenApp provides the dismissal and targeting data; wait for it to avoid a startup flash or a wrong CTA destination.
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
-    const isLoadingOnboardingContext = isLoadingOnyxValue(currentAccountIDMetadata, accountMetadata, onboardingMetadata);
-    const shouldRecordActiveOnboarding = !isLoadingOnboardingContext && !isActingAsDelegate && currentAccountID !== undefined && hasCompletedGuidedSetupFlow === false;
+    const isLoadingOnboardingContext = isLoadingOnyxValue(currentAccountIDMetadata, accountMetadata, onboardingMetadata, isLoadingAppMetadata);
+    const shouldRecordActiveOnboarding = !isLoadingOnboardingContext && !isLoadingApp && !isActingAsDelegate && currentAccountID !== undefined && hasCompletedGuidedSetupFlow === false;
     if (shouldRecordActiveOnboarding && !accountIDsWithObservedActiveOnboarding.has(currentAccountID)) {
         setAccountIDsWithObservedActiveOnboarding((accountIDs) => new Set(accountIDs).add(currentAccountID));
     }
