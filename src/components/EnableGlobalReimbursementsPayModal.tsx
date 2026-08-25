@@ -1,3 +1,5 @@
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,9 +18,11 @@ function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
     const [corpayPayModal] = useOnyx(ONYXKEYS.CORPAY_PAY_MODAL);
     const {showConfirmModal} = useConfirmModal();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const isModalOpenRef = useRef(false);
 
-    const showCorpayPayModal = useEffectEvent((bankAccountID: number | undefined) => {
+    const showCorpayPayModal = useEffectEvent((bankAccountID: number) => {
         if (isModalOpenRef.current) {
             return;
         }
@@ -32,6 +36,18 @@ function EnableGlobalReimbursementsPayModal() {
         }).then((result) => {
             isModalOpenRef.current = false;
             if (result.action === 'CONFIRM') {
+                // Guard against a missing or malformed bankAccountID from the backend so the business page receives a
+                // real bank account and can resolve its country. Also mirror WalletPage's account-lock guard so a
+                // locked account sees the locked-account modal instead of walking into the business form.
+                if (typeof bankAccountID !== 'number' || Number.isNaN(bankAccountID)) {
+                    clearCorpayPayModal();
+                    return;
+                }
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                    clearCorpayPayModal();
+                    return;
+                }
                 Navigation.navigate(
                     ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(bankAccountID, CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER),
                 );
