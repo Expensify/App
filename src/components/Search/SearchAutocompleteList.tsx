@@ -23,7 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, createOptionFromReport, getSearchOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
@@ -417,6 +417,35 @@ function SearchAutocompleteList({
         }
 
         if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+            // The server can match a report on things the client-side matcher never checks (e.g. you own the
+            // report, not just that a participant's name matches). Add any server-confirmed report the
+            // client-side matcher missed, built straight from Onyx, so a real match is never silently dropped
+            // and backfilled with a lower-quality local guess.
+            const matchedReportIDs = new Set(reportOptions.map((option) => option.reportID).filter(Boolean));
+            for (const reportID of searchResultReportIDs) {
+                if (matchedReportIDs.has(reportID)) {
+                    continue;
+                }
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                if (!report) {
+                    continue;
+                }
+                reportOptions.push(
+                    createOptionFromReport({
+                        dateFnsLocale,
+                        report,
+                        personalDetails,
+                        privateIsArchived: undefined,
+                        policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+                        sortedActions,
+                        conciergeReportID,
+                        visibleReportActionsData,
+                        isTrackIntentUser,
+                    }),
+                );
+                matchedReportIDs.add(reportID);
+            }
+
             const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
             const rankOf = (option: OptionData) => {
                 if (option.isSelfDM) {
@@ -428,7 +457,19 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions, searchResultReportIDs]);
+    }, [
+        autocompleteQueryValue,
+        searchOptions,
+        searchResultReportIDs,
+        reports,
+        personalDetails,
+        dateFnsLocale,
+        policies,
+        sortedActions,
+        conciergeReportID,
+        visibleReportActionsData,
+        isTrackIntentUser,
+    ]);
 
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
