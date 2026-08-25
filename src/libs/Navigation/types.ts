@@ -741,6 +741,9 @@ type SettingsNavigatorParamList = {
         isIntuitEnterpriseSuite?: string;
         isSandbox?: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {
         policyID: string;
     };
