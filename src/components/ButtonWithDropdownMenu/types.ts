@@ -61,6 +61,9 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     /** Whether selecting this option should bypass the delete confirmation modal */
     shouldSkipDeleteModal?: boolean;
 
+    /** Whether selecting this option should avoid restoring focus to the dropdown before a follow-up modal opens on iOS */
+    shouldSkipFocusRestore?: boolean;
+
     /** Whether to ignore compact popover menu styling for this item */
     shouldIgnoreCompactStyle?: boolean;
 };
