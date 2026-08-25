@@ -1,5 +1,5 @@
+import ts from '@typescript/typescript6';
 import {Str} from 'expensify-common';
-import ts from 'typescript';
 
 import TSCompilerUtils from '../../scripts/utils/TSCompilerUtils';
 

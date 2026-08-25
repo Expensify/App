@@ -1573,8 +1573,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'κάρτα' : 'τραπεζικός λογαριασμός';
             return isCurrentUser
-                ? `. Τα χρήματα κατευθύνονται προς τον/την ${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} σας (πληρωμή μέσω ${paymentMethod}). Αυτό μπορεί να πάρει έως και 10 εργάσιμες ημέρες.`
-                : `. Τα χρήματα είναι καθ' οδόν προς τον/την ${submitterLogin}${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} (πληρωμή μέσω ${paymentMethod}). Αυτό μπορεί να χρειαστεί έως και 10 εργάσιμες ημέρες.`;
+                ? `. Τα χρήματα κατευθύνονται προς τον/την ${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} σας (πληρωμή μέσω ${paymentMethod}). Συνήθως αυτό χρειάζεται 4-5 εργάσιμες ημέρες.`
+                : `. Τα χρήματα κατευθύνονται προς τον/την ${submitterLogin}${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} (πληρωμή μέσω ${paymentMethod}). Συνήθως χρειάζονται 4-5 εργάσιμες ημέρες.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `με άμεση κατάθεση (ACH)${creditBankAccount ? `στον τραπεζικό λογαριασμό που λήγει σε ${creditBankAccount}.` : '. '}${expectedDate ? `Η αποζημίωση εκτιμάται ότι θα ολοκληρωθεί έως ${expectedDate}.` : 'Αυτό συνήθως διαρκεί 4–5 εργάσιμες ημέρες.'}`,
@@ -1658,6 +1658,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Ενεργοποίηση πορτοφολιού',
         hold: 'Σε αναμονή',
         sendToSomeone: 'Αποστολή σε κάποιον',
+        submitToEmployer: 'Υποβολή στον εργοδότη μου',
         unhold: 'Αφαίρεση κράτησης',
         holdExpense: () => ({
             one: 'Αναστολή δαπάνης',
@@ -3187,6 +3188,8 @@ ${amount} για ${merchant} - ${date}`,
         all: 'Όλα',
         todo: 'Εκκρεμότητες',
         unread: 'Μη αναγνωσμένα',
+        markAllAsRead: 'Επισήμανση όλων ως αναγνωσμένων',
+        markAllAsReadConfirmationPrompt: 'Είστε βέβαιοι ότι θέλετε να επισημάνετε όλες τις συνομιλίες ως αναγνωσμένες;',
     },
     reportDetailsPage: {
         goToRoom: 'Μετάβαση στο δωμάτιο',
@@ -4980,6 +4983,9 @@ ${amount} για ${merchant} - ${date}`,
         },
         qbo: {
             connectedTo: 'Συνδεδεμένο με',
+            entity: 'Οντότητα',
+            entitySelectDescription: 'Επιλέξτε την οντότητα για συγχρονισμό με αυτόν τον χώρο εργασίας.',
+            connectNewEntity: 'Συνδέστε μια νέα οντότητα',
             importDescription: (integrationName = 'QuickBooks Online') => `Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θα εισαχθούν από το ${integrationName} στο Expensify.`,
             classes: 'Κλάσεις',
             locations: 'Τοποθεσίες',
@@ -6370,6 +6376,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     autoAddTripName: {
                         title: 'Προσθέστε ονόματα ταξιδιών στις δαπάνες',
                         subtitle: 'Προσθέτετε αυτόματα τα ονόματα ταξιδιών στις περιγραφές εξόδων για ταξίδια που κλείνονται στο Expensify.',
+                    },
+                    codingSync: {
+                        title: 'Συγχρονισμός κωδικοποίησης με το Expensify Travel',
+                        subtitle:
+                            'Σπρώξτε τις κατηγορίες, τις ετικέτες και τα πεδία αναφοράς αυτού του χώρου εργασίας στο Expensify Travel, ώστε οι ταξιδιώτες να τα απαντούν κατά την ώρα της κράτησης.',
                     },
                 },
                 travelInvoicing: {
@@ -10477,6 +10488,8 @@ ${reportName}`,
             title: 'Πληρωμή',
             subtitle: 'Προσθέστε μια κάρτα για να πληρώσετε τη συνδρομή σας στο Expensify.',
             addCardButton: 'Προσθήκη κάρτας πληρωμής',
+            addPaymentCardTitle: 'Προσθήκη κάρτας πληρωμής',
+            addCard: 'Προσθήκη κάρτας',
             cardInfo: (name: string, expiration: string, currency: string) => `Όνομα: ${name}, Λήξη: ${expiration}, Νόμισμα: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Η επόμενη ημερομηνία πληρωμής σας είναι ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Κάρτα που λήγει σε ${cardNumber}`,
