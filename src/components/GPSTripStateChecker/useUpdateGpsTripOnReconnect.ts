@@ -1,4 +1,3 @@
-import {useEffect, useRef} from 'react';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
@@ -7,6 +6,8 @@ import {addressFromGpsPoint, getGpsPoints} from '@libs/GPSDraftDetailsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
+
+import {useEffect, useRef} from 'react';
 
 function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
