@@ -11,21 +11,20 @@ import TextInput from '@components/TextInput';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
-import {isMobile} from '@libs/Browser';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
+import variables from '@styles/variables';
 
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
 
@@ -57,8 +56,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
@@ -178,15 +175,13 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 onSubmit={handleSubmit}
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
-                style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={shouldUseScrollableLayout}
-                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                style={[styles.flexGrow1, styles.ph5]}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
                 // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
                 isSubmitDisabled={isDraftLoading}
             >
-                <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
+                <View style={[styles.flexColumn, styles.gap5]}>
                     <View style={[styles.alignItemsCenter]}>
                         <AvatarButtonWithIcon
                             text={translate('addAgentPage.editAvatar')}
@@ -207,24 +202,23 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            label={translate('addAgentPage.instructions')}
-                            accessibilityLabel={translate('addAgentPage.instructions')}
-                            role={CONST.ROLE.PRESENTATION}
-                            type="markdown"
-                            excludedMarkdownStyles={['mentionReport']}
-                            onKeyPress={submitFormOnModEnter}
-                            defaultValue={defaultPrompt}
-                            multiline
-                            containerStyles={[styles.flex1]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.PROMPT}
+                        label={translate('addAgentPage.instructions')}
+                        accessibilityLabel={translate('addAgentPage.instructions')}
+                        role={CONST.ROLE.PRESENTATION}
+                        type="markdown"
+                        excludedMarkdownStyles={['mentionReport']}
+                        onKeyPress={submitFormOnModEnter}
+                        defaultValue={defaultPrompt}
+                        // Match the reference RHP markdown pages (e.g. PrivateNotesEditPage/RoomDescriptionPage): a bounded
+                        // autoGrowHeight input inside the FormProvider ScrollView is what keeps the focused field above the
+                        // keyboard in portrait, since the ScrollView can scroll a bounded input into the keyboard-reduced viewport.
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                        inputStyle={[styles.textAlignVerticalTop]}
+                    />
                     <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
                 </View>
             </FormProvider>
