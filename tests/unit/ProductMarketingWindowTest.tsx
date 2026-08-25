@@ -269,23 +269,20 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
-    it('does not leak the onboarding-session latch into a different account after remount', async () => {
+    it('does not leak the onboarding-session latch into a different account without a remount', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdatesWithAct();
         });
 
-        const {unmount} = renderManager();
+        renderManager();
         await waitForBatchedUpdatesWithAct();
         expect(screen.queryByText(adminHeading)).toBeNull();
-        unmount();
 
         await act(async () => {
-            await Onyx.clear();
-            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [SECOND_USER_ACCOUNT_ID]: buildPersonalDetails(SECOND_USER_EMAIL, SECOND_USER_ACCOUNT_ID, 'Second User'),
             });
             await Onyx.merge(ONYXKEYS.SESSION, {
@@ -295,9 +292,6 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
             await waitForBatchedUpdatesWithAct();
         });
-
-        renderManager();
-        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText(memberHeading)).toBeTruthy();
     });

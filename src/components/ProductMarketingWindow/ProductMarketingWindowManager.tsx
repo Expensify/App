@@ -17,13 +17,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {activeAdminPoliciesSelector} from '@src/selectors/Policy';
+import {accountIDSelector} from '@src/selectors/Session';
 import type {Policy, Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/core';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 
 import ProductMarketingWindow from './ProductMarketingWindow';
 
@@ -70,19 +71,19 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [isAnonymousSession = false] = useOnyx(ONYXKEYS.SESSION, {
         selector: isAnonymousSessionSelector,
     });
+    const [currentAccountID, currentAccountIDMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
     const [hasCompletedGuidedSetupFlow, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
-    const [hasObservedActiveOnboarding, setHasObservedActiveOnboarding] = useState(false);
+    const [accountIDsWithObservedActiveOnboarding, setAccountIDsWithObservedActiveOnboarding] = useState<ReadonlySet<number>>(() => new Set());
     // OpenApp provides the dismissal and targeting data; wait for it to avoid a startup flash or a wrong CTA destination.
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
-    useEffect(() => {
-        if (hasCompletedGuidedSetupFlow !== false) {
-            return;
-        }
-        setHasObservedActiveOnboarding(true);
-    }, [hasCompletedGuidedSetupFlow]);
+    const isLoadingOnboardingContext = isLoadingOnyxValue(currentAccountIDMetadata, accountMetadata, onboardingMetadata);
+    const shouldRecordActiveOnboarding = !isLoadingOnboardingContext && !isActingAsDelegate && currentAccountID !== undefined && hasCompletedGuidedSetupFlow === false;
+    if (shouldRecordActiveOnboarding && !accountIDsWithObservedActiveOnboarding.has(currentAccountID)) {
+        setAccountIDsWithObservedActiveOnboarding((accountIDs) => new Set(accountIDs).add(currentAccountID));
+    }
 
     const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
     // Every illustration-backed variant is resolved up front because useMemoizedLazyIllustrations doesn't reload
@@ -98,9 +99,16 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const isAdminPolicyConnectionDataAvailable = !shouldPrefetchTargetPolicyConnections || hasBeenFetched === true;
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
     const isLoading =
-        isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, targetAdminPolicyIDMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata, onboardingMetadata) ||
-        isLoadingApp;
-    const shouldSuppressForOnboardingSession = hasCompletedGuidedSetupFlow === false || hasObservedActiveOnboarding;
+        isLoadingOnyxValue(
+            lastDismissedMarketingWindowMetadata,
+            targetAdminPolicyIDMetadata,
+            activePolicyIDMetadata,
+            isLoadingAppMetadata,
+            currentAccountIDMetadata,
+            accountMetadata,
+            onboardingMetadata,
+        ) || isLoadingApp;
+    const shouldSuppressForOnboardingSession = hasCompletedGuidedSetupFlow === false || (currentAccountID !== undefined && accountIDsWithObservedActiveOnboarding.has(currentAccountID));
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
     const navigation = useNavigation();
     const isIn2FASetupFlow = useRootNavigationState((state) => {
