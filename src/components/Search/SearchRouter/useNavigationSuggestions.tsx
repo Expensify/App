@@ -106,16 +106,37 @@ type BuildSpendNavigationItemsParams = {
 };
 
 type BuildWorkspaceNavigationItemsParams = {
+    /** Policies considered when building accessible Workspace destinations. */
     policies: OnyxCollection<OnyxTypes.Policy>;
+
+    /** Categories used by the shared Workspace menu visibility rules. */
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
+
+    /** Login used to evaluate Workspace membership and permissions. */
     currentUserLogin: string | undefined;
+
+    /** Icons consumed by the shared Workspace menu source. */
     icons: Parameters<typeof getWorkspaceMenuItems>[0]['icons'];
+
+    /** Whether pending offline state should be considered by Workspace visibility rules. */
     isOffline: boolean;
+
+    /** Whether the Rules Revamp beta is enabled for the current user. */
     isRulesRevampBetaEnabled: boolean;
+
+    /** Whether the Vendor Matching beta is enabled for the current user. */
     isVendorMatchingBetaEnabled: boolean;
+
+    /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
+
+    /** Formats monetary values required by shared Workspace menu items. */
     convertToDisplayString: Parameters<typeof getWorkspaceMenuItems>[0]['convertToDisplayString'];
+
+    /** Resolves the localized label for a Workspace menu item. */
     getItemText: (item: ReturnType<typeof getWorkspaceMenuItems>[number]) => string;
+
+    /** Formats a Workspace label as navigation destination text. */
     getDestinationText: (destination: string) => string;
 };
 

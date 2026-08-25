@@ -11,13 +11,24 @@ import SCREENS from '@src/SCREENS';
 const WORKSPACE_ROUTE_PATTERN = /^\/?workspaces\/[^/]+(\/.*)?$/;
 
 type NavigationRouteWithState = {
+    /** Name of the screen or navigator represented by this route. */
     name?: string;
+
+    /** Key used to target navigation updates at this route. */
     key?: string;
+
+    /** Route parameters needed to identify the Workspace shown in the sidebar. */
     params?: {
+        /** ID of the Workspace currently shown in the sidebar. */
         policyID?: string;
     };
+
+    /** Nested navigator state used to locate the Workspace sidebar route. */
     state?: {
+        /** Key of the nested navigator state. */
         key?: string;
+
+        /** Child routes contained in the nested navigator. */
         routes?: NavigationRouteWithState[];
     };
 };
