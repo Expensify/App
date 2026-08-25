@@ -378,16 +378,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [
-            autocompleteSubstitutions,
-            currentUserAccountID,
-            onRouterClose,
-            setAutocompleteQueryValue,
-            setTextInputValue,
-            setShouldResetSearchQuery,
-            isFromSearchPageSearchButton,
-            policies,
-        ],
+        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setAutocompleteQueryValue, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton, policies],
     );
 
     const onListItemPress = useCallback(
