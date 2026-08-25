@@ -532,20 +532,14 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
-/**
- * Sizes the camera viewfinder.
- *
- * When `shouldFillPortraitViewport` is true (the default), a portrait viewfinder with a known aspect ratio overflows the
- * container so the preview fills the screen and is cropped. Pass false to keep the preview fully visible instead.
- */
-function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean, shouldFillPortraitViewport = true): ViewStyle {
+function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
     if (isInLandscapeMode && aspectRatio) {
         return {aspectRatio, height: '100%', maxWidth: '100%'};
     }
-    if (aspectRatio && shouldFillPortraitViewport) {
+    if (aspectRatio) {
         return {aspectRatio, minWidth: '100%', minHeight: '100%'};
     }
-    return {flex: 1, alignSelf: 'stretch'};
+    return {flex: 1};
 }
 
 /**
