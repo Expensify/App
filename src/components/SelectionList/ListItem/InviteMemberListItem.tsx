@@ -1,3 +1,4 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
@@ -41,7 +42,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocusVisible ? focusedBackgroundColor : theme.sidebar;
@@ -84,25 +85,32 @@ function InviteMemberListItem<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
                         <AvatarTooltipsProvider isEnabled={showTooltip}>
-                            <ReportActionAvatars
-                                subscriptAvatarBorderColor={hovered && !isFocusVisible ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                secondaryAvatarContainerStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                    isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                    hovered && !isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                ]}
-                                fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                                reportID={item.reportID}
-                                accountIDs={accountID ? [accountID] : undefined}
-                            />
+                            {accountID ? (
+                                <AccountAvatar
+                                    accountID={accountID}
+                                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                    containerStyle={[styles.actionAvatar, styles.mr3]}
+                                />
+                            ) : (
+                                <ReportActionAvatars
+                                    subscriptAvatarBorderColor={hovered && !isFocusVisible ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                    secondaryAvatarContainerStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                        isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                        hovered && !isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                    ]}
+                                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                    singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                    reportID={item.reportID}
+                                />
+                            )}
                         </AvatarTooltipsProvider>
                     )}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.text ?? '')}
+                                text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
                                 numberOfLines={isMultilineSupported ? 2 : 1}
                                 style={[
                                     styles.optionDisplayName,
@@ -116,7 +124,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                text={Str.isSMSLogin(item.alternateText ?? '') ? formatPhoneNumber(item.alternateText ?? '') : (item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}

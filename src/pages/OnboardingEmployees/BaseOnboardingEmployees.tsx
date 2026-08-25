@@ -10,14 +10,12 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
 import {getPreviousOnboardingRoute} from '@libs/getOnboardingStepCounter';
 import Navigation from '@libs/Navigation/Navigation';
-import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {setOnboardingCompanySize} from '@userActions/Welcome';
@@ -51,8 +49,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const {isBetaEnabled} = usePermissions();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const onboardingFlowContext = useMemo(
         () => ({
@@ -62,12 +58,11 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             purposeSelected: purposeSelected ?? undefined,
             isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
             isAccountValidated: isCurrentUserValidated(loginList, session?.email),
-            hasJoinablePolicies: getVisibleJoinablePoliciesCount(joinablePolicies, canUseSubmit2026) > 0,
+            hasJoinablePolicies: Object.keys(joinablePolicies ?? {}).length > 0,
         }),
         [
             account?.hasAccessibleDomainPolicies,
             account?.isFromPublicDomain,
-            canUseSubmit2026,
             joinablePolicies,
             loginList,
             onboardingValues?.isMergeAccountStepSkipped,

@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import {getValidConnectedIntegration, isPreferredExporter} from '@src/libs/PolicyUtils';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
+import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -32,6 +33,12 @@ const APPROVER_ACCOUNT_ID = 3;
 const APPROVER_EMAIL = 'approver@mail.com';
 const ADMIN_ACCOUNT_ID = 4;
 const ADMIN_EMAIL = 'admin@mail.com';
+
+// For the P2P wallet "send money" cases below, the sender is the payer (managerID) and the receiver is the owner.
+const SENDER_ACCOUNT_ID = EMPLOYEE_ACCOUNT_ID;
+const SENDER_EMAIL = EMPLOYEE_EMAIL;
+const RECEIVER_ACCOUNT_ID = MANAGER_ACCOUNT_ID;
+const RECEIVER_EMAIL = MANAGER_EMAIL;
 
 const SESSION = {
     email: EMPLOYEE_EMAIL,
@@ -396,6 +403,88 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('includes SUBMIT option when every transaction is on hold', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            transactionID: 'held',
+            reportID: REPORT_ID,
+            comment: {hold: 'holdID'},
+        });
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('includes SUBMIT option when only some transactions are on hold', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const heldTransaction = createMock<Transaction>({
+            transactionID: 'held',
+            reportID: REPORT_ID,
+            comment: {hold: 'holdID'},
+        });
+        const unheldTransaction = createMock<Transaction>({
+            transactionID: 'unheld',
+            reportID: REPORT_ID,
+        });
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [heldTransaction, unheldTransaction],
             originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
@@ -2007,6 +2096,162 @@ describe('getSecondaryAction', () => {
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT option for the sender of a P2P wallet payment waiting on the receiver wallet', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: RECEIVER_ACCOUNT_ID,
+            managerID: SENDER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            isWaitingOnBankAccount: true,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: SENDER_EMAIL,
+            currentUserAccountID: SENDER_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy: undefined,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('excludes CANCEL_PAYMENT option for the receiver of a P2P wallet payment waiting on the receiver wallet', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: RECEIVER_ACCOUNT_ID,
+            managerID: SENDER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            isWaitingOnBankAccount: true,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: RECEIVER_EMAIL,
+            currentUserAccountID: RECEIVER_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy: undefined,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('excludes CANCEL_PAYMENT option for a P2P payment sent elsewhere (not via wallet)', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: RECEIVER_ACCOUNT_ID,
+            managerID: SENDER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            isWaitingOnBankAccount: true,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: SENDER_EMAIL,
+            currentUserAccountID: SENDER_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy: undefined,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('excludes CANCEL_PAYMENT option for a P2P wallet payment no longer waiting on the receiver wallet', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: RECEIVER_ACCOUNT_ID,
+            managerID: SENDER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            isWaitingOnBankAccount: false,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: SENDER_EMAIL,
+            currentUserAccountID: SENDER_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy: undefined,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
     it('includes RECEIVED_PAYMENT option for approved expense report submitter with reimbursable spend', () => {
@@ -4705,6 +4950,54 @@ describe('getSecondaryTransactionThreadActions', () => {
             isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+    });
+
+    describe('SEND_TO_SOMEONE gate', () => {
+        // These cases install persistent spies (mockReturnValue); the enclosing beforeEach only clears call data, not
+        // implementations, so restore them here to avoid leaking into later getSecondaryTransactionThreadActions tests.
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        function getSendToSomeoneResult(isExpenseSplit: boolean, hasWorkspaceToSubmitTo: boolean, isChatReportArchived = false) {
+            jest.spyOn(ReportUtils, 'isTrackExpenseReportNew').mockReturnValue(true);
+            // An archived self-DM has no write access; mirror that so the write-action guard on SEND_TO_SOMEONE is exercised.
+            jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(!isChatReportArchived);
+            jest.spyOn(TransactionUtils, 'getOriginalTransactionWithSplitInfo').mockReturnValue({
+                originalTransaction: createMock<Transaction>({}),
+                isBillSplit: false,
+                isExpenseSplit,
+            });
+
+            return getSecondaryTransactionThreadActions({
+                currentUserLogin: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                parentReport: createMock<Report>({chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}),
+                reportTransaction: createMock<Transaction>({}),
+                reportAction: actionR14932,
+                originalTransaction: createMock<Transaction>({}),
+                policy: createMock<Policy>({}),
+                isChatReportArchived,
+                isProduction: false,
+                hasWorkspaceToSubmitTo,
+            });
+        }
+
+        it('includes SEND_TO_SOMEONE for an unreported self-tracked expense that is not a split', () => {
+            expect(getSendToSomeoneResult(false, false)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        });
+
+        it('hides SEND_TO_SOMEONE for a self-DM split expense when the user has no workspace to submit to', () => {
+            expect(getSendToSomeoneResult(true, false)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        });
+
+        it('includes SEND_TO_SOMEONE for a self-DM split expense when the user has a workspace to submit to', () => {
+            expect(getSendToSomeoneResult(true, true)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        });
+
+        it('hides SEND_TO_SOMEONE on an archived self-DM (no write access)', () => {
+            expect(getSendToSomeoneResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        });
     });
 
     it('includes the SPLIT option when grandParentReport is a selfDM report (transaction thread inside selfDM)', () => {

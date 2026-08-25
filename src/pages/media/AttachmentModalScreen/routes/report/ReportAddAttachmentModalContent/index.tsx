@@ -49,6 +49,8 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
@@ -67,8 +69,8 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     }, [reportActions, reportActionID]);
 
     const fetchReport = useCallback(() => {
-        openReport({reportID, introSelected, reportActionID, betas, hasReportActions, currentUserAccountID});
-    }, [reportID, introSelected, reportActionID, betas, hasReportActions, currentUserAccountID]);
+        openReport({reportID, introSelected, conciergeChat, reportActionID, betas, hasReportActions, currentUserAccountID});
+    }, [reportID, introSelected, conciergeChat, reportActionID, betas, hasReportActions, currentUserAccountID]);
 
     // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
     useEffect(() => {

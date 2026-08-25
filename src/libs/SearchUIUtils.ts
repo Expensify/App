@@ -154,6 +154,7 @@ import {
     generateReportID,
     getIcons,
     getMoneyRequestSpendBreakdown,
+    getPendingDeleteMemberAccountIDs,
     getPersonalDetailsForAccountID,
     getPolicyName,
     getReimbursableTotal,
@@ -1111,7 +1112,7 @@ function getSuggestedSearchesVisibility(
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
-): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
+): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = hasReportAwaitingApproval;
@@ -1124,7 +1125,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowTopSpendersSuggestion = false;
     let shouldShowTopCategoriesSuggestion = false;
     let shouldShowTopMerchantsSuggestion = false;
-    let hasGroupPoliciesWithExpenseChat = false;
+    let hasEligibleGroupPolicies = false;
     let shouldShowSpendOverTimeSuggestion = false;
     const topSpendersPolicyIDs: string[] = [];
 
@@ -1187,9 +1188,8 @@ function getSuggestedSearchesVisibility(
         }
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
-        hasGroupPoliciesWithExpenseChat ||=
+        hasEligibleGroupPolicies ||=
             isGroupPolicyEligible &&
-            !!policy.isPolicyExpenseChatEnabled &&
             !policy.isJoinRequestPending &&
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
@@ -1213,7 +1213,7 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
         },
-        hasGroupPoliciesWithExpenseChat,
+        hasEligibleGroupPolicies,
         shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
         topSpendersPolicyIDs,
     };
@@ -1232,7 +1232,7 @@ function getTransactionItemCommonFormattedProperties(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
     translate: LocalizedTranslate,
-): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved' | 'posted'> {
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const formattedFrom = temporaryGetDisplayNameOrDefault({passedPersonalDetails: from, translate, formatPhoneNumber});
@@ -1249,8 +1249,6 @@ function getTransactionItemCommonFormattedProperties(
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
-    const submitted = report?.submitted;
-    const approved = report?.approved;
 
     const posted = getFormattedPostedDate(transactionItem?.posted);
 
@@ -1258,8 +1256,6 @@ function getTransactionItemCommonFormattedProperties(
         formattedFrom,
         formattedTo,
         date,
-        submitted,
-        approved,
         posted,
         formattedTotal,
         formattedMerchant,
@@ -2162,6 +2158,18 @@ function canOptimisticExpenseMatchStatusFilter(currentQueryJSON: SearchQueryJSON
 
 /**
  * @private
+ * Returns the report's actions from the live filtered collection when available, falling back to the snapshot's.
+ */
+function getLiveOrSnapshotReportActions(
+    reportActions: Record<string, OnyxTypes.ReportAction[]>,
+    data: OnyxTypes.SearchResults['data'],
+    reportID: string | undefined,
+): OnyxTypes.ReportAction[] {
+    return reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
+}
+
+/**
+ * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -2245,7 +2253,7 @@ function getTransactionsSections({
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
                 from,
                 to,
@@ -2254,9 +2262,9 @@ function getTransactionsSections({
                 report,
                 translate,
             );
-            const actions =
-                reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ??
-                Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
+            const actions = getLiveOrSnapshotReportActions(reportActions, data, transactionItem.reportID);
+            const submitted = report ? getSubmittedDate(report, actions) : undefined;
+            const approved = report ? getApprovedDate(report, actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
@@ -2732,7 +2740,23 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
                 const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
-                const icons = getIcons(parentReport, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
+                // The search snapshot does not always carry the report metadata. Pass undefined rather than an empty array in that case,
+                // otherwise getGroupChatName treats it as "nothing is pending delete" and skips its own Onyx fallback.
+                const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
+                const parentReportPendingDeleteMemberAccountIDs = parentReportMetadata ? getPendingDeleteMemberAccountIDs(parentReportMetadata.pendingChatMembers) : undefined;
+                const icons = getIcons(
+                    parentReport,
+                    formatPhoneNumber,
+                    translate,
+                    personalDetails,
+                    null,
+                    '',
+                    -1,
+                    policy,
+                    undefined,
+                    isParentReportArchived,
+                    parentReportPendingDeleteMemberAccountIDs,
+                );
                 const parentReportIcon = icons?.at(0);
 
                 result.parentReportName = parentReportName;
@@ -2924,6 +2948,71 @@ function getReportActionsSections(
 }
 
 /**
+ * Scans `actions` for the earliest/latest action of the given types, seeded with an optional starting candidate.
+ * Live actions can hold an action the snapshot lacks: snapshot merges only keep fields already present in the
+ * snapshot shape, so a new optimistic action (e.g. approving a report offline) never reaches it.
+ */
+function findActionByCreated(
+    actions: OnyxTypes.ReportAction[],
+    actionNames: Array<OnyxTypes.ReportAction['actionName']>,
+    sortBy: 'earliest' | 'latest',
+    seed?: OnyxTypes.ReportAction,
+): OnyxTypes.ReportAction | undefined {
+    let result = seed;
+    for (const action of actions) {
+        if (!actionNames.includes(action.actionName)) {
+            continue;
+        }
+        const comparison = result ? new Date(action.created).getTime() - new Date(result.created).getTime() : 0;
+        if (!result || (sortBy === 'earliest' ? comparison < 0 : comparison > 0)) {
+            result = action;
+        }
+    }
+    return result;
+}
+
+/**
+ * Returns the earliest APPROVED/FORWARDED action between the snapshot-derived one and the given report actions,
+ * ignoring approvals that precede the latest unapprove/retract/reopen — those belong to a reversed approval cycle.
+ */
+function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction | undefined {
+    const latestReversal = findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, CONST.REPORT.ACTIONS.TYPE.RETRACTED, CONST.REPORT.ACTIONS.TYPE.REOPENED], 'latest');
+    const seed = snapshotApprovedAction && (!latestReversal || snapshotApprovedAction.created > latestReversal.created) ? snapshotApprovedAction : undefined;
+    const candidates = latestReversal ? actions.filter((action) => action.created > latestReversal.created) : actions;
+    return findActionByCreated(candidates, [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.FORWARDED], 'earliest', seed);
+}
+
+/**
+ * Returns the report's approved date or the latest APPROVED action's created time, whichever is newer — an offline
+ * re-approve leaves a stale `approved` on the report. A report back to Draft/Outstanding is not approved anymore
+ * even when its `approved` date is still set, so those statuses return blank.
+ */
+function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN || reportItem.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return '';
+    }
+    const reportApproved = reportItem.approved ?? '';
+    // Only a fully approved report can take a date from its actions, so an intermediate approval in a multi-level
+    // workflow (report still Processing) doesn't get a premature date.
+    const actionApproved = reportItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED ? (findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED], 'latest')?.created ?? '') : '';
+    return reportApproved >= actionApproved ? reportApproved : actionApproved;
+}
+
+/**
+ * Returns the report's submitted date or the latest SUBMITTED action's created time, whichever is newer — an
+ * offline retract + resubmit leaves a stale `submitted` on the report. The OPEN check comes before trusting
+ * `reportItem.submitted` because the backend can stamp `submitted` on never-submitted reports.
+ */
+function getSubmittedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+        return '';
+    }
+    const reportSubmitted = reportItem.submitted ?? '';
+    const actionSubmitted = findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.SUBMITTED], 'latest')?.created ?? '';
+    return reportSubmitted >= actionSubmitted ? reportSubmitted : actionSubmitted;
+}
+
+/**
  * Merges the global personal details list with the search snapshot's one (snapshot entries win).
  * Memoized by input references: both lists are referentially stable across the getSections recomputes
  * of a single user action (e.g. PAY), so the expensive spread of two large objects runs once per
@@ -2992,11 +3081,10 @@ function getReportSections({
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
             const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
-            const actions =
-                reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`] ?? Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`] ?? {});
+            const actions = getLiveOrSnapshotReportActions(reportActions, data, reportItem.reportID);
 
             const isActionLoading = !!isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
-            const shouldShow = !isActionLoading && currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? isEligibleForStatus(currentQueryJSON, reportItem) : true;
+            const shouldShow = isActionLoading || isEligibleForStatus(currentQueryJSON, reportItem);
 
             if (shouldShow) {
                 const reportPendingAction =
@@ -3016,7 +3104,7 @@ function getReportSections({
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
                 // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
-                const firstApprovedAction = firstApprovedActionByReportID.get(reportItem.reportID);
+                const firstApprovedAction = getFirstApprovedAction(firstApprovedActionByReportID.get(reportItem.reportID), actions);
                 const firstApproverAccountID = firstApprovedAction?.actorAccountID;
                 const firstApproverDetails = firstApproverAccountID ? mergedPersonalDetails?.[firstApproverAccountID] : undefined;
                 const firstApproved = firstApprovedAction?.created ?? '';
@@ -3064,6 +3152,8 @@ function getReportSections({
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
+                    submitted: getSubmittedDate(reportItem, actions),
+                    approved: getApprovedDate(reportItem, actions),
                     exportedTo: getExportedToSortValue(exportedToNamesByReportID, reportItem.reportID),
                     firstApproved,
                     firstApproverAvatar: firstApproverDetails?.avatar,
@@ -3113,7 +3203,7 @@ function getReportSections({
                 getLoginByAccountID(report?.ownerAccountID, data.personalDetailsList),
                 policy,
             );
-            const actions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
+            const actions = getLiveOrSnapshotReportActions(reportActions, data, transactionItem.reportID);
             const from = reportAction?.actorAccountID ? (mergedPersonalDetails?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, mergedPersonalDetails, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
@@ -3148,6 +3238,8 @@ function getReportSections({
                 formattedTotal,
                 formattedMerchant,
                 date,
+                submitted: report ? getSubmittedDate(report, actions) : undefined,
+                approved: report ? getApprovedDate(report, actions) : undefined,
                 exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
                 exportedTo: getExportedToSortValue(exportedToNamesByReportID, transactionItem.reportID),
                 shouldShowMerchant,
@@ -4767,7 +4859,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
     const {
         visibility: suggestedSearchesVisibility,
-        hasGroupPoliciesWithExpenseChat,
+        hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
         topSpendersPolicyIDs,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser);
@@ -4796,7 +4888,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                     emptyState: {
                         title: 'search.searchResults.emptySubmitResults.title',
                         subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                        buttons: hasGroupPoliciesWithExpenseChat
+                        buttons: hasEligibleGroupPolicies
                             ? [
                                   {
                                       success: true,
@@ -4947,6 +5039,50 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     }
 
     return typeMenuSections;
+}
+
+/**
+ * Icons used for each saved-search data type. Each asset already has the bookmark subscript baked in,
+ * so it can be rendered directly with the standard Expensicons component.
+ */
+const SAVED_SEARCH_TYPE_TO_ICON_NAME = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: 'ReceiptBookmark',
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: 'DocumentBookmark',
+    [CONST.SEARCH.DATA_TYPES.CHAT]: 'CommentBubbleBookmark',
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: 'InvoiceBookmark',
+    [CONST.SEARCH.DATA_TYPES.TRIP]: 'LuggageBookmark',
+    [CONST.SEARCH.DATA_TYPES.TASK]: 'TaskBookmark',
+} as const satisfies Record<SearchDataTypes, ExpensifyIconName>;
+
+/** Icon shown for a saved search whose query can't be resolved to a known/supported data type. */
+const SAVED_SEARCH_FALLBACK_ICON_NAME = 'Bookmark' satisfies ExpensifyIconName;
+
+type SavedSearchIconName = (typeof SAVED_SEARCH_TYPE_TO_ICON_NAME)[SearchDataTypes] | typeof SAVED_SEARCH_FALLBACK_ICON_NAME;
+
+/**
+ * Every icon a saved search row can render - one per data type plus the fallback. Derived from the map
+ * (and the fallback) above so callers load exactly the set `getSavedSearchIconName` can return, with no
+ * hand-kept second list to drift out of sync.
+ */
+const SAVED_SEARCH_ICON_NAMES: readonly SavedSearchIconName[] = [...Object.values(SAVED_SEARCH_TYPE_TO_ICON_NAME), SAVED_SEARCH_FALLBACK_ICON_NAME];
+
+/**
+ * Resolves the icon name for a saved search from its query type, falling back to the generic bookmark
+ * icon for queries that can't be parsed into a known data type - including queries whose type is present
+ * but outside the supported set (e.g. a hand-edited `type:test` URL), which have no entry in the map.
+ */
+function getSavedSearchIconName(query: string | undefined): SavedSearchIconName {
+    // This is the single place that decides what a missing/empty query means: it resolves to the generic
+    // fallback for every caller, and avoids passing an empty/undefined query into buildSearchQueryJSON -
+    // which would parse '' as the grammar default (type:expense) or throw on undefined and log a console error.
+    if (!query) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
+    const type = buildSearchQueryJSON(query)?.type;
+    if (!type) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
+    return SAVED_SEARCH_TYPE_TO_ICON_NAME[type] ?? SAVED_SEARCH_FALLBACK_ICON_NAME;
 }
 
 function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
@@ -5117,11 +5253,16 @@ function getFeedOptions(
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+    domains?: OnyxCollection<OnyxTypes.Domain>,
+    expensifyCardSettings?: OnyxCollection<OnyxTypes.ExpensifyCardSettings>,
 ) {
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards))
-        .map<SingleSelectItem<string>>((cardFeed) => ({
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards, policies, domains, expensifyCardSettings))
+        .map<MultiSelectItem<string>>((cardFeed) => ({
             text: cardFeed.name,
             value: cardFeed.id,
+            // Domain/workspace shown as a second line so same-type feeds can be told apart.
+            alternateText: cardFeed.subtitle,
         }))
         .sort((a, b) => localeCompare(a.text, b.text));
 }
@@ -6753,8 +6894,9 @@ function splitGroupsIntoPairs(data: SearchListItem[]): {splitData: SearchListIte
         if ('transactions' in item) {
             const key = item.keyForList ?? '';
             stickyHeaderIndices.push(splitData.length);
-            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.GROUP_HEADER, keyForList: `header_${key}`} as GroupHeaderItemType);
-            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER, keyForList: `children_${key}`} as GroupChildrenContainerItemType);
+            const headerItem: GroupHeaderItemType = {...item, listItemType: GROUP_ITEM_TYPES.GROUP_HEADER, keyForList: `header_${key}`, groupKeyForList: key};
+            const childrenItem: GroupChildrenContainerItemType = {...item, listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER, keyForList: `children_${key}`, groupKeyForList: key};
+            splitData.push(headerItem, childrenItem);
         } else {
             splitData.push(item);
         }
@@ -6844,6 +6986,9 @@ export {
     getSectionBadgeText,
     getItemBadgeText,
     createBaseSavedSearchMenuItem,
+    getSavedSearchIconName,
+    SAVED_SEARCH_FALLBACK_ICON_NAME,
+    SAVED_SEARCH_ICON_NAMES,
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,

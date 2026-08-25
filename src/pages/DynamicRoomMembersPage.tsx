@@ -19,7 +19,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -36,7 +36,7 @@ import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportForHeader,
     getReportPersonalDetailsParticipants,
@@ -74,7 +74,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const styles = useThemeStyles();
-    const reportAttributes = useReportAttributes();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
@@ -89,6 +88,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [backPath]);
     const isReportArchived = useReportIsArchived(report.reportID);
     const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
+    const derivedSubtitleReportName = useDerivedReportNameByReportID(reportForSubtitle?.reportID);
+    const subtitleReportName = getReportName(reportForSubtitle, derivedSubtitleReportName);
 
     const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
@@ -350,9 +351,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(
-                        shouldParserToHTML ? Parser.htmlToText(deprecatedGetReportName(reportForSubtitle, reportAttributes)) : deprecatedGetReportName(reportForSubtitle, reportAttributes),
-                    )}
+                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(subtitleReportName) : subtitleReportName)}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();

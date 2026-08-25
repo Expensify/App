@@ -19,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
-import AnnouncementSection from './AnnouncementSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
@@ -63,7 +62,11 @@ function HomePage() {
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
                     >
-                        {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
+                        {!shouldUseNarrowLayout && (
+                            <View style={styles.centeredContentWidthLimiter}>
+                                <QuickCreationActionsBar />
+                            </View>
+                        )}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                             {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                             {shouldUseNarrowLayout ? (
@@ -73,11 +76,10 @@ function HomePage() {
                                     <GettingStartedSection />
                                     <ForYouSection />
                                     <UpcomingTravelSection />
-                                    <RecentlyAddedSection />
                                     <YourSpendSection />
+                                    <RecentlyAddedSection />
                                     <InsightsSection />
                                     <DiscoverSection />
-                                    <AnnouncementSection />
                                 </>
                             ) : (
                                 <>
@@ -88,7 +90,6 @@ function HomePage() {
                                         <TimeSensitiveSection />
                                         <GettingStartedSection />
                                         <ForYouSection />
-                                        <RecentlyAddedSection />
                                         <InsightsSection />
                                     </View>
                                     <View
@@ -96,10 +97,10 @@ function HomePage() {
                                         style={styles.homePageRightColumn}
                                     >
                                         <FreeTrialSection />
-                                        <UpcomingTravelSection />
                                         <YourSpendSection />
+                                        <RecentlyAddedSection />
+                                        <UpcomingTravelSection />
                                         <DiscoverSection />
-                                        <AnnouncementSection />
                                     </View>
                                 </>
                             )}

@@ -48,7 +48,19 @@
         "**/*.nitro/*.ts",
         "**/*.nitro/*.tsx"
     ],
-    // CIGitLogic uses Bun's `$` shell, so it needs @types/bun, whose globals conflict with this project's.
-    // It is type-checked by tests/tooling/tsconfig.json instead — see the comment there.
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*", ".claude/worktrees/**", "tests/tooling/CIGitLogic.test.ts"]
+    // CIGitLogic, Bun-only scripts and everything under evals/ use Bun's APIs, so they need @types/bun, whose globals
+    // conflict with this project's. They are type-checked by tests/tooling/tsconfig.json,
+    // scripts/tsconfig.json and evals/tsconfig.json instead — see the comments there.
+    "exclude": [
+        "**/node_modules/*",
+        "**/dist/*",
+        ".github/actions/**/index.js",
+        "**/docs/*",
+        ".claude/worktrees/**",
+        "tests/tooling/CIGitLogic.test.ts",
+        "scripts/applyPatches.ts",
+        "scripts/lint.ts",
+        "scripts/typecheck.ts",
+        "evals"
+    ]
 }

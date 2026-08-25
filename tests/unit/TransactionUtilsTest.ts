@@ -1,5 +1,8 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -4706,6 +4709,36 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     it('returns true when the user entered a waypoint', () => {
         const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
+    });
+});
+
+describe('isTransactionSubmittable', () => {
+    it('returns true for a transaction that is on hold', () => {
+        const transaction = generateTransaction({comment: {hold: 'holdID'}});
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+
+    it('returns true for a transaction that is not on hold', () => {
+        const transaction = generateTransaction();
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+});
+
+describe('showHeldExpensesBlockModal', () => {
+    it('shows a confirm modal explaining that a report with only held expenses cannot be submitted', () => {
+        const showConfirmModal = jest.fn();
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters);
+
+        TransactionUtils.showHeldExpensesBlockModal(showConfirmModal, mockTranslate);
+
+        expect(showConfirmModal).toHaveBeenCalledWith({
+            title: mockTranslate('iou.error.unableToSubmitReport'),
+            prompt: mockTranslate('iou.error.allExpensesOnHoldDescription'),
+            confirmText: mockTranslate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     });
 });
 

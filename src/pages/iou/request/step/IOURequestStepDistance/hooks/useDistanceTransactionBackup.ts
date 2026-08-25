@@ -4,7 +4,7 @@ import {openReport} from '@libs/actions/Report';
 import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import {hasRoute} from '@libs/TransactionUtils';
 
-import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
+import type {Beta, IntroSelected, Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -29,11 +29,23 @@ type UseDistanceTransactionBackupParams = {
     /** The current user's enabled betas — used by the offline-recovery `openReport` call. */
     betas: OnyxEntry<Beta[]>;
 
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<Report>;
+
     /** Caller-owned ref. Set `.current = true` once the user has confirmed a save so the cleanup drops the backup instead of restoring it. */
     transactionWasSavedRef: React.RefObject<boolean>;
 };
 
-function useDistanceTransactionBackup({transaction, isCreatingNewRequest, isEditingSplit, isDraft, introSelected, betas, transactionWasSavedRef}: UseDistanceTransactionBackupParams): void {
+function useDistanceTransactionBackup({
+    transaction,
+    isCreatingNewRequest,
+    isEditingSplit,
+    isDraft,
+    introSelected,
+    betas,
+    conciergeChat,
+    transactionWasSavedRef,
+}: UseDistanceTransactionBackupParams): void {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
     // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
@@ -60,7 +72,7 @@ function useDistanceTransactionBackup({transaction, isCreatingNewRequest, isEdit
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport({reportID: transaction?.reportID, introSelected, betas, hasReportActions: true, currentUserAccountID});
+            openReport({reportID: transaction?.reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount-only effect: backup on mount, restore-or-drop on unmount, never re-runs
     }, []);

@@ -154,6 +154,13 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
      * */
     shouldEnableNewFocusManagement?: boolean;
 
+    /**
+     * Whether to return focus to the trigger when the menu is dismissed without navigating.
+     * Defaults to the inverse of `shouldEnableNewFocusManagement`, because that manager owns the restore when it is on.
+     * Set it explicitly for a trigger the manager cannot restore — it only tracks text inputs, so a button is left with nothing to return to.
+     */
+    shouldReturnFocus?: boolean;
+
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
 
@@ -326,6 +333,7 @@ function BasePopoverMenu({
     withoutOverlay = false,
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
+    shouldReturnFocus,
     restoreFocusType,
     shouldShowRadioButton = false,
     containerStyles,
@@ -699,6 +707,7 @@ function BasePopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            shouldReturnFocus={shouldReturnFocus}
             restoreFocusType={restoreFocusType}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
@@ -709,7 +718,7 @@ function BasePopoverMenu({
         >
             <FocusTrapForModal
                 active={isVisible}
-                shouldReturnFocus={!shouldEnableNewFocusManagement}
+                shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                 launcherRef={anchorRef}
             >
                 <CompactMenuContext.Provider value>

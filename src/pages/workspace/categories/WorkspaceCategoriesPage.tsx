@@ -24,6 +24,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -40,7 +41,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -76,6 +76,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyData = usePolicyData(policyId);
     const {policy, categories: policyCategories} = policyData;
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.categories');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -272,7 +273,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             }
 
             const approverEmail = shouldShowApproverColumn ? categoryApproverEmails[value.name] : undefined;
-            const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
+            const approverPersonalDetail = employeePersonalDetails[approverEmail ?? ''];
             const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
 
@@ -306,6 +307,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         navigateToCategory,
         handleCategoryToggle,
         policyId,
+        employeePersonalDetails,
         formatPhoneNumber,
     ]);
 
@@ -363,7 +365,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        if (canWriteCategories && !isRulesRevampEnabled) {
+        // Under the revamp the other settings moved to Rules, so this is only worth showing for the GL codes toggle.
+        if (canWriteCategories && (!isRulesRevampEnabled || !!policy?.glCodes)) {
             menuItems.push({
                 icon: icons.Gear,
                 text: translate('common.settings'),
@@ -412,6 +415,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         navigateToCategoriesSettings,
         canWriteCategories,
         isRulesRevampEnabled,
+        policy?.glCodes,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,

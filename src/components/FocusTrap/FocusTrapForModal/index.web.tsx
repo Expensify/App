@@ -28,16 +28,17 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
 
     const onFocusTrapActive = () => {
         trapDepthAtActivateRef.current = sharedTrapStack.length;
-        // Capture for nav-back return — independent of shouldReturnFocus (which gates only focus-trap-react's same-screen return below).
+        // Capture for nav-back return. This is independent of shouldReturnFocus, which gates only focus-trap-react's same-screen return below.
         const activeElement = document.activeElement;
         blurActiveElement();
         // What actually held focus wins; then the anchor, for triggers that blur themselves before opening.
-        // The LauncherStack is the last resort for modals with no anchor at all — the global confirm modal
+        // The LauncherStack is the last resort for modals with no anchor at all. For example, the global confirm modal
         // opened from a popover has neither a focused element nor an anchorRef, but the popover that opened
         // it registered its own launcher, and that is the element the user came from.
         const launcher = activeElement instanceof HTMLElement && activeElement !== document.body ? activeElement : (resolveLauncherElement(launcherRef) ?? pickLauncher());
+        // Assigned unconditionally so this activation can never inherit a previous one's launcher.
+        cachedLauncherRef.current = launcher;
         if (launcher) {
-            cachedLauncherRef.current = launcher;
             setActivePopoverLauncher(launcher);
         }
     };
@@ -50,7 +51,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
         }
         // A forward navigation consumes the launcher off the stack (captureTriggerForRoute), handing the
         // restore to NavigationFocusReturn's Back handling. Returning focus here as well would yank it
-        // away from the destination screen's own autofocus — e.g. FAB > Start chat losing its search input.
+        // away from the destination screen's own autofocus, for example FAB > Start chat losing its search input.
         const wasClaimedByNavigation = !hasLauncher(launcher);
         // A trap opened on top of us and still owns focus (e.g. selecting "Create report" in the FAB menu
         // opens the empty-report confirm modal). Returning focus to our launcher would pull the focus ring

@@ -35,7 +35,7 @@ import {View} from 'react-native';
 import type {PopoverMenuItem} from './PopoverMenu';
 
 import Avatar from './Avatar';
-import Button from './Button';
+import Button from './ButtonComposed';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
 import {useProductTrainingContext} from './ProductTrainingContext';
@@ -308,14 +308,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         {/* View wrapper forwards the hover events Tooltip injects; Button doesn't pass them to its underlying pressable, so the tooltip wouldn't show without it */}
                         <View>
                             <Button
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 ref={buttonRef}
-                                text={translate('delegate.switch')}
                                 onPress={onPressSwitcher}
                                 sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
-                                shouldShowRightIcon
-                                iconRight={icons.CaretUpDown}
-                            />
+                            >
+                                <Button.Text>{translate('delegate.switch')}</Button.Text>
+                                <Button.Icon src={icons.CaretUpDown} />
+                            </Button>
                         </View>
                     </TooltipToRender>
                 )}

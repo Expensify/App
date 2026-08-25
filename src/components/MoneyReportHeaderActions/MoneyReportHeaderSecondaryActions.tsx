@@ -253,7 +253,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                     shouldCalculateTotals,
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
-                    isOffline,
                     isLoading: !!currentSearchResults?.search?.isLoading,
                 });
             }
