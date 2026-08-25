@@ -365,6 +365,17 @@ function process(): Promise<void> {
                     errorName: error.name,
                     errorMessage: error.message,
                 });
+                const discardedReceiptData = (requestToProcess.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
+                const isCoveredElsewhere = error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD;
+                if (!isCoveredElsewhere && RECEIPT_BEARING_COMMANDS.has(requestToProcess.command) && discardedReceiptData.receipt) {
+                    logReceiptGaveUp({
+                        receiptTraceId: discardedReceiptData.receipt.receiptTraceId,
+                        transactionID: discardedReceiptData.transactionID,
+                        command: requestToProcess.command,
+                        errorMessage: error.message,
+                        errorName: error.name,
+                    });
+                }
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
                 return process();
@@ -415,11 +426,14 @@ function process(): Promise<void> {
                         command: requestToProcess.command,
                         errorMessage: error.message,
                     });
-                    // The line above only says which command failed. Receipts need a line we can trace back.
-                    if (RECEIPT_BEARING_COMMANDS.has(requestToProcess.command)) {
-                        const receiptData = (requestToProcess.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
+                    // The line above only says which command failed. Receipts need a line we can trace back. The
+                    // receipt check matters: RequestMoney and TrackExpense are the commands for every expense, with
+                    // or without a receipt, so the command name alone would report plain manual expenses as lost
+                    // receipts.
+                    const receiptData = (requestToProcess.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
+                    if (RECEIPT_BEARING_COMMANDS.has(requestToProcess.command) && receiptData.receipt) {
                         logReceiptGaveUp({
-                            receiptTraceId: receiptData.receipt?.receiptTraceId,
+                            receiptTraceId: receiptData.receipt.receiptTraceId,
                             transactionID: receiptData.transactionID,
                             command: requestToProcess.command,
                             errorMessage: error.message,
@@ -696,11 +710,12 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
     if (RECEIPT_BEARING_COMMANDS.has(newRequest.command)) {
         const data = (newRequest.data ?? {}) as {
             transactionID?: string;
-            receipt?: {receiptTraceId?: string};
+            receipt?: {receiptTraceId?: string; receiptEnqueuedAt?: number};
         };
+        // Runs before the request is persisted, so the enqueue stamp it writes is saved along with the receipt.
         if (data.receipt) {
             logReceiptEnqueued({
-                receiptTraceId: data.receipt.receiptTraceId,
+                receipt: data.receipt,
                 transactionID: data.transactionID,
                 command: newRequest.command,
                 persistedQueueLength: currentRequests.length,
