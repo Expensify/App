@@ -1024,6 +1024,52 @@ describe('Session', () => {
 
             onyxMultiSetSpy.mockRestore();
         });
+
+        /**
+         * Every NVP OldDot sends goes through the same loop, not only the staging preference, so what the loop
+         * does with each kind of value is worth pinning down.
+         */
+        describe('the values OldDot sends', () => {
+            const transitionWith = async (values: Record<string, unknown>) => {
+                await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+                await waitForBatchedUpdates();
+
+                const onyxUpdateSpy = jest.spyOn(Onyx, 'update').mockResolvedValue(undefined);
+
+                const hybridAppSettings = {...buildHybridAppSettings(false), ...values} as Parameters<typeof SessionUtil.setupNewDotAfterTransitionFromOldDot>[0];
+                await SessionUtil.setupNewDotAfterTransitionFromOldDot(hybridAppSettings, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                const updates = onyxUpdateSpy.mock.calls.at(0)?.at(0) ?? [];
+                onyxUpdateSpy.mockRestore();
+
+                return updates;
+            };
+
+            test('merges a real value', async () => {
+                const updates = await transitionWith({[ONYXKEYS.SHOULD_USE_STAGING_SERVER]: true});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SHOULD_USE_STAGING_SERVER, value: true}]));
+            });
+
+            test('merges false rather than reading it as absent', async () => {
+                const updates = await transitionWith({[ONYXKEYS.SHOULD_USE_STAGING_SERVER]: false});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SHOULD_USE_STAGING_SERVER, value: false}]));
+            });
+
+            test('passes null through, so OldDot can clear a key', async () => {
+                const updates = await transitionWith({[ONYXKEYS.SHOULD_USE_STAGING_SERVER]: null});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SHOULD_USE_STAGING_SERVER, value: null}]));
+            });
+
+            test('skips undefined instead of writing a placeholder over the stored value', async () => {
+                const updates = await transitionWith({[ONYXKEYS.SHOULD_USE_STAGING_SERVER]: undefined});
+
+                expect(updates.map((update) => update.key)).not.toContain(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+            });
+        });
     });
     describe('isSupportAuthToken', () => {
         beforeEach(() => {
