@@ -731,6 +731,9 @@ function BasePopoverMenu({
         ],
     );
 
+    // The native KeyboardAvoidingView can shrink-wrap a bottom-docked modal, so keep its outer wrapper full-width while search is active.
+    const keyboardAvoidingOuterStyle = isSearchEnabled && isSmallScreenWidth ? styles.w100 : undefined;
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -744,6 +747,8 @@ function BasePopoverMenu({
             isVisible={isVisible}
             onModalHide={handleModalHide}
             onModalShow={onModalShow}
+            avoidKeyboard={isSearchEnabled}
+            outerStyle={keyboardAvoidingOuterStyle}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInDelay={animationInDelay}
