@@ -4,8 +4,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -31,7 +31,7 @@ import React, {useMemo} from 'react';
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
 
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
@@ -126,7 +126,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             brickRoadIndicator={areSettingsInErrorFields([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
-                    {isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS) && isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX) && (
+                    {isGlobalReimbursementFXEnabled && (
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}>
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
