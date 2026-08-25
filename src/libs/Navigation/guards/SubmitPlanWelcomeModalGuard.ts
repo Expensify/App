@@ -1,3 +1,4 @@
+import getUserSecurityGroup from '@libs/getUserSecurityGroup';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
@@ -11,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {IntroSelected, Policy, SecurityGroup, Session} from '@src/types/onyx';
+import type {DomainSecurityGroupMembership, IntroSelected, Policy, SecurityGroup, Session} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -19,7 +20,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {findFocusedRoute} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {isSupportalSessionSelector} from '@selectors/Session';
-import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
@@ -30,8 +30,9 @@ let introSelected: OnyxEntry<IntroSelected>;
 let policies: OnyxCollection<Policy>;
 let hasCompletedGuidedSetupFlow: boolean | undefined;
 let hasShownSubmitMigrationModal: OnyxEntry<boolean>;
-let myDomainSecurityGroups: OnyxEntry<Record<string, string>>;
+let myDomainSecurityGroups: OnyxEntry<Record<string, DomainSecurityGroupMembership>>;
 let securityGroups: OnyxCollection<SecurityGroup>;
+let legacySecurityGroups: OnyxCollection<SecurityGroup>;
 let isSubmitMigrationModalShownLoaded = false;
 let hasLoadedApp = false;
 
@@ -98,12 +99,7 @@ function shouldShowSubmitPlanWelcomeModal(): boolean {
  * "Get the free plan" would dismiss it (marking it shown) without creating anything or navigating.
  */
 function isPolicyCreationRestricted(): boolean {
-    const userDomain = session?.email ? Str.extractEmailDomain(session.email) : undefined;
-    const securityGroupID = userDomain ? myDomainSecurityGroups?.[userDomain] : undefined;
-    if (!securityGroupID) {
-        return false;
-    }
-    return securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`]?.enableRestrictedPolicyCreation === true;
+    return getUserSecurityGroup(session?.email, myDomainSecurityGroups, securityGroups, legacySecurityGroups)?.enableRestrictedPolicyCreation === true;
 }
 
 /**
@@ -224,10 +220,20 @@ Onyx.connectWithoutView({
     },
 });
 
+// Only isPolicyCreationRestricted reads this cached collection, during the guard's `evaluate` and the proactive check, and both run outside any React render.
+// useOnyx() works only during render, so this subscription uses connectWithoutView() instead.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP,
+    callback: (value) => {
+        securityGroups = value;
+    },
+});
+
+// The backend also writes the security group to this legacy collection, which isPolicyCreationRestricted reads as a fallback. That read happens outside any React render too, where useOnyx() does not work, so this subscription also uses connectWithoutView().
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SECURITY_GROUP,
     callback: (value) => {
-        securityGroups = value;
+        legacySecurityGroups = value;
     },
 });
 

@@ -1252,17 +1252,23 @@ function getSecondaryTransactionThreadActions({
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
-    // Show "Send to someone" only for an unreported self-tracked expense in personal space, reusing the track-expense
-    // whisper's convert-from-track flow (once submitted, parentReport is no longer a self-DM so this hides).
-    // A self-DM split can only go to a workspace, so hide it for a split unless the user has one; also require write
-    // access (like MOVE_EXPENSE) so the row hides on an archived self-DM.
+    // Offer the track-expense convert-from-track flow only for an unreported self-tracked expense in personal space
+    // (once submitted, parentReport is no longer a self-DM so these hide), and only with write access (like
+    // MOVE_EXPENSE) so the rows hide on an archived self-DM. These conditions mirror the Inbox track-expense whisper
+    // in ChatActionableButtons.
     const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
-    if (
-        isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) &&
-        (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) &&
-        canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
-    ) {
-        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+    const canConvertFromTrack = isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) && canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived);
+    if (canConvertFromTrack) {
+        // A self-DM split has no personal destination, so it can never go to a friend (matches ChatActionableButtons,
+        // which hides "Submit to a friend" for a split unconditionally).
+        if (!isSelfDMExpenseSplit) {
+            options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        }
+        // A split can still go to a workspace, but only one that already exists: the create-a-workspace fallback in
+        // createDraftTransactionAndNavigateToParticipantSelector is not wired for splits.
+        if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
+            options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+        }
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
