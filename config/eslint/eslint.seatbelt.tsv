@@ -282,7 +282,7 @@
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx"	"@typescript-eslint/no-deprecated/fontSize"	3
+"../../src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx"	"@typescript-eslint/no-deprecated/fontSize"	2
 "../../src/components/ReportActionItem/receiptHoverUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/RoomHeaderAvatars.tsx"	"no-restricted-syntax"	2
 "../../src/components/Rule/RuleBooleanBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
