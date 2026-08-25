@@ -1404,15 +1404,9 @@ function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: s
  */
 function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): Record<string, ApprovalWorkflowRule> {
     const result: Record<string, ApprovalWorkflowRule> = {};
-    if (!rulesCollection || !policyID) {
-        return result;
-    }
 
-    for (const [onyxKey, rule] of Object.entries(rulesCollection)) {
-        if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
-            continue;
-        }
-        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+    for (const [onyxKey, rule] of Object.entries(filterRulesForPolicy(rulesCollection, policyID))) {
+        if (!rule || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
         const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
