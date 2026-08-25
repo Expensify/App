@@ -9,7 +9,6 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -17,6 +16,7 @@ import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation'
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMapOrGpsDistanceGuard from '@hooks/useMapOrGpsDistanceGuard';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -160,7 +160,7 @@ function IOURequestStepDistanceOdometer({
         [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam],
     );
     const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useMapOrGpsDistanceGuard({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isOdometerDistanceRequest: true,
     });

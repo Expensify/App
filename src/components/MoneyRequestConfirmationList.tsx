@@ -1,8 +1,8 @@
 import useAttendees from '@hooks/useAttendees';
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
+import useMapOrGpsDistanceGuard from '@hooks/useMapOrGpsDistanceGuard';
 import {MouseProvider} from '@hooks/useMouseContext';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -256,7 +256,7 @@ function MoneyRequestConfirmationList({
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useMapOrGpsDistanceGuard({
         policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isManualDistanceRequest,
         isOdometerDistanceRequest,

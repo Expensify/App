@@ -89,7 +89,7 @@ import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {isDistanceRestrictedToMapsAndGPS} from '@libs/PolicyDistanceRatesUtils';
 import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
@@ -8085,10 +8085,10 @@ function buildOptimisticChangePolicyData({
     return {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction};
 }
 
-function shouldBlockChangeReportPolicyForCommuterExclusion(reportTransactions: Transaction[], policy: Policy): boolean {
-    const hasTargetPolicyCommuterExclusions = isCommuterExclusionEnabled(policy);
+function shouldBlockChangeReportPolicyForDistanceRestriction(reportTransactions: Transaction[], policy: Policy): boolean {
+    const isTargetPolicyRestricted = isDistanceRestrictedToMapsAndGPS(policy);
     return reportTransactions.some(
-        (transaction) => hasAppliedCommuterExclusion(transaction) || (hasTargetPolicyCommuterExclusions && (isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction))),
+        (transaction) => hasAppliedCommuterExclusion(transaction) || (isTargetPolicyRestricted && (isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction))),
     );
 }
 
@@ -8128,7 +8128,7 @@ function changeReportPolicy({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
 }) {
-    if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForCommuterExclusion(reportTransactions, policy)) {
+    if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForDistanceRestriction(reportTransactions, policy)) {
         return;
     }
 
@@ -8206,7 +8206,7 @@ function changeReportPolicyAndInviteSubmitter({
         !isExpenseReport(report) ||
         !report.ownerAccountID ||
         !submitterLogin ||
-        shouldBlockChangeReportPolicyForCommuterExclusion(reportTransactions, policy)
+        shouldBlockChangeReportPolicyForDistanceRestriction(reportTransactions, policy)
     ) {
         return;
     }

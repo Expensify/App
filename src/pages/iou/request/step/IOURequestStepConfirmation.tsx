@@ -12,7 +12,6 @@ import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -21,6 +20,7 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMapOrGpsDistanceGuard from '@hooks/useMapOrGpsDistanceGuard';
 import useMappedPolicies from '@hooks/useMappedPolicies';
 import useNetwork from '@hooks/useNetwork';
 import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
@@ -268,7 +268,7 @@ function IOURequestStepConfirmation({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useMapOrGpsDistanceGuard({
         policyID: policy?.id,
         isManualDistanceRequest,
         isOdometerDistanceRequest,

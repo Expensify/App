@@ -1,4 +1,4 @@
-import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {isDistanceRestrictedToMapsAndGPS} from '@libs/PolicyDistanceRatesUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
@@ -13,7 +13,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useThemeStyles from './useThemeStyles';
 
-type UseCommuterExclusionGuardParams = {
+type UseMapOrGpsDistanceGuardParams = {
     /** Policy ID to check by default */
     policyID?: string;
 
@@ -24,31 +24,30 @@ type UseCommuterExclusionGuardParams = {
     isOdometerDistanceRequest?: boolean;
 };
 
-type PoliciesWithCommuterExclusions = Record<string, boolean>;
+type PoliciesRestrictedToMapsAndGPS = Record<string, boolean>;
 
-const policiesWithCommuterExclusionsSelector = (policies: OnyxCollection<Policy>): PoliciesWithCommuterExclusions =>
-    Object.values(policies ?? {}).reduce<PoliciesWithCommuterExclusions>((acc, policy) => {
-        if (isCommuterExclusionEnabled(policy)) {
+const policiesRestrictedToMapsAndGPSSelector = (policies: OnyxCollection<Policy>): PoliciesRestrictedToMapsAndGPS =>
+    Object.values(policies ?? {}).reduce<PoliciesRestrictedToMapsAndGPS>((acc, policy) => {
+        if (policy?.id && isDistanceRestrictedToMapsAndGPS(policy)) {
             acc[policy.id] = true;
         }
         return acc;
     }, {});
 
 /**
- * Returns a guard function that blocks manual/odometer distance flows for policies
- * that have commuter exclusions configured. Callers can pass an override policy ID
- * when checking a newly selected workspace before committing it.
+ * Returns a guard function that blocks manual/odometer distance flows for policies that restrict distance
+ * to maps and GPS. Callers can pass an override policy ID when checking a newly selected workspace before
+ * committing it.
  *
- * When a block occurs, it surfaces a modal explaining that only map/GPS distance
- * is supported (because exclusions are computed from the mapped route) and returns
+ * When a block occurs, it surfaces a modal explaining that only map/GPS distance is supported and returns
  * true so callers can early return.
  */
-function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, isOdometerDistanceRequest = false}: UseCommuterExclusionGuardParams) {
+function useMapOrGpsDistanceGuard({policyID, isManualDistanceRequest = false, isOdometerDistanceRequest = false}: UseMapOrGpsDistanceGuardParams) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['HouseWithMap']);
-    const [policiesWithCommuterExclusions] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesWithCommuterExclusionsSelector});
+    const [policiesRestrictedToMapsAndGPS] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesRestrictedToMapsAndGPSSelector});
 
     return useCallback(
         (...policyIDsToCheck: [string?]) => {
@@ -57,7 +56,7 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
                 return false;
             }
 
-            if (!policyIDToCheck || !policiesWithCommuterExclusions?.[policyIDToCheck]) {
+            if (!policyIDToCheck || !policiesRestrictedToMapsAndGPS?.[policyIDToCheck]) {
                 return false;
             }
 
@@ -76,8 +75,8 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
 
             return true;
         },
-        [policyID, isManualDistanceRequest, isOdometerDistanceRequest, policiesWithCommuterExclusions, showConfirmModal, translate, styles, illustrations.HouseWithMap],
+        [policyID, isManualDistanceRequest, isOdometerDistanceRequest, policiesRestrictedToMapsAndGPS, showConfirmModal, translate, styles, illustrations.HouseWithMap],
     );
 }
 
-export default useCommuterExclusionGuard;
+export default useMapOrGpsDistanceGuard;

@@ -8,6 +8,7 @@ import type {
     SetPolicyCommuterExclusionsParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
+    SetPolicyRestrictDistanceToMapsAndGPSParams,
     SetWorkspaceDistanceAutoUpdateParams,
     UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
@@ -635,6 +636,58 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
 }
 
 /**
+ * Turn the "Restrict distance to maps and GPS" setting on or off for a policy. When it's on, the manual and
+ * odometer distance flows are unavailable because neither can produce a mapped route.
+ */
+function setPolicyRestrictDistanceToMapsAndGPS(policyID: string, shouldRestrictDistanceToMapsAndGPS: boolean) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    shouldRestrictDistanceToMapsAndGPS,
+                    pendingFields: {shouldRestrictDistanceToMapsAndGPS: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {shouldRestrictDistanceToMapsAndGPS: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {shouldRestrictDistanceToMapsAndGPS: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    shouldRestrictDistanceToMapsAndGPS: !shouldRestrictDistanceToMapsAndGPS,
+                    pendingFields: {shouldRestrictDistanceToMapsAndGPS: null},
+                    errorFields: {shouldRestrictDistanceToMapsAndGPS: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyRestrictDistanceToMapsAndGPSParams = {policyID, enabled: shouldRestrictDistanceToMapsAndGPS};
+    API.write(WRITE_COMMANDS.SET_POLICY_RESTRICT_DISTANCE_TO_MAPS_AND_GPS, parameters, onyxData);
+}
+
+function clearPolicyRestrictDistanceToMapsAndGPSErrors(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {shouldRestrictDistanceToMapsAndGPS: null},
+        pendingFields: {shouldRestrictDistanceToMapsAndGPS: null},
+    });
+}
+
+/**
  * Turn the auto-updating of government distance rates on or off for a policy.
  *
  * On enable, government reference rates for `outputCurrency` are copied optimistically. `optimisticRateIDs` sends the
@@ -807,6 +860,8 @@ export {
     setPolicyCommuterExclusions,
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
+    setPolicyRestrictDistanceToMapsAndGPS,
+    clearPolicyRestrictDistanceToMapsAndGPSErrors,
     setWorkspaceDistanceAutoUpdate,
     clearWorkspaceDistanceAutoUpdateErrors,
 };

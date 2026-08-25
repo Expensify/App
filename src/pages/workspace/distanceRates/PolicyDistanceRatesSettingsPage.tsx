@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -20,7 +21,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getGovernmentRateCountryPhraseTranslationKey, isCurrencySupportedForAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
+import {getGovernmentRateCountryPhraseTranslationKey, isCommuterExclusionEnabled, isCurrencySupportedForAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 
@@ -31,8 +32,10 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {
     clearPolicyCommuterExclusionsErrors,
     clearPolicyDistanceRatesErrorFields,
+    clearPolicyRestrictDistanceToMapsAndGPSErrors,
     clearWorkspaceDistanceAutoUpdateErrors,
     openPolicyDistanceRatesPage,
+    setPolicyRestrictDistanceToMapsAndGPS,
     setWorkspaceDistanceAutoUpdate,
 } from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
@@ -58,6 +61,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const {showConfirmModal} = useConfirmModal();
     const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
     const customUnit = getDistanceRateCustomUnit(policy);
     const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
@@ -113,6 +117,21 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
         setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? [], policy?.outputCurrency);
     };
 
+    // Commuter exclusions are computed from the mapped route, so they enforce the restriction on their own. The
+    // toggle is shown on and locked in that case, and the stored setting is left untouched so the admin's own
+    // choice comes back if they stop excluding commutes.
+    const isRestrictionLockedByCommuterExclusions = isCommuterExclusionEnabled(policy);
+    const isDistanceRestrictedToMapsAndGPS = isRestrictionLockedByCommuterExclusions || !!policy?.shouldRestrictDistanceToMapsAndGPS;
+
+    const showRestrictionLockedModal = () => {
+        showConfirmModal({
+            title: translate('workspace.distanceRates.restrictDistanceToMapsAndGPS'),
+            prompt: translate('workspace.distanceRates.restrictDistanceToMapsAndGPSLockedByCommuterExclusions'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
     const onToggleTrackTax = (isOn: boolean) => {
         if (!customUnit?.attributes) {
             return;
@@ -159,6 +178,32 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </OfflineWithFeedback>
                             )}
+                            <OfflineWithFeedback
+                                errors={getLatestErrorField(policy ?? {}, 'shouldRestrictDistanceToMapsAndGPS')}
+                                pendingAction={policy?.pendingFields?.shouldRestrictDistanceToMapsAndGPS}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearPolicyRestrictDistanceToMapsAndGPSErrors(policyID)}
+                            >
+                                <View style={[styles.mt3, styles.mh5]}>
+                                    <View style={[styles.flexRow, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                        <Text
+                                            style={[styles.textNormal, styles.colorMuted]}
+                                            accessible={false}
+                                            aria-hidden
+                                        >
+                                            {translate('workspace.distanceRates.restrictDistanceToMapsAndGPS')}
+                                        </Text>
+                                        <Switch
+                                            isOn={isDistanceRestrictedToMapsAndGPS}
+                                            accessibilityLabel={translate('workspace.distanceRates.restrictDistanceToMapsAndGPS')}
+                                            onToggle={(isOn) => setPolicyRestrictDistanceToMapsAndGPS(policyID, isOn)}
+                                            disabled={!canWriteDistanceRates || isRestrictionLockedByCommuterExclusions}
+                                            disabledAction={withReadOnlyFallback(isRestrictionLockedByCommuterExclusions ? showRestrictionLockedModal : undefined)}
+                                            showLockIcon={!canWriteDistanceRates || isRestrictionLockedByCommuterExclusions}
+                                        />
+                                    </View>
+                                </View>
+                            </OfflineWithFeedback>
                             {isCommuterExclusionsEnabled && (
                                 <OfflineWithFeedback
                                     errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}

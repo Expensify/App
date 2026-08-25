@@ -34,10 +34,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
-import useCommuterExclusionGuard from './useCommuterExclusionGuard';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
+import useMapOrGpsDistanceGuard from './useMapOrGpsDistanceGuard';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 import useOptimisticDraftTransactions from './useOptimisticDraftTransactions';
@@ -103,7 +103,7 @@ function useParticipantSubmission({
     // explicit useMemo is needed here.
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useMapOrGpsDistanceGuard({
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
     });

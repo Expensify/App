@@ -7412,6 +7412,9 @@ const translations = {
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
             workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
+            restrictDistanceToMapsAndGPS: 'Restrict distance to maps and GPS',
+            restrictDistanceToMapsAndGPSLockedByCommuterExclusions:
+                'Excluding commutes needs a mapped route, so distance is already restricted to maps and GPS. Stop excluding commutes to change this setting.',
             commuterExclusions: {
                 title: 'Exclude commutes',
                 summaryDisabled: 'No commute exclusion',

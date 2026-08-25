@@ -3,10 +3,12 @@ import {
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     isCurrencySupportedForAutoUpdate,
+    isDistanceRestrictedToMapsAndGPS,
     isGovernmentRateUnmodified,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
+import type {Policy} from '@src/types/onyx';
 import type {GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -154,6 +156,31 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should return undefined for an unsupported currency', () => {
             expect(getGovernmentRateCountryPhraseTranslationKey('NZD')).toBeUndefined();
+        });
+    });
+
+    describe('isDistanceRestrictedToMapsAndGPS', () => {
+        const buildPolicy = (policy: Partial<Policy>) => ({id: '1', name: 'Workspace', ...policy}) as Policy;
+
+        it('should return true when the workspace has the setting enabled', () => {
+            expect(isDistanceRestrictedToMapsAndGPS(buildPolicy({shouldRestrictDistanceToMapsAndGPS: true}))).toBe(true);
+        });
+
+        it('should return true when the workspace excludes commutes, even with the setting off', () => {
+            const policy = buildPolicy({
+                shouldRestrictDistanceToMapsAndGPS: false,
+                commuterExclusions: {method: 'fixedDistance', fixedDistance: 10, fixedDistanceUnit: 'mi'},
+            });
+
+            expect(isDistanceRestrictedToMapsAndGPS(policy)).toBe(true);
+        });
+
+        it('should return false when neither the setting nor commuter exclusions are set', () => {
+            expect(isDistanceRestrictedToMapsAndGPS(buildPolicy({}))).toBe(false);
+        });
+
+        it('should return false without a policy', () => {
+            expect(isDistanceRestrictedToMapsAndGPS(undefined)).toBe(false);
         });
     });
 });

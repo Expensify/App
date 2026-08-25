@@ -15,7 +15,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {isDistanceRestrictedToMapsAndGPS} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -69,19 +69,19 @@ function DistanceRequestStartPage({
     const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
     const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
     const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
-    // Manual/Odometer distance can't honor commuter exclusion (exclusions are derived from the mapped
-    // route), so hide those tabs whenever the resolved destination enforces exclusion:
+    // Manual/Odometer distance produces no mapped route, so hide those tabs whenever the resolved
+    // destination restricts distance to maps and GPS:
     // - Report-scoped flows (workspace chat / expense report): use that report's own policy.
     // - Global FAB flows: never hide for a Self-DM target (personal expenses are exempt); otherwise hide
-    //   when the single target workspace excludes, or when the user has multiple workspaces that ALL
-    //   exclude. `length > 1` is required because a single workspace is handled by `targetPolicy`, and
+    //   when the single target workspace restricts, or when the user has multiple workspaces that ALL
+    //   restrict. `length > 1` is required because a single workspace is handled by `targetPolicy`, and
     //   `[].every()` is vacuously true (which would wrongly hide the tabs for personal-only users).
     const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
     const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
-    const everyActiveWorkspaceExcludesCommuters = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled);
+    const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isDistanceRestrictedToMapsAndGPS);
     const shouldHideManualAndOdometerTabs = isReportScopedTarget
-        ? isCommuterExclusionEnabled(reportPolicy)
-        : !isSelfDMTarget && (isCommuterExclusionEnabled(targetPolicy) || everyActiveWorkspaceExcludesCommuters);
+        ? isDistanceRestrictedToMapsAndGPS(reportPolicy)
+        : !isSelfDMTarget && (isDistanceRestrictedToMapsAndGPS(targetPolicy) || isEveryActiveWorkspaceRestricted);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),

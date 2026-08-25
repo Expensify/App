@@ -7,13 +7,13 @@ import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
+import useMapOrGpsDistanceGuard from '@hooks/useMapOrGpsDistanceGuard';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -108,7 +108,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const hasCommuterExclusionDistanceRequest = reportTransactions.some((transaction) => hasAppliedCommuterExclusion(transaction));
     const hasManualDistanceRequest = reportTransactions.some((transaction) => isManualDistanceRequest(transaction));
     const hasOdometerDistanceRequest = reportTransactions.some((transaction) => isOdometerDistanceRequest(transaction));
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useMapOrGpsDistanceGuard({
         isManualDistanceRequest: hasManualDistanceRequest,
         isOdometerDistanceRequest: hasOdometerDistanceRequest,
     });

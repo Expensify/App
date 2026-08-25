@@ -7,12 +7,12 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMapOrGpsDistanceGuard from '@hooks/useMapOrGpsDistanceGuard';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
@@ -112,7 +112,7 @@ function IOURequestEditReportCommon({
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useMapOrGpsDistanceGuard({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
     });

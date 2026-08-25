@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useMapOrGpsDistanceGuard from '@hooks/useMapOrGpsDistanceGuard';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -22,7 +22,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({HouseWithMap: 'HouseWithMap'}),
 }));
 
-describe('useCommuterExclusionGuard', () => {
+describe('useMapOrGpsDistanceGuard', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -47,12 +47,31 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useMapOrGpsDistanceGuard({
                 isManualDistanceRequest: true,
             }),
         );
 
         expect(result.current('policy_forced')).toBe(true);
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('blocks selecting a workspace that restricts distance to maps and GPS without commuter exclusions', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_restricted`, {
+            id: 'policy_restricted',
+            name: 'Restricted workspace',
+            areDistanceRatesEnabled: true,
+            shouldRestrictDistanceToMapsAndGPS: true,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() =>
+            useMapOrGpsDistanceGuard({
+                isOdometerDistanceRequest: true,
+            }),
+        );
+
+        expect(result.current('policy_restricted')).toBe(true);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
 
@@ -64,7 +83,7 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useMapOrGpsDistanceGuard({
                 isManualDistanceRequest: true,
             }),
         );
@@ -86,7 +105,7 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useMapOrGpsDistanceGuard({
                 policyID: 'policy_forced',
                 isManualDistanceRequest: true,
             }),
@@ -110,7 +129,7 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useMapOrGpsDistanceGuard({
                 isManualDistanceRequest: true,
             }),
         );
@@ -132,7 +151,7 @@ describe('useCommuterExclusionGuard', () => {
         });
         await waitForBatchedUpdates();
 
-        const {result} = renderHook(() => useCommuterExclusionGuard({}));
+        const {result} = renderHook(() => useMapOrGpsDistanceGuard({}));
 
         expect(result.current('policy_forced')).toBe(false);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
