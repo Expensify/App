@@ -1,4 +1,4 @@
-import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyReportHeaderModals from '@components/MoneyReportHeaderModals';
@@ -59,6 +59,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
@@ -94,10 +95,16 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
+        // Bypassing approvers is an approval action, so it is off limits to delegates who cannot approve
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
         // Taking control only makes the current user the final approver. When they already are the manager, the report
         // stays waiting on them, so approve it as well to actually bypass the remaining approvers.
-        if (isCurrentUserManager && !isDelegateAccessRestricted) {
+        if (isCurrentUserManager) {
             confirmApproval();
         }
         Navigation.dismissToPreviousRHP();
@@ -114,6 +121,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         isCurrentUserManager,
         confirmApproval,
         isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
     ]);
 
     const approverTypes = useMemo(() => {
