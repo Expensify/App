@@ -178,11 +178,6 @@ PODS:
   - ExpoModulesWorklets (57.0.7):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (57.0.7):
-    - ExpoModulesCore
-    - ExpoModulesJSI
-    - ExpoModulesWorklets
-    - RNWorklets
   - ExpoStoreReview (57.0.1):
     - ExpoModulesCore
   - ExpoTaskManager (57.0.6):
@@ -4473,7 +4468,6 @@ DEPENDENCIES:
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-jsi/apple`)
   - ExpoModulesWorklets (from `../node_modules/expo-modules-core`)
-  - ExpoModulesWorkletsAdapter (from `../node_modules/expo-modules-core`)
   - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
   - ExpoTaskManager (from `../node_modules/expo-task-manager/ios`)
   - ExpoVideo (from `../node_modules/expo-video/ios`)
@@ -4694,8 +4688,6 @@ EXTERNAL SOURCES:
   ExpoModulesJSI:
     :path: "../node_modules/expo-modules-jsi/apple"
   ExpoModulesWorklets:
-    :path: "../node_modules/expo-modules-core"
-  ExpoModulesWorkletsAdapter:
     :path: "../node_modules/expo-modules-core"
   ExpoStoreReview:
     :path: "../node_modules/expo-store-review/ios"
@@ -4996,7 +4988,6 @@ SPEC CHECKSUMS:
   ExpoModulesCore: 48de9b4d1179bb3a38025a0db36ec6cedc8f580c
   ExpoModulesJSI: 3accd404d715d63e7b04015d20c857e903e3bc73
   ExpoModulesWorklets: b21b8f233b5fd71ca74327217601fa4ead9ddaaf
-  ExpoModulesWorkletsAdapter: fbbef35a631ee8ae3f76e3e2133a3158f7c83e24
   ExpoStoreReview: 2a0f6b8e04112aea2f6e3e1cb84109d78f4d041f
   ExpoTaskManager: f68326227852a30148700965c37c058c1473c6a2
   ExpoVideo: b1d9a325ddcd4f3ed8ccb374c01b688e98bc6a04
