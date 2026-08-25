@@ -66,11 +66,11 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     }, [country]);
 
     useEffect(() => {
-        if (network.isOffline) {
+        if (network.isOffline || bankAccount) {
             return;
         }
         getPaymentMethods();
-    }, [network.isOffline]);
+    }, [network.isOffline, bankAccount]);
 
     useEffect(() => {
         return clearErrors(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
