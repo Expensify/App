@@ -233,7 +233,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                         return;
                     }
 
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Plan-authorized preservation of the falsy policy chat report-ID fallback.
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- The existing || fallback is intentional: an empty policy-chat report ID must fall back to the component report ID; ?? would retain the empty string.
                     const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, true);
                 })
