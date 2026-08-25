@@ -30,9 +30,6 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         // OR Workflows depending on the confirmation screen it was opened from. Pinning it to a central pane here
         // would make getMatchingFullScreenRoute resolve that pane before reaching the dynamic base-path branch,
         // forcing Members underneath even when opened from Workflows. Leaving it out lets the base path decide.
-        // For the same reason, the dynamic company-card details/export screens are NOT listed here (or under
-        // Company cards): they are shared by Members and Company cards, so their background must be resolved from
-        // the URL by the dynamic base-path branch, not pinned to a single central pane.
     ],
     [SCREENS.WORKSPACE.ROOMS]: [SCREENS.WORKSPACE.ROOM_CREATE],
     [SCREENS.WORKSPACE.WORKFLOWS]: [
