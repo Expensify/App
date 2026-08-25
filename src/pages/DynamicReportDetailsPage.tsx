@@ -217,8 +217,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const {lastAccessedReport} = useFindLastAccessedReport({
-        ignoreDomainRooms: false,
         excludeReportID: report.reportID,
+        openOnAdminRoom: false,
     });
     const lastAccessedReportID = lastAccessedReport?.reportID;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

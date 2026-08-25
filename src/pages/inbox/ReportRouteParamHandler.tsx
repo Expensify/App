@@ -1,5 +1,4 @@
 import useFindLastAccessedReport from '@hooks/useFindLastAccessedReport';
-import usePermissions from '@hooks/usePermissions';
 
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -8,7 +7,6 @@ import {isNumeric} from '@libs/ValidationUtils';
 
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 
-import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -25,14 +23,9 @@ type ReportScreenRoute =
 function ReportRouteParamHandler() {
     const route = useRoute<ReportScreenRoute>();
     const navigation = useNavigation();
-    const {isBetaEnabled} = usePermissions();
     const shouldResolveReportID = !route.params.reportID;
-    const ignoreDomainRooms = !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
-    const shouldOpenOnAdminRoom = 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom;
 
     const {lastAccessedReport, reportsMetadata, reportNameValuePairsMetadata} = useFindLastAccessedReport({
-        ignoreDomainRooms,
-        openOnAdminRoom: shouldOpenOnAdminRoom,
         enabled: shouldResolveReportID,
     });
 
