@@ -539,7 +539,7 @@ describe('ProfilePage - View user history', () => {
         await waitForBatchedUpdatesWithAct();
     }
 
-    function renderPublicProfilePage() {
+    function renderPublicProfilePage(accountIDParam?: string) {
         return render(
             <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
                 <PortalProvider>
@@ -548,7 +548,7 @@ describe('ProfilePage - View user history', () => {
                             <PublicProfileStack.Screen
                                 name={SCREENS.DYNAMIC_PROFILE}
                                 component={PublicProfilePage}
-                                initialParams={{accountID: String(PUBLIC_PROFILE_ACCOUNT_ID), reportID: ''}}
+                                initialParams={{accountID: accountIDParam ?? String(PUBLIC_PROFILE_ACCOUNT_ID), reportID: ''}}
                             />
                         </PublicProfileStack.Navigator>
                     </NavigationContainer>
@@ -611,10 +611,20 @@ describe('ProfilePage - View user history', () => {
         expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
     });
 
-    it('hides the search entry when the account has no login', async () => {
+    it('hides the search entry when the account has no login or accountID', async () => {
         await setUpPublicProfile('');
 
         renderPublicProfilePage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
+        expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
+    });
+
+    it.each(['0', 'not-a-number'])('hides the search entry for the invalid accountID %s', async (invalidAccountID) => {
+        await setUpPublicProfile('user@expensify.com');
+
+        renderPublicProfilePage(invalidAccountID);
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
