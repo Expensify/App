@@ -2,17 +2,29 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 
-import {changeTransactionsReport as changeTransactionsReportAction, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
+import {
+    changeTransactionsReport as changeTransactionsReportAction,
+    dismissDuplicateTransactionViolation,
+    markAsCash,
+    removeWaypoint,
+    sanitizeWaypointsForAPI,
+    saveWaypoint,
+    setSelectedRoute,
+} from '@libs/actions/Transaction';
+import * as API from '@libs/API';
+import type {ChangeTransactionsReportParams} from '@libs/API/parameters';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
+import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
+import {isRecord} from '@libs/ObjectUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -24,13 +36,16 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
+import {hasDefinedProperty, parseJSONRecord, readProperty, isReportMergeUpdate, isReportStateMergeUpdate} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
@@ -49,6 +64,16 @@ type CapturedOnyxData = {
 
 function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
     return typeof value === 'object' && value !== null;
+}
+
+function isChangeTransactionsReportParams(value: unknown): value is ChangeTransactionsReportParams {
+    return (
+        isRecord(value) &&
+        typeof value.reportID === 'string' &&
+        typeof value.transactionList === 'string' &&
+        typeof value.transactionIDToReportActionAndThreadData === 'string' &&
+        (value.transactionIDToUpdatedCustomUnitRateID === undefined || typeof value.transactionIDToUpdatedCustomUnitRateID === 'string')
+    );
 }
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
@@ -145,13 +170,18 @@ describe('Transaction', () => {
         });
     });
 
-    let mockFetch: TestHelper.MockFetch;
+    const mockFetch = TestHelper.setupGlobalFetchMock();
+    const statefulFetchImplementation = mockFetch.getMockImplementation();
+    if (!statefulFetchImplementation) {
+        throw new Error('Expected the stateful fetch mock implementation');
+    }
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = global.fetch as TestHelper.MockFetch;
+        mockFetch.mockReset();
+        mockFetch.mockImplementation(statefulFetchImplementation);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
+    /* eslint-disable rulesdir/no-multiple-api-calls -- Each it callback independently spies on API.write once; the rule's ancestor token scan combines otherwise independent tests. */
     describe('changeTransactionsReport', () => {
         let reports: OnyxCollection<Report>;
 
@@ -263,7 +293,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles reportNextStep parameter when moving transactions between reports', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -303,7 +333,7 @@ describe('Transaction', () => {
             expect(mockAPIWrite).toHaveBeenCalled();
 
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
+            const failureData = apiWriteCall?.[2]?.failureData;
 
             const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
 
@@ -314,7 +344,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles reportNextStep parameter when moving transactions to unreported report', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -354,7 +384,7 @@ describe('Transaction', () => {
             expect(mockAPIWrite).toHaveBeenCalled();
 
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
+            const failureData = apiWriteCall?.[2]?.failureData;
 
             const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`);
 
@@ -509,7 +539,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles undefined reportNextStep parameter', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -541,7 +571,7 @@ describe('Transaction', () => {
             expect(mockAPIWrite).toHaveBeenCalled();
 
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
+            const failureData = apiWriteCall?.[2]?.failureData;
 
             const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
 
@@ -552,8 +582,8 @@ describe('Transaction', () => {
         });
 
         it('updates the source submitted report next step and reopens it when it becomes empty', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            const buildOptimisticNextStepSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const buildOptimisticNextStepSpy = jest.spyOn(NextStepUtils, 'buildOptimisticNextStep');
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -596,23 +626,23 @@ describe('Transaction', () => {
             await waitForBatchedUpdates();
 
             try {
-                const buildOptimisticNextStepCalls = buildOptimisticNextStepSpy.mock.calls as Array<[Parameters<typeof buildOptimisticNextStep>[0]]>;
-                const sourceNextStepCall = buildOptimisticNextStepCalls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
+                const sourceNextStepCall = buildOptimisticNextStepSpy.mock.calls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
 
                 expect(sourceNextStepCall).toBeDefined();
                 expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.OPEN);
 
-                const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: Partial<Report>}>})?.optimisticData;
-                const sourceReportUpdate = optimisticData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`);
-                const sourceReportStateUpdate = optimisticData?.find(
-                    (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}` && 'stateNum' in data.value && 'statusNum' in data.value,
-                );
+                const [, , onyxData] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+                const reportKey: ReportMergeUpdate['key'] = `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`;
+                const reportUpdates = TestHelper.getRequiredOnyxUpdates(onyxData, 'optimisticData');
+                const sourceReportUpdate = reportUpdates.findLast((update) => isReportMergeUpdate(update, reportKey));
+                const sourceReportStateUpdate = reportUpdates.find((update) => isReportStateMergeUpdate(update, reportKey));
+                if (!sourceReportUpdate || !sourceReportStateUpdate) {
+                    throw new Error('Expected typed source report updates');
+                }
 
-                expect(sourceReportUpdate).toBeDefined();
-                expect(sourceReportUpdate?.value).toEqual({nextStep: {actorAccountID: 1, icon: 'hourglass', messageKey: 'waitingToAddTransactions'}, pendingFields: {nextStep: 'update'}});
-                expect(sourceReportStateUpdate?.value.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
-                expect(sourceReportStateUpdate?.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+                expect(sourceReportUpdate.value).toEqual({nextStep: {actorAccountID: 1, icon: 'hourglass', messageKey: 'waitingToAddTransactions'}, pendingFields: {nextStep: 'update'}});
+                expect(sourceReportStateUpdate.value.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                expect(sourceReportStateUpdate.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
                 buildOptimisticNextStepSpy.mockRestore();
                 mockAPIWrite.mockRestore();
@@ -620,7 +650,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles ASAP submit beta enabled when moving transactions', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -651,10 +681,10 @@ describe('Transaction', () => {
 
             expect(mockAPIWrite).toHaveBeenCalled();
 
-            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const parameters = apiWriteCall?.[1] as {reportID: string; transactionList: string; transactionIDToReportActionAndThreadData: string};
-
-            expect(parameters).toBeDefined();
+            const [, parameters] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+            if (!isChangeTransactionsReportParams(parameters)) {
+                throw new Error('Expected changeTransactionsReport API.write parameters');
+            }
             expect(parameters.reportID).toBe(FAKE_NEW_REPORT_ID);
             expect(parameters.transactionList).toBe(transaction.transactionID);
 
@@ -662,7 +692,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles different account IDs and emails when moving transactions', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -696,10 +726,10 @@ describe('Transaction', () => {
 
             expect(mockAPIWrite).toHaveBeenCalled();
 
-            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const parameters = apiWriteCall?.[1] as {reportID: string; transactionList: string; transactionIDToReportActionAndThreadData: string};
-
-            expect(parameters).toBeDefined();
+            const [, parameters] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+            if (!isChangeTransactionsReportParams(parameters)) {
+                throw new Error('Expected changeTransactionsReport API.write parameters');
+            }
             expect(parameters.reportID).toBe(FAKE_NEW_REPORT_ID);
             expect(parameters.transactionList).toBe(transaction.transactionID);
 
@@ -1379,7 +1409,7 @@ describe('Transaction', () => {
         });
 
         it('should not call API.write when the transaction is already on the target report', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_NEW_REPORT_ID,
@@ -2042,7 +2072,100 @@ describe('Transaction', () => {
             // Rate should remain unchanged since it was already valid
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
         });
+
+        it('should not create MOVED_TRANSACTION action when moving expenses from a Draft report', async () => {
+            const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            const draftReport = {
+                ...createRandomReport(10, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transaction = generateTransaction({reportID: draftReport.reportID});
+            const oldIOUAction = createIOUAction(transaction);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`, draftReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${draftReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+                transactionViolations: {},
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport},
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            expect(mockAPIWrite).toHaveBeenCalled();
+
+            const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
+            const transactionData = parseJSONRecord(readProperty(parameters, 'transactionIDToReportActionAndThreadData'));
+
+            expect(hasDefinedProperty(transactionData[transaction.transactionID], 'movedReportActionID')).toBe(false);
+
+            mockAPIWrite.mockRestore();
+        });
+
+        it('should create MOVED_TRANSACTION action when moving expenses from a non-Draft report', async () => {
+            const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            const submittedReport = {
+                ...createRandomReport(11, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transaction = generateTransaction({reportID: submittedReport.reportID});
+            const oldIOUAction = createIOUAction(transaction);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${submittedReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+                transactionViolations: {},
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`]: submittedReport},
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            expect(mockAPIWrite).toHaveBeenCalled();
+
+            const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
+            const transactionData = parseJSONRecord(readProperty(parameters, 'transactionIDToReportActionAndThreadData'));
+
+            expect(hasDefinedProperty(transactionData[transaction.transactionID], 'movedReportActionID')).toBe(true);
+
+            mockAPIWrite.mockRestore();
+        });
     });
+    /* eslint-enable rulesdir/no-multiple-api-calls */
 
     describe('getAllNonDeletedTransactions', () => {
         it('returns the transaction when it has a pending delete action and is offline', () => {
@@ -2154,6 +2277,181 @@ describe('Transaction', () => {
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
         });
+
+        it('should clear the selected route key so it does not point at a route that no longer exists', async () => {
+            const transactionID = 'txn6';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: 'Clear Selected Route',
+                lat: 9,
+                lng: 10,
+            };
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                selectedRouteKey: 'route1',
+                customUnit: {...existingTransaction.comment?.customUnit, routeDistanceMeters: 200},
+            };
+            existingTransaction.routes = {
+                route0: {distance: 100, geometry: {coordinates: [[0, 0]]}},
+                route1: {distance: 200, geometry: {coordinates: [[1, 1]]}},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList: []});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
+
+            // The route distance belongs to the old waypoints, so it must not survive to be distance-matched
+            // against the refetched routes — otherwise the selection would jump to a route the user never picked.
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
+            expect(
+                TransactionUtils.getSelectedRouteKey({
+                    ...existingTransaction,
+                    comment: transaction?.comment,
+                    routes: {route0: {distance: 500, geometry: {coordinates: [[0, 0]]}}, route1: {distance: 200, geometry: {coordinates: [[1, 1]]}}},
+                }),
+            ).toBe(CONST.TRANSACTION.DEFAULT_ROUTE_KEY);
+        });
+    });
+
+    describe('removeWaypoint', () => {
+        it('should clear the selected route key when the removed waypoint invalidates the route', async () => {
+            const transactionID = 'txn7';
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                selectedRouteKey: 'route1',
+                customUnit: {...existingTransaction.comment?.customUnit, routeDistanceMeters: 200},
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                    waypoint2: {address: 'C', lat: 3, lng: 3},
+                },
+            };
+            existingTransaction.routes = {
+                route0: {distance: 100, geometry: {coordinates: [[0, 0]]}},
+                route1: {distance: 200, geometry: {coordinates: [[1, 1]]}},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await removeWaypoint(existingTransaction, '1');
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
+        });
+    });
+
+    describe('setSelectedRoute', () => {
+        const ROUTE0_DISTANCE_METERS = 16093.44; // 10 mi
+        const ROUTE1_DISTANCE_METERS = 32186.88; // 20 mi
+
+        function buildRoutedTransaction(transactionID: string, distanceUnit?: Unit) {
+            const transaction = generateTransaction({transactionID, reportID: '1'});
+            transaction.comment = {
+                ...transaction.comment,
+                selectedRouteKey: CONST.TRANSACTION.DEFAULT_ROUTE_KEY,
+                customUnit: {
+                    ...transaction.comment?.customUnit,
+                    quantity: 10,
+                    routeDistanceMeters: ROUTE0_DISTANCE_METERS,
+                    ...(distanceUnit ? {distanceUnit} : {}),
+                },
+            };
+            transaction.routes = {
+                route0: {distance: ROUTE0_DISTANCE_METERS, geometry: {coordinates: [[0, 0]]}},
+                route1: {distance: ROUTE1_DISTANCE_METERS, geometry: {coordinates: [[1, 1]]}},
+            };
+            return transaction;
+        }
+
+        it.each([
+            [CONST.TRANSACTION.STATE.CURRENT, ONYXKEYS.COLLECTION.TRANSACTION],
+            [CONST.TRANSACTION.STATE.DRAFT, ONYXKEYS.COLLECTION.TRANSACTION_DRAFT],
+            [CONST.TRANSACTION.STATE.SPLIT_DRAFT, ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT],
+        ] as const)('writes the quantity of the newly selected route to the %s transaction', async (transactionState, keyPrefix) => {
+            const transactionID = `selectedRoute_${transactionState}`;
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${keyPrefix}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, transactionState);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${keyPrefix}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(20);
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(ROUTE1_DISTANCE_METERS);
+        });
+
+        it('makes the displayed distance follow the newly selected route instead of the stale quantity', async () => {
+            const transactionID = 'selectedRoute_distance';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBeCloseTo(ROUTE1_DISTANCE_METERS, 1);
+
+            expect(TransactionUtils.hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('overwrites a manually typed distance override', async () => {
+            const transactionID = 'selectedRoute_override';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            existingTransaction.comment = {...existingTransaction.comment, customUnit: {...existingTransaction.comment?.customUnit, quantity: 999}};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(20);
+        });
+
+        it("converts using the transaction's own distance unit", async () => {
+            const transactionID = 'selectedRoute_km';
+            const existingTransaction = buildRoutedTransaction(transactionID, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(32.19);
+        });
+
+        it('only writes the selected route key when the route has no distance', async () => {
+            const transactionID = 'selectedRoute_noDistance';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, undefined, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(10);
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(ROUTE0_DISTANCE_METERS);
+        });
+
+        it('only writes the selected route key when the distance unit is unknown', async () => {
+            const transactionID = 'selectedRoute_noUnit';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, undefined);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(10);
+        });
     });
 
     describe('sanitizeWaypointsForAPI', () => {
@@ -2189,8 +2487,7 @@ describe('Transaction', () => {
 
             // When sanitizing the waypoints
             // Test intentionally passes extra fields not in WaypointCollection to verify they are stripped
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithExtraFields as any);
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithExtraFields);
 
             // Then only allowed fields should remain
             expect(sanitizedWaypoints.waypoint0).toEqual({
@@ -2218,8 +2515,7 @@ describe('Transaction', () => {
 
             // When sanitizing the waypoints
             // Test uses a partial waypoint object to verify sanitization handles missing fields
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithPartialFields as any);
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithPartialFields);
 
             // Then only the address should be present
             expect(sanitizedWaypoints.waypoint0).toEqual({
@@ -2256,8 +2552,8 @@ describe('Transaction', () => {
 
             // When sanitizing the waypoints
             // Null entries can occur at runtime even though WaypointCollection type doesn't include null
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithNulls as any);
+            // @ts-expect-error -- rollback data can contain null waypoint entries even though the production collection type excludes null.
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithNulls);
 
             // Then null entries should be dropped and valid entries sanitized
             expect(sanitizedWaypoints).toEqual({
@@ -2745,7 +3041,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
     function makeTransactionCollection(...ids: string[]) {
         const collection: Record<string, Transaction> = {};
         for (const id of ids) {
-            collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = {transactionID: id} as Transaction;
+            collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = createMock<Transaction>({transactionID: id});
         }
         return collection;
     }

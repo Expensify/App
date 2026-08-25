@@ -56,6 +56,7 @@ import Onyx from 'react-native-onyx';
 
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 
+import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
@@ -164,17 +165,16 @@ function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
 
 /**
  * @private
- * Returns string value wrapped in quotes "", if the value contains space, &nbsp; (no-breaking space), or a comma when shouldQuoteComma is set.
+ * Escapes the characters the parser would otherwise act on, then wraps the value in quotes "" if it contains a space,
+ * &nbsp; (no-breaking space) or a comma. Callers pass one value at a time and join them with commas themselves, so a
+ * comma inside the value is part of it and has to survive being read back.
  */
-function sanitizeSearchValue(str: string, shouldQuoteComma = false) {
-    if (str.includes(' ') || str.includes(`\xA0`) || (shouldQuoteComma && str.includes(','))) {
-        return `"${str}"`;
+function sanitizeSearchValue(str: string) {
+    const escaped = str.replaceAll(/[\\"“”]/g, '\\$&');
+    if (escaped.includes(' ') || escaped.includes(`\xA0`) || escaped.includes(',')) {
+        return `"${escaped}"`;
     }
-    return str;
-}
-
-function stripSearchValueQuotes(str: string) {
-    return str.replaceAll(/["“”]/g, '');
+    return escaped;
 }
 
 const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
@@ -458,12 +458,27 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 }
 
 /**
+ * Resolves a typed workspace name to its ID. Names are not unique, so an ambiguous one is left alone rather than
+ * guessing which workspace was meant.
+ */
+function resolvePolicyIDFromName(value: string, policies: OnyxCollection<OnyxTypes.Policy>) {
+    if (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${value}`]) {
+        return value;
+    }
+
+    const lowerCaseValue = value.toLowerCase();
+    const matches = Object.values(policies ?? {}).filter((policy) => policy?.name?.toLowerCase() === lowerCaseValue);
+    return matches.length === 1 ? (matches.at(0)?.id ?? value) : value;
+}
+
+/**
  * @private
  * Returns an updated filter value for some query filters.
  * - for `AMOUNT` it formats value to "backend" amount
  * - for personal filters it tries to substitute any user emails with accountIDs
+ * - for `POLICY_ID` it tries to substitute an unambiguous workspace name with its ID
  */
-function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string | string[], shouldSkipAmountConversion = false) {
+function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string | string[], shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     if (AMOUNT_FILTER_KEYS.includes(filterName as SearchAmountFilterKeys)) {
         if (shouldSkipAmountConversion) {
             return filterValue;
@@ -490,6 +505,13 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
         }
 
         return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
+    }
+
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+        if (typeof filterValue === 'string') {
+            return resolvePolicyIDFromName(filterValue, policies);
+        }
+        return filterValue.map((value) => resolvePolicyIDFromName(value, policies));
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {
@@ -1740,7 +1762,13 @@ function getFilterDisplayValue({
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return deprecatedGetReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
     }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
+    if (
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED
+    ) {
         // Added 2 here as this is the maximum number of decimals an amount can have. So, we can run a search with 2 decimals here.
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue), 2);
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
@@ -1756,13 +1784,8 @@ function getFilterDisplayValue({
         return getPolicyNameWithFallback(filterValue, policies, reports);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
-        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT) {
-            return CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT;
-        }
-        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT) {
-            return CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
-        }
-        return filterValue;
+        // A query can carry a standard template's ID, so display the label the backend records for it. Custom template names are returned as-is.
+        return getStandardExportTemplateDisplayName(filterValue);
     }
     return filterValue;
 }
@@ -2181,7 +2204,7 @@ function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString,
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
-function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false) {
+function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     const queryJSON = buildSearchQueryJSON(query);
 
     if (!queryJSON) {
@@ -2189,7 +2212,7 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         return;
     }
 
-    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
+    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion, policies);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
     const rawFilterList = getRawFilterListFromQuery(query);
     const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
@@ -2389,6 +2412,7 @@ function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
     previousState: {view?: string; groupBy?: string},
     currentQueryOptions: {sortBy?: string; sortOrder?: string},
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): string | undefined {
     const resetSort = shouldResetSort({
         newGroupBy: filterValues.groupBy,
@@ -2412,7 +2436,7 @@ function buildFilterQueryWithSortDefaults(
         return queryString;
     }
 
-    return getQueryWithUpdatedValues(queryString, true);
+    return getQueryWithUpdatedValues(queryString, true, policies);
 }
 
 /**
@@ -2615,8 +2639,8 @@ export {
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
+    resolvePolicyIDFromName,
     sanitizeSearchValue,
-    stripSearchValueQuotes,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,

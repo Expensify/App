@@ -2,7 +2,7 @@
 /**
  * React Compiler Divergence Audit
  *
- * Runs BOTH React Compilers (Babel via babel-plugin-react-compiler, OXC via oxc-transform)
+ * Runs BOTH React Compilers (Babel via babel-plugin-react-compiler, OXC via oxc-transform-react)
  * over the source tree and reports every file where the two disagree on memoization.
  *
  * A file is "divergent" when exactly one compiler memoizes it (`compiled` XOR not-`compiled`).

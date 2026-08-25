@@ -116,8 +116,9 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
 
         for (const fieldKey of SETTING_FIELD_KEYS) {
             if (isEditing) {
-                // Edit drafts are seeded with DO_NOT_REQUIRE for inactive fields. Only carry over
-                // settings that are actually selected in the UI (active category overrides).
+                // Carry over whatever the row currently shows. Description and Attendees are boolean-backed,
+                // so they always resolve to a direction (Don't require when there is no override) and are
+                // always carried; the receipt fields keep their blank "no override" state and are skipped.
                 const displayedSetting = getRequireFieldsDisplayedSetting({
                     fieldKey,
                     category: selectedCategory,
