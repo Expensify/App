@@ -591,10 +591,7 @@ describe('OnboardingGuard', () => {
                 routeNames: [SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR],
                 routes: [
                     {key: 'home', name: SCREENS.HOME},
-                    {
-                        key: 'onboarding-modal',
-                        name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
-                    },
+                    {key: 'onboarding-modal', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
                 ],
                 stale: false,
                 type: 'stack',
@@ -822,15 +819,10 @@ describe('OnboardingGuard', () => {
 
     describe('supportal session', () => {
         it('should return ALLOW and skip onboarding during a supportal session', async () => {
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-            });
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdates();
 
-            const result = OnboardingGuard.evaluate(mockState, mockAction, {
-                ...authenticatedContext,
-                isSupportalSession: true,
-            });
+            const result = OnboardingGuard.evaluate(mockState, mockAction, {...authenticatedContext, isSupportalSession: true});
 
             expect(result.type).toBe('ALLOW');
         });
@@ -838,12 +830,8 @@ describe('OnboardingGuard', () => {
 
     describe('copilot session', () => {
         it('should return ALLOW and skip onboarding when acting as a copilot', async () => {
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-            });
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {
-                delegatedAccess: {delegate: 'copilot@expensify.com'},
-            });
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'copilot@expensify.com'}});
             await waitForBatchedUpdates();
 
             const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
