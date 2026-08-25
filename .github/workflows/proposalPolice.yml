@@ -3,19 +3,48 @@ on:
   issue_comment:
     types: [created, edited]
 
+concurrency:
+  # Serializes runs per-issue so two comments posted close together can't each create their own
+  # OpenAI Conversation for duplicate-check, splitting an issue's duplicate-detection history in two.
+  group: proposal-police-${{ github.event.issue.number }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   proposal-police-workflow:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     if: '!contains(fromJSON(''["OSBotify", "imgbot[bot]", "melvin-bot[bot]", "codecov[bot]"]''), github.actor)'
     steps:
-      - uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+      # Expensify employees commenting on Help Wanted issues are giving direction, not bidding for the job,
+      # so none of these checks should ever apply to them. author_association is not enough: it only reports
+      # MEMBER for publicly visible org members, so a concealed employee would look like an outside
+      # contributor. Reading org team membership needs a read:org token, hence OS_BOTIFY_TOKEN.
+      - name: Check whether the commenter is an Expensify employee
+        id: isExpensifyEmployee
+        env:
+          # Passed through the environment rather than interpolated into the script, so a crafted login can't inject shell
+          COMMENTER: ${{ github.event.comment.user.login }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+        run: |
+          if OUTPUT=$(gh api "/orgs/Expensify/teams/expensify-expensify/memberships/${COMMENTER}" --silent 2>&1); then
+            echo 'RESULT=employee' >> "$GITHUB_OUTPUT"
+          elif echo "$OUTPUT" | grep -q '(HTTP 404)'; then
+            echo 'RESULT=not-employee' >> "$GITHUB_OUTPUT"
+          else
+            # gh exits non-zero for any error, not just 404, so a token or API problem lands here. Skipping is
+            # the safe direction: classifying an employee's comment could get it minimized as spam.
+            echo "::warning::Could not verify Expensify membership for ${COMMENTER}, skipping ProposalPolice: ${OUTPUT}"
+            echo 'RESULT=unknown' >> "$GITHUB_OUTPUT"
+          fi
 
-      # Checks if the comment is created and follows the template OR
-      # if the comment is edited and if proposal template is followed.
-      # Action type logic can be found in the script files.
+      - if: steps.isExpensifyEmployee.outputs.RESULT == 'not-employee'
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+
+      # Classifies new comments that don't follow the proposal template, detects duplicate proposals,
+      # and grades edits to existing proposals. Action type logic can be found in the script files.
       - name: Run ProposalPolice™ Comment Check Script
+        if: steps.isExpensifyEmployee.outputs.RESULT == 'not-employee'
         uses: ./.github/actions/javascript/proposalPoliceComment
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PROPOSAL_POLICE_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
-          PROPOSAL_POLICE_ASSISTANT_ID: ${{ secrets.PROPOSAL_POLICE_ASSISTANT_ID }}

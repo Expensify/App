@@ -3,11 +3,12 @@ import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
 import {isParticipantP2P} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isDistanceRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 
 import {
     resetDraftTransactionsCustomUnit,
@@ -23,7 +24,7 @@ import {createDraftWorkspace, generateDefaultWorkspaceName} from '@userActions/P
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -33,6 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
+import useCommuterExclusionGuard from './useCommuterExclusionGuard';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
@@ -62,7 +64,6 @@ type UseParticipantSubmissionParams = {
     participants: Participant[] | undefined;
     iouType: IOUType;
     action: IOUAction;
-    backTo: string | undefined;
     isSplitRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
     isFocused: boolean;
@@ -75,7 +76,6 @@ function useParticipantSubmission({
     participants,
     iouType,
     action,
-    backTo,
     isSplitRequest,
     isMovingTransactionFromTrackExpense,
     isFocused,
@@ -103,11 +103,14 @@ function useParticipantSubmission({
     // explicit useMemo is needed here.
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
+        isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
+    });
 
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE &&
         isGroupPolicy(activePolicy) &&
-        activePolicy?.isPolicyExpenseChatEnabled &&
         !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID);
 
     const dataRef = useRef({
@@ -204,16 +207,8 @@ function useParticipantSubmission({
         }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, dmReportID);
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
-                } else {
-                    // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
-                    // More information can be found here: https://github.com/Expensify/App/issues/73728
-                    Navigation.navigate(iouConfirmationPageRoute);
-                }
+                Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             });
         });
     };
@@ -236,6 +231,12 @@ function useParticipantSubmission({
 
         if ((firstParticipant?.isSelfDM || shouldKeepNegativeExpenseOnSelfDM(firstParticipant)) && !isSplitRequest) {
             trackExpense();
+            return;
+        }
+
+        // Block selecting a workspace with commuter exclusions before participants/workspace are committed.
+        const selectedPolicyID = firstParticipant?.policyID ?? (firstParticipant?.reportID ? getReportOrDraftReport(firstParticipant.reportID)?.policyID : undefined);
+        if (blockManualOrOdometerDistanceRequestIfNeeded(selectedPolicyID)) {
             return;
         }
 
@@ -336,7 +337,7 @@ function useParticipantSubmission({
         const isPolicyExpenseChat = effectiveParticipants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && splitTransaction?.amount && splitTransaction?.currency) {
             const participantAccountIDs = effectiveParticipants?.map((participant) => participant.accountID) as number[];
-            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs, userDetails.accountID);
+            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs, userDetails.accountID, getCurrencyDecimals);
         }
 
         const newReportID = selectedReportID.current;
@@ -391,13 +392,24 @@ function useParticipantSubmission({
             }
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 if (isCategorizing) {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
+                    Navigation.navigate(
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType: CONST.IOU.TYPE.SUBMIT, transactionID: initialTransactionID, reportID: expenseChatReportID}),
+                        ),
+                    );
                 } else {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID, undefined, true));
                 }
             });
             return;
         }
+
+        // Both "Share with accountant" and "Send to someone"/"Submit it to someone" replace the picker in the RHP stack when
+        // moving a tracked expense, so the confirmation page needs an explicit backTo to return to it. Without it, the back
+        // button falls through to navigateToStartMoneyRequestStep, which for these actions dismisses the whole RHP to the report
+        // instead of returning to the picker. CATEGORIZE is excluded because it routes through the category step, which carries
+        // its own back path. See #99145.
+        const shouldReturnToParticipantPicker = isMovingTransactionFromTrackExpense && !isCategorizing;
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
@@ -406,24 +418,21 @@ function useParticipantSubmission({
             newReportID,
             undefined,
             undefined,
-            action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
+            shouldReturnToParticipantPicker ? Navigation.getActiveRoute() : undefined,
         );
 
         const route = isCategorizing
-            ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
+            ? createDynamicRoute(
+                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID: initialTransactionID, reportID: selectedReportID.current || reportID}),
+                  iouConfirmationPageRoute,
+              )
             : iouConfirmationPageRoute;
 
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
             // More information can be found here: https://github.com/Expensify/App/issues/73728
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(route, {compareParams: false});
-                } else {
-                    Navigation.navigate(route);
-                }
+                Navigation.goBack(route, {compareParams: false});
             });
         });
     };
@@ -432,3 +441,4 @@ function useParticipantSubmission({
 }
 
 export default useParticipantSubmission;
+export type {UseParticipantSubmissionParams};

@@ -10,7 +10,7 @@ import PersonalExpenseRulesTable from '@components/Tables/PersonalExpenseRulesTa
 import Text from '@components/Text';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -46,7 +46,6 @@ function ExpenseRulesPage() {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
 
@@ -119,6 +118,7 @@ function ExpenseRulesPage() {
             icon: icons.Trashcan,
             text: translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
             value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.DELETE,
+            shouldSkipFocusRestore: true,
             onSelected: () => setDeleteConfirmModalVisible(true),
         },
     ];
@@ -160,6 +160,12 @@ function ExpenseRulesPage() {
         </View>
     );
 
+    const expenseRulesSubtitle = (
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
+        </View>
+    );
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -169,7 +175,6 @@ function ExpenseRulesPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
-                icon={!selectionModeHeader ? illustrations.Flash : undefined}
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         setSelectedRules([]);
@@ -188,9 +193,7 @@ function ExpenseRulesPage() {
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
 
-            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
-            </View>
+            {!hasRules && expenseRulesSubtitle}
 
             {!hasRules && isLoading && (
                 <ActivityIndicator
@@ -204,6 +207,7 @@ function ExpenseRulesPage() {
                     selectedKeys={selectedRules}
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
+                    headerComponent={hasRules ? expenseRulesSubtitle : undefined}
                 />
             )}
 

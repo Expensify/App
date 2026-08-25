@@ -59,7 +59,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
@@ -88,6 +88,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const displayReport = useMemo(
         () =>
             getReportDisplayOption({
+                dateFnsLocale,
                 report,
                 unknownUserDetails,
                 personalDetails,
@@ -99,7 +100,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 reportAttributesDerived,
                 sortedActions,
             }),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived, sortedActions],
+        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived, dateFnsLocale, sortedActions],
     );
 
     const shouldShowAttachment = !isTextShared;
@@ -179,6 +180,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         newReportObject: report,
                         betas,
                         hasReportActions: false,
+                        currentUserAccountID: personalDetail.accountID,
                     });
                 }
                 if (report.reportID) {
