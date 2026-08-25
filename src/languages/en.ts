@@ -972,6 +972,13 @@ const translations = {
             admins: 'Admins only',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+        reasonLabel: 'Support login reason',
+        reasonHint: 'No recent tickets found for this account.',
+        login: 'Log in',
+    },
     sidebarScreen: {
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
@@ -1670,6 +1677,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         sendToSomeone: 'Send to someone',
+        submitToEmployer: 'Submit to my employer',
         unhold: 'Remove hold',
         holdExpense: () => ({
             one: 'Hold expense',

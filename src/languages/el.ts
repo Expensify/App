@@ -949,6 +949,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Μόνο διαχειριστές',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal σε άλλο λογαριασμό',
+        emailLabel: 'Διεύθυνση email',
+        reasonLabel: 'Αιτία σύνδεσης για υποστήριξη',
+        reasonHint: 'Δεν βρέθηκαν πρόσφατα αιτήματα υποστήριξης για αυτόν τον λογαριασμό.',
+        login: 'Σύνδεση',
+    },
     sidebarScreen: {
         buttonFind: 'Βρείτε κάτι...',
         buttonMySettings: 'Οι ρυθμίσεις μου',
@@ -1572,8 +1579,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'κάρτα' : 'τραπεζικός λογαριασμός';
             return isCurrentUser
-                ? `. Τα χρήματα κατευθύνονται προς τον/την ${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} σας (πληρωμή μέσω ${paymentMethod}). Συνήθως αυτό χρειάζεται 4-5 εργάσιμες ημέρες.`
-                : `. Τα χρήματα κατευθύνονται προς τον/την ${submitterLogin}${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} (πληρωμή μέσω ${paymentMethod}). Συνήθως χρειάζονται 4-5 εργάσιμες ημέρες.`;
+                ? `. Τα χρήματα κατευθύνονται προς τον/την ${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} σας (πληρωμή μέσω ${paymentMethod}). Αυτό συνήθως διαρκεί 4–5 εργάσιμες ημέρες.`
+                : `. Τα χρήματα είναι καθ' οδόν προς τον/την ${submitterLogin}${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} (πληρωμή μέσω ${paymentMethod}). Αυτό συνήθως διαρκεί 4–5 εργάσιμες ημέρες.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `με άμεση κατάθεση (ACH)${creditBankAccount ? `στον τραπεζικό λογαριασμό που λήγει σε ${creditBankAccount}.` : '. '}${expectedDate ? `Η αποζημίωση εκτιμάται ότι θα ολοκληρωθεί έως ${expectedDate}.` : 'Αυτό συνήθως διαρκεί 4–5 εργάσιμες ημέρες.'}`,
@@ -1657,6 +1664,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Ενεργοποίηση πορτοφολιού',
         hold: 'Σε αναμονή',
         sendToSomeone: 'Αποστολή σε κάποιον',
+        submitToEmployer: 'Υποβολή στον εργοδότη μου',
         unhold: 'Αφαίρεση κράτησης',
         holdExpense: () => ({
             one: 'Αναστολή δαπάνης',
