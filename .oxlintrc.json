@@ -864,12 +864,13 @@
                 "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated."
             }
         ],
-        // The 12 React Compiler rules run as rc/* below, on the Rust compiler rather than the
-        // JavaScript one: config/oxlint/reactCompilerRust.mjs, 5.2 s over 6891 files against 52 s for
-        // the JavaScript equivalent. Nothing here may enable a compiler-category rule from
-        // eslint-plugin-react-hooks: a single one pays for that whole shared JavaScript analysis,
-        // measured twice at 125 s and 123 s against 76 s today.
-        "react/exhaustive-deps": "error",
+        // NOT oxlint's native react/exhaustive-deps: that is a Rust rule, and ESLint runs this rule
+        // behind the React Compiler message gate, which can only wrap a JS plugin. Native reported
+        // 49 against ESLint's 1, every one of them the "changes every render" advice the gate drops
+        // in a dual-memoized file. See config/oxlint/plugins/hosted-rules.mjs.
+        "hosted/exhaustive-deps": "error",
+        // The 11 React Compiler rules run as rc/* below, on the Rust compiler rather than the
+        // JavaScript one: config/oxlint/reactCompilerRust.mjs
         "rc/refs": "error",
         "rc/set-state-in-effect": "error",
         "rc/set-state-in-render": "error",

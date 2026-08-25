@@ -133,14 +133,14 @@ def main():
 
     files = args.files or REPRESENTATIVE_FILES
     # A representative file that no longer exists is the quietest way for this check to stop checking
-    # something: the override it stands for simply goes uncompared. `svg-loader.mjs` had already gone
-    # that way before anyone noticed.
+    # something: the override it stands for is silently never compared. `svg-loader.mjs` had already
+    # gone that way before anyone noticed.
     missing = [f for f in files if not os.path.exists(os.path.join(ROOT, f))]
     if missing:
         sys.exit('representative file(s) missing, so the override(s) they stand for are unchecked:\n  ' + '\n  '.join(missing))
     findings = compare(resolve(files))
 
-    unledgered = {rid: v for rid, v in findings.items() if rid not in LEDGER}
+    unlisted = {rid: v for rid, v in findings.items() if rid not in LEDGER}
     stale = [rid for rid in LEDGER if rid not in findings]
     by_status = collections.defaultdict(list)
     for rule_id, value in findings.items():
@@ -159,13 +159,13 @@ def main():
             print(f'      {detail}')
             print(f'      {LEDGER[rule_id][1]}')
 
-    if unledgered:
-        print(f'\n{len(unledgered)} rule(s) differ and are not in LEDGER. This is what a config bump looks like:')
-        for rule_id, (kind, detail, paths) in sorted(unledgered.items()):
+    if unlisted:
+        print(f'\n{len(unlisted)} rule(s) differ and are not in LEDGER. This is what a config bump looks like:')
+        for rule_id, (kind, detail, paths) in sorted(unlisted.items()):
             print(f'  {rule_id} ({kind}, {len(paths)} file(s)): {detail}')
 
     if stale:
-        print(f'\n{len(stale)} LEDGER entr(ies) no longer differ and should be deleted:')
+        print(f'\n{len(stale)} LEDGER entries no longer differ and should be deleted:')
         for rule_id in sorted(stale):
             print(f'  {rule_id}')
 
@@ -175,9 +175,9 @@ def main():
             json.dump(payload, handle, indent=1, sort_keys=True)
             handle.write('\n')
 
-    if unledgered or stale:
+    if unlisted or stale:
         sys.exit(1)
-    print('\nNo unledgered drift. Every difference between the two configs is written down.')
+    print('\nNo unlisted drift. Every difference between the two configs is written down.')
 
 
 if __name__ == '__main__':

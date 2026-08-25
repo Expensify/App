@@ -18,6 +18,9 @@
 //   order                          eslint-plugin-import  -- no native port (oxfmt also enforces a stricter grouping)
 //   no-types                       eslint-plugin-jsdoc   -- no native oxlint port
 //   naming-convention              typescript-eslint     -- tsgolint lists it unimplemented (see the stub below)
+//   exhaustive-deps                eslint-plugin-react-  -- oxlint's native port cannot be wrapped, and
+//                                    hooks                  this rule needs the React Compiler message
+//                                                           gate, which only a JS plugin can host
 //   IMPORT_PATHS (3)               eslint-plugin-import  -- no native port; oxlint's import plugin
 //                                                          has 33 rules and none of these three
 //   REACT_LEGACY (17)              eslint-plugin-react   -- no native port; PropTypes statics and
@@ -27,8 +30,9 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../eslint/processors/eslint-processor-react-compiler-compat.mjs';
 import {withEslintDirectiveIds, withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
-import {withFullGating} from '../reactCompilerGate.mjs';
+import {withFullGating, withMessageGating} from '../reactCompilerGate.mjs';
 
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -51,6 +55,14 @@ const react = rulesOf('eslint-plugin-react');
 const importPlugin = rulesOf('eslint-plugin-import');
 const jsdoc = rulesOf('eslint-plugin-jsdoc');
 const typescriptEslint = rulesOf('@typescript-eslint/eslint-plugin');
+
+// eslint-plugin-react-hooks is not a root dependency: it arrives under eslint-config-expensify, and
+// that nested copy is the one ESLint itself loads. Resolve it from there rather than by bare
+// specifier, so both tools execute the same module instead of two installs that can drift.
+const reactHooks = (() => {
+    const configEntry = require.resolve('eslint-config-expensify', {paths: [repoRoot]});
+    return rulesOf(require.resolve('eslint-plugin-react-hooks', {paths: [path.dirname(configEntry)]}));
+})();
 
 // naming-convention asks for parser services at startup, but with OUR options it never uses
 // them: the type checker is only reached from a `types` selector (naming-convention-utils/
@@ -145,6 +157,14 @@ const plugin = {
         // gate is what keeps oxlint at parity. Without it: 69 findings ESLint never shows. The
         // directive wrapper sits inside the gate so the cheap check runs first.
         'jsx-no-constructed-context-values': withFullGating(withEslintDirectiveIds(react['jsx-no-constructed-context-values'], 'react/jsx-no-constructed-context-values')),
+        // Hosted rather than native for the same reason, one level finer. ESLint's processor does not
+        // drop this rule wholesale: it drops only the messages advising a useCallback/useMemo wrap,
+        // and keeps genuinely missing dependencies. oxlint's native react/exhaustive-deps is a Rust
+        // rule, so nothing can filter it, and it reported 49 against ESLint's 1 -- all 49 of the
+        // "changes every render" kind the processor deletes on purpose in a dual-memoized file.
+        // Enforcing them would demand exactly the manual memoization the React Compiler makes
+        // unnecessary. The pattern is imported from the processor so the two cannot drift.
+        'exhaustive-deps': withMessageGating(withEslintDirectiveIds(reactHooks['exhaustive-deps'], 'react-hooks/exhaustive-deps'), EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN),
     },
 };
 

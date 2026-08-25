@@ -173,17 +173,13 @@
             }
         },
         {
-            // `exhaustive-deps` is production's native oxlint rule, so it needs the native react
-            // plugin loaded, and this config declares no global plugin list. Narrowed to the one
-            // fixture on purpose: `plugins` pulls in the react default category, which duplicates
-            // every rc/* rule, and over all of **/rh*.tsx that was 9 extra findings on 9 fixtures.
-            // The two offs are the default-category rules that still reach this file.
+            // `exhaustive-deps` is production's hosted rule (config/oxlint/plugins/hosted-rules.mjs),
+            // so no native plugin list is needed here. Scoped to the one fixture, like production's
+            // reason for hosting it: the rule runs behind the React Compiler message gate, and the
+            // other rh* fixtures make claims about rc/* rules rather than this one.
             "files": ["**/rhExhaustiveDeps.tsx"],
-            "plugins": ["react"],
             "rules": {
-                "react/exhaustive-deps": "error",
-                "react/set-state-in-effect": "off",
-                "react/rules-of-hooks": "off"
+                "hosted/exhaustive-deps": "error"
             }
         },
         {

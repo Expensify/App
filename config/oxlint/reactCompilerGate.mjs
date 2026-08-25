@@ -89,4 +89,4 @@ function withMessageGating(rule, pattern) {
     return withGating(rule, (target, descriptor) => pattern.test(resolveMessage(target, descriptor)));
 }
 
-export {isFileMemoizedByBothCompilers, withFullGating, withMessageGating};
+export {withFullGating, withMessageGating};

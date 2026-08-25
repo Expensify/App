@@ -72,8 +72,8 @@ const processor = {
     },
 };
 
-// Exported so oxlint's copy of this behaviour and the harness that tests it read the same list
-// rather than a duplicate that can drift: oxlint has no processor concept, so the same suppression
-// lives inside a JS plugin (oxlint-migration/reactCompilerGate.mjs).
-export {RULES_SUPPRESSED_BY_REACT_COMPILER};
+// Exported so oxlint's copy of this behaviour and the harness that tests it read the same list and
+// the same pattern rather than duplicates that can drift: oxlint has no processor concept, so the
+// same suppression lives inside a JS plugin (config/oxlint/reactCompilerGate.mjs).
+export {RULES_SUPPRESSED_BY_REACT_COMPILER, EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN};
 export default processor;

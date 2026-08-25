@@ -292,7 +292,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
 
-const isScrollLayoutTriggeredCurrent = isScrollLayoutTriggered.current;
+    const isScrollLayoutTriggeredCurrent = isScrollLayoutTriggered.current;
 
     const onSaveScrollAndHideSuggestionMenu = useCallback(
         (e: TextInputScrollEvent) => {

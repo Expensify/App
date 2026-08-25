@@ -145,11 +145,9 @@
     },
     "react-hooks/exhaustive-deps": {
         "fixture": "fixtures/rhExhaustiveDeps.tsx",
-        "oxlintRule": "react-hooks/exhaustive-deps",
+        "oxlintRule": "hosted/exhaustive-deps",
         "expected": 1,
-        "oxlintLines": [9],
-        "whyOxlintLines": "anchor divergence, not a detection gap: ESLint anchors a missing dependency on the dependency array, oxlint's native rule on the identifier's first use inside the effect body. Same violation, same message, two lines apart. Measured repo-wide 2026-08-24: it accounts for the only location the sidecar rule reported that the native one does not",
-        "why": "covered 2026-08-12, moved to oxlint's native rule 2026-08-24 (config id react/exhaustive-deps, reports as react-hooks/exhaustive-deps). A missing dependency on purpose, not a useCallback/useMemo suggestion: ESLint runs this rule behind the React Compiler message gate, which drops the suggestions, so a suggestion-shaped fixture would test the gate instead of the rule"
+        "why": "covered 2026-08-12; oxlint's native rule 2026-08-24; hosted behind the React Compiler message gate 2026-08-25. A missing dependency on purpose, not a useCallback/useMemo suggestion: both tools run this rule behind the gate, which drops the suggestions and keeps missing dependencies, so a suggestion-shaped fixture would test the gate instead of the rule. Hosting also retires the anchor divergence the native rule needed an oxlintLines exemption for, since the same rule module now reports the same line on both tools"
     },
 
     "no-restricted-syntax": {

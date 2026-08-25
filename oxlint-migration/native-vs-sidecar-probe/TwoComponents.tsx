@@ -4,7 +4,7 @@ import {useEffect, useRef, useState} from 'react';
 function Dirty({start}) {
     const [count, setCount] = useState(start);
     const refA = useRef(0);
-    const doubledA = refA.current * 2;          // BUG A1: ref read during render
+    const doubledA = refA.current * 2; // BUG A1: ref read during render
 
     useEffect(() => {
         console.log(count);
@@ -18,10 +18,10 @@ function Dirty({start}) {
 function Clean({start}) {
     const [value, setValue] = useState(start);
     const refB = useRef(0);
-    const doubledB = refB.current * 2;          // BUG B1: ref read during render
+    const doubledB = refB.current * 2; // BUG B1: ref read during render
 
     useEffect(() => {
-        setValue(start);                        // BUG B2: setState in effect
+        setValue(start); // BUG B2: setState in effect
     }, [start]);
 
     return doubledB + value;

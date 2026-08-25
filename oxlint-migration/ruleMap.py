@@ -161,6 +161,10 @@ HOSTED_RULE_ORIGIN = {
     # wired 2026-08-12: hosted, not native, because only a JS plugin can hold the React Compiler
     # gate (and the native port diverges twice -- see oxlint-migration/compareNativeCtxValues.py)
     'jsx-no-constructed-context-values': 'react',
+    # wired 2026-08-25: hosted for the same reason one level finer. The processor filters this rule
+    # per message rather than per rule, and oxlint's native react/exhaustive-deps is a Rust rule that
+    # nothing can filter: it reported 49 against ESLint's 1.
+    'exhaustive-deps': 'react-hooks',
     'prefer-default-export': 'import',
     'order': 'import',
     'no-types': 'jsdoc',

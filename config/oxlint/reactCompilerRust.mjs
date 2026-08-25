@@ -169,8 +169,8 @@ function analyze(filename, sourceText) {
                 // The plugin reads Flow suppressions itself and passes false; this repo has none.
                 flowSuppressions: false,
                 // The one option oxlint's native react/* rules do not expose, and the reason this
-                // module exists: without it every function under an `eslint-disable-next-line
-                // react-hooks/exhaustive-deps` comment goes unanalyzed.
+                // module exists: without it the compiler skips every function under an
+                // `eslint-disable-next-line react-hooks/exhaustive-deps` comment.
                 eslintSuppressionRules: [],
                 environment: ENVIRONMENT,
             },
@@ -224,4 +224,4 @@ function reactCompilerDiagnostics(filename, sourceText) {
     return cache.get(filename);
 }
 
-export {ENVIRONMENT, IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics};
+export {IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics};

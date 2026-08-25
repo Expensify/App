@@ -181,4 +181,4 @@ function withEslintDirectiveIdsFor(rules, toEslintId) {
     return Object.fromEntries(Object.entries(rules).map(([name, rule]) => [name, withEslintDirectiveIds(rule, toEslintId(name))]));
 }
 
-export {ALL_RULES, isSuppressed, parseDirectives, reportLine, withEslintDirectiveIds, withEslintDirectiveIdsFor};
+export {isSuppressed, parseDirectives, reportLine, withEslintDirectiveIds, withEslintDirectiveIdsFor};

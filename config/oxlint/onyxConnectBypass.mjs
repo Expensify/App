@@ -96,4 +96,4 @@ function withBypassReporting(rule, {grandfathered = GRANDFATHERED_BYPASSES, esli
     };
 }
 
-export {BANNED_ESLINT_RULE_ID, GRANDFATHERED_BYPASSES, withBypassReporting};
+export {withBypassReporting};
