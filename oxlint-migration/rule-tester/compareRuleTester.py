@@ -45,18 +45,11 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 TREE = os.path.join(HERE, 'tree')
 
 sys.path.insert(0, os.path.join(ROOT, 'oxlint-migration'))
-from ruleMap import is_on, load_jsonc  # noqa: E402
+from ruleMap import is_on, load_jsonc
 
-# Rules whose oxlint message is allowed to differ from ESLint's, with the reason. Even here the
-# message must be non-empty and still name every piece of code ESLint's message names: "different
-# wording" is acceptable, "vaguer about what is wrong" is not.
 EXPECTED_MESSAGE_DIFFS = {
-    # No entries yet. The type-free rewrite of prefer-locale-compare-from-context imports its
-    # message from the rule's own CONST module, so it cannot drift from ESLint's.
 }
 
-# Cases where the two tools are KNOWN to disagree on whether to report, keyed by (rule, case). Every
-# entry is a divergence someone decided to accept, with the reason, so an unlisted one still fails.
 EXPECTED_BRIDGE_DIFFS = {
     ('prefer-locale-compare-from-context', 'valid-1'): (
         'the receiver is an object literal with no localeCompare of its own. ESLint asks the type '
@@ -65,9 +58,6 @@ EXPECTED_BRIDGE_DIFFS = {
     ),
 }
 
-# What "points at the exact issue" means concretely: the code the message names. Identifiers in
-# quotes or backticks, dotted paths, and calls -- `Onyx.connect()`, `useOnyx()`, 'ONYXKEYS'.
-# A reworded message may lose any prose it likes; losing one of these makes it vaguer than ESLint's.
 CODE_TOKEN = re.compile(r"[`'\"]([A-Za-z_$][\w$.]*)[`'\"]|\b([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+(?:\(\))?|[A-Za-z_$][\w$]*\(\))")
 
 
@@ -224,12 +214,7 @@ def main():
         counts[rule]['es'] += len(es_hits)
         counts[rule]['ox'] += len(ox_hits)
 
-        # 1. materialization: does ESLint agree with the upstream case's own expectation?
         if expected['count'] is not None and len(es_hits) != expected['count']:
-            # The upstream cases predate the React Compiler processor. For a gated rule, a case that
-            # both compilers memoize is suppressed on both tools by design, which is a pass, not a
-            # miss -- but only when the compilers really did memoize it and both tools really are
-            # silent. Anything else is still a failure.
             gated = case['memoizedByBoth'] and not es_hits and not ox_hits
             if gated:
                 notes.append(f'{label}: suppressed on both tools, both React Compilers memoize this case (upstream expects {expected["count"]}, and did before the processor existed)')
@@ -240,7 +225,6 @@ def main():
             if wanted_message and position < len(es_hits) and normalize(wanted_message) != normalize(es_hits[position][2]):
                 failures['MATERIALIZATION'].append(f'{label}: upstream expects "{wanted_message}", ESLint reported "{es_hits[position][2]}"')
 
-        # 2. bridge: same lines on both tools
         if [line for line, _, _ in es_hits] != [line for line, _, _ in ox_hits]:
             key = (rule, f'{case["kind"]}-{case["position"]}')
             if key in EXPECTED_BRIDGE_DIFFS:
@@ -249,7 +233,6 @@ def main():
                 failures['BRIDGE'].append(f'{label}: eslint lines {[h[0] for h in es_hits]} vs oxlint lines {[h[0] for h in ox_hits]}')
             continue
 
-        # 3. message
         for (_, _, es_message), (_, _, ox_message) in zip(es_hits, ox_hits):
             ok, note = message_verdict(rule, es_message, ox_message)
             if not ok:

@@ -31,8 +31,6 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROBE_DIR = os.path.join(ROOT, 'src', '__reactCompilerGateProbe')
 
-# Same violations either way: a context value built in the component body, and an inline useOnyx
-# selector. The only difference between the two files is the opt-out directive.
 TEMPLATE = """import React from 'react';
 
 import useOnyx from '@hooks/useOnyx';
@@ -50,14 +48,12 @@ function GateProbe({{children}}: {{children: React.ReactNode}}) {{
 export default GateProbe;
 """
 
-# (oxlint rule id, ESLint rule id)
 GATED_RULES = [
     ('rulesdir(no-inline-useOnyx-selector)', 'rulesdir/no-inline-useOnyx-selector'),
     ('hosted(jsx-no-constructed-context-values)', 'react/jsx-no-constructed-context-values'),
 ]
 
 VARIANTS = {
-    # name: (directive, must every gated rule report?)
     'memoized': ('', False),
     'optedOut': ("    'use no memo';\n", True),
 }

@@ -1,32 +1,14 @@
-// Makes a jsPlugin-hosted rule answer to the rule id ESLint uses in disable comments.
-//
-// A rule hosted through `jsPlugins` gets whatever prefix we give it (`hosted/naming-convention`,
-// `rc/refs`), because `react-hooks`, `@typescript-eslint`, `react` and `import` are
-// reserved for oxlint's native plugins. So an existing `// eslint-disable-next-line
-// @typescript-eslint/naming-convention` does not suppress `hosted/naming-convention`. Without this
-// module, 1173 directives in the repo hid 7378 findings from ESLint that oxlint still reported, and
-// each one needed a hand-written `oxlint-disable` twin next to it. Native rules need none of this:
-// oxlint's own directive handling already knows its native ids, which is why the repo's other 5188
-// directives always worked untouched.
-//
-// The seam is the one config/oxlint/reactCompilerGate.mjs already uses: wrap `context.report` and
-// drop the reports ESLint would have dropped. This layer is additive, since a report dropped here is
-// one oxlint never sees, so `oxlint-disable` keeps working exactly as before.
-//
-// Line granularity, deliberately: a directive suppresses whole lines rather than source ranges. The
-// one place that differs from ESLint is code sharing a line with an `eslint-enable` and sitting
-// after it, which the fixtures would catch if it ever occurred.
+// A rule hosted through oxlint's `jsPlugins` cannot take a native plugin's prefix (`react-hooks`,
+// `@typescript-eslint`, `react`, `import` are reserved), so an existing `eslint-disable-next-line
+// @typescript-eslint/naming-convention` does not suppress `hosted/naming-convention`. This makes a
+// hosted rule answer to the id ESLint uses, by dropping the reports ESLint would have dropped.
 
-/** ESLint's own justification separator: whitespace, two or more dashes, whitespace. */
 const JUSTIFICATION = /\s-{2,}\s/;
-/** Longest first, so `eslint-disable` does not match `eslint-disable-line`. */
 const KINDS = ['eslint-disable-next-line', 'eslint-disable-line', 'eslint-disable', 'eslint-enable'];
-/** Stands in for "every rule", i.e. a bare `eslint-disable` with no ids. */
 const ALL_RULES = ' all';
 
 const cache = new Map();
 
-/** `eslint-disable a/b, c/d -- why` to {kind, ruleIds}, or null when the comment is prose. */
 function parseComment(comment) {
     const text = String(comment.value ?? '').trim();
     const kind = KINDS.find((candidate) => text === candidate || (text.startsWith(candidate) && /^\s/.test(text.slice(candidate.length))));
@@ -48,11 +30,6 @@ function add(map, key, value) {
     map.get(key).push(value);
 }
 
-/**
- * Comments to {lines, ranges}, both keyed by rule id.
- *   lines   rule id to a Set of single suppressed lines (the -next-line and -line forms)
- *   ranges  rule id to [[from, to]] (the block form; an unclosed disable runs to end of file)
- */
 function parseDirectives(comments) {
     const lines = new Map();
     const ranges = new Map();
@@ -117,7 +94,6 @@ function suppressedFor(directives, ruleId, line) {
     return (directives.ranges.get(ruleId) ?? []).some(([from, to]) => line >= from && line <= to);
 }
 
-/** True when an ESLint directive naming `eslintRuleId` (or every rule) covers `line`. */
 function isSuppressed(directives, eslintRuleId, line) {
     if (line == null) {
         return false;
@@ -125,30 +101,20 @@ function isSuppressed(directives, eslintRuleId, line) {
     return suppressedFor(directives, eslintRuleId, line) || suppressedFor(directives, ALL_RULES, line);
 }
 
-/**
- * The line a report lands on, or null when it cannot be resolved. Null means "let it through":
- * suppressing on a guess loses coverage silently, which is the failure mode this layer exists to
- * avoid. Covers the descriptor forms and the legacy positional report(node, message).
- */
 function reportLine(args) {
     const first = args[0];
     const candidates = [first?.loc?.start?.line, first?.loc?.line, first?.node?.loc?.start?.line, first?.node?.loc?.line];
     return candidates.find((line) => typeof line === 'number') ?? null;
 }
 
-/**
- * Wraps a hosted rule so a disable comment naming its ESLint id suppresses it, the way that comment
- * already suppresses ESLint's copy of the same rule.
- */
 function withEslintDirectiveIds(rule, eslintRuleId) {
     return {
         ...rule,
         create(context) {
             const filteredContext = Object.create(context, {
                 report: {
-                    // Forwarded as-is rather than as a single descriptor: ESLint also accepts the
-                    // legacy report(node, message) form, and dropping the extra arguments would
-                    // silently change a rule's message.
+                    // Forwarded as-is rather than as one descriptor: ESLint also accepts the legacy
+                    // `report(node, message)` form, and dropping the extra arguments would change the message.
                     value(...args) {
                         const line = reportLine(args);
                         if (line != null) {
@@ -167,16 +133,6 @@ function withEslintDirectiveIds(rule, eslintRuleId) {
     };
 }
 
-/**
- * Wraps every rule in a plugin's rule map. `toEslintId` maps the rule's oxlint name to the id
- * ESLint uses, which is derived per plugin rather than hand-listed, so a rule added upstream is
- * covered without touching a table here.
- *
- * Composition with config/oxlint/reactCompilerGate.mjs: put this wrapper on the INSIDE, i.e.
- * `withFullGating(withEslintDirectiveIds(rule, id))`. The innermost wrapper's check runs first, and
- * this one is a cached comment lookup while the gate runs both React compilers on first report in a
- * file. Both only drop reports, so the result is the same either way; the order is about cost.
- */
 function withEslintDirectiveIdsFor(rules, toEslintId) {
     return Object.fromEntries(Object.entries(rules).map(([name, rule]) => [name, withEslintDirectiveIds(rule, toEslintId(name))]));
 }

@@ -8,27 +8,22 @@ const require = createRequire(import.meta.url);
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fromRepo = (relative) => require(path.resolve(here, '../..', relative));
 
-// Loaded through require() so CJS/ESM interop differences between these plugins do not matter
+// Loaded through require() so CJS/ESM interop differences between these plugins do not matter.
 const react = fromRepo('node_modules/eslint-plugin-react');
 const importPlugin = fromRepo('node_modules/eslint-plugin-import');
 const jsdoc = fromRepo('node_modules/eslint-plugin-jsdoc');
 const testingLibrary = fromRepo('node_modules/eslint-plugin-testing-library');
 const lodashUnderscore = fromRepo('node_modules/eslint-plugin-you-dont-need-lodash-underscore');
 const reactNativeA11y = fromRepo('node_modules/eslint-plugin-react-native-a11y');
-// package-relative resolution of this one is blocked by the package's "exports" field
+// Package-relative resolution of this one is blocked by the package's "exports" field.
 const noInlineUseOnyxSelector = fromRepo('node_modules/eslint-config-expensify/eslint-plugin-expensify/no-inline-useOnyx-selector.js');
-// an in-repo local rule; require() of an ESM module returns its namespace, which is {name, meta, create}
+// require() of an ESM module returns its namespace, which here is {name, meta, create}.
 const requireLocaleForLocalizedDateFormat = fromRepo('eslint-plugin-local-rules/require-locale-for-localized-date-format.js');
-// the same nested copy oxlint's rh-plugin.mjs loads, so both tools run one plugin instance
+// The same nested copy oxlint loads, so both tools run one plugin instance.
 const reactHooks = fromRepo('node_modules/eslint-config-expensify/node_modules/eslint-plugin-react-hooks');
 
 const plugin = (mod) => ({rules: (mod?.rules ?? mod?.default?.rules) || {}});
 
-/**
- * Standalone ESLint config for the port-probe fixtures: only the rules under test, each with the
- * exact option values the repo config uses. Run with --no-config-lookup, because the repo's
- * type-aware config excludes oxlint-migration from the TS program and would fail to parse the fixtures.
- */
 export default [
     js.configs.recommended,
     {
@@ -47,13 +42,10 @@ export default [
             'react-native-a11y': plugin(reactNativeA11y),
             rulesdir: {rules: {'no-inline-useOnyx-selector': noInlineUseOnyxSelector, 'require-locale-for-localized-date-format': requireLocaleForLocalizedDateFormat}},
         },
-        // propWrapperFunctions mirrors the repo config plus one entry the repo does not have, the
-        // object form {property: 'exact', exact: true}. See oxlint.fixtures.json for why: the repo's
-        // plain strings leave react/prefer-exact-props inert on both tools, so without this the rule
-        // could not be covered at all.
+        // The extra object form {property: 'exact', exact: true} is not in the repo config: with only
+        // the repo's plain strings, react/prefer-exact-props stays inert on both tools.
         settings: {react: {version: 'detect'}, propWrapperFunctions: ['forbidExtraProps', 'exact', 'Object.freeze', {property: 'exact', exact: true}]},
         rules: {
-            // port candidates: rules oxlint either lacks or implements differently
             'no-unreachable-loop': ['error', {ignore: []}],
             'react/jsx-no-bind': ['error', {ignoreRefs: true, allowArrowFunctions: true, allowFunctions: false, allowBind: false, ignoreDOMComponents: true}],
             'react/function-component-definition': ['error', {namedComponents: 'function-declaration', unnamedComponents: 'arrow-function'}],
@@ -61,7 +53,6 @@ export default [
             'import/prefer-default-export': 'error',
             'import/order': ['error', {groups: [['builtin', 'external', 'internal']]}],
             'jsdoc/no-types': 'error',
-            // exactly eslint-config-expensify's five selector groups (configs/public/typescript.js)
             '@typescript-eslint/naming-convention': [
                 'error',
                 {selector: ['variable', 'property'], format: null, filter: {regex: '^__esModule$', match: true}},
@@ -72,11 +63,6 @@ export default [
             ],
             'rulesdir/no-inline-useOnyx-selector': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
-            // wired 2026-08-11: ESLint core and plugin rules oxlint has no native port for, hosted
-            // through the core/ and hosted/ aliases. Options copied from eslint-config-expensify.
-            // the full nine-selector array from eslint-config-expensify, because the selectors are the
-            // rule: a bridge that mishandles the regex attribute matches or the `:not(:has(...))` would
-            // still pass a one-selector fixture
             'no-restricted-syntax': [
                 'error',
                 {selector: 'TSEnumDeclaration', message: "Please don't declare enums, use union types instead."},
@@ -181,25 +167,16 @@ export default [
                 },
             ],
             'react/static-property-placement': ['error', 'property assignment'],
-            // already enabled on both sides, but absent from oxlint's JSON schema
             'you-dont-need-lodash-underscore/uniq': 'error',
             'testing-library/no-debugging-utils': 'error',
             'react-native-a11y/has-valid-accessibility-descriptors': 'error',
-            // noise the probe does not care about
             'no-undef': 'off',
             'no-unused-vars': 'off',
         },
     },
     {
-        // The eslint-plugin-react-hooks rules, scoped to the rh* fixtures for the same reasons as in
-        // oxlint.fixtures.json: they run the React Compiler over every file they see, and the other
-        // fixtures contain components that would report shapes no manifest entry claims.
-        // rules-of-hooks is absent because production runs oxlint's native port of it, not the
-        // sidecar copy. The dynamic-gating options that used to be scoped to rhGating.tsx are gone
-        // with the rule: oxlint dropped react-hooks/gating on 2026-08-21 when the other 12 compiler
-        // rules moved to rc/* over the Rust compiler, so there is nothing left to compare against.
-        // Production passes the compiler no gating options either, which is why the rule cannot fire
-        // in either tool outside that removed block.
+        // Scoped to the rh* fixtures because these rules run the React Compiler over every file they
+        // see, and the other fixtures hold components that would report shapes no manifest entry claims.
         files: ['**/rh*.tsx'],
         languageOptions: {parser: tseslint.parser, parserOptions: {sourceType: 'module', ecmaFeatures: {jsx: true}}},
         plugins: {'react-hooks': {rules: reactHooks.rules}},
@@ -224,22 +201,18 @@ export default [
     },
     {
         // Scoped to one file because the rule throws on any *read* of `.propTypes` once an exact
-        // wrapper is configured, and reactPropTypes.tsx contains one deliberately. See the header
-        // comment in fixtures/reactExactProps.tsx.
+        // wrapper is configured, and reactPropTypes.tsx contains one deliberately.
         files: ['**/reactExactProps.tsx'],
         rules: {'react/prefer-exact-props': 'error'},
     },
     {
         // no-octal and no-octal-escape can only be violated in script mode: in a module the legacy
-        // syntax is a parse error on both tools. ESLint gives .cjs sourceType commonjs by default,
-        // and oxlint parses .cjs as a script, so the fixture is linted the same way by both.
+        // syntax is a parse error on both tools. Both give .cjs a script/commonjs sourceType.
         files: ['**/*.cjs'],
         rules: {
             'no-octal': 'error',
             'no-octal-escape': 'error',
-            // plain-JS only in the repo config, since typescript-eslint switches all three off for
-            // TS. no-dupe-args additionally needs sloppy mode, which is the other reason this block
-            // is the only one that enables them.
+            // typescript-eslint switches all three off for TS, and no-dupe-args also needs sloppy mode.
             'dot-notation': ['error', {allowKeywords: true, allowPattern: ''}],
             'no-dupe-args': 'error',
             'no-return-await': 'error',

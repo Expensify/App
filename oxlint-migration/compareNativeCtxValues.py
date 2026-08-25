@@ -46,7 +46,6 @@ NATIVE_CODE = 'react(jsx-no-constructed-context-values)'
 ESLINT_CODE = 'esr(jsx-no-constructed-context-values)'
 
 # Text patch rather than an `extends` wrapper: oxlint's `extends` does not inherit ignorePatterns,
-# so a wrapper would lint Mobile-Expensify and .github as well (measured: 426467 findings).
 PLUGIN_ANCHOR = '{"name": "rh", "specifier": "./config/oxlint/plugins/rh-plugin.mjs"}'
 PLUGIN_ENTRY = PLUGIN_ANCHOR + ',\n        {"name": "esr", "specifier": "./oxlint-migration/eslint-ctx-values-rule.mjs"}'
 
@@ -132,9 +131,9 @@ def collect(diagnostics):
         if code == NATIVE_CODE:
             native.add((path, line))
         elif code == ESLINT_CODE:
-            # "The 'x' object (at line 53) passed as the value prop to the Context provider
-            # (at line 58) changes every render." -- one `at line` means an inline literal, and
-            # then the reported line IS the provider.
+            # ESLint's message cites the object and the provider ("The 'x' object (at line 53) passed
+            # as the value prop to the Context provider (at line 58)"); one `at line` means an inline
+            # literal, and then the reported line IS the provider.
             cited = [int(value) for value in re.findall(r'\(at line (\d+)\)', diagnostic.get('message', ''))]
             provider = cited[-1] if cited else line
             eslint[(path, provider)] = line
@@ -155,7 +154,7 @@ def main(targets):
         if is_suppressed(path, declaration):
             suppressed.append((path, declaration, provider, key not in native))
         elif key not in native:
-            continue  # ESLint-only: native missed it entirely (none exist today)
+            continue
         elif declaration == provider:
             agree.append((path, provider))
         else:

@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-//
-// Proves config/oxlint/onyxConnectBypass.mjs does what scripts/checkOnyxConnectBypass.ts does, and
-// that it does it by discriminating rather than by reporting everything.
-//
-// The assertion that matters is the partition: on a fixture with four Onyx.connect() call sites, the
-// ban and its shadow together see all four, and neither sees the same one twice. A shadow that
-// reported unconditionally would double-count lines 7 and 20; one that never fired would miss 11 and
-// 15. Only the intended behavior produces this exact split.
-//
-// Usage: npm run oxlint-onyx-bypass
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
@@ -18,7 +8,6 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const CONFIG = 'oxlint-migration/onyx-bypass-probe/probe.oxlintrc.json';
 const FIXTURE = 'oxlint-migration/onyx-bypass-probe/fixture.ts';
 
-/** rule id -> sorted line numbers, from one oxlint run over the fixture. */
 function runProbe() {
     let stdout;
     try {
@@ -39,7 +28,6 @@ function runProbe() {
     return byRule;
 }
 
-// Line numbers in the fixture, one per case it documents.
 const NO_COMMENT = 7;
 const DISABLED_NEXT_LINE = 11;
 const DISABLED_BY_BLOCK = 15;

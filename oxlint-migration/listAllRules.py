@@ -111,13 +111,10 @@ def build_available():
     """Installed-rule inventory: what each tool *has*, independent of the repo's configs."""
     es_installed = ruleMap.eslint_installed_rules()
     ox_available = ruleMap.oxlint_available_rules()
-    # Unfolded ids: this listing shows a typescript-eslint extension rule and its base rule as
-    # separate rows, so folding would mark both enabled and count one rule twice.
     es_enabled = ruleMap.eslint_enabled_rules(fold_extension_rules=False)
     ox_enabled = ruleMap.oxlint_enabled_rules()
     ox_disabled = ruleMap.oxlint_disabled_rules()
 
-    # ESLint's typescript-eslint extension rules are covered by oxlint's TS-aware base rules
     def counterpart(rule):
         if rule in ox_available:
             return rule
@@ -190,7 +187,6 @@ def print_available(inventory, show_all=False):
         for rule in available_not_on:
             entry = inventory[rule]
             plan = entry['portPlan'] or {}
-            # a rule absent from .oxlintrc.json reads like an oversight; an explicit "off" does not
             marked = f'off in {entry["oxlintOffIn"]}' if entry['oxlintOffIn'] else 'NOT IN CONFIG'
             print(f'    {rule:50} {entry["oxlintSource"]:12} {marked:16} [{plan.get("effort", "?")}] {plan.get("mechanism", "no PORT_PLAN entry")}')
     if es_only:

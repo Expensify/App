@@ -35,20 +35,16 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-from ruleMap import REPRESENTATIVE_FILES, TS_EXTENSION_RULES, norm_ox_config  # noqa: E402
+from ruleMap import REPRESENTATIVE_FILES, TS_EXTENSION_RULES, norm_ox_config
 
 EQUIVALENT, ACCEPTED, OPEN = 'equivalent', 'accepted', 'open'
 
-# rule id -> (status, reason). Keyed on the ESLint rule name, which is what both sides normalize to.
 LEDGER = {
-    # -- Spelled differently, same behavior. Every claim here is the rule's own default, read out of its
-    # -- implementation or schema rather than remembered.
     'curly': (EQUIVALENT, 'oxlint writes ["error", "all"]; "all" is what curly does with no option (eslint/lib/rules/curly.js only branches on "multi", "multi-line", "multi-or-nest")'),
     'no-undef': (EQUIVALENT, 'oxlint writes {typeof: false}, which is defaultOptions in eslint/lib/rules/no-undef.js:31-35'),
     'dot-notation': (EQUIVALENT, 'oxlint writes {allowKeywords: true, allowPattern: ""}, both defaults in eslint/lib/rules/dot-notation.js:30-31'),
     'import/order': (EQUIVALENT, 'oxlint writes distinctGroup, sortTypesGroup, named and warnOnUnassignedImports; all four are `default` in eslint-plugin-import\'s order schema (true, false, false, false)'),
     'jsx-a11y/anchor-has-content': (EQUIVALENT, 'ESLint writes {components: []}; the rule reads `options.components || []` (eslint-plugin-jsx-a11y/lib/rules/anchor-has-content.js:38), so omitting it is the same'),
-    # -- Real differences this repo chose.
     'react/jsx-no-duplicate-props': (ACCEPTED, 'ESLint passes {ignoreCase: true}; oxlint\'s native port accepts no options at all and fails the config with "this rule does not accept configuration options", so the option cannot be mirrored. 0 findings on either tool today'),
     'react/jsx-no-undef': (ACCEPTED, 'same: ESLint passes {allowGlobals: true}, oxlint\'s port accepts no options. 0 findings on either tool today'),
     'import/no-cycle': (ACCEPTED, 'ESLint passes {maxDepth: "\u221e"}; oxlint rejects a string there ("invalid type: string, expected u32") and its default already behaves the same way on this repo, measured 748 = 748 over src with the option omitted and with maxDepth at u32::MAX. Enabled on both, and oxlint is the only one that reports: 534 real cycles against ESLint\'s 0'),
@@ -61,7 +57,6 @@ LEDGER = {
     'react-hooks/config': (ACCEPTED, 'not a compiler-category rule and not ported. Left behind when the rh/ sidecar was deleted'),
     'react-hooks/gating': (ACCEPTED, 'same'),
     'react-hooks/component-hook-factories': (ACCEPTED, 'ships as a deprecated stub upstream: create() returns {}, so it cannot report on either tool'),
-    # -- Real differences nobody chose. These need an owner.
     'prefer-const': (OPEN, 'oxlint passes {ignoreReadBeforeAssign: true}; the default is false (eslint/lib/rules/prefer-const.js:343-348). oxlint is the more lenient of the two'),
     'no-redeclare': (OPEN, 'oxlint passes {builtinGlobals: false}; the default is true (eslint/lib/rules/no-redeclare.js:23). oxlint is the more lenient of the two'),
     'prefer-promise-reject-errors': (OPEN, 'oxlint passes {allowEmptyReject: true}; the default is false (eslint/lib/rules/prefer-promise-reject-errors.js:20). oxlint is the more lenient of the two'),
@@ -132,9 +127,6 @@ def main():
     args = parser.parse_args()
 
     files = args.files or REPRESENTATIVE_FILES
-    # A representative file that no longer exists is the quietest way for this check to stop checking
-    # something: the override it stands for is silently never compared. `svg-loader.mjs` had already
-    # gone that way before anyone noticed.
     missing = [f for f in files if not os.path.exists(os.path.join(ROOT, f))]
     if missing:
         sys.exit('representative file(s) missing, so the override(s) they stand for are unchecked:\n  ' + '\n  '.join(missing))

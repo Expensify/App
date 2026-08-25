@@ -29,18 +29,13 @@ ROOT = os.path.dirname(HERE)
 
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, 'rule-tester'))
-from compareRuleTester import TREE, build_tree, enabled_custom_rules  # noqa: E402
-from ruleMap import is_on, js_plugin_rules, load_jsonc  # noqa: E402
+from compareRuleTester import TREE, build_tree, enabled_custom_rules
+from ruleMap import is_on, js_plugin_rules, load_jsonc
 
 MANIFEST = os.path.join(HERE, 'port-probe', 'fixtures.manifest.json')
 
-# The aliases this repo hand-hosts, rule by rule, in config/oxlint/plugins/. Every rule under them is
-# a deliberate choice and has to be covered. The other aliases are whole npm plugins loaded by package
-# name; their rules are listed but not required to be covered, because oxlint runs the plugin's own
-# code for all of them and one fixture per plugin already proves the plugin loads and reports.
 HAND_HOSTED = {'core', 'hosted', 'rulesdir'}
 
-# Rules a fixture or a replayed case cannot express, each asserted by its own script instead.
 PROBE_EVIDENCE = {
     'rulesdir/prefer-locale-compare-from-context': (
         'npm run oxlint-locale-compare-port',
@@ -64,8 +59,6 @@ PROBE_EVIDENCE = {
     ),
 }
 
-# Sidecar rules deliberately left without evidence, with the reason. Empty is the goal; an entry here
-# is a decision someone made in the open, not a gap that went unnoticed.
 EXEMPT = {}
 
 

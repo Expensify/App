@@ -1,25 +1,8 @@
-// Type-free rewrite of rulesdir/prefer-locale-compare-from-context for oxlint.
-//
-// ESLint's version (node_modules/eslint-config-expensify/eslint-plugin-expensify/
-// prefer-locale-compare-from-context.js) asks the type checker one question:
-//
-//     const objectType = typeChecker.getTypeAtLocation(objectTsNode);
-//     return isString(objectType);
-//
-// oxlint's JS plugins get no type information, so that call cannot be made. It also does not need
-// to be: `localeCompare` exists on exactly one built-in prototype, String. So "the receiver is a
-// string" and "the member is named localeCompare" agree on every value the standard library can
-// produce, and the rewrite drops the type query rather than approximating it.
-//
-// Known divergence, deliberately not papered over: an object that defines its OWN localeCompare
-// method. ESLint stays silent there (the receiver is not a string), this rule reports. Measured
-// 2026-08-12: `src/` contains 4 occurrences of `.localeCompare(`, one of them inside a JSDoc
-// block, and all 3 real call sites have a string receiver. The divergence is covered as an
-// expected difference by oxlint-migration/checkLocaleComparePort.py, so it fails loudly if the shape
-// ever stops being the only one.
-//
-// The message and the test-file skip are imported from the real rule's own modules rather than
-// copied, so neither can drift.
+// oxlint's JS plugins get no type information, so the type query ESLint's
+// rulesdir/prefer-locale-compare-from-context makes (`isString(getTypeAtLocation(...))`) cannot be made
+// here. `localeCompare` exists on exactly one built-in prototype, so the receiver check is dropped
+// rather than approximated. The resulting divergence on an object with its own `localeCompare` is
+// covered by oxlint-migration/checkLocaleComparePort.py.
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -59,7 +42,6 @@ function create(context) {
                 return;
             }
 
-            // Guard kept from the original: a receiver-less call cannot be judged.
             if (!node.callee.object) {
                 return;
             }

@@ -32,8 +32,6 @@ PROBE_PATH = os.path.join(PROBE_DIR, 'probe.tsx')
 ES_OFF = '{"react/jsx-uses-react": "off", "react/jsx-uses-vars": "off"}'
 OX_OFF = ['-A', 'hosted/jsx-uses-react', '-A', 'hosted/jsx-uses-vars']
 
-# Line 1 imports React, used only by the JSX below. Line 3 declares a component used only from JSX.
-# Line 5 is the control: nothing references it, so every working unused-vars rule must report it.
 PROBE = """import React from 'react';
 
 const UsedOnlyFromJsx = () => <span />;
@@ -97,7 +95,6 @@ def main():
     print(f'unused-vars lines reported, rules OFF: eslint {sorted(es_off)}, oxlint {sorted(ox_off)}')
     print()
 
-    # 2 first: without the control, silence proves nothing.
     if CONTROL_LINE not in es_on or CONTROL_LINE not in ox_on:
         failures.append(
             f'the genuinely unused variable on line {CONTROL_LINE} was not reported by both tools '

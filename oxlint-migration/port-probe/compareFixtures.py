@@ -64,12 +64,8 @@ def main():
         es_hits = {f for f in es if f[0] == fixture and f[2] == rule}
         ox_hits = {f for f in ox if f[0] == fixture and f[2] == entry['oxlintRule']}
         expected = entry['expected']
-        # compare positions, not just counts
         es_lines = sorted(line for _, line, _ in es_hits)
         ox_lines = sorted(line for _, line, _ in ox_hits)
-        # A rule may anchor its report on a different node in each tool while detecting the same
-        # violation. Such a case declares the oxlint lines it is allowed to land on, plus the reason,
-        # and is still held to the same count -- so a real miss (a line vanishing) still fails.
         accepted_ox_lines = entry.get('oxlintLines')
         if len(es_hits) != expected:
             verdict, ok = f'FAIL: eslint found {len(es_hits)}, fixture claims {expected}', False

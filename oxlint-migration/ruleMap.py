@@ -15,26 +15,22 @@ import subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# One file per distinct ESLint config scope, so the union of their `--print-config`
-# output covers every rule the repo can apply. Getting this list wrong understates
-# ESLint's rule set silently: before the last three entries were added the union missed
-# 24 rules, because every file here was TypeScript and typescript-eslint switches a batch
-# of core rules off for TS (`no-undef`, `no-unreachable`, `constructor-super`, ...) while
-# leaving them on for plain JS. Add a file here whenever a new `files:` block is added
-# to config/eslint/eslint.config.mjs.
+# One file per distinct ESLint config scope. Plain JS belongs here too: typescript-eslint switches a
+# batch of core rules off for TS and leaves them on for JS, so a TypeScript-only list understates the
+# union by 24 rules.
 REPRESENTATIVE_FILES = [
     'src/App.tsx',
     'src/libs/actions/Report/index.ts',
     'tests/ui/ReportActionsListTest.tsx',
     'scripts/utils/OpenAIUtils.ts',
     '.github/scripts/createDocsRoutes.ts',
-    'index.js',  # plain JS: core rules typescript-eslint replaces in TS files
-    'config/rsbuild/loaders/worklets-loader.mjs',  # the `config/rsbuild/loaders/*-loader.mjs` override
-    'src/languages/en.ts',  # the en.ts/es.ts override (rulesdir/use-periods-for-error-messages)
+    'index.js',
+    'config/rsbuild/loaders/worklets-loader.mjs',
+    'src/languages/en.ts',
 ]
 
-# typescript-eslint "extension rules" that oxlint implements as its (TS-aware) base
-# rule -- @typescript-eslint/no-shadow is covered by oxlint's plain no-shadow, etc.
+# typescript-eslint "extension rules" that oxlint implements as its (TS-aware) base rule, e.g.
+# @typescript-eslint/no-shadow is covered by oxlint's plain no-shadow.
 TS_EXTENSION_RULES = {
     'default-param-last', 'max-params', 'no-array-constructor', 'no-dupe-class-members',
     'no-empty-function', 'no-loop-func', 'no-loss-of-precision', 'no-redeclare',
@@ -42,12 +38,7 @@ TS_EXTENSION_RULES = {
     'no-useless-constructor',
 }
 
-# Port plan for every rule ESLint enables and the mirrored oxlint config does not.
-# `mechanism` is what closing the gap would take, `effort` is a rough size, and
-# `proven` marks the ones demonstrated end-to-end by oxlint-migration/port-probe.
-# Keep in sync with the "Porting plan" section of OXLINT_MIGRATION_INVESTIGATION.md.
 PORT_PLAN = {
-    # -- structural / infrastructure: no oxlint concept, stays on ESLint --
     'eslint-seatbelt/configure': {
         'mechanism': 'none - debt-tracker pseudo-rule driven by an ESLint processor',
         'effort': 'blocker', 'proven': False,
@@ -58,18 +49,6 @@ PORT_PLAN = {
         'effort': 'none', 'proven': False,
         'notes': 'ESLint progress-bar plugin, no behaviour to preserve',
     },
-    # WIRED 2026-08-12, both of the react-compiler-gated rules: react/jsx-no-constructed-context-values
-    # (as hosted/, from eslint-plugin-react) and rulesdir/no-inline-useOnyx-selector. ESLint's
-    # processor drops every message from either one in a file both React compilers memoize, and
-    # config/oxlint/reactCompilerGate.mjs replicates that inside the JS plugin. Native was built and
-    # measured for the context rule first and rejected: it cannot be gated, so it needs 115 inline
-    # suppressions and one per new context provider forever. Its two divergences from ESLint's rule
-    # are recorded in oxlint-migration/compareNativeCtxValues.py.
-    # -- dropped 2026-08-21 with the move to the Rust React Compiler (OXLINT_RUST_COMPILER_PLAN.md) --
-    # The other 12 compiler rules moved to rc/* over oxc-transform-react. These two could not come
-    # along: each needs per-rule options handed to the compiler, and rc/* runs ONE cached analysis per
-    # file with a fixed option set, which is what makes it 10x faster than the sidecar. Leaving either
-    # one on the sidecar would have kept the entire 52 s JavaScript analysis, i.e. the whole saving.
     'react-hooks/config': {
         'mechanism': 'dropped - validates compiler options, and rc/* passes none from config',
         'effort': 'none', 'proven': False,
@@ -85,7 +64,6 @@ PORT_PLAN = {
                  'given a dynamicGating source, which is why the fixture had to supply one in both '
                  'fixture configs; production supplies none, so the rule cannot fire',
     },
-    # -- blocked by a missing API in oxlint's JS-plugin bridge, not by types --
     'no-invalid-this': {
         'mechanism': 'blocked - oxlint\'s bridge throws on sourceCode.getJSDocComment',
         'effort': 'blocked', 'proven': False,
@@ -95,13 +73,6 @@ PORT_PLAN = {
                  'largely covered anyway by noImplicitThis from tsconfig strict, so the exposure is '
                  'the plain .js/.mjs files',
     },
-    # -- need TypeScript type info, which jsPlugins cannot reach --
-    # WIRED 2026-08-12: rulesdir/prefer-locale-compare-from-context turned out not to need types at
-    # all. Its only type query is "is the receiver a string", and localeCompare exists on exactly one
-    # built-in prototype, so config/oxlint/preferLocaleCompareFromContext.mjs drops the query rather
-    # than approximating it. The one shape where that differs from ESLint (a receiver defining its own
-    # localeCompare) does not occur in src/, and is asserted as an expected divergence by
-    # oxlint-migration/checkLocaleComparePort.py.
     'rulesdir/prefer-at': {
         'mechanism': 'blocked - needs typeChecker.isArrayType to tell arrays from records',
         'effort': 'blocked, partial', 'proven': False,
@@ -125,7 +96,6 @@ PORT_PLAN = {
         'effort': 'blocked', 'proven': False,
         'notes': 'revisit when the repo moves to TS 7',
     },
-    # -- available in oxlint, held back by a code cleanup rather than tooling --
     'import/no-cycle': {
         'mechanism': "enable oxlint's native import/no-cycle",
         'effort': 'L (cleanup, not porting)', 'proven': False,
@@ -133,19 +103,9 @@ PORT_PLAN = {
     },
 }
 
-# Deliberately empty since 2026-08-11. It used to hold the 28 rules oxlint has no native port
-# for, on the argument that they are dead weight. That argument did not survive being tested:
-# hosting all 28 at once showed 27 of them run correctly through the jsPlugins the config already
-# loads, so they are wired now and the only cost is sidecar time (+6 s for core+import, +13 s for
-# the 17 react rules on a 101-second run). The 28th, no-invalid-this, is a coverage gap with a
-# named blocker in PORT_PLAN, not dead weight. Kept as a name because listAllRules reads it, and
-# because an empty set is the honest answer: no rule here is off for lack of value.
 KNOWN_NOT_IMPLEMENTED_LOW_VALUE = set()
 
 
-# ESLint rules that oxlint only implements under their post-rename name. Without the mapping a
-# rename reads as two separate problems -- an ESLint rule with no counterpart, plus an oxlint-only
-# rule nobody asked for -- when it is one rule under two spellings.
 OXLINT_RENAMES = {
     'no-object-constructor': 'no-new-object',
     'no-new-native-nonconstructor': 'no-new-symbol',
@@ -153,23 +113,15 @@ OXLINT_RENAMES = {
 ESLINT_RENAMES = {es: ox for ox, es in OXLINT_RENAMES.items()}
 
 
-# config/oxlint/plugins/hosted-rules.mjs re-exports these under the `hosted/` alias, because oxlint
-# reserves the real plugin names (react, import, jsdoc) for its own implementations.
 HOSTED_RULE_ORIGIN = {
     'jsx-no-bind': 'react',
     'function-component-definition': 'react',
-    # wired 2026-08-12: hosted, not native, because only a JS plugin can hold the React Compiler
-    # gate (and the native port diverges twice -- see oxlint-migration/compareNativeCtxValues.py)
     'jsx-no-constructed-context-values': 'react',
-    # wired 2026-08-25: hosted for the same reason one level finer. The processor filters this rule
-    # per message rather than per rule, and oxlint's native react/exhaustive-deps is a Rust rule that
-    # nothing can filter: it reported 49 against ESLint's 1.
     'exhaustive-deps': 'react-hooks',
     'prefer-default-export': 'import',
     'order': 'import',
     'no-types': 'jsdoc',
     'naming-convention': '@typescript-eslint',
-    # wired 2026-08-11: no native oxlint port, hosted from the same package ESLint uses
     'no-import-module-exports': 'import',
     'no-relative-packages': 'import',
     'no-useless-path-segments': 'import',
@@ -200,15 +152,10 @@ def norm_ox(code):
         return code
     plugin, rule = m.groups()
     if plugin in ('eslint', 'core'):
-        # 'core' is the jsPlugin alias for re-exported ESLint core rules
         return OXLINT_RENAMES.get(rule, rule)
     if plugin == 'typescript':
         return f'@typescript-eslint/{rule}'
     if plugin == 'rc' or (plugin == 'react' and rule in ('exhaustive-deps', 'rules-of-hooks')):
-        # 'rc' hosts the 12 React Compiler rules of eslint-plugin-react-hooks, reimplemented over the
-        # Rust compiler (config/oxlint/reactCompilerRust.mjs); oxlint's native react/exhaustive-deps
-        # and react/rules-of-hooks are the same plugin's other two rules. All normalize to the ESLint
-        # names, which is also what their diagnostics and existing disable comments use.
         return f'react-hooks/{rule}'
     if plugin == 'hosted':
         return f'{HOSTED_RULE_ORIGIN[rule]}/{rule}'
@@ -220,9 +167,7 @@ def norm_ox(code):
 def norm_es(rid):
     """Normalize an ESLint message ruleId to a stable rule name."""
     if rid is None:
-        # ESLint uses a null rule ID for parse errors AND unused-directive notices
         return '<fatal/unused-directive>'
-    # the stratify processor splits no-deprecated into per-API synthetic IDs
     if rid.startswith('@typescript-eslint/no-deprecated/'):
         return '@typescript-eslint/no-deprecated'
     return rid
@@ -347,8 +292,6 @@ def oxlint_catalogue():
     names = json.load(open(schema_path))['definitions']['DummyRuleMap']['properties']
     catalogue = set()
     for name in names:
-        # a rule oxlint only ships under its post-rename name is listed under the name ESLint
-        # enables, so it matches instead of showing up as an unrelated oxlint-only rule
         catalogue.add(OXLINT_RENAMES.get(name, name))
         if name.startswith('typescript/'):
             catalogue.add('@typescript-eslint/' + name.split('/', 1)[1])
@@ -400,7 +343,6 @@ def js_plugin_rules(config_path=None):
         '}'
         'console.log(JSON.stringify(out));'
     )
-    # relative paths resolve against the config file; bare specifiers are npm packages
     resolved = {spec: (os.path.abspath(os.path.join(config_dir, spec)) if spec.startswith('.') else spec) for spec in plugins}
     declared_by_resolved = {resolved[spec]: name for spec, name in declared.items()}
     out = subprocess.run(['node', '--input-type=module', '-e', script, '--', *resolved.values()], capture_output=True, text=True, cwd=ROOT)
@@ -410,8 +352,6 @@ def js_plugin_rules(config_path=None):
         return {}
     mapping = {}
     for spec, plugin in hosted.items():
-        # oxlint prefixes rules with the declared name, else the plugin's meta.name (else the
-        # package name), always with the eslint-plugin- marker stripped: @scope/eslint-plugin-x -> @scope/x
         raw = declared_by_resolved.get(spec) or plugin['name'] or (os.path.basename(spec) if spec.startswith('/') else spec)
         alias = re.sub(r'(^|/)eslint-plugin-', r'\1', raw)
         for rule in plugin['rules']:

@@ -1,8 +1,3 @@
-// Exposes ESLint's own `react/jsx-no-constructed-context-values` under the `esr` alias, so a
-// single oxlint run can report it alongside oxlint's native Rust port of the same rule and the
-// two can be diffed. Used only by oxlint-migration/compareNativeCtxValues.py, never by the
-// production config -- there the rule id would have to be `hosted/` and carry the React
-// Compiler gate.
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -10,7 +5,6 @@ import {fileURLToPath} from 'node:url';
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-// Same copy ESLint resolves
 const react = require(path.resolve(repoRoot, 'node_modules/eslint-plugin-react'));
 const rules = react?.rules ?? react?.default?.rules ?? {};
 

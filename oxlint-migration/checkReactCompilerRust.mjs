@@ -1,19 +1,4 @@
 #!/usr/bin/env node
-//
-// Proves config/oxlint/reactCompilerRust.mjs reports exactly the 12 rules it is supposed to,
-// on the lines it is supposed to, and that the parts that make it safe are load-bearing.
-//
-// Seven assertions, each guarding one way this module can fail silently:
-//   1  the 12 fixtures produce their own rule's expected count and ZERO for the other eleven
-//   2  the category tables cover the plugin's whole ErrorCategory enum, so a rename cannot slip past
-//   3  an unrecognized category throws instead of vanishing
-//   4  a file that cannot be parsed yields no diagnostics instead of crashing the lint run
-//   5  the analysis is cached per filename, so 12 rules asking about one file run it once
-//   6  Counter.tsx still reports both bugs despite its `react-hooks/exhaustive-deps` comment,
-//      which is the entire reason this module exists rather than oxlint's native react/* rules
-//   7  the one anchor that diverges from ESLint stays where it was measured
-//
-// Usage: npm run oxlint-react-compiler-rust
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -26,7 +11,6 @@ const FIXTURE_DIR = path.join(repoRoot, 'oxlint-migration/port-probe/fixtures');
 const PROBE_DIR = path.join(repoRoot, 'oxlint-migration/native-vs-sidecar-probe');
 const PLUGIN_BUNDLE = path.join(repoRoot, 'node_modules/eslint-config-expensify/node_modules/eslint-plugin-react-hooks/cjs/eslint-plugin-react-hooks.development.js');
 
-/** fixture -> [rule, expected count], mirroring oxlint-migration/port-probe/fixtures.manifest.json. */
 const FIXTURES = [
     ['rhRefs.tsx', 'refs', 1],
     ['rhSetStateInEffect.tsx', 'set-state-in-effect', 1],
@@ -83,8 +67,6 @@ check(phantom.length === 0, 'no table entry names a category upstream dropped', 
 
 console.log('\n3. an unrecognized category throws');
 const refsFixture = path.join(FIXTURE_DIR, 'rhRefs.tsx');
-// Same file under a name the cache has not seen, with `Refs` removed from the table: the module
-// must refuse rather than report nothing.
 const unmappedCopy = path.join(PROBE_DIR, 'rhRefs.unmapped-probe.tsx');
 fs.copyFileSync(refsFixture, unmappedCopy);
 const savedRule = RULE_BY_CATEGORY.Refs;
@@ -112,8 +94,6 @@ fs.rmSync(brokenFile);
 check(Array.isArray(broken) && broken.length === 0, 'a syntactically broken file yields []', String(broken));
 
 console.log('\n5. the analysis is cached per filename');
-// A second call with source text that WOULD produce different findings must return the first
-// answer: if the analysis re-ran, the counts would change.
 const cachedFirst = diagnose(refsFixture);
 const cachedSecond = reactCompilerDiagnostics(refsFixture, 'export const nothing = 1;\n');
 check(cachedSecond === cachedFirst, 'a second call for the same filename returns the cached array', `${cachedFirst.length} diagnostics`);
@@ -128,13 +108,10 @@ check(JSON.stringify(twoLines) === JSON.stringify([7, 21, 24]), 'TwoComponents.t
 
 console.log('\n7. the one recorded anchor divergence stays where it was measured');
 // ESLint anchors the second immutability finding on the escape site, the `onClick={onSelect}` line
-// (measured 2026-08-21, column 29); the Rust compiler has no label there and anchors both findings on
-// the modification site. Pinned by landmark rather than by absolute line, so editing that file's
-// header cannot break this, and a bump that moves the anchor fails here instead of showing up as
-// unexplained parity drift.
+// (measured 2026-08-21, column 29); the Rust compiler has no label there and anchors both on the
+// modification site.
 const anchorFile = path.join(PROBE_DIR, 'rhImmutabilityAnchor.tsx');
 const anchorLines = fs.readFileSync(anchorFile, 'utf8').split('\n');
-// findLast, not find: the file's header comment quotes both landmarks before the code reaches them.
 const modificationLine = anchorLines.findLastIndex((line) => line.includes('latest = 1;')) + 1;
 const escapeLine = anchorLines.findLastIndex((line) => line.includes('onClick={onSelect}')) + 1;
 const anchorPoints = diagnose(anchorFile)

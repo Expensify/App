@@ -83,7 +83,6 @@ def findings_table(ox_file, es_file):
         if a != b:
             diffs.append((rule, a, b))
         elif a and es_at[rule] != ox_at[rule]:
-            # same count, different places: a port that anchors its report elsewhere
             misplaced.append((rule, sorted(es_at[rule] - ox_at[rule]), sorted(ox_at[rule] - es_at[rule])))
     print(f'{"totals":62} {sum(ces.values()):7} {sum(cox.values()):7}')
 
@@ -134,9 +133,6 @@ def config_coverage_check():
     extras = sorted(ox_rules - es_rules)
     print()
     print(f'Config coverage (enabled rules, union across scopes): eslint={len(es_rules)}, oxlint={len(ox_rules)}, shared={len(es_rules & ox_rules)}')
-    # The union is per-repo, not per-scope: a rule ESLint enables only for .ts and oxlint
-    # enables everywhere counts as shared. That is deliberate (findings parity is what
-    # decides scoping), but it means this check can only find rules missing outright.
     print(f'  (union taken over {len(ruleMap.REPRESENTATIVE_FILES)} representative files, one per config scope: {", ".join(ruleMap.REPRESENTATIVE_FILES)})')
     planned = [r for r in gaps if r in PORT_PLAN]
     unexplained = [r for r in gaps if r not in PORT_PLAN]

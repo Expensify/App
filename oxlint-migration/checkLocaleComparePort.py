@@ -26,8 +26,6 @@ PROBE_DIR = os.path.join(ROOT, 'src', '__localeCompareProbe')
 OX_RULE = 'rulesdir(prefer-locale-compare-from-context)'
 ES_RULE = 'rulesdir/prefer-locale-compare-from-context'
 
-# Receiver shapes, each on its own line so the line number identifies the case. The first three are
-# the only shapes that occur in src/ today (ReportUtils.ts:4521, ReportUtils.ts:9493, LOCALES.ts:73).
 PROBE = """type Row = {created?: string};
 
 const LANGUAGE: Record<string, string> = {en: 'English'};
@@ -51,7 +49,6 @@ IN_TEST = """function inTest(first: string, second: string) {
 export default inTest;
 """
 
-# line -> (both must report?, what the case is)
 EXPECTED = {
     6: (True, 'member access on an optional string, as in ReportUtils.ts:9493'),
     7: (True, 'plain string variable'),
@@ -143,7 +140,6 @@ def main():
     if not skip_ok:
         failures.append('the tests/ skip does not match')
 
-    # Nothing outside the lines this probe accounts for.
     stray = {(path, line) for path, line in ox | es if line not in EXPECTED and path != paths['inTest']}
     if stray:
         failures.append(f'findings on unaccounted lines: {sorted(stray)}')
