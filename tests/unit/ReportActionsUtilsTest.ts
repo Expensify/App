@@ -8,6 +8,8 @@ import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
 
+import type {ValueOf} from 'type-fest';
+
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
@@ -30,6 +32,7 @@ import {
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
@@ -53,6 +56,7 @@ import {
     getRequiresCategoryMessage,
     getRequiresTagMessage,
     getSendMoneyFlowAction,
+    getTransactionThreadReportIDFromAction,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
@@ -593,6 +597,34 @@ describe('ReportActionsUtils', () => {
                 false,
             );
             expect(result).toEqual(linkedActionWithChildReportID);
+        });
+
+        describe('getTransactionThreadReportIDFromAction', () => {
+            it('should return the childReportID of the action', () => {
+                expect(getTransactionThreadReportIDFromAction(linkedActionWithChildReportID)).toEqual('existingChildReportID');
+            });
+
+            it('should return CONST.FAKE_REPORT_ID when the action has no childReportID, because the transaction thread is not always created optimistically', () => {
+                expect(getTransactionThreadReportIDFromAction(linkedActionWithoutChildReportID)).toEqual(CONST.FAKE_REPORT_ID);
+            });
+
+            it('should return undefined when there is no action', () => {
+                expect(getTransactionThreadReportIDFromAction(undefined)).toBeUndefined();
+            });
+
+            it('should produce the same reportID as getOneTransactionThreadReportID for the same inputs', () => {
+                // getOneTransactionThreadReportID is defined in terms of this helper, so callers that already hold the
+                // action can derive the ID from it instead of re-running the O(n) scan over the report actions.
+                const args: Parameters<typeof getOneTransactionThreadReportID> = [
+                    mockedReports[IOUReportID],
+                    mockedReports[mockChatReportID],
+                    [linkedActionWithChildReportID],
+                    false,
+                    [IOUTransactionID],
+                ];
+
+                expect(getTransactionThreadReportIDFromAction(ReportActionsUtils.getOneTransactionThreadReportAction(...args))).toEqual(getOneTransactionThreadReportID(...args));
+            });
         });
     });
 
@@ -1357,6 +1389,15 @@ describe('ReportActionsUtils', () => {
             return action;
         }
 
+        it('uses the stored IES label for a pending export', () => {
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE, []);
+            action.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+            expect(ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action)).toEqual([
+                {text: `started exporting this report to ${CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE}...`, url: ''},
+            ]);
+        });
+
         it.each([CONST.EXPORT_LABELS.INTACCT, CONST.EXPORT_LABELS.SAGE_INTACCT, CONST.EXPORT_LABELS.QBD])('does not link ID-based %s company card export records', (label) => {
             const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(label, ['SI-123', 'SI-456']));
 
@@ -1657,6 +1698,24 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'NetSuite', '', ''));
+        });
+
+        it('should keep the stored IES label for an integrations error message after switching to QBO', () => {
+            const errorMessage = 'Failed to export';
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                originalMessage: {
+                    label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
+                    result: {
+                        messages: [errorMessage],
+                    },
+                },
+            };
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'Intuit Enterprise Suite', '', ''));
         });
     });
 
@@ -3780,6 +3839,85 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getDelegateSubmitMessage', () => {
+        const originalManagerEmail = 'manager@example.com';
+        const delegateEmail = 'delegate@example.com';
+        const thirdPartyEmail = 'thirdparty@example.com';
+
+        const buildDelegateSubmitAction = (
+            originalMessage: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT>['originalMessage']> = {},
+        ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT> => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+            created: '2026-06-05 10:00:00',
+            reportActionID: '1',
+            originalMessage: {
+                originalManager: originalManagerEmail,
+                delegate: delegateEmail,
+                ...originalMessage,
+            },
+        });
+
+        it('returns an empty string when originalManager is missing', () => {
+            const action = buildDelegateSubmitAction({originalManager: undefined});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe('');
+        });
+
+        it('returns an empty string when delegate is missing', () => {
+            const action = buildDelegateSubmitAction({delegate: undefined});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe('');
+        });
+
+        it('returns the wingman message when the delegate is not on the policy', () => {
+            const action = buildDelegateSubmitAction({isOnPolicy: false});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, delegateEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitNotOnPolicyForWingman', originalManagerEmail),
+            );
+        });
+
+        it('returns the original manager message when the delegate is not on the policy', () => {
+            const action = buildDelegateSubmitAction({isOnPolicy: false});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, originalManagerEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitNotOnPolicyAsOriginalManager', originalManagerEmail, delegateEmail),
+            );
+        });
+
+        it('returns the third-party message when the delegate is not on the policy', () => {
+            const action = buildDelegateSubmitAction({isOnPolicy: false});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitNotOnPolicy', originalManagerEmail, delegateEmail),
+            );
+        });
+
+        it('returns the wingman message for the cannot-approve-own-report case', () => {
+            const action = buildDelegateSubmitAction();
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, delegateEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportForWingman', originalManagerEmail),
+            );
+        });
+
+        it('returns the original manager message for the cannot-approve-own-report case', () => {
+            const action = buildDelegateSubmitAction();
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, originalManagerEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportAsOriginalManager', delegateEmail),
+            );
+        });
+
+        it('returns the third-party message for the cannot-approve-own-report case', () => {
+            const action = buildDelegateSubmitAction();
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReport', originalManagerEmail, delegateEmail),
+            );
+        });
+    });
+
     describe('getPolicyChangeLogMaxExpenseAmountMessage', () => {
         it('should return set message when setting from disabled to a value', () => {
             const action = {
@@ -4388,6 +4526,43 @@ describe('ReportActionsUtils', () => {
             };
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
+        });
+
+        it('should format the amount from raw oldRate/newRate/currency instead of the preformatted strings', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'rate',
+                    oldValue: 'AR$1.30',
+                    newValue: 'AR$1.40',
+                    oldRate: 130,
+                    newRate: 140,
+                    currency: 'ARS',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "ARS 1.40" (previously "ARS 1.30")');
+        });
+
+        it('should fall back to the preformatted strings when raw rate fields are missing', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'rate',
+                    oldValue: '$0.50',
+                    newValue: '$0.55',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "$0.55" (previously "$0.50")');
         });
 
         it('should return the correct message when a start date is set on a rate without dates', () => {
@@ -5092,6 +5267,33 @@ describe('ReportActionsUtils', () => {
 
             const result = getRequiresTagMessage(translateLocal, action);
             expect(result).toBe('disabled the expense tagging requirement');
+        });
+    });
+
+    describe('getCurrencyConversionFeeMessage', () => {
+        const buildAction = (preference?: ValueOf<typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: preference ? {preference} : {},
+                message: [],
+            }) as ReportAction;
+
+        it('should name the company when the company pays the fees', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction(CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY))).toBe(
+                'updated the currency conversion fee setting to "Company pays"',
+            );
+        });
+
+        it('should name the employee when the employee pays the fees', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction(CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE))).toBe(
+                'updated the currency conversion fee setting to "Employee pays"',
+            );
+        });
+
+        it('should fall back to the employee, who pays unless the company opts in', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction())).toBe('updated the currency conversion fee setting to "Employee pays"');
         });
     });
 
@@ -6087,6 +6289,24 @@ describe('ReportActionsUtils', () => {
             const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
             expect(result).toContain('Auth token expired');
             expect(result).not.toContain('Repeated');
+        });
+
+        it('should keep the stored IES label after switching to a QBO workspace', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-ies',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
+                    source: 'NEWEXPENSIFY',
+                    errorMessage: 'Auth token expired',
+                },
+            } as ReportAction;
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Intuit Enterprise Suite');
+            expect(result).not.toContain('QuickBooks Online');
         });
 
         it('should append recurrence text when recurrenceCount > 1', () => {

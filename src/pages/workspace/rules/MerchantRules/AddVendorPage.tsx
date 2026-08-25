@@ -1,6 +1,7 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -10,7 +11,7 @@ import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getMatchingVendorByID, getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getMatchingVendors, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -32,31 +33,34 @@ function getVendorSelectionItems(policy: Policy | undefined): VendorSelectionIte
 }
 
 /**
- * Resolves the picker's currently-selected item for a stored vendorID, scoped to the active vendor-matching
- * integration (the same list the picker offers). Falls back to the raw external ID as the label when the vendor
- * can't be resolved against that active list (list not synced yet, the vendor was removed, or the ID only matches
- * a stale/inactive connection) so the selection never displays a name the active picker can't actually select.
+ * Resolves the picker's currently-selected item for a stored vendorID using the same display-value fallback as
+ * every other merchant-rule surface.
  */
-function getSelectedVendorItem(policy: Policy | undefined, vendorID: string | undefined): VendorSelectionItem | undefined {
-    return vendorID ? {name: getMatchingVendorByID(policy, vendorID)?.name ?? vendorID, value: vendorID} : undefined;
+function getSelectedVendorItem(policy: Policy | undefined, vendorID: string | undefined, unavailableLabel: string): VendorSelectionItem | undefined {
+    return vendorID ? {name: getVendorRuleDisplayValue(policy, vendorID, unavailableLabel), value: vendorID} : undefined;
 }
 
 function AddVendorPage({route}: AddVendorPageProps) {
     const {policyID, ruleID} = route.params;
     const isEditing = ruleID !== ROUTES.NEW;
 
+    const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const {isBetaEnabled} = usePermissions();
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
     // This picker can be deep-linked directly, and its gate below reads policy.connections (via
     // hasVendorFeature and getMatchingVendorByID), which is empty on a non-active workspace until a page
-    // requiring connections is opened. Prefetch it here, gated on the beta alone (not hasVendorFeature,
-    // which itself depends on the connection data — a chicken-and-egg) so the picker becomes available and
-    // resolves the selected vendor once connections hydrate.
-    const {isFetchNeeded, isLoadingFetchedFlag} = usePolicyConnectionsPrefetch(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    // requiring connections is opened. Prefetch it here unconditionally so the picker becomes available
+    // and resolves the selected vendor once connections hydrate. It can't be narrowed by
+    // hasVendorFeature, because that itself depends on the connection data being fetched. The hook
+    // already skips the fetch when the app is offline, when the workspace has no accounting
+    // connection, and when the data has already been fetched.
+    const {isFetchNeeded, isLoadingFetchedFlag} = usePolicyConnectionsPrefetch(policy, true);
 
-    const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID);
+    const isOnXero = isXeroActiveMatchingSource(policy);
+    const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+    const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID, unavailableLabel);
 
     const vendorItems = getVendorSelectionItems(policy);
 
@@ -81,7 +85,7 @@ function AddVendorPage({route}: AddVendorPageProps) {
 
     return (
         <RuleSelectionBase
-            titleKey={isXeroActiveMatchingSource(policy) ? 'common.supplier' : 'common.vendor'}
+            titleKey={isOnXero ? 'common.supplier' : 'common.vendor'}
             testID="AddVendorPage"
             onBack={() => Navigation.goBack(backToRoute)}
         >

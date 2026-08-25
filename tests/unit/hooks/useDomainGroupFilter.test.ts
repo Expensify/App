@@ -8,32 +8,36 @@ import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Domain from '@src/types/onyx/Domain';
+import type {DomainSecurityGroup, SecurityGroupKey} from '@src/types/onyx/Domain';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const DOMAIN_ACCOUNT_ID = 99999;
 const SECURITY_GROUP_PREFIX = CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX;
 
 function buildDomain(groups: Record<string, {members: Record<string, 'read' | null>; name: string}>): Domain {
-    const domain: Record<string, unknown> = {
+    const domain = createMock<Domain>({
         validated: true,
         accountID: DOMAIN_ACCOUNT_ID,
         email: 'admin@test.com',
         domain_defaultSecurityGroupID: Object.keys(groups).at(0) ?? '',
-    };
+    });
 
     for (const [groupID, group] of Object.entries(groups)) {
-        domain[`${SECURITY_GROUP_PREFIX}${groupID}`] = {
+        const securityGroupKey: SecurityGroupKey = `${SECURITY_GROUP_PREFIX}${groupID}`;
+        const securityGroup: DomainSecurityGroup = {
             shared: group.members,
             name: group.name,
             enableRestrictedPrimaryLogin: false,
             enableRestrictedPolicyCreation: false,
         };
+        domain[securityGroupKey] = securityGroup;
     }
 
-    return domain as unknown as Domain;
+    return domain;
 }
 
 function buildMemberRow(accountID: number): DomainMemberRowData {

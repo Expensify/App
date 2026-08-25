@@ -20,11 +20,12 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import Navigation from '@libs/Navigation/Navigation';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
+import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import {
     getRequestType,
     hasEReceipt,
@@ -73,6 +74,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const policy = usePolicy(report?.policyID);
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
@@ -152,7 +155,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, [isOdometerImage, odometerImage]);
 
     // Use odometer image if imageType is provided (it's present only when we display odometer image) otherwise use receipt
-    const receiptSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    const receiptSource = isDraftTransaction ? ReceiptStorage.resolve(transactionDraft?.receipt?.source) : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
     const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
@@ -163,7 +166,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const receiptFilename = transaction?.receipt?.filename;
     const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
 
-    const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt && !isStitchedOdometerReceipt;
+    const canEditReceiptButtons = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
+    const shouldShowReplaceReceiptButton = canEditReceiptButtons && !isStitchedOdometerReceipt;
     const shouldShowDeleteReceiptButton = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
 
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
@@ -186,7 +190,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
+        openReport({reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -299,26 +303,32 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             if (!transaction?.transactionID) {
                 return Promise.resolve();
             }
-            return moveReceiptToDurableStorage(imageUri, filename).then((durableUri) => {
-                const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
-                if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
-                } else if (isDraftTransaction) {
-                    setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
-                } else {
-                    replaceReceipt({
-                        transaction,
-                        file: durableFile,
-                        source: durableUri,
-                        transactionPolicyCategories: policyCategories,
-                        transactionPolicy: policy,
-                        transactionPolicyTagList: policyTagList,
-                        transactionViolations,
-                        transactionReport,
-                        ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
-                    });
-                }
-            });
+            return ReceiptStorage.adopt(imageUri, filename)
+                .then((durableName) => ReceiptStorage.toLocalUri(durableName))
+                .catch((error: unknown) => {
+                    logReceiptAdoptFailed({error, captureSource: 'replace'});
+                    return imageUri;
+                })
+                .then((durableUri) => {
+                    const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
+                    if (isOdometerImage) {
+                        setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
+                    } else if (isDraftTransaction) {
+                        setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
+                    } else {
+                        replaceReceipt({
+                            transaction,
+                            file: durableFile,
+                            source: durableUri,
+                            transactionPolicyCategories: policyCategories,
+                            transactionPolicy: policy,
+                            transactionPolicyTagList: policyTagList,
+                            transactionViolations,
+                            transactionReport,
+                            ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
+                        });
+                    }
+                });
         },
         [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations, transactionReport],
     );
@@ -360,13 +370,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
-            shouldShowReplaceReceiptButton &&
+            canEditReceiptButtons &&
             transaction &&
             (hasReceiptSource(transaction) || (isOdometerImage && hasOdometerImageSource(transaction, imageType))) &&
             !isEReceipt &&
             !transaction?.receipt?.isTestDriveReceipt &&
             isImage,
-        [shouldShowReplaceReceiptButton, transaction, isEReceipt, isOdometerImage, imageType, isImage],
+        [canEditReceiptButtons, transaction, isEReceipt, isOdometerImage, imageType, isImage],
     );
 
     const enterCropMode = useCallback(() => {
