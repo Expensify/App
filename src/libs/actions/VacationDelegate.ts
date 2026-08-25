@@ -12,7 +12,15 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-function setVacationDelegate(creator: string, delegate: string, shouldOverridePolicyDiffWarning = false, currentDelegate?: string) {
+type SetVacationDelegateOptions = {
+    creator: string;
+    delegate: string;
+    currentDelegate?: string;
+    shouldOverridePolicyDiffWarning?: boolean;
+    shouldSkipPolicyInviteEmails?: boolean;
+};
+
+async function setVacationDelegate({creator, delegate, currentDelegate, shouldOverridePolicyDiffWarning = false, shouldSkipPolicyInviteEmails}: SetVacationDelegateOptions) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -23,6 +31,7 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
                 errors: null,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 previousDelegate: currentDelegate,
+                policyDiff: null,
             },
         },
     ];
@@ -35,6 +44,7 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
                 errors: null,
                 pendingAction: null,
                 previousDelegate: null,
+                policyDiff: null,
             },
         },
     ];
@@ -45,6 +55,7 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
+                pendingAction: null,
             },
         },
     ];
@@ -53,11 +64,32 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
         creator,
         vacationDelegateEmail: delegate,
         overridePolicyDiffWarning: shouldOverridePolicyDiffWarning,
+        skipPolicyInviteEmails: shouldSkipPolicyInviteEmails,
     };
 
-    // We need to read the API response for showing a warning if there is a policy diff warning.
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
+    // Once the policy diff warning has been overridden there is nothing left to read from the response, so use a persisted write.
+    // That keeps this request in the sequential queue behind any workspace invitations sent alongside it, so going offline
+    // can no longer drop the delegate while the invites are replayed on reconnect.
+    if (shouldOverridePolicyDiffWarning) {
+        API.write(WRITE_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
+        return;
+    }
+
+    // We need to read the API response for capturing a policy diff warning. This is the other half of the branch above, not a chained call.
+    // No failureData: the API layer treats the 305 policy diff warning as a failure, and any error written for this request lights up a red brick
+    // road on the profile page, which reads as something being broken. The caller reports every outcome from the returned response instead.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-multiple-api-calls
+    const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData});
+
+    if (response?.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING && response.data?.policyDiff) {
+        // Keep the optimistic delegate so the flow can continue into the missing workspaces step.
+        await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+            policyDiff: response.data.policyDiff,
+            pendingAction: null,
+        });
+    }
+
+    return response;
 }
 
 function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
@@ -107,11 +139,12 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
 }
 
 function clearVacationDelegateError(previousDelegate?: string) {
-    Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+    return Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
         errors: null,
         pendingAction: null,
         delegate: previousDelegate ?? null,
         previousDelegate: null,
+        policyDiff: null,
     });
 }
 

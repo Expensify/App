@@ -1,5 +1,4 @@
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -39,27 +38,6 @@ function VacationDelegatePage() {
         clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
     };
 
-    const showWarningModal = useCallback(
-        async (delegateLogin: string, delegateDisplayName: string | undefined) => {
-            const result = await showConfirmModal({
-                title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', delegateDisplayName ?? delegateLogin),
-                confirmText: translate('common.confirm'),
-                cancelText: translate('common.cancel'),
-                shouldShowCancelButton: true,
-            });
-
-            if (result.action === ModalActions.CONFIRM) {
-                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegateRef.current?.previousDelegate);
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                return;
-            }
-
-            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
-        },
-        [showConfirmModal, translate, currentUserLogin],
-    );
-
     const onSelectRow = useCallback(
         (option: Participant) => {
             if (option?.login === vacationDelegate?.delegate) {
@@ -68,26 +46,22 @@ function VacationDelegatePage() {
                 return;
             }
 
-            setVacationDelegate(currentUserLogin, option?.login ?? '', false, vacationDelegate?.delegate).then((response) => {
-                if (!response?.jsonCode) {
-                    Navigation.goBack(ROUTES.SETTINGS_STATUS);
+            setVacationDelegate({creator: currentUserLogin, delegate: option?.login ?? '', currentDelegate: vacationDelegate?.delegate}).then((response) => {
+                if (response?.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
+                    Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
                     return;
                 }
 
-                if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
-                    showErrorModal(response.message);
-                    return;
-                }
-
-                if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    showWarningModal(option?.login ?? '', option.text);
+                // The request writes no error of its own, so this modal is the only feedback for a failure. Dismissing it restores the previous delegate.
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    showErrorModal(response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
                     return;
                 }
 
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
             });
         },
-        [currentUserLogin, vacationDelegate, showWarningModal, showErrorModal],
+        [currentUserLogin, vacationDelegate, showErrorModal],
     );
 
     return (

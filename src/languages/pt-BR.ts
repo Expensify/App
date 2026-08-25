@@ -3693,8 +3693,15 @@ ${amount} para ${merchant} - ${date}`,
         vacationDelegateError: 'Ocorreu um erro ao atualizar seu delegado de férias.',
         asVacationDelegate: (nameOrEmail: string) => `como delegado de férias de ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `para ${submittedToName} como delegado(a) de férias de ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Você está atribuindo ${nameOrEmail} como seu delegado de férias. Elu ainda não está em todos os seus espaços de trabalho. Se você decidir continuar, será enviado um e-mail a todos os admins dos seus espaços de trabalho para que elu seja adicionado.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (email: string) =>
+                `<strong>${email}</strong> não é membro desses workspaces. Os admins dos workspaces que você não gerencia serão solicitados a adicioná-lo(a).`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> não é membro desses workspaces. Deseja convidá-lo(a) agora?`,
+            notAMemberMixed: (email: string) =>
+                `<strong>${email}</strong> não é membro desses workspaces. Os admins dos workspaces que você não gerencia serão solicitados a adicioná-lo(a). Deseja convidá-lo(a) agora para os workspaces em que você é admin?`,
+            youAreAMemberOf: 'Você é membro destes workspaces:',
+            youAreAnAdminOf: 'Você é admin destes workspaces:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Etapa ${step}`;

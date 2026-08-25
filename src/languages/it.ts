@@ -3705,8 +3705,15 @@ ${amount} per ${merchant} - ${date}`,
         vacationDelegateError: 'Si è verificato un errore durante l’aggiornamento del tuo delegato per le ferie.',
         asVacationDelegate: (nameOrEmail: string) => `come delegato per le ferie di ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `a ${submittedToName} come delegato ferie per ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Stai assegnando ${nameOrEmail} come tuo delegato per le ferie. Non fa ancora parte di tutti i tuoi spazi di lavoro. Se scegli di continuare, verrà inviata un’email a tutti gli amministratori dei tuoi spazi di lavoro per aggiungerlo.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (email: string) =>
+                `<strong>${email}</strong> non è membro di questi spazi di lavoro. Agli amministratori degli spazi di lavoro che non gestisci verrà chiesto di aggiungerlo.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> non è membro di questi spazi di lavoro. Vuoi invitarlo ora?`,
+            notAMemberMixed: (email: string) =>
+                `<strong>${email}</strong> non è membro di questi spazi di lavoro. Agli amministratori degli spazi di lavoro che non gestisci verrà chiesto di aggiungerlo. Vuoi invitarlo ora in quelli di cui sei amministratore?`,
+            youAreAMemberOf: 'Sei membro di questi spazi di lavoro:',
+            youAreAnAdminOf: 'Sei amministratore di questi spazi di lavoro:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Passaggio ${step}`;

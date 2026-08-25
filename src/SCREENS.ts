@@ -109,6 +109,7 @@ const SCREENS = {
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
             STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
             VACATION_DELEGATE: 'Settings_Status_Vacation_Delegate',
+            VACATION_DELEGATE_MISSING_WORKSPACES: 'Settings_Status_Vacation_Delegate_Missing_Workspaces',
             STATUS: 'Settings_Status',
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',

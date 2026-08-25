@@ -3582,8 +3582,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         vacationDelegateError: '更新你的休假代理时出错。',
         asVacationDelegate: (nameOrEmail: string) => `作为 ${nameOrEmail} 的休假代理`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `作为 ${vacationDelegateName} 的休假代理人提交给 ${submittedToName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `您正在将 ${nameOrEmail} 设为您的休假代理人。TA 还未加入您所有的工作区。如果继续操作，将会向您所有工作区的管理员发送一封邮件，请他们将 TA 添加进来。`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (email: string) => `<strong>${email}</strong> 不是这些工作区的成员。系统会请求你未管理的工作区的管理员将其添加进来。`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> 不是这些工作区的成员。你要现在邀请他们吗？`,
+            notAMemberMixed: (email: string) => `<strong>${email}</strong> 不是这些工作区的成员。系统会请求你未管理的工作区的管理员将其添加进来。你要现在邀请他们加入你管理的工作区吗？`,
+            youAreAMemberOf: '你是这些工作区的成员：',
+            youAreAnAdminOf: '你是这些工作区的管理员：',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `步骤 ${step}`;
