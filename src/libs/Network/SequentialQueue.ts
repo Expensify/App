@@ -33,6 +33,7 @@ import Onyx from 'react-native-onyx';
 let shouldFailAllRequests: boolean;
 const reportsWithProcessedOfflineComments = new Map<string, string>();
 const OFFLINE_COMMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -305,6 +306,7 @@ function process(): Promise<void> {
     // else in the same window, and losing the change below if the app is killed before the request is sent.
     if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
         const reportID = requestToProcess.data?.reportID;
+
         // Marking a message unread must always win, so skip everything while one is queued for this report.
         const hasPendingSameReportMarkAsUnread =
             typeof reportID === 'string' && getAllPersistedRequests().some((request) => request.command === WRITE_COMMANDS.MARK_AS_UNREAD && request.data?.reportID === reportID);
@@ -315,9 +317,13 @@ function process(): Promise<void> {
                 requestToProcess.data = {
                     ...requestToProcess.data,
                     lastReadTime: recordedTime,
-                }; // eslint-disable-next-line rulesdir/prefer-actions-set-data -- fixing this queue's own request value, not general report state
+                };
+
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data -- fixing this queue's own request value, not general report state
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastReadTime: recordedTime});
-            } // Keep the entry: a retried request comes back with the old time and needs fixing again.
+            }
+
+            // Keep the entry: a retried request comes back with the old time and needs fixing again.
         }
     }
 
@@ -336,6 +342,7 @@ function process(): Promise<void> {
                 const reportActionID = requestToProcess.data?.reportActionID;
                 if (typeof reportID === 'string' && typeof reportActionID === 'string') {
                     let serverTimestamp = '';
+
                     // Match our own reportActionID, not the report's lastVisibleActionCreated, which can be
                     // someone else's newer action. No match means we record nothing.
                     for (const update of response?.onyxData ?? []) {
@@ -346,8 +353,7 @@ function process(): Promise<void> {
                         if (!value || typeof value !== 'object') {
                             continue;
                         }
-                        // Read the one key we need; Object.entries/values isn't type safe here.
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- one known key off an object already checked for null; validated below
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the value is a map of report actions, and the action we read is checked below
                         const actionValue: unknown = (value as Record<string, unknown>)[reportActionID];
                         if (!actionValue || typeof actionValue !== 'object' || !('created' in actionValue)) {
                             continue;
@@ -592,7 +598,6 @@ function flush(shouldResetPromise = true) {
 
                 isSequentialQueueRunning = false;
 
-                // The remembered times only apply to this run, so drop them when the queue is empty.
                 if (!hasRemainingRequests) {
                     reportsWithProcessedOfflineComments.clear();
                 }
