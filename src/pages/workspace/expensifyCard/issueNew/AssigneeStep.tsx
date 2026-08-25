@@ -65,7 +65,10 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const currentAssigneeFirstName = usePersonalDetailByLogin(issueNewCard?.data?.assigneeEmail, (personalDetail) => personalDetail?.firstName);
+    const currentAssigneeFirstName = usePersonalDetailByLogin(issueNewCard?.data?.assigneeEmail, (personalDetail) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return Str.removeSMSDomain(personalDetail?.firstName || issueNewCard?.data?.assigneeEmail || '');
+    });
 
     const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
     const excludedUsers: Record<string, boolean> = {};
@@ -98,10 +101,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             currency,
         };
 
-        if (
-            isEditing &&
-            issueNewCard?.data?.cardTitle === getCardDefaultName(Str.removeSMSDomain(currentAssigneeFirstName ? currentAssigneeFirstName : (issueNewCard?.data?.assigneeEmail ?? '')))
-        ) {
+        if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(currentAssigneeFirstName)) {
             // If the card title is the default card title, update it with the new assignee's name
             const newAssigneeFirstName = employeePersonalDetails[assignee?.login ?? '']?.firstName;
             data.cardTitle = getCardDefaultName(Str.removeSMSDomain(newAssigneeFirstName ? newAssigneeFirstName : (assignee?.login ?? '')));

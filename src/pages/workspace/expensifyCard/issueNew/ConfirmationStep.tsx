@@ -57,7 +57,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const {cardRules} = useExpensifyCardRules(policyID);
 
     const data = issueNewCard?.data;
-    const assigneeDisplayName = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => personalDetail?.displayName);
+    const cardholder = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return Str.removeSMSDomain(personalDetail?.displayName || data?.assigneeEmail || '');
+    });
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
@@ -188,7 +191,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate(cardReadyTranslationKey)}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
-                    title={Str.removeSMSDomain(assigneeDisplayName ? assigneeDisplayName : (data?.assigneeEmail ?? ''))}
+                    title={cardholder}
                     shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
                     interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
