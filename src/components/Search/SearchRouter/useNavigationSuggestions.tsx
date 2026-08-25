@@ -20,7 +20,8 @@ import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtil
 
 import navigationRef from '@navigation/navigationRef';
 
-import getDomainMenuItems from '@pages/domain/getDomainMenuItems';
+import getDomainMenuItems, {DOMAIN_MENU_ICON_NAMES} from '@pages/domain/getDomainMenuItems';
+import type {DomainMenuIconMap} from '@pages/domain/getDomainMenuItems';
 import useSettingsNavigationMenuData from '@pages/settings/useSettingsNavigationMenuData';
 import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
 
@@ -37,7 +38,6 @@ import type {Domain} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
-import type {TupleToUnion} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -50,10 +50,7 @@ import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Globe' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
 
-const DOMAIN_NAVIGATION_ICON_NAMES = ['User', 'UserLock', 'UserShield', 'Users'] as const;
-type DomainNavigationIcons = Record<TupleToUnion<typeof DOMAIN_NAVIGATION_ICON_NAMES>, IconAsset>;
-
-const SEARCH_ROUTER_ICON_NAMES = ['Home', 'Inbox', 'ReceiptMultiple', 'Building', 'Globe', 'Gear', ...DOMAIN_NAVIGATION_ICON_NAMES, ...SEARCH_TYPE_MENU_ICON_NAMES] as const;
+const SEARCH_ROUTER_ICON_NAMES = ['Home', 'Inbox', 'ReceiptMultiple', 'Building', 'Globe', 'Gear', ...DOMAIN_MENU_ICON_NAMES, ...SEARCH_TYPE_MENU_ICON_NAMES] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
 const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
@@ -85,7 +82,7 @@ type BuildSpendNavigationItemsParams = {
 type BuildDomainNavigationItemsParams = {
     domains: Array<Domain | null | undefined>;
     currentUserAccountID: number;
-    icons: DomainNavigationIcons;
+    icons: DomainMenuIconMap;
     getItemText: (translationKey: TranslationPaths) => string;
     getDestinationText: (destination: string) => string;
     getDomainContext: (domainName: string) => ReactNode;
