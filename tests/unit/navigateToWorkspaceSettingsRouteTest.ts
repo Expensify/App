@@ -1,6 +1,7 @@
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -25,7 +26,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-function mockWorkspaceNavigationState(policyID: string, activeScreenName = SCREENS.WORKSPACE.WORKFLOWS) {
+function mockWorkspaceNavigationState(policyID: string, activeScreenName: keyof WorkspaceSplitNavigatorParamList = SCREENS.WORKSPACE.WORKFLOWS) {
     jest.mocked(navigationRef).isReady.mockReturnValue(true);
     jest.mocked(navigationRef).getRootState.mockReturnValue(
         createMock<ReturnType<typeof navigationRef.getRootState>>({
@@ -63,7 +64,7 @@ function mockWorkspaceNavigationState(policyID: string, activeScreenName = SCREE
     );
 }
 
-function mockTabWorkspaceNavigationState(policyID: string, activeScreenName = SCREENS.WORKSPACE.WORKFLOWS) {
+function mockTabWorkspaceNavigationState(policyID: string, activeScreenName: keyof WorkspaceSplitNavigatorParamList = SCREENS.WORKSPACE.WORKFLOWS) {
     jest.mocked(navigationRef).isReady.mockReturnValue(true);
     jest.mocked(navigationRef).getRootState.mockReturnValue(
         createMock<ReturnType<typeof navigationRef.getRootState>>({
