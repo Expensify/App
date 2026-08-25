@@ -5078,6 +5078,72 @@ describe('OptionsListUtils', () => {
                 expect(searchAlternateText).toBe(lhnOption?.alternateText);
             },
         );
+
+        it('should resolve the actor from the transaction thread when its comment is the newest action of a one-transaction report', async () => {
+            // Given a one-transaction expense report whose newest visible action is a comment in its transaction thread
+            const EXPENSE_REPORT_ID = '9300';
+            const TRANSACTION_THREAD_REPORT_ID = '9301';
+            const CHAT_REPORT_ID = '9302';
+
+            const expenseReport: Report = {
+                reportID: EXPENSE_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: CHAT_REPORT_ID,
+                parentReportID: CHAT_REPORT_ID,
+                parentReportActionID: '9400',
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                lastReadTime: '2024-01-01 10:00:00.000',
+                lastVisibleActionCreated: '2024-01-02 10:00:00.000',
+                lastMessageText: 'thread comment',
+                lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                lastActorAccountID: 3,
+                participants,
+            };
+            const transactionThreadReport: Report = {
+                reportID: TRANSACTION_THREAD_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: EXPENSE_REPORT_ID,
+                parentReportActionID: '9401',
+                participants,
+            };
+            const iouAction: ReportAction = {
+                ...buildAction(CONST.REPORT.ACTIONS.TYPE.IOU, CURRENT_USER_ACCOUNT_ID, {
+                    IOUTransactionID: 'txn9300',
+                    IOUReportID: EXPENSE_REPORT_ID,
+                    amount: 100,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                }),
+                reportActionID: '9401',
+                reportID: EXPENSE_REPORT_ID,
+                created: '2024-01-01 10:00:00.000',
+                childReportID: TRANSACTION_THREAD_REPORT_ID,
+            };
+            const threadComment: ReportAction = {
+                ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3),
+                reportActionID: '9402',
+                reportID: TRANSACTION_THREAD_REPORT_ID,
+                created: '2024-01-02 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'thread comment', text: 'thread comment', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
+            };
+
+            // Reports must exist before the report actions merge so the one-transaction thread caches resolve the thread ID
+            await setReport(expenseReport);
+            await setReport(transactionThreadReport);
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`]: {[iouAction.reportActionID]: iouAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TRANSACTION_THREAD_REPORT_ID}`]: {[threadComment.reportActionID]: threadComment},
+            });
+            await waitForBatchedUpdates();
+
+            const option: OptionData = {reportID: EXPENSE_REPORT_ID, keyForList: '', lastMessageText: 'thread comment', isMoneyRequestReport: true};
+
+            // When the alternate text is built without sortedActions, forcing the fallback last-action lookup
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, EXPENSE_REPORT_ID));
+
+            // Then the actor prefix comes from the transaction thread comment, not from the parent report's IOU action
+            expect(result).toBe('Spider-Man: thread comment');
+        });
     });
 
     describe('createFilteredOptionList()', () => {

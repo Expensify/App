@@ -567,9 +567,18 @@ function getChatPreviewParts({
     }
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     const sortedActionsForReport = sortedActions?.[report.reportID];
+
     const lastAction = sortedActionsForReport
         ? sortedActionsForReport.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID, currentUserAccountID))
-        : getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData, currentUserAccountID);
+        : getLastVisibleActionIncludingTransactionThread(
+              report.reportID,
+              canUserPerformWrite,
+              undefined,
+              visibleReportActionsData,
+              // eslint-disable-next-line @typescript-eslint/no-deprecated
+              deprecatedCachedOneTransactionThreadReportIDs[report.reportID],
+              currentUserAccountID,
+          );
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
