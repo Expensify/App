@@ -277,8 +277,8 @@ function useSearchSelectorBase({
         };
     })();
 
-    const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
+    const computedSearchTerm = getSearchValueForPhoneOrEmail(trimmedSearchInput, countryCode);
 
     const {options: baseOptions, hasMore} = (() => {
         if (!areOptionsInitialized) {
