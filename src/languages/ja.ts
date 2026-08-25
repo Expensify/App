@@ -922,6 +922,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '管理者のみ',
         },
     },
+    supportalSwitcher: {
+        title: '別のアカウントでサポートポータルを開く',
+        emailLabel: 'メールアドレス',
+        reasonLabel: 'サポートログインの理由',
+        reasonHint: 'このアカウントには最近のチケットが見つかりませんでした。',
+        login: 'ログイン',
+    },
     sidebarScreen: {
         buttonFind: '何かを検索…',
         buttonMySettings: '自分の設定',
@@ -1106,6 +1113,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: '新規作成するか、レシートをここにドラッグしてください',
         },
         insightsSection: {chartUnavailable: 'グラフを表示できません', notEnoughData: 'このチャートを表示するためのデータがまだ十分にありません'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `${name}さん、おはようございます。` : 'おはようございます。'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `${name}さん、こんにちは。` : 'こんにちは。'),
+            goodEvening: ({name}: {name?: string}) => (name ? `${name}さん、こんばんは。` : 'こんばんは。'),
+            inputPlaceholder: 'Concierge に経費の分析を依頼するか、サポートを受けます',
+            inputPlaceholderMobile: 'Concierge に何でも聞いてください',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -4501,6 +4515,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             workflows: 'ワークフロー',
             workspace: 'ワークスペース',
             findWorkspace: 'ワークスペースを探す',
+            active: 'アクティブ',
+            archived: 'アーカイブ済み',
+            workspaceStatus: 'ワークスペースのステータス',
             findRoom: 'ルームを探す',
             edit: 'ワークスペースを編集',
             enabled: '有効',

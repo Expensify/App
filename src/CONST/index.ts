@@ -621,6 +621,7 @@ const CONST = {
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
+        LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR: 'eeee, MMMM d',
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
@@ -1013,7 +1014,6 @@ const CONST = {
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
-        RILLET: 'rillet',
         DUALENTRY: 'dualEntry',
         INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
@@ -1024,6 +1024,7 @@ const CONST = {
         NETSUITE_OAUTH: 'netSuiteOAuth',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
+        ARCHIVE_POLICIES: 'archivePolicies',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1430,6 +1431,8 @@ const CONST = {
         PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
+        SUPPORTAL_LOGIN_NEWDOT: (supportEmail: string, reason: string) =>
+            `_support/supportLoginNewDot?supportEmail=${encodeURIComponent(supportEmail)}&comment=${encodeURIComponent(reason)}`,
         AGENT_ZERO_TRACER: (agentZeroRequestID: string, shouldLoadFromLocalLogs: boolean) =>
             `_devportal/tools/tracer/?agentZeroRequestID=${encodeURIComponent(agentZeroRequestID)}${shouldLoadFromLocalLogs ? '&mode=locallogs' : ''}`,
     },
@@ -4130,6 +4133,10 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
+        },
+        WORKSPACE_STATUS: {
+            ACTIVE: 'active',
+            ARCHIVED: 'archived',
         },
         THREE_DOT_MENU_ACTION: {
             LEAVE: 'leave',
@@ -8606,6 +8613,7 @@ const CONST = {
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
             FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
             FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
+            SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
         },
         FAB_MENU: {
             CREATE_EXPENSE: 'FABMenu-CreateExpense',
