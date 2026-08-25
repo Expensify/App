@@ -74,6 +74,7 @@ export default function DomainAdminsTable({domainAccountID, admins}: DomainAdmin
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
+    const tableHeaderComponent = <Table.FilterBar label={translate('domain.admins.findAdmin')} />;
 
     return (
         <Table
@@ -87,7 +88,7 @@ export default function DomainAdminsTable({domainAccountID, admins}: DomainAdmin
             title={translate('domain.admins.title')}
             keyExtractor={(item) => item.keyForList}
         >
-            <Table.FilterBar label={translate('domain.admins.findAdmin')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

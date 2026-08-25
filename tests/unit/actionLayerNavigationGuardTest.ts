@@ -4,6 +4,8 @@ import path from 'path';
 /**
  * Architecture guard for issue #84631: navigation belongs in the view layer, not in `src/libs/actions/`.
  * `submitWithDismissFirst` is the view-layer dismiss-first orchestrator; no action file may import it.
+ * (PR 9 will additionally enforce this via an ESLint `no-restricted-imports` rule once the legacy
+ * `NavigationHelpers.ts` value-imports of the other view helpers are removed.)
  */
 const ACTIONS_DIR = path.join(__dirname, '..', '..', 'src', 'libs', 'actions');
 const FORBIDDEN_IMPORT = '@libs/Navigation/helpers/submitWithDismissFirst';
