@@ -37,7 +37,7 @@ function CloseAccountPage() {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    // The account being closed can be a workspace's RuleBot agent (e.g. when accessed via copilot). Closing it would leave the workspace's Agent rules without an enforcer, so it stays open until those rules are removed.
+    // The account being closed can be a workspace's RuleBot agent. Closing it would leave the workspace's Agent rules without an enforcer, so it stays open until those rules are removed.
     const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, policies);
 
     const styles = useThemeStyles();
