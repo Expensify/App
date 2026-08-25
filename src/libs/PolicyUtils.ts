@@ -698,9 +698,7 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
 }
 
 /**
- * Whether the given role is allowed to pay (reimburse) on a workspace. This is derived from the WORKFLOWS_PAYMENTS feature
- * permission rather than a hardcoded role list, so any future role that is granted payment permission (for example upcoming
- * customer roles) is automatically treated as a valid payer, matching how the rest of the app determines who can pay.
+ * Whether the given role is allowed to pay (reimburse) on a workspace.
  */
 function canRolePay(role: string | undefined): boolean {
     return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
