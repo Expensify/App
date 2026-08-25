@@ -1022,6 +1022,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
     },
@@ -1570,6 +1571,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
             SEND_TO_SOMEONE: 'sendToSomeone',
+            SEND_TO_EMPLOYER: 'sendToEmployer',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',

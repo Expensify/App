@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -56,6 +56,7 @@ type WorkspaceRowData = TableData & {
 type WorkspaceListTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
+    headerComponent?: React.ReactElement;
 
     /** Called when the user picks Delete in a row menu, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
@@ -64,7 +65,7 @@ type WorkspaceListTableProps = {
     pendingDeletePolicyID?: string;
 };
 
-export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -120,6 +121,14 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
     const isTableItemInSearch: IsItemInSearchCallback<WorkspaceRowData> = (item, searchValue) => {
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
+    const canSeeFilter = canUseArchivePolicies && workspaces.some((w) => canAccessArchived(w.role));
+    const searchBarComponent = (
+        <Table.FilterBar
+            label={translate('workspace.common.findWorkspace')}
+            shouldShowClearFiltersButton={canSeeFilter}
+        />
+    );
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
         return (
@@ -134,7 +143,6 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
     };
 
     const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.OWNER || role === CONST.POLICY.ROLE.AUDITOR;
-    const canSeeFilter = canUseArchivePolicies && workspaces.some((w) => canAccessArchived(w.role));
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceRowData> = (item, filterValues) => {
         if (item.isArchived && !canAccessArchived(item.role)) {
@@ -200,10 +208,7 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
         >
-            <Table.FilterBar
-                label={translate('workspace.common.findWorkspace')}
-                shouldShowClearFiltersButton={canSeeFilter}
-            />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.EmptyState
                 titleStyles={styles.pt2}
