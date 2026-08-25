@@ -1,64 +1,75 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import NumberForm, {useNumberFormActions, useNumberFormState} from '@components/NumberForm';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import type * as NativeNavigation from '@react-navigation/native';
+
 import React from 'react';
 import {View} from 'react-native';
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useIsFocused: jest.fn(() => true),
+    useNavigation: jest.fn(() => ({
+        navigate: jest.fn(),
+        addListener: jest.fn(() => jest.fn()),
+    })),
+}));
 
 type NumberFormProps = React.ComponentProps<typeof NumberForm>;
 
 function ContextReadout() {
     const {value, allowNegative, errorText} = useNumberFormState();
-    const {setValue, onBlur} = useNumberFormActions();
+    const {setNumber, updateNumber, handleBlur} = useNumberFormActions();
 
     return (
         <View>
             <Text testID="ctx-value">{value}</Text>
             <Text testID="ctx-allowNegative">{String(allowNegative)}</Text>
             <Text testID="ctx-errorText">{errorText ?? ''}</Text>
-            <Text testID="ctx-hasOnBlur">{String(!!onBlur)}</Text>
             <PressableWithFeedback
-                accessibilityLabel="Set value"
+                accessibilityLabel="Set number"
                 accessibilityRole="button"
-                testID="ctx-setValue"
+                testID="ctx-setNumber"
                 onPress={() => {
-                    setValue('7');
+                    setNumber('7');
                 }}
             />
             <PressableWithFeedback
-                accessibilityLabel="Set value silently"
+                accessibilityLabel="Update number silently"
                 accessibilityRole="button"
-                testID="ctx-setValueSilent"
+                testID="ctx-updateNumber"
                 onPress={() => {
-                    setValue('99', {notify: false});
+                    updateNumber('99');
+                }}
+            />
+            <PressableWithFeedback
+                accessibilityLabel="Set numbers rapidly"
+                accessibilityRole="button"
+                testID="ctx-setNumbersRapidly"
+                onPress={() => {
+                    setNumber('7');
+                    setNumber('99');
                 }}
             />
             <TextInput
                 accessibilityHint="Triggers the blur callback"
                 accessibilityLabel="Trigger blur"
                 testID="ctx-triggerBlur"
-                onBlur={onBlur}
+                onBlur={handleBlur}
             />
         </View>
     );
 }
 
-function RapidValueUpdater({onPreviousValues}: {onPreviousValues: (values: string[]) => void}) {
-    const {setValue} = useNumberFormActions();
-
-    return (
-        <PressableWithFeedback
-            accessibilityLabel="Set values rapidly"
-            accessibilityRole="button"
-            testID="ctx-setValuesRapidly"
-            onPress={() => {
-                onPreviousValues([setValue('7'), setValue('99')]);
-            }}
-        />
-    );
+function renderWithProviders(children: React.ReactNode) {
+    return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>);
 }
 
 describe('NumberForm', () => {
@@ -66,7 +77,7 @@ describe('NumberForm', () => {
     const onBlur = jest.fn();
 
     const renderNumberForm = (props: Partial<NumberFormProps> = {}, children: React.ReactNode = <ContextReadout />) =>
-        render(
+        renderWithProviders(
             <NumberForm
                 onInputChange={onInputChange}
                 {...props}
@@ -94,11 +105,10 @@ describe('NumberForm', () => {
             // Given a NumberForm with no value or mode props
             renderNumberForm();
 
-            // Then the context exposes an empty value, negative input disabled, no error, and no onBlur
+            // Then the context exposes an empty value, negative input disabled, and no error
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('');
             expect(screen.getByTestId('ctx-allowNegative')).toHaveTextContent('false');
             expect(screen.getByTestId('ctx-errorText')).toHaveTextContent('');
-            expect(screen.getByTestId('ctx-hasOnBlur')).toHaveTextContent('false');
         });
 
         it('propagates value, allowNegative, and errorText from props', () => {
@@ -106,6 +116,7 @@ describe('NumberForm', () => {
             renderNumberForm({
                 value: '12.50',
                 allowNegative: true,
+                decimals: 2,
                 errorText: 'Required',
             });
 
@@ -115,11 +126,9 @@ describe('NumberForm', () => {
             expect(screen.getByTestId('ctx-errorText')).toHaveTextContent('Required');
         });
 
-        it('propagates onBlur to children via context', () => {
+        it('forwards blur to the root onBlur through handleBlur', () => {
             // Given a NumberForm with an onBlur callback
             renderNumberForm({onBlur});
-
-            expect(screen.getByTestId('ctx-hasOnBlur')).toHaveTextContent('true');
 
             // When the child input blurs
             fireEvent(screen.getByTestId('ctx-triggerBlur'), 'blur');
@@ -127,8 +136,32 @@ describe('NumberForm', () => {
             // Then the root onBlur callback is invoked
             expect(onBlur).toHaveBeenCalledTimes(1);
         });
+    });
 
-        it('syncs context value when the controlled value prop changes', () => {
+    describe('external value synchronization', () => {
+        it('re-initializes the editing state when the value prop resets to an empty string', () => {
+            // Given a NumberForm controlled with value "10"
+            const {rerender} = renderNumberForm({value: '10'});
+
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
+
+            // When the parent rerenders with an empty value
+            rerender(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <NumberForm
+                        value=""
+                        onInputChange={onInputChange}
+                    >
+                        <ContextReadout />
+                    </NumberForm>
+                </ComposeProviders>,
+            );
+
+            // Then the editing state resets
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('');
+        });
+
+        it('ignores an external change to another non-empty value, matching NumberWithSymbolForm', () => {
             // Given a NumberForm controlled with value "10"
             const {rerender} = renderNumberForm({value: '10'});
 
@@ -136,26 +169,50 @@ describe('NumberForm', () => {
 
             // When the parent rerenders with value "20"
             rerender(
-                <NumberForm
-                    value="20"
-                    onInputChange={onInputChange}
-                >
-                    <ContextReadout />
-                </NumberForm>,
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <NumberForm
+                        value="20"
+                        onInputChange={onInputChange}
+                    >
+                        <ContextReadout />
+                    </NumberForm>
+                </ComposeProviders>,
             );
 
-            // Then the context value updates to match
-            expect(screen.getByTestId('ctx-value')).toHaveTextContent('20');
+            // Then the editing state keeps the current value; external pushes must use updateNumber
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
+        });
+
+        it('does not overwrite a local edit when the parent rerenders with the same external value', () => {
+            // Given a NumberForm controlled with value "10" and a local edit to "7"
+            const {rerender} = renderNumberForm({value: '10'});
+
+            fireEvent.press(screen.getByTestId('ctx-setNumber'));
+
+            // When the parent rerenders with the same external value "10"
+            rerender(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <NumberForm
+                        value="10"
+                        onInputChange={onInputChange}
+                    >
+                        <ContextReadout />
+                    </NumberForm>
+                </ComposeProviders>,
+            );
+
+            // Then the local edit is preserved
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('7');
         });
     });
 
     describe('value updates', () => {
-        it('updates context and notifies the parent when setValue is called', () => {
+        it('updates context and notifies the parent when setNumber is called', () => {
             // Given an uncontrolled NumberForm
             renderNumberForm();
 
-            // When setValue is called from a child
-            fireEvent.press(screen.getByTestId('ctx-setValue'));
+            // When setNumber is called from a child
+            fireEvent.press(screen.getByTestId('ctx-setNumber'));
 
             // Then the context value updates and onInputChange is notified
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('7');
@@ -163,56 +220,29 @@ describe('NumberForm', () => {
             expect(onInputChange).toHaveBeenCalledWith('7');
         });
 
-        it('updates context without notifying the parent when setValue is called with notify: false', () => {
+        it('updates context without notifying the parent when updateNumber is called', () => {
             // Given an uncontrolled NumberForm
             renderNumberForm();
 
-            // When setValue is called with notify: false
-            fireEvent.press(screen.getByTestId('ctx-setValueSilent'));
+            // When updateNumber is called
+            fireEvent.press(screen.getByTestId('ctx-updateNumber'));
 
             // Then the context value updates without calling onInputChange
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('99');
             expect(onInputChange).not.toHaveBeenCalled();
         });
 
-        it('returns the latest previous value when setValue is called more than once before a render', () => {
-            const onPreviousValues = jest.fn();
-
+        it('commits the last value when setNumber is called more than once before a render', () => {
             // Given a NumberForm with value "1"
-            renderNumberForm(
-                {value: '1'},
-                <>
-                    <ContextReadout />
-                    <RapidValueUpdater onPreviousValues={onPreviousValues} />
-                </>,
-            );
+            renderNumberForm({value: '1'});
 
-            // When setValue is called twice before the next render
-            fireEvent.press(screen.getByTestId('ctx-setValuesRapidly'));
+            // When setNumber is called twice before the next render
+            fireEvent.press(screen.getByTestId('ctx-setNumbersRapidly'));
 
-            // Then each call returns the previous value and the final context value is "99"
-            expect(onPreviousValues).toHaveBeenCalledWith(['1', '7']);
+            // Then both edits are reported in order and the final context value is "99"
+            expect(onInputChange).toHaveBeenNthCalledWith(1, '7');
+            expect(onInputChange).toHaveBeenNthCalledWith(2, '99');
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('99');
-        });
-
-        it('does not overwrite a local edit when the parent rerenders with the same external value', () => {
-            // Given a NumberForm controlled with value "10" and a local edit to "7"
-            const {rerender} = renderNumberForm({value: '10'});
-
-            fireEvent.press(screen.getByTestId('ctx-setValue'));
-
-            // When the parent rerenders with the same external value "10"
-            rerender(
-                <NumberForm
-                    value="10"
-                    onInputChange={onInputChange}
-                >
-                    <ContextReadout />
-                </NumberForm>,
-            );
-
-            // Then the local edit is preserved
-            expect(screen.getByTestId('ctx-value')).toHaveTextContent('7');
         });
     });
 });

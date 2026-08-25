@@ -4,12 +4,12 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 import type {ForwardedRef} from 'react';
 import type {BlurEvent} from 'react-native';
 
-type NumberFormSelection = {
+type NumberComposerSelection = {
     start: number;
     end: number;
 };
 
-type NumberFormStateContextValue = {
+type NumberComposerStateContextValue = {
     /** The canonical signed value owned by the root. */
     value: string;
 
@@ -19,27 +19,27 @@ type NumberFormStateContextValue = {
      */
     externalValue: string;
 
-    /** The text the composed input displays: the canonical value rendered with locale digits. */
+    /** The text the composed input displays: the magnitude rendered with locale digits. The minus is rendered separately. */
     formattedNumber: string;
 
     /** Whether the canonical value is negative. */
     isNegative: boolean;
 
-    /** The selection to render, clamped to the displayed text. */
-    selection: NumberFormSelection;
+    /** The selection to render, clamped to the displayed magnitude. */
+    selection: NumberComposerSelection;
 
     /** Whether negative values are allowed. */
     allowNegative: boolean;
 
-    /** Error supplied by FormProvider. */
+    /** Error supplied by FormProvider. Rendered by the Composer error primitive (later PR). */
     errorText?: string;
 };
 
-type NumberFormActionsContextValue = {
-    /** Normalizes, validates, and commits the text displayed by the composed input. */
+type NumberComposerActionsContextValue = {
+    /** Normalizes, validates, and commits the magnitude displayed by the composed input, preserving the sign. */
     setNumber: (text: string) => void;
 
-    /** Replaces the canonical value without validation or notification and moves the caret to the end. */
+    /** Replaces the canonical signed value without validation or notification and moves the caret to the end of the magnitude. */
     updateNumber: (value: string) => void;
 
     /** Returns the canonical signed value. */
@@ -47,6 +47,12 @@ type NumberFormActionsContextValue = {
 
     /** Collapses the selection onto its end. */
     clearSelection: () => void;
+
+    /** Toggles the sign of the canonical value and notifies the parent. The displayed magnitude does not change. */
+    toggleSign: () => void;
+
+    /** Clears the whole value when it is negative. Used when backspace is pressed on an empty magnitude. */
+    clearSign: () => void;
 
     /** Applies a native selection change, dropping the stale event emitted alongside a manual update. */
     handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
@@ -64,4 +70,4 @@ type NumberFormActionsContextValue = {
     inputRef?: ForwardedRef<BaseTextInputRef>;
 };
 
-export type {NumberFormActionsContextValue, NumberFormSelection, NumberFormStateContextValue};
+export type {NumberComposerActionsContextValue, NumberComposerSelection, NumberComposerStateContextValue};

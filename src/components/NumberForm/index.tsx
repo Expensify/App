@@ -1,9 +1,9 @@
 /**
  * NumberForm – a composable form for editing numeric values.
  *
- * The root component owns the shared numeric value, validation state, and
- * input callbacks. Choose an input presentation by composing one of its
- * primitives as a child:
+ * The root component owns the canonical value, the selection, validation, and
+ * the input callbacks through a root-instantiated edit controller. Compose the
+ * input presentation as a child:
  *
  * @example
  * ```tsx
@@ -12,34 +12,31 @@
  * <NumberForm
  *   value={amount}
  *   onInputChange={setAmount}
+ *   decimals={2}
  *   allowNegative
  *   errorText={error}
  * >
  *   <NumberForm.TextInput
  *     symbol="$"
- *     decimals={2}
  *     position="prefix"
  *     label="Amount"
  *   />
  * </NumberForm>
  * ```
  *
- * Use `NumberForm.SymbolInput` when the symbol needs its own presentation or
- * interaction. The `useNumberFormState` and `useNumberFormActions` hooks are
- * also exported for custom composed primitives.
+ * The `useNumberFormState` and `useNumberFormActions` hooks are also exported
+ * for custom composed primitives, and `useNumberEditController` is exported for
+ * other roots (NumberComposer) that own the same editing behavior.
  */
 import NumberFormComponent from './NumberForm';
-import NumberFormSymbolInput from './primitives/NumberFormSymbolInput';
 import NumberFormTextInput from './primitives/NumberFormTextInput';
 
 const NumberForm = Object.assign(NumberFormComponent, {
-    /** Renders a numeric input with a symbol beside it. */
-    SymbolInput: NumberFormSymbolInput,
-
     /** Renders a numeric input using the standard text input component. */
     TextInput: NumberFormTextInput,
 });
 
 export default NumberForm;
 export {useNumberFormActions, useNumberFormState} from './context';
-export type {NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps} from './types';
+export {default as useNumberEditController} from './hooks/useNumberEditController';
+export type {NumberFormRef, NumberFormTextInputProps} from './types';

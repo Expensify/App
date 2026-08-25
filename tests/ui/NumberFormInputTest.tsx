@@ -3,7 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import NumberForm from '@components/NumberForm';
-import type {NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps} from '@components/NumberForm';
+import type {NumberFormRef, NumberFormTextInputProps} from '@components/NumberForm';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -26,22 +26,15 @@ const mockUseIsFocused = jest.mocked(NativeNavigation.useIsFocused);
 type RootProps = {
     value?: string;
     allowNegative?: boolean;
+    decimals?: number;
+    maxLength?: number;
     errorText?: string;
     onBlur?: jest.Mock;
     onInputChange?: jest.Mock;
+    onSubmitEditing?: jest.Mock;
     ref?: React.Ref<BaseTextInputRef>;
     numberFormRef?: React.Ref<NumberFormRef>;
 };
-
-function renderSymbolInput(inputProps: Partial<NumberFormSymbolInputProps> = {}, rootProps: RootProps = {}) {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <NumberForm {...rootProps}>
-                <NumberForm.SymbolInput {...inputProps} />
-            </NumberForm>
-        </ComposeProviders>,
-    );
-}
 
 function renderTextInput(inputProps: Partial<NumberFormTextInputProps> = {}, rootProps: RootProps = {}) {
     return render(
@@ -55,36 +48,16 @@ function renderTextInput(inputProps: Partial<NumberFormTextInputProps> = {}, roo
 
 const INPUT_TEST_ID = 'number-form-input';
 
-type FocusInputType = 'symbol' | 'text';
-
-function FocusInput({inputType}: {inputType: FocusInputType}) {
-    if (inputType === 'symbol') {
-        return <NumberForm.SymbolInput testID={INPUT_TEST_ID} />;
-    }
-
-    return <NumberForm.TextInput testID={INPUT_TEST_ID} />;
-}
-
-function FocusInputForm({inputType}: {inputType: FocusInputType}) {
-    return (
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <NumberForm value="1234">
-                <FocusInput inputType={inputType} />
-            </NumberForm>
-        </ComposeProviders>
-    );
-}
-
-// selectionForRender is new NumberForm logic: it clamps the selection passed to the input at render time.
-// NumberWithSymbolForm only clamped selection inside handleSelectionChange and passed raw `selection` to the input.
-describe('NumberForm selection handling', () => {
+// The root re-initializes its editing state only when the external value resets to an empty string (matching
+// NumberWithSymbolForm); the reset must also collapse the selection so the caret cannot outlive the cleared text.
+describe('NumberForm external reset handling', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
 
-    it('clamps the rendered selection when the root value shrinks externally (SymbolInput)', async () => {
-        // Given a SymbolInput with value "1234" and the caret at the end
-        const {rerender} = renderSymbolInput({testID: INPUT_TEST_ID, decimals: 2}, {value: '1234'});
+    it('clears the value and collapses the selection when the root value resets externally', async () => {
+        // Given a TextInput with value "1234" and the caret at the end
+        const {rerender} = renderTextInput({testID: INPUT_TEST_ID}, {value: '1234', decimals: 2});
         await waitForBatchedUpdatesWithAct();
 
         const input = screen.getByTestId(INPUT_TEST_ID);
@@ -96,52 +69,44 @@ describe('NumberForm selection handling', () => {
 
         expect(input.props.selection).toEqual({start: 4, end: 4});
 
-        // When the root value shrinks externally to "12"
+        // When the root value resets externally to an empty string
         rerender(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <NumberForm value="12">
-                    <NumberForm.SymbolInput
-                        testID={INPUT_TEST_ID}
-                        decimals={2}
-                    />
+                <NumberForm
+                    value=""
+                    decimals={2}
+                >
+                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
                 </NumberForm>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the rendered selection is clamped to the new value length
-        expect(screen.getByDisplayValue('12')).toBeOnTheScreen();
-        expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 2, end: 2});
+        // Then the value clears and the selection collapses to the start
+        expect(screen.getByDisplayValue('')).toBeOnTheScreen();
+        expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 0, end: 0});
     });
 
-    it('clamps the rendered selection when the root value shrinks externally (TextInput)', async () => {
-        // Given a TextInput with value "1234" and the caret at the end
-        const {rerender} = renderTextInput({testID: INPUT_TEST_ID, decimals: 2}, {value: '1234'});
+    it('keeps the displayed value when the root value changes externally to another non-empty value', async () => {
+        // Given a TextInput with value "1234"
+        const {rerender} = renderTextInput({testID: INPUT_TEST_ID}, {value: '1234', decimals: 2});
         await waitForBatchedUpdatesWithAct();
 
-        const input = screen.getByTestId(INPUT_TEST_ID);
-
-        fireEvent(input, 'selectionChange', {
-            nativeEvent: {selection: {start: 4, end: 4}},
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        // When the root value shrinks externally to "12"
+        // When the root value changes externally to "12"
         rerender(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <NumberForm value="12">
-                    <NumberForm.TextInput
-                        testID={INPUT_TEST_ID}
-                        decimals={2}
-                    />
+                <NumberForm
+                    value="12"
+                    decimals={2}
+                >
+                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
                 </NumberForm>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the rendered selection is clamped to the new value length
-        expect(screen.getByDisplayValue('12')).toBeOnTheScreen();
-        expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 2, end: 2});
+        // Then the editing state is preserved, matching NumberWithSymbolForm; external pushes must use updateNumber
+        expect(screen.getByDisplayValue('1234')).toBeOnTheScreen();
     });
 });
 
@@ -151,9 +116,9 @@ describe('NumberForm navigation focus selection handling', () => {
         mockUseIsFocused.mockReturnValue(true);
     });
 
-    it.each<FocusInputType>(['symbol', 'text'])('clears the selection when focus is regained (%s)', async (inputType) => {
+    it('clears the selection when focus is regained', async () => {
         // Given an input with a partial text selection
-        const {rerender} = render(<FocusInputForm inputType={inputType} />);
+        const {rerender} = renderTextInput({testID: INPUT_TEST_ID}, {value: '1234'});
         await waitForBatchedUpdatesWithAct();
 
         const input = screen.getByTestId(INPUT_TEST_ID);
@@ -166,11 +131,23 @@ describe('NumberForm navigation focus selection handling', () => {
 
         // When the screen loses focus and then regains it
         mockUseIsFocused.mockReturnValue(false);
-        rerender(<FocusInputForm inputType={inputType} />);
+        rerender(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <NumberForm value="1234">
+                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
+                </NumberForm>
+            </ComposeProviders>,
+        );
         await waitForBatchedUpdatesWithAct();
 
         mockUseIsFocused.mockReturnValue(true);
-        rerender(<FocusInputForm inputType={inputType} />);
+        rerender(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <NumberForm value="1234">
+                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
+                </NumberForm>
+            </ComposeProviders>,
+        );
         await waitForBatchedUpdatesWithAct();
 
         // Then the selection collapses to the end of the value
@@ -178,54 +155,32 @@ describe('NumberForm navigation focus selection handling', () => {
     });
 });
 
-describe('NumberForm.SymbolInput', () => {
+describe('NumberForm.TextInput', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
 
-    it('renders a symbol and the canonical value', async () => {
-        // Given a SymbolInput with a prefix symbol and a formatted value
-        renderSymbolInput({symbol: '$', position: 'prefix', decimals: 2}, {value: '12.50'});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the symbol and canonical value are displayed
-        expect(screen.getByText('$')).toBeOnTheScreen();
-        expect(screen.getByDisplayValue('12.50')).toBeOnTheScreen();
-    });
-
-    it('renders a signed value without its minus in the native input and preserves the sign on edits', async () => {
+    it('adds a leading zero when the value begins with a decimal separator', async () => {
         const onInputChange = jest.fn();
 
-        // Given a signed value and negative input enabled
-        renderSymbolInput({symbol: '$', position: 'prefix', decimals: 2}, {value: '-12.50', allowNegative: true, onInputChange});
+        // Given an empty TextInput
+        renderTextInput({}, {decimals: 2, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
-        // Then the minus is rendered separately from the native input value
-        expect(screen.getByText('-')).toBeOnTheScreen();
-        expect(screen.getByDisplayValue('12.50')).toBeOnTheScreen();
-
-        // When the magnitude changes, the canonical signed value is notified
-        fireEvent.changeText(screen.getByDisplayValue('12.50'), '13.50');
+        // When the user enters a value starting with a decimal separator
+        fireEvent.changeText(screen.getByDisplayValue(''), '.5');
         await waitForBatchedUpdatesWithAct();
 
-        expect(onInputChange).toHaveBeenLastCalledWith('-13.50');
-        expect(screen.getByDisplayValue('13.50')).toBeOnTheScreen();
-    });
-
-    it('uses maxLength for integer validation without forwarding it to the native input', async () => {
-        // Given a SymbolInput with maxLength set for integer validation
-        renderSymbolInput({symbol: '$', decimals: 2, maxLength: 8}, {value: '12345678.99'});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then maxLength is not forwarded to the native input
-        expect(screen.getByDisplayValue('12345678.99').props.maxLength).toBeUndefined();
+        // Then a leading zero is added
+        expect(onInputChange).toHaveBeenLastCalledWith('0.5');
+        expect(screen.getByDisplayValue('0.5')).toBeOnTheScreen();
     });
 
     it('normalizes spaces and comma separators before notifying the root', async () => {
         const onInputChange = jest.fn();
 
-        // Given an empty SymbolInput
-        renderSymbolInput({symbol: '$', decimals: 2}, {onInputChange});
+        // Given an empty TextInput
+        renderTextInput({}, {decimals: 2, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
         // When the user enters a value with spaces and comma separators
@@ -240,8 +195,8 @@ describe('NumberForm.SymbolInput', () => {
     it('rejects values that exceed the configured decimal precision', async () => {
         const onInputChange = jest.fn();
 
-        // Given a SymbolInput with zero decimal places and value "12"
-        renderSymbolInput({decimals: 0}, {value: '12', onInputChange});
+        // Given a TextInput with zero decimal places and value "12"
+        renderTextInput({}, {value: '12', decimals: 0, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
         // When the user enters a value with decimal places
@@ -256,8 +211,8 @@ describe('NumberForm.SymbolInput', () => {
     it('rejects negative values when negative input is disabled', async () => {
         const onInputChange = jest.fn();
 
-        // Given a SymbolInput with negative input disabled and value "12"
-        renderSymbolInput({decimals: 2}, {value: '12', onInputChange});
+        // Given a TextInput with negative input disabled and value "12"
+        renderTextInput({}, {value: '12', decimals: 2, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
         // When the user enters a negative value
@@ -269,75 +224,57 @@ describe('NumberForm.SymbolInput', () => {
         expect(screen.getByDisplayValue('12')).toBeOnTheScreen();
     });
 
-    it('exposes the imperative number API without notifying the root on updateNumber', async () => {
-        const numberFormRef = React.createRef<NumberFormRef>();
+    it('accepts a signed value when negative input is enabled', async () => {
         const onInputChange = jest.fn();
 
-        // Given a SymbolInput with value "10" and a numberFormRef
-        renderSymbolInput({symbol: '$'}, {value: '10', numberFormRef, onInputChange});
+        // Given a TextInput with negative input enabled and value "12"
+        renderTextInput({}, {value: '12', allowNegative: true, decimals: 2, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
-        expect(numberFormRef.current?.getNumber()).toBe('10');
-
-        // When updateNumber is called imperatively
-        act(() => {
-            numberFormRef.current?.updateNumber('25');
-        });
+        // When the user enters a signed value
+        fireEvent.changeText(screen.getByDisplayValue('12'), '-12');
         await waitForBatchedUpdatesWithAct();
 
-        // Then the value updates without notifying onInputChange
-        expect(numberFormRef.current?.getNumber()).toBe('25');
-        expect(onInputChange).not.toHaveBeenCalled();
-        expect(screen.getByDisplayValue('25')).toBeOnTheScreen();
-    });
-
-    it('renders a separate FormHelpMessage and forwards blur and the text-input ref', async () => {
-        const inputRef = React.createRef<BaseTextInputRef>();
-        const onBlur = jest.fn();
-
-        // Given a SymbolInput with an error message, onBlur, and a ref
-        renderSymbolInput({symbol: '$'}, {value: '10', errorText: 'Invalid symbol number', onBlur, ref: inputRef});
-        await waitForBatchedUpdatesWithAct();
-
-        expect(inputRef.current).toBeTruthy();
-        expect(screen.getByText('Invalid symbol number')).toBeOnTheScreen();
-
-        // When the input blurs
-        fireEvent(screen.getByDisplayValue('10'), 'blur');
-
-        // Then onBlur is forwarded to the root
-        expect(onBlur).toHaveBeenCalledTimes(1);
-    });
-});
-
-describe('NumberForm.TextInput', () => {
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    it('adds a leading zero when the value begins with a decimal separator', async () => {
-        const onInputChange = jest.fn();
-
-        // Given an empty TextInput
-        renderTextInput({decimals: 2}, {onInputChange});
-        await waitForBatchedUpdatesWithAct();
-
-        // When the user enters a value starting with a decimal separator
-        fireEvent.changeText(screen.getByDisplayValue(''), '.5');
-        await waitForBatchedUpdatesWithAct();
-
-        // Then a leading zero is added
-        expect(onInputChange).toHaveBeenLastCalledWith('0.5');
-        expect(screen.getByDisplayValue('0.5')).toBeOnTheScreen();
+        // Then the canonical signed value is committed inline
+        expect(onInputChange).toHaveBeenLastCalledWith('-12');
+        expect(screen.getByDisplayValue('-12')).toBeOnTheScreen();
     });
 
     it('uses maxLength for integer validation without forwarding it to the native input', async () => {
-        // Given a TextInput with maxLength set for integer validation
-        renderTextInput({decimals: 2, maxLength: 8}, {value: '12345678.99'});
+        // Given maxLength set for integer validation on the root
+        renderTextInput({}, {value: '12345678.99', decimals: 2, maxLength: 8});
         await waitForBatchedUpdatesWithAct();
 
         // Then maxLength is not forwarded to the native input
         expect(screen.getByDisplayValue('12345678.99').props.maxLength).toBeUndefined();
+    });
+
+    it('strips decimals from the value when the decimals prop changes to a lower precision', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a TextInput with two decimal places and value "1.25"
+        const {rerender} = renderTextInput({testID: INPUT_TEST_ID}, {value: '1.25', decimals: 2, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByDisplayValue('1.25')).toBeOnTheScreen();
+
+        // When the decimals prop changes to zero
+        rerender(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <NumberForm
+                    value="1.25"
+                    decimals={0}
+                    onInputChange={onInputChange}
+                >
+                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
+                </NumberForm>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the decimals are stripped and the parent is notified
+        expect(screen.getByDisplayValue('1')).toBeOnTheScreen();
+        expect(onInputChange).toHaveBeenLastCalledWith('1');
     });
 
     it('renders the inline TextInput error and forwards blur and the text-input ref', async () => {
@@ -358,11 +295,12 @@ describe('NumberForm.TextInput', () => {
         expect(onBlur).toHaveBeenCalledTimes(1);
     });
 
-    it('exposes the imperative number API', async () => {
+    it('exposes the imperative number API without notifying the root on updateNumber', async () => {
         const numberFormRef = React.createRef<NumberFormRef>();
+        const onInputChange = jest.fn();
 
         // Given a TextInput with value "10" and a numberFormRef
-        renderTextInput({}, {value: '10', numberFormRef});
+        renderTextInput({}, {value: '10', numberFormRef, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
         expect(numberFormRef.current?.getNumber()).toBe('10');
@@ -373,8 +311,53 @@ describe('NumberForm.TextInput', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the value updates in both the ref and the input
+        // Then the value updates in the ref and the input without notifying onInputChange
         expect(numberFormRef.current?.getNumber()).toBe('25');
+        expect(onInputChange).not.toHaveBeenCalled();
         expect(screen.getByDisplayValue('25')).toBeOnTheScreen();
+    });
+
+    it('forwards onSubmitEditing and onKeyPress to both the primitive props and the root', async () => {
+        const rootOnSubmitEditing = jest.fn();
+        const inputOnSubmitEditing = jest.fn();
+        const inputOnKeyPress = jest.fn();
+
+        // Given a TextInput with submit and key-press callbacks on both the primitive and the root
+        renderTextInput({testID: INPUT_TEST_ID, onSubmitEditing: inputOnSubmitEditing, onKeyPress: inputOnKeyPress}, {value: '10', onSubmitEditing: rootOnSubmitEditing});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user submits and presses a key
+        fireEvent(screen.getByTestId(INPUT_TEST_ID), 'submitEditing', {nativeEvent: {text: '10'}});
+        fireEvent(screen.getByTestId(INPUT_TEST_ID), 'keyPress', {nativeEvent: {key: '5'}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both submit callbacks and the primitive key-press callback are invoked
+        expect(inputOnSubmitEditing).toHaveBeenCalledTimes(1);
+        expect(rootOnSubmitEditing).toHaveBeenCalledTimes(1);
+        expect(inputOnKeyPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('collapses the selection onto its end when clearSelection is called', async () => {
+        const numberFormRef = React.createRef<NumberFormRef>();
+
+        // Given a TextInput with a range selection
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '1234', decimals: 2, numberFormRef});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent(screen.getByTestId(INPUT_TEST_ID), 'selectionChange', {
+            nativeEvent: {selection: {start: 1, end: 3}},
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 1, end: 3});
+
+        // When clearSelection is called imperatively
+        act(() => {
+            numberFormRef.current?.clearSelection();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the selection collapses onto its end
+        expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 3, end: 3});
     });
 });
