@@ -2216,6 +2216,55 @@ describe('actions/Duplicate', () => {
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.TRACK_EXPENSE, expect.objectContaining({}), expect.objectContaining({}));
         });
 
+        it('should call trackExpense when the source expense is unreported even though a targetPolicy is provided', async () => {
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockUnreportedTransaction = {
+                ...mockTransaction,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockUnreportedTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: mockPersonalDetails,
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.TRACK_EXPENSE, expect.objectContaining({}), expect.objectContaining({}));
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_MONEY, expect.objectContaining({}), expect.objectContaining({}));
+        });
+
         it('should call createDistanceRequest for distance transactions', async () => {
             const mockDistanceTransaction = {
                 ...mockTransaction,
@@ -3351,6 +3400,63 @@ describe('actions/Duplicate', () => {
 
             const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
             expect(iouReportIDs.size).toBe(1);
+        });
+
+        it('should not defer auto submit when the last selected expense is unreported', async () => {
+            const reportedTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'bulk_reported',
+                amount: -500,
+                currency: 'USD',
+            };
+            const unreportedTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'bulk_unreported',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: -300,
+                currency: 'USD',
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_reported`]: reportedTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_unreported`]: unreportedTransaction,
+            };
+
+            bulkDuplicateExpenses({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transactionIDs: ['bulk_reported', 'bulk_unreported'],
+                allTransactions,
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: policyExpenseChat,
+                policyTagList: {},
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const trackExpenseCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            expect(requestMoneyCalls).toHaveLength(1);
+            expect(trackExpenseCalls).toHaveLength(1);
+            expect(requestMoneyCalls.at(0)?.[1].shouldDeferAutoSubmit).toBeFalsy();
         });
     });
 

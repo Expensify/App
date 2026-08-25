@@ -10,7 +10,6 @@ import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 
-import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -47,12 +46,12 @@ function UserSelectionListItem<TItem extends ListItem>({
 
         // If the emails are not in the same private domain, we just return the users email
         if (!areEmailsFromSamePrivateDomain(login, currentUserPersonalDetails.login ?? '')) {
-            return Str.removeSMSDomain(login);
+            return formatPhoneNumber(login);
         }
 
         // Otherwise, the emails are a part of the same private domain, so we can remove the domain and just show username
         return login.split('@').at(0);
-    }, [currentUserPersonalDetails.login, item.login]);
+    }, [currentUserPersonalDetails.login, item.login, formatPhoneNumber]);
 
     const userDisplayName = useMemo(() => {
         return getDisplayNameForParticipant({

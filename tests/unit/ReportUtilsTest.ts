@@ -122,6 +122,7 @@ import {
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
+    getParentReport,
     getParsedComment,
     getParticipantsList,
     getPendingDeleteMemberAccountIDs,
@@ -137,6 +138,7 @@ import {
     getReimbursementQueuedActionMessage,
     getReportActionWithSmartscanError,
     getReportFieldsByPolicyID,
+    getReportForHeader,
     getReportIDFromLink,
     getReportNotificationPreference,
     getReportOrDraftReport,
@@ -571,10 +573,15 @@ describe('ReportUtils', () => {
 
         const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
 
-        const policyWithBank = {
+        const policyWithBank: Policy = {
             ...createRandomPolicy(policyID, CONST.POLICY.TYPE.TEAM),
             achAccount: {
+                bankAccountID: 1,
                 accountNumber: 'XXXXXXXXXXXX0000',
+                routingNumber: '011401533',
+                addressName: 'Bank Workspace',
+                bankName: 'Test Bank',
+                reimburser: 'reimburser@example.com',
             },
         };
 
@@ -586,7 +593,16 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, undefined, iouReport)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(paidSystemMessage);
+        });
+
+        it('should use the passed ACH account number (not module-level allPolicies) for the bank account last 4 digits', () => {
+            // Given an ACH account number passed explicitly, with no matching policy read from Onyx
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
+
+            // Then the ACH last 4 digits are resolved from the passed account number alone
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(paidSystemMessage);
         });
 
         it('should show the bank account from the action accountNumber instead of the policy default', async () => {
@@ -602,7 +618,9 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
 
             // Then the message shows the last 4 digits of that account, not the policy default
-            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, undefined, iouReport)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
+                paidSystemMessage,
+            );
         });
 
         it('should show the cross-border FX message with the credited amount and both account last-4s', async () => {
@@ -626,7 +644,7 @@ describe('ReportUtils', () => {
                 debitBankAccount: '6789',
                 creditBankAccount: '3335',
             });
-            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, undefined, iouReport)).toBe(expectedMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(expectedMessage);
         });
 
         it('should return received payment when submitter marked payment received', () => {
@@ -641,7 +659,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, undefined, iouReport)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
                 translateLocal('iou.receivedPaymentReportAction'),
             );
         });
@@ -657,7 +675,63 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, undefined, iouReport)).toBe(translateLocal('iou.paidElsewhere'));
+            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
+                translateLocal('iou.paidElsewhere'),
+            );
+        });
+
+        it('should return an empty string for a non-money-request action', () => {
+            const createdAction = {
+                ...createRandomReportAction(47),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            };
+
+            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe('');
+        });
+
+        it('should use the passed ACH account number for the last 4 digits of an automatic VBBA payment', () => {
+            // Given an automatically-paid VBBA action with no accountNumber on the action itself
+            const automaticVBBAAction = {
+                ...reportAction,
+                originalMessage: {...reportAction.originalMessage, automaticAction: true},
+            };
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const expected = translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
+
+            // Then the workspace-rules message resolves the last 4 digits from the passed account number
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(expected);
+        });
+
+        it('should return the workspace-rules message for an automatic Expensify payment', () => {
+            const automaticExpensifyAction = {
+                ...reportAction,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, automaticAction: true},
+            };
+
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
+            );
+        });
+
+        it('should return the approved amount when the IOU report is approved', async () => {
+            // Given an approved (not yet settled) expense report and a matching CREATE action
+            const approvedReportID = '9988776655';
+            const approvedReport = {
+                ...createExpenseReport(Number(approvedReportID)),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+            const approveIOUAction = {
+                ...createRandomReportAction(48),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: approvedReportID,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 5000, currency: CONST.CURRENCY.USD},
+            };
+            const transaction = {...createRandomTransaction(1), amount: 5000, currency: CONST.CURRENCY.USD, reportID: approvedReportID};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`, approvedReport);
+
+            // Then the display message uses the "approved" copy
+            expect(getIOUReportActionDisplayMessage(translateLocal, approveIOUAction, convertToDisplayString, undefined, transaction)).toContain('approved');
         });
 
         it('should return marked as paid when the invoice sender copies a settled elsewhere payment (missing invoice bank account)', async () => {
@@ -687,9 +761,7 @@ describe('ReportUtils', () => {
             };
 
             // Then the copied message matches what is displayed ("marked as paid"), not the broken empty-amount string.
-            expect(getIOUReportActionDisplayMessage(translateLocal, invoicePaidElsewhereReportAction, convertToDisplayString, undefined, iouReport)).toBe(
-                translateLocal('iou.paidElsewhere'),
-            );
+            expect(getIOUReportActionDisplayMessage(translateLocal, invoicePaidElsewhereReportAction, convertToDisplayString, undefined)).toBe(translateLocal('iou.paidElsewhere'));
         });
     });
 
@@ -10764,6 +10836,88 @@ describe('ReportUtils', () => {
             expect(result2).toBe(true);
         });
 
+        it('should return true for a submitted report awaiting first-level approval', async () => {
+            // Given a policy with a basic approval workflow where the current user submits to themselves
+            const basicApprovalPolicy: Policy = {
+                ...createRandomPolicy(2963),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [currentUserEmail]: {email: currentUserEmail, submitsTo: currentUserEmail},
+                },
+                approver: currentUserEmail,
+            };
+            const report: Report = {
+                ...createRandomReport(10003, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                policyID: basicApprovalPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+            };
+            const createdAction: ReportAction = {...createRandomReportAction(124), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, originalMessage: {submittedTo: currentUserAccountID}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdAction.reportActionID]: createdAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${basicApprovalPolicy.id}`, basicApprovalPolicy);
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                },
+            });
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
+            // When it's checked if the transactions can be added
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is true because the report has not moved past the first approver yet
+            expect(result).toBe(true);
+        });
+
+        it('should return false for a submitted report on a policy with a Dynamic External Workflow', async () => {
+            // Given a policy with a Dynamic External Workflow where the current user submits to themselves
+            const dynamicExternalWorkflowPolicy: Policy = {
+                ...createRandomPolicy(2964),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                employeeList: {
+                    [currentUserEmail]: {email: currentUserEmail, submitsTo: currentUserEmail},
+                },
+                approver: currentUserEmail,
+            };
+            const report: Report = {
+                ...createRandomReport(10004, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                policyID: dynamicExternalWorkflowPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+            };
+            const createdAction: ReportAction = {...createRandomReportAction(125), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, originalMessage: {submittedTo: currentUserAccountID}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdAction.reportActionID]: createdAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${dynamicExternalWorkflowPolicy.id}`, dynamicExternalWorkflowPolicy);
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                },
+            });
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
+            // When it's checked if the transactions can be added
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is false because the report is now in a Dynamic External Workflow
+            expect(result).toBe(false);
+        });
+
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
@@ -17296,6 +17450,29 @@ describe('ReportUtils', () => {
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
         });
+        it('should use the passed policy (not module-level allPolicies) to detect a group policy for an approved report', () => {
+            // Given an approved expense report whose policy is NOT seeded in Onyx
+            const groupPolicy: Policy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.TEAM,
+                name: 'My Group Workspace',
+            };
+            const expenseReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                policyID: groupPolicy.id,
+                currency: 'USD',
+            };
+
+            // When we call getReportPreviewMessage passing the policy explicitly
+            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy});
+
+            // Then the group-policy "approved" branch is taken based on the passed policy alone
+            expect(result).toContain('approved');
+            expect(result).toContain(groupPolicy.name);
+        });
         it('getReportPreviewMessageForCopy should return the expense report name', async () => {
             const report = LHNTestUtils.getFakeReport();
             report.reportName = 'Expense Report 2025-01-15';
@@ -17344,11 +17521,16 @@ describe('ReportUtils', () => {
 
         describe('settled report paid with a business bank account', () => {
             const settledPolicyID = '445';
-            const settledPolicy = {
+            const settledPolicy: Policy = {
                 ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
                 id: settledPolicyID,
                 achAccount: {
+                    bankAccountID: 1,
                     accountNumber: 'XXXXXXXXXXXX0000',
+                    routingNumber: '011401533',
+                    addressName: 'Settled Workspace',
+                    bankName: 'Test Bank',
+                    reimburser: 'reimburser@example.com',
                 },
             };
             const settledReport: Report = {
@@ -17403,7 +17585,7 @@ describe('ReportUtils', () => {
 
             it('matches the localized getReportPreviewMessage output when translated to English', () => {
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction};
+                const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, policy: settledPolicy};
 
                 // The hardcoded English copy must not drift from the localized function
                 expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
@@ -17415,7 +17597,7 @@ describe('ReportUtils', () => {
                     ...payReportAction,
                     originalMessage: {...payOriginalMessage, creditedAmount: 1340, creditedCurrency: 'GBP', creditBankAccountLast4: '3335'},
                 };
-                const crossBorderParams = {reportOrID: settledReport, iouReportAction: crossBorderAction, originalReportAction: crossBorderAction};
+                const crossBorderParams = {reportOrID: settledReport, iouReportAction: crossBorderAction, originalReportAction: crossBorderAction, policy: settledPolicy};
 
                 it('names the credited amount, falling back to the policy default for the debited account', () => {
                     // Given a converted payment that recorded the employee's account but not the account it was paid from
@@ -17445,6 +17627,7 @@ describe('ReportUtils', () => {
                         reportOrID: settledReport,
                         iouReportAction: payReportAction,
                         originalReportAction: payReportAction,
+                        policy: settledPolicy,
                         isPreviewMessageForParentChatReport: true,
                     });
 
@@ -17469,7 +17652,7 @@ describe('ReportUtils', () => {
             });
 
             it('uses the injected translate function (not translateLocal) so output follows the passed locale, while getReportPreviewReportActionMessage stays English', async () => {
-                const params = {reportOrID: expenseReport};
+                const params = {reportOrID: expenseReport, policy: undefined};
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
                 const spanishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.ES, path, ...parameters);
 
@@ -17506,7 +17689,7 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport});
+                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined});
 
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
@@ -17529,7 +17712,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('owes');
             });
         });
@@ -19259,7 +19442,15 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the participant selector step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                            action: CONST.IOU.ACTION.SUBMIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
+                    ),
                 );
             });
 
@@ -19291,7 +19482,15 @@ describe('ReportUtils', () => {
 
                 // Then it should still navigate to participant selector since action is SUBMIT (SUBMIT always goes to participants)
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transaction.transactionID, '1', undefined, CONST.IOU.ACTION.SUBMIT),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                            action: CONST.IOU.ACTION.SUBMIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
+                    ),
                 );
             });
         });
@@ -21121,7 +21320,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -21135,7 +21334,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, regularReport, undefined, conciergeReportID, [], translateLocal, undefined);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -21145,11 +21344,26 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
             expect(result).toBe('Custom Action Name');
         });
 
+        it('should return Concierge display name when conciergeReportID is passed explicitly', () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const action = {...createRandomReportAction(4)};
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
         it('should compute the invoice report name through the provided translate function', () => {
+            const parentChatReport: Report = {
+                reportID: 'invoice-chat-123',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
             const invoiceReport: Report = {
                 reportID: 'invoice-report-789',
                 type: CONST.REPORT.TYPE.INVOICE,
@@ -21161,12 +21375,17 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             const action = {...createRandomReportAction(5)};
-            const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateWithMarker, undefined);
+            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateWithMarker, undefined);
 
             expect(result).toBe('PayerOwesMarker');
         });
 
         it('should return the stored reportName for OldDot invoice reports', () => {
+            const parentChatReport: Report = {
+                reportID: 'invoice-chat-124',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
             const invoiceReport: Report = {
                 reportID: 'invoice-report-790',
                 type: CONST.REPORT.TYPE.INVOICE,
@@ -21176,27 +21395,32 @@ describe('ReportUtils', () => {
             };
 
             const action = {...createRandomReportAction(6)};
-            const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateLocal, undefined);
 
             expect(result).toBe('Invoice #42');
         });
 
         describe('NewDot invoice reports', () => {
             const invoiceRoomID = 'invoice-room-500';
+            const invoiceRoom: Report = {
+                reportID: invoiceRoomID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
             // An invoice report without transactions has a total of zero, so its name resolves to the
             // "payer owes" message, which must come from the translate function passed by the caller.
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             beforeEach(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, {
-                    reportID: invoiceRoomID,
-                    type: CONST.REPORT.TYPE.CHAT,
-                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
                 await waitForBatchedUpdates();
             });
 
             it('should use chatReportID when it is set, instead of falling back to parentReportID', () => {
+                const nonInvoiceParent: Report = {
+                    reportID: 'not-an-invoice-room-501',
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
                 const invoiceReport: Report = {
                     reportID: 'invoice-report-791',
                     type: CONST.REPORT.TYPE.INVOICE,
@@ -21209,7 +21433,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(7)};
-                const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceReport, nonInvoiceParent, undefined, [], translateWithMarker, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -21224,7 +21448,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(8)};
-                const result = getChatListItemReportName(action, invoiceReport, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -21238,20 +21462,21 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(9)};
-                getChatListItemReportName(action, invoiceReport, undefined, [], translateWithMarker, undefined);
+                getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, undefined);
 
                 expect(invoiceReport.chatReportID).toBeUndefined();
             });
 
             it('should use the parent invoice report name for a chat thread inside an invoice report', async () => {
                 const invoiceReportID = 'invoice-report-794';
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
+                const parentInvoiceReport: Report = {
                     reportID: invoiceReportID,
                     type: CONST.REPORT.TYPE.INVOICE,
                     chatReportID: invoiceRoomID,
                     reportName: 'Invoice #45',
                     currency: 'USD',
-                });
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, parentInvoiceReport);
                 await waitForBatchedUpdates();
 
                 const invoiceThread: Report = {
@@ -21263,7 +21488,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(10)};
-                const result = getChatListItemReportName(action, invoiceThread, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceThread, parentInvoiceReport, undefined, [], translateWithMarker, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -22954,6 +23179,63 @@ describe('getTransactionsWithReceipts', () => {
     it('returns an empty array when no transactions have receipts', () => {
         const withoutReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {}};
         expect(getTransactionsWithReceipts(undefined, [withoutReceipt])).toEqual([]);
+    });
+});
+
+describe('getParentReport', () => {
+    it('returns undefined when report is undefined', () => {
+        expect(getParentReport(undefined)).toBeUndefined();
+    });
+
+    it('returns undefined when report has no parentReportID', () => {
+        expect(getParentReport({reportID: '1'} as Report)).toBeUndefined();
+    });
+
+    it('returns parentReport from Onyx when not passed explicitly', async () => {
+        const parentReport = {reportID: '2'} as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, parentReport);
+        const report = {reportID: '1', parentReportID: '2'} as Report;
+        const result = getParentReport(report);
+        expect(result?.reportID).toBe('2');
+    });
+});
+
+describe('getReportForHeader', () => {
+    it('returns the report itself when it is not a chat thread', () => {
+        const report = {reportID: '1', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, undefined)).toBe(report);
+    });
+
+    it('returns the report itself when parent is not an invoice report', () => {
+        const parentReport = {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE} as Report;
+        const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, parentReport)).toBe(report);
+    });
+
+    it('returns the parent invoice report when report is a chat thread of an invoice', () => {
+        const parentReport = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, parentReport)).toBe(parentReport);
+    });
+
+    it('returns undefined when report is undefined', () => {
+        expect(getReportForHeader(undefined, undefined)).toBeUndefined();
+    });
+
+    it('returns the parent invoice report when parentReport is invoice and report is a chat thread, even if a different report exists in Onyx for the same ID', async () => {
+        const onyxParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE} as Report;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, onyxParentReport);
+
+        const passedParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
+
+        expect(getReportForHeader(report, passedParentReport)).toBe(passedParentReport);
+    });
+
+    it('returns the report when parent is an invoice but report is not a thread', () => {
+        const parentReport = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const report = {reportID: '1', parentReportID: '2', type: CONST.REPORT.TYPE.CHAT} as Report;
+        expect(getReportForHeader(report, parentReport)).toBe(report);
     });
 });
 
