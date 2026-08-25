@@ -77,6 +77,7 @@
         "@fullstory/babel-plugin-react-native",
         "@fullstory/babel-plugin-annotate-react",
         "eslint-config-airbnb-typescript",
+        "eslint-plugin-react-hooks",
         "eslint-config-prettier",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
