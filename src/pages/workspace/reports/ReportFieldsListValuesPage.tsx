@@ -51,7 +51,10 @@ import {View} from 'react-native';
 type ReportFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
 type ReportFieldsListValuesTableHeaderProps = {
+    /** Action buttons rendered above the list subtitle when they need a separate row */
     headerButtons: React.ReactNode;
+
+    /** Whether to render the action buttons above the list subtitle */
     shouldDisplayButtonsInSeparateLine: boolean;
 };
 
