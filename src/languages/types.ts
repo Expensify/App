@@ -13,9 +13,20 @@ type PluralForm = {
 };
 
 /**
- * Translation value can be a string or a function that returns a string
+ * Translation value can be a string or a function that returns a string.
+ *
+ * When the English entry returns a `PluralForm`, every other locale must return one too. Returning a
+ * plain string there type-checks but silently disables pluralization: `getTranslatedPhrase` returns
+ * the string before it ever selects a plural category, so that locale renders one fixed form for
+ * every count. The `[Return] extends [PluralForm]` wrapper keeps the check non-distributive, so an
+ * English entry that returns `string | PluralForm` stays permissive.
+ *
+ * The reverse is deliberately allowed: a locale may return a `PluralForm` where English returns a
+ * plain string, since a language can need plural forms that English does not.
  */
-type TranslationLeafValue<TStringOrFunction> = TStringOrFunction extends (...args: infer Args) => any ? (...args: Args) => string | PluralForm : string;
+type TranslationLeafValue<TStringOrFunction> = TStringOrFunction extends (...args: infer Args) => infer Return
+    ? (...args: Args) => [Return] extends [PluralForm] ? PluralForm : string | PluralForm
+    : string;
 
 /**
  * Translation object is a recursive object that can contain other objects or string/function values
