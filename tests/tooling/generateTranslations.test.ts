@@ -1871,7 +1871,6 @@ describe('generateTranslations', () => {
             // Test targeting the specific nested path
             process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'onboarding.tasks.createWorkspaceTask'];
 
-            // This currently throws an error but should succeed
             await generateTranslations();
 
             // Check that the new task was added within the satisfies expression
