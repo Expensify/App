@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -53,6 +54,9 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const isJoiningCompanyWorkspace = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
 
     const sendValidateCode = useCallback(() => {
         if (!email) {
@@ -80,6 +84,24 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backTo), options);
         },
         [isVsb, isSmb],
+    );
+
+    // Reaching this screen from the join-workspace intent means there is no further onboarding step to route
+    // back into: skipping or finding no joinable workspaces should complete onboarding (collecting a name first
+    // if needed), or simply close when this screen was reopened from a Concierge task after onboarding finished.
+    const continueAfterPrivateDomain = useCallback(
+        (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
+            if (isJoiningCompanyWorkspace) {
+                if (hasCompletedGuidedSetupFlow) {
+                    Navigation.goBack();
+                    return;
+                }
+                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), options);
+                return;
+            }
+            navigateToNextOnboardingStep(backTo, options);
+        },
+        [isJoiningCompanyWorkspace, hasCompletedGuidedSetupFlow, navigateToNextOnboardingStep],
     );
 
     // Only validated public-domain users are blocked from this screen — for them the "people on YOUR domain" copy would reference gmail.com.
@@ -114,9 +136,9 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         // When validation succeeded but there are no joinable workspaces and the API call has completed,
         // navigate to the next onboarding step (same as the skip button behavior).
         if (getAccessiblePoliciesAction?.loading === false) {
-            navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+            continueAfterPrivateDomain(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         }
-    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep]);
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep, continueAfterPrivateDomain]);
 
     if (shouldBlockPublicDomain) {
         return null;
@@ -160,7 +182,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateError={getAccessiblePoliciesAction?.errors}
                         hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                         shouldShowSkipButton
-                        handleSkipButtonPress={() => navigateToNextOnboardingStep(route.params?.backTo)}
+                        handleSkipButtonPress={() => continueAfterPrivateDomain(route.params?.backTo)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
                     />
