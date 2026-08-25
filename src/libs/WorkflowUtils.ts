@@ -1464,6 +1464,14 @@ function getRulesSubmitterToWorkflowKey(rules: Record<string, ApprovalWorkflowRu
     return result;
 }
 
+/** The submitters and approver chain of one workflow, accumulated while grouping employees by fingerprint. */
+type WorkflowGroup = {
+    chain: Approver[];
+    members: Member[];
+    isDefault: boolean;
+    pendingAction: ApprovalWorkflow['pendingAction'];
+};
+
 /**
  * Beta-enabled counterpart to `convertPolicyEmployeesToApprovalWorkflows`: rebuild the same
  * `PolicyConversionResult` from `params.rules`, falling back to `employeeList` for any chain step the
@@ -1488,14 +1496,8 @@ function convertApprovalWorkflowRulesToWorkflows({
         personalDetailsByEmail[value?.login ?? key] = value;
     }
 
-    // Source-tagged fingerprint groups so a legacy chain and a rule-based chain with the same
-    // shape stay in separate workflows. Tag values: 'r' (any rule mentions the submitter) or 'l'.
-    type WorkflowGroup = {
-        chain: Approver[];
-        members: Member[];
-        isDefault: boolean;
-        pendingAction: ApprovalWorkflow['pendingAction'];
-    };
+    // Keyed by a source-tagged fingerprint so a legacy chain and a rule-based chain with the same shape stay
+    // in separate workflows. Tag values: 'r' (any rule mentions the submitter) or 'l'.
     const groupedByFingerprint = new Map<string, WorkflowGroup>();
     const usedApproverEmails = new Set<string>();
     const availableMembers: Member[] = [];
