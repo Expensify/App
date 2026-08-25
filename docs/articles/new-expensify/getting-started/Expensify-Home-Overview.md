@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Concierge prompt box, ask Concierge, greeting, good morning, good afternoon, good evening, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the Concierge prompt box, For you, Recently added, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -31,6 +31,7 @@ Home is made up of a small set of sections that summarize what’s happening in 
 
 Home includes:
 - **Time-sensitive alerts** (when applicable)
+- The **Concierge prompt box**
 - **For you**
 - **Recently added**
 - **Spend over time** and other insights (when applicable)
@@ -57,6 +58,22 @@ These alerts appear when:
 Alerts are only shown for active Expensify Cards. Deactivated or closed cards do not trigger time-sensitive alerts.
 
 If there are no urgent issues, this section will not appear.
+
+---
+
+## How the Concierge prompt box works on Home
+
+The **Concierge prompt box** appears at the top of the **For you** section and lets you message Concierge directly from Home.
+
+The box shows today's date and a time-of-day greeting with your first name, such as **Good morning**, **Good afternoon**, or **Good evening**.
+
+To message Concierge from the box:
+
+1. Type your message in the prompt box. The placeholder reads **Ask Concierge to analyze your expenses or get support** on web, or **Ask Concierge anything** on a narrow screen.
+2. To attach a file, select the **+** button and choose an attachment.
+3. Select **Send** (on web you can also press **Enter**).
+
+The **Send** button stays inactive until you enter a message. After you send, your Concierge chat opens with your message and the prompt box clears.
 
 ---
 
@@ -154,6 +171,10 @@ If you have no recent card spending and no expenses awaiting approval or repaid 
 ## What is Home for?
 
 Home helps you get oriented when you sign in. It shows whether anything needs attention, highlights what’s new, and points you to the right place—like Inbox or Spend—if you need to take action.
+
+## How do I message Concierge from Home?
+
+Use the **Concierge prompt box** at the top of the **For you** section. Type your message, optionally attach a file with the **+** button, then select **Send** (or press **Enter** on web). Your Concierge chat opens with your message.
 
 ## Is Home the same as Inbox?
 
