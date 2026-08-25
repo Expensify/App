@@ -5,7 +5,6 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
@@ -13,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyByCustomUnitID, sortWorkspacesBySelected} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -45,7 +43,6 @@ type BaseRequestStepWorkspaceProps = WithFullTransactionOrNotFoundProps<typeof S
 };
 
 function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}: BaseRequestStepWorkspaceProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -67,15 +64,6 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
             text: policy.name,
             policyID: policy.id,
             keyForList: policy.id,
-            icons: [
-                {
-                    id: policy.id,
-                    source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
-                    name: policy.name,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
             isSelected: initiallyFocusedKey === policy.id,
         }));
 
