@@ -965,16 +965,16 @@ function canonicalize(value: unknown): unknown {
     return value;
 }
 
-/**
- * Return a structural fingerprint of a rule with every `from` leaf's `right` (the submitter list)
- * stripped and keys canonicalized. Two rules with the same fingerprint differ only in their submitters,
- * which is what we look for when deciding whether to merge two workflows into a shared rule.
- */
 /** A string that is equal for two values that mean the same thing, regardless of the order their keys were built in. */
 function canonicalFingerprint(value: unknown): string {
     return JSON.stringify(canonicalize(value));
 }
 
+/**
+ * Return a structural fingerprint of a rule with every `from` leaf's `right` (the submitter list)
+ * stripped and keys canonicalized. Two rules with the same fingerprint differ only in their submitters,
+ * which is what we look for when deciding whether to merge two workflows into a shared rule.
+ */
 function structuralFingerprint(rule: ApprovalWorkflowRule): string {
     const stripFromValues = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): unknown => {
         if (!node) {
