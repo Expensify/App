@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {activeAdminPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy, Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -22,7 +23,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/core';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import ProductMarketingWindow from './ProductMarketingWindow';
 
@@ -71,8 +72,17 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     });
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
+    const [hasCompletedGuidedSetupFlow, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [hasObservedActiveOnboarding, setHasObservedActiveOnboarding] = useState(false);
     // OpenApp provides the dismissal and targeting data; wait for it to avoid a startup flash or a wrong CTA destination.
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    useEffect(() => {
+        if (hasCompletedGuidedSetupFlow !== false) {
+            return;
+        }
+        setHasObservedActiveOnboarding(true);
+    }, [hasCompletedGuidedSetupFlow]);
 
     const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
     // Every illustration-backed variant is resolved up front because useMemoizedLazyIllustrations doesn't reload
@@ -87,7 +97,10 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const isAdminCtaPending = shouldPrefetchTargetPolicyConnections && (isLoadingFetchedFlag || (isFetchNeeded && hasBeenFetched === undefined));
     const isAdminPolicyConnectionDataAvailable = !shouldPrefetchTargetPolicyConnections || hasBeenFetched === true;
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
-    const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, targetAdminPolicyIDMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
+    const isLoading =
+        isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, targetAdminPolicyIDMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata, onboardingMetadata) ||
+        isLoadingApp;
+    const shouldSuppressForOnboardingSession = hasCompletedGuidedSetupFlow === false || hasObservedActiveOnboarding;
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
     const navigation = useNavigation();
     const isIn2FASetupFlow = useRootNavigationState((state) => {
@@ -104,6 +117,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
         isProductMarketingWindowCovered ||
         isAnonymousSession ||
         isActingAsDelegate ||
+        shouldSuppressForOnboardingSession ||
         isCoveredByCenteredModalScreen ||
         shouldShowRequire2FAPage ||
         isIn2FASetupFlow
