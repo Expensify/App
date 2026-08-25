@@ -675,7 +675,7 @@ describe('Account Search Router navigation source', () => {
             Building: mockIcon,
             Gear: accountContextIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
+        mockUseSearchTypeMenuSections.mockReturnValue([]);
         mockUseSettingsNavigationMenuData.mockReturnValue({
             accountMenuItemsData: {
                 sectionTranslationKey: 'initialSettingsPage.account',
