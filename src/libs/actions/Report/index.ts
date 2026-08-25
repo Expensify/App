@@ -243,7 +243,6 @@ import type {
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
-    ReportNameValuePairs,
     ReportUserIsTyping,
     SidePanelContext,
     Transaction,
@@ -5019,18 +5018,18 @@ function navigateToMostRecentReport(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    lastAccessedReportID?: string,
 ) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, reportNameValuePairs)?.reportID;
+    const reportIDToOpen = lastAccessedReportID ?? findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
 
-    if (lastAccessedReportID) {
+    if (reportIDToOpen) {
         // Check if route exists for super wide RHP vs regular full screen report
         const topmostSuperWideRHP = Navigation.getTopmostSuperWideRHPReportID();
 
-        if (lastAccessedReportID === topmostSuperWideRHP && !getIsNarrowLayout()) {
+        if (reportIDToOpen === topmostSuperWideRHP && !getIsNarrowLayout()) {
             Navigation.dismissToSuperWideRHP();
         } else {
-            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportIDToOpen);
             Navigation.goBack(lastAccessedReportRoute);
         }
     } else {
@@ -5060,9 +5059,8 @@ function getSearchThreadLeaveRoute(report: Report, activeRoute: string): Route |
     });
 }
 
-function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, reportNameValuePairs)?.reportID;
-    return lastAccessedReportID ?? conciergeReportID;
+function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, lastAccessedReportID?: string) {
+    return lastAccessedReportID ?? findLastAccessedReport(false, false, currentReport?.reportID)?.reportID ?? conciergeReportID;
 }
 
 function joinRoom(report: OnyxEntry<Report>, currentUserAccountID: number) {
@@ -5087,7 +5085,7 @@ function leaveGroupChat(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    lastAccessedReportID?: string,
 ) {
     const reportID = report.reportID;
     // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
@@ -5138,7 +5136,7 @@ function leaveGroupChat(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.revealRouteBeforeDismissingModal(getReportRouteForCurrentContext({reportID}));
     } else {
-        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, reportNameValuePairs);
+        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, lastAccessedReportID);
     }
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
@@ -5152,7 +5150,7 @@ function leaveRoom(
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     isWorkspaceMemberLeavingWorkspaceRoom = false,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    lastAccessedReportID?: string,
 ) {
     const reportID = report.reportID;
     const isChatThread = isChatThreadReportUtils(report);
@@ -5264,7 +5262,7 @@ function leaveRoom(
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, reportNameValuePairs);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, lastAccessedReportID);
 }
 
 function buildInviteToRoomOnyxData(

@@ -26,6 +26,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useFindLastAccessedReport from '@hooks/useFindLastAccessedReport';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -215,7 +216,11 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const [lastAccessedReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const {lastAccessedReport} = useFindLastAccessedReport({
+        ignoreDomainRooms: false,
+        excludeReportID: report.reportID,
+    });
+    const lastAccessedReportID = lastAccessedReport?.reportID;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
 
@@ -402,22 +407,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 introSelected,
                 isSelfTourViewed,
                 betas,
-                lastAccessedReportNameValuePairs,
+                lastAccessedReportID,
             );
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(
-            report,
-            currentUserPersonalDetails.accountID,
-            conciergeReportID,
-            introSelected,
-            isSelfTourViewed,
-            betas,
-            isWorkspaceMemberLeavingWorkspaceRoom,
-            lastAccessedReportNameValuePairs,
-        );
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom, lastAccessedReportID);
     }, [
         isRootGroupChat,
         isPolicyEmployee,
@@ -429,7 +425,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         introSelected,
         isSelfTourViewed,
         betas,
-        lastAccessedReportNameValuePairs,
+        lastAccessedReportID,
     ]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
@@ -1041,7 +1037,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 {
                     ancestors,
                     shouldNavigateBack: !taskDeleteBackTo,
-                    reportNameValuePairs: lastAccessedReportNameValuePairs,
+                    lastAccessedReportID,
                 },
             );
             return;
@@ -1098,7 +1094,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         delegateEmail,
         ancestors,
-        lastAccessedReportNameValuePairs,
+        lastAccessedReportID,
         reportActionsForOriginalReportID,
         moneyRequestReport,
         moneyRequestReportActions,

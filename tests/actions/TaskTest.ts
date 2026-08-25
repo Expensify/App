@@ -1238,12 +1238,11 @@ describe('actions/Task', () => {
         it('should return most recent report route when no parentReportID and getMostRecentReportID returns a value', () => {
             const taskReport = {...getFakeReport(), parentReportID: undefined};
             const mostRecentReportID = 'recent_456';
-            const reportNameValuePairs = {};
             getMostRecentReportIDSpy.mockReturnValue(mostRecentReportID);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', undefined, reportNameValuePairs);
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', undefined, mostRecentReportID);
             expect(result).toBe(`r/${mostRecentReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123', reportNameValuePairs);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123', mostRecentReportID);
         });
 
         it('should pass conciergeReportID to getMostRecentReportID as fallback', () => {
