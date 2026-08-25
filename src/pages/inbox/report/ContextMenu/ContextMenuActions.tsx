@@ -180,7 +180,6 @@ import {
     changeMoneyRequestHoldStatus,
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
-    getDisplayedReportID,
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
@@ -1451,11 +1450,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
         },
-        onPress: (closePopover, {reportAction, originalReportID, isOffline}) => {
+        onPress: (closePopover, {reportAction, originalReportID}) => {
             getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = reportAction?.reportActionID;
-                const reportID = originalReportID ? getDisplayedReportID(originalReportID, isOffline) : originalReportID;
-                Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
+                // Always link to the report that actually owns the action so the link can never go stale. For a one-transaction
+                // expense that owner is the transaction thread; ReportFetchHandler redirects to the parent expense report at open
+                // time while that is still the report's only transaction, which is what surfaces the parent's "Submitted" message.
+                Clipboard.setString(`${environmentURL}/r/${originalReportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
