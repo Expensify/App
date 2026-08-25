@@ -26,6 +26,7 @@ const DEFAULT_POLICY_NAME = 'Default Workspace';
 const ADMIN_EMAIL = 'admin@company.com';
 const USER_LOGIN = 'user@company.com';
 const ENABLE_TRAVEL_ROUTE = ROUTES.TRAVEL_ENABLE.getRoute(POLICY_ID);
+const mockIsBetaEnabled = jest.fn(() => false);
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -63,6 +64,8 @@ jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({environmentURL: 'https://dev.new.expensify.com', environment: 'development', isProduction: false, isDevelopment: true}),
 }));
+
+jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: mockIsBetaEnabled}));
 
 // A paid group workspace that already has a Spotnana company (provisioned) but has not accepted terms yet
 const provisionedPolicy: Policy = {

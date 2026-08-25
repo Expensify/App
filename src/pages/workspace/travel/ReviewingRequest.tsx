@@ -6,12 +6,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearTravelSignupRequest, getTravelRiskApproval} from '@libs/actions/Travel';
-import {useFocusEffect} from '@react-navigation/native';
 
 import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 
 type ReviewingRequestProps = {
