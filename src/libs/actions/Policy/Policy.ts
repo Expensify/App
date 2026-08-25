@@ -1088,9 +1088,11 @@ function setWorkspaceApprovalMode(
             if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
                 continue;
             }
-            const ruleOnyxKey: `${typeof ONYXKEYS.COLLECTION.RULE}${string}` = `${ONYXKEYS.COLLECTION.RULE}${ruleKey.slice(ONYXKEYS.COLLECTION.RULE.length)}`;
-            optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: ruleOnyxKey, value: null});
-            failureData.push({onyxMethod: Onyx.METHOD.SET, key: ruleOnyxKey, value: rule});
+            // `Object.entries` widens the collection keys to `string`, so rebuild the key from the rule ID to get
+            // the `rules_${string}` type that an Onyx update needs.
+            const ruleID = ruleKey.slice(ONYXKEYS.COLLECTION.RULE.length);
+            optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.RULE}${ruleID}`, value: null});
+            failureData.push({onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.RULE}${ruleID}`, value: rule});
         }
     }
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
