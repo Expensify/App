@@ -332,7 +332,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 });
             }
 
-            // Grouped once up front so each iteration below does an O(1) lookup instead of re-scanning allTransactions per transaction.
             const transactionsByReportID = buildTransactionsByReportID(allTransactions);
 
             for (const {transactionID, action} of nonSplitTransactions) {

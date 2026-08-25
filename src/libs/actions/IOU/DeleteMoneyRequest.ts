@@ -71,7 +71,6 @@ type DeleteMoneyRequestFunctionParams = {
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
-    /** iouReport's transactions, for the non-reimbursable ("spent" vs "owes") wording in the report preview */
     iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatIOUReportArchived?: boolean | undefined;
@@ -91,7 +90,6 @@ type PrepareToCleanUpMoneyRequestParams = {
     reportAction: OnyxTypes.ReportAction;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
-    /** iouReport's transactions, for the non-reimbursable ("spent" vs "owes") wording in the report preview. Optional because callers that only need shouldDeleteTransactionThread/shouldDeleteIOUReport (e.g. navigation URL calculation) don't have a reason to source it. */
     iouReportTransactions?: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatReportArchived: boolean | undefined;
