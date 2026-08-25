@@ -1003,9 +1003,7 @@ function replaceSubmitterEmails(rule: ApprovalWorkflowRule, newEmails: string[])
 
 /** Merge `emailsToAdd` into `existingEmails`, preserving the order of `existingEmails` and dropping duplicates. */
 function mergeEmails(existingEmails: string[], emailsToAdd: string[]): string[] {
-    const seen = new Set(existingEmails);
-
-    return [...existingEmails, ...emailsToAdd.filter((email) => !seen.has(email) && !!seen.add(email))];
+    return [...new Set([...existingEmails, ...emailsToAdd])];
 }
 
 /** Remove everything in `emailsToRemove` from `existingEmails`, preserving the order of `existingEmails`. */
