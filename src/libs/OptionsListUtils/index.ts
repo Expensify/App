@@ -772,7 +772,7 @@ function getLastMessageTextForReport({
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
-            policy: null,
+            policy,
             isForListPreview: true,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
@@ -797,7 +797,10 @@ function getLastMessageTextForReport({
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
                 isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
-                policy: null,
+                // `policy` is the containing report's policy. A group-policy expense report renders its preview in the
+                // policy expense chat, which is handled by the branch above, so every report that reaches here shares
+                // its policy with `report` (DM/group personal reports have none; invoice rooms share the room's policy).
+                policy,
                 isForListPreview: true,
                 originalReportAction: lastReportAction,
             });
@@ -902,10 +905,17 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = translate('workspaceActions.downgradedWorkspace');
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_RULE) {
+        lastMessageTextFromReport = translate('workspaceActions.addedRule');
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULE) {
+        lastMessageTextFromReport = translate('workspaceActions.updatedRule');
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_RULE) {
+        lastMessageTextFromReport = translate('workspaceActions.removedRule');
     } else if (isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
-        lastMessageTextFromReport = getExportIntegrationLastMessageText(translate, lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
+        const integrationName = getOriginalMessage(lastReportAction)?.label;
+        lastMessageTextFromReport = getExportIntegrationLastMessageText(translate, lastReportAction, integrationName);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
         // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
         const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
@@ -1099,7 +1109,7 @@ function getLastMessageTextForReport({
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
-                                policy: null,
+                                policy,
                                 isForListPreview: true,
                             }),
                         ),

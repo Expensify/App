@@ -4225,13 +4225,20 @@ function openDraftWorkspaceRequest(policyID: string) {
     API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
 }
 
-function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
+/**
+ * Ask Concierge to raise the Expensify Card limit of a card feed.
+ *
+ * The settlement account belongs to one user, usually the workspace owner. The backend needs the fundID to let
+ * another admin of the same feed make this request, because that admin cannot read the account on their own.
+ */
+function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number, fundID?: number) {
     if (!settlementBankAccountID) {
         return;
     }
 
     const params: RequestExpensifyCardLimitIncreaseParams = {
         settlementBankAccountID,
+        fundID,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);
