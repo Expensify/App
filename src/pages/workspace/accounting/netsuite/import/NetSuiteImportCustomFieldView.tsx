@@ -1,5 +1,5 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -142,10 +142,10 @@ function NetSuiteImportCustomFieldView({
                             />
                         );
                     })}
-                    <MenuItem
+                    <MenuItemAction
                         icon={icons.Trashcan}
                         title={translate('common.remove')}
-                        disabled={!!config?.pendingFields?.[importCustomField]}
+                        isDisabled={!!config?.pendingFields?.[importCustomField]}
                         onPress={() => {
                             showConfirmModal({
                                 title: translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removeTitle`),

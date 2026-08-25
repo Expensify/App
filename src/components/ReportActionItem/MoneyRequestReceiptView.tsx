@@ -138,7 +138,7 @@ function MoneyRequestReceiptView({
     hasParentPendingAction = false,
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -237,7 +237,7 @@ function MoneyRequestReceiptView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
+    const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction, currentUserAccountID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
@@ -272,7 +272,7 @@ function MoneyRequestReceiptView({
         });
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal: AttachmentErrorModal} = useFilesValidation(onAttachmentFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onAttachmentFilesValidated);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -326,6 +326,7 @@ function MoneyRequestReceiptView({
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
                 const violationMessage = ViolationsUtils.getViolationTranslation({
+                    dateFnsLocale,
                     violation,
                     translate,
                     convertToDisplayString,
@@ -356,6 +357,7 @@ function MoneyRequestReceiptView({
         isMarkAsCash,
         routeDistanceMeters,
         distanceUnit,
+        dateFnsLocale,
     ]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
@@ -774,7 +776,6 @@ function MoneyRequestReceiptView({
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
             {!hasReceiptUploadError && !!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
-            {AttachmentErrorModal}
             {PDFValidationComponent}
         </View>
     );

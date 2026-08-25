@@ -20,7 +20,7 @@ esac
 APP_DIR_PATH="${BUILT_PRODUCTS_DIR}/${EXECUTABLE_FOLDER_PATH}"
 
 echo "Stripping main binary: ${APP_DIR_PATH}/${EXECUTABLE_NAME}"
-strip -rSTx "${APP_DIR_PATH}/${EXECUTABLE_NAME}"
+strip -rSx "${APP_DIR_PATH}/${EXECUTABLE_NAME}"
 
 APP_FRAMEWORKS_DIR="${APP_DIR_PATH}/Frameworks"
 if [ -d "$APP_FRAMEWORKS_DIR" ]; then
@@ -35,7 +35,7 @@ if [ -d "$APP_FRAMEWORKS_DIR" ]; then
       continue
     fi
     echo "Stripping framework: $framework_name"
-    strip -rSTx "$framework_binary"
+    strip -rSx "$framework_binary"
     codesign --force --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" --preserve-metadata=identifier,entitlements "$framework_dir"
   done
 else

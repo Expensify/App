@@ -1,6 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import {getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -31,7 +31,7 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
         if (!policy) {
             continue;
         }
-        result[key] = {id: policy.id, name: policy.name, connections: policy.connections, exportLayouts: policy.exportLayouts} as Policy;
+        result[key] = {id: policy.id, name: policy.name, connections: policy.connections, exportLayouts: policy.exportLayouts, outputCurrency: policy.outputCurrency} as Policy;
     }
     return result;
 }
@@ -67,16 +67,15 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
 
     const connectedIntegrationNames = policyIDs.value?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
-    const displayNameToConnectionName = new Map<string, string>(
-        Object.entries(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY).map(([connectionName, displayName]) => [displayName, connectionName]),
-    );
+    const connectedIntegrationSearchValues = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.flatMap((connectionName) => {
+        if (!connectedIntegrationNames.has(connectionName)) {
+            return [];
+        }
 
-    const connectedIntegrationDisplayNames = CONST.POLICY.CONNECTIONS.EXPORTED_TO_INTEGRATION_DISPLAY_NAMES.filter((displayName) => {
-        const connectionName = displayNameToConnectionName.get(displayName);
-        return connectionName && connectedIntegrationNames.has(connectionName);
+        return getExportLabelsForConnection(connectionName, policiesToUse);
     });
 
-    const exportedToFilterOptions = [...new Set([...connectedIntegrationDisplayNames, ...standardAndCustomExportTemplates])];
+    const exportedToFilterOptions = [...new Set([...connectedIntegrationSearchValues, ...standardAndCustomExportTemplates])];
 
     return {
         exportedToFilterOptions,

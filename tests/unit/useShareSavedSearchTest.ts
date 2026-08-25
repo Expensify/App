@@ -12,7 +12,7 @@ jest.mock('@libs/Clipboard', () => ({
 
 jest.mock('@hooks/useEnvironment', () => jest.fn(() => ({environmentURL: 'https://new.expensify.com'})));
 
-const mockClipboardSetString = Clipboard.setString as jest.MockedFunction<typeof Clipboard.setString>;
+const mockClipboardSetString = jest.mocked(Clipboard.setString);
 
 const ITEM_HASH = 12345;
 const ITEM_QUERY = 'type:expense status:all';

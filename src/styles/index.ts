@@ -277,6 +277,11 @@ const compactPopoverMenuItemBaseStyle = {
     alignItems: 'center' as const,
 };
 
+// Square size and horizontal margin of the composer's attachment ("+") button, shared by
+// composerSizeButton and the concierge prompt box so its button column stays in sync.
+const COMPOSER_SIZE_BUTTON_SIZE = 40;
+const COMPOSER_SIZE_BUTTON_MARGIN = 3;
+
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
         ...spacing,
@@ -968,8 +973,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonConfirmText: {
-            paddingLeft: 20,
-            paddingRight: 20,
+            // This is to match production build after ButtonComposed migration.
+            ...spacing.ph6,
         },
 
         buttonSuccessText: {
@@ -1986,7 +1991,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.fontSizeH2,
+            lineHeight: variables.lineHeightSizeH2,
             ...headlineFont,
         },
 
@@ -2049,6 +2055,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojisWithTextFontFamily: {
             fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        onboardingHeaderContainer: {
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            marginTop: 8,
+            justifyContent: 'center',
+            alignItems: 'flex-start',
         },
 
         createMenuContainer: {
@@ -2422,7 +2437,8 @@ const staticStyles = (theme: ThemeColors) =>
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
                 // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
-                paddingHorizontal: variables.avatarChatSpacing,
+                paddingRight: variables.avatarChatSpacing,
+                paddingLeft: variables.composerTextInputPaddingLeft,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
@@ -2460,11 +2476,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 5,
             ...flex.flexRow,
             flex: 1,
-        },
-
-        textInputComposeBorder: {
-            borderLeftWidth: 1,
-            borderColor: theme.bordersBold,
         },
 
         chatItemSubmitButton: {
@@ -2551,13 +2562,41 @@ const staticStyles = (theme: ThemeColors) =>
 
         composerSizeButton: {
             alignSelf: 'center',
-            height: 32,
-            width: 32,
+            alignItems: 'center',
+            height: COMPOSER_SIZE_BUTTON_SIZE,
+            width: COMPOSER_SIZE_BUTTON_SIZE,
             padding: 6,
-            marginHorizontal: 3,
+            marginHorizontal: COMPOSER_SIZE_BUTTON_MARGIN,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
+        },
+
+        messageEditCancelButtonWrapper: {
+            justifyContent: 'flex-end',
+            paddingBottom: 3,
+        },
+
+        // Fixed-width column reserving the composer size button's footprint (button + its horizontal margins) so the
+        // input width stays stable whether the button is centered or bottom-aligned.
+        composerButtonColumn: {
+            flexBasis: COMPOSER_SIZE_BUTTON_SIZE + COMPOSER_SIZE_BUTTON_MARGIN * 2,
+            flexGrow: 0,
+            flexShrink: 0,
+        },
+
+        // Absolute stack that fills the column height and reverses direction. The trailing element wraps away when
+        // there isn't room, and the button stays anchored to the bottom (flex-start in a reversed column).
+        composerButtonStack: {
+            display: 'flex',
+            flexDirection: 'column-reverse',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-start',
+            position: 'absolute',
+            height: '100%',
+            width: '100%',
+            overflow: 'hidden',
+            paddingVertical: COMPOSER_SIZE_BUTTON_MARGIN,
         },
 
         chatItemPDFAttachmentLoading: {
@@ -2799,6 +2838,17 @@ const staticStyles = (theme: ThemeColors) =>
 
         htmlTableLastRow: {
             borderBottomWidth: 0,
+        },
+
+        // A step past the hover background the surrounding comment uses, so a hovered row stays distinguishable
+        // while the whole comment is also highlighted.
+        htmlTableRowHovered: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        htmlTableChevronCell: {
+            width: variables.htmlTableChevronColumnWidth,
+            alignItems: 'flex-end',
         },
 
         htmlTableCell: {
@@ -3483,9 +3533,18 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            // This should "hide" the right border of the last avatar
-            marginRight: -2,
+            // This should "hide" the outer border of the first and last avatar, which matches the card background
+            marginLeft: -variables.avatarBorderWidthSmall,
+            marginRight: -variables.avatarBorderWidthSmall,
             marginBottom: 0,
+        },
+
+        // textMicroBold with a tighter line height, so the from/to cells line up with the rest of the expense preview metadata
+        moneyRequestPreviewParticipantsText: {
+            color: theme.text,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
         },
 
         moneyRequestLoadingHeight: {
@@ -4228,6 +4287,15 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sectionIllustrationHeight,
         },
 
+        cardSectionIllustrationInset: {
+            width: 'auto',
+            alignSelf: 'stretch',
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
+        },
+
         twoFAIllustration: {
             width: 'auto',
             height: 140,
@@ -4366,6 +4434,19 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: 13,
             fontWeight: FontUtils.fontWeight.bold,
             color: colors.productLight100,
+        },
+
+        alternativeDistanceLabelWrapper: {
+            backgroundColor: colors.green100,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        alternativeDistanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.green800,
         },
 
         productTrainingTooltipWrapper: {
@@ -5296,6 +5377,32 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
+        menuItemChevron: {
+            ...pointerEventsAuto,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
+            width: variables.iconSizeNormal,
+        },
+
+        menuItemRow: {
+            ...flex.flexRow,
+            ...pointerEventsAuto,
+            ...spacing.gap3,
+        },
+
+        menuItemTrailing: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.mlAuto,
+            ...spacing.gap2,
+        },
+
+        menuItemContent: {
+            ...flex.justifyContentCenter,
+            ...flex.flex1,
+            ...spacing.gap1,
+        },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -5539,26 +5646,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: -2,
         },
 
-        headerProgressBarContainer: {
-            position: 'absolute',
-            width: '100%',
-            pointerEvents: 'none',
-        },
-
-        headerProgressBar: {
-            width: variables.componentSizeMedium,
-            height: variables.iconSizeXXXSmall,
-            borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.border,
-            alignSelf: 'center',
-        },
-
-        headerProgressBarFill: {
-            borderRadius: variables.componentBorderRadiusRounded,
-            height: '100%',
-            backgroundColor: theme.success,
-        },
-
         interactiveStepHeaderContainer: {
             flex: 1,
             alignSelf: 'center',
@@ -5754,6 +5841,13 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.updateAnimationH,
         },
 
+        updateAnimationNarrowWeb: {
+            width: '100%',
+            // On web the dotlottie-react wrapper defaults to height: 100%, which would stretch the animation to fill the container.
+            // 'auto' lets the animation's aspect ratio determine the height instead.
+            height: 'auto',
+        },
+
         updateRequiredViewHeader: {
             height: variables.updateViewHeaderHeight,
         },
@@ -5850,7 +5944,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        travelInvoicingIcon: {
+        travelBillingIcon: {
             backgroundColor: colors.productLight700,
             borderRadius: variables.componentBorderRadiusNormal,
         },
@@ -6470,6 +6564,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 112,
             height: 160,
         },
+        commuterExclusionStaticIllustration: {
+            width: 160,
+            height: 140,
+            alignSelf: 'center',
+        },
         helpStaticIllustration: {
             width: 174,
             height: 156,
@@ -6512,7 +6611,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             gap: variables.componentBorderRadius,
-            marginBottom: variables.sectionMargin,
+            marginBottom: 16,
         },
         chartTitle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -6583,10 +6682,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
             height: undefined,
             aspectRatio: 2.2,
-        },
-        dateIconSize: {
-            width: variables.iconSizeExtraLarge,
-            height: variables.iconSizeExtraLarge,
         },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
@@ -6937,16 +7032,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: '100%',
         }),
 
-        getCenteredModalOuterView: (shouldUseNarrowLayout: boolean) =>
+        getCenteredModalOuterView: (shouldDockToBottom: boolean) =>
             ({
-                justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+                justifyContent: shouldDockToBottom ? 'flex-end' : 'center',
             }) as const,
 
-        getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
-            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+        getCenteredModalInnerView: (shouldDockToBottom: boolean, width?: number, height?: DimensionValue) => {
+            const borderBottomRadius = shouldDockToBottom ? 0 : variables.componentBorderRadiusLarge;
 
             return {
-                width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
+                width: shouldDockToBottom ? '100%' : (width ?? variables.featureTrainingModalWidth),
                 // No default height - the card hugs its content (children must have intrinsic height)
                 height,
                 maxHeight: '100%' as const,
@@ -6984,7 +7079,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
-        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
             paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
@@ -7142,9 +7237,20 @@ const plainStyles = (theme: ThemeColors) =>
             lineCap: 'round',
         } satisfies MapDirectionStyle,
 
+        alternativeMapDirection: {
+            lineColor: colors.green200,
+            lineWidth: 6,
+            lineCap: 'round',
+        },
+
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': colors.green400, 'line-width': 6},
+        },
+
+        alternativeMapDirectionLayer: {
+            layout: {'line-join': 'round', 'line-cap': 'round'},
+            paint: {'line-color': colors.green200, 'line-width': 6},
         },
 
         mapDirectionLayerBorder: {
@@ -7172,6 +7278,25 @@ const plainStyles = (theme: ThemeColors) =>
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
 
+        // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
+        // line it wraps away inside composerButtonStack (overflow hidden) and the button centers instead.
+        conciergePromptBoxButtonSpacer: {
+            flexGrow: 1,
+            flexShrink: 0,
+            minHeight: COMPOSER_SIZE_BUTTON_SIZE,
+        },
+
+        // Hidden probe that measures whether the long placeholder wraps. The paddingRight renders it a few px
+        // narrower than the composer so it wraps first, avoiding a flash at borderline widths.
+        conciergePromptBoxPlaceholderProbe: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            opacity: 0,
+            paddingRight: 24,
+        },
+
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({
                 alignItems: 'center',
@@ -7187,11 +7312,19 @@ const plainStyles = (theme: ThemeColors) =>
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
                 gap: 20,
                 width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
             }) satisfies ViewStyle,
+
+        centeredContentWidthLimiter: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+        },
 
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+        homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

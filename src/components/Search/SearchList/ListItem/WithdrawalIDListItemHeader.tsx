@@ -80,7 +80,7 @@ function WithdrawalIDListItemHeaderImpl({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -92,6 +92,7 @@ function WithdrawalIDListItemHeaderImpl({
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+        dateFnsLocale,
     );
     const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = withdrawalIDItem;
 

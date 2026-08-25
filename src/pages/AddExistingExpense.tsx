@@ -31,7 +31,7 @@ import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
+import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, getOriginalTransactionWithSplitInfo, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -99,6 +99,15 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 const isUnreported = isUnreportedTransaction(item);
                 if (isIOU && !isUnreported) {
                     return false;
+                }
+
+                // Split expenses can't be moved to a 1:1 DM chat, so they must not be offered when adding to an IOU report
+                if (isIOU) {
+                    const originalTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.comment?.originalTransactionID}`];
+                    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(item, originalTransaction);
+                    if (isExpenseSplit) {
+                        return false;
+                    }
                 }
 
                 const isOnOpenExpenseReport = !!(item?.reportID && (allOpenReports?.[item.reportID] ?? openReportDrafts?.[item.reportID]));

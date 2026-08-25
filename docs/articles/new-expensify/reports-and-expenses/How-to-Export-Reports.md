@@ -46,7 +46,7 @@ Use **Export current view** to download a CSV that matches the columns currently
 5. Select **Export**.
 6. Select **Export current view**.
 
-The CSV uses the same columns displayed on the page. **Export current view** is not available when a **Group by** filter is applied.
+The CSV uses the same columns displayed on the page.
 
 ## What export templates can I choose from? 
 
@@ -67,6 +67,8 @@ Expensify offers pre-built export templates, or you can build your own custom ex
 4. Select **Download as PDF**.
 
 The PDF includes all expenses, attached receipts, and report notes.
+
+For reports on a Submit workspace, the PDF also includes an **Approve or Pay** button and QR code that let your approver open and approve the report online.
 
 ## How to download multiple reports as PDFs
 
