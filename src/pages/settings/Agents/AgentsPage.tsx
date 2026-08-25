@@ -141,7 +141,11 @@ function AgentsPage() {
         const tableAgents = tableRef.current?.getProcessedData() ?? [];
         const newAgentIndex = tableAgents.findIndex((agent) => newAgentKeys.includes(agent.keyForList));
         if (newAgentIndex !== -1) {
-            tableRef.current?.scrollToIndex({index: newAgentIndex, animated: false});
+            tableRef.current?.scrollToIndex({
+                index: newAgentIndex,
+                animated: false,
+                viewPosition: 0.5,
+            });
         }
         tableRef.current?.highlightItems(newAgentKeys);
     }, [agentKeys, prevAgentKeys]);
@@ -199,6 +203,7 @@ function AgentsPage() {
             text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
             value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
             icon: icons.Trashcan,
+            shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
         },
     ];
@@ -233,6 +238,17 @@ function AgentsPage() {
         newAgentButton
     );
 
+    const agentsTableHeaderComponent = (
+        <>
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
+            {hasAgents && (
+                <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
+                    <RenderHTML html={translate('agentsPage.subtitle')} />
+                </View>
+            )}
+        </>
+    );
+
     if (!isCustomAgentEnabled) {
         return <NotFoundPage />;
     }
@@ -264,16 +280,11 @@ function AgentsPage() {
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
-                {hasAgents && (
-                    <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
-                        <RenderHTML html={translate('agentsPage.subtitle')} />
-                    </View>
-                )}
             </CollapsibleHeaderOnKeyboard>
             <AgentsTable
                 ref={tableRef}
                 agents={agents}
+                headerComponent={agentsTableHeaderComponent}
                 canSelectAgents
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}

@@ -103,6 +103,7 @@ import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} fro
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
 
+import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {unholdRequest} from './actions/IOU/Hold';
 import {
@@ -1359,8 +1360,7 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
  * For invoice chat threads, returns the parent invoice report.
  * For other cases, returns the provided report.
  */
-function getReportForHeader(report: OnyxEntry<Report>): OnyxEntry<Report> {
-    const parentReport = getParentReport(report);
+function getReportForHeader(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>): OnyxEntry<Report> {
     const isParentInvoiceAndIsChatThread = isChatThread(report) && isInvoiceReport(parentReport);
     return isParentInvoiceAndIsChatThread ? parentReport : report;
 }
@@ -5493,7 +5493,7 @@ function canEditFieldOfMoneyRequest({
  * - It's an expense where conditions for modifications are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
-function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>): boolean {
+function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>, reportActions?: OnyxEntry<ReportActions>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
     // Only an attachment-only comment has nothing to edit while it uploads; text keeps it editable throughout.
@@ -5518,7 +5518,7 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     return !!(
         reportAction?.actorAccountID === deprecatedCurrentUserAccountID &&
         isCommentOrIOU &&
-        (!isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction, linkedTransaction)) &&
+        (!isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction, linkedTransaction, false, undefined, undefined, reportActions)) &&
         !isOptimisticAttachment &&
         !isDeletedAction(reportAction) &&
         !isCreatedTaskReportAction(reportAction) &&
@@ -5774,7 +5774,7 @@ function getTransactionReportName({
     }
 
     if (isSentMoneyReportAction(reportAction)) {
-        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, linkedTransaction);
+        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
     }
 
     const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
@@ -5789,7 +5789,7 @@ type GetReportPreviewMessageBaseParams = {
     iouReportAction?: OnyxInputOrEntry<ReportAction>;
     shouldConsiderScanningReceiptOrPendingRoute?: boolean;
     isPreviewMessageForParentChatReport?: boolean;
-    policy?: OnyxInputOrEntry<Policy>;
+    policy: OnyxInputOrEntry<Policy>;
     isForListPreview?: boolean;
     /** This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped from a report preview action. Otherwise, it will be the same as `iouReportAction`. */
     originalReportAction?: OnyxInputOrEntry<ReportAction>;
@@ -5913,9 +5913,7 @@ function getReportPreviewMessage(
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
-    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-
-    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type ?? reportPolicy?.type)) {
+    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type)) {
         return translate('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
     }
 
@@ -5971,7 +5969,7 @@ function getReportPreviewMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? policy?.achAccount?.accountNumber?.slice(-4) ?? '';
             const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
                 return crossBorderMessage;
@@ -6047,7 +6045,11 @@ function getReportPreviewMessage(
  * IMPORTANT: keep the English strings here in sync with the `iou.*` entries in `en.ts` and with the branching
  * in {@link getReportPreviewMessage}.
  */
-function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBaseParams, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']): string {
+function getReportPreviewReportActionMessage(
+    // TODO: Remove the `Omit` and make `policy` required once all callers pass it, issue https://github.com/Expensify/App/issues/66415
+    params: Omit<GetReportPreviewMessageBaseParams, 'policy'> & {policy?: OnyxInputOrEntry<Policy>},
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+): string {
     const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
@@ -7199,11 +7201,15 @@ function computeOptimisticReportNameWithMetadata(
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy) ?? {});
+    const submitterPersonalDetails = report.ownerAccountID ? (allPersonalDetails?.[report.ownerAccountID] ?? undefined) : undefined;
+    const managerPersonalDetails = report.managerID ? (allPersonalDetails?.[report.managerID] ?? undefined) : undefined;
     const formulaContext: FormulaContext = {
         report,
         policy,
         getCurrencyDecimals,
         allTransactions: reportTransactions,
+        submitterPersonalDetails,
+        managerPersonalDetails,
     };
 
     // Runtime require breaks the value-level circular; the `typeof` casts keep drift a compile error.
@@ -9283,9 +9289,13 @@ function buildOptimisticTaskReport(
  *
  * @param integration - The connectionName of the integration
  * @param markedManually - Whether the integration was marked as manually exported
+ * @param exportLabel - The canonical label stored in the export action
  */
-function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false): OptimisticExportIntegrationAction {
-    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];
+function buildOptimisticExportIntegrationAction(
+    integration: ConnectionName,
+    markedManually = false,
+    exportLabel: string = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
+): OptimisticExportIntegrationAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
@@ -9304,7 +9314,7 @@ function buildOptimisticExportIntegrationAction(integration: ConnectionName, mar
         created: DateUtils.getDBTime(),
         shouldShow: true,
         originalMessage: {
-            label,
+            label: exportLabel,
             lastModified: DateUtils.getDBTime(),
             markedManually,
             inProgress: true,
@@ -11219,8 +11229,8 @@ function getIOUReportActionDisplayMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    policyACHAccountNumber: string | undefined,
     transaction?: OnyxEntry<Transaction>,
-    report?: Report,
     bankAccountList?: OnyxEntry<BankAccountList>,
 ): string {
     if (!isMoneyRequestAction(reportAction)) {
@@ -11234,8 +11244,7 @@ function getIOUReportActionDisplayMessage(
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, reportPolicy);
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policyACHAccountNumber);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 
         switch (originalMessage.paymentType) {
@@ -13179,13 +13188,22 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
 function getIntegrationIcon(
     connectionName?: ConnectionName,
     expensifyIcons?:
-        | Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'GustoSquare', IconAsset>
+        | Partial<
+              Record<
+                  'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'GustoSquare' | 'IntuitSquare',
+                  IconAsset
+              >
+          >
         | undefined,
+    policy?: OnyxEntry<Policy>,
 ) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         return expensifyIcons?.XeroSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        if (isIntuitEnterpriseSuiteConnection(policy)) {
+            return expensifyIcons?.IntuitSquare;
+        }
         return expensifyIcons?.QBOSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
@@ -13450,12 +13468,13 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
 function getChatListItemReportName(
     action: ReportAction & {reportName?: string},
     report: Report | undefined,
+    parentReport: OnyxEntry<Report>,
     conciergeReportID: string | undefined,
     linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
 ): string {
-    const reportForHeader = getReportForHeader(report);
+    const reportForHeader = getReportForHeader(report, parentReport);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
