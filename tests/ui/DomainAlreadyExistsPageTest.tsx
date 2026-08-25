@@ -16,7 +16,6 @@ import DomainAlreadyExistsPage from '@pages/domain/DomainAlreadyExistsPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OnyxData} from '@src/types/onyx/Request';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -34,8 +33,10 @@ const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
 
-function getRequestAdminshipOnyxData(): OnyxData<typeof ONYXKEYS.COLLECTION.DOMAIN> {
-    return apiWriteSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP)?.at(2) as OnyxData<typeof ONYXKEYS.COLLECTION.DOMAIN>;
+function getRequestAdminshipOnyxData() {
+    const calls = apiWriteSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP);
+    const [, , onyxData] = TestHelper.getRequiredWriteCall(calls, -1);
+    return onyxData;
 }
 
 function renderDomainAlreadyExistsPage() {
@@ -107,7 +108,8 @@ describe('DomainAlreadyExistsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the failure data drops the whole entry instead of rolling back just the requester
-        expect(getRequestAdminshipOnyxData().failureData?.at(0)).toMatchObject({onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, value: null});
+        const failureUpdate = TestHelper.getRequiredOnyxUpdate(getRequestAdminshipOnyxData(), 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, Onyx.METHOD.SET);
+        expect(failureUpdate.value).toBeNull();
     });
 
     it('rolls back only the requester when the domain is one the user can see', async () => {
@@ -123,7 +125,7 @@ describe('DomainAlreadyExistsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the failure data keeps the entry and only clears the requester
-        expect(getRequestAdminshipOnyxData().failureData?.at(0)).toMatchObject({onyxMethod: Onyx.METHOD.MERGE});
+        TestHelper.getRequiredOnyxUpdate(getRequestAdminshipOnyxData(), 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, Onyx.METHOD.MERGE);
     });
 
     it('disables the button and shows "Request sent" when a request is already pending for the current user', async () => {
