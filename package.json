@@ -60,6 +60,7 @@
     "oxlint-onyx-bypass": "node oxlint-migration/checkOnyxBypassPort.mjs",
     "oxlint-react-compiler-rust": "node oxlint-migration/checkReactCompilerRust.mjs",
     "oxlint-sidecar-coverage": "python3 oxlint-migration/checkSidecarCoverage.py",
+    "oxlint-config-drift": "python3 oxlint-migration/checkConfigDrift.py",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- bun scripts/lint.ts {{changed}}",
     "eslint-report": "bun scripts/eslint-report.ts",

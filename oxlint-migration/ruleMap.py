@@ -29,7 +29,7 @@ REPRESENTATIVE_FILES = [
     'scripts/utils/OpenAIUtils.ts',
     '.github/scripts/createDocsRoutes.ts',
     'index.js',  # plain JS: core rules typescript-eslint replaces in TS files
-    'config/rsbuild/loaders/svg-loader.mjs',  # the `config/rsbuild/loaders/*-loader.mjs` override
+    'config/rsbuild/loaders/worklets-loader.mjs',  # the `config/rsbuild/loaders/*-loader.mjs` override
     'src/languages/en.ts',  # the en.ts/es.ts override (rulesdir/use-periods-for-error-messages)
 ]
 
