@@ -7,6 +7,7 @@ import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {updateTravelBillingMonthlyLimit} from '@libs/actions/TravelBilling';
+import type * as TravelBillingActions from '@libs/actions/TravelBilling';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
@@ -39,9 +40,7 @@ jest.mock('@hooks/useDefaultFundID', () => ({
 }));
 
 jest.mock('@libs/actions/TravelBilling', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@libs/actions/TravelBilling');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const actual = jest.requireActual<typeof TravelBillingActions>('@libs/actions/TravelBilling');
     return {
         ...actual,
         updateTravelBillingMonthlyLimit: jest.fn(),
