@@ -40,7 +40,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const isExtraSmallScreenHeight = screenHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint || isInLandscapeMode;
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint && !isInLandscapeMode;
-    console.log({isMediumScreenWidth, isSmallScreenWidth, isInLandscapeMode});
     const onboardingIsMediumOrLargerScreenWidth = !isInLandscapeMode && windowWidth > variables.mobileResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     const isExtraLargeScreenWidth = windowWidth > variables.sidePanelResponsiveWidthBreakpoint;
