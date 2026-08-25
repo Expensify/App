@@ -11,7 +11,7 @@ import Text from '@components/Text';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 import type Navigation from '@libs/Navigation/Navigation';
