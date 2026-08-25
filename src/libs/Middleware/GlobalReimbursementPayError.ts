@@ -1,9 +1,7 @@
 import Log from '@libs/Log';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
-import type Request from '@src/types/onyx/Request';
-import type {PaginatedRequest} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, PaginatedRequest, Request} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
 import type {OnyxKey} from 'react-native-onyx';
@@ -40,10 +38,10 @@ const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responseP
             // Replace the action-error merge with an action-null merge so the orphan optimistic PAY action is
             // removed instead of being tagged with a red error. Widened to AnyOnyxUpdate (matches the pattern used
             // by Pagination/HandleUnusedOptimisticID) so the union-typed value can be indexed without an unsafe
-            // narrowing cast.
+            // narrowing cast. Object.assign avoids member access on the `any` value.
             const widened = update as AnyOnyxUpdate;
             if (widened.value) {
-                widened.value[reportActionID] = null;
+                Object.assign(widened.value, {[reportActionID]: null});
             }
 
             return update;
