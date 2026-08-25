@@ -204,7 +204,10 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const]: report,
                 [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}` as const]: policy,
-                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}` as const]: {
+                    isLoadingInitialReportActions: false,
+                    hasOnceLoadedReportActions: true,
+                },
                 [ONYXKEYS.SESSION]: {accountID: ACCOUNT_ID, email: EMAIL} as Session,
             });
             await waitForBatchedUpdatesWithAct();
@@ -216,14 +219,18 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('Temporary design comparison')).toBeOnTheScreen();
-        expect(screen.getByText('One line: refined treatment, different from the Aug 10 mock. Two lines: Aug 19 revised Show/Hide mock, action above timestamp.')).toBeOnTheScreen();
+        expect(screen.getByText('One line: Label actor, action, and timestamp inline. Two lines: Label timestamp above Body actor and action.')).toBeOnTheScreen();
         expect(screen.getByRole('radio', {name: 'Two lines'}).props.accessibilityState).toMatchObject({checked: true});
         fireEvent.press(screen.getByRole('radio', {name: 'One line'}));
         expect(screen.getByRole('radio', {name: 'One line'}).props.accessibilityState).toMatchObject({checked: true});
         fireEvent.press(screen.getByRole('radio', {name: 'Two lines'}));
 
-        const collapsedControl = screen.getByRole('button', {name: 'Show 2 actions'});
-        expect(collapsedControl.props.accessibilityState).toMatchObject({expanded: false});
+        const collapsedControl = screen.getByRole('button', {
+            name: 'Show 2 actions',
+        });
+        expect(collapsedControl.props.accessibilityState).toMatchObject({
+            expanded: false,
+        });
         expect(getRenderedActionIDs()).toEqual(['report-action-chat-boundary', 'report-action-system-singleton']);
         expect(screen.getByTestId('report-action-chat-boundary').props.accessibilityLabel).toBe('single-chat');
         expect(screen.getByTestId('report-action-system-singleton').props.accessibilityLabel).toBe('grouped-system');

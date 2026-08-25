@@ -1,5 +1,7 @@
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
+import type {StyleProp, TextStyle} from 'react-native';
+
 type ReportActionItemMessageHeaderSenderProps = {
     /** Text to display */
     fragmentText: string | undefined;
@@ -18,6 +20,9 @@ type ReportActionItemMessageHeaderSenderProps = {
 
     /** Whether the fragment should show a tooltip */
     shouldShowTooltip?: boolean;
+
+    /** Additional typography style for temporary system-message comparisons. */
+    style?: StyleProp<TextStyle>;
 };
 
 export default ReportActionItemMessageHeaderSenderProps;

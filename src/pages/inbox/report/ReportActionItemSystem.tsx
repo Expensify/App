@@ -1,4 +1,5 @@
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
+import {TemporarySystemMessageTypographyProvider} from '@components/TemporarySystemMessageTypographyContext';
 import Text from '@components/Text';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,12 +25,17 @@ function ReportActionItemSystemContent({children, action, report, iouReport, sho
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const layout = useTemporarySystemMessageLayout();
-    const {avatarType, avatars, details, reportPreviewSenderID} = useReportActionAvatars({report: iouReport ?? report, action, shouldUseRealActor});
+    const {avatarType, avatars, details, reportPreviewSenderID} = useReportActionAvatars({
+        report: iouReport ?? report,
+        action,
+        shouldUseRealActor,
+    });
     const [primaryAvatar, secondaryAvatar] = avatars;
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
     const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? iouReport?.ownerAccountID ?? action.childOwnerAccountID) : undefined;
     const hasVacationDelegate = !!getVacationer(action) || !!getManagerOnVacation(action);
+    const actionTextStyle = layout === 'oneLine' ? styles.mutedTextLabel : [styles.chatItemMessage, styles.colorMuted];
     const fallbackActorName = action.person
         ?.map((fragment) => fragment.text)
         .filter(Boolean)
@@ -38,23 +44,30 @@ function ReportActionItemSystemContent({children, action, report, iouReport, sho
     const actorName = avatarActorName?.length ? avatarActorName : fallbackActorName;
     const actionContent = (
         <>
-            {!!actorName && <Text style={[styles.chatItemMessage, styles.colorMuted]}>{`${actorName} `}</Text>}
+            {!!actorName && <Text style={actionTextStyle}>{`${actorName} `}</Text>}
             {!!delegateAccountID && (
                 <View style={styles.mr1}>
                     <DelegateOnBehalfOfText
                         mainAccountID={mainAccountID}
                         fallbackLogin={details.login}
+                        textStyle={actionTextStyle}
                     />
                 </View>
             )}
             {!!humanAgentAccountID && (
                 <View style={styles.mr1}>
-                    <HumanAgentAssistedByText action={action} />
+                    <HumanAgentAssistedByText
+                        action={action}
+                        textStyle={actionTextStyle}
+                    />
                 </View>
             )}
             {hasVacationDelegate && (
                 <View style={styles.mr1}>
-                    <VacationDelegateText action={action} />
+                    <VacationDelegateText
+                        action={action}
+                        textStyle={actionTextStyle}
+                    />
                 </View>
             )}
         </>
@@ -62,25 +75,33 @@ function ReportActionItemSystemContent({children, action, report, iouReport, sho
 
     if (layout === 'oneLine') {
         return (
-            <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
-                {actionContent}
-                <View style={[styles.flexShrink1, styles.mr1]}>{children}</View>
-                <ReportActionItemDate
-                    created={action.created ?? ''}
-                    isLowercase
-                />
-            </View>
+            <TemporarySystemMessageTypographyProvider value="label">
+                <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
+                    {actionContent}
+                    <View style={[styles.flexShrink1, styles.mr1]}>{children}</View>
+                    <ReportActionItemDate
+                        created={action.created ?? ''}
+                        isLowercase
+                        textStyle={[styles.mutedTextLabel, styles.pt0]}
+                    />
+                </View>
+            </TemporarySystemMessageTypographyProvider>
         );
     }
 
     return (
-        <View style={styles.flexShrink1}>
-            <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
-                {actionContent}
-                <View style={styles.flexShrink1}>{children}</View>
+        <TemporarySystemMessageTypographyProvider value="body">
+            <View style={styles.flexShrink1}>
+                <ReportActionItemDate
+                    created={action.created ?? ''}
+                    textStyle={[styles.mutedTextLabel, styles.pt0]}
+                />
+                <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
+                    {actionContent}
+                    <View style={styles.flexShrink1}>{children}</View>
+                </View>
             </View>
-            <ReportActionItemDate created={action.created ?? ''} />
-        </View>
+        </TemporarySystemMessageTypographyProvider>
     );
 }
 

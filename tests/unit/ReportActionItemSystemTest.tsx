@@ -4,6 +4,7 @@ import useReportActionAvatars from '@components/ReportActionAvatars/useReportAct
 import Text from '@components/Text';
 
 import DelegateOnBehalfOfText from '@pages/inbox/report/DelegateOnBehalfOfText';
+import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemDate from '@pages/inbox/report/ReportActionItemDate';
 import {ReportActionItemSystemContent} from '@pages/inbox/report/ReportActionItemSystem';
 import TemporarySystemMessageDesignComparison from '@pages/inbox/report/TemporarySystemMessageDesignComparison';
@@ -14,6 +15,11 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type ReactNative from 'react-native';
 
 import React from 'react';
+
+const mockBodyStyle = {fontSize: 15, lineHeight: 20};
+const mockMutedColorStyle = {color: 'muted'};
+const mockMutedLabelStyle = {color: 'muted', fontSize: 13, lineHeight: 16};
+const mockPaddingTopZeroStyle = {paddingTop: 0};
 
 jest.mock('@components/ReportActionAvatars/useReportActionAvatars', () => ({
     __esModule: true,
@@ -41,12 +47,20 @@ jest.mock('@pages/inbox/report/ReportActionItemDate', () => {
     const {Text: MockText} = jest.requireActual<typeof ReactNative>('react-native');
     return {
         __esModule: true,
-        default: jest.fn(({created}: {created: string; isLowercase?: boolean}) => <MockText>{created}</MockText>),
+        default: jest.fn(({created, textStyle}: {created: string; isLowercase?: boolean; textStyle?: unknown}) => <MockText style={textStyle}>{created}</MockText>),
     };
 });
 
 jest.mock('@hooks/useThemeStyles', () => {
-    const styleProxy = new Proxy({}, {get: () => ({})});
+    const styleProxy = new Proxy(
+        {
+            chatItemMessage: mockBodyStyle,
+            colorMuted: mockMutedColorStyle,
+            mutedTextLabel: mockMutedLabelStyle,
+            pt0: mockPaddingTopZeroStyle,
+        },
+        {get: (target, property) => (typeof property === 'string' ? (target[property as keyof typeof target] ?? {}) : {})},
+    );
     return jest.fn(() => styleProxy);
 });
 
@@ -79,7 +93,7 @@ describe('ReportActionItemSystem', () => {
         return directChild;
     };
 
-    it('renders the actor and action above the timestamp in the Aug 19 revised two-line layout', () => {
+    it('renders a Label timestamp before a Body actor and action in the clarified two-line layout', () => {
         const action: ReportAction = {
             reportActionID: '1',
             actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -95,14 +109,17 @@ describe('ReportActionItemSystem', () => {
                 report={report}
                 shouldUseRealActor
             >
-                <Text>submitted</Text>
+                <ReportActionItemBasicMessage message="submitted" />
             </ReportActionItemSystemContent>,
         );
 
         expect(screen.getByText('Todd Clyde ')).toBeOnTheScreen();
         expect(screen.getByText('submitted')).toBeOnTheScreen();
         expect(screen.getByText('2026-07-30 00:00:00.000')).toBeOnTheScreen();
-        expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({created: '2026-07-30 00:00:00.000'});
+        expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({
+            created: '2026-07-30 00:00:00.000',
+            textStyle: [mockMutedLabelStyle, mockPaddingTopZeroStyle],
+        });
         expect(jest.mocked(useReportActionAvatars)).toHaveBeenLastCalledWith(expect.objectContaining({shouldUseRealActor: true}));
 
         const actor = screen.getByText('Todd Clyde ');
@@ -111,6 +128,9 @@ describe('ReportActionItemSystem', () => {
         const actorAncestors = getAncestors(actor);
         const contentAncestors = getAncestors(content);
         const timestampAncestors = getAncestors(timestamp);
+        expect(actor.props.style).toEqual([mockBodyStyle, mockMutedColorStyle]);
+        expect(content.props.style).toEqual(expect.arrayContaining([mockBodyStyle, mockMutedColorStyle]));
+
         const actionLineContainer = actorAncestors.find((ancestor) => contentAncestors.includes(ancestor));
 
         if (!actionLineContainer) {
@@ -125,10 +145,10 @@ describe('ReportActionItemSystem', () => {
 
         const timestampLine = getDirectChild(timestamp, twoLineContainer);
         const actionLine = getDirectChild(actor, twoLineContainer);
-        expect(twoLineContainer.children.indexOf(actionLine)).toBeLessThan(twoLineContainer.children.indexOf(timestampLine));
+        expect(twoLineContainer.children.indexOf(timestampLine)).toBeLessThan(twoLineContainer.children.indexOf(actionLine));
     });
 
-    it('defaults the temporary comparison to two lines and renders the timestamp inline after selecting one line', () => {
+    it('defaults to two lines, then renders Label actor, action, and timestamp inline after selecting one line', () => {
         const action: ReportAction = {
             reportActionID: '1',
             actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -145,23 +165,30 @@ describe('ReportActionItemSystem', () => {
                     report={report}
                     shouldUseRealActor
                 >
-                    <Text>submitted</Text>
+                    <ReportActionItemBasicMessage message="submitted" />
                 </ReportActionItemSystemContent>
             </TemporarySystemMessageDesignComparison>,
         );
 
         expect(screen.getByText('Temporary design comparison')).toBeOnTheScreen();
-        expect(screen.getByText('One line: refined treatment, different from the Aug 10 mock. Two lines: Aug 19 revised Show/Hide mock, action above timestamp.')).toBeOnTheScreen();
+        expect(screen.getByText('One line: Label actor, action, and timestamp inline. Two lines: Label timestamp above Body actor and action.')).toBeOnTheScreen();
         expect(screen.getByRole('radio', {name: 'Two lines'}).props.accessibilityState).toMatchObject({checked: true});
 
         fireEvent.press(screen.getByRole('radio', {name: 'One line'}));
 
         expect(screen.getByRole('radio', {name: 'One line'}).props.accessibilityState).toMatchObject({checked: true});
-        expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({created: '2026-07-30 00:00:00.000', isLowercase: true});
+        expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({
+            created: '2026-07-30 00:00:00.000',
+            isLowercase: true,
+            textStyle: [mockMutedLabelStyle, mockPaddingTopZeroStyle],
+        });
 
         const actor = screen.getByText('Todd Clyde ');
         const content = screen.getByText('submitted');
         const timestamp = screen.getByText('2026-07-30 00:00:00.000');
+        expect(actor.props.style).toEqual(mockMutedLabelStyle);
+        expect(content.props.style).toEqual(expect.arrayContaining([mockBodyStyle, mockMutedColorStyle, mockMutedLabelStyle]));
+        expect(timestamp.props.style).toEqual([mockMutedLabelStyle, mockPaddingTopZeroStyle]);
         const actorAncestors = getAncestors(actor);
         const contentAncestors = getAncestors(content);
         const timestampAncestors = getAncestors(timestamp);
@@ -203,6 +230,7 @@ describe('ReportActionItemSystem', () => {
         expect(delegateProps).toEqual({
             mainAccountID: 3,
             fallbackLogin: 'todd@example.com',
+            textStyle: [mockBodyStyle, mockMutedColorStyle],
         });
     });
 });
