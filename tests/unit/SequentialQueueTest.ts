@@ -1,13 +1,16 @@
 import {resolveOpenAppDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import * as NetworkState from '@libs/NetworkState';
+import {flushQueue} from '@userActions/QueuedOnyxUpdates';
 
+import * as PersistedRequestsModule from '@userActions/PersistedRequests';
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions} from '@src/types/onyx';
 
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {Connection, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -654,6 +657,143 @@ describe('SequentialQueue - QueueFlushedData', () => {
         await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.SUCCESS);
 
         expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(true);
+    });
+});
+
+describe('SequentialQueue - a write applies its own client-side data before the request leaves disk', () => {
+    const REPORT_ID = '1';
+    const REPORT_ACTIONS_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
+    const SERVER_ACTION_ID = '8888';
+    // Onyx keys errors by microsecond timestamp, so the key has to be a computed string rather than a literal.
+    const ERROR_TIMESTAMP = '1786953970269479';
+
+    let liveReportActions: ReportActions | undefined;
+    let connection: Connection;
+
+    const optimisticAction = (reportActionID: string): ReportActions => ({
+        [reportActionID]: {
+            reportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2026-08-24 12:00:00.000',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            isOptimisticAction: true,
+        },
+    });
+
+    const addCommentRequest = (reportActionID: string): Request<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> => ({
+        command: 'AddComment',
+        data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, reportActionID, reportID: REPORT_ID},
+        successData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[reportActionID]: {pendingAction: null, isOptimisticAction: null}}}],
+        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[reportActionID]: {pendingAction: null, isOptimisticAction: null, errors: {[ERROR_TIMESTAMP]: 'could not send'}}}}],
+        finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[reportActionID]: {isLoading: false}}}],
+    });
+
+    // Records what was on disk at the instant each request was removed from the queue. That instant is the crash window
+    // this whole mechanism is about: after it, nothing can replay the request, so anything not committed yet is lost.
+    function snapshotsAtRemoval() {
+        const snapshots: Array<ReportActions | undefined> = [];
+        const removeFromQueue = PersistedRequestsModule.endRequestAndRemoveFromQueue;
+        jest.spyOn(PersistedRequestsModule, 'endRequestAndRemoveFromQueue').mockImplementation((requestToRemove) => {
+            snapshots.push(liveReportActions);
+            return removeFromQueue(requestToRemove);
+        });
+        return snapshots;
+    }
+
+    beforeAll(() => {
+        connection = Onyx.connectWithoutView({
+            key: REPORT_ACTIONS_KEY,
+            callback: (value) => {
+                liveReportActions = value ?? undefined;
+            },
+        });
+    });
+
+    afterAll(() => {
+        Onyx.disconnect(connection);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('commits successData before removal while the server payload stays deferred', async () => {
+        // Given an optimistic comment on disk, and a server that echoes a different action back in onyxData
+        const optimisticID = '9999';
+        await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(optimisticID));
+        await waitForBatchedUpdates();
+        mockFetch.mockAPICommand('AddComment', () => ({
+            onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[SERVER_ACTION_ID]: {reportActionID: SERVER_ACTION_ID}}}],
+        }));
+        const snapshots = snapshotsAtRemoval();
+
+        // When the request is sent and the server answers 200
+        SequentialQueue.push(addCommentRequest(optimisticID));
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+
+        // Then the client's own clear was already on disk at the instant the request left it
+        expect(snapshots).toHaveLength(1);
+        expect(snapshots.at(0)?.[optimisticID]?.pendingAction).toBeUndefined();
+        expect(snapshots.at(0)?.[optimisticID]?.isOptimisticAction).toBeUndefined();
+        expect(snapshots.at(0)?.[optimisticID]?.isLoading).toBe(false);
+
+        // And the server's payload was still deferred at that instant, arriving only once the queue drains
+        expect(snapshots.at(0)?.[SERVER_ACTION_ID]).toBeUndefined();
+        await flushQueue();
+        await waitForBatchedUpdates();
+        expect(liveReportActions?.[SERVER_ACTION_ID]?.reportActionID).toBe(SERVER_ACTION_ID);
+    });
+
+    it('commits failureData before removal when the server rejects the request', async () => {
+        // Given an optimistic comment on disk, and a server that answers with a non-200
+        const optimisticID = '7777';
+        await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(optimisticID));
+        await waitForBatchedUpdates();
+        mockFetch.mockAPICommand('AddComment', () => ({jsonCode: CONST.JSON_CODE.BAD_REQUEST}));
+        const snapshots = snapshotsAtRemoval();
+
+        // When the request is sent
+        SequentialQueue.push(addCommentRequest(optimisticID));
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+
+        // Then the error was already on disk at the instant the request left it, so the retry affordance survives a kill
+        expect(snapshots).toHaveLength(1);
+        expect(snapshots.at(0)?.[optimisticID]?.pendingAction).toBeUndefined();
+        expect(snapshots.at(0)?.[optimisticID]?.errors).toEqual({[ERROR_TIMESTAMP]: 'could not send'});
+        expect(snapshots.at(0)?.[optimisticID]?.isLoading).toBe(false);
+    });
+
+    it('clears each queued write as its own response lands, not all at once when the queue empties', async () => {
+        // Given three optimistic comments on disk and their three requests queued behind a paused network
+        const ids = ['1001', '1002', '1003'];
+        for (const id of ids) {
+            await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(id));
+        }
+        await waitForBatchedUpdates();
+        const snapshots = snapshotsAtRemoval();
+
+        // When the queue drains them in order
+        for (const id of ids) {
+            SequentialQueue.push(addCommentRequest(id));
+        }
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+
+        // Then each response cleared only its own comment, leaving the ones still in flight greyed out
+        expect(snapshots).toHaveLength(3);
+        for (const [index, atRemoval] of snapshots.entries()) {
+            expect(atRemoval?.[ids[index]]?.pendingAction).toBeUndefined();
+            for (const pendingID of ids.slice(index + 1)) {
+                expect(atRemoval?.[pendingID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            }
+        }
+
+        // And every comment ends up cleared
+        for (const id of ids) {
+            expect(liveReportActions?.[id]?.pendingAction).toBeUndefined();
+        }
     });
 });
 
