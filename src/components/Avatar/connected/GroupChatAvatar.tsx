@@ -33,7 +33,7 @@ type GroupChatAvatarProps = {
     fallbackDisplayName?: string;
 };
 
-/**  Renders a group chat's avatar: the custom uploaded avatar when there is one, the reportID-seeded default group avatar otherwise. */
+/** Renders a group chat's avatar: the custom uploaded avatar when there is one, the reportID-seeded default group avatar otherwise. */
 function GroupChatAvatar({reportID, size, containerStyle, fallbackDisplayName}: GroupChatAvatarProps) {
     const StyleUtils = useStyleUtils();
     const {formatPhoneNumber, translate} = useLocalize();

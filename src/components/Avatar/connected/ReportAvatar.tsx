@@ -76,7 +76,7 @@ function ReportAvatar({reportID, size = CONST.AVATAR_SIZE.DEFAULT, singleAvatarC
                 />
             );
         // TODO: The remaining kinds still render the legacy component. https://github.com/Expensify/App/issues/94590 adds a
-        // dedicated wrapper per kind  and the last one deletes the ReportActionAvatars import & simplifies props.
+        // dedicated wrapper per kind, one PR at a time. The last of those deletes the ReportActionAvatars import and simplifies props.
         case CONST.REPORT_AVATAR_KIND.EXPENSE:
         case CONST.REPORT_AVATAR_KIND.IOU:
         case CONST.REPORT_AVATAR_KIND.TASK:
