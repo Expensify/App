@@ -23,7 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type * as OnyxTypes from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {GestureResponderEvent} from 'react-native';
@@ -46,14 +45,34 @@ type MoneyRequestReportRHPNavigationButtonsProps = {
     shouldDisplayNarrowVersion?: boolean;
 };
 
-const collectParentReportActions = (reportActions: OnyxEntry<OnyxTypes.ReportActions>, parentActions: Record<string, OnyxTypes.ReportAction>) => {
+type PrevNextParentReportActions = {
+    prevParentReportAction: OnyxTypes.ReportAction | undefined;
+    nextParentReportAction: OnyxTypes.ReportAction | undefined;
+};
+
+/**
+ * Only the prev/next parent actions are ever read, so resolve them while scanning instead of collecting every money
+ * request action on the parent reports (fast-equals compares the resulting collection on every Onyx update).
+ */
+const collectParentReportActions = (
+    reportActions: OnyxEntry<OnyxTypes.ReportActions>,
+    prevTransactionID: string | undefined,
+    nextTransactionID: string | undefined,
+    parentActions: PrevNextParentReportActions,
+) => {
     for (const action of Object.values(reportActions ?? {})) {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (!transactionID) {
             continue;
         }
-        // eslint-disable-next-line no-param-reassign -- intentionally mutates the shared accumulator so callers can build the map in a single pass across multiple report-action sources
-        parentActions[transactionID] = action;
+        if (transactionID === prevTransactionID) {
+            // eslint-disable-next-line no-param-reassign -- intentionally mutates the shared accumulator so callers can resolve both actions in a single pass across multiple report-action sources
+            parentActions.prevParentReportAction = action;
+        }
+        if (transactionID === nextTransactionID) {
+            // eslint-disable-next-line no-param-reassign -- intentionally mutates the shared accumulator so callers can resolve both actions in a single pass across multiple report-action sources
+            parentActions.nextParentReportAction = action;
+        }
     }
 };
 
@@ -81,6 +100,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
 
     const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
@@ -112,19 +133,25 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         selector: prevNextTransactionsSelector,
     });
 
+    // Only the prev/next parent actions are ever read, so resolve them inside the selector instead of returning
+    // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
     const parentReportActionsSelector = useCallback(
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
-            const parentActions: Record<string, OnyxTypes.ReportAction> = {};
-            for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
-                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}` as const;
-                collectParentReportActions(allReportActions?.[key], parentActions);
+            const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
+            if (!prevTransactionID && !nextTransactionID) {
+                return parentActions;
+            }
+            const parentReportIDs = new Set([currentTransaction?.reportID, prevTransaction?.reportID, nextTransaction?.reportID]);
+            for (const parentReportID of parentReportIDs) {
+                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
+                collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
             }
             return parentActions;
         },
-        [currentTransaction, nextTransaction, prevTransaction],
+        [currentTransaction?.reportID, nextTransaction?.reportID, nextTransactionID, prevTransaction?.reportID, prevTransactionID],
     );
 
-    const [reportedParentReportActions = getEmptyObject<Record<string, OnyxTypes.ReportAction>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+    const [reportedParentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: parentReportActionsSelector,
     });
 
@@ -133,34 +160,24 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     // Scanning the snapshot's report actions is how those siblings get a parent action at all.
     const snapshotData = snapshot?.data;
     const snapshotParentReportActions = useMemo(() => {
-        const parentActions: Record<string, OnyxTypes.ReportAction> = {};
-        if (snapshotData) {
+        const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
+        if (snapshotData && (prevTransactionID ?? nextTransactionID)) {
             for (const [key, reportActionsForReport] of Object.entries(snapshotData)) {
                 if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-                    collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, parentActions);
+                    collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, prevTransactionID, nextTransactionID, parentActions);
                 }
             }
         }
         return parentActions;
-    }, [snapshotData]);
+    }, [nextTransactionID, prevTransactionID, snapshotData]);
 
-    // Live report actions win over the snapshot: the snapshot only fills in transactionIDs the live pass couldn't
-    // resolve (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can
-    // hold an older copy of the same IOU action — e.g. one still missing the childReportID of a thread that has since
-    // been created. Letting that stale copy win would make prev/next believe the sibling has no thread and create a
+    // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
+    // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
+    // older copy of the same IOU action — e.g. one still missing the childReportID of a thread that has since been
+    // created. Letting that stale copy win would make prev/next believe the sibling has no thread and create a
     // duplicate one instead of navigating to the existing thread.
-    const parentReportActions = useMemo(() => ({...snapshotParentReportActions, ...reportedParentReportActions}), [reportedParentReportActions, snapshotParentReportActions]);
-
-    const {prevParentReportAction, nextParentReportAction} = useMemo(() => {
-        if (!transactionIDsList || transactionIDsList.length < 2) {
-            return {prevParentReportAction: undefined, nextParentReportAction: undefined};
-        }
-
-        return {
-            prevParentReportAction: prevTransactionID ? parentReportActions[prevTransactionID] : undefined,
-            nextParentReportAction: nextTransactionID ? parentReportActions[nextTransactionID] : undefined,
-        };
-    }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
+    const prevParentReportAction = reportedParentReportActions?.prevParentReportAction ?? snapshotParentReportActions.prevParentReportAction;
+    const nextParentReportAction = reportedParentReportActions?.nextParentReportAction ?? snapshotParentReportActions.nextParentReportAction;
 
     const prevParentReportID = prevParentReportAction?.reportID ?? prevTransaction?.reportID;
     const nextParentReportID = nextParentReportAction?.reportID ?? nextTransaction?.reportID;
@@ -221,7 +238,14 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // hydrate it on arrival.
         const nextDescriptor = nextTransactionID ? siblingDescriptorsByTransactionID?.[nextTransactionID] : undefined;
         if (nextDescriptor) {
-            const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID, personalDetails});
+            const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {
+                introSelected,
+                conciergeChat,
+                betas,
+                currentUserEmail: email,
+                currentUserAccountID: accountID,
+                personalDetails,
+            });
             markReportRHPWidth(nextReportID, 'wide');
             requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo})));
             return;
@@ -233,6 +257,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         if (!nextThreadReportID && nextTransaction?.reportID && nextTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const optimisticThread = createTransactionThreadReport({
                 introSelected,
+                conciergeChat,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
                 betas,
@@ -275,7 +300,14 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // See onNext: resolve the target sibling lazily from its descriptor when present.
         const prevDescriptor = prevTransactionID ? siblingDescriptorsByTransactionID?.[prevTransactionID] : undefined;
         if (prevDescriptor) {
-            const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID, personalDetails});
+            const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {
+                introSelected,
+                conciergeChat,
+                betas,
+                currentUserEmail: email,
+                currentUserAccountID: accountID,
+                personalDetails,
+            });
             markReportRHPWidth(prevReportID, 'wide');
             requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo})));
             return;
@@ -289,6 +321,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         if (!prevThreadReportID && prevTransaction?.reportID && prevTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const optimisticThread = createTransactionThreadReport({
                 introSelected,
+                conciergeChat,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
                 betas,

@@ -53,6 +53,8 @@ function useNavigateToTransactionThread() {
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, shouldPreserveBroaderCarousel = false, backTo}: NavigateToTransactionThreadParams) => {
         const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
@@ -67,6 +69,7 @@ function useNavigateToTransactionThread() {
         if (!reportIDToNavigate) {
             const transactionThreadReport = createTransactionThreadReport({
                 introSelected,
+                conciergeChat,
                 currentUserLogin: currentUserDetails.email ?? '',
                 currentUserAccountID: currentUserDetails.accountID,
                 betas,

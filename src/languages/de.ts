@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -932,6 +931,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Nur für Admins',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal in ein anderes Konto',
+        emailLabel: 'E-Mail-Adresse',
+        reasonLabel: 'Grund für Support-Login',
+        reasonHint: 'Für dieses Konto wurden keine aktuellen Tickets gefunden.',
+        login: 'Anmelden',
+    },
     sidebarScreen: {
         buttonFind: 'Etwas finden ...',
         buttonMySettings: 'Meine Einstellungen',
@@ -1123,6 +1129,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Erstellen Sie eine oder ziehen Sie eine Quittung hierher',
         },
         insightsSection: {chartUnavailable: 'Diagramm nicht verfügbar', notEnoughData: 'Wir haben noch nicht genügend Daten, um dieses Diagramm auszufüllen'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Guten Morgen, ${name}.` : 'Guten Morgen.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Guten Tag, ${name}.` : 'Guten Tag.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Guten Abend, ${name}.` : 'Guten Abend.'),
+            inputPlaceholder: 'Bitten Sie Concierge, Ihre Ausgaben zu analysieren oder Unterstützung zu erhalten',
+            inputPlaceholderMobile: 'Stellen Sie Concierge eine Frage',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1518,8 +1531,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'Karte' : 'Bankkonto';
             return isCurrentUser
-                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`
-                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`;
+                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'} (bezahlt über ${paymentMethod}). Dies dauert in der Regel 4–5 Werktage.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt über ${paymentMethod}). Dies dauert in der Regel 4–5 Werktage.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` mit Direkteinzahlung (ACH)${creditBankAccount ? ` auf das Bankkonto mit der Endziffer ${creditBankAccount}.` : '. '}${expectedDate ? `Die Rückerstattung wird voraussichtlich bis zum ${expectedDate} abgeschlossen sein.` : 'Dies dauert in der Regel 4–5 Werktage.'}`,
@@ -1536,7 +1549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'basierend auf bisherigen Aktivitäten',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `basierend auf den <a href="${rulesLink}">Workspace-Regeln</a>` : 'basierend auf dem Workspace-Regelwerk'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `für ${comment}` : 'Ausgabe'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rechnungsbericht Nr. ${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Rechnungsbericht Nr. ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} gesendet${comment ? `für ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `Ausgabe von persönlichem Bereich nach ${workspaceName ?? `Chat mit ${reportName}`} verschoben`,
         movedToPersonalSpace: 'Ausgabe in persönlichen Bereich verschoben',
@@ -1600,6 +1613,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Wallet aktivieren',
         hold: 'Warteschleife',
         sendToSomeone: 'An jemanden senden',
+        submitToEmployer: 'An meinen Arbeitgeber senden',
         unhold: 'Zurückhalten aufheben',
         holdExpense: () => ({
             one: 'Ausgabe zurückhalten',
@@ -1859,7 +1873,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Wählen Sie die Details aus, die Sie behalten möchten:',
             noDifferences: 'Keine Unterschiede zwischen den Transaktionen gefunden',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'an' : 'a';
+                const article = startsWithVowel(field) ? 'an' : 'eine';
                 return `Bitte wählen Sie ${article} ${field} aus`;
             },
             pleaseSelectAttendees: 'Bitte wählen Sie Teilnehmende aus',
@@ -4571,6 +4585,9 @@ ${amount} für ${merchant} – ${date}`,
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Arbeitsbereich finden',
+            active: 'Aktiv',
+            archived: 'Archiviert',
+            workspaceStatus: 'Workspace-Status',
             findRoom: 'Raum finden',
             edit: 'Arbeitsbereich bearbeiten',
             enabled: 'Aktiviert',
@@ -6252,6 +6269,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 bookOrManageYourTrip: {title: 'Reisebuchung', subtitle: 'Glückwunsch! Du kannst in diesem Arbeitsbereich jetzt Reisen buchen und verwalten.', ctaText: 'Reisen verwalten'},
                 settings: {
                     autoAddTripName: {title: 'Reisenamen zu Ausgaben hinzufügen', subtitle: 'Reisenamen für in Expensify gebuchte Reisen automatisch zu Spesenbeschreibungen hinzufügen.'},
+                    codingSync: {
+                        title: 'Codierung mit Expensify Travel synchronisieren',
+                        subtitle: 'Kategorien, Tags und Berichtsfelder dieses Arbeitsbereichs an Expensify Travel übertragen, damit Reisende sie beim Buchen beantworten.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -6326,6 +6347,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         spend: 'Ausgabenkontrollen und benutzerdefinierte Limits',
                     },
                     ctaTitle: 'Neue Karte ausstellen',
+                    existingFeedTitle: 'Verwalten Sie Ihre Expensify Karten',
+                    viewCards: 'Karten anzeigen',
                 },
             },
             companyCards: {
@@ -9985,6 +10008,19 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Beleg kann wegen unterbrochener Bankverbindung nicht automatisch zugeordnet werden.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return 'Beleg kann nicht automatisch zugeordnet werden, da deine Bankverbindung erneut authentifiziert werden muss.';
+                    }
+                    return isMarkAsCash
+                        ? `Beleg kann nicht automatisch zugeordnet werden, da deine Bankverbindung erneut authentifiziert werden muss. Markiere ihn als Barzahlung, um ihn zu ignorieren, oder <a href="${connectionLink}">verbinde dich erneut</a>, um den Beleg zuzuordnen.`
+                        : `Beleg kann nicht automatisch zugeordnet werden, da deine Bankverbindung erneut authentifiziert werden muss. <a href="${connectionLink}">Erneut verbinden</a>, um den Beleg zuzuordnen.`;
+                }
+                return isAdmin
+                    ? `Bankverbindung muss erneut authentifiziert werden. <a href="${companyCardPageURL}">Erneut verbinden, um Beleg zuzuordnen</a>`
+                    : 'Bankverbindung muss erneut authentifiziert werden. Bitte eine:n Admin bitten, die Verbindung wiederherzustellen, um den Beleg abzugleichen.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Beleg kann wegen unterbrochener Bankverbindung nicht automatisch zugeordnet werden.';
@@ -10007,6 +10043,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Beleg ausstehend wegen unterbrochener Bankverbindung. Bitte in <a href="${workspaceCompanyCardRoute}">Firmenkarten</a> beheben.</muted-text-label>`,
         memberBrokenConnectionError: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte wende dich an eine Workspace-Admin, um das Problem zu beheben.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Beleg ausstehend, da die Bankverbindung erneut authentifiziert werden muss. Bitte in <a href="${workspaceCompanyCardRoute}">Firmenkarten</a> beheben.</muted-text-label>`,
+        memberReauthConnectionError: 'Beleg ausstehend, da die Bankverbindung erneut authentifiziert werden muss. Bitte wende dich an eine Workspace-Admin, um das Problem zu beheben.',
         markAsCashToIgnore: 'Als Barzahlung markieren, um sie zu ignorieren und Zahlung anzufordern.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
