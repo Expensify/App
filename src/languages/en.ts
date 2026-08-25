@@ -1,20 +1,31 @@
 import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
-import CONST from '@src/CONST/language';
+import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
+import type {
+    AllConnectionName,
+    ConnectionName,
+    Country,
+    DelegateRole,
+    ExportAgainModalDescriptionParams,
+    ExportIntegrationSelectedParams,
+    OnboardingTask,
+    OnyxInputOrEntry,
+    OriginalMessageReportPreview,
+    OriginalMessageSettlementAccountLocked,
+    PersonalRulesModifiedFields,
+    PolicyConnectionSyncStage,
+    PolicyRulesModifiedFields,
+    ReportAction,
+    SageIntacctMappingName,
+    ViolationDataType,
+} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
-import type {Country} from './types/Country';
-import type {OnboardingTask} from './types/Onboarding';
-import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from './types/OriginalMessage';
-import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './types/params';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from './types/Policy';
-import type {OnyxInputOrEntry, ReportAction} from './types/ReportAction';
-import type {DelegateRole, ViolationDataType} from './types/TransactionViolation';
 
 type StateValue = {
     stateISO: string;

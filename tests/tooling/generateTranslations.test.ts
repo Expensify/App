@@ -1,4 +1,4 @@
-import {afterAll, afterEach, beforeEach, describe, expect, it, jest, setDefaultTimeout} from 'bun:test';
+import {afterAll, afterEach, beforeEach, describe, expect, it, jest, mock, setDefaultTimeout} from 'bun:test';
 import type {Mock} from 'bun:test';
 
 import Git from '@scripts/utils/Git';
@@ -19,6 +19,22 @@ setDefaultTimeout(30000);
 let processExitSpy: Mock<typeof process.exit>;
 let consoleErrorSpy: Mock<typeof console.error>;
 
+/**
+ * Swaps the `en` strings the script reads as its source of truth. Re-mocking per call rather than reading a mutable
+ * variable through a getter: `generateTranslations` imports `en` as a default binding, which Bun resolves once at
+ * link time, so a getter would only ever be read for the first test.
+ *
+ * The first call has to happen before `generateTranslations` is imported below, because mock.module patches the
+ * shared module registry entry and existing bindings only pick that up if the patch lands first. `bun test
+ * --isolate` keeps the replacement from reaching the other files in tests/tooling.
+ */
+async function setMockEn(strings: unknown) {
+    await mock.module('@src/languages/en', () => ({default: strings}));
+}
+
+await setMockEn((await import('@src/languages/en')).default);
+
+// Must be imported after setMockEn above so it reads the mocked `en`.
 const {default: generateTranslations, GENERATED_FILE_PREFIX} = await import('@scripts/generateTranslations');
 
 // `Git` is a class of static methods, so the three the script calls can be spied on directly. Its remaining
@@ -152,7 +168,6 @@ describe('generateTranslations', () => {
                 const moreStrings = {
                     [\`key\${strings.hello}\`]: 'more',
                 };
-                export default strings;
             `),
                 'utf8',
             );
@@ -189,7 +204,6 @@ describe('generateTranslations', () => {
                 const moreStrings = {
                     [\`key\${strings.hello}\`]: '[it] more',
                 };
-                export default strings;
             `)}`,
             );
         });
@@ -634,6 +648,8 @@ describe('generateTranslations', () => {
                     network: 'Network error',
                 },
             };
+            await setMockEn(strings);
+
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
@@ -708,6 +724,8 @@ describe('generateTranslations', () => {
                 },
             };
 
+            await setMockEn(strings);
+
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
@@ -776,6 +794,8 @@ describe('generateTranslations', () => {
                     save: 'Save',
                 },
             };
+            await setMockEn(strings);
+
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
@@ -830,6 +850,8 @@ describe('generateTranslations', () => {
                     save: 'Save',
                 },
             };
+            await setMockEn(strings);
+
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
@@ -880,6 +902,8 @@ describe('generateTranslations', () => {
                     generic: 'An error occurred',
                 },
             };
+            await setMockEn(strings);
+
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
@@ -944,6 +968,8 @@ describe('generateTranslations', () => {
                 },
                 simpleTemplate: (name: string) => `Welcome ${name} to our app`,
             };
+            await setMockEn(strings);
+
             // Create English source file
             fs.writeFileSync(
                 EN_PATH,
@@ -1770,6 +1796,18 @@ describe('generateTranslations', () => {
         });
 
         it('should handle string concatenation expressions', async () => {
+            const strings = {
+                onboarding: {
+                    tasks: {
+                        inviteTeamTask: {
+                            title: 'Simple title',
+                            description: 'First part & Second part',
+                        },
+                    },
+                },
+            };
+            await setMockEn(strings);
+
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
@@ -1823,22 +1861,25 @@ describe('generateTranslations', () => {
         });
 
         it('should handle satisfies expressions in nested objects', async () => {
+            const strings = {
+                common: {
+                    tasks: 'Tasks', // String value
+                },
+                onboarding: {
+                    tasks: {
+                        createWorkspaceTask: {
+                            title: 'Create a workspace',
+                            description: 'Create a workspace to get started',
+                        },
+                    },
+                },
+            };
+            await setMockEn(strings);
+
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
-                const strings = {
-                    common: {
-                        tasks: 'Tasks',
-                    },
-                    onboarding: {
-                        tasks: {
-                            createWorkspaceTask: {
-                                title: 'Create a workspace',
-                                description: 'Create a workspace to get started',
-                            },
-                        } satisfies Record<string, {title: string; description: string}>,
-                    },
-                };
+                const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
                 'utf8',
@@ -1871,6 +1912,7 @@ describe('generateTranslations', () => {
             // Test targeting the specific nested path
             process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'onboarding.tasks.createWorkspaceTask'];
 
+            // This currently throws an error but should succeed
             await generateTranslations();
 
             // Check that the new task was added within the satisfies expression
@@ -2041,6 +2083,14 @@ describe('generateTranslations', () => {
         });
 
         it('detects modifications when a context annotation is removed with --compare-ref', async () => {
+            // Update mockEn to match the test data
+            const strings = {
+                unchanged: 'This stays the same',
+                pin: 'Pin',
+                alsoUnchanged: 'Also unchanged',
+            };
+            await setMockEn(strings);
+
             // Create English source without context annotation
             fs.writeFileSync(
                 EN_PATH,

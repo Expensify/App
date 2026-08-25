@@ -4,7 +4,9 @@ import type {ValueOf} from 'type-fest';
 
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
-import type {DelegateRole} from './TransactionViolationCore';
+
+/** The role of the delegate */
+type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 
 /** Model of delegate */
 type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{

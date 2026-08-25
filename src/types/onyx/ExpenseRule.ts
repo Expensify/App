@@ -1,4 +1,3 @@
-import type {PolicyRuleTaxRate} from './ExpenseRuleCore';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of tax rate on a personal rule */
@@ -8,6 +7,18 @@ type PersonalRuleTaxRate = {
 
     /** The tax rate */
     value: string;
+};
+
+/** Model of tax rate on a policy rule */
+type PolicyRuleTaxRate = {
+    /** The tax ID */
+    externalID: string;
+
+    /** The tax rate */
+    value: string;
+
+    /** The name of the tax rate */
+    name: string;
 };
 
 /** Model of expense rule */

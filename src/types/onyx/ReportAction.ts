@@ -11,7 +11,6 @@ import type * as OnyxCommon from './OnyxCommon';
 import type OriginalMessage from './OriginalMessage';
 import type {Decision} from './OriginalMessage';
 import type {NotificationPreference} from './Report';
-import type {ReportActionCore} from './ReportActionCore';
 import type ReportActionName from './ReportActionName';
 import type {Receipt} from './Transaction';
 
@@ -144,10 +143,16 @@ type Person = {
     text?: string;
 };
 
-/** Optional properties supplied by different report action types and legacy API responses. */
-type ReportActionOptional = {
+/** Main properties of report action */
+type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
+    reportActionID: string;
+
     /** @deprecated Used in old report actions before migration. Replaced by reportActionID. */
     sequenceNumber?: number;
+
+    /** The name (or type) of the action */
+    actionName: ReportActionName;
 
     /** Account ID of the actor that created the action */
     actorAccountID?: number;
@@ -157,6 +162,9 @@ type ReportActionOptional = {
 
     /** Person who created the action */
     person?: Person[];
+
+    /** ISO-formatted datetime */
+    created: string;
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
@@ -282,10 +290,7 @@ type ReportActionOptional = {
      * Note: This is sent by the backend but we don't use it locally
      */
     timestamp?: number;
-};
-
-/** Shared report action fields combined with offline feedback state. */
-type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<ReportActionCore & ReportActionOptional>;
+}>;
 
 /**
  *

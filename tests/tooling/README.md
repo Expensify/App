@@ -75,6 +75,6 @@ These files are type-checked by the directory-scoped Bun project, `tsconfig.bun.
 including `bun:test` and Bun runtime APIs such as `$`. Add a new tooling test directly under `tests/tooling/`; no
 tsconfig update is needed.
 
-The Bun project intentionally excludes app modules because Bun's globals conflict with the React Native and Jest
-globals used by the app. Keep tooling-test imports runtime-agnostic. In particular, scripts that need translations
-must parse `src/languages/en.ts` rather than import and execute it.
+The Bun project avoids general app imports because Bun's globals conflict with the React Native and Jest globals used
+by the app. Translation tooling may import `src/languages/en.ts`: its CONST dependencies use Bun-safe defaults, while
+web and native builds resolve platform-specific runtime values.
