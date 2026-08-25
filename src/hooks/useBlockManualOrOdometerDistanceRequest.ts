@@ -13,7 +13,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useThemeStyles from './useThemeStyles';
 
-type UseMapOrGpsDistanceGuardParams = {
+type UseBlockManualOrOdometerDistanceRequestParams = {
     /** Policy ID to check by default */
     policyID?: string;
 
@@ -35,14 +35,13 @@ const policiesRequiringMapOrGPSSelector = (policies: OnyxCollection<Policy>): Po
     }, {});
 
 /**
- * Returns a guard function that blocks manual/odometer distance flows for policies that restrict distance
- * to maps and GPS. Callers can pass an override policy ID when checking a newly selected workspace before
- * committing it.
+ * Returns a function that blocks manual/odometer distance flows for policies that require GPS or map entry.
+ * Callers can pass an override policy ID when checking a newly selected workspace before committing it.
  *
  * When a block occurs, it surfaces a modal explaining that only map/GPS distance is supported and returns
  * true so callers can early return.
  */
-function useMapOrGpsDistanceGuard({policyID, isManualDistanceRequest = false, isOdometerDistanceRequest = false}: UseMapOrGpsDistanceGuardParams) {
+function useBlockManualOrOdometerDistanceRequest({policyID, isManualDistanceRequest = false, isOdometerDistanceRequest = false}: UseBlockManualOrOdometerDistanceRequestParams) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -79,4 +78,4 @@ function useMapOrGpsDistanceGuard({policyID, isManualDistanceRequest = false, is
     );
 }
 
-export default useMapOrGpsDistanceGuard;
+export default useBlockManualOrOdometerDistanceRequest;

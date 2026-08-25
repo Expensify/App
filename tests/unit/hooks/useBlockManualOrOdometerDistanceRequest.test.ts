@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useMapOrGpsDistanceGuard from '@hooks/useMapOrGpsDistanceGuard';
+import useBlockManualOrOdometerDistanceRequest from '@hooks/useBlockManualOrOdometerDistanceRequest';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -22,7 +22,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({HouseWithMap: 'HouseWithMap'}),
 }));
 
-describe('useMapOrGpsDistanceGuard', () => {
+describe('useBlockManualOrOdometerDistanceRequest', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -47,7 +47,7 @@ describe('useMapOrGpsDistanceGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useMapOrGpsDistanceGuard({
+            useBlockManualOrOdometerDistanceRequest({
                 isManualDistanceRequest: true,
             }),
         );
@@ -66,7 +66,7 @@ describe('useMapOrGpsDistanceGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useMapOrGpsDistanceGuard({
+            useBlockManualOrOdometerDistanceRequest({
                 isOdometerDistanceRequest: true,
             }),
         );
@@ -83,7 +83,7 @@ describe('useMapOrGpsDistanceGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useMapOrGpsDistanceGuard({
+            useBlockManualOrOdometerDistanceRequest({
                 isManualDistanceRequest: true,
             }),
         );
@@ -105,7 +105,7 @@ describe('useMapOrGpsDistanceGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useMapOrGpsDistanceGuard({
+            useBlockManualOrOdometerDistanceRequest({
                 policyID: 'policy_forced',
                 isManualDistanceRequest: true,
             }),
@@ -129,7 +129,7 @@ describe('useMapOrGpsDistanceGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useMapOrGpsDistanceGuard({
+            useBlockManualOrOdometerDistanceRequest({
                 isManualDistanceRequest: true,
             }),
         );
@@ -151,7 +151,7 @@ describe('useMapOrGpsDistanceGuard', () => {
         });
         await waitForBatchedUpdates();
 
-        const {result} = renderHook(() => useMapOrGpsDistanceGuard({}));
+        const {result} = renderHook(() => useBlockManualOrOdometerDistanceRequest({}));
 
         expect(result.current('policy_forced')).toBe(false);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();

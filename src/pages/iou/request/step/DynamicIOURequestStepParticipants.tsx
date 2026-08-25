@@ -1,8 +1,8 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 
+import useBlockManualOrOdometerDistanceRequest from '@hooks/useBlockManualOrOdometerDistanceRequest';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import useMapOrGpsDistanceGuard from '@hooks/useMapOrGpsDistanceGuard';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
 import usePermissions from '@hooks/usePermissions';
@@ -91,7 +91,7 @@ function DynamicIOURequestStepParticipants({
         isMovingTransactionFromTrackExpense,
         isFocused,
     });
-    const blockManualOrOdometerDistanceRequestIfNeeded = useMapOrGpsDistanceGuard({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useBlockManualOrOdometerDistanceRequest({
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
     });
