@@ -4,6 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -92,6 +93,11 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
 
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return true;
+        }
+
+        // A reject the server refused leaves the expense on the report with an error the user has to dismiss.
+        if (!isEmptyObject(transaction.errorFields?.reject ?? {})) {
             return true;
         }
 

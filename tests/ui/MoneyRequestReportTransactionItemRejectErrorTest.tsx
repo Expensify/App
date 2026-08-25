@@ -117,6 +117,15 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         expect(screen.queryByText(SERVER_REJECT_MESSAGE)).not.toBeOnTheScreen();
     });
 
+    it('should show the reject error once, not again inside the row', async () => {
+        // Given: An expense the server refused to reject
+        await renderTransactionItem(buildTransactionWithRejectError());
+
+        // Then: Only the dismissible message is shown, so the row itself carries no duplicate of it
+        expect(screen.getAllByText(translateLocal('iou.rejectReport.couldNotRejectExpense'))).toHaveLength(1);
+        expect(screen.queryByTestId('TransactionItemRowRBR')).not.toBeOnTheScreen();
+    });
+
     it('should not let the expense be opened while it carries a reject error', async () => {
         // Given: An expense showing a reject error, so the server no longer has it on this report
         await renderTransactionItem(buildTransactionWithRejectError());
