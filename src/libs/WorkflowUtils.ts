@@ -880,7 +880,7 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
     // Different approvers may share an `overLimitForwardsTo`, which would emit identical terminal rules.
     const seen = new Set<string>();
     return rules.filter((rule) => {
-        const fingerprint = canonicalFingerprint(rule);
+        const fingerprint = JSON.stringify(sortObjectKeysDeep(rule));
         if (seen.has(fingerprint)) {
             return false;
         }
@@ -944,9 +944,9 @@ function extractSubmitterEmails(rule: ApprovalWorkflowRule): string[] {
  * Only key order needs fixing: a rule that came back from the server can list the same keys in a different
  * order than one we just built, and those two would otherwise produce different strings and never match.
  */
-function canonicalize(value: unknown): unknown {
+function sortObjectKeysDeep(value: unknown): unknown {
     if (Array.isArray(value)) {
-        return value.map(canonicalize);
+        return value.map(sortObjectKeysDeep);
     }
     if (value !== null && typeof value === 'object') {
         // Byte-order sort (not locale-aware): this is a structural fingerprint, not user-facing text.
@@ -956,19 +956,14 @@ function canonicalize(value: unknown): unknown {
             }
             return a < b ? -1 : 1;
         });
-        return Object.fromEntries(sortedEntries.map(([key, val]) => [key, canonicalize(val)]));
+        return Object.fromEntries(sortedEntries.map(([key, val]) => [key, sortObjectKeysDeep(val)]));
     }
     return value;
 }
 
-/** A string that is equal for two values that mean the same thing, regardless of the order their keys were built in. */
-function canonicalFingerprint(value: unknown): string {
-    return JSON.stringify(canonicalize(value));
-}
-
 /**
  * Return a structural fingerprint of a rule with every `from` leaf's `right` (the submitter list)
- * stripped and keys canonicalized. Two rules with the same fingerprint differ only in their submitters,
+ * stripped and object keys sorted. Two rules with the same fingerprint differ only in their submitters,
  * which is what we look for when deciding whether to merge two workflows into a shared rule.
  */
 function structuralFingerprint(rule: ApprovalWorkflowRule): string {
@@ -985,11 +980,13 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
         return {operator: node.operator, left: stripFromValues(node.left), right: stripFromValues(node.right)};
     };
 
-    return canonicalFingerprint({
-        triggers: rule.triggers,
-        filters: stripFromValues(rule.filters),
-        actions: rule.actions,
-    });
+    return JSON.stringify(
+        sortObjectKeysDeep({
+            triggers: rule.triggers,
+            filters: stripFromValues(rule.filters),
+            actions: rule.actions,
+        }),
+    );
 }
 
 /** Replace the `right` value on every `from` leaf with `newEmails`. */
