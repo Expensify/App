@@ -2,6 +2,7 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {IOURequestType} from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -337,6 +338,16 @@ function getCommuterExclusionDisplayData(customUnit: TransactionCustomUnit | und
 }
 
 /**
+ * Whether a workspace's commuter exclusion applies to a distance expense of this request type.
+ *
+ * Only a distance the app itself measured describes a route the workspace can recognise a commute in, so a manually
+ * entered or odometer distance is reimbursed in full.
+ */
+function isCommuterExclusionApplicableToRequestType(iouRequestType: IOURequestType | undefined): boolean {
+    return iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL && iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+}
+
+/**
  * Returns the distance a workspace excludes from a distance of `distance` units, expressed in that same unit.
  *
  * Returns 0 when the workspace excludes nothing, so callers can treat it as "no exclusion applies". The exclusion never
@@ -374,7 +385,7 @@ function getTransactionCommuterExclusionData({
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
     personalPolicyOutputCurrency?: string;
 }): (Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit}) | undefined {
-    if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
+    if (!isCommuterExclusionApplicableToRequestType(transaction?.iouRequestType)) {
         return;
     }
 
@@ -874,6 +885,7 @@ export default {
     getDistanceRequestAmount,
     getCommuterExclusionDisplayData,
     getPolicyCommuterExclusionForDistance,
+    isCommuterExclusionApplicableToRequestType,
     getTransactionCommuterExclusionData,
     getDistanceDisplayDetailsWithCommuter,
     getFormattedRateValue,

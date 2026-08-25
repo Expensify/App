@@ -416,6 +416,111 @@ describe('MergeTransactionUtils', () => {
             });
         });
 
+        it.each([CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER])(
+            'should not apply the commuter exclusion when merging a %s expense onto a workspace that excludes commuter distance',
+            (iouRequestType) => {
+                // Given two identical distance expenses whose distance the app did not measure, on a report of a
+                // workspace that excludes 1 commuter mile
+                const excludingWorkspace: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, fixedDistance: 1, fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                };
+                const distanceExpense = {
+                    ...createRandomDistanceRequestTransaction(0),
+                    iouRequestType,
+                    reportID: '9999',
+                    merchant: '10.20 mi @ $1.00 / mi',
+                    modifiedMerchant: '10.20 mi @ $1.00 / mi',
+                    amount: -1020,
+                    comment: {
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitRateID: 'rate123',
+                            quantity: 10.2,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                };
+
+                // When they are merged
+                const result = getMergeableDataAndConflictFields(
+                    distanceExpense,
+                    {...distanceExpense, transactionID: 'secondTransaction'},
+                    mockLocaleCompare,
+                    mockGetCurrencyDecimals,
+                    [],
+                    excludingWorkspace,
+                    excludingWorkspace,
+                );
+
+                // Then the whole distance is reimbursed, the same as creating the expense on that workspace would do
+                expect(result.conflictFields).toHaveLength(0);
+                expect(result.mergeableData).toMatchObject({
+                    amount: 1020,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'rate123',
+                        quantity: 10.2,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                });
+                expect(result.mergeableData.customUnit).not.toHaveProperty('commuterExclusion');
+                expect(result.mergeableData.customUnit).not.toHaveProperty('reimbursableDistance');
+            },
+        );
+
+        it('should clear an exclusion a manual distance expense still carries when it is merged', () => {
+            // Given two identical manual distance expenses that carry an exclusion from an earlier workspace, so that
+            // their amount pays for 9.2 of the 10.2 miles
+            const excludingWorkspace: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, fixedDistance: 1, fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            };
+            const distanceExpense = {
+                ...createRandomDistanceRequestTransaction(0),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                reportID: '9999',
+                merchant: '10.20 mi @ $1.00 / mi',
+                modifiedMerchant: '10.20 mi @ $1.00 / mi',
+                amount: -920,
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'rate123',
+                        quantity: 10.2,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        commuterExclusion: 1,
+                        reimbursableDistance: 9.2,
+                    },
+                },
+            };
+
+            // When they are merged
+            const result = getMergeableDataAndConflictFields(
+                distanceExpense,
+                {...distanceExpense, transactionID: 'secondTransaction'},
+                mockLocaleCompare,
+                mockGetCurrencyDecimals,
+                [],
+                excludingWorkspace,
+                excludingWorkspace,
+            );
+
+            // Then the exclusion keys are nulled so Onyx removes them, and the amount pays for the whole distance again
+            expect(result.conflictFields).toHaveLength(0);
+            expect(result.mergeableData).toMatchObject({
+                amount: 1020,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitRateID: 'rate123',
+                    quantity: 10.2,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: null,
+                    reimbursableDistance: null,
+                },
+            });
+        });
+
         it('should merge amount field correctly when they are same', () => {
             const targetTransaction = {
                 ...createRandomTransaction(1),

@@ -2,6 +2,7 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {IOURequestType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
@@ -716,17 +717,24 @@ type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
  * that is selected. Selections are stored with Onyx.merge, which deep merges the custom unit, so both the exclusion of
  * a workspace that is no longer the destination and the reimbursable distance of a previously selected merchant would
  * otherwise survive. The distance field then shows the reimbursable distance in place of the full distance.
+ *
+ * `iouRequestType` is the type the merged expense ends up with, so that merging reaches the same exclusion that
+ * creating the expense on the destination workspace would.
  */
 function getCommuterExclusionCustomUnitUpdate(
     selectedCustomUnit: TransactionCustomUnit | undefined,
     previousCustomUnit: TransactionCustomUnit | undefined,
     destinationPolicy: OnyxEntry<Policy>,
+    iouRequestType: IOURequestType | undefined,
 ): CommuterExclusionCustomUnitUpdate {
     const quantity = selectedCustomUnit?.quantity ?? previousCustomUnit?.quantity;
     const distanceUnit = selectedCustomUnit?.distanceUnit ?? previousCustomUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     // The destination workspace's setting decides the exclusion, so it applies to an expense that arrives from a
     // workspace excluding nothing, and stops applying to one that leaves a workspace that excludes a distance
-    const commuterExclusion = typeof quantity === 'number' ? DistanceRequestUtils.getPolicyCommuterExclusionForDistance(destinationPolicy, quantity, distanceUnit) : 0;
+    const commuterExclusion =
+        typeof quantity === 'number' && DistanceRequestUtils.isCommuterExclusionApplicableToRequestType(iouRequestType)
+            ? DistanceRequestUtils.getPolicyCommuterExclusionForDistance(destinationPolicy, quantity, distanceUnit)
+            : 0;
 
     if (commuterExclusion > 0 && typeof quantity === 'number') {
         return {
@@ -805,7 +813,14 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         // and the amount has to follow the distance that is left to reimburse
         if (isDistanceRequest(transaction)) {
             const previousCustomUnit = mergeTransaction?.customUnit;
-            const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(undefined, previousCustomUnit, destinationPolicy);
+            // The merchant selection is what sets the merged expense's type, so it is preferred over the type of the
+            // expense whose report was selected here
+            const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(
+                undefined,
+                previousCustomUnit,
+                destinationPolicy,
+                mergeTransaction?.iouRequestType ?? transaction?.iouRequestType,
+            );
             if (Object.keys(commuterExclusionUpdate).length > 0) {
                 updatedValues.customUnit = {...previousCustomUnit, ...commuterExclusionUpdate};
             }
@@ -823,7 +838,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         const transactionDetails = getTransactionDetails(transaction);
         updatedValues.currency = getCurrency(transaction);
         const selectedCustomUnit = transaction?.comment?.customUnit;
-        const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(selectedCustomUnit, mergeTransaction?.customUnit, destinationPolicy);
+        const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(selectedCustomUnit, mergeTransaction?.customUnit, destinationPolicy, transaction?.iouRequestType);
         updatedValues.customUnit = {
             ...selectedCustomUnit,
             ...commuterExclusionUpdate,
