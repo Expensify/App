@@ -61,4 +61,4 @@ function withBypassReporting(rule, {grandfathered = GRANDFATHERED_BYPASSES, esli
     };
 }
 
-export {withBypassReporting};
+export default withBypassReporting;

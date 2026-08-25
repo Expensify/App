@@ -2,7 +2,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-import {withBypassReporting} from '../../config/oxlint/onyxConnectBypass.mjs';
+import withBypassReporting from '../../config/oxlint/onyxConnectBypass.mjs';
 
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');

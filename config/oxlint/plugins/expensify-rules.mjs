@@ -3,7 +3,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-import {withBypassReporting} from '../onyxConnectBypass.mjs';
+import withBypassReporting from '../onyxConnectBypass.mjs';
 import {create as preferLocaleCompareCreate, meta as preferLocaleCompareMeta} from '../preferLocaleCompareFromContext.mjs';
 import {withFullGating} from '../reactCompilerGate.mjs';
 
