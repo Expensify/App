@@ -237,7 +237,7 @@ function IOURequestStartPage({
     // shouldEnableMaxHeight gates the keyboard-open height clamp and `marginTop: viewportOffsetTop`, and together with
     // shouldAvoidScrollOnVirtualViewport (true by default here) it gates useTackInputFocus on mobile WebKit. Same
     // condition the standalone confirmation uses - mobile Safari opts out, and canUseTouchScreen() is false on desktop.
-    const shouldEnableManualConfirmationMaxHeight = shouldEmbedConfirmation && selectedTab === CONST.TAB_REQUEST.MANUAL && canUseTouchScreen() && !isMobileSafari();
+    const shouldEnableManualConfirmationMaxHeight = shouldEmbedConfirmation && (!shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL) && canUseTouchScreen() && !isMobileSafari();
 
     let manualContent: React.ReactNode;
     if (!shouldEmbedConfirmation) {
