@@ -17833,7 +17833,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('spent');
             });
         });

@@ -371,6 +371,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         transactionID,
                         reportAction: action,
                         iouReport: undefined,
+                        iouReportTransactions: [],
                         chatIOUReport: undefined,
                         transactions: duplicateTransactions,
                         violations: duplicateTransactionViolations,
