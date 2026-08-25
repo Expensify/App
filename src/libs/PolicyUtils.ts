@@ -205,7 +205,7 @@ function isControlPolicyOnlyRole(role: string | undefined): boolean {
 function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
     const role = (login ? policy?.employeeList?.[login]?.role : undefined) ?? getPolicyRole(policy, login);
     // The API demotes control-only roles to user when a workspace is downgraded from Control to Collect.
-    // A leftover control-only role on a non-Control policy is not a valid denied state, so use the user bundle.
+    // Collect does not support these roles. Treat the member as a user so they can still open the workspace.
     const effectiveRole = isControlPolicyOnlyRole(role) && (!policy || !isControlPolicy(policy)) ? CONST.POLICY.ROLE.USER : role;
 
     const access = effectiveRole ? ROLE_PERMISSION_BUNDLES[effectiveRole]?.[feature] : undefined;
