@@ -13,9 +13,9 @@ import useCreateNewReport from '@hooks/useCreateNewReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -31,8 +31,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, getGroupPoliciesWhereReportCanBeCreated, isPolicyAdmin} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
@@ -57,7 +56,7 @@ import {View} from 'react-native';
 
 type WorkspaceListItem = {
     text: string;
-    policyID?: string;
+    policyID: string;
     isPolicyAdmin?: boolean;
 } & ListItem;
 
@@ -67,7 +66,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const {isMovingExpenses} = route.params ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path);
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const {selectedTransactions, selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const styles = useThemeStyles();
@@ -90,6 +88,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
@@ -150,6 +149,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     selfDMReportActions,
+                    delegateAccountID,
                     getCurrencyDecimals,
                 });
 
@@ -201,7 +201,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             return;
         }
 
-        const policyForRestriction = policy.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`] : undefined;
+        const policyForRestriction = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`];
         if (
             policyForRestriction &&
             shouldRestrictUserBillableActions(policyForRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)
@@ -228,29 +228,16 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     if (policies && !isEmptyObject(policies)) {
         const result = [];
         let index = 0;
-        for (const policy of Object.values(policies)) {
-            if (
-                policy?.isJoinRequestPending ||
-                !policy?.isPolicyExpenseChatEnabled ||
-                !shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) ||
-                (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy))
-            ) {
+        const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserPersonalDetails?.login);
+        for (const policy of eligiblePolicies) {
+            if (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
                 continue;
             }
 
             result.push({
-                text: policy?.name ?? '',
-                policyID: policy?.id,
-                icons: [
-                    {
-                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                        fallbackIcon: icons.FallbackWorkspaceAvatar,
-                        name: policy?.name,
-                        type: CONST.ICON_TYPE_WORKSPACE,
-                        id: policy?.id,
-                    },
-                ],
-                keyForList: `${policy?.id}-${index}`,
+                text: policy.name,
+                policyID: policy.id,
+                keyForList: `${policy.id}-${index}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
             });

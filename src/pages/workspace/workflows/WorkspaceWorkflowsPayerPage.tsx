@@ -18,6 +18,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,7 +26,7 @@ import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {canMemberWrite, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -44,6 +45,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {displayNameSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -89,7 +91,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [searchTerm, setSearchTerm] = useState('');
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT);
-    const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser ?? policy?.owner);
+    const [selectedPayer, setSelectedPayer] = useState<string | undefined>(policy?.achAccount?.reimburser ?? policy?.owner);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -98,8 +100,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const [showValidationModal, setShowValidationModal] = useState<boolean>(false);
     const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-    const selectedPayerDetails = selectedPayer ? getPersonalDetailByEmail(selectedPayer) : undefined;
-    const ownerDetails = policy?.owner ? getPersonalDetailByEmail(policy?.owner) : undefined;
+    const selectedPayerDisplayName = usePersonalDetailByLogin(selectedPayer, displayNameSelector);
+    const ownerDisplayName = usePersonalDetailByLogin(policy?.owner, displayNameSelector);
     const accountID = selectedPayer ? policyMemberEmailsToAccountIDs?.[selectedPayer] : '';
     const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
     const isManualReimbursement = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
@@ -130,7 +132,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 accountID: adminAccountID,
                 isSelected: isAuthorizedPayer,
                 isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors) || isLoading,
-                text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+                text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
                 icons: [
@@ -256,7 +258,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 <View style={[styles.renderHTML, styles.flexRow]}>
                     <RenderHTML
                         html={translate('workflowsPayerPage.shareBankAccount.shareDescription', {
-                            admin: selectedPayerDetails?.displayName ?? '',
+                            admin: selectedPayerDisplayName ?? '',
                         })}
                     />
                 </View>
@@ -366,7 +368,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                 navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)});
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
-                                admin: selectedPayerDetails?.displayName ?? '',
+                                admin: selectedPayerDisplayName ?? '',
                             })}
                         />
                     </View>
@@ -401,8 +403,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                 );
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
-                                admin: selectedPayerDetails?.displayName ?? '',
-                                owner: ownerDetails?.displayName ?? '',
+                                admin: selectedPayerDisplayName ?? '',
+                                owner: ownerDisplayName ?? '',
                             })}
                         />
                     </View>

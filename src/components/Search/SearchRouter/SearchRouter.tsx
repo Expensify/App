@@ -79,7 +79,7 @@ type SearchRouterProps = {
 };
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -131,6 +131,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             currentUserAccountID,
             autoCompleteWithSpace: false,
             translate,
+            formatPhoneNumber,
             feedKeysWithCards,
             reportAttributes,
             bankAccountList,
@@ -145,6 +146,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             bankAccountList,
         );
@@ -358,7 +360,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const submitSearch = useCallback(
         (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, policies);
             if (!updatedQuery) {
                 return;
             }
@@ -377,7 +379,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton],
+        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton, policies],
     );
 
     const onListItemPress = useCallback(
@@ -445,16 +447,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
-                        navigateToAndOpenReport(
-                            item.login ? [item.login] : [],
+                        navigateToAndOpenReport({
+                            userLogins: item.login ? [item.login] : [],
                             personalDetails,
                             currentUserAccountID,
                             introSelected,
-                            guidedSetupAndTourStatus?.isSelfTourViewed,
-                            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                             betas,
-                            false,
-                        );
+                            shouldDismissModal: false,
+                        });
                     }
                 });
                 onRouterClose();
