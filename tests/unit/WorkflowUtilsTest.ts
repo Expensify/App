@@ -1904,18 +1904,12 @@ describe('WorkflowUtils', () => {
         });
 
         describe('convertApprovalWorkflowRulesToWorkflows', () => {
-            const createPolicy = (employees: PolicyEmployeeList, defaultApprover: string) =>
-                ({
-                    id: 'test-policy',
-                    name: 'Test Policy',
-                    role: 'admin' as const,
-                    type: 'team' as const,
-                    owner: 'owner@example.com',
-                    outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
-                    employeeList: employees,
-                    approver: defaultApprover,
-                }) as Policy;
+            const createPolicy = (employees: PolicyEmployeeList, defaultApprover: string): Policy => ({
+                ...createRandomPolicy(1),
+                owner: 'owner@example.com',
+                employeeList: employees,
+                approver: defaultApprover,
+            });
 
             it('Should reconstruct a multi-approver chain from rules', () => {
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2])));
