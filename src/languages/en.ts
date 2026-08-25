@@ -1590,8 +1590,8 @@ const translations = {
         }) => {
             const paymentMethod = isCard ? 'card' : 'bank account';
             return isCurrentUser
-                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`
-                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`;
+                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This generally takes 4-5 business days.`
+                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This generally takes 4-5 business days.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` with direct deposit (ACH)${creditBankAccount ? ` to the bank account ending in ${creditBankAccount}. ` : '. '}${expectedDate ? `The reimbursement is estimated to complete by ${expectedDate}.` : 'This generally takes 4-5 business days.'}`,
@@ -1670,6 +1670,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         sendToSomeone: 'Send to someone',
+        submitToEmployer: 'Submit to my employer',
         unhold: 'Remove hold',
         holdExpense: () => ({
             one: 'Hold expense',
@@ -3216,6 +3217,8 @@ const translations = {
         all: 'All',
         todo: 'To-dos',
         unread: 'Unread',
+        markAllAsRead: 'Mark all as read',
+        markAllAsReadConfirmationPrompt: 'Are you sure you want to mark all chats as read?',
     },
     reportDetailsPage: {
         goToRoom: 'Go to room',
@@ -5011,6 +5014,9 @@ const translations = {
         },
         qbo: {
             connectedTo: 'Connected to',
+            entity: 'Entity',
+            entitySelectDescription: 'Select the entity to sync with this workspace.',
+            connectNewEntity: 'Connect a new entity',
             importDescription: (integrationName = 'QuickBooks Online') => `Choose which coding configurations to import from ${integrationName} to Expensify.`,
             classes: 'Classes',
             locations: 'Locations',
@@ -6322,6 +6328,10 @@ const translations = {
                     autoAddTripName: {
                         title: 'Add trip names to expenses',
                         subtitle: 'Automatically add trip names to expense descriptions for travel booked in Expensify.',
+                    },
+                    codingSync: {
+                        title: 'Sync coding to Expensify Travel',
+                        subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
                     },
                 },
                 travelInvoicing: {
@@ -10333,6 +10343,8 @@ const translations = {
             title: 'Payment',
             subtitle: 'Add a card to pay for your Expensify subscription.',
             addCardButton: 'Add payment card',
+            addPaymentCardTitle: 'Add a payment card',
+            addCard: 'Add card',
             cardInfo: (name: string, expiration: string, currency: string) => `Name: ${name}, Expiration: ${expiration}, Currency: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Your next payment date is ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Card ending in ${cardNumber}`,
