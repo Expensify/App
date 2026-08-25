@@ -1,7 +1,7 @@
 /**
  * Builds the top-level, Spend, Workspace, Account, and Create navigation suggestions shown in the Search Router.
  */
-import Avatar from '@components/Avatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
@@ -150,9 +150,8 @@ function WorkspaceIdentityCell({policy}: WorkspaceIdentityCellProps) {
 
     return (
         <View style={[styles.flexRow, styles.flexShrink1, styles.alignItemsCenter, styles.gap1]}>
-            <Avatar
+            <WorkspaceAvatar
                 source={policy.avatarURL}
-                type={CONST.ICON_TYPE_WORKSPACE}
                 name={policy.name}
                 avatarID={policy.id}
                 size={CONST.AVATAR_SIZE.XXX_SMALL}
