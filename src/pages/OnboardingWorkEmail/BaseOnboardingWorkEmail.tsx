@@ -94,6 +94,15 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
         };
 
+        // Opened from a Concierge task after onboarding is done: this screen is a standalone destination, not a step
+        // in the guided flow, so go straight to the workspace list once validated instead of resuming onboarding.
+        if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
+            if (account?.validated) {
+                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+            }
+            return;
+        }
+
         // A validated account has no reason to be on the onboarding "add work email" screen. For a public-domain primary the
         // PRIVATE_DOMAIN screen would reference gmail.com (etc.) so skip it.
         // During incomplete guided setup (e.g. required-2FA handoff), stay on work-email even if the account is validated.
@@ -257,6 +266,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                     setOnboardingErrorMessage(null);
 
                                     setOnboardingMergeAccountStepValue(true, true);
+
+                                    if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
+                                        Navigation.goBack();
+                                        return;
+                                    }
 
                                     // The user already picked an intent, so skipping continues to the last onboarding
                                     // step rather than returning them to the intent list they came from.
