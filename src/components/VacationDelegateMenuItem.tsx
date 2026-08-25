@@ -11,7 +11,8 @@ import React from 'react';
 
 import UserAvatar from './Avatar/UserAvatar';
 import MenuItem from './MenuItem';
-import MenuItemField from './MenuItem/presets/MenuItemField';
+import MenuItemEmptyField from './MenuItem/presets/MenuItemEmptyField';
+import MenuItemWithLabel from './MenuItem/presets/MenuItemWithLabel';
 import OfflineWithFeedback from './OfflineWithFeedback';
 
 type VacationDelegateSectionProps = {
@@ -56,22 +57,33 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
             onClose={onCloseError}
             style={!!vacationDelegateName && styles.mt4}
         >
-            <MenuItemField
-                label={translate('common.vacationDelegate')}
-                value={vacationDelegateName}
-                onPress={onPress}
-            >
-                <MenuItem.Leading>
-                    <UserAvatar
-                        source={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
-                        accountID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    />
-                </MenuItem.Leading>
-                <MenuItem.Content>
-                    <MenuItem.Title>{vacationDelegateName ?? ''}</MenuItem.Title>
-                    {!!fallbackVacationDelegateLogin && <MenuItem.Description numberOfLines={1}>{fallbackVacationDelegateLogin}</MenuItem.Description>}
-                </MenuItem.Content>
-            </MenuItemField>
+            {vacationDelegateName ? (
+                <MenuItemWithLabel
+                    label={translate('common.vacationDelegate')}
+                    onPress={onPress}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <UserAvatar
+                                source={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
+                                accountID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                            />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{vacationDelegateName}</MenuItem.Title>
+                            {!!fallbackVacationDelegateLogin && <MenuItem.Description numberOfLines={1}>{fallbackVacationDelegateLogin}</MenuItem.Description>}
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItemWithLabel>
+            ) : (
+                <MenuItemEmptyField
+                    description={translate('common.vacationDelegate')}
+                    onPress={onPress}
+                />
+            )}
         </OfflineWithFeedback>
     );
 }
