@@ -113,6 +113,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     iconHeight={iconHeight}
                     {...menuItemProps}
                     disabled={!!menuItemProps.disabled || isExecuting}
+                    shouldGreyOutWhenDisabled={menuItemProps.shouldGreyOutWhenDisabled ?? !!menuItemProps.disabled}
                     onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
                     isFocused={isFocused}
                 />
