@@ -43,6 +43,9 @@ import type SCREENS from '@src/SCREENS';
 import {openExpenseReportIDsSelector} from '@src/selectors/Report';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -80,11 +83,12 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const [openReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {selector: openExpenseReportIDsSelector});
     const isInLandscapeMode = useIsInLandscapeMode();
 
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const transactions = useMemo(
-        () => getEligibleTransactionsToAdd({transactions: allTransactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts}),
-        [allTransactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts],
+    const transactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) =>
+            getEligibleTransactionsToAdd({transactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts}),
+        [report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts],
     );
+    const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsSelector});
 
     const fetchMoreUnreportedTransactions = () => {
         if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions) {

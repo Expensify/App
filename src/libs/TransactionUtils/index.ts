@@ -3245,7 +3245,7 @@ type GetEligibleTransactionsToAddParams = {
 };
 
 /**
- * Returns the transactions that can be added to the supplied expense or IOU report.
+ * Returns the transactions that can be added to the given expense or IOU report.
  */
 function getEligibleTransactionsToAdd({
     transactions,
