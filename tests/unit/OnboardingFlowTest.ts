@@ -9,20 +9,12 @@ import SCREENS from '@src/SCREENS';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
-import {findFocusedRoute} from '@react-navigation/native';
-
 jest.mock('@libs/Navigation/navigationRef', () => ({
-    getCurrentRoute: jest.fn(),
     getRootState: jest.fn(),
     resetRoot: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => jest.fn());
-
-jest.mock('@react-navigation/native', () => ({
-    ...((): typeof NativeNavigation => jest.requireActual('@react-navigation/native'))(),
-    findFocusedRoute: jest.fn(),
-}));
 
 describe('OnboardingFlow', () => {
     describe('getOnboardingInitialPath', () => {
@@ -284,12 +276,10 @@ describe('OnboardingFlow', () => {
 
     describe('startOnboardingFlow', () => {
         /* eslint-disable @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding */
-        const mockedGetCurrentRoute = jest.mocked(navigationRef.getCurrentRoute);
         const mockedGetRootState = jest.mocked(navigationRef.getRootState);
         const mockedResetRoot = jest.mocked(navigationRef.resetRoot);
         /* eslint-enable @typescript-eslint/unbound-method */
         const mockedGetAdaptedStateFromPath = jest.mocked(getAdaptedStateFromPath);
-        const mockedFindFocusedRoute = jest.mocked(findFocusedRoute);
 
         const params: GetOnboardingInitialPathParamsType = {
             isUserFromPublicDomain: false,
@@ -314,14 +304,11 @@ describe('OnboardingFlow', () => {
 
         beforeEach(() => {
             jest.clearAllMocks();
-            // Onboarding navigator already mounted.
             mockedGetAdaptedStateFromPath.mockReturnValue({routes: [{name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]} as ReturnType<typeof getAdaptedStateFromPath>);
         });
 
-        it('should not call resetRoot when the merged route list is unchanged (no-op that would still fire replaceState)', () => {
-            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.ONBOARDING.PRIVATE_DOMAIN, params: {}});
-            // Different resolved route name, so the name-only guard passes through to the merge check.
-            mockedFindFocusedRoute.mockReturnValue({key: 'focused-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
+        it('should not call resetRoot when the onboarding navigator is already mounted (no-op that would still fire replaceState)', () => {
+            // Onboarding navigator already in the root state, so there is nothing to mount and resetRoot must be skipped.
             mockedGetRootState.mockReturnValue(buildRootState([{key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]));
 
             startOnboardingFlow(params);
@@ -329,25 +316,13 @@ describe('OnboardingFlow', () => {
             expect(mockedResetRoot).not.toHaveBeenCalled();
         });
 
-        it('should call resetRoot when the merged route list adds the onboarding navigator', () => {
-            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.HOME});
-            mockedFindFocusedRoute.mockReturnValue({key: 'focused-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
-            // Onboarding navigator not yet in root state, so the merge appends it and the route list changes.
+        it('should call resetRoot to mount the onboarding navigator when it is not yet in the root state', () => {
+            // Onboarding navigator not yet in root state, so resetRoot runs to mount it.
             mockedGetRootState.mockReturnValue(buildRootState([{key: 'home', name: SCREENS.HOME}]));
 
             startOnboardingFlow(params);
 
             expect(mockedResetRoot).toHaveBeenCalledTimes(1);
-        });
-
-        it('should not call resetRoot when the resolved route name already matches the current route', () => {
-            mockedGetCurrentRoute.mockReturnValue({key: 'route-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS, params: {}});
-            mockedFindFocusedRoute.mockReturnValue({key: 'focused-key', name: SCREENS.ONBOARDING.PERSONAL_DETAILS});
-            mockedGetRootState.mockReturnValue(buildRootState([{key: 'home', name: SCREENS.HOME}]));
-
-            startOnboardingFlow(params);
-
-            expect(mockedResetRoot).not.toHaveBeenCalled();
         });
     });
 });

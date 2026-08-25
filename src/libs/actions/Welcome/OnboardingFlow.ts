@@ -2,7 +2,6 @@ import {translate} from '@libs/Localize';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import {openApp} from '@userActions/App';
 import type {Video} from '@userActions/Report';
@@ -20,7 +19,7 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import {getStateFromPath} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -90,28 +89,27 @@ Onyx.connectWithoutView({
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
 function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
-    const currentRoute = navigationRef.getCurrentRoute();
+    const rootState = navigationRef.getRootState();
+
+    // resetRoot is only needed to MOUNT the onboarding navigator. The merge below appends routes by
+    // top-level name, so once it is mounted the merged route list cannot change - but resetRoot({stale: true})
+    // would still re-emit the state and fire history.replaceState, and a burst of those trips Safari's
+    // 100-per-10s cap (APP-HT5). Unlike the old payload this no longer re-asserts adaptedState's index.
+    if (rootState.routes.some((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR)) {
+        return;
+    }
+
     const onboardingPath = startOnboardingFlowParams.resumePath ?? getOnboardingInitialPath(startOnboardingFlowParams);
     const adaptedState = getAdaptedStateFromPath(onboardingPath as Route, undefined, false);
-    const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
-    if (focusedRoute?.name === currentRoute?.name) {
-        return;
-    }
-    const rootState = navigationRef.getRootState();
     const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
-    const mergedRoutes = [...rootState.routes, ...(adaptedState?.routes.filter((route) => !rootStateRouteNamesSet.has(route.name)) ?? [])];
-    // Skip resetRoot when the merged route list is unchanged: resetRoot({stale: true}) still re-runs
-    // react-navigation's history.replaceState() even for this no-op, and a burst of those trips Safari's
-    // 100-per-10s replaceState cap (SecurityError). Mirrors the idempotency guard linkTo applies on navigate.
-    const areRoutesUnchanged = mergedRoutes.length === rootState.routes.length && mergedRoutes.every((route, index) => route.name === rootState.routes.at(index)?.name);
-    if (areRoutesUnchanged) {
-        return;
-    }
+
+    // resetRoot instead of navigate/replace because only replacing the whole root state can mount the target
+    // screen on top of the earlier onboarding steps that getAdaptedStateFromPath rebuilds, keeping Back working.
     navigationRef.resetRoot({
         ...rootState,
         ...adaptedState,
         stale: true,
-        routes: mergedRoutes,
+        routes: [...rootState.routes, ...(adaptedState?.routes.filter((route) => !rootStateRouteNamesSet.has(route.name)) ?? [])],
     } as PartialState<NavigationState>);
 }
 
