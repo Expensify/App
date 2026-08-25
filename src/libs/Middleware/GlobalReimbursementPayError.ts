@@ -13,9 +13,7 @@ import type Middleware from './types';
 /**
  * Middleware that detects the Corpay pay modal signal sent by the backend when a pay attempt fails because the
  * workspace USD VBBA is not set up on Corpay. The backend sends an Onyx SET on corpayPayModal instead of writing
- * an inline error onto the report action. The client still runs its existing failureData to revert the report
- * state, but the failureData entry that would tag the optimistic PAY action with an error is rewritten here so the
- * orphan optimistic PAY action is cleanly removed (merged to null) instead of showing a red error.
+ * an inline error onto the report action.
  */
 const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
     responsePromise.then((response) => {
