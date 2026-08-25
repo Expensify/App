@@ -1,7 +1,8 @@
 import Log from '@libs/Log';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AnyOnyxUpdate, PaginatedRequest, Request} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
+import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
 import type {OnyxKey} from 'react-native-onyx';
