@@ -3,6 +3,9 @@
  * to outlive the Onyx clear that runs on sign-out. Both are one line in a list that is easy to drop by accident.
  */
 import {KEYS_TO_PRESERVE} from '@libs/actions/App';
+import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@libs/actions/Delegate';
+import {KEYS_TO_PRESERVE_SUPPORTAL} from '@libs/actions/Session';
+import {KEYS_TO_PRESERVE_ON_SIGN_OUT} from '@libs/actions/SignInRedirect';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -13,9 +16,16 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
 
-describe('KEYS_TO_PRESERVE', () => {
-    it.each([[ONYXKEYS.SHOULD_USE_STAGING_SERVER], [ONYXKEYS.IS_BETA]])('lists %s', (key) => {
-        expect(KEYS_TO_PRESERVE).toContain(key);
+describe('the lists that survive a sign-out', () => {
+    describe.each([
+        ['KEYS_TO_PRESERVE', KEYS_TO_PRESERVE],
+        ['KEYS_TO_PRESERVE_DELEGATE_ACCESS', KEYS_TO_PRESERVE_DELEGATE_ACCESS],
+        ['KEYS_TO_PRESERVE_SUPPORTAL', KEYS_TO_PRESERVE_SUPPORTAL],
+        ['KEYS_TO_PRESERVE_ON_SIGN_OUT', KEYS_TO_PRESERVE_ON_SIGN_OUT],
+    ])('%s', (_name, list) => {
+        it.each([[ONYXKEYS.SHOULD_USE_STAGING_SERVER], [ONYXKEYS.IS_BETA]])('lists %s', (key) => {
+            expect(list).toContain(key);
+        });
     });
 
     it('keeps the staging preference and the beta verdict across a clear', async () => {

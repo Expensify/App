@@ -47,22 +47,26 @@ Onyx.connectWithoutView({
     },
 });
 
+// Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
+// We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
+// flashes of unwanted default state.
+const KEYS_TO_PRESERVE_ON_SIGN_OUT: OnyxKey[] = [
+    ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.NVP_SEARCH_SIDEBAR,
+    ONYXKEYS.ACTIVE_CLIENTS,
+    ONYXKEYS.DEVICE_ID,
+    ONYXKEYS.IS_BETA,
+    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
+    ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
+];
+
 function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
-    // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
-    // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
-    // flashes of unwanted default state.
-    const keysToPreserve: OnyxKey[] = [];
-    keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    keysToPreserve.push(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
-    keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);
-    keysToPreserve.push(ONYXKEYS.NVP_SEARCH_SIDEBAR);
-    keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
-    keysToPreserve.push(ONYXKEYS.DEVICE_ID);
-    keysToPreserve.push(ONYXKEYS.IS_BETA);
-    keysToPreserve.push(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
-    keysToPreserve.push(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    keysToPreserve.push(ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS);
-    keysToPreserve.push(ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS);
+    // The rest are added conditionally below
+    const keysToPreserve: OnyxKey[] = [...KEYS_TO_PRESERVE_ON_SIGN_OUT];
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
     // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
@@ -135,3 +139,4 @@ function redirectToSignIn(errorMessage?: string, isSAMLReauthentication?: boolea
 }
 
 export default redirectToSignIn;
+export {KEYS_TO_PRESERVE_ON_SIGN_OUT};

@@ -873,6 +873,7 @@ function openSecuritySettingsPage() {
 }
 
 export {
+    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
     connect,
     disconnect,
     clearDelegatorErrors,
