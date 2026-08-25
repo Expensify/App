@@ -11,6 +11,7 @@ import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isExpenseReport, isInvoiceReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
+import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {
     getChildTransactions,
     getOriginalTransactionWithSplitInfo,
@@ -349,6 +350,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 });
             }
 
+            // Grouped once up front so each iteration below does an O(1) lookup instead of re-scanning allTransactions per transaction.
+            const transactionsByReportID = buildTransactionsByReportID(allTransactions);
+
             for (const {transactionID, action} of nonSplitTransactions) {
                 if (!action) {
                     continue;
@@ -372,6 +376,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
                     iouReport,
+                    iouReportTransactions: iouReport?.reportID ? (transactionsByReportID[iouReport.reportID] ?? []) : [],
                     chatReport,
                     isChatIOUReportArchived,
                     isSingleTransactionView,

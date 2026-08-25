@@ -288,6 +288,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: true,
@@ -376,6 +377,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: true,
@@ -464,6 +466,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -582,6 +585,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -740,6 +744,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -864,6 +869,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -1060,6 +1066,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: undefined,
@@ -1178,6 +1185,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: undefined,
@@ -1296,6 +1304,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     isSingleTransactionView: true,
@@ -1355,6 +1364,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -1535,6 +1545,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
+                    iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -1627,6 +1638,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: [transaction1, transaction2, transaction3],
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 transactionIDsPendingDeletion: [],
@@ -1642,6 +1654,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: [transaction1, transaction2, transaction3],
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 transactionIDsPendingDeletion: [transaction1.transactionID],
@@ -1665,6 +1678,85 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(report?.total).toBe(10);
             expect(report?.unheldTotal).toBe(10);
             expect(report?.unheldNonReimbursableTotal).toBe(10);
+        });
+    });
+
+    describe('deleteMoneyRequest report preview message wording', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
+
+        it('uses "spent" wording in the report preview when a remaining transaction is non-reimbursable', async () => {
+            const chatReport: Report = {...createRandomReport(40, undefined)};
+            const expenseReport: Report = {
+                ...createRandomReport(41, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: chatReport.reportID,
+                total: 20,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactionToDelete: Transaction = {
+                ...createRandomTransaction(40),
+                amount: 10,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                reimbursable: true,
+            };
+            const remainingTransaction: Transaction = {
+                ...createRandomTransaction(41),
+                amount: 10,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                reimbursable: false,
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(40),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                childReportID: '40',
+                originalMessage: {
+                    amount: transactionToDelete.amount,
+                    currency: transactionToDelete.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: undefined,
+                previousMessage: undefined,
+            };
+            const reportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> = {
+                ...createRandomReportAction(42),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportID: chatReport.reportID,
+                originalMessage: {linkedReportID: expenseReport.reportID},
+                message: [{type: 'COMMENT', html: 'test@email.com owes $20.00', text: 'test@email.com owes $20.00'}],
+                previousMessage: undefined,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionToDelete.transactionID}`, transactionToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${remainingTransaction.transactionID}`, remainingTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
+            await waitForBatchedUpdates();
+
+            deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: transactionToDelete.transactionID,
+                reportAction: moneyRequestAction,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                iouReportTransactions: [transactionToDelete, remainingTransaction],
+                chatReport,
+                transactionThreadReport: undefined,
+                transactionIDsPendingDeletion: [],
+                selectedTransactionIDs: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+            await waitForBatchedUpdates();
+
+            const iouPreview = getReportPreviewReportAction(chatReport.reportID, expenseReport.reportID);
+            expect(getReportActionText(iouPreview)).toContain('spent');
         });
     });
 
@@ -1723,6 +1815,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: [transaction1],
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: transactionViolations,
@@ -1789,6 +1882,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: [transaction1],
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -1935,6 +2029,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -1961,6 +2056,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: afterFirstDelete,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -2010,6 +2106,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -2054,6 +2151,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -2104,6 +2202,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 transactionIDsPendingDeletion: [t21.transactionID],
@@ -2154,6 +2253,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: expenseReport,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},
@@ -2185,6 +2285,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactions: {},
                 violations: {},
                 iouReport: afterFirst,
+                iouReportTransactions: transactions,
                 chatReport: expenseReport,
                 transactionThreadReport: undefined,
                 allTransactionViolationsParam: {},

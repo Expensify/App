@@ -218,6 +218,8 @@ type DeleteTrackExpenseParams = {
     transactionID: string | undefined;
     reportAction: OnyxTypes.ReportAction;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    /** iouReport's transactions, for the non-reimbursable ("spent" vs "owes") wording in the report preview */
+    iouReportTransactions: OnyxTypes.Transaction[];
     chatIOUReport: OnyxEntry<OnyxTypes.Report>;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
@@ -2970,6 +2972,7 @@ function deleteTrackExpense({
     transactionID,
     reportAction,
     iouReport,
+    iouReportTransactions,
     chatIOUReport,
     transactions,
     violations,
@@ -3010,6 +3013,7 @@ function deleteTrackExpense({
             transactionThreadReport,
             violations,
             iouReport,
+            iouReportTransactions,
             chatReport: chatIOUReport,
             isChatIOUReportArchived,
             isSingleTransactionView,
