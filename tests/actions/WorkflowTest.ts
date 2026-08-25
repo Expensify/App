@@ -1101,6 +1101,54 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
         });
+
+        it('marks rewritten rules as pending update rather than pending add', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                rules: {},
+            };
+
+            // Seed the existing [employee1] → [owner] workflow as rules in the collection.
+            await createForwardApproveRules(policyID, [employee1Email], ownerEmail);
+
+            const initialApprovalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'update',
+                originalApprovers: [],
+            };
+
+            // Adding a member keeps the same approver chain, so the seeded rules are rewritten under their own IDs.
+            const approvalWorkflow = {
+                ...initialApprovalWorkflow,
+                members: [
+                    {email: employee1Email, displayName: employee1Email},
+                    {email: employee2Email, displayName: employee2Email},
+                ],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            const collection = await getRulesCollection();
+            expect(collection?.[`${ONYXKEYS.COLLECTION.RULE}rule1`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(collection?.[`${ONYXKEYS.COLLECTION.RULE}rule2`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('removeApprovalWorkflowRules', () => {
