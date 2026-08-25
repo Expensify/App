@@ -45,6 +45,7 @@ import {
     navigateBackOnDeleteTransaction,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     getChildTransactions,
@@ -55,6 +56,7 @@ import {
 } from '@libs/TransactionUtils';
 
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
@@ -81,7 +83,6 @@ import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getAllReports} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewReportAction} from './MoneyRequestBuilder';
-import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
@@ -280,7 +281,7 @@ function updateSplitTransactions({
 
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
-    const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, false);
+    const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
@@ -2027,7 +2028,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // set the navigate-back URL before the deletion to prevent the "Not Found" page.
     const splitExpenses = params.transactionData?.splitExpenses ?? [];
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID, false);
+    const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID);
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
 
     // Unfiltered, so a pure selfDM 2-split still collapses via REVERT_SPLIT_TRANSACTION. The mixed
@@ -2105,13 +2106,33 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    if (!isReverseSplitOperation) {
-        signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
+    // Register newly created split transaction IDs so they briefly highlight on the Search/Spend page.
+    // The Search page reads TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, which highlights matching rows
+    // optimistically without waiting for a server re-search. Unlike the auto-detect path in
+    // useSearchHighlightAndScroll (skipped while offline), this makes the highlight work offline too.
+    // Reverse splits create no new transactions, and existing children are already in the list, so both are skipped.
+    function registerSearchRouteHighlight() {
+        if (!isSearchPageTopmostFullScreenRoute || isReverseSplitOperation) {
+            return;
+        }
+        const currentSearchType = getCurrentSearchQueryJSON()?.type;
+        if (!currentSearchType) {
+            return;
+        }
+        const newTransactionIDsToHighlight: Record<string, boolean> = {};
+        for (const transactionID of getNewSplitTransactionIDs()) {
+            newTransactionIDsToHighlight[transactionID] = true;
+        }
+        if (isEmptyObject(newTransactionIDsToHighlight)) {
+            return;
+        }
+        mergeTransactionIdsHighlightOnSearchRoute(currentSearchType, newTransactionIDsToHighlight);
     }
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
+        registerSearchRouteHighlight();
         // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the
-        // next time that report is opened from the Inbox.
+        // next time that report is opened from the Inbox. registerSearchRouteHighlight above covers this page instead.
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
 
         if (!isSelfDMSplit) {

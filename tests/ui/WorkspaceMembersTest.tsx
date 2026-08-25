@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -152,6 +153,8 @@ describe('WorkspaceMembers', () => {
 
             // Click the "1 selected" button to open the menu
             const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
+            const bulkActionsDropdown = screen.UNSAFE_getAllByType(ButtonWithDropdownMenu).find(({props}) => props.testID === dropdownMenuButtonTestID);
+            expect(bulkActionsDropdown?.props.shouldPopoverUseScrollView).toBe(true);
             fireEvent.press(dropdownButton);
 
             await waitForBatchedUpdatesWithAct();

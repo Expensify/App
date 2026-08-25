@@ -136,21 +136,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
-    const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
     const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
     const shouldShowIntuitEnterpriseSuiteIntegration = isBetaEnabled(CONST.BETAS.INTUIT_ENTERPRISE_SUITE) && (isCollectPolicy(policy) || isControlPolicy(policy));
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-                if (name === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
-                    return canUseRilletIntegration;
-                }
                 if (name === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
                     return canUseDualEntryIntegration;
                 }
                 return true;
             }),
-        [canUseRilletIntegration, canUseDualEntryIntegration],
+        [canUseDualEntryIntegration],
     );
     const accountingIntegrationOptions = useMemo(
         () =>
@@ -392,12 +388,20 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 return !policy?.connections?.quickbooksOnline?.config?.companyName
                     ? {}
                     : {
-                          description: translate('workspace.qbo.connectedTo'),
+                          description: translate(isConnectedToIntuitEnterpriseSuite ? 'workspace.qbo.entity' : 'workspace.qbo.connectedTo'),
+                          iconRight: isConnectedToIntuitEnterpriseSuite ? icons.ArrowRight : undefined,
                           title: policy?.connections?.quickbooksOnline?.config?.companyName,
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: isConnectedToIntuitEnterpriseSuite && canWriteAccounting,
                           shouldShowDescriptionOnTop: true,
-                          interactive: false,
+                          interactive: isConnectedToIntuitEnterpriseSuite && canWriteAccounting,
+                          pendingAction: policy?.connections?.quickbooksOnline?.config?.pendingFields?.realmId,
+                          brickRoadIndicator: policy?.connections?.quickbooksOnline?.config?.errorFields?.realmId ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress:
+                              isConnectedToIntuitEnterpriseSuite && canWriteAccounting && policyID
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR.getRoute(policyID))
+                                  : undefined,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
                 return !isCertiniaFFAConnection(certiniaConfig)
@@ -461,6 +465,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         canWriteAccounting,
         connectedIntegration,
         currentXeroOrganization?.id,
+        isConnectedToIntuitEnterpriseSuite,
         policy,
         policyID,
         styles.fontWeightNormal,
