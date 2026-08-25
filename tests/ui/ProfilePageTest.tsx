@@ -94,7 +94,7 @@ describe('ProfilePage contact method indicator', () => {
     function renderPage() {
         return render(
             <NavigationContainer>
-                <ComposeProviders components={[DelegateNoAccessModalProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, DelegateNoAccessModalProvider]}>
                     <ProfilePage
                         // @ts-expect-error - route typing is not necessary for this test
                         route={{}}

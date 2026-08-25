@@ -7,8 +7,7 @@ import {
     useOpenReportSubmitToPopover,
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
-import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -35,7 +34,7 @@ import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
-import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {isOnHold, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -59,6 +58,7 @@ import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './type
 
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import getExpenseReportRowAccessibilityLabel from './getExpenseReportRowAccessibilityLabel';
+import {useGroupCheckboxState} from './useGroupChildren';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
@@ -100,16 +100,12 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {isSelected: liveRowSelected} = useRowSelection(item.keyForList);
-    const {selectedTransactions} = useSearchSelectionContext();
-
-    // For non-empty expense reports, `toggleTransaction` keys selection by child transaction ID, not the
-    // report row key, so `useRowSelection(reportID)` alone never reflects selection. Derive the row state
-    // from its transactions (all-or-nothing for expense reports), as the removed `applySelectionToItem` did.
-    const transactionsWithoutPendingDelete = (reportItem.transactions ?? []).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const areAllReportTransactionsSelected =
-        transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
-    const isSelected = liveRowSelected || areAllReportTransactionsSelected;
+    /*
+     * Selection for a non-empty expense report is keyed by child transaction ID, never by the report row key,
+     * so the row's own key alone can never reflect it. A report is checked by its rows once it has them, and
+     * by its own key only while it has none.
+     */
+    const {isSelectAllChecked: isSelected, isIndeterminate} = useGroupCheckboxState({groupKey: item.keyForList, groupTransactions: reportItem.transactions ?? []});
     const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -126,7 +122,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
         report: parentReport,
         isTrackIntentUser,
@@ -290,7 +286,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
-            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             introSelected,
@@ -352,6 +349,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isTrackIntentUser,
         liveViolationsForSnapshotTransactions,
         conciergeChat,
+        shouldShowMarkAsDoneCopy,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
@@ -524,13 +522,13 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             onButtonPress={handleOnButtonPress}
                             chatReport={chatReport}
                             isSelectAllChecked={isSelected}
-                            isIndeterminate={false}
+                            isIndeterminate={isIndeterminate}
                             isDisabledCheckbox={isDisabledCheckbox}
                             isHovered={hovered}
                             isFocused={isFocused}
                             isPendingDelete={isPendingDelete}
                             shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
-                            isMarkAsDone={shouldUseMarkAsDoneCopy}
+                            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         />
                     </AvatarTooltipsProvider>
                     {getDescription}

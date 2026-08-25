@@ -33,6 +33,7 @@ import {
     getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
+    getCompanyCardFeedWithDomainIDForCard,
     getCompanyFeeds,
     getConnectionBankAccountsForReconciliation,
     getCSVFeedType,
@@ -61,6 +62,7 @@ import {
     isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
     isCardFrozen,
+    isLastScrapePastDismissThreshold,
     isCSVFeedOrExpensifyCard,
     isCSVUploadFeed,
     isCustomFeed as isCustomFeedCardUtils,
@@ -4349,6 +4351,66 @@ describe('CardUtils', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
         });
+
+        // Regression: a personal card's lastScrape can arrive as ISO 8601 instead of the DB format. The strict DB-format
+        // parse returns NaN on it, so without the new Date() fallback the connection would never dismiss and the RBR would
+        // linger forever (the reported bug). Uses the real DateUtils to prove the ISO string is parsed and dismissed.
+        it('parses an ISO 8601 lastScrape and dismisses a long-broken connection without mocking', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01T00:00:00Z'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
+        });
+
+        it('parses an ISO 8601 lastScrape without a Z suffix and dismisses a long-broken connection', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01T00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
+        });
+
+        it('returns false when lastScrape is not a valid date in any supported format', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: 'not-a-date'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+
+        // The server can set a connection error on the card even when lastScrapeResult is one of the ignored
+        // statuses (e.g. 434), which isCardConnectionBroken treats as not broken — so this stays false for them.
+        it('returns false for an ignored scrape status even when the last sync is long past the threshold', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2020-01-01 00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+    });
+
+    describe('isLastScrapePastDismissThreshold', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        // Unlike isBrokenConnectionPastDismissThreshold this is keyed on the last successful sync only, so it is true
+        // for a long-stale card regardless of scrape status — including ignored statuses like 434, which still carry a
+        // server-set connection error that would otherwise light the Account/Wallet indicators forever.
+        it('returns true for a long-stale card with an ignored scrape status (e.g. 434)', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2020-01-01 00:00:00'};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(true);
+        });
+
+        it('returns true for a long-stale card with a broken scrape status', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(true);
+        });
+
+        it('returns false when the last sync is within the grace period', () => {
+            jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow').mockReturnValue(CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS - 1);
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2024-08-26 18:58:19'};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(false);
+        });
+
+        it('returns false when lastScrape is missing (fail safe: keep prompting)', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: ''};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(false);
+        });
+
+        it('returns false when lastScrape is not a valid date', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: 'not-a-date'};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(false);
+        });
     });
 
     describe('getCardHintText', () => {
@@ -4826,6 +4888,26 @@ describe('getCardConnectionStatusDisplay', () => {
             shouldUseCompanyCardsLink: true,
             shouldUseReauthMessage: false,
         });
+    });
+});
+
+describe('getCompanyCardFeedWithDomainIDForCard', () => {
+    it('returns the feed key of the card feed the card belongs to', () => {
+        const card = createMock<Card>({cardID: 1, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, fundID: '7001'});
+
+        expect(getCompanyCardFeedWithDomainIDForCard(card)).toBe(`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT}#7001`);
+    });
+
+    it('returns undefined for a personal card, which has no fundID', () => {
+        const card = createMock<Card>({cardID: 2, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, fundID: '0'});
+
+        expect(getCompanyCardFeedWithDomainIDForCard(card)).toBeUndefined();
+    });
+
+    it('returns undefined for an Expensify Card, which has no company card feed', () => {
+        const card = createMock<Card>({cardID: 3, bank: CONST.EXPENSIFY_CARD.BANK, fundID: '7001'});
+
+        expect(getCompanyCardFeedWithDomainIDForCard(card)).toBeUndefined();
     });
 });
 

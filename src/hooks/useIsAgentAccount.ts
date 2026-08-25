@@ -4,13 +4,17 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import {accountIDSelector} from '@selectors/Session';
+
 import useOnyx from './useOnyx';
 
 function useIsAgentAccount(): boolean | undefined {
-    const accountID = useCurrentUserPersonalDetails().accountID;
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [personalDetail, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetails?.[accountID] : undefined),
+        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => {
+            const detail = accountID ? personalDetails?.[accountID] : undefined;
+            return detail ? {isCustomAgent: detail.isCustomAgent} : undefined;
+        },
     });
     const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [hasLoadedApp, hasLoadedAppMetadata] = useOnyx(ONYXKEYS.HAS_LOADED_APP);

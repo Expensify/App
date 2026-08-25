@@ -173,6 +173,8 @@ const oldRoutes: Record<string, string> = {
     '/*/*/description/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/date/*/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
     '/*/*/date/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/participants/participants-details/*': '/$1/$2/participants/participants-details/$3',
+    '/*/*/participants/*/*': '/r/$4/expense-participants?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

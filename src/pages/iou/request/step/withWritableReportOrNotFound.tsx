@@ -46,7 +46,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.CREATE
     | typeof SCREENS.MONEY_REQUEST.START
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG
-    | typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
@@ -96,6 +96,8 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
 
@@ -108,7 +110,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
         if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID});
+        openReport({reportID: route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

@@ -103,7 +103,7 @@ function ForYouSection() {
                     iconFill: colors.tangerine500,
                     translationKey: 'homePage.forYouSection.reviewExpenses' as const,
                     handler: reviewExpenses,
-                    buttonProps: {danger: true} as const,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 },
                 {
                     key: 'submit',
@@ -162,7 +162,7 @@ function ForYouSection() {
 
     const renderTodoItems = () => (
         <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {todoItems.map(({key, count, icon, iconBackgroundColor, iconFill, translationKey, handler, buttonProps}) => (
+            {todoItems.map(({key, count, icon, iconBackgroundColor, iconFill, translationKey, handler, buttonVariant}) => (
                 <BaseWidgetItem
                     key={key}
                     icon={icon}
@@ -171,7 +171,7 @@ function ForYouSection() {
                     title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}
                     onCtaPress={handler}
-                    buttonProps={buttonProps ?? {success: true}}
+                    buttonVariant={buttonVariant ?? CONST.BUTTON_VARIANT.SUCCESS}
                 />
             ))}
         </View>
