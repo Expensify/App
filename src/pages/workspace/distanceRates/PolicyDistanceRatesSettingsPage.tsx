@@ -234,7 +234,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 shouldUseCompactSubtitleSpacing
                                 wrapperStyle={[styles.mt2, styles.mh5]}
                                 isActive={isRequired}
-                                onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn)}
+                                onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn, policy?.requireMapOrGPS)}
                                 disabled={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
                                 disabledAction={withReadOnlyFallback(isRequirementLockedByCommuterExclusions ? showRequirementLockedModal : undefined)}
                                 showLockIcon={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}

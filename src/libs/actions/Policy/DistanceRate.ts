@@ -639,7 +639,7 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
  * Turn the "Require GPS or map entry" setting on or off for a policy. When it's on, the manual and odometer
  * distance flows are unavailable because neither can produce a mapped route.
  */
-function setPolicyRequireMapOrGPS(policyID: string, requireMapOrGPS: boolean) {
+function setPolicyRequireMapOrGPS(policyID: string, requireMapOrGPS: boolean, previousRequireMapOrGPS: boolean | undefined) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
@@ -668,7 +668,7 @@ function setPolicyRequireMapOrGPS(policyID: string, requireMapOrGPS: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    requireMapOrGPS: !requireMapOrGPS,
+                    requireMapOrGPS: previousRequireMapOrGPS ?? false,
                     pendingFields: {requireMapOrGPS: null},
                     errorFields: {requireMapOrGPS: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
