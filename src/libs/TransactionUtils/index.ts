@@ -1309,15 +1309,6 @@ function hasPendingDistanceReceiptRegeneration(transaction: OnyxInputOrEntry<Tra
 }
 
 /**
- * Whether the route of a distance expense failed. The stored receipt then describes a different trip, or the
- * server never built one. This covers the route only, because `transaction.errors` also carries failures that
- * say nothing about the receipt, such as a failed payment or an invalid rate.
- */
-function hasDistanceRouteErrors(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-}
-
-/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -3506,7 +3497,6 @@ export {
     isFetchingWaypointsFromServer,
     hasLocallyKnownDistance,
     hasPendingDistanceReceiptRegeneration,
-    hasDistanceRouteErrors,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
     isDuplicate,
