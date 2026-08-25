@@ -161,6 +161,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         }
     }
 
+    // Otherwise cleared only on save, so backing out left the draft for the next rule to inherit.
+    useEffect(() => () => clearDraftRequireFieldsRule(), []);
+
     useEffect(() => {
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
@@ -224,6 +227,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             isVisible: true,
         },
         {
+            key: INPUT_IDS.ATTENDEES_SETTING,
+            label: translate('iou.attendees'),
+            isVisible: isAttendeeFieldApplicable,
+        },
+        {
             key: INPUT_IDS.RECEIPT_SETTING,
             label: translate('common.receipt'),
             isVisible: true,
@@ -232,11 +240,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             key: INPUT_IDS.ITEMIZED_RECEIPT_SETTING,
             label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'),
             isVisible: true,
-        },
-        {
-            key: INPUT_IDS.ATTENDEES_SETTING,
-            label: translate('iou.attendees'),
-            isVisible: isAttendeeFieldApplicable,
         },
     ];
 
@@ -350,7 +353,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         if (isEditing && !didChangeCategory && !hasRequireFieldsRuleChanges(selectedCategory ?? category, formToSave, touchedFields, clearedFields)) {
             clearDraftRequireFieldsRule();
-            Navigation.goBack();
+            Navigation.goBack(initialCategoryName ? (categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, initialCategoryName)) : undefined);
             return;
         }
 
@@ -364,7 +367,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         clearDraftRequireFieldsRule();
 
-        if (!isEditing && isRulesRevampEnabled) {
+        // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
+        // case going back one step would land on the New rule hub instead of the category we came from.
+        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
             const savedCategoryName = savedCategory ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
                 Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));

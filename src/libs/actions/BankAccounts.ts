@@ -157,7 +157,8 @@ function openPersonalBankAccountSetupView({
         Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
 
         if (!isUserValidated) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            // This flow always adds a personal deposit account, so the purpose screen is skipped once the account is validated.
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true)));
             return;
         }
         if (shouldSetUpUSBankAccount) {

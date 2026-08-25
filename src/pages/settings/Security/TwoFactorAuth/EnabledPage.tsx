@@ -1,6 +1,7 @@
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -70,7 +71,7 @@ function EnabledPage() {
                         <Text style={styles.textLabel}>{translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
                     </View>
                 </Section>
-                <MenuItem
+                <MenuItemAction
                     title={translate('twoFactorAuth.replaceDevice')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD)}
                     icon={icons.Sync}

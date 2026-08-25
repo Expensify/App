@@ -140,7 +140,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
                     {pending ? (
                         <ActivityIndicator
                             size={variables.iconSizeSmall}
-                            reasonAttributes={{context: 'Switch'}}
+                            extraLoadingContext={{context: 'Switch'}}
                         />
                     ) : (
                         (!!disabled || !!showLockIcon) && (

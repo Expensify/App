@@ -14,6 +14,8 @@ import type * as ReactNavigationNative from '@react-navigation/native';
 
 import React from 'react';
 
+import createMock from '../../../utils/createMock';
+
 const mockSetNewAgentUploadedAvatar = jest.fn<Promise<void>, unknown[]>(() => Promise.resolve());
 const mockSetNewAgentAvatarPreset = jest.fn<Promise<void>, unknown[]>(() => Promise.resolve());
 const mockLogWarn = jest.fn<void, unknown[]>();
@@ -55,7 +57,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 const mockGoBack = jest.mocked(Navigation.goBack);
 const mockUseOnyx = jest.mocked(useOnyx);
-const MOCK_FILE = {uri: 'file://photo.jpg', name: 'photo.jpg'} as unknown as File;
+const MOCK_FILE = createMock<File>({uri: 'file://photo.jpg', name: 'photo.jpg'});
 
 describe('AddAgentAvatarPage', () => {
     beforeEach(() => {

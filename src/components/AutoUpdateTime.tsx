@@ -20,7 +20,7 @@ type AutoUpdateTimeProps = {
 };
 
 function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
 
     const [, setTick] = useState(0);
@@ -43,7 +43,7 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
         <View style={[styles.w100, styles.detailsPageSectionContainer]}>
             <MenuItemWithTopDescription
                 style={[styles.ph0]}
-                title={`${DateUtils.formatToLocalTime(currentUserLocalTime)} ${timezoneName}`}
+                title={`${DateUtils.formatToLocalTime(currentUserLocalTime, dateFnsLocale)} ${timezoneName}`}
                 description={translate('detailsPage.localTime')}
                 interactive={false}
             />

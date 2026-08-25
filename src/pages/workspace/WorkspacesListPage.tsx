@@ -1,9 +1,9 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
-import WorkspaceListLayout from '@components/WorkspaceListLayout';
+import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -27,8 +27,6 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,7 +46,7 @@ function WorkspacesListPage() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -131,9 +129,9 @@ function WorkspacesListPage() {
                 ownerAccountID,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) : undefined,
                 iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.nonMemberDetails.name),
+                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : undefined,
                 action: () => null,
                 dismissError: () => null,
             };
@@ -160,9 +158,9 @@ function WorkspacesListPage() {
                 isDeleted: policy.isPendingDelete,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) : undefined,
                 iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                icon: policy.avatarURL,
                 pendingAction: policy.pendingAction,
                 action: (event) => navigateToWorkspace(policyID, event),
                 dismissError: () => dismissWorkspaceError(policyID, policy.pendingAction),
@@ -172,8 +170,9 @@ function WorkspacesListPage() {
         }
     }
 
+    const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
     useEffect(() => {
-        const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
+        const duplicatedWSPolicyID = duplicateWorkspacePolicyID;
         const filteredWorkspaces = tableRef.current?.getProcessedData() ?? [];
 
         if (!duplicatedWSPolicyID || !filteredWorkspaces.length || !isFocused) {
@@ -181,17 +180,18 @@ function WorkspacesListPage() {
         }
 
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
+
         if (duplicateWorkspaceIndex < 0) {
             return;
         }
 
-        tableRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+        tableRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false, viewPosition: 0.5});
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => clearDuplicateWorkspace(),
         });
 
         return () => handle.cancel();
-    }, [duplicateWorkspace?.policyID, isFocused, workspaceRows.length]);
+    }, [duplicateWorkspacePolicyID, isFocused, workspaceRows.length]);
 
     // Scroll to the top when the list gets its first workspace, so it's visible. On web, returning from the create
     // flow restores the scroll position the empty list had (it was scrolled down to reach the "New workspace" button),
@@ -214,12 +214,19 @@ function WorkspacesListPage() {
 
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             accessibilityLabel={translate('common.new')}
-            text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)))}
-            icon={icons.Plus}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.new')}</Button.Text>
+        </Button>
+    );
+    const headerComponent = (
+        <WorkspaceListHeaderContent
+            activeTabKey="workspaces"
+            headerButton={headerButton}
         />
     );
 
@@ -234,35 +241,35 @@ function WorkspacesListPage() {
         <WorkspaceListLayout
             activeTabKey="workspaces"
             headerButton={headerButton}
+            headerComponent={headerComponent}
+            scrollHeaderWithTable
         >
-            {shouldShowLoadingIndicator ? (
-                <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={
-                            {
-                                context: 'WorkspacesListPage',
-                                isOffline,
-                            } satisfies SkeletonSpanReasonAttributes
-                        }
+            <>
+                {shouldShowLoadingIndicator ? (
+                    <>
+                        {headerComponent}
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                        </View>
+                    </>
+                ) : (
+                    <WorkspaceListTable
+                        ref={tableRef}
+                        workspaces={workspaceRows}
+                        headerComponent={headerComponent}
+                        onDeleteWorkspace={setPolicyIDToDelete}
+                        pendingDeletePolicyID={policyIDToDelete}
                     />
-                </View>
-            ) : (
-                <WorkspaceListTable
-                    ref={tableRef}
-                    workspaces={workspaceRows}
-                    onDeleteWorkspace={setPolicyIDToDelete}
-                    pendingDeletePolicyID={policyIDToDelete}
-                />
-            )}
-            {!!policyIDToDelete && (
-                <DeleteWorkspaceFlow
-                    key={policyIDToDelete}
-                    policyID={policyIDToDelete}
-                    onDismiss={() => setPolicyIDToDelete(undefined)}
-                />
-            )}
-            <CopyPolicySettingsProgressModal />
+                )}
+                {!!policyIDToDelete && (
+                    <DeleteWorkspaceFlow
+                        key={policyIDToDelete}
+                        policyID={policyIDToDelete}
+                        onDismiss={() => setPolicyIDToDelete(undefined)}
+                    />
+                )}
+                <CopyPolicySettingsProgressModal />
+            </>
         </WorkspaceListLayout>
     );
 }

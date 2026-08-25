@@ -2,6 +2,7 @@ import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
     getCategoryGLCode,
+    getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
@@ -15,6 +16,7 @@ import type {Policy, PolicyCategories} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
 describe(`isMissingCategory`, () => {
@@ -38,13 +40,13 @@ describe(`isMissingCategory`, () => {
 });
 
 describe('formatRequireItemizedReceiptsOverText', () => {
-    const mockPolicy: Policy = {
+    const mockPolicy = createMock<Policy>({
         id: '1',
         name: 'Test Policy',
         type: CONST.POLICY.TYPE.CORPORATE,
         outputCurrency: CONST.CURRENCY.USD,
         maxExpenseAmountNoItemizedReceipt: 7500,
-    } as Policy;
+    });
 
     it('returns "Always" text when category amount is 0', () => {
         const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, 0, convertToDisplayString);
@@ -219,7 +221,7 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
         expect(result[keyOther]?.TestCategory3).toBeDefined();
     });
 
-    describe('processCategoryNameSegments and getDecodedLeafCategoryName', () => {
+    describe('category name formatting', () => {
         describe('processCategoryNameSegments', () => {
             it('returns a single segment for colon‑only names', () => {
                 expect(processCategoryNameSegments(':')).toEqual([':']);
@@ -242,6 +244,41 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
             it('returns the leaf for normal hierarchies (trimmed)', () => {
                 expect(getDecodedLeafCategoryName('Food: Meat')).toEqual('Meat');
                 expect(getDecodedLeafCategoryName('A: B:')).toEqual('B:');
+            });
+        });
+
+        describe('getDecodedFullCategoryName', () => {
+            it('returns the full name for colon‑only categories', () => {
+                expect(getDecodedFullCategoryName(':')).toEqual(':');
+                expect(getDecodedFullCategoryName('::')).toEqual('::');
+            });
+
+            it('returns the full path for normal hierarchies', () => {
+                expect(getDecodedFullCategoryName('Food: Meat')).toEqual('Food: Meat');
+                expect(getDecodedFullCategoryName('A: B:')).toEqual('A: B:');
+                expect(getDecodedFullCategoryName('Meals and Entertainment: Other')).toEqual('Meals and Entertainment: Other');
+            });
+
+            it('normalizes separator spacing for display', () => {
+                expect(getDecodedFullCategoryName('A:B')).toEqual('A: B');
+                expect(getDecodedFullCategoryName('A:  B')).toEqual('A: B');
+            });
+
+            it('drops empty middle segments', () => {
+                expect(getDecodedFullCategoryName('Food: : Meat')).toEqual('Food: Meat');
+            });
+
+            it('keeps a single trailing colon on the last segment', () => {
+                expect(getDecodedFullCategoryName('A: B::')).toEqual('A: B:');
+            });
+
+            it('returns single segments and empty input unchanged', () => {
+                expect(getDecodedFullCategoryName('Plain')).toEqual('Plain');
+                expect(getDecodedFullCategoryName('')).toEqual('');
+            });
+
+            it('decodes HTML entities in every segment', () => {
+                expect(getDecodedFullCategoryName('Travel &amp; Lodging: Other')).toEqual('Travel & Lodging: Other');
             });
         });
     });

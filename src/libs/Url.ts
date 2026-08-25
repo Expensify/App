@@ -153,4 +153,22 @@ function getUrlWithParams<TBase extends string, TParams extends UrlParams>(baseU
     return (queryString ? `${path}?${queryString}` : path) as UrlWithParams<TBase>;
 }
 
-export {getSearchParamFromUrl, getSearchParamFromPath, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain, getUrlWithParams};
+/**
+ * Whether a URL or route carries a Submit-via-PDF secure access key (the `secureKey` query param).
+ */
+function hasSecureLinkKey(url: string | null | undefined): boolean {
+    return !!url?.includes('secureKey=');
+}
+
+export {
+    getSearchParamFromUrl,
+    getSearchParamFromPath,
+    hasSameExpensifyOrigin,
+    getPathFromURL,
+    appendParam,
+    hasURL,
+    addLeadingForwardSlash,
+    extractUrlDomain,
+    getUrlWithParams,
+    hasSecureLinkKey,
+};

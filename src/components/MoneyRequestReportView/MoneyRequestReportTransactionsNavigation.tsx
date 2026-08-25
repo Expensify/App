@@ -1,3 +1,4 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -19,7 +20,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {startTransition, useCallback, useEffect, useMemo} from 'react';
@@ -29,23 +30,13 @@ type MoneyRequestReportRHPNavigationButtonsProps = {
     isFromReviewDuplicates?: boolean;
 };
 
-const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
-    const parentActions = new Map<string, OnyxTypes.ReportAction>();
-    for (const action of Object.values(reportActions ?? {})) {
-        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-        if (!transactionID) {
-            continue;
-        }
-        parentActions.set(transactionID, action);
-    }
-    return parentActions;
-};
-
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [siblingDescriptorsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const personalDetails = usePersonalDetails();
+
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {markReportRHPWidth} = useWideRHPActions();
 
@@ -75,31 +66,41 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         selector: prevNextTransactionsSelector,
     });
 
+    // Only the prev/next parent actions are ever read, so resolve them inside the selector instead of returning
+    // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
     const parentReportActionsSelector = useCallback(
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
-            let reportActions = {};
-            for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
-                reportActions = {...reportActions, ...allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`]};
+            let prevParentReportAction: OnyxTypes.ReportAction | undefined;
+            let nextParentReportAction: OnyxTypes.ReportAction | undefined;
+            if (!prevTransactionID && !nextTransactionID) {
+                return {prevParentReportAction, nextParentReportAction};
             }
-            return parentReportActionIDsSelector(reportActions);
+            const parentReportIDs = new Set([currentTransaction?.reportID, prevTransaction?.reportID, nextTransaction?.reportID]);
+            for (const parentReportID of parentReportIDs) {
+                for (const action of Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {})) {
+                    const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+                    if (!transactionID) {
+                        continue;
+                    }
+                    if (transactionID === prevTransactionID) {
+                        prevParentReportAction = action;
+                    }
+                    if (transactionID === nextTransactionID) {
+                        nextParentReportAction = action;
+                    }
+                }
+            }
+            return {prevParentReportAction, nextParentReportAction};
         },
-        [currentTransaction, nextTransaction, prevTransaction],
+        [currentTransaction?.reportID, nextTransaction?.reportID, nextTransactionID, prevTransaction?.reportID, prevTransactionID],
     );
 
-    const [parentReportActions = new Map<string, OnyxTypes.ReportAction>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+    const [parentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: parentReportActionsSelector,
     });
 
-    const {prevParentReportAction, nextParentReportAction} = useMemo(() => {
-        if (!transactionIDsList || transactionIDsList.length < 2) {
-            return {prevParentReportAction: undefined, nextParentReportAction: undefined};
-        }
-
-        return {
-            prevParentReportAction: prevTransactionID ? parentReportActions.get(prevTransactionID) : undefined,
-            nextParentReportAction: nextTransactionID ? parentReportActions.get(nextTransactionID) : undefined,
-        };
-    }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
+    const prevParentReportAction = parentReportActions?.prevParentReportAction;
+    const nextParentReportAction = parentReportActions?.nextParentReportAction;
 
     const [prevParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevTransaction?.reportID}`);
     const [nextParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextTransaction?.reportID}`);
@@ -141,15 +142,33 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const nextDescriptor = nextTransactionID ? siblingDescriptorsByTransactionID?.[nextTransactionID] : undefined;
         if (nextDescriptor) {
             requestAnimationFrame(() => {
-                const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
+                const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {
+                    introSelected,
+                    betas,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    personalDetails,
+                });
                 markReportRHPWidth(nextReportID, 'wide');
-                requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, backTo})));
+                requestAnimationFrame(() =>
+                    startTransition(() =>
+                        Navigation.setParams({
+                            reportID: nextReportID,
+                            reportActionID: undefined,
+                            backTo,
+                        }),
+                    ),
+                );
             });
             return;
         }
 
         const nextThreadReportID = nextParentReportAction?.childReportID;
-        const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
+        const navigationParams = {
+            reportID: nextThreadReportID,
+            reportActionID: undefined,
+            backTo,
+        };
 
         requestAnimationFrame(() => {
             if (nextThreadReportID) {
@@ -169,6 +188,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     iouReport: nextParentReport,
                     iouReportAction: nextParentReportAction,
                     transaction: nextTransaction,
+                    personalDetails,
                 });
                 navigationParams.reportID = transactionThreadReport?.reportID;
             }
@@ -191,15 +211,33 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const prevDescriptor = prevTransactionID ? siblingDescriptorsByTransactionID?.[prevTransactionID] : undefined;
         if (prevDescriptor) {
             requestAnimationFrame(() => {
-                const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
+                const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {
+                    introSelected,
+                    betas,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    personalDetails,
+                });
                 markReportRHPWidth(prevReportID, 'wide');
-                requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, backTo})));
+                requestAnimationFrame(() =>
+                    startTransition(() =>
+                        Navigation.setParams({
+                            reportID: prevReportID,
+                            reportActionID: undefined,
+                            backTo,
+                        }),
+                    ),
+                );
             });
             return;
         }
 
         const prevThreadReportID = prevParentReportAction?.childReportID;
-        const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
+        const navigationParams = {
+            reportID: prevThreadReportID,
+            reportActionID: undefined,
+            backTo,
+        };
 
         requestAnimationFrame(() => {
             if (prevThreadReportID) {
@@ -219,6 +257,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     iouReport: prevParentReport,
                     iouReportAction: prevParentReportAction,
                     transaction: prevTransaction,
+                    personalDetails,
                 });
                 navigationParams.reportID = transactionThreadReport?.reportID;
             }

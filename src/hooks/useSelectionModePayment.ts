@@ -30,6 +30,7 @@ import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef} from 'react';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
@@ -79,6 +80,7 @@ function useSelectionModePayment({
     confirmApproval,
 }: UseSelectionModePaymentParams) {
     const {translate, localeCompare} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -96,7 +98,6 @@ function useSelectionModePayment({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -186,10 +187,10 @@ function useSelectionModePayment({
 
         if (isInvoiceReport) {
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
-                invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -209,11 +210,11 @@ function useSelectionModePayment({
             });
         } else {
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
                 introSelected,
-                iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
@@ -302,6 +303,7 @@ function useSelectionModePayment({
 
     const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
+            getCurrencyDecimals,
             event,
             iouPaymentType,
             triggerKYCFlow,
@@ -313,7 +315,6 @@ function useSelectionModePayment({
             isASAPSubmitBetaEnabled,
             confirmApproval,
             iouReport: moneyRequestReport,
-            iouReportNextStep: nextStep,
             betas,
             userBillingGracePeriodEnds,
             amountOwed,

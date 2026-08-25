@@ -8,6 +8,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {accountIDSelector, emailSelector} from '@selectors/Session';
 import {useCallback} from 'react';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -26,15 +27,26 @@ function useCreateNewReport() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const hasViolations = hasViolationsUtil(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, email ?? '');
 
     return useCallback(
         (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, betas, isTrackIntentUser, false, shouldDismissEmptyReportsConfirmation);
+            return createNewReport(
+                currentUserPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                policy,
+                betas,
+                isTrackIntentUser,
+                getCurrencyDecimals,
+                false,
+                shouldDismissEmptyReportsConfirmation,
+            );
         },
-        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser],
+        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals],
     );
 }
 

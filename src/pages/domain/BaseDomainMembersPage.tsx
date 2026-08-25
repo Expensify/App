@@ -11,8 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
 
-import type IconAsset from '@src/types/utils/IconAsset';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -30,9 +28,6 @@ type BaseDomainMembersPageProps = {
 
     /** Content to display in the header (e.g., Add/Settings buttons) */
     headerContent?: React.ReactNode;
-
-    /** Icon displayed in the header of the tab */
-    headerIcon?: IconAsset;
 
     /** Stores list of selected members */
     selectedMembers?: string[];
@@ -64,7 +59,6 @@ function BaseDomainMembersPage({
     members,
     headerTitle,
     headerContent,
-    headerIcon,
     selectedMembers = [],
     setSelectedMembers,
     useSelectionModeHeader,
@@ -90,7 +84,6 @@ function BaseDomainMembersPage({
                 <HeaderWithBackButton
                     title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
                     onBackButtonPress={onBackButtonPress ?? Navigation.goBack}
-                    icon={!useSelectionModeHeader ? headerIcon : undefined}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
                     shouldDisplayHelpButton

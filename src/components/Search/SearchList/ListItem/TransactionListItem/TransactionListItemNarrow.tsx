@@ -55,7 +55,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
-    const {isSelected} = useRowSelection(item.keyForList);
+    const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.

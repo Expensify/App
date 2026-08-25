@@ -73,6 +73,9 @@ const STATEMENT_SCOPE_FILTER_KEYS = new Set<string>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+    // A settlement debits one bank account, so filtering by it picks whole settlements (like feed), never rows inside
+    // one. Card programs each settle to their own account, so this is how a single program is isolated.
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
 ]);
 
 // Returns the single workspace the search is filtered to, or undefined. We scope the statement to a workspace only

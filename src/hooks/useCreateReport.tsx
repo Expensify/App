@@ -29,6 +29,8 @@ type UseCreateReportParams = {
     onNavigateToWorkspaceSelection?: () => void;
     /** Whether the empty-report confirmation modal should push a history entry so browser-back dismisses it (default: true) */
     shouldHandleNavigationBack?: boolean;
+    /** Whether to skip the empty-report confirmation scan until the entry point is relevant */
+    shouldSkipEmptyReportConfirmation?: boolean;
 };
 
 type UseCreateReportResult = {
@@ -53,6 +55,7 @@ export default function useCreateReport({
     groupPoliciesWithChatEnabled,
     onNavigateToWorkspaceSelection,
     shouldHandleNavigationBack = true,
+    shouldSkipEmptyReportConfirmation = false,
 }: UseCreateReportParams): UseCreateReportResult {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -72,7 +75,7 @@ export default function useCreateReport({
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID, shouldSkipEmptyReportConfirmation);
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,

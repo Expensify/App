@@ -122,7 +122,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
     if (isRedirecting) {
         return (
             <ScreenWrapper testID="NetSuiteImportAddCustomSegmentContent">
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomSegmentContent'}} />
+                <FullScreenLoadingIndicator />
             </ScreenWrapper>
         );
     }

@@ -1,9 +1,9 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, hasNonReimbursableTransactions, isBillableEnabledOnPolicy, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
+import {getReportIDForTransaction, isBillableEnabledOnPolicy, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -174,20 +174,6 @@ describe('MoneyRequestReportUtils', () => {
         test('returns false when policy is non-paid group', () => {
             const policy = createMock<Policy>({type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
-        });
-    });
-
-    describe('hasNonReimbursableTransactions', () => {
-        test('returns false when all transactions are reimbursable by default', () => {
-            const t1 = createMock<Transaction>({reimbursable: undefined});
-            const t2 = createMock<Transaction>({reimbursable: true});
-            expect(hasNonReimbursableTransactions([t1, t2])).toBe(false);
-        });
-
-        test('returns true when any transaction is non-reimbursable', () => {
-            const reimbursable = createMock<Transaction>({reimbursable: true});
-            const nonReimbursable = createMock<Transaction>({reimbursable: false});
-            expect(hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
         });
     });
 

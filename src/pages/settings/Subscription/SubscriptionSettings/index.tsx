@@ -33,7 +33,6 @@ import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplifiedCollectSubscriptionUI} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -58,7 +57,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 function SubscriptionSettings() {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['Coins']);
     const styles = useThemeStyles();
@@ -95,10 +94,11 @@ function SubscriptionSettings() {
     const isExpensifyCodeApplied = !!privatePromoCode;
     const shouldShowExpensifyCodeHintText = isExpensifyCodeApplied && promoDiscountValue !== undefined;
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
-    const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
-        lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
-        upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
-    });
+    const priceDetails = translate(
+        `subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`,
+        convertToShortDisplayString(subscriptionPrice, preferredCurrency),
+        convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
+    );
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins?.toString() : undefined;
     const shouldUseSimplifiedCollectUI = shouldUseSimplifiedCollectSubscriptionUI(subscriptionPlan, hasTeam2025Pricing);
     const collectPriceDisplay = convertToShortDisplayString(subscriptionPrice, preferredCurrency);
@@ -174,7 +174,7 @@ function SubscriptionSettings() {
             </>
         ) : null;
 
-    const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate);
+    const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate, dateFnsLocale);
 
     const handleAutoRenewToggle = () => {
         if (isActingAsDelegate) {
@@ -229,8 +229,7 @@ function SubscriptionSettings() {
     }
 
     if (!privateSubscription) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettings', privateSubscriptionLoaded: false};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

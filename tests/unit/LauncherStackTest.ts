@@ -1,7 +1,8 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
-const {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests} = require<{
+const {pickLauncher, consumeLauncher, hasLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests} = require<{
     pickLauncher: () => HTMLElement | null;
     consumeLauncher: (element: HTMLElement) => void;
+    hasLauncher: (element: HTMLElement) => boolean;
     setActivePopoverLauncher: (element: HTMLElement) => void;
     markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
     resetLauncherStackForTests: () => void;
@@ -149,6 +150,29 @@ describe('LauncherStack', () => {
             });
         });
 
+        it('keeps the entry active until every trap holding it has released', () => {
+            // A popover's two traps and the modal it opens all adopt the same launcher, which dedupes to one entry.
+            // The popover closing underneath must not deactivate the launcher the modal above it still needs.
+            // deactivatedAt is stamped from performance.now(), so the marks have to share the fake clock the
+            // assertions advance, otherwise the entry is timestamped on the real clock and never ages out.
+            withFakeTimers(() => {
+                const fab = appendButton();
+                setActivePopoverLauncher(fab);
+                setActivePopoverLauncher(fab);
+                setActivePopoverLauncher(fab);
+
+                markActivePopoverLauncherDeactivated(fab);
+                markActivePopoverLauncherDeactivated(fab);
+                jest.advanceTimersByTime(2000);
+                // Still held by the covering trap, so it must not age out of the window.
+                expect(pickLauncher()).toBe(fab);
+
+                markActivePopoverLauncherDeactivated(fab);
+                jest.advanceTimersByTime(2000);
+                expect(pickLauncher()).toBeNull();
+            });
+        });
+
         it('moves the deactivated entry to the stack tail so nested-close order matches recency (outer closes AFTER inner → outer wins)', () => {
             // Outer A opens, inner B opens, B deactivates first, A deactivates second. A is the most recently-deactivated and should be picked.
             const outer = appendButton();
@@ -177,6 +201,29 @@ describe('LauncherStack', () => {
             consumeLauncher(a);
             expect(() => consumeLauncher(a)).not.toThrow();
             expect(pickLauncher()).toBeNull();
+        });
+    });
+
+    describe('hasLauncher', () => {
+        it('is true for a registered launcher, active or deactivated', () => {
+            const a = appendButton();
+            setActivePopoverLauncher(a);
+            expect(hasLauncher(a)).toBe(true);
+            markActivePopoverLauncherDeactivated(a);
+            expect(hasLauncher(a)).toBe(true);
+        });
+
+        it('is false for an element that was never registered', () => {
+            expect(hasLauncher(appendButton())).toBe(false);
+        });
+
+        // This is the signal FocusTrapForModal uses to tell "closed in place" from "closed because we navigated":
+        // captureTriggerForRoute consumes the launcher on a forward nav and owns the Back restore from then on.
+        it('is false once a forward navigation has consumed the launcher', () => {
+            const a = appendButton();
+            setActivePopoverLauncher(a);
+            consumeLauncher(a);
+            expect(hasLauncher(a)).toBe(false);
         });
     });
 });

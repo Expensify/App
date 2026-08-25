@@ -14,7 +14,6 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -173,9 +172,7 @@ function InternationalDepositAccountContent({
             shouldShowOfflineIndicatorInWideScreen={pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             {isRedirecting || isAccountLoading ? (
-                <FullScreenLoadingIndicator
-                    reasonAttributes={{context: 'InternationalDepositAccountContent', isRedirecting: !!isRedirecting, isAccountLoading} satisfies SkeletonSpanReasonAttributes}
-                />
+                <FullScreenLoadingIndicator />
             ) : (
                 <>
                     <HeaderWithBackButton

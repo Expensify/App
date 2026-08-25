@@ -56,7 +56,7 @@ function CardListItem<TItem extends ListItem>({
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
 
     const ownersAvatar = {
@@ -150,10 +150,10 @@ function CardListItem<TItem extends ListItem>({
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            text={Str.removeSMSDomain(item.text ?? '')}
+                            text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
                             style={[
                                 styles.optionDisplayName,
-                                isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                styles.sidebarLinkText,
                                 item.isBold !== false && styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,

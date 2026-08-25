@@ -1,6 +1,6 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
 
@@ -36,7 +36,7 @@ type AvatarPreviewProps = {
     /** The image data */
     imageData: ImageData;
     /** The function to set the error */
-    setError: (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => void;
+    setError: (error: TranslationPaths | null, phraseParam?: Record<string, unknown>) => void;
     /** Opens the avatar crop screen for the picked image */
     openCropper: (image: FileObject) => void;
 };
@@ -97,16 +97,16 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     return;
                 }
 
-                setError(null, {});
+                setError(null);
                 openCropper(image);
             })
             .catch(() => {
-                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment');
             });
     };
 
     const clearError = () => {
-        setError(null, {});
+        setError(null);
     };
 
     const {createMenuItems} = useAvatarMenu({
@@ -149,15 +149,16 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     if (menuItems?.length <= 1) {
                         return (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         );
                     }
 
