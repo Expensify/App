@@ -1,8 +1,10 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCorpayOnboardingFields} from '@libs/actions/BankAccounts';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 import type {BusinessInfoSubPageProps} from './types';
 
@@ -39,6 +42,7 @@ const pages = [
 
 function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimbursementsBusinessPageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const bankAccountID = route.params?.bankAccountID;
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
     const currency = bankAccount?.bankCurrency ?? '';
@@ -89,13 +93,19 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_INDEX_LIST}
             startStepIndex={0}
         >
-            <CurrentPage
-                isEditing={isEditing}
-                onNext={nextPage}
-                onMove={moveTo}
-                country={country}
-                currency={currency}
-            />
+            {bankAccount ? (
+                <CurrentPage
+                    isEditing={isEditing}
+                    onNext={nextPage}
+                    onMove={moveTo}
+                    country={country}
+                    currency={currency}
+                />
+            ) : (
+                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <ActivityIndicator />
+                </View>
+            )}
         </InteractiveStepWrapper>
     );
 }
