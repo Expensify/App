@@ -7199,7 +7199,6 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
         distanceRates: {
             oopsNotSoFast: 'Ops! Non così in fretta...',
             workspaceNeeds: 'Uno spazio di lavoro necessita di almeno una tariffa distanza abilitata.',
-            requireMapOrGPS: 'Richiedi inserimento tramite GPS o mappa',
             requireMapOrGPSDescription: 'L’inserimento manuale e tramite contachilometri sarà disattivato.',
             requireMapOrGPSLockedByCommuterExclusions:
                 'Escludere i tragitti casa-lavoro richiede un percorso mappato, quindi l’inserimento tramite GPS o mappa è già richiesto. Smetti di escludere i tragitti casa-lavoro per modificare questa impostazione.',

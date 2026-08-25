@@ -6936,7 +6936,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         distanceRates: {
             oopsNotSoFast: '哎呀！先别急……',
             workspaceNeeds: '一个工作区至少需要一个已启用的距离费率。',
-            requireMapOrGPS: '要求使用 GPS 或地图录入',
             requireMapOrGPSDescription: '手动录入和里程表录入将被停用。',
             requireMapOrGPSLockedByCommuterExclusions: '排除通勤需要地图规划的路线，因此已要求使用 GPS 或地图录入。若要更改此设置，请停止排除通勤。',
             commuterExclusions: {

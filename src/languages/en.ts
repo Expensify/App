@@ -7412,7 +7412,6 @@ const translations = {
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
             workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
-            requireMapOrGPS: 'Map or GPS distance required',
             requireMapOrGPSDescription: 'Manual and odometer entry will be disabled.',
             requireMapOrGPSLockedByCommuterExclusions:
                 'Exclude commutes needs route data, so map or GPS distance is always required while it\'s on. To change this setting, set Exclude Commutes to "Do not exclude commutes".',

@@ -7253,7 +7253,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
         distanceRates: {
             oopsNotSoFast: 'Oups ! Pas si vite...',
             workspaceNeeds: 'Un espace de travail doit avoir au moins un taux de distance activé.',
-            requireMapOrGPS: 'Exiger une saisie GPS ou cartographique',
             requireMapOrGPSDescription: 'La saisie manuelle et par odomètre sera désactivée.',
             requireMapOrGPSLockedByCommuterExclusions:
                 'Exclure les trajets domicile-travail nécessite un itinéraire cartographié, la saisie GPS ou cartographique est donc déjà exigée. Cessez d’exclure les trajets domicile-travail pour modifier ce paramètre.',

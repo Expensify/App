@@ -126,7 +126,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
     const showRequirementLockedModal = () => {
         showConfirmModal({
-            title: translate('workspace.distanceRates.requireMapOrGPS'),
+            title: translate('distance.error.mapOrGpsDistanceRequired.title'),
             prompt: translate('workspace.distanceRates.requireMapOrGPSLockedByCommuterExclusions'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
@@ -227,9 +227,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 </OfflineWithFeedback>
                             )}
                             <ToggleSettingOptionRow
-                                title={translate('workspace.distanceRates.requireMapOrGPS')}
+                                title={translate('distance.error.mapOrGpsDistanceRequired.title')}
                                 subtitle={translate('workspace.distanceRates.requireMapOrGPSDescription')}
-                                switchAccessibilityLabel={translate('workspace.distanceRates.requireMapOrGPS')}
+                                switchAccessibilityLabel={translate('distance.error.mapOrGpsDistanceRequired.title')}
                                 shouldPlaceSubtitleBelowSwitch
                                 shouldUseCompactSubtitleSpacing
                                 wrapperStyle={[styles.mt2, styles.mh5]}

@@ -7231,7 +7231,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
         distanceRates: {
             oopsNotSoFast: 'Ups! Nicht so schnell ...',
             workspaceNeeds: 'Ein Arbeitsbereich benötigt mindestens einen aktivierten Entfernungssatz.',
-            requireMapOrGPS: 'GPS- oder Karteneingabe verlangen',
             requireMapOrGPSDescription: 'Manuelle Eingabe und Kilometerstand-Eingabe werden deaktiviert.',
             requireMapOrGPSLockedByCommuterExclusions:
                 'Das Ausschließen von Arbeitswegen erfordert eine kartierte Route, daher wird GPS- oder Karteneingabe bereits verlangt. Beenden Sie den Ausschluss von Arbeitswegen, um diese Einstellung zu ändern.',

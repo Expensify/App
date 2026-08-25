@@ -7185,7 +7185,6 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
         distanceRates: {
             oopsNotSoFast: 'Opa! Não tão rápido...',
             workspaceNeeds: 'Um workspace precisa de pelo menos uma taxa de distância ativada.',
-            requireMapOrGPS: 'Exigir entrada por GPS ou mapa',
             requireMapOrGPSDescription: 'A entrada manual e por odômetro será desativada.',
             requireMapOrGPSLockedByCommuterExclusions:
                 'Excluir deslocamentos para o trabalho exige uma rota mapeada, então a entrada por GPS ou mapa já é exigida. Pare de excluir deslocamentos para o trabalho para alterar esta configuração.',
