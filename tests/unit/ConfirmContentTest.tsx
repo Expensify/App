@@ -167,4 +167,22 @@ describe('ConfirmContent', () => {
 
         expect(mockImageSVGSpy).toHaveBeenCalledWith(expect.objectContaining({width: 160, height: 140}));
     });
+
+    it('falls back to default SVG dimensions when width/height are omitted', () => {
+        render(
+            <ConfirmContent
+                title="Test"
+                onConfirm={jest.fn()}
+                isVisible
+                image={() => null}
+            />,
+        );
+
+        expect(mockImageSVGSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                height: CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT,
+                width: CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH,
+            }),
+        );
+    });
 });
