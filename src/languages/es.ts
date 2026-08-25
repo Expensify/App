@@ -908,6 +908,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Solo administradores',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal en otra cuenta',
+        emailLabel: 'Dirección de correo electrónico',
+        reasonLabel: 'Motivo de inicio de sesión en soporte',
+        reasonHint: 'No se han encontrado tickets recientes para esta cuenta.',
+        login: 'Inicia sesión',
+    },
     sidebarScreen: {
         buttonFind: 'Encuentre algo...',
         buttonMySettings: 'Mi configuración',
@@ -1512,8 +1519,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'tarjeta' : 'cuenta bancaria';
             return isCurrentUser
-                ? `. El dinero está en camino a tu${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`
-                : `. El dinero está en camino a la cuenta bancaria de ${submitterLogin}${creditBankAccount ? ` terminada en ${creditBankAccount}` : ''} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`;
+                ? `. El dinero va en camino a tu ${creditBankAccount ? `cuenta bancaria terminada en ${creditBankAccount}` : 'cuenta'} (pagado a través de ${paymentMethod}). Normalmente tarda entre 4 y 5 días laborables.`
+                : `. El dinero va en camino a la ${creditBankAccount ? `cuenta bancaria terminada en ${creditBankAccount}` : 'cuenta'} de ${submitterLogin} (pagado mediante ${paymentMethod}). Normalmente tarda 4-5 días laborables.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` con depósito directo (ACH)${creditBankAccount ? ` a la cuenta bancaria terminada en ${creditBankAccount}. ` : '. '}${expectedDate ? `Se estima que el reembolso se completará para el ${expectedDate}.` : 'Esto generalmente toma de 4 a 5 días hábiles.'}`,
@@ -1649,6 +1656,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Solo aprobar',
         hold: 'Retener',
         sendToSomeone: 'Enviar a alguien',
+        submitToEmployer: 'Enviar a mi empleador',
         unhold: 'Desbloquear',
         holdEducationalTitle: '¿Deberías retener este gasto?',
         whatIsHoldExplain: 'Retener es como presionar "pausa" en un gasto hasta que estés listo para enviarlo.',
@@ -3031,7 +3039,13 @@ ${amount} para ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Mantente al tanto de todo viendo solo los chats no leídos o los chats que necesitan tu atención. No te preocupes, puedes cambiarlo en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
     },
-    inboxTabs: {all: 'Todo', todo: 'Pendientes', unread: 'No leído'},
+    inboxTabs: {
+        all: 'Todo',
+        todo: 'Pendientes',
+        unread: 'No leído',
+        markAllAsRead: 'Marcar todo como leído',
+        markAllAsReadConfirmationPrompt: '¿Seguro que quieres marcar todos los chats como leídos?',
+    },
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
@@ -4827,6 +4841,9 @@ ${amount} para ${merchant} - ${date}`,
         },
         qbo: {
             connectedTo: 'Conectado a',
+            entity: 'Entidad',
+            entitySelectDescription: 'Selecciona la entidad con la que sincronizar este espacio de trabajo.',
+            connectNewEntity: 'Conectar una entidad nueva',
             importDescription: (integrationName = 'QuickBooks Online') => `Elige que configuraciónes de codificación son importadas desde ${integrationName} a Expensify.`,
             classes: 'Clases',
             locations: 'Lugares',
@@ -6121,6 +6138,11 @@ ${amount} para ${merchant} - ${date}`,
                     autoAddTripName: {
                         title: 'Añadir nombres de viajes a los gastos',
                         subtitle: 'Añade automáticamente los nombres de viajes a las descripciones de los gastos reservados en Expensify.',
+                    },
+                    codingSync: {
+                        title: 'Sincronizar codificación con Expensify Travel',
+                        subtitle:
+                            'Envía las categorías, etiquetas y campos de informe de este espacio de trabajo a Expensify Travel para que los viajeros los completen en el momento de la reserva.',
                     },
                 },
                 travelInvoicing: {
@@ -10397,6 +10419,8 @@ ${reportName}`,
             title: 'Pago',
             subtitle: 'Añade una tarjeta para pagar tu suscripción a Expensify.',
             addCardButton: 'Añade tarjeta de pago',
+            addPaymentCardTitle: 'Añade una tarjeta de pago',
+            addCard: 'Añadir tarjeta',
             cardInfo: (name, expiration, currency) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             cardNextPayment: (nextPaymentDate) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: (cardNumber) => `Tarjeta terminada en ${cardNumber}`,
