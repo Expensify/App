@@ -1,5 +1,8 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -1250,6 +1253,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasDistanceRouteErrors', () => {
+        it('returns false when the route is clean', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction())).toBe(false);
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
+        });
+
+        it('returns true for a route or waypoint error', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
+        });
+
+        it('ignores errors that say nothing about the route, such as a failed payment', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
+        });
+    });
+
+    describe('isMapBasedDistanceRequest', () => {
+        const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        const PDF_RECEIPT = {source: 'https://www.expensify.com/receipts/w_abc123.pdf', filename: 'w_abc123.pdf'};
+
+        function generateMapDistanceTransaction(values: Partial<Transaction> = {}): Transaction {
+            return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, receipt: PDF_RECEIPT, ...values});
+        }
+
+        // New Expensify draws its own distance e-receipt for these, so the generated PDF beside them is never shown.
+        it('is true for a map distance expense whichever receipt it stores', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction())).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
+        });
+
+        it('is true for a GPS distance expense, which also has a route to draw', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(true);
+        });
+
+        it('is false for odometer and non-distance expenses, which keep their own receipt', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}))).toBe(false);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateTransaction({receipt: undefined}))).toBe(false);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
@@ -2493,7 +2537,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}child-1`]: childTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-1');
@@ -2514,7 +2558,7 @@ describe('TransactionUtils', () => {
             };
 
             // Report doesn't exist in reportCollectionDataSet
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-2');
@@ -2535,7 +2579,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}deleting-1`]: deletingTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(0);
         });
@@ -2564,7 +2608,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}non-matching-1`]: nonMatchingChild,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('matching-1');
@@ -2584,7 +2628,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('orphaned-1');
@@ -4155,6 +4199,113 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.getExchangeRate(transaction, 'EUR')).toBe('');
         });
+
+        describe('shouldFormatRate (display formatting to 4 decimals, matching Expensify Classic)', () => {
+            it('rounds a rate with more than 4 decimals rather than truncating', () => {
+                const transaction = generateTransaction({
+                    currency: 'USD',
+                    groupExchangeRate: 13768.5157822803,
+                    groupCurrency: 'EUR',
+                    amount: -100,
+                    convertedAmount: -1376851,
+                });
+
+                // toFixed(4) rounds .51578… up to .5158 (truncation would give .5157).
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('13768.5158 USD/EUR');
+            });
+
+            it('rounds, not truncates, on the values where the two rules differ', () => {
+                const aed = generateTransaction({
+                    currency: 'AED',
+                    currencyConversionRate: '0.272294077603812',
+                    amount: -100,
+                    convertedAmount: -27,
+                });
+                const ron = generateTransaction({
+                    currency: 'RON',
+                    currencyConversionRate: '0.220361392684002',
+                    amount: -100,
+                    convertedAmount: -22,
+                });
+
+                // Classic renders 0.2723 and 0.2204; truncation would give 0.2722 and 0.2203.
+                expect(TransactionUtils.getExchangeRate(aed, 'USD', true)).toBe('0.2723 AED/USD');
+                expect(TransactionUtils.getExchangeRate(ron, 'USD', true)).toBe('0.2204 RON/USD');
+            });
+
+            it('formats an exponential rate to 0.0000 instead of mangling it', () => {
+                const transaction = generateTransaction({
+                    currency: 'IRR',
+                    groupExchangeRate: 7.27431439586819e-7,
+                    groupCurrency: 'USD',
+                    amount: -100,
+                    convertedAmount: -1,
+                });
+
+                // Classic renders 0.0000; the string-split truncation approach returned 7.2743 here.
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('0.0000 IRR/USD');
+            });
+
+            it('formats an exponential rate string to 0.0000', () => {
+                // The reported bug arrived through currencyConversionRate (typed string), so the real input is the
+                // zero-padded exponent string rather than the number the groupExchangeRate case above covers.
+                const transaction = generateTransaction({
+                    currency: 'IRR',
+                    currencyConversionRate: '7.27431439586819e-07',
+                    amount: -100,
+                    convertedAmount: -1,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, 'USD', true)).toBe('0.0000 IRR/USD');
+            });
+
+            it('pads a rate with fewer than 4 decimals to exactly 4', () => {
+                const transaction = generateTransaction({
+                    currency: 'USD',
+                    groupExchangeRate: 1.5,
+                    groupCurrency: 'EUR',
+                    amount: -100,
+                    convertedAmount: -150,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('1.5000 USD/EUR');
+            });
+
+            it('formats the "0.0" string the backend can return to 0.0000', () => {
+                const transaction = generateTransaction({
+                    currency: 'UZS',
+                    currencyConversionRate: '0.0',
+                    amount: -5000,
+                    convertedAmount: -1,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, 'USD', true)).toBe('0.0000 UZS/USD');
+            });
+
+            it('renders a non-numeric rate verbatim instead of NaN', () => {
+                const transaction = generateTransaction({
+                    currency: 'USD',
+                    currencyConversionRate: 'invalid',
+                    groupCurrency: 'EUR',
+                    amount: -100,
+                    convertedAmount: -85,
+                });
+
+                // Number('invalid') is NaN, so the finite guard falls back to the raw string.
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('invalid USD/EUR');
+            });
+
+            it('leaves the rate untouched without the flag, so the sorts and the emptiness predicate are unaffected', () => {
+                const transaction = generateTransaction({
+                    currency: 'AED',
+                    currencyConversionRate: '0.272294077603812',
+                    amount: -100,
+                    convertedAmount: -27,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('0.272294077603812 AED/USD');
+            });
+        });
     });
 
     describe('mergeProhibitedViolations', () => {
@@ -4591,6 +4742,36 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     it('returns true when the user entered a waypoint', () => {
         const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
+    });
+});
+
+describe('isTransactionSubmittable', () => {
+    it('returns true for a transaction that is on hold', () => {
+        const transaction = generateTransaction({comment: {hold: 'holdID'}});
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+
+    it('returns true for a transaction that is not on hold', () => {
+        const transaction = generateTransaction();
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+});
+
+describe('showHeldExpensesBlockModal', () => {
+    it('shows a confirm modal explaining that a report with only held expenses cannot be submitted', () => {
+        const showConfirmModal = jest.fn();
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters);
+
+        TransactionUtils.showHeldExpensesBlockModal(showConfirmModal, mockTranslate);
+
+        expect(showConfirmModal).toHaveBeenCalledWith({
+            title: mockTranslate('iou.error.unableToSubmitReport'),
+            prompt: mockTranslate('iou.error.allExpensesOnHoldDescription'),
+            confirmText: mockTranslate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     });
 });
 

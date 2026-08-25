@@ -28,6 +28,7 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     isPolicyAdmin,
     isPolicyMember as isPolicyMemberPolicyUtils,
+    resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -38,7 +39,6 @@ import {
     isOpenExpenseReport,
     isOpenReport,
     isProcessingReport,
-    isSelfDM,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
@@ -1283,6 +1283,15 @@ function hasPendingDistanceReceiptRegeneration(transaction: OnyxInputOrEntry<Tra
 }
 
 /**
+ * Whether the route of a distance expense failed. The stored receipt then describes a different trip, or the
+ * server never built one. This covers the route only, because `transaction.errors` also carries failures that
+ * say nothing about the receipt, such as a failed payment or an invalid rate.
+ */
+function hasDistanceRouteErrors(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
+}
+
+/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -1481,9 +1490,24 @@ function getTagArrayFromName(tagName: string): string[] {
 }
 
 /**
- * Returns the exchange rate for a transaction, based on its group or currencyConversionRate
+ * Caps an exchange rate at 4 decimals for display, matching Expensify Classic, which rounds and pads to
+ * exactly 4 decimals (`0.272294077603812` -> `0.2723`, `1.5` -> `1.5000`). `toFixed` handles the exponential
+ * form small rates stringify into (`7.27431439586819e-7` -> `0.0000`), and a finite guard passes a
+ * non-numeric rate through untouched so we never render `NaN`.
  */
-function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string) {
+function formatExchangeRateForDisplay(rate: string | number): string {
+    const parsedRate = Number(rate);
+    return Number.isFinite(parsedRate) ? parsedRate.toFixed(CONST.EXCHANGE_RATE_DISPLAY_DECIMALS) : String(rate);
+}
+
+/**
+ * Returns the exchange rate for a transaction, based on its group or currencyConversionRate.
+ *
+ * When `shouldFormatRate` is true (display only), the rate is rounded and padded to exactly 4 decimals
+ * to match Expensify Classic. The default (false) keeps the raw value so the non-display consumers, the
+ * search/report sort keys and the emptiness predicate, compare on the full precision exactly as they do today.
+ */
+function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string, shouldFormatRate = false) {
     const fromCurrency = getCurrency(transaction);
 
     // On the report view, "unconverted" means the transaction currency matches the report currency.
@@ -1497,7 +1521,8 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     if (transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
         const groupRate = Number(transaction.groupExchangeRate);
         if (groupRate !== 1) {
-            return `${transaction.groupExchangeRate} ${fromCurrency}/${transaction.groupCurrency}`;
+            const rate = shouldFormatRate ? formatExchangeRateForDisplay(transaction.groupExchangeRate) : transaction.groupExchangeRate;
+            return `${rate} ${fromCurrency}/${transaction.groupCurrency}`;
         }
     }
 
@@ -1509,7 +1534,8 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     if (conversionToCurrency && transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
         const conversionRate = Number(transaction.currencyConversionRate);
         if (conversionRate !== 1) {
-            return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
+            const rate = shouldFormatRate ? formatExchangeRateForDisplay(transaction.currencyConversionRate) : transaction.currencyConversionRate;
+            return `${rate} ${fromCurrency}/${conversionToCurrency}`;
         }
     }
 
@@ -1695,15 +1721,34 @@ function getSupersededPendingCardTransactionIDs(transactions: Array<OnyxEntry<Tr
 }
 
 /**
- * Show a confirm modal explaining that pending card transactions cannot be submitted.
+ * Show a confirm modal explaining that pending card transactions cannot be submitted. Pass shouldShowMarkAsDoneCopy
+ * when the triggering button uses the "Mark as done" copy so the modal matches it.
  */
 function showPendingCardTransactionsBlockModal(
     showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
     translate: LocaleContextProps['translate'],
+    shouldShowMarkAsDoneCopy = false,
 ) {
     showConfirmModal({
-        title: translate('iou.error.unableToSubmitReport'),
-        prompt: translate('iou.error.allTransactionsPendingDescription'),
+        title: translate(shouldShowMarkAsDoneCopy ? 'iou.error.unableToMarkAsDone' : 'iou.error.unableToSubmitReport'),
+        prompt: translate(shouldShowMarkAsDoneCopy ? 'iou.error.allTransactionsPendingMarkAsDoneDescription' : 'iou.error.allTransactionsPendingDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
+/**
+ * Show a confirm modal explaining that a report with only held expenses cannot be submitted. Pass shouldShowMarkAsDoneCopy
+ * when the triggering button uses the "Mark as done" copy so the modal matches it.
+ */
+function showHeldExpensesBlockModal(
+    showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
+    translate: LocaleContextProps['translate'],
+    shouldShowMarkAsDoneCopy = false,
+) {
+    showConfirmModal({
+        title: translate(shouldShowMarkAsDoneCopy ? 'iou.error.unableToMarkAsDone' : 'iou.error.unableToSubmitReport'),
+        prompt: translate(shouldShowMarkAsDoneCopy ? 'iou.error.allExpensesOnHoldMarkAsDoneDescription' : 'iou.error.allExpensesOnHoldDescription'),
         confirmText: translate('common.buttonConfirm'),
         shouldShowCancelButton: false,
     });
@@ -2481,7 +2526,8 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
  * Gets the tax value of a selected tax
  */
 function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+    const resolvedTaxCode = resolveCurrentTaxCode(policy, taxCode);
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === resolvedTaxCode)?.value;
 }
 
 /**
@@ -2538,8 +2584,9 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     // Without this check, getTaxName would fall back to defaultTaxCode and display the default tax rate instead of showing empty.
     // We use || instead of ?? because taxCode may be an empty string, which should also trigger the fallback.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveTaxCode = transaction?.taxCode || (policy?.tax?.trackingEnabled ? defaultTaxCode : undefined);
-    const taxRate = effectiveTaxCode ? Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === effectiveTaxCode) : undefined;
+    const taxCodeToMatch = transaction?.taxCode || (policy?.tax?.trackingEnabled ? defaultTaxCode : undefined);
+    const resolvedTaxCode = taxCodeToMatch ? resolveCurrentTaxCode(policy, taxCodeToMatch) : taxCodeToMatch;
+    const taxRate = taxCodeToMatch ? Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === resolvedTaxCode) : undefined;
 
     if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
         return transaction?.taxValue;
@@ -2557,8 +2604,9 @@ function hasTaxRateWithMatchingValue(policy: OnyxEntry<Policy>, transaction: Ony
     }
 
     const transactionTaxCode = getTaxCode(transaction);
+    const resolvedTaxCode = transactionTaxCode ? resolveCurrentTaxCode(policy, transactionTaxCode) : transactionTaxCode;
     const transformedRates = transformedTaxRates(policy, transaction);
-    const taxRate = Object.values(transformedRates).find((rate) => rate.code === transactionTaxCode);
+    const taxRate = Object.values(transformedRates).find((rate) => rate.code === resolvedTaxCode);
 
     if (!transaction?.taxValue) {
         return !!taxRate;
@@ -2901,16 +2949,30 @@ function compareDuplicateTransactionFields(
                     processChanges(fieldName, transactions, keys);
                 }
             } else if (fieldName === 'taxCode') {
-                const differentValues = getDifferentValues(transactions, keys);
+                const differentValues = [
+                    ...new Set(
+                        getDifferentValues(transactions, keys).map((taxID) => {
+                            if (typeof taxID !== 'string') {
+                                return taxID;
+                            }
+                            return resolveCurrentTaxCode(policy, taxID);
+                        }),
+                    ),
+                ];
                 const validTaxes = differentValues?.filter((taxID) => {
-                    const tax = getTaxByID(policy, (taxID as string) ?? '');
+                    if (typeof taxID !== 'string') {
+                        return false;
+                    }
+                    const tax = getTaxByID(policy, taxID);
                     return tax?.name && !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 });
+                const areAllTaxCodesEqual = areAllFieldsEqual(transactions, (item) => resolveCurrentTaxCode(policy, item?.taxCode ?? ''));
 
-                if (!areAllFieldsEqualForKey && validTaxes.length > 1) {
+                if (!areAllTaxCodesEqual && validTaxes.length > 1) {
                     change[fieldName] = validTaxes;
                 } else {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
+                    const taxCodeToKeep = firstTransaction?.taxCode;
+                    keep[fieldName] = taxCodeToKeep ? resolveCurrentTaxCode(policy, taxCodeToKeep) : taxCodeToKeep;
                 }
             } else if (fieldName === 'category') {
                 const differentValues = getDifferentValues(transactions, keys);
@@ -3106,24 +3168,17 @@ const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: isExpenseSplit(transaction, originalTransaction), originalTransaction: originalTransaction ?? transaction};
 };
 
-function shouldRedirectDeleteToSplitExpenseEdit(
-    transaction: OnyxEntry<Transaction>,
-    originalTransaction: OnyxEntry<Transaction>,
-    isSelfDMSplit: boolean | undefined,
-    isProduction: boolean,
-): boolean {
+function shouldRedirectDeleteToSplitExpenseEdit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>, isSelfDMSplit?: boolean): boolean {
     const {isExpenseSplit: isExpenseSplitTransaction, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-
-    if (isProduction) {
-        return isExpenseSplitTransaction && !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined) && isPerDiemRequest(sourceTransaction);
-    }
 
     if (!isExpenseSplitTransaction || !isPerDiemRequest(sourceTransaction)) {
         return false;
     }
+
     if (isSelfDMSplit) {
         return true;
     }
+
     return !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined);
 }
 
@@ -3145,13 +3200,10 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Retrieves all "child" transactions associated with a given original transaction.
  */
-function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined, isProduction: boolean) {
+function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined) {
     return Object.values(transactions ?? {}).filter((currentTransaction) => {
         const isSplitChild = currentTransaction?.comment?.originalTransactionID === originalTransactionID;
         if (!isSplitChild || currentTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return false;
-        }
-        if (isProduction && (currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || isSelfDM(getReportOrDraftReport(currentTransaction?.reportID)))) {
             return false;
         }
         return currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
@@ -3428,6 +3480,7 @@ export {
     isFetchingWaypointsFromServer,
     hasLocallyKnownDistance,
     hasPendingDistanceReceiptRegeneration,
+    hasDistanceRouteErrors,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
     isDuplicate,
@@ -3435,6 +3488,7 @@ export {
     hasOnlyPendingCardTransactions,
     getSupersededPendingCardTransactionIDs,
     showPendingCardTransactionsBlockModal,
+    showHeldExpensesBlockModal,
     isOnHold,
     getWaypoints,
     isAmountMissing,
