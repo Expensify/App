@@ -1,9 +1,10 @@
 import {applyCompanyCardSavedColumnMappings, applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
-import importTransactionsFromCSV, {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
+import importTransactionsFromCSV, {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes, getExistingCardImportSettings} from '@libs/actions/ImportTransactions';
 import * as API from '@libs/API';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Card} from '@src/types/onyx';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 
@@ -100,7 +101,7 @@ describe('ImportTransactions', () => {
             const importFinalModal = {
                 titleKey: 'spreadsheet.importSuccessfulTitle' as const,
                 promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
-                promptKeyParams: {transactions: 3},
+                promptKeyParams: {count: 3},
             };
 
             expect(getImportFinalModalOnyxData('import-result-1', importFinalModal)).toEqual({
@@ -913,6 +914,17 @@ describe('ImportTransactions', () => {
             getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE);
         });
 
+        it('stores the reimbursable selection on the optimistic card', async () => {
+            const nonReimbursableSpreadsheet = {...validSpreadsheet, importTransactionSettings: {isReimbursable: false}};
+
+            await importTransactionsFromCSV(nonReimbursableSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const cardUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE, true);
+            const [optimisticCard] = Object.values(cardUpdate.value);
+            expect(optimisticCard).toEqual(expect.objectContaining({reimbursable: false}));
+        });
+
         it('reuses an existingCardID without queuing an optimistic card', async () => {
             const existingCardID = 987654321;
 
@@ -922,6 +934,69 @@ describe('ImportTransactions', () => {
             expect(params.cardID).toBe(existingCardID);
             const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
             expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.CARD_LIST})]));
+        });
+
+        it('uses the hard defaults when importing a new card that has no saved layout', async () => {
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardName).toBe('Imported Card');
+            expect(params.currency).toBe(CONST.CURRENCY.USD);
+            expect(params.reimbursable).toBe(true);
+            expect(JSON.parse(String(params.columnMappings))).toEqual(expect.objectContaining({flipAmountSign: false}));
+            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: 550}), expect.objectContaining({amount: 2500})]);
+        });
+
+        it('sends the existing card settings instead of the defaults when re-uploading to a card', async () => {
+            const existingCardID = 987654321;
+            const existingCardSettings = {cardDisplayName: 'Aussie Card', currency: 'AUD', isReimbursable: false, flipAmountSign: true};
+
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, undefined, existingCardSettings);
+
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardName).toBe('Aussie Card');
+            expect(params.currency).toBe('AUD');
+            expect(params.reimbursable).toBe(false);
+            expect(params.columnMappings).toBe(JSON.stringify(buildColumnLayout(validSpreadsheet, 'Aussie Card', 'AUD', false, true)));
+        });
+    });
+
+    describe('getExistingCardImportSettings', () => {
+        const savedLayout = createMock<SavedCSVColumnLayoutData>({
+            name: 'Layout Card',
+            flipAmountSign: true,
+            reimbursable: false,
+            accountDetails: {
+                bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
+                currency: 'AUD',
+                accountID: 'Layout Card',
+            },
+        });
+
+        it('returns the currency and amount sign from the saved layout', () => {
+            const result = getExistingCardImportSettings(undefined, savedLayout, undefined);
+
+            expect(result).toEqual({cardDisplayName: 'Layout Card', currency: 'AUD', isReimbursable: false, flipAmountSign: true});
+        });
+
+        it('prefers the card values over the saved layout ones', () => {
+            const card = createMock<Card>({cardName: 'Backend Card', reimbursable: true, nameValuePairs: {cardTitle: 'Card Title'}});
+
+            const result = getExistingCardImportSettings(card, savedLayout, undefined);
+
+            expect(result).toEqual({cardDisplayName: 'Card Title', currency: 'AUD', isReimbursable: true, flipAmountSign: true});
+        });
+
+        it('prefers the custom card name over every other name', () => {
+            const card = createMock<Card>({cardName: 'Backend Card', nameValuePairs: {cardTitle: 'Card Title'}});
+
+            const result = getExistingCardImportSettings(card, savedLayout, 'Custom Name');
+
+            expect(result.cardDisplayName).toBe('Custom Name');
+        });
+
+        it('returns no settings when there is nothing to restore', () => {
+            expect(getExistingCardImportSettings(undefined, undefined, undefined)).toEqual({});
         });
     });
 });

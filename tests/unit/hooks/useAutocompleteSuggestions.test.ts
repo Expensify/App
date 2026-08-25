@@ -4,12 +4,15 @@ import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useNetwork from '@hooks/useNetwork';
 
 import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
+import {getSearchOptions} from '@libs/OptionsListUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 
 const onyxData: Record<string, unknown> = {};
 
@@ -103,28 +106,29 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
 }));
 
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
-const {getSearchOptions} = jest.requireMock<{getSearchOptions: jest.Mock}>('@libs/OptionsListUtils');
 const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
 const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
+const mockedGetSearchOptions = jest.mocked(getSearchOptions);
 
-const defaultParams = {
+type Params = Parameters<typeof useAutocompleteSuggestions>[0];
+
+const defaultParams: Params = {
     autocompleteQueryValue: '',
     allCards: {},
     allFeeds: {},
     options: {reports: [], personalDetails: []},
     draftComments: {},
-    betas: [] as never[],
+    betas: [],
     countryCode: 1,
     loginList: {},
     policies: {},
     visibleReportActionsData: undefined,
-    sortedActions: undefined,
     currentUserAccountID: 100,
     currentUserEmail: 'me@example.com',
     personalDetails: {},
     feedKeysWithCards: undefined,
-    translate: jest.fn((key: string) => key) as never,
+    translate: (key, ...parameters) => String([key, ...parameters].at(0)),
 };
 
 describe('useAutocompleteSuggestions', () => {
@@ -473,11 +477,11 @@ describe('useAutocompleteSuggestions', () => {
             ],
         });
 
-        const policiesWithSameName = {
-            policyOne: {id: 'policyA', name: 'Test Workspace'},
-            policyTwo: {id: 'policyB', name: 'Test Workspace'},
-            policyThree: {id: 'policyC', name: 'Test Workspace'},
-        } as unknown as NonNullable<OnyxCollection<Policy>>;
+        const policiesWithSameName: NonNullable<OnyxCollection<Policy>> = {
+            policyOne: createMock<Policy>({id: 'policyA', name: 'Test Workspace'}),
+            policyTwo: createMock<Policy>({id: 'policyB', name: 'Test Workspace'}),
+            policyThree: createMock<Policy>({id: 'policyC', name: 'Test Workspace'}),
+        };
 
         const {result} = renderHook(() =>
             useAutocompleteSuggestions({
@@ -505,8 +509,7 @@ describe('useAutocompleteSuggestions', () => {
         };
 
         const lastSearchOptionsCallExclusions = (): Record<string, boolean> | undefined => {
-            const calls = getSearchOptions.mock.calls as Array<[{excludeFromSuggestionsOnly?: Record<string, boolean>}]>;
-            return calls.at(-1)?.[0]?.excludeFromSuggestionsOnly;
+            return mockedGetSearchOptions.mock.calls.at(-1)?.[0]?.excludeFromSuggestionsOnly;
         };
 
         it('passes Expensify-team exclusions to getSearchOptions for from: autocomplete', () => {

@@ -678,7 +678,7 @@ function getEligibleExistingBusinessBankAccounts(
             account.bankCurrency === policyCurrency &&
             (account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN || (shouldIncludePartiallySetup && isBankAccountPartiallySetup(account.accountData?.state))) &&
             account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-            (excludeBankAccountID === undefined || account.methodID !== excludeBankAccountID)
+            account.methodID !== excludeBankAccountID
         );
     });
 }
@@ -744,8 +744,8 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
 function buildComparison(
-    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
     left: ApprovalWorkflowFilterComparison['left'],
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
     right: ApprovalWorkflowFilterComparison['right'],
 ): ApprovalWorkflowFilterComparison {
     return {operator, left, right};
@@ -756,11 +756,11 @@ function buildAnd(left: ApprovalWorkflowFilter['left'], right: ApprovalWorkflowF
 }
 
 function buildSubmitterFilter(memberEmails: string[]): ApprovalWorkflowFilterComparison {
-    return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, [...memberEmails]);
+    return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, [...memberEmails]);
 }
 
 function buildToComparison(email: string): ApprovalWorkflowFilterComparison {
-    return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, email);
+    return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, email);
 }
 
 /** The index-keyed object shape the rules API uses for lists (`['a', 'b'] -> {'0': 'a', '1': 'b'}`). */
@@ -850,8 +850,8 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
                 continue;
             }
 
-            const underAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, holders.limit);
-            const overAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, holders.limit);
+            const underAmount = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, holders.limit);
+            const overAmount = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, holders.limit);
 
             rulesIntoPosition.push({triggers, filters: buildAnd(source, underAmount), actions: buildForwardActions(holders.underLimitEmail)});
             rulesIntoPosition.push({triggers, filters: buildAnd(source, overAmount), actions: buildForwardActions(holders.overLimitEmail)});
@@ -880,7 +880,7 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
     // Different approvers may share an `overLimitForwardsTo`, which would emit identical terminal rules.
     const seen = new Set<string>();
     return rules.filter((rule) => {
-        const fingerprint = JSON.stringify(rule);
+        const fingerprint = JSON.stringify(sortObjectKeysDeep(rule));
         if (seen.has(fingerprint)) {
             return false;
         }
@@ -894,14 +894,10 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
  * joins two other nodes.
  *
  * Both look the same (`{operator, left, right}`), so the giveaway is `left`: a comparison points at a field
- * name, an `AND` points at another node. Arrays count as comparisons too.
+ * name, an `AND` points at another node.
  */
 function isComparisonLeaf(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): node is ApprovalWorkflowFilterComparison {
-    if (!node) {
-        return false;
-    }
-    const nodeLeft = node.left;
-    return typeof nodeLeft !== 'object' || nodeLeft === null || Array.isArray(nodeLeft);
+    return !!node && typeof node.left === 'string';
 }
 
 /** True when a comparison node targets the `from` field with an equality operator. */
@@ -909,37 +905,37 @@ function isSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilter
     return isComparisonLeaf(node) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && node.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 }
 
-/** Walk a filter tree and call `callback` on every submitter filter (the `from` leaf) in it. */
-function forEachSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, callback: (filter: ApprovalWorkflowFilterComparison) => void): void {
+/** Return the first comparison leaf in the filter tree whose `left` field matches. */
+function getFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, leftKey: string): ApprovalWorkflowFilterComparison | undefined {
     if (!node) {
-        return;
+        return undefined;
     }
     if (isComparisonLeaf(node)) {
-        if (isSubmitterFilter(node)) {
-            callback(node);
-        }
-        return;
+        return node.left === leftKey ? node : undefined;
     }
-    forEachSubmitterFilter(node.left, callback);
-    forEachSubmitterFilter(node.right, callback);
+    return getFilter(node.left, leftKey) ?? getFilter(node.right, leftKey);
 }
 
-/** Extract the union of email values across every `from` leaf in a rule. */
+/** Rebuild a filter tree, replacing every comparison leaf with the result of `mapLeaf`. */
+function mapFilters(
+    node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison,
+    mapLeaf: (leaf: ApprovalWorkflowFilterComparison) => ApprovalWorkflowFilterComparison,
+): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison {
+    if (isComparisonLeaf(node)) {
+        return mapLeaf(node);
+    }
+    return {...node, left: mapFilters(node.left, mapLeaf), right: mapFilters(node.right, mapLeaf)};
+}
+
+/** The emails a rule's `from` filter lists. */
 function extractSubmitterEmails(rule: ApprovalWorkflowRule): string[] {
-    const emails = new Set<string>();
-    forEachSubmitterFilter(rule.filters, (filter) => {
-        const right = filter.right;
-        if (Array.isArray(right)) {
-            for (const email of right) {
-                if (typeof email === 'string') {
-                    emails.add(email);
-                }
-            }
-        } else if (typeof right === 'string') {
-            emails.add(right);
-        }
-    });
-    return Array.from(emails);
+    const submitterFilter = getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+    if (!submitterFilter || !isSubmitterFilter(submitterFilter)) {
+        return [];
+    }
+
+    const emails = Array.isArray(submitterFilter.right) ? submitterFilter.right : [submitterFilter.right];
+    return Array.from(new Set(emails.filter((email): email is string => typeof email === 'string')));
 }
 
 /**
@@ -948,9 +944,9 @@ function extractSubmitterEmails(rule: ApprovalWorkflowRule): string[] {
  * Only key order needs fixing: a rule that came back from the server can list the same keys in a different
  * order than one we just built, and those two would otherwise produce different strings and never match.
  */
-function canonicalize(value: unknown): unknown {
+function sortObjectKeysDeep(value: unknown): unknown {
     if (Array.isArray(value)) {
-        return value.map(canonicalize);
+        return value.map(sortObjectKeysDeep);
     }
     if (value !== null && typeof value === 'object') {
         // Byte-order sort (not locale-aware): this is a structural fingerprint, not user-facing text.
@@ -960,14 +956,14 @@ function canonicalize(value: unknown): unknown {
             }
             return a < b ? -1 : 1;
         });
-        return Object.fromEntries(sortedEntries.map(([key, val]) => [key, canonicalize(val)]));
+        return Object.fromEntries(sortedEntries.map(([key, val]) => [key, sortObjectKeysDeep(val)]));
     }
     return value;
 }
 
 /**
  * Return a structural fingerprint of a rule with every `from` leaf's `right` (the submitter list)
- * stripped and keys canonicalized. Two rules with the same fingerprint differ only in their submitters,
+ * stripped and object keys sorted. Two rules with the same fingerprint differ only in their submitters,
  * which is what we look for when deciding whether to merge two workflows into a shared rule.
  */
 function structuralFingerprint(rule: ApprovalWorkflowRule): string {
@@ -985,7 +981,7 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
     };
 
     return JSON.stringify(
-        canonicalize({
+        sortObjectKeysDeep({
             triggers: rule.triggers,
             filters: stripFromValues(rule.filters),
             actions: rule.actions,
@@ -995,42 +991,18 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
 
 /** Replace the `right` value on every `from` leaf with `newEmails`. */
 function replaceSubmitterEmails(rule: ApprovalWorkflowRule, newEmails: string[]): ApprovalWorkflowRule {
-    const rewrite = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison => {
-        if (isComparisonLeaf(node)) {
-            return isSubmitterFilter(node) ? {...node, right: [...newEmails]} : node;
-        }
-        return {
-            ...node,
-            left: rewrite(node.left),
-            right: rewrite(node.right),
-        };
-    };
-    return {...rule, filters: rewrite(rule.filters)};
+    return {...rule, filters: mapFilters(rule.filters, (leaf) => (isSubmitterFilter(leaf) ? {...leaf, right: [...newEmails]} : leaf))};
 }
 
 /** Merge `emailsToAdd` into `existingEmails`, preserving the order of `existingEmails` and dropping duplicates. */
 function mergeEmails(existingEmails: string[], emailsToAdd: string[]): string[] {
-    const seen = new Set(existingEmails);
-    const result = [...existingEmails];
-    for (const email of emailsToAdd) {
-        if (seen.has(email)) {
-            continue;
-        }
-        seen.add(email);
-        result.push(email);
-    }
-    return result;
+    return [...new Set([...existingEmails, ...emailsToAdd])];
 }
 
 /** Remove everything in `emailsToRemove` from `existingEmails`, preserving the order of `existingEmails`. */
 function removeEmails(existingEmails: string[], emailsToRemove: string[]): string[] {
     const removalSet = new Set(emailsToRemove);
     return existingEmails.filter((email) => !removalSet.has(email));
-}
-
-/** True when any of `emails` is in `set` — i.e. a rule's submitters overlap a workflow's members. */
-function containsAnyEmail(emails: string[], set: Set<string>): boolean {
-    return emails.some((email) => set.has(email));
 }
 
 /** Fold `memberEmails` into a rule's `from` list (union), returning the updated rule. */
@@ -1089,7 +1061,7 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
     // Pass 1: walk existing rules that belong (at least partially) to this workflow.
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
         const ruleEmails = extractSubmitterEmails(existingRule);
-        if (!containsAnyEmail(ruleEmails, memberSet)) {
+        if (!ruleEmails.some((email) => memberSet.has(email))) {
             continue;
         }
 
@@ -1124,7 +1096,7 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
                 return false;
             }
             // "Different workflow" => no overlap with our members.
-            return !containsAnyEmail(extractSubmitterEmails(existing), memberSet);
+            return !extractSubmitterEmails(existing).some((email) => memberSet.has(email));
         });
 
         if (foreignMatch) {
@@ -1150,7 +1122,7 @@ function reconcileApprovalWorkflowRulesForRemove(memberEmails: string[], context
 
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
         const ruleEmails = extractSubmitterEmails(existingRule);
-        if (!containsAnyEmail(ruleEmails, memberSet)) {
+        if (!ruleEmails.some((email) => memberSet.has(email))) {
             continue;
         }
 
@@ -1173,7 +1145,7 @@ function reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails: st
 
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
         const ruleEmails = extractSubmitterEmails(existingRule);
-        if (!containsAnyEmail(ruleEmails, previousSet)) {
+        if (!ruleEmails.some((email) => previousSet.has(email))) {
             continue;
         }
 
@@ -1201,21 +1173,6 @@ function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWo
         }
     }
     return result;
-}
-
-/** Return the first comparison leaf in the filter tree whose `left` field matches. */
-function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, leftKey: string): ApprovalWorkflowFilterComparison | undefined {
-    if (!node) {
-        return undefined;
-    }
-    if (isComparisonLeaf(node)) {
-        return node.left === leftKey ? node : undefined;
-    }
-    const fromLeft = findComparisonByLeft(node.left, leftKey);
-    if (fromLeft) {
-        return fromLeft;
-    }
-    return findComparisonByLeft(node.right, leftKey);
 }
 
 /** The triggers of a rule as a flat list. */
@@ -1295,7 +1252,7 @@ function resolvePositionHolders(submitter: string, rules: Record<string, Approva
             continue;
         }
 
-        const toLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO);
+        const toLeaf = getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO);
         if (isFromSubmission ? !!toLeaf : toLeaf?.right !== sourceApprover) {
             continue;
         }
@@ -1307,7 +1264,7 @@ function resolvePositionHolders(submitter: string, rules: Record<string, Approva
             continue;
         }
 
-        const amountLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT);
+        const amountLeaf = getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT);
         const isOverLimitBranch =
             !!amountLeaf && (amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO || amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
 
@@ -1447,15 +1404,9 @@ function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: s
  */
 function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): Record<string, ApprovalWorkflowRule> {
     const result: Record<string, ApprovalWorkflowRule> = {};
-    if (!rulesCollection || !policyID) {
-        return result;
-    }
 
-    for (const [onyxKey, rule] of Object.entries(rulesCollection)) {
-        if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
-            continue;
-        }
-        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+    for (const [onyxKey, rule] of Object.entries(filterRulesForPolicy(rulesCollection, policyID))) {
+        if (!rule || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
         const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
@@ -1513,6 +1464,14 @@ function getRulesSubmitterToWorkflowKey(rules: Record<string, ApprovalWorkflowRu
     return result;
 }
 
+/** The submitters and approver chain of one workflow, accumulated while grouping employees by fingerprint. */
+type WorkflowGroup = {
+    chain: Approver[];
+    members: Member[];
+    isDefault: boolean;
+    pendingAction: ApprovalWorkflow['pendingAction'];
+};
+
 /**
  * Beta-enabled counterpart to `convertPolicyEmployeesToApprovalWorkflows`: rebuild the same
  * `PolicyConversionResult` from `params.rules`, falling back to `employeeList` for any chain step the
@@ -1537,14 +1496,8 @@ function convertApprovalWorkflowRulesToWorkflows({
         personalDetailsByEmail[value?.login ?? key] = value;
     }
 
-    // Source-tagged fingerprint groups so a legacy chain and a rule-based chain with the same
-    // shape stay in separate workflows. Tag values: 'r' (any rule mentions the submitter) or 'l'.
-    type WorkflowGroup = {
-        chain: Approver[];
-        members: Member[];
-        isDefault: boolean;
-        pendingAction: ApprovalWorkflow['pendingAction'];
-    };
+    // Keyed by a source-tagged fingerprint so a legacy chain and a rule-based chain with the same shape stay
+    // in separate workflows. Tag values: 'r' (any rule mentions the submitter) or 'l'.
     const groupedByFingerprint = new Map<string, WorkflowGroup>();
     const usedApproverEmails = new Set<string>();
     const availableMembers: Member[] = [];

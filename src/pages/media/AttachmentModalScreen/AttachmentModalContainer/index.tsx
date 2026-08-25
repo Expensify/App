@@ -13,14 +13,7 @@ import React, {useCallback, useContext, useEffect, useState} from 'react';
 
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({
-    contentProps,
-    modalType,
-    onShow,
-    onClose,
-    shouldHandleNavigationBack,
-    ExtraContent,
-}: AttachmentModalContainerProps<Screen>) {
+function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps<Screen>) {
     const [isVisible, setIsVisible] = useState(true);
     const attachmentsContext = useContext(AttachmentModalContext);
 
@@ -44,30 +37,27 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({
     }, [resetAttachmentModalAndClose, onShow]);
 
     return (
-        <>
-            <Modal
-                isVisible={isVisible}
-                type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-                initialFocus={() => {
-                    if (!contentProps.submitRef?.current) {
-                        return false;
-                    }
-                    return contentProps.submitRef.current;
-                }}
-                shouldHandleNavigationBack={shouldHandleNavigationBack}
-                onClose={closeModal}
-                enableEdgeToEdgeBottomSafeAreaPadding
-            >
-                <AttachmentStateContextProvider>
-                    <AttachmentModalBaseContent
-                        {...contentProps}
-                        shouldDisplayHelpButton={false}
-                        onClose={closeModal}
-                    />
-                </AttachmentStateContextProvider>
-            </Modal>
-            {ExtraContent}
-        </>
+        <Modal
+            isVisible={isVisible}
+            type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
+            initialFocus={() => {
+                if (!contentProps.submitRef?.current) {
+                    return false;
+                }
+                return contentProps.submitRef.current;
+            }}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
+            onClose={closeModal}
+            enableEdgeToEdgeBottomSafeAreaPadding
+        >
+            <AttachmentStateContextProvider>
+                <AttachmentModalBaseContent
+                    {...contentProps}
+                    shouldDisplayHelpButton={false}
+                    onClose={closeModal}
+                />
+            </AttachmentStateContextProvider>
+        </Modal>
     );
 }
 

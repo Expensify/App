@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -15,7 +15,6 @@ import useWebCamera from '@hooks/useWebCamera';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import HapticFeedback from '@libs/HapticFeedback';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
@@ -149,13 +148,6 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
-                            reasonAttributes={
-                                {
-                                    context: 'CameraCapture',
-                                    cameraPermissionState,
-                                    isQueriedPermissionState,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
                         />
                     )}
                     {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
@@ -175,13 +167,14 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                                 <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                             )}
                             <Button
-                                success
-                                text={translate('common.continue')}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 accessibilityLabel={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_BUTTON}
-                            />
+                            >
+                                <Button.Text>{translate('common.continue')}</Button.Text>
+                            </Button>
                         </View>
                     )}
                     {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (

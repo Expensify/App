@@ -35,13 +35,10 @@ type ApprovalWorkflowAction = {
 type ApprovalWorkflowActions = Record<string, ApprovalWorkflowAction>;
 
 /**
- * Operand of a comparison in an approval-workflow filter.
- *
- * - The left operand is a field identifier — one of the search-syntax filter keys (`from`, `to`, `amount`).
- * - The right operand is the literal value the field is compared against. For email-typed fields like
- *   `from`, the value may be a list of emails to match against.
+ * The value a comparison's field is compared against. For email-typed fields like `from`, this is a list
+ * of emails to match against.
  */
-type ApprovalWorkflowFilterOperand = string | number | string[];
+type ApprovalWorkflowFilterValue = string | number | string[];
 
 /**
  * A single comparison node: `<left> <operator> <right>`. Both `left` and `right` are always present.
@@ -50,11 +47,11 @@ type ApprovalWorkflowFilterComparison = {
     /** The comparison operator. */
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
-    /** The field identifier being compared. */
-    left: ApprovalWorkflowFilterOperand;
+    /** The field identifier being compared — one of the search-syntax filter keys (`from`, `to`, `amount`). */
+    left: string;
 
     /** The literal value being compared against. */
-    right: ApprovalWorkflowFilterOperand;
+    right: ApprovalWorkflowFilterValue;
 };
 
 /**

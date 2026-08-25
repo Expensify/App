@@ -1,6 +1,7 @@
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type PolicyData from '@hooks/usePolicyData/types';
 
 import * as API from '@libs/API';
@@ -226,6 +227,7 @@ type CreateWorkspaceFromIOUPaymentOptions = {
     localeTranslate: LocalizedTranslate;
     reportActionsList: OnyxCollection<ReportActions>;
     doesEmployeePersonalDetailExist: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type PolicyCashExpenseMode = ValueOf<typeof CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES>;
@@ -250,6 +252,7 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+    userReportedIntegrationName?: string;
     isAnnualSubscription?: boolean;
     featuresMap?: Array<Pick<Feature, 'id' | 'enabled' | 'enabledByDefault' | 'requiresUpdate'>>;
     lastUsedPaymentMethod?: LastPaymentMethodType;
@@ -1085,9 +1088,9 @@ function setWorkspaceApprovalMode(
             if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
                 continue;
             }
-            const ruleOnyxKey: `${typeof ONYXKEYS.COLLECTION.RULE}${string}` = `${ONYXKEYS.COLLECTION.RULE}${ruleKey.slice(ONYXKEYS.COLLECTION.RULE.length)}`;
-            optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: ruleOnyxKey, value: null});
-            failureData.push({onyxMethod: Onyx.METHOD.SET, key: ruleOnyxKey, value: rule});
+            const ruleID = ruleKey.slice(ONYXKEYS.COLLECTION.RULE.length);
+            optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.RULE}${ruleID}`, value: null});
+            failureData.push({onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.RULE}${ruleID}`, value: rule});
         }
     }
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
@@ -2702,6 +2705,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         conciergeChat,
         companySize,
         userReportedIntegration,
+        userReportedIntegrationName,
         isAnnualSubscription = false,
         featuresMap,
         lastUsedPaymentMethod,
@@ -3170,6 +3174,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         file: clonedFile,
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
+        userReportedIntegrationName,
         features: features ? JSON.stringify(features) : undefined,
         shouldAddGuideWelcomeMessage,
         areDistanceRatesEnabled,
@@ -3471,6 +3476,7 @@ function buildOptimisticDuplicatePolicy(
         arePerDiemRatesEnabled: isPerDiemFeatureSelected,
         isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,
         travelSettings: undefined,
+        invoice: undefined,
         policyAccountID: undefined,
         tax: isTaxesFeatureSelected ? sourcePolicy?.tax : undefined,
         employeeList: isMemberFeatureSelected ? employeeListWithoutPendingDelete : {[sourcePolicy.owner]: sourcePolicy?.employeeList?.[sourcePolicy.owner]},
@@ -4231,13 +4237,20 @@ function openDraftWorkspaceRequest(policyID: string) {
     API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
 }
 
-function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
+/**
+ * Ask Concierge to raise the Expensify Card limit of a card feed.
+ *
+ * The settlement account belongs to one user, usually the workspace owner. The backend needs the fundID to let
+ * another admin of the same feed make this request, because that admin cannot read the account on their own.
+ */
+function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number, fundID?: number) {
     if (!settlementBankAccountID) {
         return;
     }
 
     const params: RequestExpensifyCardLimitIncreaseParams = {
         settlementBankAccountID,
+        fundID,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);
@@ -4317,6 +4330,7 @@ function createWorkspaceFromIOUPayment({
     localeTranslate,
     reportActionsList,
     doesEmployeePersonalDetailExist,
+    getCurrencyDecimals,
 }: CreateWorkspaceFromIOUPaymentOptions): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -4637,7 +4651,7 @@ function createWorkspaceFromIOUPayment({
             transactionsRecord[transaction.transactionID] = transaction;
         }
     }
-    const computedExpenseReportName = ReportUtils.computeOptimisticReportName(expenseReport, newWorkspace as Policy, policyID, transactionsRecord);
+    const computedExpenseReportName = ReportUtils.computeOptimisticReportName(expenseReport, newWorkspace as Policy, policyID, transactionsRecord, getCurrencyDecimals);
     if (computedExpenseReportName !== null) {
         expenseReport.reportName = computedExpenseReportName;
     }
@@ -4719,7 +4733,7 @@ function createWorkspaceFromIOUPayment({
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewReportActionMessage({reportOrID: expenseReport, policy: newWorkspace}),
+                            text: ReportUtils.getReportPreviewReportActionMessage({reportOrID: expenseReport, policy: newWorkspace}, getCurrencyDecimals),
                         },
                     ],
                     created: DateUtils.getDBTime(),

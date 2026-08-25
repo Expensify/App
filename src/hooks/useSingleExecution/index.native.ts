@@ -1,6 +1,7 @@
-import {useCallback, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
+import runAfterPredictedTransition from '@libs/Navigation/runAfterPredictedTransition';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
+
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
 
@@ -10,8 +11,16 @@ type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
 export default function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
     const isExecutingRef = useRef<boolean | undefined>(undefined);
+    const transitionHandleRef = useRef<CancelHandle | null>(null);
 
     isExecutingRef.current = isExecuting;
+
+    useEffect(
+        () => () => {
+            transitionHandleRef.current?.cancel();
+        },
+        [],
+    );
 
     const singleExecution = useCallback(
         <T extends unknown[]>(action: Action<T>) =>
@@ -24,7 +33,9 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
-                InteractionManager.runAfterInteractions(() => {
+                // Re-enables the button once the predicted (or actual) transition triggered by this press
+                // ends - or immediately, if the press wasn't predicted to cause one.
+                transitionHandleRef.current = runAfterPredictedTransition(() => {
                     if (!(execution instanceof Promise)) {
                         setIsExecuting(false);
                         return;

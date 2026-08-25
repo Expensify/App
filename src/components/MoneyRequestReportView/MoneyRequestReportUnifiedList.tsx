@@ -3,8 +3,6 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
@@ -127,9 +125,6 @@ type MoneyRequestReportUnifiedListProps = {
     /** Whether the initial batch of report actions is still loading. */
     isLoadingInitialActions: boolean;
 
-    /** Attributes describing why the skeleton is shown, for telemetry. */
-    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
-
     /** Reports the index of the last list item so callers can jump to the bottom via scrollToIndex (which renders the
      * landing region, unlike scrollToEnd's estimated-offset jump that leaves the bottom blank on large lists). */
     onLastItemIndexChange?: (index: number) => void;
@@ -159,7 +154,6 @@ function MoneyRequestReportUnifiedList({
     contentContainerStyle,
     isOffline,
     isLoadingInitialActions,
-    skeletonReasonAttributes,
     onLastItemIndexChange,
     listFooterComponent,
 }: MoneyRequestReportUnifiedListProps) {
@@ -394,10 +388,10 @@ function MoneyRequestReportUnifiedList({
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
             contentContainerStyle={contentContainerStyle}
-            ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+            ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined}
             ListFooterComponent={
                 <>
-                    {shouldInlineTransactions && shouldShowActionsLoadingSkeleton && <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} />}
+                    {shouldInlineTransactions && shouldShowActionsLoadingSkeleton && <ReportActionsListLoadingSkeleton />}
                     {listFooterComponent}
                 </>
             }

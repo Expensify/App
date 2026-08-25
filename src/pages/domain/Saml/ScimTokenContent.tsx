@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 
@@ -35,12 +35,13 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
     if (!oktaScimToken || oktaScimToken.state === ScimTokenState.LOADING) {
         return (
             <Button
-                text={translate('domain.samlConfigurationDetails.revealToken')}
                 style={styles.alignSelfStart}
                 onPress={fetchOktaScimToken}
                 isLoading={oktaScimToken?.state === ScimTokenState.LOADING}
                 isDisabled={isOffline}
-            />
+            >
+                <Button.Text>{translate('domain.samlConfigurationDetails.revealToken')}</Button.Text>
+            </Button>
         );
     }
 

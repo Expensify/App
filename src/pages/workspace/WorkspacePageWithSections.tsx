@@ -19,7 +19,6 @@ import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFrom
 import Navigation from '@libs/Navigation/Navigation';
 import {canEditWorkspaceSettings, canMemberRead, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -261,16 +260,7 @@ function WorkspacePageWithSections({
                 </HeaderWithBackButton>
                 {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={
-                                {
-                                    context: 'WorkspacePageWithSections',
-                                    isLoading,
-                                    shouldShowInitialLoading,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <>

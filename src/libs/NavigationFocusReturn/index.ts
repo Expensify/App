@@ -1,9 +1,11 @@
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from '@libs/compoundParamsKey';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
-import {MAX_RESTORE_FRAMES, MOUSE_TRIGGER_TTL_MS, RETURN_HOLD_MS, TRIGGER_MAP_MAX} from '@libs/focusReturnTimings';
+import {KEYBOARD_TRIGGER_TTL_MS, MAX_RESTORE_FRAMES, MOUSE_TRIGGER_TTL_MS, RETURN_HOLD_MS, TRIGGER_MAP_MAX} from '@libs/focusReturnTimings';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import isEffectivelyVisible from '@libs/isEffectivelyVisible';
+import isHTMLElement from '@libs/isHTMLElement';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/LauncherStack';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -13,13 +15,15 @@ import {isProgrammaticFocus} from '@libs/programmaticFocus';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
 
+import CONST from '@src/CONST';
+
 import type {NavigationState} from '@react-navigation/native';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 
 import setFifoEntry from './fifoMap';
 
-/** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
+/** focusin tracks the last keyboard-focused element. A nav state listener captures it against the outgoing route and restores it on backward nav. */
 
 // Fallback is the surrounding trap's launcher, used when primary can't accept focus at restore.
 type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
@@ -27,10 +31,13 @@ type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
 const triggerMap = new Map<string, TriggerEntry>();
 const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
 
-// Cross-modality: mouse-click-forward → keyboard-back still needs focus returned (WCAG 2.4.3).
+// Cross-modality: mouse-click forward, then keyboard back, still needs focus returned (WCAG 2.4.3).
 let lastMouseTrigger: HTMLElement | null = null;
 let lastInteractiveElement: HTMLElement | null = null;
 let lastMouseTriggerAt = 0;
+let lastKeyboardTriggerElement: HTMLElement | null = null;
+let lastKeyboardTriggerTime = 0;
+let pendingActivationKey: 'Enter' | 'Space' | null = null;
 
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
     setFifoEntry(triggerMap, routeKey, entry, TRIGGER_MAP_MAX);
@@ -42,6 +49,8 @@ let isRestoringFocus = false;
 let skipNextRestore = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
+let keyActivationHandler: ((e: KeyboardEvent) => void) | null = null;
+let keyReleaseHandler: ((e: KeyboardEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
 
 function captureTriggerForRoute(routeKey: string): void {
@@ -51,7 +60,45 @@ function captureTriggerForRoute(routeKey: string): void {
 
     const launcher = pickLauncher();
     let inner: HTMLElement | null;
-    if (getHadTabNavigation()) {
+    /*
+     * When the user presses Enter or Space on a control that navigates (a Settings row, a
+     * menu item), the destination screen usually mounts before this function runs. If
+     * that screen focuses one of its own controls on mount (BaseTextInput's mount
+     * autofocus is the common case), the focus change fires a focusin event that overwrites
+     * lastInteractiveElement with the destination's input. Capturing that here would
+     * attribute the trigger to the wrong element. By the time back-navigation runs, the
+     * destination's input has been unmounted, so focus falls to <body> instead of
+     * returning to the row the user activated.
+     *
+     * To avoid that, keyActivationHandler snapshots the focused element at keydown time
+     * (lastKeyboardTriggerElement) before any destination code can run in response to the
+     * activation. Below we prefer that snapshot when two things hold:
+     *   1. It is still recent (within KEYBOARD_TRIGGER_TTL_MS). We need a window because
+     *      activation-to-navigation is generally async (microtasks, promise chains, async
+     *      form submits), so keydown and this capture rarely land in the same tick. 500ms
+     *      covers realistic activation-to-nav latency and is short enough that a keydown
+     *      from long ago cannot pin the trigger for a navigation it didn't cause.
+     *   2. The element is still focusable. A form-submit spinner may have added
+     *      aria-disabled between keydown and now. We check the element itself but not its
+     *      ancestors, because React Navigation marks the outgoing screen aria-hidden as
+     *      soon as the destination is focused (via CardA11yWrapper / Screen wrapper).
+     *      Walking up would find that and false-reject the still-valid control inside
+     *      it. The aria-hidden is cleared when the user navigates back, so restoration
+     *      still works.
+     * When the snapshot isn't usable, we fall through to lastInteractiveElement (the
+     * older focusin-tracked value, for keyboard nav) or lastMouseTrigger (for mouse nav)
+     * below.
+     */
+    const isWithinTTL = performance.now() - lastKeyboardTriggerTime < KEYBOARD_TRIGGER_TTL_MS;
+    const isStillFocusable =
+        lastKeyboardTriggerElement !== null &&
+        document.contains(lastKeyboardTriggerElement) &&
+        !lastKeyboardTriggerElement.matches(':disabled') &&
+        lastKeyboardTriggerElement.getAttribute('aria-disabled') !== 'true';
+    const isKeyboardTriggerFresh = isWithinTTL && isStillFocusable;
+    if (isKeyboardTriggerFresh) {
+        inner = lastKeyboardTriggerElement;
+    } else if (getHadTabNavigation()) {
         const active = document.activeElement;
         const innerIsStale = lastInteractiveElement && active && active !== document.body && active !== lastInteractiveElement;
         inner = lastInteractiveElement && document.contains(lastInteractiveElement) && !innerIsStale ? lastInteractiveElement : null;
@@ -61,7 +108,7 @@ function captureTriggerForRoute(routeKey: string): void {
     }
 
     if (launcher) {
-        // Prefer the in-trap element; fall back to the launcher when primary is removed on trap close.
+        // Prefer the in-trap element. Fall back to the launcher when primary is removed on trap close.
         if (inner && inner !== launcher) {
             setTriggerEntry(routeKey, {primary: inner, fallback: launcher});
         } else {
@@ -77,15 +124,23 @@ function captureTriggerForRoute(routeKey: string): void {
     setTriggerEntry(routeKey, {primary: inner});
 }
 
-/** Loose refs to the prior screen's focused element would pin detached DOM nodes; triggerMap already holds the captured copy. */
+/** Single-site latch reset so the three fields always clear together and future additions get one call site. */
+function clearKeyboardLatch(): void {
+    lastKeyboardTriggerElement = null;
+    lastKeyboardTriggerTime = 0;
+    pendingActivationKey = null;
+}
+
+/** Loose refs to the prior screen's focused element would pin detached DOM nodes. The triggerMap already holds the captured copy. */
 function clearTransientCaptures(): void {
     lastInteractiveElement = null;
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
+    clearKeyboardLatch();
 }
 
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
-    // Same-key transition is noop in handleStateChange — clear pending restores AND completed-RETURN state here so neither leaks into the next params screen.
+    // Same-key transition is noop in handleStateChange, so we clear pending restores and completed-RETURN state here to prevent leaks into the next params screen.
     skipNextRestore = false;
     cancelPendingFocusRestore();
     captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
@@ -96,10 +151,14 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
     // Honor a one-shot skip on this param-revert too (form-submit goBack can land as PUSH_PARAMS, not a stack pop).
     const compoundKey = compoundParamsKey(routeKey, targetParams);
     if (skipNextRestore) {
+        // Save-driven back may synchronously navigate to a new route, so preserve lastInteractiveElement for the follow-up capture. Clear only the latch.
         applySkippedRestore(compoundKey);
+        clearKeyboardLatch();
         return;
     }
     scheduleRestore(compoundKey, {waitForUpcomingTransition: false});
+    // Same-key PUSH_PARAMS looks like a noop to handleStateChange, so clear here on the real backward path.
+    clearTransientCaptures();
 }
 
 /*
@@ -110,11 +169,11 @@ function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
-/** Native-only. Web captures via `focusin`; no-op here so the import resolves cross-platform. */
+/** Native-only. Web captures via `focusin` so this stub exists only to keep the import cross-platform. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function notifyPressedTrigger(_ref: RefObject<View | null> | null, _identifier?: string): void {}
 
-/** Native-only registry no-op; cross-platform stub. */
+/** Native-only registry. Cross-platform stub. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<View | null>): () => void {
     return () => {};
@@ -139,7 +198,7 @@ function pickRestoreCandidates(entry: TriggerEntry): HTMLElement[] {
 
 // Distinct from the arbiter's cycle timeout: this hold is target-conditional (suppress AUTO only while the restored target stays focused).
 let returnHoldTimerId: ReturnType<typeof setTimeout> | undefined;
-// Set on successful RETURN; consulted at hold-release time to decide whether to eagerly reset the cycle or defer.
+// Set on successful RETURN. Consulted at hold-release time to decide whether to eagerly reset the cycle or defer.
 let lastRestoreTarget: HTMLElement | null = null;
 
 /** Skip AUTO only when activeElement IS (or descends from) the most recent RETURN-restored target. Broader "any focused element" checks would also skip benign forward navigations (e.g. LHN item still focused). */
@@ -165,7 +224,7 @@ function scheduleReturnHoldRelease(): void {
     }
     returnHoldTimerId = setTimeout(() => {
         returnHoldTimerId = undefined;
-        // Target still focused → defer to the arbiter's own CYCLE_TIMEOUT_MS; an early reset would let a slow AUTO chain steal after the target briefly drops focusable-attributes.
+        // Target still focused, so defer to the arbiter's own CYCLE_TIMEOUT_MS. An early reset would let a slow AUTO chain steal after the target briefly drops focusable-attributes.
         if (typeof document !== 'undefined' && lastRestoreTarget && (document.activeElement === lastRestoreTarget || lastRestoreTarget.contains(document.activeElement))) {
             return;
         }
@@ -182,7 +241,7 @@ function cancelReturnHoldRelease(): void {
     returnHoldTimerId = undefined;
 }
 
-// Same-key forward is noop in handleStateChange — drop the cycle for both an in-flight restore (AUTO may have grabbed it during the deferred window) and a completed RETURN, otherwise it blocks the next screen's INITIAL/AUTO.
+// Same-key forward is noop in handleStateChange. Drop the cycle for both an in-flight restore (AUTO may have grabbed it during the deferred window) and a completed RETURN. Otherwise it blocks the next screen's INITIAL/AUTO.
 function cancelPendingFocusRestore(): void {
     const hadPendingRestore = pendingRestore !== null;
     cancelPendingRestore();
@@ -234,7 +293,7 @@ function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | nul
             scheduleReturnHoldRelease();
             return true;
         }
-        // Only accept as onFocus redirect when focus actually moved — pre-existing focus with a silent no-op must fall through to the fallback.
+        // Only accept as onFocus redirect when focus actually moved. Pre-existing focus with a silent no-op must fall through to the fallback.
         if (after !== before && after && after !== document.body) {
             triggerMap.delete(routeKey);
             lastRestoreTarget = after instanceof HTMLElement ? after : candidate;
@@ -243,7 +302,7 @@ function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | nul
         }
     }
 
-    // Silent no-op (transient display:none / visibility:hidden ancestor) — leave the entry for scheduleRestore to retry; release the cycle so AUTO/INITIAL aren't blocked during the window.
+    // Silent no-op (transient display:none / visibility:hidden ancestor). Leave the entry for scheduleRestore to retry, and release the cycle so AUTO/INITIAL aren't blocked during the window.
     resetCycle();
     return false;
 }
@@ -279,10 +338,10 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
     };
 
     handle = TransitionTracker.runAfterTransitions({
-        // Stack pops dispatch before their transition registers, so they wait for the upcoming one; PUSH_PARAMS emits none, so it opts out to avoid stalling on the timeout.
+        // Stack pops dispatch before their transition registers, so they wait for the upcoming one. PUSH_PARAMS emits none, so it opts out to avoid stalling on the timeout.
         waitForUpcomingTransition,
         callback: () => {
-            // A miss keeps the entry, so retry; stop once it's restored or removed elsewhere, and drop it ourselves only on exhaustion.
+            // A miss keeps the entry, so retry. Stop once it's restored or removed elsewhere, and drop it ourselves only on exhaustion.
             let framesLeft = MAX_RESTORE_FRAMES;
             const attempt = () => {
                 if (cancelled) {
@@ -302,7 +361,7 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
                 }
                 rafId = requestAnimationFrame(attempt);
             };
-            // PUSH_PARAMS dispatches pre-commit (from getStateForAction) — defer a frame so the new params render before we focus.
+            // PUSH_PARAMS dispatches pre-commit (from getStateForAction), so defer a frame to let the new params render before we focus.
             if (waitForUpcomingTransition === false) {
                 rafId = requestAnimationFrame(attempt);
             } else {
@@ -329,7 +388,6 @@ function handleStateChange(newState: NavigationState | undefined): void {
         skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
-        clearTransientCaptures();
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
             applySkippedRestore(action.restoreKey);
@@ -342,6 +400,10 @@ function handleStateChange(newState: NavigationState | undefined): void {
         cancelPendingRestore();
     } else if (action.type === 'noop') {
         skipNextRestore = false;
+    }
+    // End the capture window on real user-visible transitions. noop is excluded so background route cleanups don't race with an in-flight activation (keydown-latched, keyup-onPress pending).
+    if (action.type === 'forward' || action.type === 'backward' || action.type === 'lateral') {
+        clearTransientCaptures();
     }
 
     for (const key of removedKeys) {
@@ -358,12 +420,12 @@ function handleStateChange(newState: NavigationState | undefined): void {
     prevState = newState;
 }
 
-// UI test mocks of navigationRef may omit isReady/getRootState; defend at call sites.
+// UI test mocks of navigationRef may omit isReady/getRootState, so defend at call sites.
 function navigationRefHasLiveState(): boolean {
     return typeof navigationRef?.isReady === 'function' && navigationRef.isReady() && typeof navigationRef.getRootState === 'function';
 }
 
-// MUST stay idempotent — invoked from Navigation.ts module load, NavigationRoot useEffect, and NavigationRoot.onReady; each step is guarded against re-add.
+// MUST stay idempotent. Invoked from Navigation.ts module load, NavigationRoot useEffect, and NavigationRoot.onReady. Each step is guarded against re-add.
 function setupNavigationFocusReturn(): void {
     if (typeof document === 'undefined') {
         return;
@@ -386,22 +448,88 @@ function setupNavigationFocusReturn(): void {
                 return;
             }
             const closest = e.target.closest(FOCUSABLE_SELECTOR);
-            // instanceof filters SVG matches to HTMLElement; null clears the cache so a non-focusable activation can't leak a prior click.
+            // instanceof filters SVG matches to HTMLElement. Setting null clears the cache so a non-focusable activation can't leak a prior click.
             const next = closest instanceof HTMLElement ? closest : null;
             if (next !== lastMouseTrigger) {
                 lastMouseTrigger = next;
             }
             lastMouseTriggerAt = performance.now();
+            // Preserve synthetic Enter/Space activation click on the latched element. Uses `.contains` (not FOCUSABLE_SELECTOR closest) so roving-tabindex ARIA widgets don't wrongly clear their own latch.
+            const didClickOnLatch = e.type === 'click' && lastKeyboardTriggerElement !== null && (e.target === lastKeyboardTriggerElement || lastKeyboardTriggerElement.contains(e.target));
+            if (!didClickOnLatch) {
+                clearKeyboardLatch();
+            }
         };
         for (const event of MOUSE_ACTIVATION_EVENTS) {
             document.addEventListener(event, mouseActivationHandler, true);
         }
     }
+    if (!keyActivationHandler) {
+        // Capture-phase keydown latches the pre-activation target before any destination's synchronous autofocus can overwrite lastInteractiveElement.
+        keyActivationHandler = (e: KeyboardEvent) => {
+            const isEnter = e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
+            // Mirror isActivationKeydown. Remapped code='Space' with key='ñ' is typing, not a rejected activation.
+            const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input;
+            if (isActivationKeydown(e)) {
+                const activeElement = document.activeElement;
+                const key = isEnter ? 'Enter' : 'Space';
+                if (activeElement && activeElement !== document.body && isActivatableTarget(activeElement, key) && hasFocusableAttributes(activeElement)) {
+                    lastKeyboardTriggerElement = activeElement;
+                    lastKeyboardTriggerTime = performance.now();
+                    pendingActivationKey = key;
+                    return;
+                }
+                // Only supersede when activeElement === body (no target intent). An invalid HTMLElement preserves a prior in-flight latch, since the user may be retrying while the first activation's async is still en route.
+                if (activeElement === null || activeElement === document.body) {
+                    clearKeyboardLatch();
+                }
+                return;
+            }
+            // Rejected Enter/Space. Auto-repeats preserve pending so the held-key keyup can refresh, while IME/composition clears because the user has moved contexts.
+            if (isEnter || isSpace) {
+                if (!e.repeat) {
+                    clearKeyboardLatch();
+                }
+                return;
+            }
+            // Only focus-movers supersede. Standalone modifiers and typing must not, or muscle-memory Shift/Cmd after Enter would reintroduce #96970.
+            if (isFocusMovingKeydown(e)) {
+                clearKeyboardLatch();
+            }
+        };
+        document.addEventListener('keydown', keyActivationHandler, true);
+    }
+    if (!keyReleaseHandler) {
+        // RNW dispatches onPress from keyup, so we refresh here to measure activation-to-capture. Gated on pendingActivationKey to block IME/rejected releases from reviving a stale latch.
+        keyReleaseHandler = (e: KeyboardEvent) => {
+            if (pendingActivationKey === null) {
+                return;
+            }
+            const isEnter = e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
+            const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input;
+            const isMatchingRelease = (pendingActivationKey === 'Enter' && isEnter) || (pendingActivationKey === 'Space' && isSpace);
+            // Non-matching release (modifier, or the other activation key) must not burn pending, since the matching release still needs to refresh.
+            if (!isMatchingRelease) {
+                return;
+            }
+            pendingActivationKey = null;
+            if (lastKeyboardTriggerElement === null) {
+                return;
+            }
+            // Mirror RNW's `isActiveElement`. Mismatched target means onPress is canceled, so clear the latch (not just skip refresh) or an unrelated nav within TTL could pin the canceled control.
+            if (e.target !== lastKeyboardTriggerElement) {
+                clearKeyboardLatch();
+                return;
+            }
+            lastKeyboardTriggerTime = performance.now();
+        };
+        document.addEventListener('keyup', keyReleaseHandler, true);
+    }
     // getRootState() pre-mount triggers React Navigation's "not initialized" console.error. Retries on each setup call so NavigationRoot.onReady picks up live state.
     if (!prevState && navigationRefHasLiveState()) {
         prevState = navigationRef.getRootState() ?? prevState;
     }
-    // Pre-mount addListener returns a queue-only unsubscribe; once the container forwards the listener it can't be detached. NavigationRoot's onReady/useEffect re-invoke once current is set.
+    // Pre-mount addListener returns a queue-only unsubscribe. Once the container forwards the listener it can't be detached. NavigationRoot's onReady/useEffect re-invoke once current is set.
     if (!stateUnsubscribe && navigationRef?.current != null && typeof navigationRef?.addListener === 'function') {
         stateUnsubscribe = navigationRef.addListener('state', () => {
             if (typeof navigationRef.getRootState !== 'function') {
@@ -416,12 +544,10 @@ function teardownNavigationFocusReturn(): void {
     cancelPendingRestore();
     cancelReturnHoldRelease();
     lastRestoreTarget = null;
-    // Reset cached state so a remount (logout/HMR) re-seeds — setup's `!prevState` gate would otherwise skip the seed and diff against stale routes.
+    // Reset cached state so a remount (logout/HMR) re-seeds. Setup's `!prevState` gate would otherwise skip the seed and diff against stale routes.
     prevState = undefined;
     triggerMap.clear();
-    lastInteractiveElement = null;
-    lastMouseTrigger = null;
-    lastMouseTriggerAt = 0;
+    clearTransientCaptures();
     skipNextRestore = false;
     if (typeof document !== 'undefined') {
         if (focusinHandler) {
@@ -432,9 +558,17 @@ function teardownNavigationFocusReturn(): void {
                 document.removeEventListener(event, mouseActivationHandler, true);
             }
         }
+        if (keyActivationHandler) {
+            document.removeEventListener('keydown', keyActivationHandler, true);
+        }
+        if (keyReleaseHandler) {
+            document.removeEventListener('keyup', keyReleaseHandler, true);
+        }
     }
     focusinHandler = null;
     mouseActivationHandler = null;
+    keyActivationHandler = null;
+    keyReleaseHandler = null;
     stateUnsubscribe?.();
     stateUnsubscribe = null;
 }
@@ -446,9 +580,7 @@ function resetForTests(): void {
     resetLauncherStackForTests();
     resetCycle();
     prevState = undefined;
-    lastInteractiveElement = null;
-    lastMouseTrigger = null;
-    lastMouseTriggerAt = 0;
+    clearTransientCaptures();
     lastRestoreTarget = null;
     skipNextRestore = false;
 }
@@ -460,6 +592,81 @@ function setLastInteractiveElementForTests(element: HTMLElement | null): void {
 function setLastMouseTriggerForTests(element: HTMLElement | null): void {
     lastMouseTrigger = element;
     lastMouseTriggerAt = element ? performance.now() : 0;
+}
+
+type ActivationKey = 'Enter' | 'Space';
+
+/** True when a keydown activates a Pressable (Enter/Space, no repeat, no IME, any modifier). Text-editable targets are filtered downstream by isActivatableTarget. */
+function isActivationKeydown(e: KeyboardEvent): boolean {
+    const isEnter = e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
+    const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input;
+    if (!isEnter && !isSpace) {
+        return false;
+    }
+    if (e.repeat || e.isComposing) {
+        return false;
+    }
+    // Safari's IME-Enter reports isComposing=false, so the helper catches it via keyCode===229.
+    return !isEnterWhileComposition(e);
+}
+
+/** True when a keydown moves focus context (Tab, arrows, etc.), used to invalidate stale activation latches. Modifiers and typing don't count. */
+function isFocusMovingKeydown(e: KeyboardEvent): boolean {
+    const focusMovingKeys = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Escape']);
+    return focusMovingKeys.has(e.key);
+}
+
+/** Native tags or ARIA roles that make an element user-activatable regardless of tab order. */
+function isInteractive(el: HTMLElement): boolean {
+    const interactiveTags = new Set(['BUTTON', 'SELECT']);
+    const interactiveRoles = new Set([
+        'button',
+        'link',
+        'menuitem',
+        'menuitemcheckbox',
+        'menuitemradio',
+        'tab',
+        'switch',
+        'option',
+        'row',
+        'gridcell',
+        'treeitem',
+        'searchbox',
+        'combobox',
+        'checkbox',
+        'radio',
+    ]);
+    if (interactiveTags.has(el.tagName)) {
+        return true;
+    }
+    if (el.tagName === 'A' && el.hasAttribute('href')) {
+        return true;
+    }
+    const role = el.getAttribute('role');
+    return role !== null && interactiveRoles.has(role);
+}
+
+/** True when this key would activate a control instead of typing text. Excludes textarea, contenteditable, and non-button-typed inputs. Text inputs still accept Enter (form submit). */
+function isActivatableTarget(el: Element, key: ActivationKey): el is HTMLElement {
+    const textInputTypes = new Set(['text', 'search', 'email', 'password', 'tel', 'url', 'number', 'date', 'datetime-local', 'month', 'time', 'week']);
+    const buttonInputTypes = new Set(['button', 'submit', 'reset', 'image']);
+    if (!isHTMLElement(el)) {
+        return false;
+    }
+    if (el instanceof HTMLTextAreaElement) {
+        return false;
+    }
+    if (el instanceof HTMLInputElement) {
+        if (textInputTypes.has(el.type)) {
+            return key === 'Enter';
+        }
+        return buttonInputTypes.has(el.type);
+    }
+    // Attribute fallback for jsdom where isContentEditable isn't implemented.
+    if (el.isContentEditable || el.getAttribute('contenteditable') === 'true' || el.getAttribute('contenteditable') === '') {
+        return false;
+    }
+    return isInteractive(el);
 }
 
 export {

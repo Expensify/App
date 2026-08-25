@@ -57,9 +57,7 @@ const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
 
 // ...
 {shouldShowLoadingIndicator ? (
-    <ActivityIndicator
-        reasonAttributes={{context: 'WorkspacesListPage', isOffline} satisfies SkeletonSpanReasonAttributes}
-    />
+    <ActivityIndicator />
 ) : (
     <WorkspaceListTable workspaces={workspaceRows} />
 )}
@@ -172,5 +170,3 @@ Keep `HAS_LOADED_APP` and the cold-restart fallback. The queue hook is the prima
 Report skeleton consumers use `useIsReportLoadPending(reportID)` wherever pending `OpenReport` work is part of the loading decision. They keep existing readiness checks, including `hasOnceLoadedReportActions`, report data completeness, and offline behavior. A stranded `isLoadingInitialReportActions` value without a matching queue request or in-memory latch must not show a skeleton.
 
 Do not remove the legacy fields as part of this migration. `IS_LOADING_APP` and report loading state still support recovery, report positioning, navigation guards, and the deferred-flush bridge. Skeleton consumers should use the public hooks. Full flag deletion is outside this plan.
-
-**Keep telemetry for a terminal request that still shows a skeleton.** `useSkeletonSpan` in `src/libs/telemetry/useSkeletonSpan.ts` and the `reasonAttributes` prop on `ActivityIndicator` record a span while a skeleton is mounted. They flag skeletons that remain past `CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION`. Pass `SkeletonSpanReasonAttributes` with a `context` for the screen and any state that explains the render, such as `isOffline`. This makes the case queryable under the `skeleton.` namespace.

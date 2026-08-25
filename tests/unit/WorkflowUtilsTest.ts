@@ -12,7 +12,6 @@ import {
     extractSubmitterEmails,
     filterRulesForPolicy,
     getApprovalLimitDescription,
-    getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
@@ -35,6 +34,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import {buildPersonalDetails, convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -622,10 +622,10 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'alice@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'alice@example.com'),
                 owner: 'alice@example.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
                 'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
@@ -633,7 +633,7 @@ describe('WorkflowUtils', () => {
             };
 
             const {approvalWorkflows, availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
                 currentUserLogin: 'alice@example.com',
@@ -660,17 +660,17 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'admin@expensify.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'admin@expensify.com'),
                 owner: 'admin@expensify.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'admin@expensify.com': {accountID: 1, login: 'admin@expensify.com', displayName: 'Admin'},
                 'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
             };
 
             const {availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
                 currentUserLogin: 'admin@expensify.com',
@@ -692,17 +692,17 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'alice@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'alice@example.com'),
                 owner: 'alice@example.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
                 'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
             };
 
             const {availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
             });
@@ -727,10 +727,10 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'bob@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'bob@example.com'),
                 owner: 'alice@example.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
                 'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
@@ -738,7 +738,7 @@ describe('WorkflowUtils', () => {
             };
 
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
                 currentUserLogin: 'alice@example.com',
@@ -770,10 +770,10 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'bob@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'bob@example.com'),
                 owner: 'alice@example.com',
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
                 'bob@example.com': {accountID: 2, login: 'bob@example.com', displayName: 'Bob'},
@@ -782,7 +782,7 @@ describe('WorkflowUtils', () => {
             };
 
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
                 currentUserLogin: 'alice@example.com',
@@ -807,7 +807,7 @@ describe('WorkflowUtils', () => {
                     submitsTo: 'finalapprover@example.com',
                 },
             };
-            const policy: Partial<Policy> = {
+            const policy = createMock<Policy>({
                 ...createMockPolicy(employees, 'owner@example.com'),
                 owner: 'owner@example.com',
                 approver: 'owner@example.com',
@@ -821,7 +821,7 @@ describe('WorkflowUtils', () => {
                         },
                     },
                 },
-            };
+            });
             const personalDetailsForTest: PersonalDetailsList = {
                 'unassigned@example.com': {accountID: 1, login: 'unassigned@example.com', displayName: 'Unassigned'},
                 'assigned@example.com': {accountID: 2, login: 'assigned@example.com', displayName: 'Assigned'},
@@ -830,7 +830,7 @@ describe('WorkflowUtils', () => {
             };
 
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy: policy as Policy,
+                policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
             });
@@ -1514,13 +1514,13 @@ describe('WorkflowUtils', () => {
     describe('getOpenConnectedToPolicyBusinessBankAccounts', () => {
         const matchingBankAccountID = 12345;
 
-        const policyWithACH = {
+        const policyWithACH = createMock<Policy>({
             ...createRandomPolicy(1),
             outputCurrency: 'USD',
             achAccount: {
                 bankAccountID: matchingBankAccountID,
             },
-        } as Policy;
+        });
 
         const openBusinessBankAccount = {
             bankCurrency: 'USD',
@@ -1643,46 +1643,6 @@ describe('WorkflowUtils', () => {
         });
     });
 
-    describe('getEligibleExistingBusinessBankAccounts', () => {
-        const openBusinessBankAccount = {
-            bankCurrency: 'USD',
-            bankCountry: 'US',
-            accountData: {
-                state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-            },
-        };
-
-        it('should return an empty array when the bank account list is undefined', () => {
-            expect(getEligibleExistingBusinessBankAccounts(undefined, 'USD')).toEqual([]);
-        });
-
-        it('should return an empty array when the policy currency is undefined', () => {
-            expect(getEligibleExistingBusinessBankAccounts({'1': openBusinessBankAccount}, undefined)).toEqual([]);
-        });
-
-        it('should return open business accounts matching the policy currency', () => {
-            expect(getEligibleExistingBusinessBankAccounts({'1': openBusinessBankAccount}, 'USD')).toEqual([openBusinessBankAccount]);
-        });
-
-        it('should filter out accounts with a non-matching currency', () => {
-            const eurAccount = {...openBusinessBankAccount, bankCurrency: 'EUR'};
-            expect(getEligibleExistingBusinessBankAccounts({'1': eurAccount}, 'USD')).toEqual([]);
-        });
-
-        it('should filter out non-business accounts', () => {
-            const personalAccount = {...openBusinessBankAccount, accountData: {...openBusinessBankAccount.accountData, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL}};
-            expect(getEligibleExistingBusinessBankAccounts({'1': personalAccount}, 'USD')).toEqual([]);
-        });
-
-        it('should exclude partially set up accounts by default but include them when requested', () => {
-            const setupAccount = {...openBusinessBankAccount, accountData: {...openBusinessBankAccount.accountData, state: CONST.BANK_ACCOUNT.STATE.SETUP}};
-
-            expect(getEligibleExistingBusinessBankAccounts({'1': setupAccount}, 'USD')).toEqual([]);
-            expect(getEligibleExistingBusinessBankAccounts({'1': setupAccount}, 'USD', true)).toEqual([setupAccount]);
-        });
-    });
-
     describe('rule-based approval workflows', () => {
         const submitTriggers = {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT};
         const approveTriggers = {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE};
@@ -1740,8 +1700,8 @@ describe('WorkflowUtils', () => {
             });
 
             it('Should route an over-limit report to the over-limit approver instead of the limited one, then continue the chain', () => {
-                // Hola Dola approves up to 100.00; above that "a a" receives the report instead. Either way it carries
-                // on to the second approver afterwards.
+                // 1@example.com approves up to 100.00; above that 3@example.com receives the report instead. Either way
+                // it carries on to 4@example.com afterwards.
                 const workflow: ApprovalWorkflow = {
                     members: [buildMember(2)],
                     approvers: [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(4)],
@@ -1944,18 +1904,12 @@ describe('WorkflowUtils', () => {
         });
 
         describe('convertApprovalWorkflowRulesToWorkflows', () => {
-            const createPolicy = (employees: PolicyEmployeeList, defaultApprover: string) =>
-                ({
-                    id: 'test-policy',
-                    name: 'Test Policy',
-                    role: 'admin' as const,
-                    type: 'team' as const,
-                    owner: 'owner@example.com',
-                    outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
-                    employeeList: employees,
-                    approver: defaultApprover,
-                }) as Policy;
+            const createPolicy = (employees: PolicyEmployeeList, defaultApprover: string): Policy => ({
+                ...createRandomPolicy(1),
+                owner: 'owner@example.com',
+                employeeList: employees,
+                approver: defaultApprover,
+            });
 
             it('Should reconstruct a multi-approver chain from rules', () => {
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2])));

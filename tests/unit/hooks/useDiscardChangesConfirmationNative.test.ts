@@ -3,9 +3,13 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
+import type {HardwareBackPressEvent} from 'react-native/Libraries/Utilities/BackHandler';
+
 import {BackHandler} from 'react-native';
 
 type MockBeforeRemoveEvent = {data: {action: {type: string}}};
+
+const mockHardwareBackPressEvent: HardwareBackPressEvent = {type: 'hardwareBackPress', timeStamp: 0};
 
 let mockPreventRemoveFlag: boolean | undefined;
 let mockPreventRemoveCallback: ((e: MockBeforeRemoveEvent) => void) | undefined;
@@ -61,7 +65,7 @@ const useDiscardChangesConfirmation = jest.requireActual<DiscardHookModule>('@ho
 
 describe('useDiscardChangesConfirmation (native)', () => {
     let backHandlerSpy: jest.SpyInstance;
-    let hardwareBackCallback: (() => boolean | null | undefined) | undefined;
+    let hardwareBackCallback: ((event: HardwareBackPressEvent) => boolean | null | undefined) | undefined;
     const removeSubscription = jest.fn();
     let resolveModal: ((result: {action: string}) => void) | undefined;
 
@@ -70,7 +74,7 @@ describe('useDiscardChangesConfirmation (native)', () => {
     const pressHardwareBack = (): boolean | null | undefined => {
         let consumed: boolean | null | undefined;
         act(() => {
-            consumed = hardwareBackCallback?.();
+            consumed = hardwareBackCallback?.(mockHardwareBackPressEvent);
         });
         return consumed;
     };
@@ -83,6 +87,10 @@ describe('useDiscardChangesConfirmation (native)', () => {
             await Promise.resolve();
         });
     };
+
+    // Mirrors how the step screens compute dirtiness: the current value against the committed baseline
+    const renderValueDrivenHook = (baseline: string) =>
+        renderHook(({typed}: {typed: string}) => useDiscardChangesConfirmation({getHasUnsavedChanges: () => typed !== baseline}), {initialProps: {typed: baseline}});
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -161,6 +169,37 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockNavigationGoBack).toHaveBeenCalledTimes(1);
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
             expect(mockPreventRemoveFlag).toBe(true);
+        });
+
+        it('leaves prevention off on a clean screen', () => {
+            renderValueDrivenHook('');
+
+            expect(mockPreventRemoveFlag).toBe(false);
+        });
+
+        it('leaves prevention off on a prefilled screen still matching its baseline', () => {
+            renderValueDrivenHook('42');
+
+            expect(mockPreventRemoveFlag).toBe(false);
+        });
+
+        it('arms prevention as soon as the value differs from the baseline', () => {
+            const {rerender} = renderValueDrivenHook('');
+
+            rerender({typed: '5'});
+
+            expect(mockPreventRemoveFlag).toBe(true);
+        });
+
+        it('relaxes prevention as soon as the value is reverted to the baseline', () => {
+            const {rerender} = renderValueDrivenHook('42');
+
+            rerender({typed: '4'});
+            expect(mockPreventRemoveFlag).toBe(true);
+
+            // No timer to flush: a swipe started right after the revert must not be swallowed
+            rerender({typed: '42'});
+            expect(mockPreventRemoveFlag).toBe(false);
         });
 
         it('re-dispatches a beforeRemove fired during the goBack replay instead of re-prompting', async () => {

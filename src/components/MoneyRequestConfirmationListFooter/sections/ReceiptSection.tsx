@@ -112,6 +112,7 @@ function ReceiptSection({
                 compactReceiptContainerStyle={compact.compactReceiptContainerStyle}
                 onPDFLoadError={onPDFLoadError}
                 onPDFPassword={onPDFPassword}
+                onPDFLoadSuccess={compact.endReceiptLoadSpan}
                 onCompactReceiptContainerLayout={compact.handleCompactReceiptContainerLayout}
                 onReceiptLoad={compact.handleReceiptLoad}
             />

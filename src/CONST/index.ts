@@ -110,6 +110,8 @@ const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
+const reauthScrapeStatuses: number[] = [438, 532];
+
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
@@ -215,6 +217,9 @@ const CONST = {
         '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
     ],
     RECENT_WAYPOINTS_NUMBER: 20,
+    // Validate-code action errorFields key the missing-personal-details ship-card flow writes its incorrect-magic-code
+    // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
+    MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD: 'personalDetails',
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
@@ -258,6 +263,7 @@ const CONST = {
     COMPOSER_FOCUS_DELAY: 150,
     MAX_TRANSITION_DURATION_MS: 1000,
     MAX_TRANSITION_START_WAIT_MS: 1000,
+    NAVIGATION_PREDICTION_WINDOW_MS: 150,
     EXPENSE_REPORT_DELETE_DELAY_MS: 300,
     ELEMENT_NAME: {
         INPUT: 'INPUT',
@@ -337,9 +343,6 @@ const CONST = {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
         PHOTO_ASPECT_RATIO: 4 / 3,
-        // Limit how long the shutter handler waits for thumbnail pre-generation before navigating
-        // to the confirmation screen. Past this, we navigate and let the confirm-side hook
-        // generate the thumbnail lazily (brief source swap is acceptable).
     },
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -507,6 +510,7 @@ const CONST = {
 
     EXPORT_LABELS: {
         NETSUITE: 'NetSuite',
+        INTUIT_ENTERPRISE_SUITE: 'Intuit Enterprise Suite',
         QBO: 'QuickBooks Online',
         QBD: 'QuickBooks Desktop',
         XERO: 'Xero',
@@ -516,6 +520,7 @@ const CONST = {
         RILLET: 'Rillet',
         BILLCOM: 'Bill.com',
         ZENEFITS: 'Zenefits',
+        DUALENTRY: 'DualEntry',
     },
 
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
@@ -578,6 +583,7 @@ const CONST = {
     },
 
     ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
+    ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID: 'assignCardCardholderRowTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -628,6 +634,12 @@ const CONST = {
         US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
         CA: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
         AU: 'https://powerforms.docusign.net/2ff347bb-172a-4138-b1cd-4001a7c319b5?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+    },
+    // This allows us to know if we are on an older version of the app that does not support
+    // a new marketing window. Do not remove keys from this list, only add new ones
+    MARKETING_WINDOW_UPDATE_KEYS: {
+        PRODUCT_UPDATE_JULY_2026: 'productUpdateJuly2026',
+        PRODUCT_UPDATE_AUGUST_2026: 'productUpdateAugust2026',
     },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -998,11 +1010,10 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
-        SUBMIT_2026: 'submit2026',
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
-        RILLET: 'rillet',
+        DUALENTRY: 'dualEntry',
         INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
@@ -1011,6 +1022,9 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        TRAVEL_CODING_SYNC: 'travelCodingSync',
+        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
+        ARCHIVE_POLICIES: 'archivePolicies',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1275,6 +1289,8 @@ const CONST = {
         EUR: 'EUR',
     },
     DEFAULT_CURRENCY_DECIMALS: 2,
+    // Number of decimals an exchange rate is rounded and padded to for display, matching Expensify Classic.
+    EXCHANGE_RATE_DISPLAY_DECIMALS: 4,
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
@@ -1379,7 +1395,7 @@ const CONST = {
     ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
-    TRAVEL_INVOICING_HELP_URL: 'https://help.expensify.com/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace',
+    TRAVEL_BILLING_HELP_URL: 'https://help.expensify.com/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     UNLOCK_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -1415,6 +1431,8 @@ const CONST = {
         PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
+        SUPPORTAL_LOGIN_NEWDOT: (supportEmail: string, reason: string) =>
+            `_support/supportLoginNewDot?supportEmail=${encodeURIComponent(supportEmail)}&comment=${encodeURIComponent(reason)}`,
         AGENT_ZERO_TRACER: (agentZeroRequestID: string, shouldLoadFromLocalLogs: boolean) =>
             `_devportal/tools/tracer/?agentZeroRequestID=${encodeURIComponent(agentZeroRequestID)}${shouldLoadFromLocalLogs ? '&mode=locallogs' : ''}`,
     },
@@ -1467,6 +1485,9 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        // The backend rejects moving an expense into a report that already holds this many transactions, so the App
+        // blocks the move up front with a warning instead of letting it fail silently.
+        MAX_TRANSACTIONS: 500,
         UNREPORTED_REPORT_ID: '0',
         TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
@@ -1551,6 +1572,8 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
+            SEND_TO_SOMEONE: 'sendToSomeone',
+            SEND_TO_EMPLOYER: 'sendToEmployer',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',
@@ -1625,6 +1648,7 @@ const CONST = {
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
+                COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
@@ -1694,6 +1718,9 @@ const CONST = {
                     ADD_AGENT_RULE: 'POLICYCHANGELOG_ADD_AGENT_RULE',
                     UPDATE_AGENT_RULE: 'POLICYCHANGELOG_UPDATE_AGENT_RULE',
                     DELETE_AGENT_RULE: 'POLICYCHANGELOG_DELETE_AGENT_RULE',
+                    ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
+                    UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
+                    REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
                     ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
                     ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
@@ -1754,6 +1781,9 @@ const CONST = {
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
+                    UPDATE_REQUIRES_CATEGORY: 'POLICYCHANGELOG_UPDATE_REQUIRES_CATEGORY',
+                    UPDATE_REQUIRES_TAG: 'POLICYCHANGELOG_UPDATE_REQUIRES_TAG',
+                    UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE: 'POLICYCHANGELOG_UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
@@ -1951,10 +1981,12 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
+            MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
+            MULTIPLE_TAX_EXPORT: 'Canadian Multiple Tax Export',
             DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
@@ -2178,6 +2210,20 @@ const CONST = {
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_APP_STARTUP_NETWORK_REQUEST: 'ManualAppStartupNetworkRequest',
+        /** Phases of the OpenApp/ReconnectApp data load. */
+        SPAN_STARTUP_DATA: {
+            WAIT: 'StartupData.Wait',
+            DOWNLOAD: 'StartupData.Download',
+            APPLY: 'StartupData.Apply',
+            RENDER: 'StartupData.Render',
+        },
+        /** Phases of the Search data load. Deliberately separate span names from SPAN_STARTUP_DATA so each metric keeps its own history in Sentry. */
+        SPAN_SEARCH_DATA: {
+            QUEUE: 'SearchData.Queue',
+            WAIT: 'SearchData.Wait',
+            DOWNLOAD: 'SearchData.Download',
+            APPLY: 'SearchData.Apply',
+        },
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
         SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
@@ -2195,7 +2241,6 @@ const CONST = {
         SPAN_ENTRY_TO_SCAN_NAVIGATION: 'ManualEntryToScanNavigation',
         SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
-        SPAN_THUMBNAIL_GATE: 'ManualThumbnailGate',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
@@ -2204,10 +2249,11 @@ const CONST = {
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
+        SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
-        SPAN_SKELETON: 'ManualSkeleton',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
         SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
         SPAN_ODOMETER_IMAGE_CAPTURE: 'ManualOdometerImageCapture',
@@ -2230,6 +2276,7 @@ const CONST = {
             EMOJI_TRIE_BUILD: 'LocaleEmojiTrieBuild',
         },
         SPAN_ONYX_DERIVED_COMPUTE: 'OnyxDerivedCompute',
+        SPAN_STARTUP_NEW_DOT_JS_INIT: 'StartupNewDotJSInit',
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
             PUSHER_INIT: 'NavigationPusherInit',
@@ -2251,9 +2298,10 @@ const CONST = {
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
-        ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        ATTRIBUTE_FAILED: 'failed',
         ATTRIBUTE_IS_WARM: 'is_warm',
+        ATTRIBUTE_IS_STARTUP: 'is_startup',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
         // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
         // pane in the same commit as the sidebar, so they measure a much bigger workload than narrow ones.
@@ -2262,7 +2310,6 @@ const CONST = {
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
-        ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
         // Start type stamped on the navigate-to-reports spans: cold, warm_first, or warm_subsequent.
         ATTRIBUTE_START_TYPE: 'start_type',
@@ -2276,7 +2323,15 @@ const CONST = {
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
+        ATTRIBUTE_CONTENT_LENGTH: 'content_length',
+        ATTRIBUTE_REQUEST_ID: 'request_id',
+        ATTRIBUTE_ATTEMPT: 'attempt',
+        ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
+        ATTRIBUTE_TIMED_OUT: 'timed_out',
         ATTRIBUTE_JSON_CODE: 'json_code',
+        ATTRIBUTE_UPDATE_ID_FROM: 'update_id_from',
+        ATTRIBUTE_UPDATE_ID_TO: 'update_id_to',
+        ATTRIBUTE_RESPONSE_ADVANCED: 'response_advanced',
         ATTRIBUTE_COLD_START: 'cold_start',
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
@@ -2377,10 +2432,7 @@ const CONST = {
             WARM_SUBSEQUENT: 'warm_subsequent',
             UNKNOWN: 'unknown',
         },
-        // Event names
-        EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
         CONFIG: {
-            SKELETON_MIN_DURATION: 10_000,
             MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
 
             // Web Memory Thresholds (% of jsHeapSizeLimit)
@@ -2439,6 +2491,8 @@ const CONST = {
     TRANSACTION: {
         RESULTS_PAGE_SIZE: 20,
         DEFAULT_MERCHANT: 'Expense',
+        DEFAULT_ROUTE_KEY: 'route0',
+        ALTERNATE_ROUTE_KEY: 'route1',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
@@ -2824,6 +2878,7 @@ const CONST = {
         FILE_TOO_LARGE: 'fileTooLarge',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
+        HEIC_CONVERSION_FAILED: 'heicConversionFailed',
         PROTECTED_FILE: 'protectedFile',
         HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
@@ -2917,7 +2972,7 @@ const CONST = {
         NON_REIMBURSABLE: 'nonReimbursable',
         SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
         NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         AUTO_SYNC: 'autoSync',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         MAPPINGS: {
@@ -2954,9 +3009,10 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         ACCOUNTING_METHOD: 'accountingMethod',
-        TRAVEL_INVOICING_VENDOR: 'travelInvoicingVendorID',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_VENDOR: 'travelInvoicingVendorID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     XERO_CONFIG: {
@@ -2987,7 +3043,7 @@ const CONST = {
             REPORT_FIELD: 'REPORT_FIELD',
         },
         ACCOUNTING_METHOD: 'accountingMethod',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         DEFAULT_VENDOR: 'defaultVendor',
     },
 
@@ -3109,7 +3165,7 @@ const CONST = {
         ENTITY: 'entity',
         DIMENSION_PREFIX: 'dimension_',
         ACCOUNTING_METHOD: 'accountingMethod',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     SAGE_INTACCT: {
@@ -3207,8 +3263,8 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
-        TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
         PAYABLE_ACCT: 'payableAcct',
         JOURNAL_POSTING_PREFERENCE: 'journalPostingPreference',
@@ -3503,7 +3559,7 @@ const CONST = {
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
-        COMPANY_CARD: 'companyCard',
+        NON_REIMBURSABLE: 'nonReimbursable',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -3513,8 +3569,8 @@ const CONST = {
         BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',
         SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
-        SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
-        TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
         CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
     },
@@ -3528,8 +3584,8 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
-    RILLET_EXPORT_COMPANY_CARD: {
-        CREDIT_CARD: 'CREDIT_CARD',
+    RILLET_EXPORT_NON_REIMBURSABLE: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
     },
 
     RILLET_EXPORT_DATE: {
@@ -3553,6 +3609,61 @@ const CONST = {
 
     RILLET_ACCOUNT_SUBTYPE: {
         CREDIT_CARD: 'Credit Card',
+    },
+
+    DUALENTRY_CONFIG: {
+        SUBSIDIARY_ID: 'subsidiaryID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
+        EXPENSIFY_CARD_ACCOUNT_ID: 'expensifyCardAccountID',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        DEFAULT_VENDORID: 'defaultVendorID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_SYNC: 'autoSync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
+    },
+
+    DUALENTRY_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
+    },
+
+    DUALENTRY_EXPORT_REIMBURSABLE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    DUALENTRY_EXPORT_NON_REIMBURSABLE: {
+        DIRECT_EXPENSE: 'DIRECT_EXPENSE',
+    },
+
+    DUALENTRY_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    DUALENTRY_TAX_TYPE: {
+        VAT: 'VAT',
+        GST: 'GST',
+    },
+
+    DUALENTRY_ACCOUNT_TYPE: {
+        EXPENSE: 'expense',
+        CREDIT_CARD: 'credit_card',
+        BANK: 'bank',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -3821,6 +3932,12 @@ const CONST = {
         BANK_ACCOUNT: 'bankAccountID',
     },
 
+    /** The payment method a payee still has to set up before a queued payment can settle */
+    MISSING_PAYMENT_METHODS: {
+        BANK_ACCOUNT: 'bankAccount',
+        WALLET: 'wallet',
+    },
+
     IOU: {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
         MAX_RECENT_ATTENDEES: 40,
@@ -4016,6 +4133,10 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
+        },
+        WORKSPACE_STATUS: {
+            ACTIVE: 'active',
+            ARCHIVED: 'archived',
         },
         THREE_DOT_MENU_ACTION: {
             LEAVE: 'leave',
@@ -4295,6 +4416,7 @@ const CONST = {
             ACCOUNTING_INTEGRATION_ALIASES: {
                 INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
             },
+            INTUIT_ENTERPRISE_SUITE_SCOPE: 'app-foundations.custom-dimensions.read',
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -4304,6 +4426,7 @@ const CONST = {
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'financialforce',
                 RILLET: 'rillet',
+                DUALENTRY: 'dualEntry',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -4320,6 +4443,7 @@ const CONST = {
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
                 RILLET: 'rillet',
+                DUALENTRY: 'dualentry',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -4332,6 +4456,7 @@ const CONST = {
                 intacct: 'Sage Intacct',
                 financialforce: 'Certinia',
                 rillet: 'Rillet',
+                dualEntry: 'DualEntry',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -4342,7 +4467,7 @@ const CONST = {
                 other: 'Other',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
-                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET] as const;
+                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
@@ -4445,6 +4570,9 @@ const CONST = {
                 RILLET_SYNC_TITLE: 'rilletSyncTitle',
                 RILLET_SYNC_CONNECTION: 'rilletSyncConnection',
                 RILLET_SYNC_IMPORT_DATA: 'rilletSyncImportData',
+                DUALENTRY_SYNC_TITLE: 'dualEntrySyncTitle',
+                DUALENTRY_SYNC_CONNECTION: 'dualEntrySyncConnection',
+                DUALENTRY_SYNC_IMPORT_DATA: 'dualEntrySyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -4488,6 +4616,7 @@ const CONST = {
     },
 
     HELP_DOC_LINKS: {
+        'Intuit Enterprise Suite': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Desktop': '',
         quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
@@ -4513,6 +4642,20 @@ const CONST = {
         // Rate amounts are stored as `Number(value) * 100` cents, which can introduce tiny floating-point errors. Meaningful
         // amounts differ by at least 0.01 cents, so this tolerance safely absorbs the float noise when matching government rates.
         GOVERNMENT_RATE_MATCH_TOLERANCE: 0.001,
+        // Currencies we can auto-update government mileage rates for, mapped to the publishing country
+        GOVERNMENT_RATE_CURRENCY_TO_COUNTRY: {
+            USD: 'US',
+            CAD: 'CA',
+            GBP: 'GB',
+            AUD: 'AU',
+        },
+        // Unit each country publishes its rates in
+        GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
+            US: 'mi',
+            GB: 'mi',
+            CA: 'km',
+            AU: 'km',
+        },
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
@@ -4769,6 +4912,10 @@ const CONST = {
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
+
+        // Scrape result codes where the connection is broken because the user needs to re-authenticate with their bank
+        REAUTH_SCRAPE_STATUSES: reauthScrapeStatuses,
+
         // After a card connection has been broken and unresolved for this many days, stop actively
         // prompting the user: the time-sensitive home task and the RBR are removed (the error itself is kept).
         BROKEN_CONNECTION_DISMISS_AFTER_DAYS: 90,
@@ -4896,6 +5043,11 @@ const CONST = {
              * Name of Card NVP for Rillet custom export accounts
              */
             NVP_RILLET_EXPORT_ACCOUNT: 'rillet_export_account',
+
+            /**
+             * Name of Card NVP for DualEntry custom export accounts
+             */
+            NVP_DUALENTRY_EXPORT_ACCOUNT: 'dualentry_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -4943,6 +5095,11 @@ const CONST = {
              * Name of Card NVP for Rillet custom export accounts
              */
             NVP_RILLET_EXPORT_ACCOUNT_POLICY_ID: 'rillet_export_account_policy_id',
+
+            /**
+             * Name of Card NVP for DualEntry custom export accounts
+             */
+            NVP_DUALENTRY_EXPORT_ACCOUNT_POLICY_ID: 'dualentry_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -5355,7 +5512,6 @@ const CONST = {
         GO_TO_WORKSPACE: 'goToWorkspace',
         ERROR: 'error',
         TRACK: {
-            SUBMIT: 'submit',
             SUBMIT_TO_FRIEND: 'submitToFriend',
             SUBMIT_TO_EMPLOYER: 'submitToEmployer',
             CATEGORIZE: 'categorize',
@@ -6134,6 +6290,13 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             AGENTS: 'agents',
         },
+        WORKFLOWS_TAB_TYPE: 'workflowsTabType',
+        WORKFLOWS: {
+            SUBMISSIONS: 'submissions',
+            APPROVALS: 'approvals',
+            PAYMENTS: 'payments',
+            ADVANCED: 'advanced',
+        },
         AGENT_RULE: {
             SUGGESTIONS: 'suggestions',
             WRITE: 'write',
@@ -6708,8 +6871,6 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
-        // Null byte can't appear in a query, so it's safe to join query parts with it
-        QUERY_PARAMS_SEPARATOR: '\x00',
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',
@@ -6753,6 +6914,7 @@ const CONST = {
             EDIT: 'edit',
             EXPORT: 'export',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_RECEIPTS: 'downloadReceipts',
             DOWNLOAD_STATEMENT_PDF: 'downloadStatementPDF',
             APPROVE: 'approve',
             CHANGE_APPROVER: 'changeApprover',
@@ -6788,7 +6950,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            CENTRAL_TRAVEL_INVOICING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-invoicing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -7051,6 +7213,8 @@ const CONST = {
                     SUBMITTER_USER_ID: this.TABLE_COLUMNS.SUBMITTER_USER_ID,
                     SUBMITTER_PAYROLL_ID: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
                     ORDER_DEAL_NUMBERS: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+                    AMOUNT_DEBITED: this.TABLE_COLUMNS.AMOUNT_DEBITED,
+                    AMOUNT_REIMBURSED: this.TABLE_COLUMNS.AMOUNT_REIMBURSED,
                     EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
@@ -7263,6 +7427,8 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            AMOUNT_DEBITED: 'amountDebited',
+            AMOUNT_REIMBURSED: 'amountReimbursed',
             AVATAR: 'avatar',
             STATUS: 'status',
             PAID_STATUS: 'paidstatus',
@@ -7356,6 +7522,8 @@ const CONST = {
             PAID_STATUS: 'paidStatus',
             WITHDRAWN: 'withdrawn',
             TOTAL: 'total',
+            AMOUNT_DEBITED: 'amountDebited',
+            AMOUNT_REIMBURSED: 'amountReimbursed',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
@@ -7408,6 +7576,8 @@ const CONST = {
             DATE: 'date',
             AMOUNT: 'amount',
             TOTAL: 'total',
+            AMOUNT_DEBITED: 'amount-debited',
+            AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
             CURRENCY: 'currency',
@@ -7521,6 +7691,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
+                [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
+                [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };
         },
         NOT_PREFIX: '-',
@@ -7756,6 +7928,15 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.description` as const,
                 icon: 'QBDSquare',
             },
+            [this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                id: this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+                alias: 'intuit-enterprise-suite',
+                name: 'Intuit Enterprise Suite',
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.description` as const,
+                icon: 'IntuitSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 id: this.POLICY.CONNECTIONS.NAME.CERTINIA,
                 alias: 'certinia',
@@ -7771,6 +7952,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.description` as const,
                 icon: 'RilletSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                id: this.POLICY.CONNECTIONS.NAME.DUALENTRY,
+                alias: 'dualentry',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.dualEntry,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DUALENTRY}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DUALENTRY}.description` as const,
+                icon: 'DualEntrySquare',
             },
             approvals: {
                 id: 'approvals' as const,
@@ -7836,6 +8025,15 @@ const CONST = {
                 title: 'workspace.upgrade.publicReceiptVisibility.title' as const,
                 description: 'workspace.upgrade.publicReceiptVisibility.description' as const,
                 icon: 'ReportReceipt',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
+            governmentDistanceRates: {
+                id: 'governmentDistanceRates' as const,
+                alias: 'auto-update-government-rates',
+                name: 'Auto-update government rates',
+                title: 'workspace.upgrade.governmentDistanceRates.title' as const,
+                description: 'workspace.upgrade.governmentDistanceRates.description' as const,
+                icon: 'CarIce',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             perDiem: {
@@ -8236,6 +8434,8 @@ const CONST = {
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
+        REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
+        REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
@@ -8301,8 +8501,8 @@ const CONST = {
             EXCHANGE: 'EXCHANGE',
         },
         /**
-         * The Travel Invoicing feed type constant.
-         * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
+         * The Travel Billing feed type constant.
+         * This feed is used for Travel Billing cards which are separate from regular Expensify Cards.
          */
         PROGRAM_TRAVEL_US: 'TRAVEL_US',
         MONTHLY_SETTLEMENT_DATE: 'monthlySettlementDate',
@@ -8389,6 +8589,14 @@ const CONST = {
             SINGLE_SELECT: 'singleSelect',
             MULTI_SELECT: 'multiSelect',
         },
+
+        DYNAMIC_COLUMNS: {
+            /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
+            MEASURED_CANDIDATES_PER_COLUMN: 5,
+
+            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+        },
     },
 
     SENTRY_LABEL: {
@@ -8420,6 +8628,7 @@ const CONST = {
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
             FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
             FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
+            SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
         },
         FAB_MENU: {
             CREATE_EXPENSE: 'FABMenu-CreateExpense',
@@ -8486,6 +8695,7 @@ const CONST = {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
             VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
+            TABLE_ROW: 'HTMLRenderer-TableRow',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
@@ -8554,6 +8764,7 @@ const CONST = {
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
+            WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -9327,26 +9538,6 @@ const CONST = {
 
         // Cutoff for the "For You" new-vs-old segment: users whose free trial started on/after this date have the empty section hidden.
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
-        ANNOUNCEMENTS: [
-            {
-                title: 'Scoped admin roles, plus HR & AI updates',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
-                publishedDate: '2026-07-28',
-            },
-            {
-                title: 'The Expensify Card: Now in the UK & EU',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
-                publishedDate: '2026-07-20',
-            },
-            {
-                title: 'New feature: Consolidated travel billing',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
-                publishedDate: '2026-07-13',
-            },
-        ],
     },
 
     SECTION_LIST_ITEM_TYPE: {
@@ -9368,6 +9559,14 @@ const CONST = {
         ROUTE_BORDER: 'route-border',
         WAYPOINTS_SOURCE: 'waypoints-source',
         WAYPOINTS: 'waypoints',
+    },
+
+    ALTERNATE_DIRECTIONS_MAP_VIEW_LAYERS: {
+        SOURCE: 'alternate-directions-route-source',
+        UNSELECTED_FILL: 'alternate-directions-unselected-route-fill',
+        UNSELECTED_BORDER: 'alternate-directions-unselected-route-border',
+        SELECTED_FILL: 'alternate-directions-selected-route-fill',
+        SELECTED_BORDER: 'alternate-directions-selected-route-border',
     },
 
     MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',
@@ -9428,6 +9627,9 @@ const COUNTRIES_US_BANK_FLOW: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CO
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
+/** A country whose government mileage rates Expensify can auto-update */
+type GovernmentRateCountry = ValueOf<typeof CONST.CUSTOM_UNITS.GOVERNMENT_RATE_CURRENCY_TO_COUNTRY>;
+
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -9449,6 +9651,7 @@ type EnablePaymentsSubPageType =
 
 export type {
     Country,
+    GovernmentRateCountry,
     IOUAction,
     IOUType,
     IOURequestType,

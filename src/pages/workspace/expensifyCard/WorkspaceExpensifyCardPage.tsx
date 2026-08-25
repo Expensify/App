@@ -10,7 +10,6 @@ import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {filterInactiveCardsForWorkspace, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -53,17 +52,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const renderContent = () => {
         if (isLoading) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'WorkspaceExpensifyCardPage',
-                isOffline,
-                hasOnceLoaded: !!cardSettings?.hasOnceLoaded,
-            };
-            return (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    reasonAttributes={reasonAttributes}
-                />
-            );
+            return <FullScreenLoadingIndicator shouldUseGoBackButton />;
         }
         if (paymentBankAccountID) {
             return (

@@ -38,3 +38,20 @@
 - Upstream PR/issue: https://github.com/justjake/eslint-seatbelt/pull/29
 - E/App issue: N/A
 - PR introducing patch: https://github.com/Expensify/App/pull/88566
+
+### [eslint-seatbelt+0.1.3+003+readonly-type-declarations.patch](eslint-seatbelt+0.1.3+003+readonly-type-declarations.patch)
+
+- Reason:
+
+    Patch 002 added the `readOnly` config option to the runtime and to `README.md`,
+    but never added it to the `SeatbeltConfig` TypeScript interface, so `SeatbeltConfig`
+    and the derived `SeatbeltArgs` type didn't know about it. Any consumer of
+    `eslint-seatbelt/api` that reads or sets `readOnly` (e.g. `scripts/lint.ts`, which
+    prunes baseline rows for deleted files using the same readOnly semantics as the rest
+    of the seatbelt baseline) failed to typecheck. This adds the missing `readOnly?: boolean`
+    field to both the `.d.ts` and `.d.mts` copies of the interface, matching the JSDoc
+    already shipped in `README.md` by patch 002.
+
+- Upstream PR/issue: N/A (the `readOnly` option itself is an Expensify-only patch, not upstream)
+- E/App issue: N/A
+- PR introducing patch: https://github.com/Expensify/App/pull/98665
