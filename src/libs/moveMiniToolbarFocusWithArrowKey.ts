@@ -69,7 +69,10 @@ function hasModifierKey(event: ToolbarKeyDownEvent): boolean {
         return true;
     }
     const nativeEvent = event.nativeEvent;
-    return !!nativeEvent && !!(nativeEvent.altKey || nativeEvent.ctrlKey || nativeEvent.metaKey || nativeEvent.shiftKey);
+    if (!nativeEvent) {
+        return false;
+    }
+    return !!nativeEvent.altKey || !!nativeEvent.ctrlKey || !!nativeEvent.metaKey || !!nativeEvent.shiftKey;
 }
 
 function isActiveToolbarButton(button: Element, activeElement: Element | null): boolean {
