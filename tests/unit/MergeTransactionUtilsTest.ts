@@ -364,7 +364,7 @@ describe('MergeTransactionUtils', () => {
             });
         });
 
-        it('should keep the commuter exclusion when two identical distance expenses are merged without conflicts', () => {
+        it('should keep the distance, rate and commuter exclusion when two identical distance expenses are merged without conflicts', () => {
             // Given two identical distance expenses on a report of a workspace that excludes 1 commuter mile, so that
             // nothing conflicts and every field is merged automatically
             const excludingWorkspace: Policy = {
@@ -380,6 +380,7 @@ describe('MergeTransactionUtils', () => {
                 comment: {
                     customUnit: {
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'rate123',
                         quantity: 10.2,
                         distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
                         commuterExclusion: 1,
@@ -399,11 +400,19 @@ describe('MergeTransactionUtils', () => {
                 excludingWorkspace,
             );
 
-            // Then the workspace's exclusion survives, and the amount still pays for the reimbursable distance only
-            expect(result.conflictFields).not.toContain('merchant');
+            // Then the distance and rate survive alongside the workspace's exclusion, and the amount still pays for
+            // the reimbursable distance only
+            expect(result.conflictFields).toHaveLength(0);
             expect(result.mergeableData).toMatchObject({
                 amount: 920,
-                customUnit: expect.objectContaining({commuterExclusion: 1, reimbursableDistance: 9.2}),
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitRateID: 'rate123',
+                    quantity: 10.2,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 1,
+                    reimbursableDistance: 9.2,
+                },
             });
         });
 

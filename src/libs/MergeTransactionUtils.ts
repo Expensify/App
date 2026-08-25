@@ -806,10 +806,8 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         if (isDistanceRequest(transaction)) {
             const previousCustomUnit = mergeTransaction?.customUnit;
             const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(undefined, previousCustomUnit, destinationPolicy);
-            // An empty update means the expense has no exclusion to apply or clear, and writing it would wipe the
-            // custom unit the merchant selection stored
             if (Object.keys(commuterExclusionUpdate).length > 0) {
-                updatedValues.customUnit = commuterExclusionUpdate;
+                updatedValues.customUnit = {...previousCustomUnit, ...commuterExclusionUpdate};
             }
             if (typeof mergeTransaction?.amount === 'number') {
                 updatedValues.amount = getAmountForBilledDistance(
