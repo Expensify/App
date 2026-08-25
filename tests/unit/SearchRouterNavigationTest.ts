@@ -24,6 +24,7 @@ import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
+import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
 
 import variables from '@styles/variables';
 
@@ -45,11 +46,16 @@ type MockSearchTypeMenuSectionsResult = {
     activeKey: string | undefined;
 };
 
+type GetWorkspaceMenuItems = typeof getWorkspaceMenuItems;
+
 const mockUseSearchTypeMenuSections = jest.fn<MockSearchTypeMenuSectionsResult, [queryParams: unknown, isScreenFocused: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
 const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
 const mockClearSelectedTransactions = jest.fn();
+const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
+const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: false}));
+const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
@@ -89,6 +95,7 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['initialSettingsPage.help', 'Help'],
                 ['search.tabs.reports', 'Reports'],
                 ['search.tabs.expenses', 'Expenses'],
+                ['workspace.common.profile', 'Overview'],
             ]);
             return translations.get(key) ?? key;
         },
@@ -97,17 +104,17 @@ jest.mock('@hooks/useLocalize', () => ({
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: () => [undefined],
+    default: (key: string) => mockUseOnyx(key),
 }));
 
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
-    default: () => ({isOffline: false}),
+    default: () => mockUseNetwork(),
 }));
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta)}),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -124,6 +131,11 @@ jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({
     __esModule: true,
     default: () => mockUseSettingsNavigationMenuData(),
 }));
+
+jest.mock('@pages/workspace/getWorkspaceMenuItems', () => {
+    const actual = jest.requireActual<{default: GetWorkspaceMenuItems}>('@pages/workspace/getWorkspaceMenuItems');
+    return {__esModule: true, ...actual, default: jest.fn(actual.default)};
+});
 
 jest.mock('@libs/actions/Search', () => ({
     setSearchContext: jest.fn(),
@@ -227,6 +239,9 @@ function createSettingsMenuItem(translationKey: MenuData['translationKey'], scre
 }
 
 beforeEach(() => {
+    mockUseOnyx.mockImplementation(() => [undefined]);
+    mockUseNetwork.mockReturnValue({isOffline: false});
+    mockIsBetaEnabled.mockReturnValue(false);
     mockUseSettingsNavigationMenuData.mockReturnValue({
         accountMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.account', items: []},
         generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
@@ -539,6 +554,78 @@ describe('Workspace Search Router navigation source', () => {
 
         overviewItem?.action?.();
         expect(navigateToWorkspaceSettingsRoute).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id), policy.id, false);
+    });
+
+    it('composes localized Workspace suggestions between Spend and Account with hook-level filtering and beta flags', () => {
+        const activePolicy = createWorkspacePolicy('1', 'Active Workspace');
+        const deletedPolicy = createWorkspacePolicy('2', 'Deleted Workspace', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`]: activePolicy,
+            [`${ONYXKEYS.COLLECTION.POLICY}${deletedPolicy.id}`]: deletedPolicy,
+        };
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return [policies];
+            }
+            if (key === ONYXKEYS.SESSION) {
+                return [workspaceCurrentUserLogin];
+            }
+            return [undefined];
+        });
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        mockIsBetaEnabled.mockReturnValue(true);
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
+            ...spendIcons,
+            ...workspaceIcons,
+            Home: mockIcon,
+            Inbox: mockIcon,
+            ReceiptMultiple: mockIcon,
+            Gear: mockIcon,
+        });
+        mockUseSearchTypeMenuSections.mockReturnValue({
+            typeMenuSections: [
+                {
+                    translationPath: 'search.tabs.expenseReports',
+                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+                },
+            ],
+            activeItemIndex: -1,
+            activeKey: undefined,
+        });
+        mockUseSettingsNavigationMenuData.mockReturnValue({
+            accountMenuItemsData: {
+                sectionTranslationKey: 'initialSettingsPage.account',
+                items: [createSettingsMenuItem('initialSettingsPage.security', SCREENS.SETTINGS.SECURITY)],
+            },
+            generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
+        });
+        const actualGetWorkspaceMenuItems = jest.requireActual<{default: GetWorkspaceMenuItems}>('@pages/workspace/getWorkspaceMenuItems').default;
+        jest.mocked(getWorkspaceMenuItems).mockImplementationOnce((params) => actualGetWorkspaceMenuItems(params).filter((item) => item.screenName === SCREENS.WORKSPACE.PROFILE));
+
+        const {result} = renderHook(() => useNavigationSuggestions('go'));
+
+        expect(result.current.map((item) => item.keyForList)).toEqual([
+            'topLevelAccount',
+            'topLevelHome',
+            'topLevelInbox',
+            'topLevelSpend',
+            'topLevelWorkspaces',
+            'spend_reports',
+            `workspace_1_${SCREENS.WORKSPACE.PROFILE}`,
+            `account_${SCREENS.SETTINGS.SECURITY}`,
+        ]);
+        expect(result.current.at(6)).toMatchObject({text: 'Go to Overview'});
+        expect(result.current.some((item) => item.keyForList?.startsWith('workspace_2_'))).toBe(false);
+        expect(getWorkspaceMenuItems).toHaveBeenCalledTimes(1);
+        expect(getWorkspaceMenuItems).toHaveBeenCalledWith(
+            expect.objectContaining({
+                policy: activePolicy,
+                isRulesRevampBetaEnabled: true,
+                isVendorMatchingBetaEnabled: true,
+            }),
+        );
+        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.RULES_REVAMP);
+        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
     });
 });
 
