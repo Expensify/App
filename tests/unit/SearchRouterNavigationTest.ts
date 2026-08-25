@@ -390,10 +390,11 @@ describe('Domain Search Router navigation source', () => {
         const accessibleDomain = createDomain(123, 'admin@example.com', currentUserAccountID);
         const inaccessibleDomain = createDomain(456, 'admin@inaccessible.com', 2);
         const deletingDomain = createDomain(789, 'admin@deleting.com', currentUserAccountID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const domainWithoutAccountID = createDomain(0, 'admin@noid.com', currentUserAccountID);
         const onSelect = jest.fn();
 
         const items = buildDomainNavigationItems({
-            domains: [accessibleDomain, inaccessibleDomain, deletingDomain],
+            domains: [null, undefined, domainWithoutAccountID, accessibleDomain, inaccessibleDomain, deletingDomain],
             currentUserAccountID,
             icons: domainIcons,
             getItemText: (translationKey) => labels.get(translationKey) ?? translationKey,
