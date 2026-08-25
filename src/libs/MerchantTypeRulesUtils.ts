@@ -15,7 +15,7 @@ import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {findVendorByID, getCommaSeparatedTagNameWithSanitizedColons, getMatchingVendorByID, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
@@ -157,23 +157,8 @@ function getMerchantCodingRulesTableData({
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
             }
             if (rule.vendorID) {
-                // Resolve the display name in three tiers so each case renders correctly:
-                //   1. Active-source hit — the vendor is in the active vendor-matching integration's list; render its name.
-                //   2. Active-source miss with a loaded list — the ID doesn't exist in that active list; render "unavailable"
-                //      so a rule targeting a stale/inactive-connection vendor never surfaces a misleading name.
-                //   3. No active vendor-matching source (e.g. admin switched the non-reimbursable export mode away from
-                //      vendor-matching) — fall back to `findVendorByID`'s permissive search across every connection's data
-                //      so the historical vendor name still renders instead of a raw external ID; otherwise the raw ID
-                //      as a last resort while the connection data hasn't loaded yet.
-                const activeVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
-                let vendorValue: string;
-                if (activeVendorName) {
-                    vendorValue = activeVendorName;
-                } else if (isMatchingVendorListLoaded(policy)) {
-                    vendorValue = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
-                } else {
-                    vendorValue = findVendorByID(policy, rule.vendorID)?.name ?? rule.vendorID;
-                }
+                const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+                const vendorValue = getVendorRuleDisplayValue(policy, rule.vendorID, unavailableLabel);
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, vendorValue));
             }
             if (rule.reimbursable !== undefined) {

@@ -15,10 +15,11 @@ type WorkspaceFlagForReviewTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
     emptyState: TableEmptyStateProps;
 };
 
-function WorkspaceFlagForReviewTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyState}: WorkspaceFlagForReviewTableProps) {
+function WorkspaceFlagForReviewTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, emptyState}: WorkspaceFlagForReviewTableProps) {
     const {translate} = useLocalize();
 
     const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: TableRenderRowProps<FlagForReviewTableItem>) => (
@@ -36,6 +37,7 @@ function WorkspaceFlagForReviewTable({rulesData, selectionEnabled, selectedKeys,
             selectionEnabled={selectionEnabled}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={headerComponent}
             emptyState={emptyState}
             tableTitle={translate('workspace.rules.tabs.flagForReview')}
             findRuleLabel={translate('workspace.rules.flagForReviewTable.findRule')}

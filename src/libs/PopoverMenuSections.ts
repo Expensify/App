@@ -28,8 +28,8 @@ const REPORT_MORE_MENU_SECTIONS = [
 ];
 
 const TRANSACTION_MORE_MENU_SECTIONS = [
-    // "Send to someone" sits in its own top section so it renders first with a divider beneath it.
-    [TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE],
+    // "Send to someone" and "Send to my employer" sit in their own top section so they render first with a divider beneath.
+    [TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE, TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER],
     [
         TRANSACTION_SECONDARY_ACTIONS.HOLD,
         TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD,
