@@ -61,6 +61,11 @@ export default Str.dedent(`
     ${CONST.INTENT.NOT_AN_ATTEMPT} - commenting on someone else's proposal.
 
     ___
+    [Proposal updated](https://github.com/Expensify/App/issues/12345#issuecomment-67890) - corrected the root cause: the client reads stale workspace data. The fix is to refresh the policy after the ownership change.
+    ___
+    ${CONST.INTENT.NOT_AN_ATTEMPT} - a pointer to an existing proposal update, not a new proposal. Technical details do not change that intent.
+
+    ___
     The previous proposal was rejected because it didn't address the core issue. Here's my thoughts on what we should do instead...
     ___
     ${CONST.INTENT.NOT_AN_ATTEMPT} - discussion about proposals.
