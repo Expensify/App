@@ -2,32 +2,25 @@
 import type {DebouncedFunc, DebounceSettings} from 'lodash';
 
 import lodashDebounce from 'lodash/debounce';
-import {useEffect, useRef} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type GenericFunction = (...args: any[]) => void;
+type DebouncedFunction<T extends GenericFunction> = T & {cancel: () => void};
 
 /**
  * Non-generic implementation so OXC's React Compiler can memoize the hook.
  * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
  */
-function useDebounceNonReactiveImpl(func: GenericFunction, wait: number, options?: DebounceSettings): GenericFunction {
-    const funcRef = useRef<GenericFunction>(func);
-    const debouncedFnRef = useRef<DebouncedFunc<GenericFunction> | undefined>(undefined);
+function useDebounceNonReactiveImpl(func: GenericFunction, wait: number, options?: DebounceSettings): DebouncedFunction<GenericFunction> {
     const {leading, maxWait, trailing = true} = options ?? {};
+    // Keeps one identity for the lifetime of the hook while always calling the latest `func`, so the debounced function
+    // below is only ever recreated when a debounce setting changes.
+    const callFunction = useEffectEvent((...args: unknown[]) => func(...args));
+    const debouncedFnRef = useRef<DebouncedFunc<GenericFunction> | undefined>(undefined);
 
     useEffect(() => {
-        funcRef.current = func;
-    }, [func]);
-
-    useEffect(() => {
-        const debouncedFn = lodashDebounce(
-            (...args: unknown[]) => {
-                funcRef.current(...args);
-            },
-            wait,
-            {leading, maxWait, trailing},
-        );
+        const debouncedFn = lodashDebounce(callFunction, wait, {leading, maxWait, trailing});
 
         debouncedFnRef.current = debouncedFn;
 
@@ -36,9 +29,11 @@ function useDebounceNonReactiveImpl(func: GenericFunction, wait: number, options
         };
     }, [wait, leading, maxWait, trailing]);
 
-    return (...args: unknown[]) => {
+    const debouncedFunction = (...args: unknown[]) => {
         debouncedFnRef.current?.(...args);
     };
+    debouncedFunction.cancel = () => debouncedFnRef.current?.cancel();
+    return debouncedFunction;
 }
 
 /**
@@ -54,8 +49,8 @@ function useDebounceNonReactiveImpl(func: GenericFunction, wait: number, options
  * @param options.leading Specify invoking on the leading edge of the timeout.
  * @param options.maxWait The maximum time func is allowed to be delayed before it's invoked.
  * @param options.trailing Specify invoking on the trailing edge of the timeout.
- * @returns Returns a function to call the debounced function.
+ * @returns Returns a function to call the debounced function, with a `cancel` method dropping a pending call.
  */
-export default function useDebounceNonReactive<T extends GenericFunction>(func: T, wait: number, options?: DebounceSettings): T {
-    return useDebounceNonReactiveImpl(func, wait, options) as T;
+export default function useDebounceNonReactive<T extends GenericFunction>(func: T, wait: number, options?: DebounceSettings): DebouncedFunction<T> {
+    return useDebounceNonReactiveImpl(func, wait, options) as DebouncedFunction<T>;
 }

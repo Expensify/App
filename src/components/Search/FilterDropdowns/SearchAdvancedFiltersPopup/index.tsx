@@ -4,6 +4,7 @@ import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/Ad
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,8 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-import debounce from 'lodash/debounce';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {Activity, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
@@ -28,6 +28,21 @@ import TextInputFilterContentPopupWrapper from './TextInputFilterContentPopupWra
 
 type SearchAdvancedFiltersPopupProps = {
     queryJSON: SearchQueryJSON;
+};
+
+/** Which filter contents are mounted and what each of them was given, held together so one filter change moves all of it. */
+type MountedFilterState = {
+    /** The filter whose content is shown. Also the most recently used entry of `mountedFilters`. */
+    activeFilter: SearchFilter['key'];
+
+    /** The filters whose contents are mounted, in least-recently-used order. */
+    mountedFilters: Array<SearchFilter['key']>;
+
+    /** Per mounted content, the filter values it was given when it last became active. */
+    formAtLastRest: Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm> | undefined>>;
+
+    /** Per mounted content, how many times it has been remounted. Part of its key, so a bump replaces the instance. */
+    contentVersions: Partial<Record<SearchFilter['key'], number>>;
 };
 
 const filterComponents = {
@@ -48,53 +63,64 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    // The list highlights `selectedFilter` immediately; the content pane follows `restedFilter`.
-    const [selectedFilter, setSelectedFilter] = useState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
-    const [restedFilter, setRestedFilter] = useState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
+    const initialFilter = CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE;
+    // The list highlights `hoveredFilter` immediately; the content pane follows `activeFilter`.
+    const [hoveredFilter, setHoveredFilter] = useState<SearchFilter['key']>(initialFilter);
+    const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
+        activeFilter: initialFilter,
+        mountedFilters: [initialFilter],
+        formAtLastRest: {[initialFilter]: searchAdvancedFiltersForm},
+        contentVersions: {},
+    }));
+    const {activeFilter, mountedFilters, formAtLastRest, contentVersions} = mountedFilterState;
+
+    // The MAX_MOUNTED_FILTER_CONTENTS most recently active contents stay mounted, so revisiting a filter reveals its
+    // content instead of building it again. Activating a filter promotes it to most recently used and evicts whatever
+    // falls past the cap.
+    const activateFilter = (filterKey: SearchFilter['key']) => {
+        setMountedFilterState((currentState) => {
+            if (currentState.activeFilter === filterKey) {
+                return currentState;
+            }
+
+            const nextMountedFilters = [...currentState.mountedFilters.filter((mountedFilter) => mountedFilter !== filterKey), filterKey].slice(-CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS);
+            const nextFormAtLastRest: MountedFilterState['formAtLastRest'] = {};
+            const nextContentVersions: MountedFilterState['contentVersions'] = {};
+            // Both maps describe the mounted contents only, so a filter evicted from `mountedFilters` is dropped from them too.
+            for (const mountedFilter of nextMountedFilters) {
+                nextFormAtLastRest[mountedFilter] = mountedFilter === filterKey ? searchAdvancedFiltersForm : currentState.formAtLastRest[mountedFilter];
+                const version = currentState.contentVersions[mountedFilter];
+                if (version !== undefined) {
+                    nextContentVersions[mountedFilter] = version;
+                }
+            }
+            // A kept content keeps the values it was last given and decides its selection pinning on mount, so one whose
+            // values went stale while it was hidden is remounted instead of revealed.
+            if (currentState.mountedFilters.includes(filterKey) && currentState.formAtLastRest[filterKey] !== searchAdvancedFiltersForm) {
+                nextContentVersions[filterKey] = (currentState.contentVersions[filterKey] ?? 0) + 1;
+            }
+
+            return {
+                activeFilter: filterKey,
+                mountedFilters: nextMountedFilters,
+                formAtLastRest: nextFormAtLastRest,
+                contentVersions: nextContentVersions,
+            };
+        });
+    };
     // Hovering only shows a row's content once the cursor has stayed on it for SEARCH_FILTER_HOVER_INTENT_DELAY, so
     // sweeping across rows doesn't render a content pane per row. Moving focus is deliberate and never sweeps across
     // rows, so it shows the content right away and keyboard users don't read a pane that is about to be replaced.
-    const [debouncedSetRestedFilter] = useState(() => debounce(setRestedFilter, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY));
-    useEffect(() => () => debouncedSetRestedFilter.cancel(), [debouncedSetRestedFilter]);
+    const debouncedActivateFilter = useDebounceNonReactive(activateFilter, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
     const hoverFilter = (filterKey: SearchFilter['key']) => {
-        setSelectedFilter(filterKey);
-        debouncedSetRestedFilter(filterKey);
+        setHoveredFilter(filterKey);
+        debouncedActivateFilter(filterKey);
     };
     const focusFilter = (filterKey: SearchFilter['key']) => {
-        debouncedSetRestedFilter.cancel();
-        setSelectedFilter(filterKey);
-        setRestedFilter(filterKey);
+        debouncedActivateFilter.cancel();
+        setHoveredFilter(filterKey);
+        activateFilter(filterKey);
     };
-    // The MAX_MOUNTED_FILTER_CONTENTS most recently rested filter contents stay mounted (hidden below), so revisits
-    // toggle visibility instead of remounting. Kept in least-recently-rested order and adjusted during render so the new
-    // pane shows in the same frame.
-    const [mountedFilters, setMountedFilters] = useState<Array<SearchFilter['key']>>([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]);
-    // A kept-mounted content shows the filter values from when it was last rested on (its hidden updates are deferred and
-    // its selection pinning is decided on mount), so returning to a filter after the form changed remounts it instead.
-    // Both maps are adjusted during render on the rested-filter edge, so the decision applies to the revealing frame.
-    const [formAtLastRest, setFormAtLastRest] = useState<Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm> | undefined>>>({
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]: searchAdvancedFiltersForm,
-    });
-    const [contentVersions, setContentVersions] = useState<Partial<Record<SearchFilter['key'], number>>>({});
-    if (mountedFilters.at(-1) !== restedFilter) {
-        const nextMountedFilters = [...mountedFilters.filter((filterKey) => filterKey !== restedFilter), restedFilter].slice(-CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS);
-        const nextFormAtLastRest: Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm> | undefined>> = {};
-        const nextContentVersions: Partial<Record<SearchFilter['key'], number>> = {};
-        // Both maps describe the mounted contents only, so a filter evicted from `mountedFilters` is dropped from them too.
-        for (const filterKey of nextMountedFilters) {
-            nextFormAtLastRest[filterKey] = filterKey === restedFilter ? searchAdvancedFiltersForm : formAtLastRest[filterKey];
-            const version = contentVersions[filterKey];
-            if (version !== undefined) {
-                nextContentVersions[filterKey] = version;
-            }
-        }
-        if (mountedFilters.includes(restedFilter) && formAtLastRest[restedFilter] !== searchAdvancedFiltersForm) {
-            nextContentVersions[restedFilter] = (contentVersions[restedFilter] ?? 0) + 1;
-        }
-        setFormAtLastRest(nextFormAtLastRest);
-        setContentVersions(nextContentVersions);
-        setMountedFilters(nextMountedFilters);
-    }
     const filterContentRef = useRef<View>(null);
 
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
@@ -106,7 +132,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}
                     policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
-                    selectedFilter={selectedFilter}
+                    selectedFilter={hoveredFilter}
                     onHoverIn={hoverFilter}
                     onFocus={focusFilter}
                 />
@@ -115,20 +141,23 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     style={[styles.filterContentContainer]}
                 >
                     {mountedFilters.map((filterKey) => (
-                        // Backgrounded contents keep their layout (hidden with web-only visibility:hidden) and get the
-                        // form values frozen at their last visit, so moving between filters doesn't re-render them and
-                        // showing one again is just a style flip. A content whose values went stale is remounted (above).
-                        <View
+                        // A backgrounded content stays mounted with the filter values frozen at its last visit, so moving
+                        // between filters neither re-renders it nor loses its state, and revealing it again is free.
+                        // `Activity` also keeps it out of layout while hidden and lets React render it at a lower priority
+                        // than the visible one when something both of them read changes underneath.
+                        <Activity
                             key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
-                            style={[styles.flex1, filterKey !== restedFilter && [styles.pAbsolute, styles.w100, styles.h100, styles.visibilityHidden]]}
+                            mode={filterKey === activeFilter ? 'visible' : 'hidden'}
                         >
-                            <MemoizedFilterContent
-                                values={filterKey === restedFilter ? searchAdvancedFiltersForm : formAtLastRest[filterKey]}
-                                baseFilterKey={filterKey}
-                                components={filterComponents}
-                                onChange={updateFilterQueryParams}
-                            />
-                        </View>
+                            <View style={styles.flex1}>
+                                <MemoizedFilterContent
+                                    values={filterKey === activeFilter ? searchAdvancedFiltersForm : formAtLastRest[filterKey]}
+                                    baseFilterKey={filterKey}
+                                    components={filterComponents}
+                                    onChange={updateFilterQueryParams}
+                                />
+                            </View>
+                        </Activity>
                     ))}
                 </View>
             </View>
