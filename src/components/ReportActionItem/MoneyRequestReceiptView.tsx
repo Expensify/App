@@ -166,9 +166,7 @@ function MoneyRequestReceiptView({
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
-    const iouReportTransactions = Object.values(iouReportTransactionsCollection ?? {}).filter(
-        (iouReportTransaction): iouReportTransaction is OnyxTypes.Transaction => !!iouReportTransaction,
-    );
+    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {

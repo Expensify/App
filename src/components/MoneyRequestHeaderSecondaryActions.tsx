@@ -203,7 +203,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
-    const iouReportTransactions = Object.values(iouReportTransactionsCollection ?? {}).filter((iouReportTransaction): iouReportTransaction is Transaction => !!iouReportTransaction);
+    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);

@@ -336,9 +336,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
-    const iouReportTransactions = Object.values(iouReportTransactionsCollection ?? {}).filter(
-        (iouReportTransaction): iouReportTransaction is OnyxTypes.Transaction => !!iouReportTransaction,
-    );
+    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const isActionOwner =

@@ -31,7 +31,7 @@ import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
-import type {ReportAction, Transaction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {Location} from '@src/types/utils/Layout';
 
 import type {ForwardedRef} from 'react';
@@ -357,7 +357,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
-    const iouReportTransactions = Object.values(iouReportTransactionsCollection ?? {}).filter((iouReportTransaction): iouReportTransaction is Transaction => !!iouReportTransaction);
+    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
     const {getCurrencyDecimals} = useCurrencyListActions();
