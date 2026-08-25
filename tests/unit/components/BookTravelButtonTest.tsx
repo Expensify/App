@@ -180,7 +180,7 @@ describe('BookTravelButton', () => {
         it('navigates a validated admin to the enablement stepper without the travel beta', async () => {
             await seedOnyx(true);
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...provisionedPolicy, travelSettings: undefined});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...provisionedPolicy, travelSettings: undefined});
                 await waitForBatchedUpdatesWithAct();
             });
             jest.mocked(getTravelRiskApproval).mockResolvedValue(true);
