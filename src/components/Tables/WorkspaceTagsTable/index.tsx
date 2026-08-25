@@ -1,8 +1,9 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +12,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -56,6 +58,9 @@ type WorkspaceTagsTableProps = {
     shouldShowApproverColumn: boolean;
     emptyState: TableEmptyStateProps;
 
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
+    headerComponent?: React.ReactElement;
+
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
 };
@@ -70,16 +75,19 @@ export default function WorkspaceTagsTable({
     hasDependentTags,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
+    headerComponent,
     headerButton,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const shouldShowTagCountColumn = isMultiLevelTags && !shouldUseNarrowTableLayout;
     const shouldShowEnabledColumn = !isMultiLevelTags;
-    const shouldShowRequiredColumn = isMultiLevelTags && !hasDependentTags;
+    // Required is configured from Rules once the revamp is on, so the rows have no switch to head.
+    const shouldShowRequiredColumn = isMultiLevelTags && !hasDependentTags && !isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const tagTableColumns: Array<TableColumn<WorkspaceTagTableColumnKey>> = [
         {
@@ -203,6 +211,9 @@ export default function WorkspaceTagsTable({
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.tags.findTag')}>{headerButton}</Table.FilterBar>;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={tags}
@@ -217,7 +228,7 @@ export default function WorkspaceTagsTable({
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.tags.findTag')}>{headerButton}</Table.FilterBar>
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
             <Table.Header />

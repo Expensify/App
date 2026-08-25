@@ -14,8 +14,9 @@ import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
 import Log from './libs/Log';
 import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
+import {hasSecureLinkKey} from './libs/Url';
 import ONYXKEYS from './ONYXKEYS';
-import {hasSeenTourSelector} from './selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from './selectors/Onboarding';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 type DeepLinkHandlerProps = {
@@ -38,8 +39,9 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
@@ -55,7 +57,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     }, []);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)) {
+        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, guidedSetupAndTourStatusMetadata, betasMetadata)) {
             return;
         }
 
@@ -103,7 +105,16 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     if (introSelected === undefined) {
                         Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                     }
-                    openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+                    openReportFromDeepLink(
+                        url,
+                        allReports,
+                        isCurrentlyAuthenticated,
+                        conciergeReportID,
+                        introSelected,
+                        guidedSetupAndTourStatus?.isSelfTourViewed,
+                        betas,
+                        session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    );
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
                     Report.doneCheckingPublicRoom();
@@ -131,7 +142,22 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+            // A Submit-via-PDF secure access link can arrive while the app is already running (warm), where
+            // getInitialURL() is empty. Record it so onboarding suppression has a session-sticky signal, the same
+            // way the cold path does via onInitialUrl above. Scoped to secure links so other deep links are unaffected.
+            if (hasSecureLinkKey(state.url)) {
+                onInitialUrl(state.url as Route);
+            }
+            openReportFromDeepLink(
+                state.url,
+                allReports,
+                isCurrentlyAuthenticated,
+                conciergeReportID,
+                introSelected,
+                guidedSetupAndTourStatus?.isSelfTourViewed,
+                betas,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
 
@@ -149,7 +175,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         sessionMetadata.status,
         conciergeReportIDMetadata.status,
         introSelectedMetadata.status,
-        isSelfTourViewedMetadata.status,
+        guidedSetupAndTourStatusMetadata.status,
         betasMetadata.status,
     ]);
 
@@ -184,8 +210,26 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             return;
         }
         hasRefetchedPublicRoom.current = true;
-        Report.openReport({reportID, introSelected, betas, hasReportActions: false, currentUserAccountID: session?.accountID});
-    }, [isLoadingApp, allReports, introSelected, betas, session?.accountID]);
+        Report.openReport({
+            reportID,
+            introSelected,
+            betas,
+            conciergeChat,
+            hasReportActions: false,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
+    }, [
+        isLoadingApp,
+        allReports,
+        introSelected,
+        betas,
+        conciergeChat,
+        session?.accountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
 
     return null;
 }

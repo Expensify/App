@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,11 +25,14 @@ type WorkspaceTaxesTableProps = {
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
+    headerComponent?: React.ReactElement;
+
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
 };
 
-export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange, headerButton}: WorkspaceTaxesTableProps) {
+export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, headerButton}: WorkspaceTaxesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -83,6 +86,9 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.taxes.findTaxRate')}>{headerButton}</Table.FilterBar>;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={taxes}
@@ -98,7 +104,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             keyExtractor={(tax) => tax.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.taxes.findTaxRate')}>{headerButton}</Table.FilterBar>
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

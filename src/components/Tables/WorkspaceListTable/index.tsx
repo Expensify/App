@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -31,7 +31,7 @@ type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
 type WorkspaceRowData = TableData & {
     title: string;
-    icon: AvatarSource;
+    icon?: AvatarSource;
     isDefault: boolean;
     isDeleted: boolean;
     isJoinRequestPending: boolean;
@@ -54,6 +54,7 @@ type WorkspaceRowData = TableData & {
 type WorkspaceListTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
+    headerComponent?: React.ReactElement;
 
     /** Called when the user picks Delete in a row menu, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
@@ -65,7 +66,7 @@ type WorkspaceListTableProps = {
     headerButton?: React.ReactNode;
 };
 
-export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID, headerButton}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, pendingDeletePolicyID, headerButton}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -120,6 +121,9 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findWorkspace')}>{headerButton}</Table.FilterBar>;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
         return (
             <WorkspaceRow
@@ -154,7 +158,7 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             title={translate('common.workspaces')}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            <Table.FilterBar label={translate('workspace.common.findWorkspace')}>{headerButton}</Table.FilterBar>
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.EmptyState
                 titleStyles={styles.pt2}

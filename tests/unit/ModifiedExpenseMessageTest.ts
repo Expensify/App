@@ -136,7 +136,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns "moved expense from personal space to chat with reportName" message when moving an expense to policy expense chat with only reportName', () => {
                 const policyExpenseReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, undefined);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: policyExpenseReport.reportName});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName);
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to policyName" message when moving an expense to policy expense chat with reportName and policyName', () => {
@@ -145,10 +145,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyName: 'Policy',
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, undefined);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
-                    reportName: policyExpenseReport.reportName,
-                    workspaceName: policyExpenseReport.policyName,
-                });
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policyExpenseReport.policyName);
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to workspaceName" using policy name from policy object when moving to policy expense chat', () => {
@@ -166,10 +163,7 @@ describe('ModifiedExpenseMessage', () => {
                     isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
-                    reportName: policyExpenseReport.reportName,
-                    workspaceName: policy.name,
-                });
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policy.name);
                 expect(result).toEqual(expectedResult);
             });
             it('returns "changed the expense" message when moving an expense to policy expense chat without reportName', () => {
@@ -199,7 +193,7 @@ describe('ModifiedExpenseMessage', () => {
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
                 // When a valid policy provides a name, the movedFromPersonalSpace message is returned
                 // even if the report has no reportName, because policyName is sufficient.
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {workspaceName: policy.name});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policy.name);
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved from personal space to reportName" message when moving an expense to a 1:1 DM', async () => {
@@ -211,7 +205,7 @@ describe('ModifiedExpenseMessage', () => {
                     [mockAccountID]: {accountID: mockAccountID, login: CURRENT_USER_LOGIN},
                 });
 
-                (ReportNameUtils.buildReportNameFromParticipantNames as jest.Mock).mockImplementation(({currentUserAccountID}) => {
+                jest.mocked(ReportNameUtils.buildReportNameFromParticipantNames).mockImplementation(({currentUserAccountID}) => {
                     if (currentUserAccountID === mockAccountID) {
                         return dmReportName;
                     }
@@ -219,7 +213,7 @@ describe('ModifiedExpenseMessage', () => {
                 });
 
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, dmReport, CURRENT_USER_LOGIN, undefined);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: dmReportName});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', dmReportName);
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -1031,6 +1025,33 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the description is changed to a URL', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldComment: '<a href="https://old.example.com" target="_blank">https://old.example.com</a>',
+                    newComment: '<a href="https://new.example.com" target="_blank">https://new.example.com</a>',
+                },
+            };
+
+            it('keeps the stored HTML link instead of converting it to Markdown', () => {
+                const expectedResult =
+                    'changed the description to "<a href="https://new.example.com" target="_blank">https://new.example.com</a>" (previously "<a href="https://old.example.com" target="_blank">https://old.example.com</a>")';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the category is changed with AI attribution', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -1232,11 +1253,11 @@ describe('ModifiedExpenseMessage', () => {
                 environmentURL = await getEnvironmentURL();
             });
 
-            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE} as Policy;
+            const policyRulesPolicy = createMock<Policy>({id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE});
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
-                (PolicyUtils.isPolicyAdmin as jest.Mock).mockReturnValue(true);
+                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(true);
             });
 
             it('returns the correct text message with multiple overrides', () => {
@@ -1305,12 +1326,12 @@ describe('ModifiedExpenseMessage', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
+                    originalMessage: createMock<OriginalMessageModifiedExpense>({
                         policyID: '1234',
                         policyRulesModifiedFields: {
                             tax: {},
                         },
-                    } as OriginalMessageModifiedExpense,
+                    }),
                 };
 
                 const result = getForReportAction({
@@ -1407,7 +1428,7 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('returns the correct text message with help link for non-admin', () => {
-                (PolicyUtils.isPolicyAdmin as jest.Mock).mockReturnValue(false);
+                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(false);
 
                 const reportAction = {
                     ...createRandomReportAction(1),
@@ -1997,10 +2018,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
                 });
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
-                    reportName: movedToReport.reportName,
-                    workspaceName: policy.name,
-                });
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, policy.name);
                 expect(result).toEqual(expectedResult);
             });
 
@@ -2024,10 +2042,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
                 });
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
-                    reportName: movedToReport.reportName,
-                    workspaceName: movedToReport.policyName,
-                });
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, movedToReport.policyName);
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -2269,7 +2284,7 @@ describe('ModifiedExpenseMessage', () => {
             // chat entries keep rendering the vendor name after an admin switches export modes away
             // from CC/DC. The fourth case below omits a vendor from the list to exercise the
             // externalID fallback path.
-            const policyWithVendors: Policy = {
+            const policyWithVendors = createMock<Policy>({
                 id: 'p-1',
                 name: 'My Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
@@ -2287,7 +2302,7 @@ describe('ModifiedExpenseMessage', () => {
                         },
                     },
                 },
-            } as Policy;
+            });
 
             describe('when the vendor is set for the first time (oldVendor key stripped by Onyx null-merge)', () => {
                 // Onyx merges with `shouldRemoveNestedNulls: true`, so the optimistic
@@ -2298,7 +2313,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        vendor: {externalID: 'v-acme', isManuallySet: true},
+                        vendor: {externalID: 'v-acme', wasManuallySet: true},
                     },
                 };
 
@@ -2320,8 +2335,8 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        oldVendor: {externalID: 'v-acme', isManuallySet: false},
-                        vendor: {externalID: 'v-office', isManuallySet: true},
+                        oldVendor: {externalID: 'v-acme', wasManuallySet: false},
+                        vendor: {externalID: 'v-office', wasManuallySet: true},
                     },
                 };
 
@@ -2343,7 +2358,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        oldVendor: {externalID: 'v-acme', isManuallySet: true},
+                        oldVendor: {externalID: 'v-acme', wasManuallySet: true},
                     },
                 };
 
@@ -2365,7 +2380,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        vendor: {externalID: 'v-deleted', isManuallySet: false},
+                        vendor: {externalID: 'v-deleted', wasManuallySet: false},
                     },
                 };
 
@@ -2379,6 +2394,28 @@ describe('ModifiedExpenseMessage', () => {
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('set the vendor to "v-deleted"');
+                });
+            });
+
+            describe('when the vendor is no longer in the list but a display name was persisted on the action', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        vendor: {externalID: 'v-deleted', name: 'Amazon', wasManuallySet: false},
+                    },
+                };
+
+                it('renders the persisted name instead of the raw externalID', () => {
+                    const result = getForReportAction({
+                        convertToDisplayString,
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the vendor to "Amazon"');
                 });
             });
 
@@ -2412,7 +2449,7 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            vendor: {externalID: 'xcAcme', isManuallySet: true},
+                            vendor: {externalID: 'xcAcme', wasManuallySet: true},
                         },
                     };
                     const result = getForReportAction({
@@ -2431,8 +2468,8 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            oldVendor: {externalID: 'xcAcme', isManuallySet: false},
-                            vendor: {externalID: 'xcOffice', isManuallySet: true},
+                            oldVendor: {externalID: 'xcAcme', wasManuallySet: false},
+                            vendor: {externalID: 'xcOffice', wasManuallySet: true},
                         },
                     };
                     const result = getForReportAction({
@@ -2451,7 +2488,7 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            vendor: {externalID: 'xcDeleted', isManuallySet: false},
+                            vendor: {externalID: 'xcDeleted', wasManuallySet: false},
                         },
                     };
                     const result = getForReportAction({

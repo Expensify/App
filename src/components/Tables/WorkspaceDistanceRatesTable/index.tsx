@@ -1,4 +1,4 @@
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -33,6 +33,9 @@ type WorkspaceDistanceRatesTableProps = {
     canWriteDistanceRates: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
+    headerComponent?: React.ReactElement;
+
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
 };
@@ -44,7 +47,16 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange, headerButton}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({
+    ratesData,
+    policyID,
+    selectionEnabled,
+    selectedKeys,
+    canWriteDistanceRates,
+    onRowSelectionChange,
+    headerComponent,
+    headerButton,
+}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -149,6 +161,9 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.distanceRates.findRate')}>{headerButton}</Table.FilterBar>;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={ratesData}
@@ -164,7 +179,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
-            <Table.FilterBar label={translate('workspace.distanceRates.findRate')}>{headerButton}</Table.FilterBar>
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.distanceRates.emptyRates.title')}
                 subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
@@ -6,7 +6,7 @@ import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -47,7 +47,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['UserShield']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -94,7 +93,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             return {
                 keyForList: String(accountID),
                 accountID,
-                name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+                name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                 email: formatPhoneNumber(login),
                 isPrimaryContact: !!technicalContactEmail && !!login && technicalContactEmail === login,
                 errors: getLatestError(errors),
@@ -110,25 +109,29 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const addAdminButton = isAdmin ? (
         <Button
-            success
-            small
-            icon={icons.Plus}
-            text={translate('domain.admins.addAdmin')}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.SMALL}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
-        />
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('domain.admins.addAdmin')}</Button.Text>
+        </Button>
     ) : undefined;
 
     const headerContent = isAdmin ? (
         <View style={[styles.flexRow, styles.gap2]}>
             <Button
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
-                text={translate('domain.common.settings')}
-                icon={hasSettingsErrors ? icons.DotIndicator : icons.Gear}
-                iconFill={hasSettingsErrors ? theme.danger : undefined}
-                iconHoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
                 innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
                 style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow0, styles.mb3] : undefined}
-            />
+            >
+                <Button.Icon
+                    src={hasSettingsErrors ? icons.DotIndicator : icons.Gear}
+                    fill={hasSettingsErrors ? theme.danger : undefined}
+                    hoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
+                />
+                <Button.Text>{translate('domain.common.settings')}</Button.Text>
+            </Button>
         </View>
     ) : null;
 
@@ -143,7 +146,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 <HeaderWithBackButton
                     title={translate('domain.admins.title')}
                     onBackButtonPress={Navigation.goBack}
-                    icon={illustrations.UserShield}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     shouldDisplayHelpButton

@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
@@ -43,6 +43,9 @@ type DomainMembersTableProps = {
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
 
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
+    headerComponent?: React.ReactElement;
+
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
 };
@@ -83,6 +86,7 @@ export default function DomainMembersTable({
     shouldShowGroupColumn,
     filterConfig,
     isItemInFilter,
+    headerComponent,
     headerButton,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
@@ -142,6 +146,12 @@ export default function DomainMembersTable({
         />
     );
 
+    const shouldShowTableControls = !isEmpty;
+    const tableHeaderComponent = composeTableListHeader(
+        headerComponent,
+        shouldShowTableControls ? <Table.FilterBar label={translate('domain.members.findMember')}>{headerButton}</Table.FilterBar> : undefined,
+    );
+
     return (
         <Table
             ref={tableRef}
@@ -159,6 +169,7 @@ export default function DomainMembersTable({
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             {!isEmpty && (
                 <DomainMembersGroupFilterSync
                     shouldShowGroupFilter={shouldShowGroupFilter}
@@ -166,7 +177,6 @@ export default function DomainMembersTable({
                 />
             )}
 
-            <Table.FilterBar label={translate('domain.members.findMember')}>{headerButton}</Table.FilterBar>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

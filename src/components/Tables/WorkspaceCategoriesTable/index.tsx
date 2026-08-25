@@ -1,6 +1,6 @@
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -48,6 +48,9 @@ type WorkspaceCategoriesTableProps = {
     emptyStateButtons: EmptyStateButton[] | undefined;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
+    headerComponent?: React.ReactElement;
+
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
 };
@@ -62,6 +65,7 @@ export default function WorkspaceCategoriesTable({
     emptyStateSubtitleText,
     emptyStateButtons,
     onRowSelectionChange,
+    headerComponent,
     headerButton,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
@@ -149,6 +153,9 @@ export default function WorkspaceCategoriesTable({
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.categories.findCategory')}>{headerButton}</Table.FilterBar>;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     return (
         <Table
             ref={ref}
@@ -164,7 +171,7 @@ export default function WorkspaceCategoriesTable({
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.categories.findCategory')}>{headerButton}</Table.FilterBar>
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.categories.emptyCategories.title')}
                 subtitleText={emptyStateSubtitleText}

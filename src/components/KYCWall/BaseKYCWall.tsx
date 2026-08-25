@@ -1,5 +1,6 @@
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -88,6 +89,7 @@ function KYCWall({
     const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesSubmitterPersonalDetailExistSelector});
 
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -178,6 +180,7 @@ function KYCWall({
                             currentUserAccountID,
                             employeeLogin,
                             doesSubmitterPersonalDetailExist ?? false,
+                            getCurrencyDecimals,
                             reportTransactions,
                         );
                         if (inviteResult?.policyExpenseChatReportID) {
@@ -189,7 +192,7 @@ function KYCWall({
                                 Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
                             });
                         } else {
-                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, reportPreviewAction, true, reportTransactions);
+                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, reportPreviewAction, getCurrencyDecimals, true, reportTransactions);
                             savePreferredPaymentMethod(iouReport.policyID, adminPolicy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[adminPolicy.id]);
 
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
@@ -218,6 +221,7 @@ function KYCWall({
                             localeTranslate: translate,
                             reportActionsList: filteredReportActions,
                             doesEmployeePersonalDetailExist: doesSubmitterPersonalDetailExist ?? false,
+                            getCurrencyDecimals,
                         }) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
@@ -233,16 +237,23 @@ function KYCWall({
 
                 // If user has a locked account we exit early
                 if (policy !== undefined && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) {
+                    Log.info('[KYC Wallet] Dropping payment method selection: policy achAccount is locked', false, {policyID: policy.id, achBankAccountID: policy.achAccount?.bankAccountID});
                     return;
                 }
 
                 if (policy?.id !== undefined && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id)) {
+                    Log.info('[KYC Wallet] Redirecting to bank account setup: policy has a partially set up bank account', false, {policyID: policy.id});
                     navigateToBankAccountRoute({policyID: policy.id});
                     return;
                 }
 
                 // If user has existing bank accounts that he can connect we show the list of these accounts
                 if (policy !== undefined && canLinkExistingBusinessBankAccount) {
+                    Log.info('[KYC Wallet] Redirecting to connect an existing business bank account instead of paying', false, {
+                        policyID: policy.id,
+                        achBankAccountID: policy.achAccount?.bankAccountID,
+                        achState: policy.achAccount?.state,
+                    });
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy?.id));
                     return;
                 }
@@ -278,6 +289,7 @@ function KYCWall({
             betas,
             conciergeChat,
             localCurrency,
+            getCurrencyDecimals,
         ],
     );
 
@@ -319,7 +331,13 @@ function KYCWall({
             // - For expense reports: Proceeds if no accounts that are connected are valid and usable (`OPEN`)
             // - For other expenses: Proceeds if the user lacks a valid personal bank account or debit card
             if ((isExpenseReport && !hasOpenConnectedBusinessBankAccount) || (!isExpenseReport && bankAccountList !== null && !hasValidPaymentMethod)) {
-                Log.info('[KYC Wallet] User does not have valid payment method');
+                Log.info('[KYC Wallet] User does not have valid payment method', false, {
+                    isExpenseReport,
+                    policyID: policy?.id,
+                    achBankAccountID: policy?.achAccount?.bankAccountID,
+                    achState: policy?.achAccount?.state,
+                    paymentMethod,
+                });
 
                 if (!shouldIncludeDebitCard || (isFromWalletPage && !hasValidPaymentMethod)) {
                     selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, undefined, personalBankAccountOnSuccessFallbackRoute);

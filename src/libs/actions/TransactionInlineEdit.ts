@@ -1,10 +1,12 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getTagLists, isGroupPolicy, isMultiLevelTags} from '@libs/PolicyUtils';
+import {getTagLists, isGroupPolicy, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -43,7 +45,6 @@ import type {
     ReportAction,
     ReportActions,
     ReportNameValuePairs,
-    ReportNextStepDeprecated,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -177,6 +178,7 @@ type TransactionEditPermissionsParams = {
 
 type GetIouParamsInput = {
     transactionID: string;
+    transaction: OnyxEntry<Transaction>;
     parentReport: OnyxEntry<Report>;
     parentReportAction: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
@@ -187,13 +189,14 @@ type GetIouParamsInput = {
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
-    parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     distanceOriginalPolicy?: OnyxEntry<Policy>;
     personalDetailsList: OnyxEntry<PersonalDetailsList>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -210,6 +213,7 @@ type TransactionInlineEditParams = GetIouParamsInput & {
  */
 function getIouParamsForTransaction({
     transactionID,
+    transaction,
     parentReport,
     parentReportAction,
     transactionThreadReport,
@@ -220,14 +224,14 @@ function getIouParamsForTransaction({
     reportPolicyTags,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
-    parentReportNextStep,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     personalDetailsList,
     delegateAccountID,
     isTrackIntentUser,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: GetIouParamsInput) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const isUnreportedExpense = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -271,6 +275,7 @@ function getIouParamsForTransaction({
             iouReportAction: resolvedParentReportAction,
             transaction,
             transactionViolations: transactionViolations ?? undefined,
+            personalDetails: personalDetailsList,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
         });
@@ -284,12 +289,13 @@ function getIouParamsForTransaction({
         policy,
         policyForTrackExpense,
         policyCategories,
-        parentReportNextStep,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
         reportPolicyTags,
         // Field-specific extras
         transaction,
@@ -319,9 +325,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
 function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
-
-    if (!isValidMerchant(newMerchant, transaction, params.parentReport)) {
+    if (!isValidMerchant(newMerchant, params.transaction, params.parentReport)) {
         return;
     }
 
@@ -369,9 +373,9 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
     // Keep the existing currency — only the amount is changing from the search table
     const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
     // Recalculate tax from the existing tax code and the new amount
-    const taxCode = iouParams.transaction?.taxCode ?? '';
+    const taxCode = resolveCurrentTaxCode(iouParams.policy, iouParams.transaction?.taxCode ?? '');
     const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
-    const decimals = getCurrencyDecimals(getCurrency(iouParams.transaction));
+    const decimals = params.getCurrencyDecimals(getCurrency(iouParams.transaction));
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
     updateMoneyRequestAmountAndCurrency({
         ...iouParams,
@@ -542,4 +546,4 @@ export {
     getTransactionEditPermissions,
 };
 
-export type {TransactionEditPermissions, TransactionInlineEditParams, TransactionEditPermissionsParams};
+export type {TransactionInlineEditParams, TransactionEditPermissions, TransactionEditPermissionsParams};

@@ -18,7 +18,6 @@ import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {formatList} from './Localize';
 import Log from './Log';
-import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
@@ -94,7 +93,7 @@ function buildDateChangeFragment(
     if (!oldCreated || !created) {
         return;
     }
-    const formattedOldCreated = DateUtils.formatWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    const formattedOldCreated = DateUtils.formatMachineDateWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
     buildMessageFragmentForValue(translate, created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
 }
 
@@ -172,7 +171,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     if (isEmpty(policyName) && !reportName) {
         return translate('iou.changedTheExpense');
     }
-    return translate('iou.movedFromPersonalSpace', {reportName, workspaceName: !isEmpty(policyName) ? policyName : undefined});
+    return translate('iou.movedFromPersonalSpace', reportName, !isEmpty(policyName) ? policyName : undefined);
 }
 
 function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {
@@ -248,7 +247,7 @@ function getRulesModifiedMessage(
         }
         // The backend saves the description field as `comment` key, but we need to display it as `description` key.
         if (key === 'comment') {
-            return translate('iou.rulesModifiedFields.common', 'description', Parser.htmlToMarkdown(updatedValue), isFirst);
+            return translate('iou.rulesModifiedFields.common', 'description', updatedValue, isFirst);
         }
 
         return translate('iou.rulesModifiedFields.common', key, updatedValue, isFirst);
@@ -362,8 +361,8 @@ function getForReportAction({
 
         buildMessageFragmentForValue(
             translate,
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
+            reportActionOriginalMessage?.newComment ?? '',
+            reportActionOriginalMessage?.oldComment ?? '',
             descriptionLabel,
             true,
             setFragments,
@@ -499,18 +498,18 @@ function getForReportAction({
     // fallback.
     const hasModifiedVendor = isReportActionOriginalMessageAnObject && ('oldVendor' in reportActionOriginalMessage || 'vendor' in reportActionOriginalMessage);
     if (hasModifiedVendor) {
-        // Vendor is stored on the action as `{externalID, isManuallySet}` (or absent/null). Resolve
-        // the display name from any connection that has the vendor data (QBO, Intacct, or Xero),
-        // without gating on the workspace's current export mode — a past "set vendor" action should
-        // still render the vendor name after an admin switches the non-reimbursable export type. If
-        // the vendor has been removed from the integration entirely the name is unrecoverable, so
-        // fall back to the externalID so the fragment still identifies which vendor was set rather
-        // than rendering `set vendor ""`.
+        // Vendor is stored on the action as `{externalID, name?, wasManuallySet}` (or absent/null).
+        // Resolve the display name from any connection that has the vendor data (QBO, Intacct, or
+        // Xero), without gating on the workspace's current export mode — a past "set vendor" action
+        // should still render the vendor name after an admin switches the non-reimbursable export
+        // type. When no connection has the vendor any more, prefer the display name persisted on the
+        // action, then fall back to the externalID so the fragment still identifies which vendor was
+        // set rather than rendering `set vendor ""`.
         const resolveVendorName = (entry: typeof reportActionOriginalMessage.vendor): string => {
             if (!entry?.externalID) {
                 return '';
             }
-            return findVendorByID(policy, entry.externalID)?.name ?? entry.externalID;
+            return findVendorByID(policy, entry.externalID)?.name ?? entry.name ?? entry.externalID;
         };
         buildMessageFragmentForValue(
             translate,

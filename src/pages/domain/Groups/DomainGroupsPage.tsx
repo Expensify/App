@@ -1,11 +1,11 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
 import DomainGroupsTable from '@components/Tables/DomainGroupsTable';
 
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -42,7 +42,6 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     useDomainDocumentTitle(domainName, 'domain.groups.title');
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
@@ -87,13 +86,14 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const createGroupHeaderButton = (
         <Button
             accessibilityLabel={translate('domain.groups.createNewGroupButton')}
-            text={translate('domain.groups.createNewGroupButton')}
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
-            icon={icons.Plus}
-            success
-            small
-        />
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.SMALL}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('domain.groups.createNewGroupButton')}</Button.Text>
+        </Button>
     );
 
     return (
@@ -106,8 +106,8 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.groups.title')}
+                    shouldDisplayHelpButton
                     onBackButtonPress={Navigation.popToSidebar}
-                    icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                 />

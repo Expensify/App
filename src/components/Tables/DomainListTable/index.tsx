@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,11 +40,14 @@ type DomainRowData = {
 type DomainListTableProps = {
     domains: DomainRowData[];
 
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
+    headerComponent?: React.ReactElement;
+
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
 };
 
-export default function DomainListTable({domains, headerButton}: DomainListTableProps) {
+export default function DomainListTable({domains, headerComponent, headerButton}: DomainListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EarthWithControls']);
@@ -76,6 +79,9 @@ export default function DomainListTable({domains, headerButton}: DomainListTable
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findDomain')}>{headerButton}</Table.FilterBar>;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
         return (
             <DomainListTableRow
@@ -105,7 +111,7 @@ export default function DomainListTable({domains, headerButton}: DomainListTable
             title={translate('common.domains')}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
-            <Table.FilterBar label={translate('workspace.common.findDomain')}>{headerButton}</Table.FilterBar>
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 headerMedia={illustrations.EarthWithControls}
                 headerContentStyles={styles.emptyDomainListStaticIllustrationStyle}

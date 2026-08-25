@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -31,11 +31,14 @@ type WorkspaceRoomsTableProps = {
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
 
+    /** Content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
+
     /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
     headerButton?: React.ReactNode;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerButton}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerComponent, headerButton}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -67,7 +70,11 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerButton
         if (!highlightedRow) {
             return;
         }
-        tableRef.current?.scrollToItem({item: highlightedRow, animated: false});
+        tableRef.current?.scrollToItem({
+            item: highlightedRow,
+            animated: false,
+            viewPosition: 0.5,
+        });
         tableRef.current?.highlightItems([highlightedRow.keyForList]);
     }, [highlightedReportID, rooms]);
 
@@ -98,8 +105,17 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerButton
     );
 
     if (!isPolicyRoomDataLoaded) {
-        return <Table.LoadingState context="WorkspaceRoomsTable" />;
+        // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
+        return (
+            <>
+                {headerComponent}
+                <Table.LoadingState />
+            </>
+        );
     }
+
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findRoom')}>{headerButton}</Table.FilterBar>;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -113,7 +129,7 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerButton
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <Table.FilterBar label={translate('workspace.common.findRoom')}>{headerButton}</Table.FilterBar>
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />

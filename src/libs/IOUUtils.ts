@@ -1,7 +1,9 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
@@ -10,7 +12,7 @@ import type {ValueOf} from 'type-fest';
 
 import {SafeString} from 'expensify-common';
 
-import {getCurrencyUnit} from './CurrencyUtils';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
@@ -53,16 +55,25 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
 }
 
 function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+    let navigationIOUType: IOUType = iouType;
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            navigationIOUType = CONST.IOU.TYPE.SUBMIT;
             break;
         case CONST.IOU.TYPE.SEND:
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
+            navigationIOUType = CONST.IOU.TYPE.PAY;
             break;
         default:
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+            break;
     }
+
+    // The base is explicit because the picker can be opened from a create tab, the Inbox or Search drop zone.
+    Navigation.navigate(
+        createDynamicRoute(
+            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action: CONST.IOU.ACTION.CREATE, iouType: navigationIOUType, transactionID, reportID}),
+            ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, reportID),
+        ),
+    );
 }
 
 /**
@@ -72,12 +83,20 @@ function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, tran
  * @param total - IOU total amount in backend format (cents, no matter the currency)
  * @param currency - Used to know how many decimal places are valid when splitting the total
  * @param isDefaultUser - Whether we are calculating the amount for the remainder holder
- * @param useFloorToLastRounding - `false` (default, legacy behavior) or `true` to floor all and put full remainder on the default user
+ * @param useFloorToLastRounding - `false` (legacy behavior) or `true` to floor all and put full remainder on the default user
+ * @param getCurrencyDecimals - Currency lookup supplied by React consumers.
  */
-function calculateAmount(numberOfSplits: number, total: number, currency: string, isDefaultUser = false, useFloorToLastRounding = false): number {
+function calculateAmount(
+    numberOfSplits: number,
+    total: number,
+    currency: string,
+    isDefaultUser: boolean,
+    useFloorToLastRounding: boolean,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
-    const currencyUnit = Math.min(100, getCurrencyUnit(currency));
+    const currencyUnit = Math.min(100, 10 ** getCurrencyDecimals(currency));
     const totalInCurrencySubunit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfSplits + 1;
 
@@ -537,22 +556,34 @@ function pickReportForPolicy(...reports: Array<OnyxEntry<Report>>): OnyxEntry<Re
     return reports.find((report) => reportHasRealPolicy(report)) ?? reports.find((report) => !!report);
 }
 
+/** The policyID of the workspace the user explicitly picked for this expense, taken from the transaction participants. */
+function getSelectedWorkspacePolicyID(transaction: OnyxEntry<Transaction>, action: IOUAction): string | undefined {
+    if (action === CONST.IOU.ACTION.EDIT) {
+        return undefined;
+    }
+
+    return transaction?.participants?.find((participant) => participant?.isSender)?.policyID ?? transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
     transactionReport,
     routeReport,
     policy,
+    reportNameValuePair,
 }: {
     transaction: OnyxEntry<Transaction>;
     transactionReport: OnyxEntry<Report>;
     routeReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
+    reportNameValuePair: OnyxInputOrEntry<ReportNameValuePairs>;
 }): OnyxEntry<Report> {
     if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return undefined;
     }
-    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
+    const canUseTransactionReport =
+        !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, reportNameValuePair, false);
     const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
     if (shouldUseTransactionReport) {
         return transactionReport;
@@ -600,6 +631,16 @@ function isSelfDMSoleDestination(participants: Participant[], iouType: IOUType, 
 }
 
 /**
+ * Single source of truth for whether a LOOKING_AROUND user's self-DM create routes to Spend > Expenses (Search).
+ * Suppressed offline because Search reads a server-populated snapshot that can't load offline (would render empty),
+ * so offline these users fall back to the self-DM (Personal Space) landing. Every create path calls this so the
+ * pre-mount / dismiss / final-landing decisions can't disagree.
+ */
+function isLookingAroundSearchRoutingActive(isLookingAroundUser: boolean | undefined, isOffline: boolean | undefined): boolean {
+    return !!isLookingAroundUser && !isOffline;
+}
+
+/**
  * Resolves the reportID that should be set on the transaction draft for
  * global-create flows with default participants. Returns undefined when
  * no early set is needed (non-global-create or empty participants).
@@ -636,9 +677,11 @@ export {
     getIsWorkspacesOnlyForTransaction,
     isParticipantP2P,
     isSelfDMSoleDestination,
+    isLookingAroundSearchRoutingActive,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     resolveEarlyReportID,
     reportHasRealPolicy,
     pickReportForPolicy,
+    getSelectedWorkspacePolicyID,
 };
