@@ -42,7 +42,7 @@ type ForwardedLogPrefix = TupleToUnion<typeof FORWARDED_LOG_PREFIXES>;
  * receipt keys tied to the receipt logs instead of widening the global whitelist.
  */
 const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyArray<string | RegExp>>([
-    ['[Receipt]', ['receiptTraceId', 'transactionID', 'event', 'captureSource']],
+    ['[Receipt]', ['receiptTraceId', 'transactionID', 'event', 'captureSource', 'code']],
     ['[PDFStall]', ['reportID']],
     ['[OpenReportStall]', ['reportID']],
 ]);

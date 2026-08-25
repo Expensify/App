@@ -605,4 +605,32 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/456/expense-distance-manual?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
         expect(getMatchingNewRoute('/r/456/expense-distance-rate?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
     });
+
+    it('redirects the legacy money request participants step to the new dynamic route (#83852)', () => {
+        expect(getMatchingNewRoute('/create/create/participants/123/456')).toBe('/r/456/expense-participants?action=create&iouType=create&transactionID=123&reportID=456');
+        expect(getMatchingNewRoute('/submit/submit/participants/123/456')).toBe('/r/456/expense-participants?action=submit&iouType=submit&transactionID=123&reportID=456');
+    });
+
+    it('keeps the legacy isWorkspacesOnly query when redirecting the participants step (#83852)', () => {
+        expect(getMatchingNewRoute('/submit/submit/participants/123/456?isWorkspacesOnly=true')).toBe(
+            '/r/456/expense-participants?action=submit&iouType=submit&transactionID=123&reportID=456&isWorkspacesOnly=true',
+        );
+    });
+
+    it('does not redirect the already-migrated money request participants dynamic route (#83852)', () => {
+        expect(getMatchingNewRoute('/r/456/expense-participants?action=create&iouType=create&transactionID=123&reportID=456')).toBe(undefined);
+    });
+
+    it('does not let the participants pattern swallow the report participant routes (#83852)', () => {
+        // Same segment count as `/*/*/participants/*/*`, so the guard entry must win and leave these untouched.
+        expect(getMatchingNewRoute('/r/123/participants/participants-details/456')).toBe('/r/123/participants/participants-details/456');
+        expect(getMatchingNewRoute('/e/123/participants/participants-details/456')).toBe('/e/123/participants/participants-details/456');
+        // The guard's trailing wildcard also covers the deeper participant-role route, still as an identity.
+        expect(getMatchingNewRoute('/r/123/participants/participants-details/456/participants-role')).toBe('/r/123/participants/participants-details/456/participants-role');
+        // Shorter report participant routes never matched the new pattern in the first place.
+        expect(getMatchingNewRoute('/r/123/participants')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/123/participants/participants-invite')).toBe(undefined);
+        // The pre-existing legacy participant-role redirect keeps winning over the new pattern.
+        expect(getMatchingNewRoute('/r/123/participants/456/role')).toBe('/r/123/participants/participants-details/456/participants-role');
+    });
 });
