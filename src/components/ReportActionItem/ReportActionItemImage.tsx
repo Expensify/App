@@ -7,6 +7,7 @@ import {useShowContextMenuState} from '@components/ShowContextMenuContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -136,13 +137,17 @@ function ReportActionItemImage({
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {report: contextReport, transactionThreadReport} = useShowContextMenuState();
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
     // (via `ConfirmedRoute`) instead of loading the now-404'd image.
-    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction));
+    // Offline, `ConfirmedRoute` can only render a blank placeholder, so when a cached receipt thumbnail exists
+    // fall through to it instead — the cached map image is strictly better than a blank placeholder.
+    const showMapAsImage =
+        isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction)) && !(isOffline && !!transaction && hasReceiptSource(transaction));
     const navigateToReceipt = () => {
         deferReceiptNavigation(() => {
             Navigation.navigate(
