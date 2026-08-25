@@ -56,7 +56,7 @@ function CardListItem<TItem extends ListItem>({
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
 
     const ownersAvatar = {
@@ -148,7 +148,7 @@ function CardListItem<TItem extends ListItem>({
                 )}
                 <ListItemComposed.TextColumn style={styles.optionRow}>
                     <ListItemComposed.Title
-                        text={Str.removeSMSDomain(item.text ?? '')}
+                        text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
                         style={titleStyle}
                     />
                     {!!subtitleText && <ListItemComposed.Subtitle text={subtitleText} />}
