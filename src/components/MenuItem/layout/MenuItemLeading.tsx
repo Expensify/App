@@ -7,10 +7,7 @@ import {View} from 'react-native';
 
 type MenuItemLeadingProps = PropsWithChildren;
 
-/**
- * The leading cell of a `MenuItem.Row`. Sets no width of its own — it centers and sizes to its
- * content, so an icon, avatar or spinner brings its own footprint.
- */
+/** The leading cell of a `MenuItem.Row`. Sets no width of its own — it centers and sizes to its content */
 function MenuItemLeading({children}: MenuItemLeadingProps) {
     const styles = useThemeStyles();
 

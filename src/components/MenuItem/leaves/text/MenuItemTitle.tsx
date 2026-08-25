@@ -40,7 +40,6 @@ type MenuItemTitleProps = {
           /** Element to render in place of plain text, e.g. a `DisplayNames` with per-name tooltips */
           children: ReactElement;
 
-          /** Plain-text form of the title, contributed to the row's accessibility label */
           accessibilityLabel: string;
       }
 );

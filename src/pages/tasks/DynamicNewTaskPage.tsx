@@ -6,7 +6,8 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -104,6 +105,9 @@ function DynamicNewTaskPage() {
 
     const detailsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK.path);
     const confirmButtonRef = useRef<View>(null);
+
+    const navigateToAssignee = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path));
+    const navigateToShareDestination = task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path));
 
     useEffect(() => {
         if (!task?.parentReportID) {
@@ -213,56 +217,81 @@ function DynamicNewTaskPage() {
                                 numberOfLinesTitle={2}
                                 titleStyle={styles.flex1}
                             />
-                            <MenuItemField
-                                label={translate('task.assignee')}
-                                value={assignee?.displayName}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path))}
-                            >
-                                <MenuItem.Leading>
-                                    {!!task?.assigneeAccountID && (
-                                        <AccountAvatar
-                                            accountID={task.assigneeAccountID}
-                                            containerStyle={[styles.actionAvatar]}
-                                        />
-                                    )}
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    <MenuItem.Title accessibilityLabel={assignee?.displayName ?? ''}>
-                                        <DisplayNames
-                                            fullTitle={assignee?.displayName ?? ''}
-                                            displayNamesWithTooltips={assigneeTooltipDetails}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                        />
-                                    </MenuItem.Title>
-                                    {!!assignee?.subtitle && <MenuItem.Description>{formatPhoneNumber(assignee.subtitle)}</MenuItem.Description>}
-                                </MenuItem.Content>
-                            </MenuItemField>
-                            <MenuItemField
-                                label={translate('common.share')}
-                                value={shareDestination?.displayName}
-                                isRequired
-                                onPress={task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path))}
-                            >
-                                <MenuItem.Leading>
-                                    <TaskFieldAvatar reportID={task?.shareDestination} />
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    {shareDestination?.shouldUseFullTitleToDisplay ? (
-                                        <MenuItem.Title>{shareDestination.displayName}</MenuItem.Title>
-                                    ) : (
-                                        <MenuItem.Title accessibilityLabel={shareDestination?.displayName ?? ''}>
-                                            <DisplayNames
-                                                fullTitle={shareDestination?.displayName ?? ''}
-                                                displayNamesWithTooltips={shareDestination?.displayNamesWithTooltips}
-                                                tooltipEnabled
-                                                numberOfLines={1}
-                                            />
-                                        </MenuItem.Title>
-                                    )}
-                                    {!!shareDestination?.subtitle && <MenuItem.Description>{shareDestination.subtitle}</MenuItem.Description>}
-                                </MenuItem.Content>
-                            </MenuItemField>
+                            {assignee?.displayName ? (
+                                <MenuItemWithLabel
+                                    label={translate('task.assignee')}
+                                    onPress={navigateToAssignee}
+                                >
+                                    <MenuItem.Row>
+                                        {!!task?.assigneeAccountID && (
+                                            <MenuItem.Leading>
+                                                <AccountAvatar
+                                                    accountID={task.assigneeAccountID}
+                                                    containerStyle={[styles.actionAvatar]}
+                                                />
+                                            </MenuItem.Leading>
+                                        )}
+                                        <MenuItem.Content>
+                                            <MenuItem.Title accessibilityLabel={assignee.displayName}>
+                                                <DisplayNames
+                                                    fullTitle={assignee.displayName}
+                                                    displayNamesWithTooltips={assigneeTooltipDetails}
+                                                    tooltipEnabled
+                                                    numberOfLines={1}
+                                                />
+                                            </MenuItem.Title>
+                                            {!!assignee.subtitle && <MenuItem.Description>{formatPhoneNumber(assignee.subtitle)}</MenuItem.Description>}
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItemWithLabel>
+                            ) : (
+                                <MenuItemEmptyField
+                                    description={translate('task.assignee')}
+                                    onPress={navigateToAssignee}
+                                />
+                            )}
+                            {shareDestination?.displayName ? (
+                                <MenuItemWithLabel
+                                    label={translate('common.share')}
+                                    onPress={navigateToShareDestination}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Leading>
+                                            <TaskFieldAvatar reportID={task?.shareDestination} />
+                                        </MenuItem.Leading>
+                                        <MenuItem.Content>
+                                            {shareDestination.shouldUseFullTitleToDisplay ? (
+                                                <MenuItem.Title>{shareDestination.displayName}</MenuItem.Title>
+                                            ) : (
+                                                <MenuItem.Title accessibilityLabel={shareDestination.displayName}>
+                                                    <DisplayNames
+                                                        fullTitle={shareDestination.displayName}
+                                                        displayNamesWithTooltips={shareDestination.displayNamesWithTooltips}
+                                                        tooltipEnabled
+                                                        numberOfLines={1}
+                                                    />
+                                                </MenuItem.Title>
+                                            )}
+                                            {!!shareDestination.subtitle && <MenuItem.Description>{shareDestination.subtitle}</MenuItem.Description>}
+                                        </MenuItem.Content>
+                                        {!task?.parentReportID && (
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                </MenuItemWithLabel>
+                            ) : (
+                                <MenuItemEmptyField
+                                    description={translate('common.share')}
+                                    onPress={navigateToShareDestination}
+                                >
+                                    <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
+                                </MenuItemEmptyField>
+                            )}
                         </View>
                     </View>
                     <View style={styles.flexShrink0}>

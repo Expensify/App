@@ -14,7 +14,7 @@ const MENU_ITEM_DESCRIPTION_VARIANT = {
     /** The small supporting-label look, for a description that sits under a title */
     SUPPORTING: 'supporting',
 
-    /** Normal-size text, for a description standing in for a value the row does not have yet */
+    /** Normal-size text, for a description-only row */
     PLACEHOLDER: 'placeholder',
 } as const;
 
@@ -27,10 +27,7 @@ type MenuItemDescriptionProps = {
     /** Maximum number of lines to render before the text is truncated */
     numberOfLines?: number;
 
-    /**
-     * Typography variant. `supporting` (default) is the small label look; `placeholder` bumps the font to
-     * the normal size — use it on rows with no title, where the description carries the row on its own.
-     */
+    /** The visual variant of the description, which controls its font size and line height */
     variant?: MenuItemDescriptionVariant;
 };
 

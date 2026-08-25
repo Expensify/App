@@ -32,10 +32,6 @@ import Onyx from 'react-native-onyx';
  * Grid comparison of the legacy `MenuItem` monolith, the new composable
  * `MenuItem.Root`/`Row`/... API, and the `MenuItemAction`/`MenuItemNavigation` presets.
  * Each card shows the same visual case built with every API that can currently express it.
- *
- * The "Phase 2" avatar sections lead, because those rows are what is under review, and they carry no
- * prose — they are there purely to compare renders. Cards the compound API cannot express yet show
- * the legacy render only. The Phase 1 icon rows come last as the already-settled baseline.
  */
 const story: Meta<typeof MenuItem> = {
     title: 'Components/MenuItemComparison',
