@@ -61,9 +61,9 @@ No. Any workspace can use Expensify Travel, regardless of whether the Expensify 
 
 ## Why am I asked for a legal entity tax ID when enabling Expensify Travel?
 
-If your workspace bills in a currency other than USD and hasn’t enabled Expensify Travel yet, you’ll see a **Tax ID** page asking for your **Legal entity tax ID** before you accept the travel terms and conditions. Expensify uses this to set up travel billing in your local currency.
+If your workspace bills in a currency other than USD and hasn’t enabled Expensify Travel yet, you’ll see a **Tax ID** step asking for your **Legal entity tax ID** before you accept the travel terms and conditions. Expensify uses this to set up travel billing in your local currency.
 
-Enter your legal entity tax ID and click **Continue** to proceed to the terms and conditions. This page is skipped for USD workspaces and for workspaces that have already enabled Expensify Travel.
+Enter your legal entity tax ID and click **Next** to proceed to the terms and conditions. This step is skipped for USD workspaces and for workspaces that have already enabled Expensify Travel.
 
 ## Why can’t I turn off Travel?
 

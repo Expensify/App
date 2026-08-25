@@ -32,7 +32,7 @@ function QuickbooksItemsPage({policy}: WithPolicyProps) {
             displayName="QuickbooksItemsPage"
             headerTitle="workspace.qbo.items"
             title="workspace.qbo.itemsDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.itemsDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.itemsDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

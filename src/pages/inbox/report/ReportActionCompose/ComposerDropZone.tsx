@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getParentReport, isChatRoom, isGroupChat, isInvoiceReport, isReportApproved, isSettled, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {isChatRoom, isGroupChat, isInvoiceReport, isReportApproved, isSettled, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +65,7 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -77,7 +78,6 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
 
     const hasReceipt = hasReceiptTransactionUtils(transaction);
 
-    const parentReport = getParentReport(report);
     const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
     const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
     const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
@@ -117,12 +117,8 @@ function ComposerDropZone({children}: PropsWithChildren) {
     const {reportID} = useComposerState();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {shouldAddOrReplaceReceipt, transactionID} = useShouldAddOrReplaceReceipt(reportID);
-    const {pickAttachments, PDFValidationComponent: AttachmentPDFValidation, ErrorModal: AttachmentErrorModal} = useAttachmentPicker(reportID);
-    const {
-        onReceiptDropped,
-        PDFValidationComponent: ReceiptPDFValidation,
-        ErrorModal: ReceiptErrorModal,
-    } = useReceiptDrop({
+    const {pickAttachments, PDFValidationComponent: AttachmentPDFValidation} = useAttachmentPicker(reportID);
+    const {onReceiptDropped, PDFValidationComponent: ReceiptPDFValidation} = useReceiptDrop({
         reportID,
         report,
         shouldAddOrReplaceReceipt,
@@ -136,7 +132,6 @@ function ComposerDropZone({children}: PropsWithChildren) {
             <>
                 <SimpleDropZone onAttachmentDrop={onAttachmentDrop}>{children}</SimpleDropZone>
                 {AttachmentPDFValidation}
-                {AttachmentErrorModal}
             </>
         );
     }
@@ -153,9 +148,7 @@ function ComposerDropZone({children}: PropsWithChildren) {
                 {children}
             </RichDropZone>
             {AttachmentPDFValidation}
-            {AttachmentErrorModal}
             {ReceiptPDFValidation}
-            {ReceiptErrorModal}
         </>
     );
 }

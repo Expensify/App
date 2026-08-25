@@ -3,11 +3,12 @@ import ConnectToHRFlow from '@components/ConnectToHRFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
@@ -15,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -23,6 +25,7 @@ import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -48,7 +51,7 @@ function WorkspaceHRPage({
         params: {policyID},
     },
 }: WorkspaceHRPageProps) {
-    const {translate, getLocalDateFromDatetime, localeCompare} = useLocalize();
+    const {translate, getLocalDateFromDatetime, localeCompare, formatPhoneNumber} = useLocalize();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -56,7 +59,6 @@ function WorkspaceHRPage({
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
-    const illustrations = useMemoizedLazyIllustrations(['NewUser']);
     const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number} | undefined>();
     const {showConfirmModal} = useConfirmModal();
 
@@ -76,6 +78,7 @@ function WorkspaceHRPage({
         connectionSyncProgress,
         getLocalDateFromDatetime,
         translate,
+        formatPhoneNumber,
         policyID,
         gustoIcon: icons.GustoSquare,
         trinetIcon: icons.TriNetSquare,
@@ -89,6 +92,11 @@ function WorkspaceHRPage({
     const byName = (a: HRCardDescriptor, b: HRCardDescriptor) => localeCompare(a.displayName, b.displayName);
     connectedCards.sort(byName);
     disconnectedCards.sort(byName);
+
+    const filterCard = (card: HRCardDescriptor, searchInput: string) => {
+        return tokenizedSearch([card], searchInput, (c) => [c.displayName]).length > 0;
+    };
+    const [inputValue, setInputValue, filteredDisconnectedCards] = useSearchResults(disconnectedCards, filterCard);
 
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
@@ -117,6 +125,26 @@ function WorkspaceHRPage({
         setActiveHRFlow({setupLink: card.setupLink, key: Math.random()});
     };
 
+    const maybeSearchBar = disconnectedCards.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
+        <CompactSearchBar
+            label={translate('workspace.hr.findIntegration')}
+            inputValue={inputValue}
+            onChangeText={setInputValue}
+            shouldShowEmptyState={!filteredDisconnectedCards.length}
+            style={styles.ml0}
+        />
+    );
+    const filteredDisconnectedHRProviderCards = filteredDisconnectedCards.map((card) => (
+        <HRProviderCard
+            key={card.key}
+            card={card}
+            policy={policy}
+            handleConnect={() => handleConnect(card)}
+            canWriteMoreFeatures={canWriteMoreFeatures}
+            showReadOnlyModal={showReadOnlyModal}
+        />
+    ));
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -139,13 +167,17 @@ function WorkspaceHRPage({
                     />
                 )}
                 <HeaderWithBackButton
-                    icon={illustrations.NewUser}
                     title={translate('workspace.hr.title')}
+                    shouldDisplayHelpButton
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <ScrollView contentContainerStyle={styles.pt3}>
+                <ScrollView
+                    contentContainerStyle={styles.pt3}
+                    addBottomSafeAreaPadding
+                    keyboardShouldPersistTaps="handled"
+                >
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             title={translate('workspace.hr.connections')}
@@ -166,17 +198,12 @@ function WorkspaceHRPage({
                                         showReadOnlyModal={showReadOnlyModal}
                                     />
                                 ))}
-                                {connectedCards.length === 0 &&
-                                    disconnectedCards.map((card) => (
-                                        <HRProviderCard
-                                            key={card.key}
-                                            card={card}
-                                            policy={policy}
-                                            handleConnect={() => handleConnect(card)}
-                                            canWriteMoreFeatures={canWriteMoreFeatures}
-                                            showReadOnlyModal={showReadOnlyModal}
-                                        />
-                                    ))}
+                                {connectedCards.length === 0 && (
+                                    <>
+                                        {maybeSearchBar}
+                                        {filteredDisconnectedHRProviderCards}
+                                    </>
+                                )}
                             </View>
 
                             {connectedCards.length > 0 && disconnectedCards.length > 0 && !connectedCards.some((c) => c.isInitialSyncInProgress) && (
@@ -186,16 +213,8 @@ function WorkspaceHRPage({
                                     titleStyle={[styles.textNormal, styles.colorMuted]}
                                     textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
                                 >
-                                    {disconnectedCards.map((card) => (
-                                        <HRProviderCard
-                                            key={card.key}
-                                            card={card}
-                                            policy={policy}
-                                            handleConnect={() => handleConnect(card)}
-                                            canWriteMoreFeatures={canWriteMoreFeatures}
-                                            showReadOnlyModal={showReadOnlyModal}
-                                        />
-                                    ))}
+                                    {maybeSearchBar}
+                                    {filteredDisconnectedHRProviderCards}
                                 </CollapsibleSection>
                             )}
                         </Section>

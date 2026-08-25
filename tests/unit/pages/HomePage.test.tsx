@@ -87,9 +87,8 @@ jest.mock('@pages/home/ForYouSection', () => mockSection('ForYouSection'));
 jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravelSection'));
 jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
-jest.mock('@pages/home/SpendOverTimeSection', () => mockSection('SpendOverTimeSection'));
+jest.mock('@pages/home/InsightsSection', () => mockSection('InsightsSection'));
 jest.mock('@pages/home/DiscoverSection', () => mockSection('DiscoverSection'));
-jest.mock('@pages/home/AnnouncementSection', () => mockSection('AnnouncementSection'));
 
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
@@ -160,7 +159,8 @@ describe('HomePage', () => {
         });
     });
 
-    // The mobile slot priority order, with Recently added inserted at position 6 (before Your spend).
+    // The mobile slot priority order, with Recently added moved up to sit directly after Your spend and
+    // Announcements removed entirely (PRD-98653 R5).
     describe('mobile slot priority order', () => {
         it('renders all slots in the prescribed order on narrow layout', async () => {
             await waitForBatchedUpdates();
@@ -173,27 +173,34 @@ describe('HomePage', () => {
                 'section-GettingStartedSection',
                 'section-ForYouSection',
                 'section-UpcomingTravelSection',
-                'section-RecentlyAddedSection',
                 'section-YourSpendSection',
-                'section-SpendOverTimeSection',
+                'section-RecentlyAddedSection',
+                'section-InsightsSection',
                 'section-DiscoverSection',
-                'section-AnnouncementSection',
             ]);
         });
 
-        it('places Recently added directly before Your spend on narrow layout', async () => {
+        it('places Recently added directly after Your spend on narrow layout', async () => {
             await waitForBatchedUpdates();
 
             renderHomePage();
 
             const order = renderedSectionOrder();
-            expect(order.indexOf('section-RecentlyAddedSection')).toBe(order.indexOf('section-YourSpendSection') - 1);
+            expect(order.indexOf('section-RecentlyAddedSection')).toBe(order.indexOf('section-YourSpendSection') + 1);
+        });
+
+        it('does not render the Announcements section anywhere on narrow layout', async () => {
+            await waitForBatchedUpdates();
+
+            renderHomePage();
+
+            expect(screen.queryByTestId('section-AnnouncementSection')).not.toBeOnTheScreen();
         });
     });
 
-    // Relocate Discover from the left column to the right column on wide layout.
+    // Recently added moves into the right column directly below Your spend on wide layout (PRD-98653 R1/R2).
     describe('wide layout column placement', () => {
-        it('renders Discover in the right column and Recently added in the left column', async () => {
+        it('renders Discover and Recently added in the right column, not the left', async () => {
             setWideLayout();
             await waitForBatchedUpdates();
 
@@ -204,7 +211,30 @@ describe('HomePage', () => {
 
             expect(within(rightColumn).getByTestId('section-DiscoverSection')).toBeOnTheScreen();
             expect(within(leftColumn).queryByTestId('section-DiscoverSection')).not.toBeOnTheScreen();
-            expect(within(leftColumn).getByTestId('section-RecentlyAddedSection')).toBeOnTheScreen();
+            expect(within(rightColumn).getByTestId('section-RecentlyAddedSection')).toBeOnTheScreen();
+            expect(within(leftColumn).queryByTestId('section-RecentlyAddedSection')).not.toBeOnTheScreen();
+        });
+
+        it('places Recently added directly below Your spend in the right column on wide layout', async () => {
+            setWideLayout();
+            await waitForBatchedUpdates();
+
+            renderHomePage();
+
+            const rightColumn = screen.getByTestId('homePageRightColumn');
+            const rightOrder = within(rightColumn)
+                .getAllByTestId(/^section-/)
+                .map((el) => String(el.props.testID));
+            expect(rightOrder.indexOf('section-RecentlyAddedSection')).toBe(rightOrder.indexOf('section-YourSpendSection') + 1);
+        });
+
+        it('does not render the Announcements section anywhere on wide layout', async () => {
+            setWideLayout();
+            await waitForBatchedUpdates();
+
+            renderHomePage();
+
+            expect(screen.queryByTestId('section-AnnouncementSection')).not.toBeOnTheScreen();
         });
 
         // Promote Getting started into the left column above For you on wide layout (matching mobile placement).

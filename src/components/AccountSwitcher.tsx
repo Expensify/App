@@ -4,6 +4,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +15,6 @@ import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
@@ -35,7 +35,7 @@ import {View} from 'react-native';
 import type {PopoverMenuItem} from './PopoverMenu';
 
 import Avatar from './Avatar';
-import Button from './Button';
+import Button from './ButtonComposed';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
 import {useProductTrainingContext} from './ProductTrainingContext';
@@ -66,6 +66,10 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
+    const delegate = account?.delegatedAccess?.delegate;
+    const delegators = account?.delegatedAccess?.delegators ?? [];
+    const personalDetailsByLogin = usePersonalDetailsByLogins([delegate, ...delegators.map((delegator) => delegator.email)]);
+
     const buttonRef = useRef<View>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {calculatePopoverPosition} = usePopoverPosition();
@@ -73,9 +77,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
     // Measured from the Switch button so the menu opens directly below it, rather than a fixed position.
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
-    const delegators = account?.delegatedAccess?.delegators ?? [];
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
     const displayName = currentUserPersonalDetails?.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
@@ -167,9 +170,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
           }
         : {
               text: translate('delegate.copilotAccess'),
-              shiftVertical: 8,
-              shiftHorizontal: 8,
-              anchorAlignment: {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM},
               shouldRender: canSwitchAccounts,
           };
 
@@ -199,18 +199,15 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
 
         if (isActingAsDelegate) {
-            const delegateEmail = account?.delegatedAccess?.delegate ?? '';
-
             // Avoid duplicating the current user in the list when switching accounts
-            if (delegateEmail === currentUserPersonalDetails.login) {
+            if (delegate === currentUserPersonalDetails.login) {
                 return [currentUserMenuItem];
             }
 
-            const delegatePersonalDetails = getPersonalDetailByEmail(delegateEmail);
             const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
 
             return [
-                createBaseMenuItem(delegatePersonalDetails, error, {
+                createBaseMenuItem(personalDetailsByLogin[delegate], error, {
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -235,9 +232,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 .map(({email, role}) => {
                     const errorFields = account?.delegatedAccess?.errorFields ?? {};
                     const error = getLatestError(errorFields?.connect?.[email]);
-                    const personalDetails = getPersonalDetailByEmail(email);
+                    const personalDetails = personalDetailsByLogin[email];
                     return createBaseMenuItem(personalDetails, error, {
-                        badgeText: translate('delegate.role', {role}),
+                        badgeText: translate('delegate.role', role),
                         onSelected: () => {
                             if (isOffline) {
                                 close(showOfflineModal);
@@ -311,14 +308,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         {/* View wrapper forwards the hover events Tooltip injects; Button doesn't pass them to its underlying pressable, so the tooltip wouldn't show without it */}
                         <View>
                             <Button
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 ref={buttonRef}
-                                text={translate('delegate.switch')}
                                 onPress={onPressSwitcher}
                                 sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
-                                shouldShowRightIcon
-                                iconRight={icons.CaretUpDown}
-                            />
+                            >
+                                <Button.Text>{translate('delegate.switch')}</Button.Text>
+                                <Button.Icon src={icons.CaretUpDown} />
+                            </Button>
                         </View>
                     </TooltipToRender>
                 )}

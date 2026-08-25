@@ -62,6 +62,7 @@ function IOURequestStepVendor({
         isPerDiemRequest: isPerDiemRequest(transaction),
     });
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const delegateAccountID = useDelegateAccountID();
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
@@ -86,7 +87,7 @@ function IOURequestStepVendor({
             searchText: vendor.name,
         }));
 
-    // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
+    // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed from the accounting integration) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
     const shouldShowNoneRow = !!currentVendorID && !trimmedSearch;
     const data: VendorListItem[] = shouldShowNoneRow
         ? [
@@ -120,6 +121,7 @@ function IOURequestStepVendor({
                 parentReport,
                 policy,
                 delegateAccountID,
+                transactionViolations,
             });
         }
         navigateBack();
@@ -134,7 +136,7 @@ function IOURequestStepVendor({
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={isOnXero ? translate('workspace.xero.noSuppliersFound') : translate('workspace.qbo.noAccountsFound')}
-                subtitle={isOnXero ? translate('workspace.xero.noSuppliersFoundDescription') : translate('workspace.qbo.noAccountsFoundDescription', {integrationName})}
+                subtitle={isOnXero ? translate('workspace.xero.noSuppliersFoundDescription') : translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
                 containerStyle={styles.pb10}
             />
         ) : null;
