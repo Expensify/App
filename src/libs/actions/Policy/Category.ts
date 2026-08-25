@@ -1833,12 +1833,19 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
-function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string) {
+/**
+ * Sets a category's default tax rate. Returns the rules array as it stands after this write.
+ *
+ * `baseExpenseRules` lets a caller saving several categories in a row thread the accumulated array through each call.
+ * Without it every call would read the same stale `policy` prop and, because Onyx replaces arrays wholesale on merge,
+ * each write would clobber the one before it.
+ */
+function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string, baseExpenseRules?: ExpenseRule[]): ExpenseRule[] | undefined {
     if (!policy?.id) {
         return;
     }
     const policyID = policy.id;
-    const expenseRules = policy?.rules?.expenseRules ?? [];
+    const expenseRules = baseExpenseRules ?? policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
     const isEditing = !!existingCategoryExpenseRule;
@@ -1930,6 +1937,24 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
+
+    return updatedExpenseRules;
+}
+
+/**
+ * Sets the same default tax rate on several categories at once. The command is per-category, so this issues one write
+ * each, threading the accumulated rules array through so the writes build on each other instead of overwriting.
+ *
+ * A partial failure is imperfect: an earlier write's failureData was built before the later categories were added, so
+ * rolling it back can drop them from the array until the next fetch. Acceptable for an admin action that either
+ * succeeds or fails as a whole in practice.
+ */
+function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string) {
+    let workingExpenseRules = policy?.rules?.expenseRules ?? [];
+
+    for (const categoryName of categoryNames) {
+        workingExpenseRules = setPolicyCategoryTax(policy, categoryName, taxID, workingExpenseRules) ?? workingExpenseRules;
+    }
 }
 
 /**
@@ -2060,6 +2085,7 @@ export {
     setPolicyCategoryReceiptsRequired,
     setPolicyCategoryItemizedReceiptsRequired,
     setPolicyCategoryTax,
+    setPolicyCategoryTaxes,
     setPolicyCustomUnitDefaultCategory,
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,

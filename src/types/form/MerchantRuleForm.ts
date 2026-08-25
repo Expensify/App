@@ -7,7 +7,7 @@ import type Form from './Form';
 const INPUT_IDS = {
     BILLABLE: 'billable',
     CATEGORY: 'category',
-    CATEGORY_TO_MATCH: 'categoryToMatch',
+    CATEGORIES_TO_MATCH: 'categoriesToMatch',
     DESCRIPTION: 'comment',
     MATCH_TYPE: 'matchType',
     MERCHANT_TO_MATCH: 'merchantToMatch',
@@ -25,7 +25,7 @@ type MerchantRuleForm = Form<
     {
         [INPUT_IDS.BILLABLE]: boolean;
         [INPUT_IDS.CATEGORY]: string;
-        [INPUT_IDS.CATEGORY_TO_MATCH]: string;
+        [INPUT_IDS.CATEGORIES_TO_MATCH]: string[];
         [INPUT_IDS.DESCRIPTION]: string;
         [INPUT_IDS.MATCH_TYPE]: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
         [INPUT_IDS.MERCHANT]: string;

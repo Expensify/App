@@ -23,7 +23,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openPolicyCategoriesPage, setPolicyCategoryTax} from '@libs/actions/Policy/Category';
+import {openPolicyCategoriesPage, setPolicyCategoryTaxes} from '@libs/actions/Policy/Category';
 import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
@@ -98,9 +98,9 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
     return translate(value ? 'common.yes' : 'common.no');
 };
 
-/** A category rule matches on a category and can only set a tax, so both halves are required and nothing else counts. */
+/** A category rule matches on categories and can only set a tax, so both halves are required and nothing else counts. */
 const getCategoryRuleErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
-    if (!form?.categoryToMatch) {
+    if (!form?.categoriesToMatch?.length) {
         return translate('workspace.rules.merchantRules.confirmErrorCategory');
     }
     if (!form?.tax) {
@@ -110,7 +110,7 @@ const getCategoryRuleErrorMessage = (translate: LocalizedTranslate, form?: Merch
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
-    const matchingCriteriaFields = new Set<string>([MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH, MERCHANT_RULE_INPUT_IDS.MATCH_TYPE, MERCHANT_RULE_INPUT_IDS.CATEGORY_TO_MATCH]);
+    const matchingCriteriaFields = new Set<string>([MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH, MERCHANT_RULE_INPUT_IDS.MATCH_TYPE, MERCHANT_RULE_INPUT_IDS.CATEGORIES_TO_MATCH]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
             return false;
@@ -175,7 +175,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
             if (!existingCategoryTaxID) {
                 return;
             }
-            setDraftMerchantRule({categoryToMatch: editCategoryTaxRuleFor, tax: existingCategoryTaxID});
+            setDraftMerchantRule({categoriesToMatch: [editCategoryTaxRuleFor], tax: existingCategoryTaxID});
             return;
         }
 
@@ -265,7 +265,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     // `Expense defaults` has not been migrated to the new rules system, so a rule can only carry one condition.
     // Setting either condition locks the other, and a category condition also narrows the defaults down to tax alone.
     const areTaxesEnabled = hasTaxes();
-    const hasCategoryCondition = !!form?.categoryToMatch;
+    const categoriesToMatch = form?.categoriesToMatch ?? [];
+    const hasCategoryCondition = categoriesToMatch.length > 0;
     const hasMerchantCondition = !!form?.merchantToMatch;
     const isCategoryRule = hasCategoryCondition || isEditingCategoryTaxRule;
     const isMerchantConditionLocked = hasCategoryCondition;
@@ -303,7 +304,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         setShouldUpdateMatchingTransactions(false);
     };
 
-    const categoryToMatchDisplayName = form?.categoryToMatch ? getDecodedCategoryName(form.categoryToMatch) : undefined;
+    // One rule per category is saved, so the condition row lists every category the admin picked.
+    const categoriesToMatchDisplayName = hasCategoryCondition ? categoriesToMatch.map(getDecodedCategoryName).join(', ') : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     const taxDisplayName = () => {
         if (!form?.tax || !policy?.taxRates?.taxes) {
@@ -372,10 +374,12 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         // Category rules are stored as `policy.rules.expenseRules`, the same objects Expensify Classic reads, so that a
         // default tax rate set here is the one Classic already understands.
         if (isCategoryRule) {
-            if (!form.categoryToMatch || !form.tax) {
+            const taxID = form.tax;
+            if (!hasCategoryCondition || !taxID) {
                 return;
             }
-            setPolicyCategoryTax(policy, form.categoryToMatch, form.tax);
+            // The command is per-category, so a bulk selection saves one rule for each category picked.
+            setPolicyCategoryTaxes(policy, categoriesToMatch, taxID);
             if (isEditingCategoryTaxRule) {
                 Navigation.goBack();
             } else {
@@ -479,9 +483,9 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                 },
                 isRulesRevampEnabled
                     ? {
-                          key: 'categoryToMatch',
+                          key: 'categoriesToMatch',
                           description: translate('common.category'),
-                          title: categoryToMatchDisplayName,
+                          title: categoriesToMatchDisplayName,
                           isLocked: isCategoryConditionLocked,
                           onPress: isCategoryConditionLocked ? showCategoryConditionExplainer : () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID)),
                           icon: getItemIcon(icons.Folder),
