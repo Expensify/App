@@ -6414,6 +6414,7 @@ const translations = {
                 disableCardButton: 'Chat with Concierge',
                 feed: {
                     title: 'Get the Expensify Card',
+                    existingFeedTitle: 'Manage your Expensify Cards',
                     subTitle: 'Streamline your business expenses and save up to 50% on your Expensify bill, plus:',
                     features: {
                         cashBack: 'Cash back on every US purchase',
@@ -6421,6 +6422,7 @@ const translations = {
                         spend: 'Spend controls and custom limits',
                     },
                     ctaTitle: 'Issue new card',
+                    viewCards: 'View cards',
                 },
             },
             companyCards: {

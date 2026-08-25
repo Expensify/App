@@ -6307,6 +6307,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         spend: 'Controles de gastos e limites personalizados',
                     },
                     ctaTitle: 'Emitir novo cartão',
+                    existingFeedTitle: 'Gerencie seus Cartões Expensify',
+                    viewCards: 'Ver cartões',
                 },
             },
             companyCards: {

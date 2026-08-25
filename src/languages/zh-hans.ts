@@ -6074,6 +6074,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         spend: '支出管控和自定义限额',
                     },
                     ctaTitle: '发新卡',
+                    existingFeedTitle: '管理你的 Expensify 卡',
+                    viewCards: '查看卡片',
                 },
             },
             companyCards: {

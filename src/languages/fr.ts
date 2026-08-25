@@ -6365,6 +6365,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         spend: 'Contrôles de dépenses et limites personnalisées',
                     },
                     ctaTitle: 'Émettre une nouvelle carte',
+                    existingFeedTitle: 'Gérer vos Cartes Expensify',
+                    viewCards: 'Voir les cartes',
                 },
             },
             companyCards: {
