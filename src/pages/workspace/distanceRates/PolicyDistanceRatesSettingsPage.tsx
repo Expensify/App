@@ -32,10 +32,10 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {
     clearPolicyCommuterExclusionsErrors,
     clearPolicyDistanceRatesErrorFields,
-    clearPolicyRestrictDistanceToMapsAndGPSErrors,
+    clearPolicyRequireMapOrGPSErrors,
     clearWorkspaceDistanceAutoUpdateErrors,
     openPolicyDistanceRatesPage,
-    setPolicyRestrictDistanceToMapsAndGPS,
+    setPolicyRequireMapOrGPS,
     setWorkspaceDistanceAutoUpdate,
 } from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
@@ -117,16 +117,16 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
         setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? [], policy?.outputCurrency);
     };
 
-    // Commuter exclusions are computed from the mapped route, so they enforce the restriction on their own. The
+    // Commuter exclusions are computed from the mapped route, so they enforce the requirement on their own. The
     // toggle is shown on and locked in that case, and the stored setting is left untouched so the admin's own
     // choice comes back if they stop excluding commutes.
-    const isRestrictionLockedByCommuterExclusions = isCommuterExclusionEnabled(policy);
-    const isDistanceRestrictedToMapsAndGPS = isRestrictionLockedByCommuterExclusions || !!policy?.shouldRestrictDistanceToMapsAndGPS;
+    const isRequirementLockedByCommuterExclusions = isCommuterExclusionEnabled(policy);
+    const isMapOrGPSRequired = isRequirementLockedByCommuterExclusions || !!policy?.requireMapOrGPS;
 
-    const showRestrictionLockedModal = () => {
+    const showRequirementLockedModal = () => {
         showConfirmModal({
-            title: translate('workspace.distanceRates.restrictDistanceToMapsAndGPS'),
-            prompt: translate('workspace.distanceRates.restrictDistanceToMapsAndGPSLockedByCommuterExclusions'),
+            title: translate('workspace.distanceRates.requireMapOrGPS'),
+            prompt: translate('workspace.distanceRates.requireMapOrGPSLockedByCommuterExclusions'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
@@ -178,55 +178,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            <OfflineWithFeedback
-                                errors={getLatestErrorField(policy ?? {}, 'shouldRestrictDistanceToMapsAndGPS')}
-                                pendingAction={policy?.pendingFields?.shouldRestrictDistanceToMapsAndGPS}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => clearPolicyRestrictDistanceToMapsAndGPSErrors(policyID)}
-                            >
-                                <View style={[styles.mt3, styles.mh5]}>
-                                    <View style={[styles.flexRow, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text
-                                            style={[styles.textNormal, styles.colorMuted]}
-                                            accessible={false}
-                                            aria-hidden
-                                        >
-                                            {translate('workspace.distanceRates.restrictDistanceToMapsAndGPS')}
-                                        </Text>
-                                        <Switch
-                                            isOn={isDistanceRestrictedToMapsAndGPS}
-                                            accessibilityLabel={translate('workspace.distanceRates.restrictDistanceToMapsAndGPS')}
-                                            onToggle={(isOn) => setPolicyRestrictDistanceToMapsAndGPS(policyID, isOn)}
-                                            disabled={!canWriteDistanceRates || isRestrictionLockedByCommuterExclusions}
-                                            disabledAction={withReadOnlyFallback(isRestrictionLockedByCommuterExclusions ? showRestrictionLockedModal : undefined)}
-                                            showLockIcon={!canWriteDistanceRates || isRestrictionLockedByCommuterExclusions}
-                                        />
-                                    </View>
-                                </View>
-                            </OfflineWithFeedback>
-                            {isCommuterExclusionsEnabled && (
-                                <OfflineWithFeedback
-                                    errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
-                                    pendingAction={policy?.pendingFields?.commuterExclusions}
-                                    errorRowStyles={styles.mh5}
-                                    onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
-                                >
-                                    <MenuItemWithTopDescription
-                                        shouldShowRightIcon
-                                        title={
-                                            policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && policy?.commuterExclusions?.fixedDistance != null
-                                                ? translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
-                                                      distance: policy.commuterExclusions.fixedDistance,
-                                                      unit: policy.commuterExclusions.fixedDistanceUnit ?? defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                                                  })
-                                                : translate('workspace.distanceRates.commuterExclusions.summaryDisabled')
-                                        }
-                                        description={translate('workspace.distanceRates.commuterExclusions.title')}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
-                                        wrapperStyle={[styles.ph5, styles.mt3]}
-                                    />
-                                </OfflineWithFeedback>
-                            )}
                             {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnit?.customUnitID && (
                                 <OfflineWithFeedback
                                     errors={getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
@@ -272,6 +223,56 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                             {translate('workspace.distanceRates.autoUpdateGovernmentRateDescription', translate(countryPhraseTranslationKey))}
                                         </Text>
                                     </View>
+                                </OfflineWithFeedback>
+                            )}
+                            <OfflineWithFeedback
+                                errors={getLatestErrorField(policy ?? {}, 'requireMapOrGPS')}
+                                errorRowStyles={styles.mh5}
+                                pendingAction={policy?.pendingFields?.requireMapOrGPS}
+                                onClose={() => clearPolicyRequireMapOrGPSErrors(policyID)}
+                            >
+                                <View style={[styles.mt2, styles.mb5, styles.mh5]}>
+                                    <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                        <Text
+                                            style={[styles.textNormal, styles.colorMuted]}
+                                            accessible={false}
+                                            aria-hidden
+                                        >
+                                            {translate('workspace.distanceRates.requireMapOrGPS')}
+                                        </Text>
+                                        <Switch
+                                            isOn={isMapOrGPSRequired}
+                                            accessibilityLabel={translate('workspace.distanceRates.requireMapOrGPS')}
+                                            onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn)}
+                                            disabled={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
+                                            disabledAction={withReadOnlyFallback(isRequirementLockedByCommuterExclusions ? showRequirementLockedModal : undefined)}
+                                            showLockIcon={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
+                                        />
+                                    </View>
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.distanceRates.requireMapOrGPSDescription')}</Text>
+                                </View>
+                            </OfflineWithFeedback>
+                            {isCommuterExclusionsEnabled && (
+                                <OfflineWithFeedback
+                                    errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
+                                    pendingAction={policy?.pendingFields?.commuterExclusions}
+                                    errorRowStyles={styles.mh5}
+                                    onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
+                                >
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        title={
+                                            policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && policy?.commuterExclusions?.fixedDistance != null
+                                                ? translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
+                                                      distance: policy.commuterExclusions.fixedDistance,
+                                                      unit: policy.commuterExclusions.fixedDistanceUnit ?? defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                                  })
+                                                : translate('workspace.distanceRates.commuterExclusions.summaryDisabled')
+                                        }
+                                        description={translate('workspace.distanceRates.commuterExclusions.title')}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
+                                        wrapperStyle={[styles.ph5, styles.mt3, styles.mb3]}
+                                    />
                                 </OfflineWithFeedback>
                             )}
                             <OfflineWithFeedback

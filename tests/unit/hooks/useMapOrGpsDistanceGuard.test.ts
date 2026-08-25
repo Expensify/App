@@ -56,12 +56,12 @@ describe('useMapOrGpsDistanceGuard', () => {
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
 
-    it('blocks selecting a workspace that restricts distance to maps and GPS without commuter exclusions', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_restricted`, {
-            id: 'policy_restricted',
-            name: 'Restricted workspace',
+    it('blocks selecting a workspace that requires GPS or map entry without commuter exclusions', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_requires_map_or_gps`, {
+            id: 'policy_requires_map_or_gps',
+            name: 'Map or GPS required workspace',
             areDistanceRatesEnabled: true,
-            shouldRestrictDistanceToMapsAndGPS: true,
+            requireMapOrGPS: true,
         });
         await waitForBatchedUpdates();
 
@@ -71,7 +71,7 @@ describe('useMapOrGpsDistanceGuard', () => {
             }),
         );
 
-        expect(result.current('policy_restricted')).toBe(true);
+        expect(result.current('policy_requires_map_or_gps')).toBe(true);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
 

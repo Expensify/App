@@ -8,7 +8,7 @@ import type {
     SetPolicyCommuterExclusionsParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
-    SetPolicyRestrictDistanceToMapsAndGPSParams,
+    SetPolicyRequireMapOrGPSParams,
     SetWorkspaceDistanceAutoUpdateParams,
     UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
@@ -636,10 +636,10 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
 }
 
 /**
- * Turn the "Restrict distance to maps and GPS" setting on or off for a policy. When it's on, the manual and
- * odometer distance flows are unavailable because neither can produce a mapped route.
+ * Turn the "Require GPS or map entry" setting on or off for a policy. When it's on, the manual and odometer
+ * distance flows are unavailable because neither can produce a mapped route.
  */
-function setPolicyRestrictDistanceToMapsAndGPS(policyID: string, shouldRestrictDistanceToMapsAndGPS: boolean) {
+function setPolicyRequireMapOrGPS(policyID: string, requireMapOrGPS: boolean) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
@@ -648,9 +648,9 @@ function setPolicyRestrictDistanceToMapsAndGPS(policyID: string, shouldRestrictD
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    shouldRestrictDistanceToMapsAndGPS,
-                    pendingFields: {shouldRestrictDistanceToMapsAndGPS: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    errorFields: {shouldRestrictDistanceToMapsAndGPS: null},
+                    requireMapOrGPS,
+                    pendingFields: {requireMapOrGPS: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {requireMapOrGPS: null},
                 },
             },
         ],
@@ -659,7 +659,7 @@ function setPolicyRestrictDistanceToMapsAndGPS(policyID: string, shouldRestrictD
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    pendingFields: {shouldRestrictDistanceToMapsAndGPS: null},
+                    pendingFields: {requireMapOrGPS: null},
                 },
             },
         ],
@@ -668,22 +668,22 @@ function setPolicyRestrictDistanceToMapsAndGPS(policyID: string, shouldRestrictD
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    shouldRestrictDistanceToMapsAndGPS: !shouldRestrictDistanceToMapsAndGPS,
-                    pendingFields: {shouldRestrictDistanceToMapsAndGPS: null},
-                    errorFields: {shouldRestrictDistanceToMapsAndGPS: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    requireMapOrGPS: !requireMapOrGPS,
+                    pendingFields: {requireMapOrGPS: null},
+                    errorFields: {requireMapOrGPS: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
             },
         ],
     };
 
-    const parameters: SetPolicyRestrictDistanceToMapsAndGPSParams = {policyID, enabled: shouldRestrictDistanceToMapsAndGPS};
-    API.write(WRITE_COMMANDS.SET_POLICY_RESTRICT_DISTANCE_TO_MAPS_AND_GPS, parameters, onyxData);
+    const parameters: SetPolicyRequireMapOrGPSParams = {policyID, enabled: requireMapOrGPS};
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS, parameters, onyxData);
 }
 
-function clearPolicyRestrictDistanceToMapsAndGPSErrors(policyID: string) {
+function clearPolicyRequireMapOrGPSErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        errorFields: {shouldRestrictDistanceToMapsAndGPS: null},
-        pendingFields: {shouldRestrictDistanceToMapsAndGPS: null},
+        errorFields: {requireMapOrGPS: null},
+        pendingFields: {requireMapOrGPS: null},
     });
 }
 
@@ -860,8 +860,8 @@ export {
     setPolicyCommuterExclusions,
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
-    setPolicyRestrictDistanceToMapsAndGPS,
-    clearPolicyRestrictDistanceToMapsAndGPSErrors,
+    setPolicyRequireMapOrGPS,
+    clearPolicyRequireMapOrGPSErrors,
     setWorkspaceDistanceAutoUpdate,
     clearWorkspaceDistanceAutoUpdateErrors,
 };

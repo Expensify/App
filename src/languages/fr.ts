@@ -7253,9 +7253,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
         distanceRates: {
             oopsNotSoFast: 'Oups ! Pas si vite...',
             workspaceNeeds: 'Un espace de travail doit avoir au moins un taux de distance activé.',
-            restrictDistanceToMapsAndGPS: 'Limiter la distance aux cartes et au GPS',
-            restrictDistanceToMapsAndGPSLockedByCommuterExclusions:
-                'Exclure les trajets domicile-travail nécessite un itinéraire cartographié, la distance est donc déjà limitée aux cartes et au GPS. Cessez d’exclure les trajets domicile-travail pour modifier ce paramètre.',
+            requireMapOrGPS: 'Exiger une saisie GPS ou cartographique',
+            requireMapOrGPSDescription: 'La saisie manuelle et par odomètre sera désactivée.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Exclure les trajets domicile-travail nécessite un itinéraire cartographié, la saisie GPS ou cartographique est donc déjà exigée. Cessez d’exclure les trajets domicile-travail pour modifier ce paramètre.',
             commuterExclusions: {
                 title: 'Exclure les trajets domicile-travail',
                 summaryDisabled: 'Pas d’exclusion du trajet domicile-travail',

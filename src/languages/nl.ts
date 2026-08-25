@@ -7184,9 +7184,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         distanceRates: {
             oopsNotSoFast: 'Oeps! Niet zo snel...',
             workspaceNeeds: 'Een workspace heeft minstens één ingeschakelde afstandstarief nodig.',
-            restrictDistanceToMapsAndGPS: 'Beperk afstand tot kaarten en gps',
-            restrictDistanceToMapsAndGPSLockedByCommuterExclusions:
-                'Het uitsluiten van woon-werkverkeer vereist een route op de kaart, dus de afstand is al beperkt tot kaarten en gps. Stop met het uitsluiten van woon-werkverkeer om deze instelling te wijzigen.',
+            requireMapOrGPS: 'Invoer via gps of kaart vereisen',
+            requireMapOrGPSDescription: 'Handmatige invoer en kilometerstandinvoer worden uitgeschakeld.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Het uitsluiten van woon-werkverkeer vereist een route op de kaart, dus invoer via gps of kaart is al vereist. Stop met het uitsluiten van woon-werkverkeer om deze instelling te wijzigen.',
             commuterExclusions: {
                 title: 'Woon-werkverkeer uitsluiten',
                 summaryDisabled: 'Geen woon-werkuitzondering',

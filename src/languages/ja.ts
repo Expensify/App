@@ -7107,9 +7107,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         distanceRates: {
             oopsNotSoFast: 'おっと！ちょっと待って…',
             workspaceNeeds: 'ワークスペースには、少なくとも 1 つの有効な距離レートが必要です。',
-            restrictDistanceToMapsAndGPS: '距離をマップと GPS に制限する',
-            restrictDistanceToMapsAndGPSLockedByCommuterExclusions:
-                '通勤を除外するにはマップ上のルートが必要なため、距離はすでにマップと GPS に制限されています。この設定を変更するには、通勤の除外を停止してください。',
+            requireMapOrGPS: 'GPS またはマップでの入力を必須にする',
+            requireMapOrGPSDescription: '手動入力とオドメーター入力は無効になります。',
+            requireMapOrGPSLockedByCommuterExclusions:
+                '通勤を除外するにはマップ上のルートが必要なため、GPS またはマップでの入力はすでに必須です。この設定を変更するには、通勤の除外を停止してください。',
             commuterExclusions: {
                 title: '通勤を除外',
                 summaryDisabled: '通勤除外なし',

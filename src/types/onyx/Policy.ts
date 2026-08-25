@@ -3207,7 +3207,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         shouldAutoUpdateGovernmentDistanceRates?: boolean;
 
         /** Whether distance expenses on this policy must come from a mapped route or a GPS track, which rules out the manual and odometer flows */
-        shouldRestrictDistanceToMapsAndGPS?: boolean;
+        requireMapOrGPS?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;

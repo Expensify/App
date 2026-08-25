@@ -7201,9 +7201,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
             workspaceNeeds: 'Un espacio de trabajo necesita al menos una tasa de distancia activa.',
-            restrictDistanceToMapsAndGPS: 'Restringir la distancia a mapas y GPS',
-            restrictDistanceToMapsAndGPSLockedByCommuterExclusions:
-                'Excluir los desplazamientos al trabajo requiere una ruta cartografiada, así que la distancia ya está restringida a mapas y GPS. Deja de excluir los desplazamientos al trabajo para cambiar este ajuste.',
+            requireMapOrGPS: 'Requerir entrada por GPS o mapa',
+            requireMapOrGPSDescription: 'La entrada manual y por odómetro se desactivará.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Excluir los desplazamientos al trabajo requiere una ruta cartografiada, así que ya se exige la entrada por GPS o mapa. Deja de excluir los desplazamientos al trabajo para cambiar este ajuste.',
             commuterExclusions: {
                 title: 'Excluir desplazamientos al trabajo',
                 summaryDisabled: 'Sin exclusión por desplazamiento al trabajo',

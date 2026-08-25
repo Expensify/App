@@ -15,7 +15,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {isDistanceRestrictedToMapsAndGPS} from '@libs/PolicyDistanceRatesUtils';
+import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -78,10 +78,10 @@ function DistanceRequestStartPage({
     //   `[].every()` is vacuously true (which would wrongly hide the tabs for personal-only users).
     const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
     const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
-    const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isDistanceRestrictedToMapsAndGPS);
+    const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isMapOrGPSRequired);
     const shouldHideManualAndOdometerTabs = isReportScopedTarget
-        ? isDistanceRestrictedToMapsAndGPS(reportPolicy)
-        : !isSelfDMTarget && (isDistanceRestrictedToMapsAndGPS(targetPolicy) || isEveryActiveWorkspaceRestricted);
+        ? isMapOrGPSRequired(reportPolicy)
+        : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),

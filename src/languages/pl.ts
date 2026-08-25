@@ -7205,9 +7205,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
         distanceRates: {
             oopsNotSoFast: 'Ups! Nie tak szybko...',
             workspaceNeeds: 'Miejsce pracy musi mieć włączoną co najmniej jedną stawkę za dystans.',
-            restrictDistanceToMapsAndGPS: 'Ogranicz dystans do map i GPS',
-            restrictDistanceToMapsAndGPSLockedByCommuterExclusions:
-                'Wykluczanie dojazdów do pracy wymaga trasy z mapy, więc dystans jest już ograniczony do map i GPS. Przestań wykluczać dojazdy do pracy, aby zmienić to ustawienie.',
+            requireMapOrGPS: 'Wymagaj wpisu z GPS lub mapy',
+            requireMapOrGPSDescription: 'Wpis ręczny i z licznika zostanie wyłączony.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Wykluczanie dojazdów do pracy wymaga trasy z mapy, więc wpis z GPS lub mapy jest już wymagany. Przestań wykluczać dojazdy do pracy, aby zmienić to ustawienie.',
             commuterExclusions: {
                 title: 'Wyklucz dojazdy',
                 summaryDisabled: 'Bez wykluczenia dojazdów',

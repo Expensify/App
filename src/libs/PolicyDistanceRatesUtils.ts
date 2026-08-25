@@ -244,14 +244,14 @@ function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy i
 /**
  * Whether distance expenses on this workspace must come from a mapped route or a GPS track, which rules out the
  * manual and odometer flows. Commuter exclusions are derived from the mapped route, so configuring them enforces
- * the restriction on its own, whatever `shouldRestrictDistanceToMapsAndGPS` is set to.
+ * the requirement on its own, whatever `requireMapOrGPS` is set to.
  */
-function isDistanceRestrictedToMapsAndGPS(policy: Policy | null | undefined): boolean {
+function isMapOrGPSRequired(policy: Policy | null | undefined): boolean {
     if (!policy?.id) {
         return false;
     }
 
-    return !!policy.shouldRestrictDistanceToMapsAndGPS || isCommuterExclusionEnabled(policy);
+    return !!policy.requireMapOrGPS || isCommuterExclusionEnabled(policy);
 }
 
 export {
@@ -265,6 +265,6 @@ export {
     getExpectedUnitForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     isCommuterExclusionEnabled,
-    isDistanceRestrictedToMapsAndGPS,
+    isMapOrGPSRequired,
     isGovernmentRateUnmodified,
 };

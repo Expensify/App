@@ -1,4 +1,4 @@
-import {isDistanceRestrictedToMapsAndGPS} from '@libs/PolicyDistanceRatesUtils';
+import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
@@ -24,11 +24,11 @@ type UseMapOrGpsDistanceGuardParams = {
     isOdometerDistanceRequest?: boolean;
 };
 
-type PoliciesRestrictedToMapsAndGPS = Record<string, boolean>;
+type PoliciesRequiringMapOrGPS = Record<string, boolean>;
 
-const policiesRestrictedToMapsAndGPSSelector = (policies: OnyxCollection<Policy>): PoliciesRestrictedToMapsAndGPS =>
-    Object.values(policies ?? {}).reduce<PoliciesRestrictedToMapsAndGPS>((acc, policy) => {
-        if (policy?.id && isDistanceRestrictedToMapsAndGPS(policy)) {
+const policiesRequiringMapOrGPSSelector = (policies: OnyxCollection<Policy>): PoliciesRequiringMapOrGPS =>
+    Object.values(policies ?? {}).reduce<PoliciesRequiringMapOrGPS>((acc, policy) => {
+        if (policy?.id && isMapOrGPSRequired(policy)) {
             acc[policy.id] = true;
         }
         return acc;
@@ -47,7 +47,7 @@ function useMapOrGpsDistanceGuard({policyID, isManualDistanceRequest = false, is
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['HouseWithMap']);
-    const [policiesRestrictedToMapsAndGPS] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesRestrictedToMapsAndGPSSelector});
+    const [policiesRequiringMapOrGPS] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesRequiringMapOrGPSSelector});
 
     return useCallback(
         (...policyIDsToCheck: [string?]) => {
@@ -56,7 +56,7 @@ function useMapOrGpsDistanceGuard({policyID, isManualDistanceRequest = false, is
                 return false;
             }
 
-            if (!policyIDToCheck || !policiesRestrictedToMapsAndGPS?.[policyIDToCheck]) {
+            if (!policyIDToCheck || !policiesRequiringMapOrGPS?.[policyIDToCheck]) {
                 return false;
             }
 
@@ -75,7 +75,7 @@ function useMapOrGpsDistanceGuard({policyID, isManualDistanceRequest = false, is
 
             return true;
         },
-        [policyID, isManualDistanceRequest, isOdometerDistanceRequest, policiesRestrictedToMapsAndGPS, showConfirmModal, translate, styles, illustrations.HouseWithMap],
+        [policyID, isManualDistanceRequest, isOdometerDistanceRequest, policiesRequiringMapOrGPS, showConfirmModal, translate, styles, illustrations.HouseWithMap],
     );
 }
 
