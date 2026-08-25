@@ -1360,6 +1360,13 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>, isOffline: b
     if (!reportAction) {
         return true;
     }
+
+    // The DEW routed action is synthesized client-side on top of its parent SUBMITTED/FORWARDED action
+    // and is never persisted, so it carries no unread state of its own for the marker to anchor on.
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED) {
+        return true;
+    }
+
     return !isOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -1617,7 +1624,11 @@ function getDynamicExternalWorkflowRoutedAction(
     const originalMessage = getOriginalMessage(reportAction);
     return {
         reportActionID: `${reportAction.reportActionID}DEW`,
-        created: DateUtils.addMillisecondsFromDateTime(reportAction.created, 1),
+        // Reuse the parent action's created so this synthetic action never counts as newer than the
+        // read watermark stamped at the parent action's timestamp. getSortedReportActions breaks the
+        // created tie by reportActionID, and `${id}DEW` sorts right after `${id}`, so the routed
+        // message still renders directly below its parent action.
+        created: reportAction.created,
         actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
         message: [{html: 'DYNAMIC_EXTERNAL_WORKFLOW', type: 'COMMENT', text: ''}],
