@@ -242,9 +242,7 @@ function ScheduleCallPage() {
                                             enableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
                                         >
-                                            <Button.Text>
-                                                {DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}
-                                            </Button.Text>
+                                            <Button.Text>{DateUtils.formatTimeInTimeZoneWithPeriod(translate, timeSlot.startTime, userTimezone)}</Button.Text>
                                         </Button>
                                     ))}
                                     {timeFillerItem}

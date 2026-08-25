@@ -55,7 +55,16 @@ const DATE_FNS_MODULES = new Set(['date-fns', 'date-fns-tz']);
  * `CONST.DATE.*` formats with no language-dependent tokens. Anything else in `CONST.DATE` is treated as localized, so a
  * newly added format is guarded by default rather than silently escaping this rule.
  */
-const MACHINE_DATE_CONSTANTS = new Set(['FNS_FORMAT_STRING', 'FNS_DATE_TIME_FORMAT_STRING', 'FNS_DB_FORMAT_STRING', 'FNS_TIMEZONE_FORMAT_STRING', 'YEAR_MONTH_FORMAT', 'SHORT_DATE_FORMAT']);
+const MACHINE_DATE_CONSTANTS = new Set([
+    'FNS_FORMAT_STRING',
+    'FNS_DATE_TIME_FORMAT_STRING',
+    'FNS_DB_FORMAT_STRING',
+    'FNS_TIMEZONE_FORMAT_STRING',
+    'YEAR_MONTH_FORMAT',
+    'SHORT_DATE_FORMAT',
+    'LOCAL_TIME_FORMAT_WITHOUT_PERIOD',
+    'TIME_FORMAT_WITHOUT_PERIOD',
+]);
 
 /**
  * Strips the single-quoted escaped literals date-fns supports (e.g. the "T" in `yyyy-MM-dd'T'HH:mm`)
