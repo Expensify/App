@@ -1023,6 +1023,7 @@ const CONST = {
         NETSUITE_OAUTH: 'netSuiteOAuth',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
+        ARCHIVE_POLICIES: 'archivePolicies',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -4131,6 +4132,10 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
+        },
+        WORKSPACE_STATUS: {
+            ACTIVE: 'active',
+            ARCHIVED: 'archived',
         },
         THREE_DOT_MENU_ACTION: {
             LEAVE: 'leave',
