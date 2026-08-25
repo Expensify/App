@@ -1,3 +1,4 @@
+import useEnvironment from '@hooks/useEnvironment';
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
@@ -15,9 +16,10 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {Platform} from 'react-native';
 
+import BetaOverridesModal from './BetaOverridesModal';
 import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './ButtonComposed';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
@@ -35,6 +37,8 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
+    const {isProduction} = useEnvironment();
+    const [isBetaOverridesModalVisible, setIsBetaOverridesModalVisible] = useState(false);
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -114,6 +118,24 @@ function TestToolMenu() {
                             <Button.Text>{translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}</Button.Text>
                         </Button>
                     </TestToolRow>
+
+                    {/* Allows locally overriding beta feature flags for testing. Not rendered in production because betas are meant to be controlled by the backend there. */}
+                    {!isProduction && (
+                        <>
+                            <TestToolRow title={translate('initialSettingsPage.troubleshoot.betaOverrides')}>
+                                <Button
+                                    size={CONST.BUTTON_SIZE.SMALL}
+                                    onPress={() => setIsBetaOverridesModalVisible(true)}
+                                >
+                                    <Button.Text>{translate('common.view')}</Button.Text>
+                                </Button>
+                            </TestToolRow>
+                            <BetaOverridesModal
+                                isVisible={isBetaOverridesModalVisible}
+                                onClose={() => setIsBetaOverridesModalVisible(false)}
+                            />
+                        </>
+                    )}
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
                     {isAgentAccount === false && <BiometricsTestToolRow />}

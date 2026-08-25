@@ -5,6 +5,7 @@ import TestToolsModalPage from '@components/TestToolsModalPage';
 
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,6 +16,7 @@ import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types
 import toggleTestToolsModal from '@userActions/TestTool';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import type {MouseEvent} from 'react';
@@ -31,6 +33,7 @@ function TestToolsModalNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const outerViewRef = useRef<View>(null);
     const isAuthenticated = useIsAuthenticated();
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
 
     const handleOuterClick = useCallback(() => {
         // Release focus from any focused element before closing the modal
@@ -44,7 +47,17 @@ function TestToolsModalNavigator() {
         e.stopPropagation();
     }, []);
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: false});
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            // When a component modal (e.g. Beta overrides) is open on top of this navigator, Escape should close only that modal
+            if (modal?.willAlertModalBecomeVisible) {
+                return;
+            }
+            toggleTestToolsModal();
+        },
+        {shouldBubble: false},
+    );
 
     return (
         <NoDropZone>

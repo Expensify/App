@@ -2,6 +2,8 @@ import {renderHook} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import Permissions from '@libs/Permissions';
+
 import CONST from '@src/CONST';
 import usePermissions from '@src/hooks/usePermissions';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -134,5 +136,57 @@ describe('usePermissions', () => {
         // When: Checking if the account is in the exclusion beta
         // Then: The beta check should return false since neither beta is enabled
         expect(result.current.isBetaEnabled(exclusionBeta)).toBe(false);
+    });
+
+    it('should let local beta overrides take precedence over the server-provided betas', async () => {
+        // Given: An account with one beta enabled and another disabled
+        Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.DEFAULT_ROOMS]);
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => usePermissions(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(true);
+        expect(result.current.isBetaEnabled(CONST.BETAS.PER_DIEM)).toBe(false);
+
+        // When: Overrides force-disable the enabled beta and force-enable the disabled one
+        Onyx.set(ONYXKEYS.BETAS_OVERRIDE, {[CONST.BETAS.DEFAULT_ROOMS]: false, [CONST.BETAS.PER_DIEM]: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then: The overrides win over the server state, and untouched betas keep their server state
+        expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(false);
+        expect(result.current.isBetaEnabled(CONST.BETAS.PER_DIEM)).toBe(true);
+        expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(false);
+
+        // Then: Non-render callers that don't pass the overrides explicitly pick them up through the module-level fallback
+        expect(Permissions.isBetaEnabled(CONST.BETAS.PER_DIEM, [])).toBe(true);
+        expect(Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, [CONST.BETAS.DEFAULT_ROOMS])).toBe(false);
+
+        // When: The overrides are cleared
+        Onyx.set(ONYXKEYS.BETAS_OVERRIDE, null);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then: Everything falls back to the server state
+        expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(true);
+        expect(result.current.isBetaEnabled(CONST.BETAS.PER_DIEM)).toBe(false);
+    });
+
+    it('should force-disable a beta granted by the "all" beta when overridden off', async () => {
+        // Given: An account on the 'all' beta
+        Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => usePermissions(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(true);
+
+        // When: A single beta is overridden off
+        Onyx.set(ONYXKEYS.BETAS_OVERRIDE, {[CONST.BETAS.DEFAULT_ROOMS]: false});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then: That beta is disabled while the others granted by 'all' stay enabled
+        expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(false);
+        expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(true);
     });
 });

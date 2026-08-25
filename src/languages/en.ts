@@ -2353,6 +2353,11 @@ const translations = {
             usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
             showBranchNameInTitle: 'Show branch name in browser title',
+            betaOverrides: 'Beta overrides',
+            betaOverridesDescription:
+                'Overrides only apply to this device and only affect frontend checks. Toggling a beta pins it to that value, and it stays pinned until you reset it. “Reset all overrides” clears them all and returns every beta to the value your account has on the backend. Some features are also gated by the backend, so force-enabling a beta your account doesn’t have may still fail at the request level.',
+            resetAllOverrides: 'Reset all overrides',
+            overridden: 'Overridden',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
             invalidateWithDelay: 'Invalidate with delay',
