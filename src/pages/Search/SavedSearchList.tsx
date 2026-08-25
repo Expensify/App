@@ -70,7 +70,7 @@ function buildSavedSearchMenuItem({
     itemStyle,
     isCopied,
     icon,
-}: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
+}: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem & {icon: IconAsset} {
     const savedSearchKey = savedSearchIDToSearchKey(key);
     const isItemFocused = savedSearchKey === currentSearchKey;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
