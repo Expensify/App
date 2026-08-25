@@ -44,7 +44,6 @@ const BABEL_PACKAGES = [
     'react-native-svg',
     'react-native-webview',
 ];
-// Trailing slash so `react-native` doesn't swallow `react-native-*` packages.
 const babelPackagesRegex = new RegExp(`node_modules/(${BABEL_PACKAGES.join('|')})/`);
 
 /**
@@ -131,8 +130,6 @@ export default Repack.defineRspackConfig((env) => {
                         {loader: path.resolve(__dirname, '../rsbuild/loaders/fullstory-annotation-loader.mjs')},
                     ],
                 },
-                // BABEL_PACKAGES stay on babel + hermes-parser. React Compiler never applied
-                // here (babel sources filter).
                 {
                     test: /\.[cm]?[jt]sx?$/,
                     include: [babelPackagesRegex],
@@ -154,8 +151,6 @@ export default Repack.defineRspackConfig((env) => {
                     test: /\.[cm]?[jt]sx?$/,
                     exclude: [path.resolve(projectRoot, 'src'), babelPackagesRegex],
                     type: 'javascript/auto',
-                    // parallel: worker-pool loaders — without it this chain runs on one thread
-                    // and cold compiles slow down badly.
                     use: [
                         {loader: path.resolve(__dirname, './cjs-inline-requires-loader.mjs'), parallel: true, options: {sourcemap: false, hermesLowering: true}},
                         {loader: path.resolve(__dirname, '../rsbuild/loaders/worklets-loader.mjs'), parallel: true, options: {}},
@@ -166,8 +161,6 @@ export default Repack.defineRspackConfig((env) => {
                                 // refresh must stay off: Repack's Fast Refresh runtime doesn't wrap
                                 // node_modules, so injected $RefreshSig$ calls crash on boot.
                                 jsx: {runtime: 'automatic', development: isDev, refresh: false},
-                                // Prebuilt packages ship multi-source maps that remapping() can't
-                                // compose — drop maps for node_modules, like babel-swc-loader does.
                                 sourcemap: false,
                             },
                         },
