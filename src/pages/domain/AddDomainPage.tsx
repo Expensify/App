@@ -87,7 +87,7 @@ function AddDomainPage() {
         if (!domainKeysBeforeCreation.current) {
             const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`;
             if (form.domainKeysBeforeCreation && !form.domainKeysBeforeCreation.includes(domainKey)) {
-                clearDomainFromFailedCreation(domainAccountID);
+                clearDomainFromFailedCreation(domainAccountID, allDomains?.[domainKey]?.domain_adminRequesters);
             }
             clearCreateDomainAccountID();
             return;
@@ -98,9 +98,9 @@ function AddDomainPage() {
             return;
         }
 
-        clearDomainFromFailedCreation(domainAccountID);
+        clearDomainFromFailedCreation(domainAccountID, allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`]?.domain_adminRequesters);
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID), {forceReplace: true}));
-    }, [form?.domainAccountID, form?.domainKeysBeforeCreation]);
+    }, [form?.domainAccountID, form?.domainKeysBeforeCreation, allDomains]);
 
     useEffect(() => {
         resetCreateDomainForm();
@@ -132,7 +132,13 @@ function AddDomainPage() {
                     onSubmit={({domainName}) => {
                         const submitDomain = () => {
                             submittedDomainName.current = domainName;
-                            domainKeysBeforeCreation.current = isLoadingOnyxValue(allDomainsResult) ? undefined : new Set(Object.keys(allDomains ?? {}));
+                            domainKeysBeforeCreation.current = isLoadingOnyxValue(allDomainsResult)
+                                ? undefined
+                                : new Set(
+                                      Object.entries(allDomains ?? {})
+                                          .filter(([, domain]) => !!domain?.accountID)
+                                          .map(([domainKey]) => domainKey),
+                                  );
                             createDomain(domainName, domainKeysBeforeCreation.current);
                         };
 

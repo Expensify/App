@@ -213,6 +213,11 @@ function isAdminSelector(accountID: number | undefined) {
     };
 }
 
+/** Creates a selector that reports whether the given account has a pending adminship request on the domain. */
+function hasPendingAdminshipRequestSelector(accountID: number | undefined) {
+    return (domain: OnyxEntry<Domain>): boolean => !!accountID && !!domain?.domain_adminRequesters?.[accountID];
+}
+
 /** Creates a selector that extracts the pending action for a security group's setting */
 function domainSecurityGroupSettingPendingActionSelector(settingName: keyof DomainSecurityGroupPendingActions, groupID?: string) {
     return (domainPendingActions: OnyxEntry<DomainPendingActions>) => {
@@ -255,6 +260,7 @@ export {
     vacationDelegateSelector,
     accountLockSelector,
     isAdminSelector,
+    hasPendingAdminshipRequestSelector,
     selectGroupByID,
     domainSecurityGroupSettingPendingActionSelector,
     domainSecurityGroupSettingErrorsSelector,

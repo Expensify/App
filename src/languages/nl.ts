@@ -10565,6 +10565,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     domain: {
         notVerified: 'Niet geverifieerd',
         retry: 'Opnieuw proberen',
+        requestSent: 'Aanvraag verzonden',
         verifyDomain: {
             title: 'Domein verifiëren',
             beforeProceeding: ({domainName}: {domainName: string}) =>

@@ -53,8 +53,8 @@ function DomainsListPage() {
             return;
         }
 
-        clearStaleDomainFromFailedCreation(failedDomainAccountID);
-    }, [failedDomainAccountID, isFocused, shouldHideFailedDomain]);
+        clearStaleDomainFromFailedCreation(failedDomainAccountID, failedDomainKey ? allDomains?.[failedDomainKey]?.domain_adminRequesters : undefined);
+    }, [failedDomainAccountID, failedDomainKey, allDomains, isFocused, shouldHideFailedDomain]);
 
     const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
         if (!isAdmin) {
@@ -78,6 +78,7 @@ function DomainsListPage() {
             }
 
             const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
+
             const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
 
             domainRows.push({

@@ -140,6 +140,9 @@ describe('AddDomainPage', () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
         await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'test@user.com'});
+        });
         await waitForBatchedUpdatesWithAct();
     });
 
@@ -302,6 +305,37 @@ describe('AddDomainPage', () => {
 
         // Then the domain is created with the submitted name, without a second Continue press
         expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_DOMAIN, {domainName: DOMAIN_NAME}, expect.anything());
+    });
+
+    it('keeps a pending adminship request out of the domains list when the same domain is attempted again', async () => {
+        // Given a validated user who already requested adminship, so all that is left of the domain is that request
+        mockIsUserValidated = true;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${EXISTING_DOMAIN_ACCOUNT_ID}` as const;
+        await act(async () => {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.merge(domainKey, {domain_adminRequesters: {'1': 'read'}});
+        });
+        renderAddDomainPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they submit the same domain again and the BE reports it as taken, sending the domain along with the failure
+        await submitDomainName(DOMAIN_NAME);
+        await act(async () => {
+            await Onyx.merge(domainKey, {accountID: EXISTING_DOMAIN_ACCOUNT_ID, email: `admin@${DOMAIN_NAME}`});
+            await Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: EXISTING_DOMAIN_ACCOUNT_ID});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then we go to the domain-already-exists page instead of showing the already-have-access error, and the entry is stripped back
+        // to the request alone, so the domains list still has nothing to render for it
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(EXISTING_DOMAIN_ACCOUNT_ID), expect.anything());
+        expect((await getCreateDomainForm())?.errors).toBeFalsy();
+
+        const existingDomain = await getExistingDomain();
+        expect(existingDomain?.accountID).toBeUndefined();
+        expect(existingDomain?.email).toBeUndefined();
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        expect(existingDomain?.domain_adminRequesters).toEqual({'1': 'read'});
     });
 
     it('holds the submit back while the initial app load is still fetching the domains', async () => {

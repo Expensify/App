@@ -10664,6 +10664,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     domain: {
         notVerified: 'Non vérifié',
         retry: 'Réessayer',
+        requestSent: 'Demande envoyée',
         verifyDomain: {
             title: 'Vérifier le domaine',
             beforeProceeding: ({domainName}: {domainName: string}) =>

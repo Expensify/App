@@ -15,6 +15,7 @@ import {
     createDomainSecurityGroup,
     deleteDomainSecurityGroup,
     deleteDomainVacationDelegate,
+    requestDomainAdminship,
     resetCreateDomainForm,
     resetDomain,
     resetDomainMemberTwoFactorAuth,
@@ -135,6 +136,56 @@ describe('actions/Domain', () => {
         );
 
         apiWriteSpy.mockRestore();
+    });
+
+    describe('requestDomainAdminship', () => {
+        it('optimistically marks the requester as pending', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const currentUserAccountID = 456;
+
+            requestDomainAdminship(domainAccountID, currentUserAccountID, false);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const optimisticUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, {domainAccountID}, expect.anything());
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(optimisticUpdate.value).toMatchObject({domain_adminRequesters: {[currentUserAccountID]: 'read'}});
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('rolls only the requester back on failure when the domain is one the user can see', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const currentUserAccountID = 456;
+
+            requestDomainAdminship(domainAccountID, currentUserAccountID, false);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const failureUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(failureUpdate.value).toMatchObject({domain_adminRequesters: {[currentUserAccountID]: null}});
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('drops the whole entry on failure when it only exists to carry the flow, so no empty domain lingers', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const currentUserAccountID = 456;
+
+            requestDomainAdminship(domainAccountID, currentUserAccountID, true);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const failureUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.SET, false);
+
+            expect(failureUpdate.value).toBeNull();
+
+            apiWriteSpy.mockRestore();
+        });
     });
 
     it('clearDomainErrors- clears domain errors and pending actions', async () => {

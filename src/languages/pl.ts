@@ -10592,6 +10592,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     domain: {
         notVerified: 'Niezweryfikowane',
         retry: 'Ponów próbę',
+        requestSent: 'Wysłano prośbę',
         verifyDomain: {
             title: 'Zweryfikuj domenę',
             beforeProceeding: ({domainName}: {domainName: string}) =>
