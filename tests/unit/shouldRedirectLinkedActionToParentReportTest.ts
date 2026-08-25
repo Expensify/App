@@ -25,9 +25,7 @@ const THREAD_REPORT_ID = 'transaction-thread-1';
 const PARENT_REPORT_ID = 'parent-expense-1';
 const LINKED_ACTION_ID = 'action-1';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the ids the helper reads matter here
 const threadReport = {reportID: THREAD_REPORT_ID, parentReportID: PARENT_REPORT_ID} as Report;
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the id the helper passes through matters here
 const parentReport = {reportID: PARENT_REPORT_ID} as Report;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only passed through to isOneTransactionThread, which is mocked
 const parentReportAction = {reportActionID: 'iou-action-1'} as ReportAction;
@@ -72,7 +70,7 @@ describe('shouldRedirectLinkedActionToParentReport', () => {
     });
 
     it('does NOT redirect when the report has no parent to redirect to', () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- deliberately missing parentReportID
+        // Deliberately missing parentReportID
         const orphanReport = {reportID: THREAD_REPORT_ID} as Report;
 
         expect(shouldRedirectLinkedActionToParentReport({...baseParams, report: orphanReport})).toBe(false);
