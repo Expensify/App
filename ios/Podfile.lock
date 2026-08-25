@@ -178,6 +178,11 @@ PODS:
   - ExpoModulesWorklets (57.0.7):
     - ExpoModulesCore
     - ExpoModulesJSI
+  - ExpoModulesWorkletsAdapter (57.0.7):
+    - ExpoModulesCore
+    - ExpoModulesJSI
+    - ExpoModulesWorklets
+    - RNWorklets
   - ExpoStoreReview (57.0.1):
     - ExpoModulesCore
   - ExpoTaskManager (57.0.6):
@@ -571,7 +576,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -597,7 +601,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -622,7 +625,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -649,7 +651,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -675,7 +676,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -701,7 +701,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -727,7 +726,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -753,7 +751,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -779,7 +776,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -805,7 +801,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -831,7 +826,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -857,7 +851,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -883,7 +876,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -909,7 +901,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -4468,6 +4459,7 @@ DEPENDENCIES:
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-jsi/apple`)
   - ExpoModulesWorklets (from `../node_modules/expo-modules-core`)
+  - ExpoModulesWorkletsAdapter (from `../node_modules/expo-modules-core`)
   - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
   - ExpoTaskManager (from `../node_modules/expo-task-manager/ios`)
   - ExpoVideo (from `../node_modules/expo-video/ios`)
@@ -4688,6 +4680,8 @@ EXTERNAL SOURCES:
   ExpoModulesJSI:
     :path: "../node_modules/expo-modules-jsi/apple"
   ExpoModulesWorklets:
+    :path: "../node_modules/expo-modules-core"
+  ExpoModulesWorkletsAdapter:
     :path: "../node_modules/expo-modules-core"
   ExpoStoreReview:
     :path: "../node_modules/expo-store-review/ios"
@@ -4988,6 +4982,7 @@ SPEC CHECKSUMS:
   ExpoModulesCore: 48de9b4d1179bb3a38025a0db36ec6cedc8f580c
   ExpoModulesJSI: 3accd404d715d63e7b04015d20c857e903e3bc73
   ExpoModulesWorklets: b21b8f233b5fd71ca74327217601fa4ead9ddaaf
+  ExpoModulesWorkletsAdapter: fbbef35a631ee8ae3f76e3e2133a3158f7c83e24
   ExpoStoreReview: 2a0f6b8e04112aea2f6e3e1cb84109d78f4d041f
   ExpoTaskManager: f68326227852a30148700965c37c058c1473c6a2
   ExpoVideo: b1d9a325ddcd4f3ed8ccb374c01b688e98bc6a04
@@ -5011,7 +5006,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: 11f9c24b28845827b972a84b8cd0c112436e9c64
+  hermes-engine: f15f13e549bf4b81c82b3b6aafc2386eb1e8f513
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -5040,7 +5035,7 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 922be6f90a3addd48f57f2066dd90aacec4768b6
   React: 2574546f2d017abd14d0c9b48cf2b6a0547c2591
   React-callinvoker: b997d4d109c92cae4bc7f1edb08dc6a7c11a1ca2
-  React-Core: ee317fb557001c3972bcf4fe15996197e65ae54d
+  React-Core: 5c7a37fd611353c8bf1c12ef24cfdec81ff46549
   React-CoreModules: 2ae392df55453fca5602e9bb5bc16a72f36dd961
   React-cxxreact: 9a58282eb607fb19d775cfaa8ff9da7be8fc99c5
   React-debug: 307f174c04c2e1f51b31c31efcc3e635b1e56453
@@ -5092,7 +5087,7 @@ SPEC CHECKSUMS:
   React-NativeModulesApple: e477c7b5f198235d9de93702ef6b495b87b625bc
   React-networking: b90039a00fd63e75a78358ee5fc2ea4b4cbad736
   React-oscompat: e3c95718adca6d0e7ca9e5b01a04d057f4aa8f72
-  React-perflogger: 8712c3310a467e036fceac437dc7f2a4be69e634
+  React-perflogger: 327334823748e1ecac8cb76e3aa1c072d99146af
   React-performancecdpmetrics: 992de932ea38bfc3e49f7b4eba19f6c1aca021bb
   React-performancetimeline: a0626b87f948b534b3fb90b696ad11863af94dd8
   React-RCTActionSheet: cbe921221b0ca00d2ea586efbaa494bc990260c1
@@ -5108,7 +5103,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: b478cd2ee4091e33bb847edef83c19aa87bf1c45
   React-RCTText: 6bae9a5e52ebc012d7bc499542c42285f73d1e1d
   React-RCTVibration: 3ddd10141590a1800a1890248b47337d9004b7f4
-  React-rendererconsistency: d1e82296151f814802c06be35952c9fda99973b1
+  React-rendererconsistency: 8759d621ba9d2a3139c266d3462bf2e38ccc4b01
   React-renderercss: 7b56e138a3d800fa9e17e61cdb3b293d6b8622c6
   React-rendererdebug: cf7d7ca70a0b7263df1d49c87970ae6cfe7ce5d0
   React-RuntimeApple: 39be405060d5dc5d1f9e4ee4e24ad09cd079a5db
