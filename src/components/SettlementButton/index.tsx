@@ -166,10 +166,10 @@ function SettlementButton({
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
-    // Any workspace admin can pay, but the workspace account may only be shown to the members it is shared with — being
-    // the designated payer is not enough. Without this, the button advertises the workspace account to someone who cannot
-    // use it, and the payment then debits a different account. The dropdown already scopes itself to `bankAccountList`,
-    // which is why it stays correct.
+    // Only show the workspace account when it is present in the current user's bankAccountList.
+    // The normal ShareBankAccountAndUpdatePolicyReimburser flow creates a payer-owned copy
+    // and updates the policy to use it, but we've observed accounts where the payer doesn't have
+    // access to the workspace account for some reason.
     const policyBankAccount = getAccessiblePolicyBankAccount(policy, bankAccountList);
     const canUsePolicyBankAccount = !!policyBankAccount;
     const hasIntentToPay =
