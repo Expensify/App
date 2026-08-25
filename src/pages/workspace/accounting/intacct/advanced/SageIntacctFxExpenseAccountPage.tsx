@@ -3,9 +3,9 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -29,7 +29,7 @@ import {View} from 'react-native';
 function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -78,7 +78,7 @@ function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
             displayName="SageIntacctFxExpenseAccountPage"
             data={expenseAccountOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            shouldBeBlocked={!syncReimbursedReports || !isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS) || !isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX)}
+            shouldBeBlocked={!syncReimbursedReports || !isGlobalReimbursementFXEnabled}
             onSelectRow={updateAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={expenseAccountOptions.find((mode) => mode.isSelected)?.keyForList}
