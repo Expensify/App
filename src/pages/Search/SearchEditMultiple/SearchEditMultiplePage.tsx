@@ -12,6 +12,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import type {StartWithLoading} from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
@@ -30,6 +31,7 @@ import type {Route} from '@src/ROUTES';
 import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
+import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useState} from 'react';
@@ -146,7 +148,7 @@ function SearchEditMultiplePage() {
 
     const [isSaving, setIsSaving] = useState(false);
 
-    const save = () => {
+    const save = (event?: GestureResponderEvent | KeyboardEvent, startWithLoading?: StartWithLoading) => {
         if (!draftTransaction || isSaving) {
             return;
         }
@@ -187,32 +189,40 @@ function SearchEditMultiplePage() {
 
         setIsSaving(true);
 
-        updateMultipleMoneyRequests({
-            transactionIDs: selectedTransactionIDs,
-            changes,
-            policy,
-            reports: mergedReports,
-            transactions: mergedTransactions,
-            reportActions: mergedReportActions,
-            policyCategories: allPolicyCategories,
-            policyTags: allPolicyTags,
-            violations: allTransactionViolations,
-            reportNameValuePairs,
-            hash: currentSearchHash,
-            allPolicies: policies,
-            currentUserAccountID,
-            delegateAccountID,
-            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
-            personalDetailsList,
-            getCurrencyDecimals,
-            getCurrencySymbol,
-        });
-        // Bulk edit can start from report (ID-based selection) or search (map-based selection),
-        // so clear both stores to keep deselection behavior consistent.
-        clearSelectedTransactions(true);
-        clearSelectedTransactions();
+        const applyChanges = () => {
+            updateMultipleMoneyRequests({
+                transactionIDs: selectedTransactionIDs,
+                changes,
+                policy,
+                reports: mergedReports,
+                transactions: mergedTransactions,
+                reportActions: mergedReportActions,
+                policyCategories: allPolicyCategories,
+                policyTags: allPolicyTags,
+                violations: allTransactionViolations,
+                reportNameValuePairs,
+                hash: currentSearchHash,
+                allPolicies: policies,
+                currentUserAccountID,
+                delegateAccountID,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                personalDetailsList,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+            // Bulk edit can start from report (ID-based selection) or search (map-based selection),
+            // so clear both stores to keep deselection behavior consistent.
+            clearSelectedTransactions(true);
+            clearSelectedTransactions();
 
-        Navigation.dismissToPreviousRHP();
+            Navigation.dismissToPreviousRHP();
+        };
+
+        if (!startWithLoading) {
+            applyChanges();
+            return;
+        }
+        return startWithLoading(applyChanges);
     };
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -348,7 +358,7 @@ function SearchEditMultiplePage() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={save}
                     isLoading={isSaving}
-                    shouldShowLoadingImmediatelyOnPress
+                    isDisabled={isSaving}
                     style={[styles.m5]}
                 >
                     <Button.Text>{translate('common.save')}</Button.Text>

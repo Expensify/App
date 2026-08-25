@@ -11,11 +11,17 @@ type UsePressLoadingOptions = {
     resetOnFocus?: boolean;
 };
 
+/**
+ * Paints the loading state, then runs `runAfterPaint` one macrotask later, so a JS-blocking handler still gives
+ * immediate feedback. Return the promise it gives back, so a throwing handler rejects up the chain.
+ */
+type StartWithLoading = (runAfterPaint: () => void | Promise<void>) => Promise<void>;
+
 type UsePressLoadingReturn = {
     /** True while the button press is pending or the external loading flag is set, so the spinner stays visible. */
     isLoading: boolean;
     /** Call instead of a bare press handler to show the spinner immediately on press. */
-    startWithLoading: (runAfterPaint: () => void | Promise<void>) => Promise<void>;
+    startWithLoading: StartWithLoading;
 };
 
 /**
@@ -34,7 +40,7 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
         setIsPressed(false);
     }
     // Defer the work by one macrotask so React can commit isPressed and paint the spinner before the consumer code that may block the JS thread runs.
-    const startWithLoading = async (runAfterPaint: () => void | Promise<void>) => {
+    const startWithLoading: StartWithLoading = async (runAfterPaint) => {
         setIsPressed(true);
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
@@ -53,13 +59,14 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
     const navigationContext = useContext(NavigationContext);
 
     useEffect(() => {
-        if (!resetOnFocus || !navigationContext) {
+        if (!resetOnFocus || !isPressed || !navigationContext) {
             return;
         }
         return navigationContext.addListener('focus', () => setIsPressed(false));
-    }, [resetOnFocus, navigationContext]);
+    }, [resetOnFocus, isPressed, navigationContext]);
 
     return {isLoading: isPressed || !!isLoading, startWithLoading};
 }
 
 export default usePressLoading;
+export type {StartWithLoading};

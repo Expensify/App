@@ -61,7 +61,7 @@ function Button({
     const [isHovered, setIsHovered] = useState(false);
 
     // Merges the consumer's isLoading with the pressed state into the single flag that drives the spinner.
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading, resetOnFocus: shouldShowLoadingImmediatelyOnPress});
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
     // Shared by a pointer press and the Enter shortcut, so both take the same route into onPress.
     const runPress = (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -71,7 +71,7 @@ function Button({
         if (shouldShowLoadingImmediatelyOnPress) {
             return startWithLoading(() => onPress(event));
         }
-        return onPress(event);
+        return onPress(event, startWithLoading);
     };
 
     // Entry point for a pointer press: drops focus from the pressed element and fires haptic feedback before the shared press logic.
