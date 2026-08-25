@@ -573,6 +573,7 @@ describe('createIOURequestStartPoliciesSelector', () => {
             [`${P}p1`]: null,
             [`${P}p2`]: makePerDiemPolicy('p2'),
         };
+        // @ts-expect-error -- intentionally passes a malformed null entry to exercise the selector's runtime guard.
         const result = createIOURequestStartPoliciesSelector(userLogin, false)(policies);
         expect(result.firstPerDiemPolicyID).toBe('p2');
     });
