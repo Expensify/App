@@ -340,6 +340,7 @@ function getTransactionCommuterExclusionData({
     transaction,
     policy,
     customUnit,
+    storedCustomUnit,
     translate,
     toLocaleDigit,
     getCurrencySymbol,
@@ -348,20 +349,17 @@ function getTransactionCommuterExclusionData({
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     customUnit?: TransactionCustomUnit;
+    storedCustomUnit?: TransactionCustomUnit;
     translate?: LocaleContextProps['translate'];
     toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
     personalPolicyOutputCurrency?: string;
 }): (Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit}) | undefined {
-    const policyCommuterExclusions = policy?.commuterExclusions;
-    if (
-        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
-        policyCommuterExclusions?.method !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE
-    ) {
+    if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
         return;
     }
 
+    const policyCommuterExclusions = policy?.commuterExclusions;
     const existingCustomUnit = customUnit ?? transaction?.comment?.customUnit;
     const selectedRate = existingCustomUnit?.customUnitRateID
         ? (getRateByCustomUnitRateID({customUnitRateID: existingCustomUnit.customUnitRateID, policy}) ?? getRate({transaction, policy, personalPolicyOutputCurrency}))
@@ -384,9 +382,20 @@ function getTransactionCommuterExclusionData({
         return;
     }
 
-    const fixedDistanceUnit: Unit =
-        policyCommuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(policyCommuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), requestDistanceUnit);
+    // Preserve the commuter exclusion stored on the expense at creation time; fall back to the current
+    // policy setting only when there is no stored exclusion (i.e. a brand-new expense being created).
+    const storedCommuterExclusion = storedCustomUnit?.commuterExclusion;
+    let fixedDistanceInRequestUnit: number;
+    if (typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0) {
+        fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(storedCommuterExclusion, storedCustomUnit?.distanceUnit ?? requestDistanceUnit), requestDistanceUnit);
+    } else {
+        if (policyCommuterExclusions?.method !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+            return;
+        }
+        const fixedDistanceUnit: Unit =
+            policyCommuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+        fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(policyCommuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), requestDistanceUnit);
+    }
 
     if (fixedDistanceInRequestUnit <= 0) {
         return;
