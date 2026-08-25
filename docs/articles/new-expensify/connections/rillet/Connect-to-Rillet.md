@@ -58,7 +58,7 @@ After the connection is established, the **Connections** section updates to show
 
 If your Rillet organization has multiple subsidiaries, you can choose which one to connect. If only one eligible subsidiary is available, Expensify selects it automatically. The selected subsidiary determines which accounting data is available in Expensify.
 
-After the initial sync completes, you can configure your import, export, and advanced accounting settings. Learn how to [configure your Rillet import, export, and advanced settings](/articles/Unlisted/Configure-Rillet).
+After the initial sync completes, you can configure your import, export, and advanced accounting settings. Learn how to [configure your Rillet import, export, and advanced settings](/articles/new-expensify/connections/rillet/Configure-Rillet).
 
 ---
 
