@@ -1871,7 +1871,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Sélectionnez les détails que vous souhaitez conserver :',
             noDifferences: 'Aucune différence trouvée entre les transactions',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = startsWithVowel(field) ? 'un' : 'a';
+                const article = startsWithVowel(field) ? 'un' : 'un';
                 return `Veuillez sélectionner ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Veuillez sélectionner les participants',
