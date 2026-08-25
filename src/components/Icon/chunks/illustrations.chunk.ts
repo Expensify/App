@@ -62,6 +62,7 @@ import BrokenCompanyCardBankConnection from '@assets/images/product-illustration
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
 import EarthWithControls from '@assets/images/product-illustrations/earth-with-controls.svg';
+import EmptyStateSearchExpenses from '@assets/images/product-illustrations/empty-state__expenses.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
@@ -280,6 +281,7 @@ const Illustrations = {
     BrokenCompanyCardBankConnection,
     BrokenMagnifyingGlass,
     DjBoothReferenceHands,
+    EmptyStateSearchExpenses,
     EmptyStateExpenses,
     HoldExpense,
     ReceiptFairy,
