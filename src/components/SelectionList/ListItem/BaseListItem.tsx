@@ -39,10 +39,7 @@ function BaseListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError = () => {},
     rightHandSideComponent,
-    keyForList,
-    errors,
     errorRowStyles,
-    pendingAction,
     FooterComponent,
     children,
     isFocused,
@@ -132,8 +129,8 @@ function BaseListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={pendingAction ?? item.pendingAction}
-            errors={errors ?? item.errors}
+            pendingAction={item.pendingAction}
+            errors={item.errors}
             errorRowStyles={[styles.mh5, errorRowStyles]}
             contentContainerStyle={containerStyle}
         >
@@ -169,7 +166,7 @@ function BaseListItem<TItem extends ListItem>({
                     }
                     e.preventDefault();
                 }}
-                id={keyForList ?? item.keyForList ?? ''}
+                id={item.keyForList ?? ''}
                 testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                 style={[
                     pressableStyle,

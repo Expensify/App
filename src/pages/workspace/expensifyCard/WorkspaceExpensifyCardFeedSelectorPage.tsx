@@ -218,7 +218,6 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
                                 key={item.keyForList}
-                                keyForList={item.keyForList}
                                 showTooltip={false}
                                 item={item}
                                 onSelectRow={selectOtherFeed}

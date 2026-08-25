@@ -47,7 +47,6 @@ function MultiSelectListItem<TItem extends ListItem>({
     return (
         <BaseSelectListItem
             item={itemWithAvatar}
-            keyForList={item.keyForList}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}

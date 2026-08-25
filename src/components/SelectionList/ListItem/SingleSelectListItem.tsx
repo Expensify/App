@@ -37,7 +37,6 @@ function SingleSelectListItem<TItem extends ListItem>({
     return (
         <BaseSelectListItem
             item={item}
-            keyForList={item.keyForList}
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}

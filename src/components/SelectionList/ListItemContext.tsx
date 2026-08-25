@@ -2,8 +2,8 @@ import {createContext, useContext} from 'react';
 
 type ListItemContextValue = {
     /**
-     * Whether the row is logically focused (keyboard index). Legacy providers (UserListItemContent,
-     * InviteMemberListItem) set only this; ListItemPressable provides both this and isFocusVisible.
+     * Whether the row is logically focused (keyboard index). Set only by legacy providers (UserListItemContent,
+     * InviteMemberListItem); ListItemPressable sets isFocusVisible instead.
      */
     isFocused?: boolean;
 

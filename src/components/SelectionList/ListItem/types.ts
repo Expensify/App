@@ -14,7 +14,6 @@ import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 
 import type {ReactElement, ReactNode} from 'react';
 import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
@@ -266,9 +265,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Prevent the submission of the list item when enter key is pressed */
     shouldPreventEnterKeySubmit?: boolean;
 
-    /** Key used internally by React */
-    keyForList: string;
-
     /**
      * Whether the focus on the element should be synchronized. For example it should be set to false when the text input above list items is currently focused.
      * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
@@ -335,12 +331,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         /** Overrides the row's screen-reader name. Defaults to the item's derived label when omitted. */
         accessibilityLabel?: string;
         shouldPreventEnterKeySubmit?: boolean;
-        /** The composed ListItem reads item.keyForList directly; only the legacy BaseListItem still consumes this. */
-        keyForList?: string;
-        errors?: Errors | ReceiptErrors | null;
         /** Additional style object for the error row */
         errorRowStyles?: StyleProp<ViewStyle>;
-        pendingAction?: PendingAction | null;
         FooterComponent?: ReactElement;
         children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
         shouldSyncFocus?: boolean;
@@ -379,7 +371,7 @@ type SpendRuleListItemType = ListItem & {
 };
 
 /** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
-type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'keyForList' | 'errors' | 'pendingAction' | 'containerStyle'> & {
+type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle'> & {
     /** Callback to fire when the selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 

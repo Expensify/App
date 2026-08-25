@@ -56,7 +56,6 @@ describe('SplitListItem', () => {
             <LocaleContextProvider>
                 <SplitListItem
                     item={item}
-                    keyForList={item.keyForList}
                     showTooltip={false}
                     onSelectRow={jest.fn()}
                 />

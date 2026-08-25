@@ -205,7 +205,7 @@ function ListItemPressable<TItem extends ListItem>({
                 onKeyDown={!shouldPreventEnterKeySubmit ? selectRowOnEnterKey : undefined}
                 wrapperStyle={pressableWrapperStyle}
             >
-                <ListItemContext.Provider value={{isFocused: !!isFocused, isFocusVisible: !!isFocusVisible, shouldShowTooltip}}>
+                <ListItemContext.Provider value={{isFocusVisible: !!isFocusVisible, shouldShowTooltip}}>
                     <ListItemHoverContext.Provider value={hovered}>{children}</ListItemHoverContext.Provider>
                 </ListItemContext.Provider>
             </PressableWithFeedback>

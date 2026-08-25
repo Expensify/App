@@ -141,7 +141,6 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             <MultiSelectListItem
                 isFocused={false}
                 showTooltip={false}
-                keyForList="select-all"
                 item={{keyForList: 'select-all', text: translate('workspace.rules.spendRules.allCurrencies'), isSelected: areAllCurrenciesSelected}}
                 onSelectRow={toggleSelectAll}
             />
