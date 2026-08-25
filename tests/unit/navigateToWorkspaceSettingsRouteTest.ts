@@ -97,8 +97,10 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('compares Workspace targets without query parameters while preserving them for navigation', () => {
         const targetRoute = ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a', CONST.TAB.WORKFLOWS.APPROVALS);
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a'));
-        mockWorkspaceNavigationState('workspace-a');
+        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(`/${ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a')}`);
+        jest.mocked(navigationRef).isReady.mockImplementation(() => {
+            throw new Error('The Workspace sidebar should not be inspected for the active destination');
+        });
 
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-a', false);
 
@@ -108,7 +110,7 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('updates the sidebar policy before navigating to a different Workspace page', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a'));
+        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(`/${ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a')}`);
         mockWorkspaceNavigationState('workspace-a');
 
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
@@ -120,7 +122,7 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('updates the sidebar when switching to the same page in another Workspace', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'));
+        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(`/${ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a')}`);
         mockWorkspaceNavigationState('workspace-a');
 
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
@@ -131,7 +133,7 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
     it('keeps the existing sidebar policy when changing pages in the same Workspace', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a');
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a'));
+        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(`/${ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a')}`);
         mockWorkspaceNavigationState('workspace-a');
 
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-a', false);
