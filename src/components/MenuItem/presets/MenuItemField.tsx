@@ -19,16 +19,16 @@ import MenuItemWithLabel from './MenuItemWithLabel';
 type MenuItemFieldProps = PropsWithChildren &
     WithSentryLabel &
     WithTestID & {
-        /** Name of the field. Stands in for the value while the field is empty, and moves up into the label once it has one */
+        /** Name of the field. Placeholder for the value while the field is empty, and moves up into the label once it has one */
         label: string;
 
-        /** The picked value. This is what decides if the field is empty or filled */
+        /** The picked value */
         value?: string;
 
         /** Whether to show the `Required` hint. Only reaches the screen while the field is empty, since a filled field cannot be missing */
         isRequired?: boolean;
 
-        /** Function to fire when the row is pressed. Omit to make the row non-interactive, which also drops the chevron */
+        /** Function to fire when the row is pressed. Omit to drop the chevron */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         /** Whether the menu item is disabled */

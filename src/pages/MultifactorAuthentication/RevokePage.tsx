@@ -42,7 +42,7 @@ type RevokeRowProps = {
     onPress: () => void;
 };
 
-/** A non-interactive row naming a set of registered devices, with a `Revoke` button in the trailing cell */
+/** A row naming a set of registered devices, with a `Revoke` button in the trailing cell */
 function RevokeRow({title, isLoading, onPress}: RevokeRowProps) {
     const {translate} = useLocalize();
 

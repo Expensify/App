@@ -60,20 +60,19 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, trans
     });
 
     const isInteractive = !isReadOnly && !!canUpdateSenderWorkspace;
+    const onPress = isInteractive
+        ? () => {
+              if (!transaction?.transactionID) {
+                  return;
+              }
+              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SEND_FROM.path));
+          }
+        : undefined;
 
     return (
         <MenuItemWithLabel
             label={translate('workspace.invoices.sendFrom')}
-            onPress={
-                isInteractive
-                    ? () => {
-                          if (!transaction?.transactionID) {
-                              return;
-                          }
-                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SEND_FROM.path));
-                      }
-                    : undefined
-            }
+            onPress={onPress}
             isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SEND_FROM_FIELD}
         >
