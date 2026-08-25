@@ -894,14 +894,10 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
  * joins two other nodes.
  *
  * Both look the same (`{operator, left, right}`), so the giveaway is `left`: a comparison points at a field
- * name, an `AND` points at another node. Arrays count as comparisons too.
+ * name, an `AND` points at another node.
  */
 function isComparisonLeaf(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): node is ApprovalWorkflowFilterComparison {
-    if (!node) {
-        return false;
-    }
-    const nodeLeft = node.left;
-    return typeof nodeLeft !== 'object' || nodeLeft === null || Array.isArray(nodeLeft);
+    return !!node && typeof node.left === 'string';
 }
 
 /** True when a comparison node targets the `from` field with an equality operator. */
