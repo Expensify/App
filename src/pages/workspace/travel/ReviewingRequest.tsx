@@ -26,9 +26,10 @@ function ReviewingRequest({policyID}: ReviewingRequestProps) {
     useFocusEffect(
         useCallback(() => {
             getTravelRiskApproval(policyID).then((isTravelRiskApproved) => {
-                if (isTravelRiskApproved) {
-                    clearTravelSignupRequest();
+                if (!isTravelRiskApproved) {
+                    return;
                 }
+                clearTravelSignupRequest();
             });
         }, [policyID]),
     );
