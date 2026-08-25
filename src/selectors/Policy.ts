@@ -8,9 +8,8 @@ import {
     getPolicyIDFromDomainName,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
-    isControlPolicy,
     isPendingDeletePolicy,
-    isPerDiemEnabled,
+    isPerDiemEligiblePolicy,
     isPolicyAdmin,
     isTimeTrackingEnabled,
     shouldShowPolicy,
@@ -211,34 +210,18 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
     }) as PolicySelector;
 
 type IOURequestStartPolicies = {
-    /** Whether any active expense-chat policy has Per Diem enabled */
     hasPerDiemPolicy: boolean;
-
-    /** Whether more than one active expense-chat policy has Per Diem enabled */
     hasMultiplePerDiemPolicies: boolean;
-
-    /** ID of the first active expense-chat policy with Per Diem enabled */
     firstPerDiemPolicyID: string | undefined;
-
-    /** Whether any active expense-chat policy has time tracking enabled */
     hasTimePolicy: boolean;
-
-    /** Whether more than one active expense-chat policy has time tracking enabled */
     hasMultipleTimePolicies: boolean;
-
-    /** ID of the first active expense-chat policy with time tracking enabled */
     firstTimePolicyID: string | undefined;
 
-    /** Whether the user can send an invoice from any of their workspaces. Only computed for the invoice flow. */
+    /** false unless the invoice flow asked for it */
     canSendInvoiceFromAnyWorkspace: boolean;
 };
 
-/**
- * Creates a selector returning a fixed-size summary of the policies the expense-creation start page needs: the page
- * only ever asks "any?", "more than one?" and "which is first?", so the output stays the same size on an account with
- * 5 workspaces or 5000 - no employeeList/customUnits deepEqual, and no ID list that grows with the collection.
- * The invoice check walks the collection separately, so it stays behind `isInvoice` - only that flow reads it.
- */
+// Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual and no growing ID list
 const createIOURequestStartPoliciesSelector =
     (currentUserLogin: string | undefined, isInvoice: boolean) =>
     (policies: OnyxCollection<Policy>): IOURequestStartPolicies => {
@@ -248,7 +231,7 @@ const createIOURequestStartPoliciesSelector =
         let firstTimePolicyID: string | undefined;
 
         for (const policy of getActivePoliciesWithExpenseChat(policies, currentUserLogin)) {
-            if (perDiemCount < 2 && isControlPolicy(policy) && isPerDiemEnabled(policy)) {
+            if (perDiemCount < 2 && isPerDiemEligiblePolicy(policy)) {
                 firstPerDiemPolicyID ??= policy.id;
                 perDiemCount++;
             }
@@ -256,7 +239,7 @@ const createIOURequestStartPoliciesSelector =
                 firstTimePolicyID ??= policy.id;
                 timeCount++;
             }
-            // Nothing downstream needs exact totals, so stop once both answers are settled.
+            // counts cap at 2, nothing downstream needs the real total
             if (perDiemCount >= 2 && timeCount >= 2) {
                 break;
             }

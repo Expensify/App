@@ -18,6 +18,7 @@ import {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
+    canSendInvoice,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
@@ -39,7 +40,7 @@ import type Policy from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
@@ -53,7 +54,7 @@ const ACCESS_VARIANTS = {
         policy: OnyxEntry<Policy>,
         login: string,
         report: OnyxEntry<Report>,
-        canSendInvoice: boolean,
+        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
         betas: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isReportArchived?: boolean,
@@ -64,14 +65,14 @@ const ACCESS_VARIANTS = {
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
 
         (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy)) &&
-        (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice),
+        (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
 } as const satisfies Record<
     string,
     (
         policy: Policy,
         login: string,
         report: Report,
-        canSendInvoice: boolean,
+        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
         betas: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isArchivedReport?: boolean,
@@ -123,8 +124,8 @@ type AccessOrNotFoundWrapperProps = {
     /** The type of the transaction */
     iouType?: IOUType;
 
-    /** Whether the user can send an invoice from any of their workspaces. Only read for the invoice iou type. */
-    canSendInvoice?: boolean;
+    /** The list of all policies */
+    allPolicies?: OnyxCollection<Policy>;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
 type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {
@@ -160,7 +161,7 @@ function AccessOrNotFoundWrapper({
     policyID,
     reportID,
     iouType,
-    canSendInvoice,
+    allPolicies,
     featureName,
     policyFeature,
     policyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -206,9 +207,9 @@ function AccessOrNotFoundWrapper({
     const isPageAccessible = accessVariantsToCheck.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
-            return acc && accessFunction(policy, login, report, !!canSendInvoice, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+            return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
         }
-        return acc && accessFunction(policy, login, report, !!canSendInvoice, betas, iouType, isReportArchived);
+        return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
     let hasAccessToPolicyFeature = true;
     if (policyFeature) {
