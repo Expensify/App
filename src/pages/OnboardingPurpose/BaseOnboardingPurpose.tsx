@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import variables from '@styles/variables';
 
@@ -84,8 +85,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    // Skipping the work email step also marks it completed, so a skipped step still means we never got an email.
-    const [hasProvidedWorkEmail] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: (onboarding) => !!onboarding?.isMergeAccountStepCompleted && !onboarding?.isMergeAccountStepSkipped});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isValidated = isCurrentUserValidated(loginList, session?.email);
     const {isBetaEnabled} = usePermissions();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
@@ -112,10 +114,17 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
 
-                // The work email is what identifies the company whose workspaces the user can join, so anyone who already
-                // gave one earlier in onboarding goes straight to those workspaces instead of being asked for it twice.
+                // A validated account already has the work email needed to look up joinable workspaces, so it skips
+                // straight to the list. An unvalidated one needs a work email first: a public-domain account has none
+                // on file yet, while a private-domain one already has one and only needs to validate it.
                 if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
-                    Navigation.navigate(hasProvidedWorkEmail ? ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo) : ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+                    if (isValidated) {
+                        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
+                        return;
+                    }
+                    Navigation.navigate(
+                        account?.isFromPublicDomain ? ROUTES.ONBOARDING_WORK_EMAIL.getRoute() : ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()),
+                    );
                     return;
                 }
 
