@@ -179,27 +179,25 @@ function buildDomainNavigationItems({
     onSelect,
 }: BuildDomainNavigationItemsParams): NavigationSuggestionSourceItem[] {
     const isCurrentUserDomainAdmin = isAdminSelector(currentUserAccountID);
+    const canAdministerDomain = (domain: Domain | null | undefined): domain is Domain =>
+        !!domain?.accountID && !!domain.email && domain.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isCurrentUserDomainAdmin(domain);
 
-    return domains
-        .filter(
-            (domain): domain is Domain => !!domain?.accountID && !!domain.email && domain.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isCurrentUserDomainAdmin(domain),
-        )
-        .flatMap((domain) => {
-            const domainName = Str.extractEmailDomain(domain.email);
-            const domainContext = getDomainContext(domainName);
+    return domains.filter(canAdministerDomain).flatMap((domain) => {
+        const domainName = Str.extractEmailDomain(domain.email);
+        const domainContext = getDomainContext(domainName);
 
-            return getDomainMenuItems({domainAccountID: domain.accountID, icons}).map((item) => {
-                const itemText = getItemText(item.translationKey);
-                return {
-                    text: getDestinationText(itemText),
-                    singleIcon: item.icon,
-                    action: () => onSelect(item.route),
-                    keyForList: `domain_${domain.accountID}_${item.screenName}`,
-                    rightElement: domainContext,
-                    matchTerms: [itemText, domainName],
-                };
-            });
+        return getDomainMenuItems({domainAccountID: domain.accountID, icons}).map((item) => {
+            const itemText = getItemText(item.translationKey);
+            return {
+                text: getDestinationText(itemText),
+                singleIcon: item.icon,
+                action: () => onSelect(item.route),
+                keyForList: `domain_${domain.accountID}_${item.screenName}`,
+                rightElement: domainContext,
+                matchTerms: [itemText, domainName],
+            };
         });
+    });
 }
 
 function buildAccountNavigationItems({sections, rightElement, getItemText, getDestinationText}: BuildAccountNavigationItemsParams): NavigationSuggestionSourceItem[] {
