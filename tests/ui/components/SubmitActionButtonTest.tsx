@@ -5,8 +5,8 @@ import SubmitActionButton from '@components/ReportActionItem/MoneyRequestReportP
 import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasViolations} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {hasOnlyHeldExpenses, hasViolations} from '@libs/ReportUtils';
+import {hasAnyPendingRTERViolation, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
@@ -85,6 +85,7 @@ jest.mock('@libs/TransactionUtils', () => ({
     hasOnlyPendingCardTransactions: jest.fn(() => false),
     hasAnyPendingRTERViolation: jest.fn(() => false),
     showPendingCardTransactionsBlockModal: jest.fn(),
+    showHeldExpensesBlockModal: jest.fn(),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -96,6 +97,7 @@ jest.mock('@libs/ReportUtils', () => {
         __esModule: true,
         hasViolations: jest.fn(() => false),
         shouldShowMarkAsDone: jest.fn(() => false),
+        hasOnlyHeldExpenses: jest.fn(() => false),
     };
 });
 
@@ -128,6 +130,8 @@ const mockedSubmitReport = jest.mocked(submitReport);
 const mockedIsSubmitPolicy = jest.mocked(isSubmitPolicy);
 const mockedHasOnlyPendingCardTransactions = jest.mocked(hasOnlyPendingCardTransactions);
 const mockedShowPendingCardTransactionsBlockModal = jest.mocked(showPendingCardTransactionsBlockModal);
+const mockedHasOnlyHeldExpenses = jest.mocked(hasOnlyHeldExpenses);
+const mockedShowHeldExpensesBlockModal = jest.mocked(showHeldExpensesBlockModal);
 const mockedHasViolations = jest.mocked(hasViolations);
 const mockedHasAnyPendingRTERViolation = jest.mocked(hasAnyPendingRTERViolation);
 
@@ -138,6 +142,7 @@ describe('SubmitActionButton', () => {
         mockTransactionViolations = {};
         mockedIsSubmitPolicy.mockReturnValue(false);
         mockedHasOnlyPendingCardTransactions.mockReturnValue(false);
+        mockedHasOnlyHeldExpenses.mockReturnValue(false);
         mockedHasViolations.mockReturnValue(false);
         mockedUseOnyx.mockImplementation((key) => {
             if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
@@ -183,6 +188,18 @@ describe('SubmitActionButton', () => {
         });
 
         expect(mockedShowPendingCardTransactionsBlockModal).toHaveBeenCalled();
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('shows the held expenses block modal instead of submitting', () => {
+        mockedHasOnlyHeldExpenses.mockReturnValue(true);
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockOnPressHolder.current?.();
+        });
+
+        expect(mockedShowHeldExpensesBlockModal).toHaveBeenCalled();
         expect(mockedSubmitReport).not.toHaveBeenCalled();
     });
 

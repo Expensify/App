@@ -800,7 +800,6 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
 
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
-let shouldSkipCheckAfterReconnect = false;
 function subscribeToPusherPong(currentUserAccountID: number) {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
     if (!currentUserAccountID) {
@@ -811,30 +810,21 @@ function subscribeToPusherPong(currentUserAccountID: number) {
         Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
         lastPongReceivedTimestamp = Date.now();
 
-        // Calculate the latency between the client and the server
         const pongEvent = pushJSON as PingPongEvent;
         const latency = Date.now() - Number(pongEvent.pingTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
     });
 }
 
-// Specify how long between each PING event to the server
 const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
 
-// Specify how long between each check for missing PONG events
-const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
-
-// Specify how long before a PING event is considered to be missing a PONG event, at which point the socket is presumed dead
-const SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
+const MISSING_PONG_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
 function pingPusher() {
     if (getIsOffline()) {
         Log.info('[Pusher PINGPONG] Skipping PING because the client is offline');
         return;
     }
-    // Send a PING event to the server with a specific ID and timestamp
-    // The server will respond with a PONG event with the same ID and timestamp
-    // Then we can calculate the latency between the client and the server (or if the server never replies)
     const pingID = NumberUtils.rand64();
     const pingTimestamp = Date.now();
 
@@ -852,37 +842,14 @@ function pingPusher() {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, parameters).catch(() => {});
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
-}
 
-function checkForLatePongReplies() {
-    if (getIsOffline()) {
-        Log.info('[Pusher PINGPONG] Skipping checkForLatePongReplies because the client is offline');
-        return;
-    }
-
-    // A reconnect just happened, so give the fresh socket one full check interval to deliver a PONG
-    if (shouldSkipCheckAfterReconnect) {
-        shouldSkipCheckAfterReconnect = false;
-        return;
-    }
-
-    const now = Date.now();
-    const timeSinceLastPongReceived = now - lastPongReceivedTimestamp;
-
-    // A missing PONG while HTTP still works (the client is not offline) means the socket is presumed dead, so reconnect Pusher
-    if (timeSinceLastPongReceived > SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] The server has not sent a PONG in ${timeSinceLastPongReceived} ms so the socket is presumed dead and Pusher is being reconnected`);
-
-        // Retries stay unbounded: one reconnect every second check tick (~2 minutes) while PONGs are missing
-        shouldSkipCheckAfterReconnect = true;
-        Pusher.reconnect();
-    } else {
-        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so the socket is presumed alive`);
+    const timeSinceLastPongReceived = pingTimestamp - lastPongReceivedTimestamp;
+    if (timeSinceLastPongReceived > MISSING_PONG_THRESHOLD_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] The server has not sent a PONG in ${timeSinceLastPongReceived} ms, leaving recovery to the Pusher SDK`);
     }
 }
 
 let pingPusherIntervalID: ReturnType<typeof setInterval>;
-let checkForLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
 function initializePusherPingPong(currentUserAccountID: number) {
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -891,6 +858,8 @@ function initializePusherPingPong(currentUserAccountID: number) {
     }
 
     Log.info(`[Pusher PINGPONG] Starting Pusher PING PONG and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
+
+    lastPongReceivedTimestamp = Date.now();
 
     // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
     // so there could be a little delay before the client is actually listening to this event.
@@ -901,19 +870,7 @@ function initializePusherPingPong(currentUserAccountID: number) {
         clearInterval(pingPusherIntervalID);
     }
 
-    // Send a ping to pusher on a regular interval
     pingPusherIntervalID = setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
-
-    // Delay the start of this by double the length of PING_INTERVAL_LENGTH_IN_SECONDS to give a chance for the first
-    // events to be sent and received
-    setTimeout(() => {
-        // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
-        if (checkForLatePongRepliesIntervalID) {
-            clearInterval(checkForLatePongRepliesIntervalID);
-        }
-        // Check for any missing pong events on a regular interval
-        checkForLatePongRepliesIntervalID = setInterval(checkForLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
-    }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
 }
 
 /**
@@ -930,6 +887,8 @@ function subscribeToUserEvents(
     if (!currentUserAccountID) {
         return;
     }
+
+    PusherUtils.onPrivateUserChannelResubscribe(currentUserAccountID.toString());
 
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
@@ -1367,6 +1326,18 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
         optimisticData,
         failureData,
     });
+}
+
+function dismissMarketingWindow(updateKey: string) {
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+            value: updateKey,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.DISMISS_MARKETING_WINDOW, {updateKey}, {optimisticData});
 }
 
 /**
@@ -2071,6 +2042,7 @@ export {
     clearDraftMerchantTypeRule,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
+    dismissMarketingWindow,
 };
 
 export {type LockAccountOnyxKey};

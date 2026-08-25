@@ -6,6 +6,8 @@ import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@compo
 
 import MoneyReportContentCreated from '@pages/inbox/report/MoneyReportContentCreated';
 
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -84,6 +86,7 @@ const renderWithProps = (props: Partial<React.ComponentProps<typeof MoneyReportC
 describe('MoneyReportContentCreated', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
     });
 
     afterEach(async () => {

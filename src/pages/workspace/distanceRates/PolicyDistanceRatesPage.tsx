@@ -1,9 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceDistanceRatesTable from '@components/Tables/WorkspaceDistanceRatesTable';
@@ -13,7 +11,7 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -39,7 +37,6 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -75,8 +72,8 @@ function PolicyDistanceRatesPage({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {canWrite: canWriteDistanceRates, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
 
-    const {asset: CarIce} = useMemoizedLazyAsset(() => loadIllustration('CarIce' as IllustrationName));
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
+    const customUnitID = customUnit?.customUnitID;
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit?.rates]);
 
     const selectableRates = useMemo(
@@ -271,16 +268,16 @@ function PolicyDistanceRatesPage({
 
     const dismissErrorByID = useCallback(
         (rateID: string) => {
-            if (!customUnit?.customUnitID) {
+            if (!customUnitID) {
                 return;
             }
             if (customUnitRates[rateID]?.errors) {
-                clearDeleteDistanceRateError(policyID, customUnit.customUnitID, rateID);
+                clearDeleteDistanceRateError(policyID, customUnitID, rateID);
                 return;
             }
-            clearCreateDistanceRateItemAndError(policyID, customUnit.customUnitID, rateID);
+            clearCreateDistanceRateItemAndError(policyID, customUnitID, rateID);
         },
-        [customUnit?.customUnitID, customUnitRates, policyID],
+        [customUnitID, customUnitRates, policyID],
     );
 
     const openRateDetailsByID = useCallback(
@@ -340,6 +337,7 @@ function PolicyDistanceRatesPage({
                 text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 icon: icons.Trashcan,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     if (!canDisableOrDeleteSelectedRates) {
                         showWarningModal();
@@ -365,6 +363,7 @@ function PolicyDistanceRatesPage({
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 icon: icons.Close,
+                shouldSkipFocusRestore: !canDisableOrDeleteSelectedRates,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : showWarningModal()),
             });
         }
@@ -383,7 +382,6 @@ function PolicyDistanceRatesPage({
     };
 
     const isLoading = !isOffline && customUnit === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PolicyDistanceRatesPage', isOffline, isCustomUnitUndefined: customUnit === undefined};
 
     const secondaryActions = useMemo(
         () => [
@@ -404,13 +402,14 @@ function PolicyDistanceRatesPage({
             {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
-                        text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
                         style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        icon={icons.Plus}
-                        success
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>{translate('workspace.distanceRates.addRate')}</Button.Text>
+                    </Button>
                     <ButtonWithDropdownMenu
                         onPress={() => {}}
                         shouldUseOptionIcon
@@ -441,6 +440,12 @@ function PolicyDistanceRatesPage({
     ) : null;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const distanceRatesTableHeader =
+        ratesData.length > 0 ? (
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+            </View>
+        ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -457,7 +462,6 @@ function PolicyDistanceRatesPage({
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={!selectionModeHeader ? CarIce : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -478,25 +482,18 @@ function PolicyDistanceRatesPage({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {ratesData.length > 0 && (
-                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                            </View>
-                        )}
-                        <WorkspaceDistanceRatesTable
-                            policyID={policyID}
-                            ratesData={ratesData}
-                            selectedKeys={selectedDistanceRates}
-                            selectionEnabled={canWriteDistanceRates}
-                            onRowSelectionChange={setSelectedDistanceRates}
-                            canWriteDistanceRates={canWriteDistanceRates}
-                        />
-                    </>
+                    <WorkspaceDistanceRatesTable
+                        policyID={policyID}
+                        ratesData={ratesData}
+                        selectedKeys={selectedDistanceRates}
+                        selectionEnabled={canWriteDistanceRates}
+                        onRowSelectionChange={setSelectedDistanceRates}
+                        canWriteDistanceRates={canWriteDistanceRates}
+                        headerComponent={distanceRatesTableHeader}
+                    />
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

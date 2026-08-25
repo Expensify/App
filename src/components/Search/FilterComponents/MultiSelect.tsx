@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -30,6 +29,9 @@ type MultiSelectItem<T> = {
     icons?: Icon[];
     leftElement?: ReactNode;
     searchableText?: string;
+
+    /** Optional supporting text rendered on a second line beneath `text` */
+    alternateText?: string;
 };
 
 type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
@@ -83,6 +85,7 @@ function MultiSelect<T extends string>({
         : orderedItems;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
+        alternateText: item.alternateText,
         keyForList: item.value,
         isSelected: !!selectedItems.find((i) => i.value === item.value),
         icons: item.icons,
@@ -119,8 +122,6 @@ function MultiSelect<T extends string>({
         disableAutoFocus: !autoFocus,
     };
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};
-
     return (
         <ListFilterView
             itemCount={listData.length}
@@ -132,7 +133,6 @@ function MultiSelect<T extends string>({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
                         color={theme.spinner}
-                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (

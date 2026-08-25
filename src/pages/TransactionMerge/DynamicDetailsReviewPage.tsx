@@ -32,7 +32,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +77,8 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             [targetTransactionReport, sourceTransactionReport],
             targetTransactionPolicy,
             sourceTransactionPolicy,
+            targetReportOwnerAsAttendee,
+            sourceReportOwnerAsAttendee,
         );
 
         setMergeTransactionKey(transactionID, mergeableData);
@@ -92,6 +93,8 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         targetTransactionPolicy,
         sourceTransactionPolicy,
         getCurrencyDecimals,
+        targetReportOwnerAsAttendee,
+        sourceReportOwnerAsAttendee,
     ]);
 
     // Handle selection
@@ -196,11 +199,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.DetailsReviewPage',
-            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
