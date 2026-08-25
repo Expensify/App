@@ -359,6 +359,7 @@ function getTransactionCommuterExclusionData({
     transaction,
     policy,
     customUnit,
+    storedCustomUnit,
     translate,
     toLocaleDigit,
     getCurrencySymbol,
@@ -367,17 +368,13 @@ function getTransactionCommuterExclusionData({
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     customUnit?: TransactionCustomUnit;
+    storedCustomUnit?: TransactionCustomUnit;
     translate?: LocaleContextProps['translate'];
     toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
     personalPolicyOutputCurrency?: string;
 }): (Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit}) | undefined {
-    const policyCommuterExclusions = policy?.commuterExclusions;
-    if (
-        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
-        policyCommuterExclusions?.method !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE
-    ) {
+    if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
         return;
     }
 
@@ -403,7 +400,20 @@ function getTransactionCommuterExclusionData({
         return;
     }
 
-    const commuterExclusion = getPolicyCommuterExclusionForDistance(policy, routeDistance, requestDistanceUnit);
+    // Preserve the commuter exclusion stored on the expense at creation time; fall back to the current
+    // policy setting only when there is no stored exclusion (i.e. a brand-new expense being created).
+    const storedCommuterExclusion = storedCustomUnit?.commuterExclusion;
+    let commuterExclusion: number;
+    if (typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0) {
+        const storedExclusionInRequestUnit = convertDistanceUnit(
+            convertToDistanceInMeters(storedCommuterExclusion, storedCustomUnit?.distanceUnit ?? requestDistanceUnit),
+            requestDistanceUnit,
+        );
+        commuterExclusion = Math.max(0, Math.min(storedExclusionInRequestUnit, routeDistance));
+    } else {
+        commuterExclusion = getPolicyCommuterExclusionForDistance(policy, routeDistance, requestDistanceUnit);
+    }
+
     if (commuterExclusion <= 0) {
         return;
     }

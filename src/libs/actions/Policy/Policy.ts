@@ -251,6 +251,7 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+    userReportedIntegrationName?: string;
     isAnnualSubscription?: boolean;
     featuresMap?: Array<Pick<Feature, 'id' | 'enabled' | 'enabledByDefault' | 'requiresUpdate'>>;
     lastUsedPaymentMethod?: LastPaymentMethodType;
@@ -2692,6 +2693,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         conciergeChat,
         companySize,
         userReportedIntegration,
+        userReportedIntegrationName,
         isAnnualSubscription = false,
         featuresMap,
         lastUsedPaymentMethod,
@@ -3160,6 +3162,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         file: clonedFile,
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
+        userReportedIntegrationName,
         features: features ? JSON.stringify(features) : undefined,
         shouldAddGuideWelcomeMessage,
         areDistanceRatesEnabled,
@@ -4149,36 +4152,69 @@ function openPolicyTaxesPage(policyID: string) {
 }
 
 function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+    type CardsPageLoadingKey = typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS | typeof ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE;
+
+    // The page's loading flags are keyed by policyID, not by fund. The fund the page resolves can change
+    // while this request is in flight, and the response may carry no settings for the fund we asked about,
+    // so flags written to the fund key can end up somewhere the page never reads.
+    const optimisticData: Array<OnyxUpdate<CardsPageLoadingKey>> = [
         {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`,
+            value: {
+                hasLoadingError: false,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<CardsPageLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`,
+            value: {
+                hasOnceLoadedPage: true,
+                hasLoadingError: false,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<CardsPageLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`,
+            value: {
+                hasLoadingError: true,
+            },
+        },
+    ];
+
+    // A fund ID of CONST.DEFAULT_NUMBER_ID means the fund is not resolved yet. The request itself is still
+    // valid because the backend treats a missing domainAccountID as "load this policy's own feed", but writing
+    // settings under that placeholder would create an Onyx entry no consumer can ever match to a real fund.
+    if (workspaceAccountID !== CONST.DEFAULT_NUMBER_ID) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 isLoading: true,
             },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
-        {
+        });
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 isLoading: false,
                 hasOnceLoaded: true,
             },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
-        {
+        });
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 isLoading: false,
             },
-        },
-    ];
+        });
+    }
 
     const params: OpenPolicyExpensifyCardsPageParams = {
         policyID,
@@ -4222,13 +4258,20 @@ function openDraftWorkspaceRequest(policyID: string) {
     API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
 }
 
-function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
+/**
+ * Ask Concierge to raise the Expensify Card limit of a card feed.
+ *
+ * The settlement account belongs to one user, usually the workspace owner. The backend needs the fundID to let
+ * another admin of the same feed make this request, because that admin cannot read the account on their own.
+ */
+function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number, fundID?: number) {
     if (!settlementBankAccountID) {
         return;
     }
 
     const params: RequestExpensifyCardLimitIncreaseParams = {
         settlementBankAccountID,
+        fundID,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);

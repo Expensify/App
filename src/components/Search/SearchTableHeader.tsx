@@ -317,6 +317,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.internationalReimbursementIDs',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+        translationKey: 'common.amountDebited',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
+        translationKey: 'common.amountReimbursed',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
         translationKey: 'common.reportID',
     },

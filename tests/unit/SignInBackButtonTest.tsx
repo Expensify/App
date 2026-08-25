@@ -4,10 +4,13 @@ import SignInModal from '@pages/signin/SignInModal';
 import type {SignInPageRef} from '@pages/signin/SignInPage';
 import {SignInPage} from '@pages/signin/SignInPage';
 
+import CONST from '@src/CONST';
+
 import React, {createRef} from 'react';
 
 const mockGoBack = jest.fn();
 let mockCanGoBack = true;
+const mockAnonymousAuthTokenType = CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -16,6 +19,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         goBack: () => {
             mockGoBack();
         },
+        // SignInModal dismisses itself once IS_LOADING_APP settles to false. That is unrelated to back
+        // handling, but Onyx carries the flag in from whatever ran earlier, so both must be stubbed or the
+        // dismiss effect throws before the assertions run.
+        dismissModal: jest.fn(),
+        navigate: jest.fn(),
     },
     navigationRef: {
         get current() {
@@ -46,8 +54,12 @@ jest.mock('@pages/signin/SignUpWelcomeForm', () => 'SignUpWelcomeForm');
 jest.mock('@components/ColorSchemeWrapper', () => 'ColorSchemeWrapper');
 jest.mock('@components/CustomStatusBarAndBackground', () => 'CustomStatusBarAndBackground');
 
-// SignInModal reads the session to decide when to dismiss itself. The back listener does not depend on it.
-jest.mock('@components/OnyxListItemProvider', () => ({useSession: () => undefined}));
+// SignInModal reads the session to decide when to dismiss itself, and treats any non anonymous session as signed
+// in. Report the anonymous session that a rendered sign-in modal actually has, so the dismiss effect stays idle
+// and does not call openApp. openApp writes IS_LOADING_APP asynchronously, which would otherwise dismiss the
+// modal partway through the test. The back listener does not depend on the session.
+// Read lazily: jest hoists this factory above the constant below.
+jest.mock('@components/OnyxListItemProvider', () => ({useSession: () => ({authTokenType: mockAnonymousAuthTokenType})}));
 jest.mock('@components/ScreenWrapper', () => 'ScreenWrapper');
 jest.mock('@components/HeaderWithBackButton', () => 'HeaderWithBackButton');
 

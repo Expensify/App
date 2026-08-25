@@ -6,7 +6,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -236,7 +236,7 @@ function StatusPage() {
                         brickRoadIndicator={brickRoadIndicator}
                     />
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
-                        <MenuItem
+                        <MenuItemAction
                             title={translate('statusPage.clearStatus')}
                             icon={icons.Trashcan}
                             onPress={clearStatus}

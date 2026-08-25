@@ -8,7 +8,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
@@ -81,7 +81,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
@@ -194,6 +193,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     count: selectedRuleKeys.length,
                 }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.rules.merchantRules.deleteRule'),
@@ -342,9 +342,23 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     };
 
     const headerButtons = getHeaderContent();
+    const rulesTabSelector = (
+        <View style={[styles.flexShrink0, styles.w100]}>
+            <View style={[styles.flexRow, styles.mb1, styles.w100]}>
+                <TabSelectorContextProvider activeTabKey={activeTab}>
+                    <TabSelectorBase
+                        tabs={tabs}
+                        activeTabKey={activeTab}
+                        onTabPress={handleTabPress}
+                    />
+                </TabSelectorContextProvider>
+            </View>
+        </View>
+    );
     const sharedTableTabProps = {
         policyID,
         canWriteRules,
+        headerComponent: rulesTabSelector,
     };
 
     return (
@@ -361,7 +375,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 headerText={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={selectionModeHeader ? undefined : illustrations.Flash}
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 onBackButtonPress={handleBackButtonPress}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
@@ -371,17 +384,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
-                    <View style={[styles.flexShrink0, styles.w100]}>
-                        <View style={[styles.flexRow, styles.mb1, styles.w100]}>
-                            <TabSelectorContextProvider activeTabKey={activeTab}>
-                                <TabSelectorBase
-                                    tabs={tabs}
-                                    activeTabKey={activeTab}
-                                    onTabPress={handleTabPress}
-                                />
-                            </TabSelectorContextProvider>
-                        </View>
-                    </View>
+                    {!isTableTab && !isAgentsTab && rulesTabSelector}
                     {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
                     <View
                         style={[
@@ -440,6 +443,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     policyID={policyID}
                                     canWriteRules={canWriteRules}
                                     showReadOnlyModal={showReadOnlyModal}
+                                    headerComponent={rulesTabSelector}
                                 />
                             </View>
                         )}
