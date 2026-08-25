@@ -42,7 +42,7 @@
 "../../scripts/generateTranslations.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../scripts/react-compiler-compliance-check.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../scripts/sentry/release-adoption-older-than.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../scripts/utils/Git.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../scripts/utils/Git.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../scripts/utils/TSCompilerUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../scripts/utils/Translator/TranslationPromptUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1380,4 +1380,4 @@
 "../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../rsbuild/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../rsbuild/ModuleInitTimingPlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../rsbuild/rsbuild.common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../rsbuild/rsbuild.common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
