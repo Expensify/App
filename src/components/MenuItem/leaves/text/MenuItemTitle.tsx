@@ -9,10 +9,27 @@ import convertToLTR from '@libs/convertToLTR';
 import CONST from '@src/CONST';
 
 import type {ReactElement} from 'react';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-type MenuItemTitleProps =
+const MENU_ITEM_TITLE_VARIANT = {
+    /** Bold, for a title that carries the row on its own — a navigation destination, a menu action, an entity name */
+    STRONG: 'strong',
+
+    /** Regular weight, for a value the user picked, sitting under the description naming its field */
+    BASIC: 'basic',
+} as const;
+
+type MenuItemTitleVariant = ValueOf<typeof MENU_ITEM_TITLE_VARIANT>;
+
+type MenuItemTitleProps = {
+    /**
+     * Typography variant. `strong` (default) is the bold look; `basic` drops back to regular weight —
+     * use it on field rows, where the bold text is the description above rather than the title itself.
+     */
+    variant?: MenuItemTitleVariant;
+} & (
     | {
           /** Text to render as the title */
           children: string | number;
@@ -25,18 +42,25 @@ type MenuItemTitleProps =
 
           /** Plain-text form of the title, contributed to the row's accessibility label */
           accessibilityLabel: string;
-      };
+      }
+);
 
-/** The title block of a `MenuItem.Content`. Bold, single line */
-function MenuItemTitle({children, accessibilityLabel}: MenuItemTitleProps) {
+/** The title block of a `MenuItem.Content`. Single line */
+function MenuItemTitle({children, accessibilityLabel, variant = MENU_ITEM_TITLE_VARIANT.STRONG}: MenuItemTitleProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
 
     useMenuItemAccessibilityLabel('title', accessibilityLabel ?? String(children));
 
+    /** Typography applied on top of the shared title base, keyed by variant */
+    const variantStyles = {
+        [MENU_ITEM_TITLE_VARIANT.STRONG]: styles.textStrong,
+        [MENU_ITEM_TITLE_VARIANT.BASIC]: undefined,
+    };
+
     return (
         <Text
-            style={[styles.flexShrink1, styles.popoverMenuText, styles.textStrong, styles.pre, isInteractive && isDisabled && styles.userSelectNone, styles.ltr, styles.mw100]}
+            style={[styles.flexShrink1, styles.popoverMenuText, variantStyles[variant], styles.pre, isInteractive && isDisabled && styles.userSelectNone, styles.ltr, styles.mw100]}
             numberOfLines={1}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isInteractive && isDisabled}}
         >
@@ -46,3 +70,4 @@ function MenuItemTitle({children, accessibilityLabel}: MenuItemTitleProps) {
 }
 
 export default MenuItemTitle;
+export {MENU_ITEM_TITLE_VARIANT};
