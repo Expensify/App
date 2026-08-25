@@ -27,6 +27,8 @@ Each Workspace has its own Rillet integration. To view or update the configurati
 2. Select **Accounting**. 
 3. On the Rillet connection, select **Import**, **Export**, or **Advanced**.
 
+![Accounting page showing Rillet connection]({{site.url}}/assets/images/Accounting_Rillet_Configure.png){:width="100%"}
+
 ---
 
 ## How to configure Rillet import settings
