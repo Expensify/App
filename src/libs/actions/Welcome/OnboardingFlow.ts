@@ -53,6 +53,7 @@ type OnboardingTaskLinks = Partial<{
     corporateCardLink: string;
     companyDomain: string;
     workEmail: string;
+    verifyAccountLink: string;
 }>;
 
 type OnboardingTask = {
@@ -265,6 +266,24 @@ const getOnboardingMessages = (locale?: Locale) => {
         title: translate(resolvedLocale, 'onboarding.tasks.createReportTask.title'),
         description: translate(resolvedLocale, 'onboarding.tasks.createReportTask.description'),
     };
+    const addWorkEmailTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL,
+        autoCompleted: false,
+        title: translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.title'),
+        description: translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.description'),
+    };
+    const validateEmailTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL,
+        autoCompleted: false,
+        title: translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.title'),
+        description: ({verifyAccountLink, workEmail}) => translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.description', {verifyAccountLink, workEmail}),
+    };
+    const joinWorkspaceTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE,
+        autoCompleted: false,
+        title: translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.title'),
+        description: translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.description'),
+    };
     const testDriveAdminTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
         autoCompleted: false,
@@ -442,9 +461,22 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [testDriveAdminTask, createTestDriveAdminWorkspaceTask],
     };
 
+    const onboardingJoinWorkspaceAddWorkEmailMessage: OnboardingMessage = {
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceAddWorkEmailMessage'),
+        tasks: [addWorkEmailTask],
+    };
+    const onboardingJoinWorkspaceValidateEmailMessage: OnboardingMessage = {
+        message: ({companyDomain}) => translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceValidateEmailMessage', {companyDomain}),
+        tasks: [validateEmailTask],
+    };
+    const onboardingJoinWorkspaceMessage: OnboardingMessage = {
+        message: ({companyDomain}) => translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceMessage', {companyDomain}),
+        tasks: [joinWorkspaceTask],
+    };
+
     return {
         onboardingMessages: {
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: onboardingEmployerOrSubmitMessage,
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: onboardingJoinWorkspaceAddWorkEmailMessage,
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
@@ -462,6 +494,12 @@ const getOnboardingMessages = (locale?: Locale) => {
             [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
         } satisfies Record<ValueOf<typeof CONST.CREATE_EXPENSE_ONBOARDING_CHOICES>, OnboardingMessage>,
         testDrive,
+        joinWorkspaceMessages: {
+            addWorkEmail: onboardingJoinWorkspaceAddWorkEmailMessage,
+            validateEmail: onboardingJoinWorkspaceValidateEmailMessage,
+            joinWorkspace: onboardingJoinWorkspaceMessage,
+            empty: onboardingLookingAroundMessage,
+        },
     };
 };
 
