@@ -986,6 +986,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     }
     switch (key) {
         case 'reportID':
+        case 'rejectFailedFromReportID':
         case 'reportName':
         case 'currency':
         case 'tag':
