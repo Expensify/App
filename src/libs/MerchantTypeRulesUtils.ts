@@ -12,6 +12,7 @@ import type {CodingRule} from '@src/types/onyx/Policy';
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
+import {getCategoryTaxRulesTableData} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
@@ -82,7 +83,7 @@ function getMerchantTypeRulesTableData({
             keyForList: getMerchantTypeRuleKey(groupID),
             ruleID: getMerchantTypeRuleKey(groupID),
             groupID,
-            isMerchantType: true,
+            section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES,
             isRename: false,
             isSelectionDisabled: true,
             typeLabel,
@@ -172,7 +173,7 @@ function getMerchantCodingRulesTableData({
             return {
                 keyForList: ruleID,
                 ruleID,
-                isMerchantType: false,
+                section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
                 isRename: hasOnlyMerchantRename,
                 typeLabel,
                 conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
@@ -200,10 +201,11 @@ function getExpenseDefaultsTableData({
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
+    const categoryTaxRules = getCategoryTaxRulesTableData({policy, translate, onNavigate});
     const merchantRules = getMerchantCodingRulesTableData({policy, policyID, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
-    return [...merchantRules, ...merchantTypeRules];
+    return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];
 }
 
 export {

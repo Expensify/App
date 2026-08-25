@@ -3890,6 +3890,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
     },
+    RULES_CATEGORY_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/category-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match` as const,
+    },
+    RULES_CATEGORY_TAX_EDIT: {
+        route: 'workspaces/:policyID/rules/category-tax-rules/edit/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/category-tax-rules/edit/${encodeURIComponent(categoryName)}` as const,
+    },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/agent-rules/new` as const,

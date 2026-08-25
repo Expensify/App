@@ -1792,6 +1792,14 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleID: string;
     };
+    [SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;
     };

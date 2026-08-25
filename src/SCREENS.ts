@@ -946,6 +946,8 @@ const SCREENS = {
         RULES_MERCHANT_REIMBURSABLE: 'Rules_Merchant_Reimbursable',
         RULES_MERCHANT_BILLABLE: 'Rules_Merchant_Billable',
         RULES_MERCHANT_PREVIEW_MATCHES: 'Rules_Merchant_Preview_Matches',
+        RULES_CATEGORY_TO_MATCH: 'Rules_Category_To_Match',
+        RULES_CATEGORY_TAX_EDIT: 'Rules_Category_Tax_Edit',
         RULES_MERCHANT_EDIT: 'Rules_Merchant_Edit',
         RULES_SPEND_MERCHANTS: 'Rules_Spend_Merchants',
         RULES_SPEND_MERCHANT_EDIT: 'Rules_Spend_Merchant_Edit',

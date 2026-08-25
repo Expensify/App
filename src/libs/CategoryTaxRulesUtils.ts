@@ -1,0 +1,104 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
+import type {ExpenseRule} from '@src/types/onyx/Policy';
+
+import {getDecodedCategoryName} from './CategoryUtils';
+
+const CATEGORY_TAX_RULE_KEY_PREFIX = 'category-tax:';
+
+function getCategoryTaxRuleKey(categoryName: string) {
+    return `${CATEGORY_TAX_RULE_KEY_PREFIX}${categoryName}`;
+}
+
+function isCategoryTaxRuleKey(key: string) {
+    return key.startsWith(CATEGORY_TAX_RULE_KEY_PREFIX);
+}
+
+/**
+ * The category a rule matches on. `applyWhen` is an array on the backend, but a category tax default only
+ * ever carries the single `category matches <name>` condition, so there is exactly one name to read.
+ */
+function getRuleCategoryName(rule: ExpenseRule): string | undefined {
+    return rule.applyWhen?.find(({condition, field}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY)?.value;
+}
+
+/**
+ * Only the rules that carry an explicit tax default. `getCategoryDefaultTaxRate` can't be used here because it falls
+ * back to the workspace default, which would make every category look like it has a rule of its own.
+ */
+function getCategoryTaxRules(expenseRules: ExpenseRule[] | undefined): ExpenseRule[] {
+    return (expenseRules ?? []).filter((rule) => !!rule.tax?.field_id_TAX?.externalID && !!getRuleCategoryName(rule));
+}
+
+function getCategoryTaxRule(expenseRules: ExpenseRule[] | undefined, categoryName: string): ExpenseRule | undefined {
+    return getCategoryTaxRules(expenseRules).find((rule) => getRuleCategoryName(rule) === categoryName);
+}
+
+function categoryHasTaxRule(expenseRules: ExpenseRule[] | undefined, categoryName: string): boolean {
+    return !!getCategoryTaxRule(expenseRules, categoryName);
+}
+
+function getCategoryTaxRuleTaxID(expenseRules: ExpenseRule[] | undefined, categoryName: string): string | undefined {
+    return getCategoryTaxRule(expenseRules, categoryName)?.tax?.field_id_TAX?.externalID;
+}
+
+/**
+ * The `Name (Value)` label used for a tax rate everywhere in the rules UI. A tax rate deleted from the workspace
+ * leaves a rule pointing at nothing, so fall back to the raw ID rather than rendering an empty label.
+ */
+function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undefined): string {
+    if (!taxID) {
+        return '';
+    }
+    const taxRate = policy?.taxRates?.taxes?.[taxID];
+    return taxRate ? `${taxRate.name} (${taxRate.value})` : taxID;
+}
+
+function getCategoryTaxRulesTableData({
+    policy,
+    translate,
+    onNavigate,
+}: {
+    policy: Policy | undefined;
+    translate: LocaleContextProps['translate'];
+    onNavigate: (route: Route) => void;
+}): ExpenseDefaultTableItem[] {
+    if (!policy?.id) {
+        return [];
+    }
+
+    const policyID = policy.id;
+    const typeLabel = translate('workspace.rules.expenseDefaultsTable.update');
+    const fieldLabel = translate('common.tax').toLowerCase();
+
+    return getCategoryTaxRules(policy.rules?.expenseRules).map((rule) => {
+        // `getCategoryTaxRules` already dropped the rules without a category, so this is always set.
+        const categoryName = getRuleCategoryName(rule) ?? '';
+        const decodedCategoryName = getDecodedCategoryName(categoryName);
+        const taxDisplayName = getTaxRateDisplayName(policy, rule.tax?.field_id_TAX?.externalID);
+        const conditionText = translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName);
+        const ruleDescription = translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, taxDisplayName);
+
+        return {
+            keyForList: getCategoryTaxRuleKey(categoryName),
+            ruleID: getCategoryTaxRuleKey(categoryName),
+            section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES,
+            isRename: false,
+            // Deleting a category tax default needs a backend command that doesn't exist yet, so these rows can't take
+            // part in the table's bulk delete.
+            isSelectionDisabled: true,
+            typeLabel,
+            conditionText,
+            ruleDescription,
+            searchTokens: [decodedCategoryName, conditionText, ruleDescription, taxDisplayName],
+            action: () => onNavigate(ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName)),
+        };
+    });
+}
+
+export {categoryHasTaxRule, getCategoryTaxRule, getCategoryTaxRulesTableData, getCategoryTaxRuleTaxID, getTaxRateDisplayName, isCategoryTaxRuleKey};
