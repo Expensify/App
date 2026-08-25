@@ -13,7 +13,7 @@ import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
-import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
+import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
@@ -152,15 +152,16 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             return;
         }
 
-        const isFlashUsed = flash && hasFlash;
         startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native',
-                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isFlashUsed || isInLandscapeMode ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
-                [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: isFlashUsed,
+                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: shouldTakePhoto({flash, hasFlash, isInLandscapeMode})
+                    ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO
+                    : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
+                [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
             },
         });
 
