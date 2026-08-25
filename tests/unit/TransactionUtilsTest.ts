@@ -1,5 +1,8 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -1250,6 +1253,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasDistanceRouteErrors', () => {
+        it('returns false when the route is clean', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction())).toBe(false);
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
+        });
+
+        it('returns true for a route or waypoint error', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
+        });
+
+        it('ignores errors that say nothing about the route, such as a failed payment', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
+        });
+    });
+
+    describe('isMapBasedDistanceRequest', () => {
+        const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        const PDF_RECEIPT = {source: 'https://www.expensify.com/receipts/w_abc123.pdf', filename: 'w_abc123.pdf'};
+
+        function generateMapDistanceTransaction(values: Partial<Transaction> = {}): Transaction {
+            return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, receipt: PDF_RECEIPT, ...values});
+        }
+
+        // New Expensify draws its own distance e-receipt for these, so the generated PDF beside them is never shown.
+        it('is true for a map distance expense whichever receipt it stores', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction())).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
+        });
+
+        it('is true for a GPS distance expense, which also has a route to draw', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(true);
+        });
+
+        it('is false for odometer and non-distance expenses, which keep their own receipt', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}))).toBe(false);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateTransaction({receipt: undefined}))).toBe(false);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
@@ -2493,7 +2537,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}child-1`]: childTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-1');
@@ -2514,7 +2558,7 @@ describe('TransactionUtils', () => {
             };
 
             // Report doesn't exist in reportCollectionDataSet
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-2');
@@ -2535,7 +2579,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}deleting-1`]: deletingTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(0);
         });
@@ -2564,7 +2608,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}non-matching-1`]: nonMatchingChild,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('matching-1');
@@ -2584,7 +2628,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('orphaned-1');
@@ -4701,74 +4745,33 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     });
 });
 
-describe('shouldSplitScanFailedTransactions', () => {
-    const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.EXPENSE, currency: 'USD'} as Report;
-    const scanFailedTransaction = generateTransaction({
-        amount: 0,
-        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
-    });
-    const scanFailedTransactionWithAmount = generateTransaction({
-        amount: -5000,
-        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
-    });
-    const validTransaction = generateTransaction({merchant: 'Valid merchant'});
+describe('isTransactionSubmittable', () => {
+    it('returns true for a transaction that is on hold', () => {
+        const transaction = generateTransaction({comment: {hold: 'holdID'}});
 
-    it('returns true when a scan-failed expense can be moved out and another expense stays behind', () => {
-        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction, scanFailedTransaction], report)).toBe(true);
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
     });
 
-    it('returns false when every expense in the report is scan-failed', () => {
-        expect(TransactionUtils.shouldSplitScanFailedTransactions([scanFailedTransaction], report)).toBe(false);
-    });
+    it('returns true for a transaction that is not on hold', () => {
+        const transaction = generateTransaction();
 
-    it('returns false when the report has no scan-failed expense', () => {
-        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction], report)).toBe(false);
-    });
-
-    it('returns false for an empty report', () => {
-        expect(TransactionUtils.shouldSplitScanFailedTransactions([], report)).toBe(false);
-    });
-
-    it('returns false when the scan-failed expense has an amount, because the backend leaves it in the report', () => {
-        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction, scanFailedTransactionWithAmount], report)).toBe(false);
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
     });
 });
 
-describe('isScanFailedTransactionMovedOnPayment', () => {
-    const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.EXPENSE, currency: 'USD'} as Report;
-    const buildScanFailedTransaction = (values: Partial<Transaction>) =>
-        generateTransaction({
-            amount: 0,
-            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
-            ...values,
+describe('showHeldExpensesBlockModal', () => {
+    it('shows a confirm modal explaining that a report with only held expenses cannot be submitted', () => {
+        const showConfirmModal = jest.fn();
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters);
+
+        TransactionUtils.showHeldExpensesBlockModal(showConfirmModal, mockTranslate);
+
+        expect(showConfirmModal).toHaveBeenCalledWith({
+            title: mockTranslate('iou.error.unableToSubmitReport'),
+            prompt: mockTranslate('iou.error.allExpensesOnHoldDescription'),
+            confirmText: mockTranslate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
         });
-
-    it('returns true when both the merchant and the amount are unset', () => {
-        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({}), report)).toBe(true);
-    });
-
-    it('returns false when the expense has an amount', () => {
-        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({amount: -5000}), report)).toBe(false);
-    });
-
-    it('returns false when the expense has a modified amount', () => {
-        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({modifiedAmount: -5000}), report)).toBe(false);
-    });
-
-    it('returns false when the expense has a merchant', () => {
-        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({modifiedMerchant: 'Modified merchant'}), report)).toBe(false);
-    });
-
-    it('returns false when the scan did not fail', () => {
-        expect(
-            TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE, source: 'receipt.jpg'}}), report),
-        ).toBe(false);
     });
 });
 

@@ -228,6 +228,9 @@ type Account = {
     /** Whether the user's email domain is an internal Expensify domain (e.g. expensify.com) */
     isFromInternalDomain?: boolean;
 
+    /** Whether this account can start a supportal session */
+    canSupportLogin?: boolean;
+
     /** Whether or not the user uses expensify card */
     isUsingExpensifyCard?: boolean;
 
