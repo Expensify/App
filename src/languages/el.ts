@@ -949,6 +949,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Μόνο διαχειριστές',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal σε άλλο λογαριασμό',
+        emailLabel: 'Διεύθυνση email',
+        reasonLabel: 'Αιτία σύνδεσης για υποστήριξη',
+        reasonHint: 'Δεν βρέθηκαν πρόσφατα αιτήματα υποστήριξης για αυτόν τον λογαριασμό.',
+        login: 'Σύνδεση',
+    },
     sidebarScreen: {
         buttonFind: 'Βρείτε κάτι...',
         buttonMySettings: 'Οι ρυθμίσεις μου',

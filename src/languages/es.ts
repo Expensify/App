@@ -908,6 +908,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Solo administradores',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal en otra cuenta',
+        emailLabel: 'Dirección de correo electrónico',
+        reasonLabel: 'Motivo de inicio de sesión en soporte',
+        reasonHint: 'No se han encontrado tickets recientes para esta cuenta.',
+        login: 'Inicia sesión',
+    },
     sidebarScreen: {
         buttonFind: 'Encuentre algo...',
         buttonMySettings: 'Mi configuración',

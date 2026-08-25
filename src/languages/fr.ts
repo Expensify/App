@@ -934,6 +934,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Administrateurs uniquement',
         },
     },
+    supportalSwitcher: {
+        title: 'Portail d’assistance vers un autre compte',
+        emailLabel: 'Adresse e-mail',
+        reasonLabel: 'Raison de connexion à l’assistance',
+        reasonHint: 'Aucun ticket récent trouvé pour ce compte.',
+        login: 'Se connecter',
+    },
     sidebarScreen: {
         buttonFind: 'Trouver quelque chose...',
         buttonMySettings: 'Mes paramètres',

@@ -930,6 +930,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Alleen beheerders',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal naar een ander account',
+        emailLabel: 'E-mailadres',
+        reasonLabel: 'Reden voor ondersteuning-login',
+        reasonHint: 'Geen recente tickets gevonden voor dit account.',
+        login: 'Inloggen',
+    },
     sidebarScreen: {
         buttonFind: 'Zoek iets...',
         buttonMySettings: 'Mijn instellingen',
