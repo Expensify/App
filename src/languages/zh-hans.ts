@@ -903,6 +903,7 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '仅限管理员',
         },
     },
+    supportalSwitcher: {title: '切换 Supportal 到其他账户', emailLabel: '电子邮箱地址', reasonLabel: '支持登录原因', reasonHint: '未找到此账户的近期工单。', login: '登录'},
     sidebarScreen: {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
@@ -1460,8 +1461,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? '卡' : '银行账户';
             return isCurrentUser
-                ? `. 款项正在汇往您的${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这可能需要最多 10 个工作日。`
-                : `. 资金正在汇往 ${submitterLogin} 的 ${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这可能需要最多 10 个工作日。`;
+                ? `. 款项正在汇往您的${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这通常需要 4–5 个工作日。`
+                : `. 资金正在汇往 ${submitterLogin} 的 ${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这通常需要 4–5 个工作日。`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `使用直接存款（ACH）${creditBankAccount ? `至尾号为 ${creditBankAccount} 的银行账户。` : '. '}${expectedDate ? `预计将在 ${expectedDate} 前完成报销。` : '这通常需要 4–5 个工作日。'}`,
@@ -1540,6 +1541,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: '启用钱包',
         hold: '暂挂',
         sendToSomeone: '发送给某人',
+        submitToEmployer: '提交给我的雇主',
         unhold: '解除保留',
         holdExpense: () => ({
             one: '暂挂报销',
@@ -4394,6 +4396,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             workflows: '工作流程',
             workspace: '工作区',
             findWorkspace: '查找工作区',
+            active: '活跃',
+            archived: '已归档',
+            workspaceStatus: '工作区状态',
             findRoom: '查找房间',
             edit: '编辑工作区',
             enabled: '已启用',
@@ -6001,7 +6006,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     ctaText: '请求已发送',
                 },
                 bookOrManageYourTrip: {title: '差旅预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', ctaText: '管理差旅'},
-                settings: {autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'}},
+                settings: {
+                    autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'},
+                    codingSync: {title: '将编码同步到 Expensify Travel', subtitle: '将此工作区的类别、标签和报表字段推送到 Expensify Travel，以便出行人能在预订时填写。'},
+                },
                 travelInvoicing: {
                     travelBookingSection: {
                         title: '差旅预订',

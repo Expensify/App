@@ -930,6 +930,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Alleen beheerders',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal naar een ander account',
+        emailLabel: 'E-mailadres',
+        reasonLabel: 'Reden voor ondersteuning-login',
+        reasonHint: 'Geen recente tickets gevonden voor dit account.',
+        login: 'Inloggen',
+    },
     sidebarScreen: {
         buttonFind: 'Zoek iets...',
         buttonMySettings: 'Mijn instellingen',
@@ -1513,8 +1520,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'kaart' : 'bankrekening';
             return isCurrentUser
-                ? `. Het geld is onderweg naar je ${creditBankAccount ? `bankrekening eindigend op ${creditBankAccount}` : 'rekening'} (betaald via ${paymentMethod}). Dit kan tot 10 werkdagen duren.`
-                : `. Geld is onderweg naar de bankrekening van ${submitterLogin}${creditBankAccount ? ` eindigend op ${creditBankAccount}` : ''} (betaald via ${paymentMethod}). Dit kan tot 10 werkdagen duren.`;
+                ? `. Het geld is onderweg naar je ${creditBankAccount ? `bankrekening eindigend op ${creditBankAccount}` : 'rekening'} (betaald via ${paymentMethod}). Dit duurt meestal 4-5 werkdagen.`
+                : `. Geld is onderweg naar de bankrekening van ${submitterLogin}${creditBankAccount ? ` eindigend op ${creditBankAccount}` : ''} (betaald via ${paymentMethod}). Dit duurt meestal 4-5 werkdagen.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` met directe storting (ACH)${creditBankAccount ? ` naar de bankrekening die eindigt op ${creditBankAccount}.` : '. '}${expectedDate ? `De terugbetaling wordt naar verwachting voltooid op ${expectedDate}.` : 'Dit duurt meestal 4-5 werkdagen.'}`,
@@ -1594,6 +1601,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Portemonnee inschakelen',
         hold: 'Vasthouden',
         sendToSomeone: 'Naar iemand sturen',
+        submitToEmployer: 'Indienen bij mijn werkgever',
         unhold: 'Blokkering opheffen',
         holdExpense: () => ({
             one: 'Uitgave vasthouden',
@@ -4542,6 +4550,9 @@ ${amount} voor ${merchant} - ${date}`,
             workflows: 'Workflows',
             workspace: 'Werkruimte',
             findWorkspace: 'Werkruimte zoeken',
+            active: 'Actief',
+            archived: 'Gearchiveerd',
+            workspaceStatus: 'Werkruimtestatus',
             findRoom: 'Kamer zoeken',
             edit: 'Werkruimte bewerken',
             enabled: 'Ingeschakeld',
@@ -6210,6 +6221,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
                 settings: {
                     autoAddTripName: {title: 'Reisnamen aan uitgaven toevoegen', subtitle: 'Voeg automatisch reisnamen toe aan onkostomemo’s voor reizen die in Expensify zijn geboekt.'},
+                    codingSync: {
+                        title: 'Synchroniseer codering met Expensify Travel',
+                        subtitle: 'Push de categorieën, tags en rapportvelden van deze workspace naar Expensify Travel zodat reizigers ze bij het boeken invullen.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

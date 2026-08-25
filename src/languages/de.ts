@@ -931,6 +931,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Nur für Admins',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal in ein anderes Konto',
+        emailLabel: 'E-Mail-Adresse',
+        reasonLabel: 'Grund für Support-Login',
+        reasonHint: 'Für dieses Konto wurden keine aktuellen Tickets gefunden.',
+        login: 'Anmelden',
+    },
     sidebarScreen: {
         buttonFind: 'Etwas finden ...',
         buttonMySettings: 'Meine Einstellungen',
@@ -1517,8 +1524,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'Karte' : 'Bankkonto';
             return isCurrentUser
-                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`
-                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`;
+                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'} (bezahlt über ${paymentMethod}). Dies dauert in der Regel 4–5 Werktage.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt über ${paymentMethod}). Dies dauert in der Regel 4–5 Werktage.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` mit Direkteinzahlung (ACH)${creditBankAccount ? ` auf das Bankkonto mit der Endziffer ${creditBankAccount}.` : '. '}${expectedDate ? `Die Rückerstattung wird voraussichtlich bis zum ${expectedDate} abgeschlossen sein.` : 'Dies dauert in der Regel 4–5 Werktage.'}`,
@@ -1599,6 +1606,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Wallet aktivieren',
         hold: 'Warteschleife',
         sendToSomeone: 'An jemanden senden',
+        submitToEmployer: 'An meinen Arbeitgeber senden',
         unhold: 'Zurückhalten aufheben',
         holdExpense: () => ({
             one: 'Ausgabe zurückhalten',
@@ -4570,6 +4578,9 @@ ${amount} für ${merchant} – ${date}`,
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Arbeitsbereich finden',
+            active: 'Aktiv',
+            archived: 'Archiviert',
+            workspaceStatus: 'Workspace-Status',
             findRoom: 'Raum finden',
             edit: 'Arbeitsbereich bearbeiten',
             enabled: 'Aktiviert',
@@ -6251,6 +6262,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 bookOrManageYourTrip: {title: 'Reisebuchung', subtitle: 'Glückwunsch! Du kannst in diesem Arbeitsbereich jetzt Reisen buchen und verwalten.', ctaText: 'Reisen verwalten'},
                 settings: {
                     autoAddTripName: {title: 'Reisenamen zu Ausgaben hinzufügen', subtitle: 'Reisenamen für in Expensify gebuchte Reisen automatisch zu Spesenbeschreibungen hinzufügen.'},
+                    codingSync: {
+                        title: 'Codierung mit Expensify Travel synchronisieren',
+                        subtitle: 'Kategorien, Tags und Berichtsfelder dieses Arbeitsbereichs an Expensify Travel übertragen, damit Reisende sie beim Buchen beantworten.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

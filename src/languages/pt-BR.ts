@@ -930,6 +930,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Apenas admins',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal para outra conta',
+        emailLabel: 'Endereço de email',
+        reasonLabel: 'Motivo de login no suporte',
+        reasonHint: 'Nenhum chamado recente encontrado para esta conta.',
+        login: 'Entrar',
+    },
     sidebarScreen: {
         buttonFind: 'Encontre algo...',
         buttonMySettings: 'Minhas configurações',
@@ -1512,8 +1519,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'cartão' : 'conta bancária';
             return isCurrentUser
-                ? `. O dinheiro está a caminho da sua ${creditBankAccount ? `conta bancária terminada em ${creditBankAccount}` : 'conta'} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`
-                : `. O dinheiro está a caminho da conta bancária de ${submitterLogin}${creditBankAccount ? ` terminada em ${creditBankAccount}` : ''} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`;
+                ? `. O dinheiro está a caminho da sua ${creditBankAccount ? `conta bancária terminada em ${creditBankAccount}` : 'conta'} (pago via ${paymentMethod}). Geralmente isso leva de 4 a 5 dias úteis.`
+                : `. O dinheiro está a caminho da conta bancária de ${submitterLogin}${creditBankAccount ? ` terminada em ${creditBankAccount}` : ''} (pago via ${paymentMethod}). Geralmente isso leva de 4 a 5 dias úteis.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` com depósito direto (ACH)${creditBankAccount ? ` para a conta bancária terminada em ${creditBankAccount}.` : '. '}${expectedDate ? `O reembolso está previsto para ser concluído até ${expectedDate}.` : 'Geralmente isso leva de 4 a 5 dias úteis.'}`,
@@ -1593,6 +1600,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Ativar carteira',
         hold: 'Reter',
         sendToSomeone: 'Enviar para alguém',
+        submitToEmployer: 'Enviar para meu empregador',
         unhold: 'Remover bloqueio',
         holdExpense: () => ({
             one: 'Reter despesa',
@@ -4536,6 +4544,9 @@ ${amount} para ${merchant} - ${date}`,
             workflows: 'Fluxos de trabalho',
             workspace: 'Espaço de trabalho',
             findWorkspace: 'Encontrar espaço de trabalho',
+            active: 'Ativo',
+            archived: 'Arquivado',
+            workspaceStatus: 'Status do espaço de trabalho',
             findRoom: 'Encontrar sala',
             edit: 'Editar espaço de trabalho',
             enabled: 'Ativado',
@@ -6210,6 +6221,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     autoAddTripName: {
                         title: 'Adicionar nomes de viagem às despesas',
                         subtitle: 'Adicione automaticamente os nomes das viagens às descrições das despesas para viagens reservadas no Expensify.',
+                    },
+                    codingSync: {
+                        title: 'Sincronizar codificação com o Expensify Travel',
+                        subtitle: 'Envie as categorias, tags e campos de relatório deste workspace para o Expensify Travel para que os viajantes os respondam no momento da reserva.',
                     },
                 },
                 travelInvoicing: {

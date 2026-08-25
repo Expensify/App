@@ -2791,6 +2791,9 @@ type CreateAndOpenSearchTransactionThreadParams = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+
     /** The personal details of the participants */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
@@ -2828,6 +2831,7 @@ function createAndOpenSearchTransactionThread({
     transactionPreviewData,
     shouldNavigate = true,
     getCurrencyDecimals,
+    conciergeChat,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
@@ -2857,6 +2861,7 @@ function createAndOpenSearchTransactionThread({
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
         transactionThreadReport = createTransactionThreadReport({
             introSelected,
+            conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             betas,
@@ -3298,7 +3303,7 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
     const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
         return specificGroupQueryJSON;
@@ -3426,7 +3431,7 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: end},
         ],
     });
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
     const transactionsQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     return {transactionsQueryJSON, start, end};
 }
@@ -6957,6 +6962,7 @@ export {
     getSections,
     getSuggestedSearchesVisibility,
     getSortedSections,
+    getSortedTransactionData,
     getViolationsFromSearchData,
     getTransactionsByReportID,
     isTransactionMatchWithGroupItem,

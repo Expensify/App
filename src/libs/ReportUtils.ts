@@ -5493,7 +5493,7 @@ function canEditFieldOfMoneyRequest({
  * - It's an expense where conditions for modifications are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
-function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>): boolean {
+function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>, reportActions?: OnyxEntry<ReportActions>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
     // Only an attachment-only comment has nothing to edit while it uploads; text keeps it editable throughout.
@@ -5518,7 +5518,7 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     return !!(
         reportAction?.actorAccountID === deprecatedCurrentUserAccountID &&
         isCommentOrIOU &&
-        (!isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction, linkedTransaction)) &&
+        (!isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction, linkedTransaction, false, undefined, undefined, reportActions)) &&
         !isOptimisticAttachment &&
         !isDeletedAction(reportAction) &&
         !isCreatedTaskReportAction(reportAction) &&
@@ -7201,11 +7201,15 @@ function computeOptimisticReportNameWithMetadata(
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy) ?? {});
+    const submitterPersonalDetails = report.ownerAccountID ? (allPersonalDetails?.[report.ownerAccountID] ?? undefined) : undefined;
+    const managerPersonalDetails = report.managerID ? (allPersonalDetails?.[report.managerID] ?? undefined) : undefined;
     const formulaContext: FormulaContext = {
         report,
         policy,
         getCurrencyDecimals,
         allTransactions: reportTransactions,
+        submitterPersonalDetails,
+        managerPersonalDetails,
     };
 
     // Runtime require breaks the value-level circular; the `typeof` casts keep drift a compile error.

@@ -3191,7 +3191,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether Expensify automatically copies newly published government distance rates onto this policy */
         shouldAutoUpdateGovernmentDistanceRates?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Names of policy connection services */

@@ -934,6 +934,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Administrateurs uniquement',
         },
     },
+    supportalSwitcher: {
+        title: 'Portail d’assistance vers un autre compte',
+        emailLabel: 'Adresse e-mail',
+        reasonLabel: 'Raison de connexion à l’assistance',
+        reasonHint: 'Aucun ticket récent trouvé pour ce compte.',
+        login: 'Se connecter',
+    },
     sidebarScreen: {
         buttonFind: 'Trouver quelque chose...',
         buttonMySettings: 'Mes paramètres',
@@ -1520,8 +1527,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'carte' : 'compte bancaire';
             return isCurrentUser
-                ? `. L’argent est en route vers votre ${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'} (payé via ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`
-                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''} (payé via ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrés.`;
+                ? `. L’argent est en route vers votre ${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'} (payé via ${paymentMethod}). Cela prend généralement 4 à 5 jours ouvrables.`
+                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''} (payé via ${paymentMethod}). Cela prend généralement 4 à 5 jours ouvrables.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` par dépôt direct (ACH)${creditBankAccount ? ` vers le compte bancaire se terminant par ${creditBankAccount}.` : '. '}${expectedDate ? `Le remboursement devrait être terminé d'ici le ${expectedDate}.` : 'Cela prend généralement 4 à 5 jours ouvrables.'}`,
@@ -1605,6 +1612,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Activer le portefeuille',
         hold: 'En attente',
         sendToSomeone: 'Envoyer à quelqu’un',
+        submitToEmployer: 'Soumettre à mon employeur',
         unhold: 'Supprimer la mise en attente',
         holdExpense: () => ({
             one: 'Mettre la dépense en attente',
@@ -4578,6 +4586,9 @@ ${amount} pour ${merchant} - ${date}`,
             workflows: 'Workflows',
             workspace: 'Espace de travail',
             findWorkspace: 'Trouver un espace de travail',
+            active: 'Actif',
+            archived: 'Archivé',
+            workspaceStatus: "Statut de l'espace de travail",
             findRoom: 'Trouver un salon',
             edit: 'Modifier l’espace de travail',
             enabled: 'Activé',
@@ -6266,6 +6277,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     autoAddTripName: {
                         title: 'Ajouter des noms de voyage aux dépenses',
                         subtitle: 'Ajouter automatiquement les noms de voyage aux descriptions des dépenses pour les voyages réservés dans Expensify.',
+                    },
+                    codingSync: {
+                        title: 'Synchroniser le codage avec Expensify Travel',
+                        subtitle:
+                            'Envoyez les catégories, tags et champs de note de frais de cet espace de travail vers Expensify Travel pour que les voyageurs y répondent au moment de la réservation.',
                     },
                 },
                 travelInvoicing: {

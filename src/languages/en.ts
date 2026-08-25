@@ -970,6 +970,13 @@ const translations = {
             admins: 'Admins only',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+        reasonLabel: 'Support login reason',
+        reasonHint: 'No recent tickets found for this account.',
+        login: 'Log in',
+    },
     sidebarScreen: {
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
@@ -1588,8 +1595,8 @@ const translations = {
         }) => {
             const paymentMethod = isCard ? 'card' : 'bank account';
             return isCurrentUser
-                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`
-                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`;
+                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This generally takes 4-5 business days.`
+                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This generally takes 4-5 business days.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` with direct deposit (ACH)${creditBankAccount ? ` to the bank account ending in ${creditBankAccount}. ` : '. '}${expectedDate ? `The reimbursement is estimated to complete by ${expectedDate}.` : 'This generally takes 4-5 business days.'}`,
@@ -1668,6 +1675,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         sendToSomeone: 'Send to someone',
+        submitToEmployer: 'Submit to my employer',
         unhold: 'Remove hold',
         holdExpense: () => ({
             one: 'Hold expense',
@@ -4668,6 +4676,9 @@ const translations = {
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
+            active: 'Active',
+            archived: 'Archived',
+            workspaceStatus: 'Workspace status',
             findDomain: 'Find domain',
             findRoom: 'Find room',
             edit: 'Edit workspace',
@@ -6323,6 +6334,10 @@ const translations = {
                     autoAddTripName: {
                         title: 'Add trip names to expenses',
                         subtitle: 'Automatically add trip names to expense descriptions for travel booked in Expensify.',
+                    },
+                    codingSync: {
+                        title: 'Sync coding to Expensify Travel',
+                        subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
                     },
                 },
                 travelInvoicing: {
