@@ -8269,6 +8269,8 @@ ${reportName}`,
                     return `${enabled ? '已启用' : '已禁用'} 条规则`;
                 case 'tax tracking':
                     return `${enabled ? '已启用' : '已禁用'} 税务跟踪`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? '开启' : '关闭'}了距离费率的 GPS 或地图录入要求`;
                 default:
                     return `${enabled ? '已启用' : '已禁用'} ${featureName}`;
             }

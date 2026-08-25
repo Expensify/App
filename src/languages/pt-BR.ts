@@ -8571,6 +8571,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     return `Regras de ${enabled ? 'ativado' : 'desativado'}`;
                 case 'tax tracking':
                     return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'ativado' : 'desativado'} a exigência de entrada por GPS ou mapa para as taxas de distância`;
                 default:
                     return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
             }

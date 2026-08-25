@@ -8594,6 +8594,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     return `${enabled ? 'włączone' : 'wyłączone'} reguły`;
                 case 'tax tracking':
                     return `Śledzenie podatku ${enabled ? 'włączone' : 'wyłączone'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'włączono' : 'wyłączono'} wymóg wpisu z GPS lub mapy dla stawek za dystans`;
                 default:
                     return `${enabled ? 'włączone' : 'wyłączone'} ${featureName}`;
             }

@@ -8483,6 +8483,8 @@ ${reportName}`,
                     return `${enabled ? '有効' : '無効'} 件のルール`;
                 case 'tax tracking':
                     return `${enabled ? '有効' : '無効'} 税金の追跡`;
+                case 'require GPS or map entry for distance rates':
+                    return `距離レートで GPS またはマップでの入力の必須設定を${enabled ? 'オンにしました' : 'オフにしました'}`;
                 default:
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }

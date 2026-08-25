@@ -8694,6 +8694,8 @@ ${reportName}`,
                     return `${enabled ? 'habilitado' : 'desactivado'} reglas`;
                 case 'tax tracking':
                     return `seguimiento de impuestos ${enabled ? 'habilitado' : 'desactivado'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'activado' : 'desactivado'} el requisito de entrada por GPS o mapa para las tasas de distancia`;
                 default:
                     return `${enabled ? 'habilitado' : 'desactivado'} ${featureName}`;
             }

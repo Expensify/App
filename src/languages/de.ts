@@ -8633,6 +8633,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     return `${enabled ? 'aktiviert' : 'deaktiviert'}-Regeln`;
                 case 'tax tracking':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} die Pflicht zur GPS- oder Karteneingabe für Entfernungssätze`;
                 default:
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} ${featureName}`;
             }

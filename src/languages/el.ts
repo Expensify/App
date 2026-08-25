@@ -9045,6 +9045,8 @@ ${reportName}`,
                     return `κανόνες ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
                 case 'tax tracking':
                     return `παρακολούθηση φόρου ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'ενεργοποιήθηκε' : 'απενεργοποιήθηκε'} η απαίτηση καταχώρισης μέσω GPS ή χάρτη για τους συντελεστές απόστασης`;
                 default:
                     return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} ${featureName}`;
             }

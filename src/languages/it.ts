@@ -8596,6 +8596,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     return `${enabled ? 'abilitato' : 'disattivato'} regole`;
                 case 'tax tracking':
                     return `monitoraggio imposte ${enabled ? 'abilitato' : 'disattivato'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'attivato' : 'disattivato'} l’obbligo di inserimento tramite GPS o mappa per le tariffe distanza`;
                 default:
                     return `${enabled ? 'abilitato' : 'disattivato'} ${featureName}`;
             }
