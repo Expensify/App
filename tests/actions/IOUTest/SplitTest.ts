@@ -10304,12 +10304,12 @@ describe('startSplitBill delegateAccountID forwarding', () => {
 });
 
 /**
- * Minimal fixture for the split-expenses save flow: one expense report holding one transaction,
- * with a draft that splits it in two.
+ * Fixture for the save tests below: an expense report with a single transaction, plus a draft that splits that
+ * transaction into two.
  *
- * `withExistingSplitChildren` additionally seeds those two splits in Onyx, which is what makes a
- * one-item `splitExpenses` read as a reverse split (collapsing an existing split back to one
- * expense) rather than as a fresh one-way split.
+ * `withExistingSplitChildren` also seeds those two split transactions in Onyx. That is what makes a one-item
+ * `splitExpenses` mean "collapse an existing split back into one expense" (a reverse split) rather than "split
+ * this expense into one".
  */
 const buildSplitFlowParams = async ({withExistingSplitChildren = false} = {}) => {
     const expenseReport: Report = {
@@ -10468,14 +10468,17 @@ describe('split save deferred write', () => {
     it('writes immediately when the caller is not the split-expenses flow', async () => {
         // Given a direct updateSplitTransactions call, as useDeleteTransactions makes
         const {params} = await buildSplitFlowParams();
+        const writeSpy = jest.spyOn(APIlib, 'write');
 
         // When it runs outside the split-expenses flow
         updateSplitTransactions({...params, isFromSplitExpensesFlow: false});
         await waitForBatchedUpdates();
 
-        // Then there is no navigation to wait on, so neither the write nor the barrier it would need is deferred
+        // Then the write still happens, it is just not deferred behind a barrier
+        expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything());
         expect(writeWhenReady).not.toHaveBeenCalled();
         expect(createTransitionBarrier).not.toHaveBeenCalled();
+        writeSpy.mockRestore();
     });
 });
 

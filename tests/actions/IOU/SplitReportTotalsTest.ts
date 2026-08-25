@@ -69,8 +69,6 @@ jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     deletePendingNewTransactionIDs: jest.fn(),
     isOneToTwoTransactionTransition: jest.fn(() => false),
 }));
-// The split-expenses save flow defers its API.write() behind a screen transition that never starts in a
-// test. See src/libs/API/__mocks__/writeWhenReady.ts for why this suite would otherwise read undefined.
 jest.mock('@libs/API/writeWhenReady');
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
