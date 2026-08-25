@@ -33,7 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -45,7 +45,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {onboardingMessages} = useOnboardingMessages();
+    const {onboardingMessages, joinWorkspaceMessages} = useOnboardingMessages();
     const [showAll, setShowAll] = useState(false);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -76,6 +76,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER;
+    const isJoiningCompanyWorkspace = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
 
@@ -165,6 +167,32 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {
             autoCreateSubmitWorkspace(onboardingPersonalDetails?.firstName ?? '', onboardingPersonalDetails?.lastName ?? '');
+            return;
+        }
+
+        if (isJoiningCompanyWorkspace) {
+            // Opened from a Concierge task after onboarding finished: there is no onboarding step to continue into,
+            // so just close instead of completing onboarding again.
+            if (hasCompletedGuidedSetupFlow) {
+                Navigation.goBack();
+                return;
+            }
+
+            completeOnboarding({
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: joinWorkspaceMessages.joinWorkspace,
+                firstName: onboardingPersonalDetails?.firstName ?? '',
+                lastName: onboardingPersonalDetails?.lastName ?? '',
+                companySize: onboardingCompanySize,
+                introSelected,
+                isSelfTourViewed,
+                conciergeChat,
+                companyDomain: session?.email?.split('@').at(1) ?? '',
+                workEmail: session?.email ?? '',
+            });
+            setOnboardingAdminsChatReportID();
+
+            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), conciergeReportID, reportNameValuePairs, undefined, undefined, false);
             return;
         }
 
