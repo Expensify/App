@@ -56,7 +56,8 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                         // After the user adds their work email, the back button should take them to the feed selector to pick a feed again, not back to this now-stale prompt page.
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.SETTINGS_CONTACT_METHODS.getRoute(
+                                createDynamicRoute(
+                                    DYNAMIC_ROUTES.CONTACT_METHODS.path,
                                     createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)),
                                 ),
                             )

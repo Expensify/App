@@ -9,6 +9,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +37,8 @@ function DynamicContactMethodsPage() {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    // Strip the `contact-methods` suffix off the current URL so the back button returns to wherever this list was launched from (e.g. the card-feed selector), not a hardcoded default.
+    const backTo = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHODS.path);
 
     const options = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [translate, formatPhoneNumber, loginList, session?.email]);
 
@@ -63,7 +66,7 @@ function DynamicContactMethodsPage() {
         >
             <HeaderWithBackButton
                 title={translate('contacts.contactMethods')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
