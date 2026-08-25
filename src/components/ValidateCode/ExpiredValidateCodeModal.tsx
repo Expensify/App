@@ -36,7 +36,7 @@ function ExpiredValidateCodeModal() {
                         src={illustrations.ToddBehindCloud}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
+                <Text style={[styles.textHeadline, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
                 <View style={[styles.mt2, styles.mb2]}>
                     {credentials?.login ? (
                         <Text style={styles.textAlignCenter}>
