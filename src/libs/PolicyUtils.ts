@@ -204,7 +204,7 @@ function isControlPolicyOnlyRole(role: string | undefined): boolean {
 
 function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
     const role = (login ? policy?.employeeList?.[login]?.role : undefined) ?? getPolicyRole(policy, login);
-    // Auth demotes control-only roles to user when a workspace is downgraded from Control to Collect.
+    // The API demotes control-only roles to user when a workspace is downgraded from Control to Collect.
     // Onyx can apply policy.type before employeeList.role, so keep member access using the user bundle until the stale role is updated.
     const effectiveRole = isControlPolicyOnlyRole(role) && (!policy || !isControlPolicy(policy)) ? CONST.POLICY.ROLE.USER : role;
 
