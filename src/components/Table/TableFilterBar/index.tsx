@@ -72,7 +72,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
                 </View>
 
                 {actionColumnVisible && (
-                    <View style={[styles.flexRow, styles.gap1]}>
+                    <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
                         <TableFilterTrigger />
                         <TableDisplaySettingsTrigger />
                         {children}
