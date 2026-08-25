@@ -13,6 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
@@ -92,6 +94,11 @@ function MultiSelect<T extends string>({
         leftElement: item.leftElement,
     }));
 
+    // Rows that carry a subtitle (alternateText) render on two lines, so the popover height must be estimated from the
+    // taller row height instead of the single-line compact default. Otherwise the popover is sized too short and short
+    // lists don't auto-expand (see https://github.com/Expensify/App/issues/99401).
+    const hasAlternateText = listData.some((item) => !!item.alternateText);
+
     const headerMessage = isSearchable && listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
     const updateSelectedItems = (item: ListItem) => {
@@ -125,6 +132,7 @@ function MultiSelect<T extends string>({
     return (
         <ListFilterView
             itemCount={listData.length}
+            itemHeight={hasAlternateText ? variables.optionRowHeight : undefined}
             isSearchable={isSearchable}
             isNegatable={isNegatable}
         >
