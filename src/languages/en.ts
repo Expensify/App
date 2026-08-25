@@ -3584,6 +3584,32 @@ const translations = {
                     And you're done!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Add your work email',
+                description: Str.dedent(`
+                    1. Open *Add work email*.
+                    2. Enter your company email address.
+                    3. Enter the code we email you.
+                    4. Pick a workspace to join, or click *Ask to join* to send a request to the workspace owner.
+                `),
+            },
+            validateEmailTask: {
+                title: 'Validate your email',
+                description: ({verifyAccountLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Open [Validate your account](${verifyAccountLink}).
+                        2. Enter the code we sent to ${workEmail}.
+                        3. Pick a workspace to join, or click *Ask to join* to send a request to the workspace owner.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: "Join your company's workspace",
+                description: Str.dedent(`
+                    1. Open *Join a workspace*.
+                    2. Find your team in the list. Each one shows its owner and how many people are on it, largest first. Click *Show more* if you don't see yours.
+                    3. Click *Join now*, or *Ask to join* if it needs admin approval.
+                `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive'),
