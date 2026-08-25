@@ -406,36 +406,29 @@ function useParticipantSubmission({
             return;
         }
 
-        // Both "Share with accountant" and "Send to someone"/"Submit it to someone" replace the picker in the RHP stack when
-        // moving a tracked expense, so the confirmation page needs an explicit backTo to return to it. Without it, the back
-        // button falls through to navigateToStartMoneyRequestStep, which for these actions dismisses the whole RHP to the report
-        // instead of returning to the picker. CATEGORIZE is excluded because it routes through the category step, which carries
-        // its own back path. See #99145.
+        // Moving a tracked expense via "Send to someone"/"Submit it to someone" (SUBMIT) or "Share with accountant" (SHARE)
+        // replaces the picker in the RHP stack, so the confirmation page needs an explicit backTo to return to it. Without it,
+        // back falls through to navigateToStartMoneyRequestStep, which dismisses the whole RHP to the report. CATEGORIZE is
+        // excluded because it routes through the category step, which carries its own back path. See #99145.
         const shouldReturnToParticipantPicker = isMovingTransactionFromTrackExpense && !isCategorizing;
 
-        // "Submit it to someone"/"Send to someone" (SUBMIT) can open the picker anchored on the tracked-expense's source
-        // report (e.g. the transaction thread from the expense header's "Submit to a friend"). goToNextStep reassigns the
-        // draft transaction OFF that report just above, so snapshotting Navigation.getActiveRoute() here would capture a picker
-        // URL whose reportID is no longer writable. Pressing back then lands on the NotFound "Not here" page (#99371). Instead
-        // reconstruct the picker route with its writable-report guard (the reportID param) pointed at the persistent self DM,
-        // which stays writable after the move (this mirrors the "Send to someone" flow that already anchors the picker on the
-        // self DM). The central-pane base path keeps the report the user was viewing (reportID) so pressing back does not swap
-        // the visible report out from under them, and isWorkspacesOnly is carried over so the "Submit to my employer" picker
-        // stays restricted to workspaces on back (an ordinary positive transaction cannot re-infer that restriction). "Share
-        // with accountant" (SHARE) keeps using the active route because it routes back through the accountant step rather than
-        // the participant picker.
+        // For SUBMIT we reconstruct the backTo rather than snapshotting Navigation.getActiveRoute(): pinning the picker's
+        // writable-report guard (its reportID param) to the persistent self DM keeps back writable after goToNextStep moves the
+        // draft off the source report, and carrying isWorkspacesOnly keeps the "Submit to my employer" picker workspaces-only on
+        // back (a positive transaction cannot re-infer that). The base path stays the report the user was viewing (reportID) so
+        // back does not swap the visible report. If the self DM is unresolved (cold start) we fall back to the active route. See
+        // #99371. SHARE always uses the active route because it routes back through the accountant step, not the picker.
         let participantPickerBackTo: string | undefined;
         if (shouldReturnToParticipantPicker) {
-            if (isShareAction) {
+            if (isShareAction || !currentSelfDMReportID) {
                 participantPickerBackTo = Navigation.getActiveRoute();
             } else {
-                const participantPickerReportID = dataRef.current.selfDMReportID ?? reportID;
                 participantPickerBackTo = createDynamicRoute(
                     DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
                         action,
                         iouType: CONST.IOU.TYPE.SUBMIT,
                         transactionID: initialTransactionID,
-                        reportID: participantPickerReportID,
+                        reportID: currentSelfDMReportID,
                         isWorkspacesOnly,
                     }),
                     ROUTES.REPORT_WITH_ID.getRoute(reportID),
