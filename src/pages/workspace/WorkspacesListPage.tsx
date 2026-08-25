@@ -215,7 +215,7 @@ function WorkspacesListPage() {
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={CONST.BUTTON_SIZE.SMALL}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             accessibilityLabel={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)))}

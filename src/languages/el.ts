@@ -341,6 +341,7 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: 'Νόμισμα',
         groupCurrency: 'Νόμισμα ομάδας',
         rate: 'Βαθμός',
+        room: 'Δωμάτιο',
         emptyLHN: {
             title: 'Τέλεια! Τα έχετε δει όλα.',
             subtitleText1: 'Βρείτε μια συνομιλία χρησιμοποιώντας το',

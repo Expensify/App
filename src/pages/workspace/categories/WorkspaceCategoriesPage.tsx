@@ -582,12 +582,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const addCategoryButton = shouldShowAddCategory ? (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={CONST.BUTTON_SIZE.SMALL}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             onPress={navigateToCreateCategoryPage}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ADD_BUTTON}
         >
             <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('workspace.categories.addCategory')}</Button.Text>
+            <Button.Text>{translate('common.category')}</Button.Text>
         </Button>
     ) : undefined;
 

@@ -110,11 +110,11 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const createRoomButton = (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={CONST.BUTTON_SIZE.SMALL}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
         >
             <Button.Icon src={headerIcons.Plus} />
-            <Button.Text>{translate('common.create')}</Button.Text>
+            <Button.Text>{translate('common.room')}</Button.Text>
         </Button>
     );
 

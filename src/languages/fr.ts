@@ -338,6 +338,7 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: 'Devise',
         groupCurrency: 'Devise du groupe',
         rate: 'Taux',
+        room: 'Salle',
         emptyLHN: {
             title: 'Youpi ! Tout est à jour.',
             subtitleText1: 'Recherchez une discussion à l’aide de la',

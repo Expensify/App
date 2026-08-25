@@ -338,6 +338,7 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: 'Valuta',
         groupCurrency: 'Groepsvaluta',
         rate: 'Beoordeling',
+        room: 'Ruimte',
         emptyLHN: {
             title: 'Woohoo! Helemaal bij.',
             subtitleText1: 'Zoek een chat met de',

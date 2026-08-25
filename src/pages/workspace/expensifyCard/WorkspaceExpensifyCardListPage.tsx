@@ -251,7 +251,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     options={secondaryActions}
                     isSplitButton={false}
                     shouldUseOptionIcon
-                    wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
+                    wrapperStyle={shouldDisplayButtonsInSeparateLine || (isCardListEmpty && !isInLandscapeMode) ? styles.flexGrow1 : styles.flexGrow0}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
                 />
             </View>
@@ -261,7 +261,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const issueCardButton = !isCardListEmpty ? (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={CONST.BUTTON_SIZE.SMALL}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             onPress={handleIssueCardPress}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
             innerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}

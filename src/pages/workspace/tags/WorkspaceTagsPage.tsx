@@ -832,12 +832,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const addTagButton = hasPrimaryActions ? (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={CONST.BUTTON_SIZE.SMALL}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             onPress={navigateToCreateTagPage}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
         >
             <Button.Icon src={expensifyIcons.Plus} />
-            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
+            <Button.Text>{translate('common.tag')}</Button.Text>
         </Button>
     ) : undefined;
 

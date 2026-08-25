@@ -23,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
@@ -58,6 +59,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => {
         setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
@@ -281,7 +283,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     },
                 ]}
                 isSplitButton={false}
-                wrapperStyle={styles.flexGrow0}
+                wrapperStyle={shouldDisplayButtonsInSeparateLine ? styles.flexGrow1 : styles.flexGrow0}
             />
         </View>
     );
@@ -289,7 +291,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const addMemberButton = (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={CONST.BUTTON_SIZE.SMALL}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
         >
             <Button.Icon src={icons.Plus} />

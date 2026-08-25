@@ -340,7 +340,7 @@ function WorkspaceTaxesPage({
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN}
                     options={secondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
+                    wrapperStyle={shouldDisplayButtonsInSeparateLine || hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
                 />
             </View>
         );
@@ -352,7 +352,7 @@ function WorkspaceTaxesPage({
         canWriteTaxes && !hasAccountingConnections ? (
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={CONST.BUTTON_SIZE.SMALL}
+                size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ADD_BUTTON}
             >

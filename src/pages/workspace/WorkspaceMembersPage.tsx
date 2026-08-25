@@ -771,7 +771,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_DROPDOWN}
                     options={secondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
+                    wrapperStyle={shouldDisplayButtonsInSeparateLine ? styles.flexGrow1 : styles.flexGrow0}
                 />
             </View>
         );
@@ -780,12 +780,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const inviteMemberButton = canWriteMembers ? (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={CONST.BUTTON_SIZE.SMALL}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             onPress={inviteUser}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
         >
             <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('workspace.invite.member')}</Button.Text>
+            <Button.Text>{translate('common.member')}</Button.Text>
         </Button>
     ) : undefined;
 
