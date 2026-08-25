@@ -1,8 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {getAccountDetailsFieldsMap, getCorpayFieldByLabelKeyword, getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+import {getAccountDetailsFieldsMap, getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
-import CONST from '@src/CONST';
 import type {CorpayFormField} from '@src/types/onyx/CorpayFields';
 
 const translate: LocaleContextProps['translate'] = (path, ...parameters) => {
@@ -62,16 +61,6 @@ describe('getAccountDetailsFieldsMap', () => {
         const result = getAccountDetailsFieldsMap(fields, true);
 
         expect(result.accountNumber.isRequired).toBe(false);
-    });
-});
-
-describe('getCorpayFieldByLabelKeyword', () => {
-    it('finds the SWIFT field by label text from Corpay', () => {
-        const swiftBicCode = createCorpayField('swiftBicCode', false, 'Swift Code');
-        const accountNumber = createCorpayField('accountNumber', true, 'Account Number');
-
-        expect(getCorpayFieldByLabelKeyword({swiftBicCode, accountNumber}, CONST.CORPAY_FIELDS.SWIFT_LABEL_KEYWORD)).toBe(swiftBicCode);
-        expect(getCorpayFieldByLabelKeyword({accountNumber}, CONST.CORPAY_FIELDS.SWIFT_LABEL_KEYWORD)).toBeUndefined();
     });
 });
 

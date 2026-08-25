@@ -25,7 +25,6 @@ import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Account, BankAccountList, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
-import type {CorpayFormField} from '@src/types/onyx/CorpayFields';
 
 import createMock from '../utils/createMock';
 
@@ -763,26 +762,13 @@ describe('BankAccountUtils', () => {
     describe('hasValidAccountDetailsInternationalFields', () => {
         const iban = 'AT483200000012345864';
         const swiftBicCode = 'XXXXATXX';
-        const corpaySwiftField = {
-            id: 'swiftBicCode',
-            isRequired: false,
-            isRequiredInValueSet: false,
-            label: 'Swift Code',
-            errorMessage: '',
-            regEx: '',
-            validationRules: [{regEx: '^.{0,12}$', errorMessage: 'Swift must be less than 12 characters'}],
-        } as CorpayFormField;
 
-        it('is true only when accountNumber is an IBAN and swiftBicCode is a SWIFT/BIC', () => {
+        it('is true only when accountNumber is an IBAN and swiftBicCode is set', () => {
             expect(hasValidAccountDetailsInternationalFields(iban, swiftBicCode)).toBe(true);
+            expect(hasValidAccountDetailsInternationalFields(iban, 'XXXX')).toBe(true);
             expect(hasValidAccountDetailsInternationalFields('123456789', swiftBicCode)).toBe(false);
-            expect(hasValidAccountDetailsInternationalFields(iban, 'XXXX')).toBe(false);
+            expect(hasValidAccountDetailsInternationalFields(iban, undefined)).toBe(false);
             expect(hasValidAccountDetailsInternationalFields(undefined, undefined)).toBe(false);
-        });
-
-        it('accepts a SWIFT value that matches Corpay account-details rules', () => {
-            expect(hasValidAccountDetailsInternationalFields(iban, 'XXXX', corpaySwiftField)).toBe(true);
-            expect(hasValidAccountDetailsInternationalFields(iban, '1234567890123', corpaySwiftField)).toBe(false);
         });
     });
 
@@ -806,15 +792,6 @@ describe('BankAccountUtils', () => {
     describe('getDisabledInternationalBankAccountFields', () => {
         const iban = 'AT483200000012345864';
         const swiftBicCode = 'XXXXATXX';
-        const corpaySwiftField = {
-            id: 'swiftBicCode',
-            isRequired: false,
-            isRequiredInValueSet: false,
-            label: 'Swift Code',
-            errorMessage: '',
-            regEx: '',
-            validationRules: [{regEx: '^.{0,12}$', errorMessage: 'Swift must be less than 12 characters'}],
-        } as CorpayFormField;
 
         it('disables IBAN when the account number is already a valid IBAN', () => {
             expect(getDisabledInternationalBankAccountFields(iban, undefined).isIBANDisabled).toBe(true);
@@ -824,34 +801,22 @@ describe('BankAccountUtils', () => {
             expect(getDisabledInternationalBankAccountFields('123456789', undefined).isIBANDisabled).toBe(false);
         });
 
-        it('disables SWIFT/BIC when swiftBicCode is already a valid SWIFT/BIC', () => {
+        it('disables SWIFT/BIC when swiftBicCode is already set', () => {
             expect(getDisabledInternationalBankAccountFields(undefined, swiftBicCode).isSwiftCodeDisabled).toBe(true);
+            expect(getDisabledInternationalBankAccountFields(undefined, 'XXXX').isSwiftCodeDisabled).toBe(true);
         });
 
         it('does not disable SWIFT/BIC when swiftBicCode is empty', () => {
             expect(getDisabledInternationalBankAccountFields(iban, undefined).isSwiftCodeDisabled).toBe(false);
         });
-
-        it('disables SWIFT when the value matches Corpay account-details rules', () => {
-            expect(getDisabledInternationalBankAccountFields(undefined, 'XXXX', corpaySwiftField).isSwiftCodeDisabled).toBe(true);
-            expect(getDisabledInternationalBankAccountFields(undefined, '1234567890123', corpaySwiftField).isSwiftCodeDisabled).toBe(false);
-        });
     });
 
     describe('getInternationalBankAccountDetailsValues', () => {
         const iban = 'AT483200000012345864';
-        const corpaySwiftField = {
-            id: 'swiftBicCode',
-            isRequired: false,
-            isRequiredInValueSet: false,
-            label: 'Swift Code',
-            errorMessage: '',
-            regEx: '',
-            validationRules: [{regEx: '^.{0,12}$', errorMessage: 'Swift must be less than 12 characters'}],
-        } as CorpayFormField;
 
-        it('prefills SWIFT from swiftBicCode when it matches Corpay account-details rules', () => {
-            expect(getInternationalBankAccountDetailsValues(undefined, undefined, iban, 'XXXX', corpaySwiftField)).toEqual({iban, swiftCode: 'XXXX'});
+        it('prefills SWIFT from a non-empty swiftBicCode and IBAN only when accountNumber is an IBAN', () => {
+            expect(getInternationalBankAccountDetailsValues(undefined, undefined, iban, 'XXXX')).toEqual({iban, swiftCode: 'XXXX'});
+            expect(getInternationalBankAccountDetailsValues(undefined, undefined, '123456789', 'XXXX')).toEqual({iban: '', swiftCode: 'XXXX'});
         });
     });
 

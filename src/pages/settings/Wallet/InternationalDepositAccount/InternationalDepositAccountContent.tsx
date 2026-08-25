@@ -42,7 +42,7 @@ import Confirmation from './subPages/Confirmation';
 import CountrySelection from './subPages/CountrySelection';
 import InternationalBankAccountDetails from './subPages/InternationalBankAccountDetails';
 import Success from './subPages/Success';
-import {getCorpayFieldByLabelKeyword, getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
+import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
 type InternationalDepositAccountContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
@@ -103,11 +103,8 @@ function InternationalDepositAccountContent({
     const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]);
 
     // Skip only when collection isn't needed, or when the account details step already captured a real IBAN and a
-    // SWIFT value that matches Corpay's country rules. Completing `iban`/`swiftCode` on the dedicated step must not
-    // omit it from the wizard.
-    const corpaySwiftField = getCorpayFieldByLabelKeyword(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS], CONST.CORPAY_FIELDS.SWIFT_LABEL_KEYWORD);
-    const skipInternationalBankAccountDetailsStep =
-        !shouldCollectInternationalDepositDetails || hasValidAccountDetailsInternationalFields(values.accountNumber, values.swiftBicCode, corpaySwiftField);
+    // SWIFT value. Completing `iban`/`swiftCode` on the dedicated step must not omit it from the wizard.
+    const skipInternationalBankAccountDetailsStep = !shouldCollectInternationalDepositDetails || hasValidAccountDetailsInternationalFields(values.accountNumber, values.swiftBicCode);
 
     const startFrom = getInitialSubstep(values, fieldsMap, skipInternationalBankAccountDetailsStep);
 

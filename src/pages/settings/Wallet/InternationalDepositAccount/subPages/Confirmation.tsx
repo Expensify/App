@@ -19,7 +19,7 @@ import {shouldShowInternationalDetailOnConfirmation} from '@libs/BankAccountUtil
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import {getAccountDetailsFieldsMap, getCorpayFieldByLabelKeyword} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+import {getAccountDetailsFieldsMap} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
 
@@ -70,14 +70,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     };
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
-        const corpaySwiftField = getCorpayFieldByLabelKeyword(accountDetailsFields, CONST.CORPAY_FIELDS.SWIFT_LABEL_KEYWORD);
-        createCorpayBankAccountForWalletFlow(
-            {...formValues, ...values},
-            corpayFields?.classification ?? '',
-            corpayFields?.destinationCountry ?? '',
-            corpayFields?.preferredMethod ?? '',
-            corpaySwiftField,
-        );
+        createCorpayBankAccountForWalletFlow({...formValues, ...values}, corpayFields?.classification ?? '', corpayFields?.destinationCountry ?? '', corpayFields?.preferredMethod ?? '');
     };
 
     useEffect(() => {

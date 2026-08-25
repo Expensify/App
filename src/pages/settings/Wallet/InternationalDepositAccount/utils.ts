@@ -165,10 +165,6 @@ function isInternationalBankAccountFieldLabel(label: string): boolean {
     return [CONST.CORPAY_FIELDS.IBAN_LABEL_KEYWORD, CONST.CORPAY_FIELDS.SWIFT_LABEL_KEYWORD].some((keyword) => normalizedLabel.includes(keyword));
 }
 
-function getCorpayFieldByLabelKeyword(fields: CorpayFieldsMap | undefined, keyword: string) {
-    return Object.values(fields ?? {}).find((field) => field.label.toLowerCase().includes(keyword));
-}
-
 function getAccountDetailsFieldsMap(accountDetailsFields: CorpayFieldsMap | undefined, shouldCollectInternationalDepositDetails: boolean): CorpayFieldsMap {
     const fields = accountDetailsFields ?? {};
     if (!shouldCollectInternationalDepositDetails) {
@@ -187,4 +183,4 @@ function getAccountDetailsFieldsMap(accountDetailsFields: CorpayFieldsMap | unde
     return nextFields;
 }
 
-export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors, getAccountDetailsFieldsMap, getCorpayFieldByLabelKeyword};
+export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors, getAccountDetailsFieldsMap};

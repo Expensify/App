@@ -41,7 +41,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
-import type {BankAccountList, CorpayFormField, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
+import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -1591,16 +1591,10 @@ function unshareBankAccount(bankAccountID: number, ownerEmail: string) {
     API.write(WRITE_COMMANDS.UNSHARE_BANK_ACCOUNT, parameters, onyxData);
 }
 
-function createCorpayBankAccountForWalletFlow(
-    data: InternationalBankAccountForm,
-    classification: string,
-    destinationCountry: string,
-    preferredMethod: string,
-    corpaySwiftField?: CorpayFormField,
-) {
+function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm, classification: string, destinationCountry: string, preferredMethod: string) {
     // The international details step is skipped when the Corpay bank-details step already collected equivalent values,
     // so resolve them here to guarantee the IBAN/SWIFT are always sent when we have them, whichever step captured them.
-    const {iban, swiftCode} = getInternationalBankAccountDetailsValues(data.iban, data.swiftCode, data.accountNumber, data.swiftBicCode, corpaySwiftField);
+    const {iban, swiftCode} = getInternationalBankAccountDetailsValues(data.iban, data.swiftCode, data.accountNumber, data.swiftBicCode);
     const inputData = {
         ...data,
         iban,
