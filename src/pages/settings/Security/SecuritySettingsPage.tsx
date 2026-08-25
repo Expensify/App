@@ -183,6 +183,12 @@ function SecuritySettingsPage() {
             icon: icons.ClosedSign,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
             action: async () => {
+                // Copiloting into an agent is also a delegate session and must fall through to the
+                // agent-delete flow below, so only plain delegates are blocked here.
+                if (isActingAsDelegate && !isCopilotingIntoAgent) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
                 if (isAccountLocked) {
                     showLockedAccountModal();
                     return;
@@ -228,12 +234,6 @@ function SecuritySettingsPage() {
                         return;
                     }
                     deleteAgent(agentAccountID, agentLogin, allPolicies, false);
-                    return;
-                }
-                // Kept below the agent branch because copiloting into an agent is also a delegate session,
-                // and that flow needs to reach deleteAgent above.
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);
