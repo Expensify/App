@@ -932,6 +932,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Solo amministratori',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal in un altro account',
+        emailLabel: 'Indirizzo email',
+        reasonLabel: 'Motivo accesso assistenza',
+        reasonHint: 'Nessun ticket recente trovato per questo account.',
+        login: 'Accedi',
+    },
     sidebarScreen: {
         buttonFind: 'Trova qualcosa...',
         buttonMySettings: 'Le mie impostazioni',
@@ -1123,6 +1130,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Creane una o trascina qui una ricevuta',
         },
         insightsSection: {chartUnavailable: 'Grafico non disponibile', notEnoughData: 'Non abbiamo ancora abbastanza dati per compilare questo grafico'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Buongiorno, ${name}.` : 'Buongiorno.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Buon pomeriggio, ${name}.` : 'Buon pomeriggio.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Buonasera, ${name}.` : 'Buona sera.'),
+            inputPlaceholder: 'Chiedi a Concierge di analizzare le tue spese o chiedi supporto',
+            inputPlaceholderMobile: 'Chiedi qualsiasi cosa a Concierge',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -1515,8 +1529,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'carta' : 'conto bancario';
             return isCurrentUser
-                ? `. Il denaro è in arrivo sul tuo ${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'conto'} (pagato tramite ${paymentMethod}). Questo potrebbe richiedere fino a 10 giorni lavorativi.`
-                : `. Il denaro è in arrivo sul conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). Potrebbero volerci fino a 10 giorni lavorativi.`;
+                ? `. Il denaro è in arrivo sul tuo ${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'conto'} (pagato tramite ${paymentMethod}). In genere richiede 4-5 giorni lavorativi.`
+                : `. Il denaro è in arrivo sul conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). In genere richiede 4-5 giorni lavorativi.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` con accredito diretto (ACH)${creditBankAccount ? ` al conto bancario che termina con ${creditBankAccount}.` : '. '}${expectedDate ? `Il rimborso dovrebbe essere completato entro il ${expectedDate}.` : 'In genere richiede 4-5 giorni lavorativi.'}`,
@@ -1598,6 +1612,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Abilita portafoglio',
         hold: 'Metti in attesa',
         sendToSomeone: 'Invia a qualcuno',
+        submitToEmployer: 'Invia al mio datore di lavoro',
         unhold: 'Rimuovi blocco',
         holdExpense: () => ({
             one: 'Metti in sospeso la spesa',
@@ -3119,7 +3134,13 @@ ${amount} per ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Tieniti al passo vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento nelle <a href="${priorityModePageUrl}">impostazioni</a>.`,
     },
-    inboxTabs: {all: 'Tutti', todo: 'Attività da fare', unread: 'Non letti'},
+    inboxTabs: {
+        all: 'Tutti',
+        todo: 'Attività da fare',
+        unread: 'Non letti',
+        markAllAsRead: 'Segna tutto come letto',
+        markAllAsReadConfirmationPrompt: 'Vuoi davvero segnare tutte le chat come lette?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Genera PDF',
@@ -4538,6 +4559,9 @@ ${amount} per ${merchant} - ${date}`,
             workflows: 'Flussi di lavoro',
             workspace: 'Spazio di lavoro',
             findWorkspace: 'Trova spazio di lavoro',
+            active: 'Attivo',
+            archived: 'Archiviato',
+            workspaceStatus: 'Stato dello spazio di lavoro',
             findRoom: 'Trova stanza',
             edit: 'Modifica spazio di lavoro',
             enabled: 'Abilitato',
@@ -6215,6 +6239,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     autoAddTripName: {
                         title: 'Aggiungi nomi di viaggi alle spese',
                         subtitle: 'Aggiungi automaticamente i nomi dei viaggi alle descrizioni delle spese per i viaggi prenotati in Expensify.',
+                    },
+                    codingSync: {
+                        title: 'Sincronizza la codifica con Expensify Travel',
+                        subtitle:
+                            'Invia le categorie, i tag e i campi di rendiconto di questo spazio di lavoro a Expensify Travel così che chi viaggia li compili al momento della prenotazione.',
                     },
                 },
                 travelInvoicing: {
@@ -10166,6 +10195,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             title: 'Pagamento',
             subtitle: 'Aggiungi una carta per pagare il tuo abbonamento Expensify.',
             addCardButton: 'Aggiungi carta di pagamento',
+            addPaymentCardTitle: 'Aggiungi una carta di pagamento',
+            addCard: 'Aggiungi carta',
             cardInfo: (name: string, expiration: string, currency: string) => `Nome: ${name}, Scadenza: ${expiration}, Valuta: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `La tua prossima data di pagamento è ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Carta che termina con ${cardNumber}`,

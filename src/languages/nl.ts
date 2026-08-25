@@ -930,6 +930,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Alleen beheerders',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal naar een ander account',
+        emailLabel: 'E-mailadres',
+        reasonLabel: 'Reden voor ondersteuning-login',
+        reasonHint: 'Geen recente tickets gevonden voor dit account.',
+        login: 'Inloggen',
+    },
     sidebarScreen: {
         buttonFind: 'Zoek iets...',
         buttonMySettings: 'Mijn instellingen',
@@ -1121,6 +1128,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Maak er een aan of sleep hier een bonnetje naartoe',
         },
         insightsSection: {chartUnavailable: 'Diagram niet beschikbaar', notEnoughData: 'We hebben nog niet genoeg gegevens om deze grafiek te vullen'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Goedemorgen, ${name}.` : 'Goedemorgen.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Goedemiddag, ${name}.` : 'Goedemiddag.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Goedenavond, ${name}.` : 'Goedenavond.'),
+            inputPlaceholder: 'Vraag Concierge om je uitgaven te analyseren of om hulp te krijgen',
+            inputPlaceholderMobile: 'Stel Concierge alles gerust een vraag',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1513,8 +1527,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'kaart' : 'bankrekening';
             return isCurrentUser
-                ? `. Het geld is onderweg naar je ${creditBankAccount ? `bankrekening eindigend op ${creditBankAccount}` : 'rekening'} (betaald via ${paymentMethod}). Dit kan tot 10 werkdagen duren.`
-                : `. Geld is onderweg naar de bankrekening van ${submitterLogin}${creditBankAccount ? ` eindigend op ${creditBankAccount}` : ''} (betaald via ${paymentMethod}). Dit kan tot 10 werkdagen duren.`;
+                ? `. Het geld is onderweg naar je ${creditBankAccount ? `bankrekening eindigend op ${creditBankAccount}` : 'rekening'} (betaald via ${paymentMethod}). Dit duurt meestal 4-5 werkdagen.`
+                : `. Geld is onderweg naar de bankrekening van ${submitterLogin}${creditBankAccount ? ` eindigend op ${creditBankAccount}` : ''} (betaald via ${paymentMethod}). Dit duurt meestal 4-5 werkdagen.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` met directe storting (ACH)${creditBankAccount ? ` naar de bankrekening die eindigt op ${creditBankAccount}.` : '. '}${expectedDate ? `De terugbetaling wordt naar verwachting voltooid op ${expectedDate}.` : 'Dit duurt meestal 4-5 werkdagen.'}`,
@@ -1594,6 +1608,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Portemonnee inschakelen',
         hold: 'Vasthouden',
         sendToSomeone: 'Naar iemand sturen',
+        submitToEmployer: 'Indienen bij mijn werkgever',
         unhold: 'Blokkering opheffen',
         holdExpense: () => ({
             one: 'Uitgave vasthouden',
@@ -3120,7 +3135,13 @@ ${amount} voor ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Blijf op de hoogte door alleen ongelezen chats of chats te zien die je aandacht nodig hebben. Geen zorgen, je kunt dit op elk moment wijzigen in de <a href="${priorityModePageUrl}">instellingen</a>.`,
     },
-    inboxTabs: {all: 'Alles', todo: 'Te doen', unread: 'Ongelezen'},
+    inboxTabs: {
+        all: 'Alles',
+        todo: 'Te doen',
+        unread: 'Ongelezen',
+        markAllAsRead: 'Alles als gelezen markeren',
+        markAllAsReadConfirmationPrompt: 'Weet je zeker dat je alle chats als gelezen wilt markeren?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'PDF genereren',
@@ -4536,6 +4557,9 @@ ${amount} voor ${merchant} - ${date}`,
             workflows: 'Workflows',
             workspace: 'Werkruimte',
             findWorkspace: 'Werkruimte zoeken',
+            active: 'Actief',
+            archived: 'Gearchiveerd',
+            workspaceStatus: 'Werkruimtestatus',
             findRoom: 'Kamer zoeken',
             edit: 'Werkruimte bewerken',
             enabled: 'Ingeschakeld',
@@ -6204,6 +6228,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
                 settings: {
                     autoAddTripName: {title: 'Reisnamen aan uitgaven toevoegen', subtitle: 'Voeg automatisch reisnamen toe aan onkostomemo’s voor reizen die in Expensify zijn geboekt.'},
+                    codingSync: {
+                        title: 'Synchroniseer codering met Expensify Travel',
+                        subtitle: 'Push de categorieën, tags en rapportvelden van deze workspace naar Expensify Travel zodat reizigers ze bij het boeken invullen.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -10129,6 +10157,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             title: 'Betaling',
             subtitle: 'Voeg een kaart toe om je Expensify-abonnement te betalen.',
             addCardButton: 'Betaalkaart toevoegen',
+            addPaymentCardTitle: 'Voeg een betaalkaart toe',
+            addCard: 'Kaart toevoegen',
             cardInfo: (name: string, expiration: string, currency: string) => `Naam: ${name}, Vervaldatum: ${expiration}, Valuta: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Je volgende betaaldatum is ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Kaart eindigend op ${cardNumber}`,

@@ -561,7 +561,7 @@
 "../../src/libs/Navigation/AppNavigator/Navigators/TabNavigator.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/TestToolsModalNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/WorkspaceSplitNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
+"../../src/libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/libs/Navigation/AppNavigator/createRootStackNavigator/useCustomRootStackNavigatorState/restoreTabNavigatorRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -888,7 +888,6 @@
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/EnablePayments/Wallet/PersonalInfo/substeps/DateOfBirthStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/EnablePayments/Wallet/utils/getSubstepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -964,7 +963,6 @@
 "../../src/pages/domain/Saml/SamlLoginSectionContent.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"no-restricted-imports"	1
-"../../src/pages/home/TimeSensitiveSection/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/home/YourSpendSection/useYourSpendData.ts"	"no-restricted-imports"	1
 "../../src/pages/inbox/ReactionListWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1117,7 +1115,6 @@
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceMembersPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1224,7 +1221,6 @@
 "../../src/pages/workspace/companyCards/addNew/DynamicAddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/companyCards/addNew/PlaidConnectionStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/pages/workspace/companyCards/addNew/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/expensifyCard/DynamicExpensifyCardLimitTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
