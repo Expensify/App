@@ -108,16 +108,24 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
             };
         });
     };
+    // The debounce below always calls the latest version of this, so a hover whose delay elapsed after the cursor or the
+    // focus already moved on is dropped instead of replacing the content of the row the user is on now.
+    const activateHoveredFilter = (filterKey: SearchFilter['key']) => {
+        if (filterKey !== hoveredFilter) {
+            return;
+        }
+
+        activateFilter(filterKey);
+    };
     // Hovering only shows a row's content once the cursor has stayed on it for SEARCH_FILTER_HOVER_INTENT_DELAY, so
     // sweeping across rows doesn't render a content pane per row. Moving focus is deliberate and never sweeps across
     // rows, so it shows the content right away and keyboard users don't read a pane that is about to be replaced.
-    const debouncedActivateFilter = useDebounceNonReactive(activateFilter, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+    const debouncedActivateHoveredFilter = useDebounceNonReactive(activateHoveredFilter, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
     const hoverFilter = (filterKey: SearchFilter['key']) => {
         setHoveredFilter(filterKey);
-        debouncedActivateFilter(filterKey);
+        debouncedActivateHoveredFilter(filterKey);
     };
     const focusFilter = (filterKey: SearchFilter['key']) => {
-        debouncedActivateFilter.cancel();
         setHoveredFilter(filterKey);
         activateFilter(filterKey);
     };
