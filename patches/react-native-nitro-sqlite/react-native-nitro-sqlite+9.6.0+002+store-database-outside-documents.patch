@@ -1,0 +1,95 @@
+diff --git a/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm b/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
+index 6ce7258..65c29cb 100644
+--- a/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
++++ b/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
+@@ -10,6 +10,63 @@
+ using namespace margelo::nitro;
+ using namespace margelo::nitro::rnnitrosqlite;
+ 
++// The Documents directory can be exposed to the user (Files app) when file sharing
++// is enabled, so databases are stored in Library/Application Support instead.
++// Databases created by older app versions are moved out of Documents on first launch.
++//
++// The "OnyxDB" name must match the database the app opens: DEFAULT_DB_NAME in
++// src/CONST/index.ts and DB_NAME in react-native-onyx's SQLiteProvider. A Jest test
++// (MoveFilesOutOfDocumentsTest) fails if the names drift apart.
++static void migrateDatabaseFiles(NSString *fromDirectory, NSString *toDirectory) {
++  NSFileManager *fileManager = [NSFileManager defaultManager];
++  NSArray<NSString *> *databaseFiles = @[ @"OnyxDB", @"OnyxDB-wal", @"OnyxDB-shm" ];
++
++  if (![fileManager fileExistsAtPath:[fromDirectory stringByAppendingPathComponent:@"OnyxDB"]]) {
++    // Nothing to migrate. A previous run may have been interrupted after copying the set but
++    // before removing the journal files, so sweep any leftovers out of Documents.
++    [fileManager removeItemAtPath:[fromDirectory stringByAppendingPathComponent:@"OnyxDB-wal"] error:nil];
++    [fileManager removeItemAtPath:[fromDirectory stringByAppendingPathComponent:@"OnyxDB-shm"] error:nil];
++    return;
++  }
++
++  // A database in Documents means an older build was writing there, so it is the live copy.
++  // Remove whatever sits at the destination (e.g. after a downgrade and re-upgrade) so a -wal
++  // from one database generation is never replayed into a database from another.
++  for (NSString *file in databaseFiles) {
++    [fileManager removeItemAtPath:[toDirectory stringByAppendingPathComponent:file] error:nil];
++  }
++
++  // Copy the whole set before deleting anything: committed-but-uncheckpointed writes live in
++  // the -wal file and SQLite only replays it when it sits next to its database, so the files
++  // must never be separated. If any copy fails, the intact originals in Documents keep being
++  // used (see the fallback in +load) and the migration retries on the next launch.
++  for (NSString *file in databaseFiles) {
++    NSString *sourcePath = [fromDirectory stringByAppendingPathComponent:file];
++    if (![fileManager fileExistsAtPath:sourcePath]) {
++      continue;
++    }
++
++    NSError *error = nil;
++    if (![fileManager copyItemAtPath:sourcePath toPath:[toDirectory stringByAppendingPathComponent:file] error:&error]) {
++      NSLog(@"Failed to migrate database file %@: %@", file, error.localizedDescription);
++      return;
++    }
++  }
++
++  // The database file is deleted first, and the journals only once that succeeds: if the
++  // database cannot be removed, the existence check in +load keeps using the source database
++  // on this launch, so its -wal must stay next to it or committed writes would be lost.
++  // An interruption after the first delete can only leave journal files behind, which the
++  // sweep above removes on the next launch.
++  NSError *removeError = nil;
++  if (![fileManager removeItemAtPath:[fromDirectory stringByAppendingPathComponent:@"OnyxDB"] error:&removeError]) {
++    NSLog(@"Failed to remove migrated database from its old location: %@", removeError.localizedDescription);
++    return;
++  }
++  [fileManager removeItemAtPath:[fromDirectory stringByAppendingPathComponent:@"OnyxDB-wal"] error:nil];
++  [fileManager removeItemAtPath:[fromDirectory stringByAppendingPathComponent:@"OnyxDB-shm"] error:nil];
++}
++
+ + (void)load {
+   // Get appGroupID value from Info.plist using key "AppGroup"
+   NSString *appGroupID = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"RNNitroSQLite_AppGroup"];
+@@ -30,9 +80,24 @@
+ 
+     documentPath = [storeUrl path];
+   } else {
+-    // Get iOS app's document directory (to safely store database .sqlite3 file)
+-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
++    // Store databases in Library/Application Support, which is persistent, backed up,
++    // and never exposed to the user via the Files app (unlike the Documents directory)
++    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, true);
+     documentPath = [paths objectAtIndex:0];
++
++    NSFileManager *fileManager = [NSFileManager defaultManager];
++    if (![fileManager fileExistsAtPath:documentPath]) {
++      [fileManager createDirectoryAtPath:documentPath withIntermediateDirectories:YES attributes:nil error:nil];
++    }
++
++    NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true) objectAtIndex:0];
++    migrateDatabaseFiles(documentsDirectory, documentPath);
++
++    // If the database could not be moved out of Documents, keep opening it there rather than
++    // creating a fresh empty one; the migration retries on the next launch.
++    if ([fileManager fileExistsAtPath:[documentsDirectory stringByAppendingPathComponent:@"OnyxDB"]]) {
++      documentPath = documentsDirectory;
++    }
+   }
+ 
+   HybridNitroSQLite::docPath = [documentPath UTF8String];
