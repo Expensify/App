@@ -128,8 +128,8 @@ type Comment = {
     /**
      * Accounting-system vendor matched to this expense.
      * Stored on non-reimbursable card expenses when a vendor is set either by the
-     * PHP fuzzy matcher (`isManuallySet=false`) or by the user / a merchant rule
-     * (`isManuallySet=true`). The flag prevents auto-match from overwriting a
+     * PHP fuzzy matcher (`wasManuallySet=false`) or by the user / a merchant rule
+     * (`wasManuallySet=true`). The flag prevents auto-match from overwriting a
      * deliberate selection.
      */
     vendor?: TransactionCommentVendor;
@@ -149,6 +149,9 @@ type Comment = {
 
     /** Odometer end image (File object with uri on web, URI string on native) */
     odometerEndImage?: FileObject | string;
+
+    /** Key of the route selected by the user when multiple alternative routes are available (e.g. 'route0', 'route1') */
+    selectedRouteKey?: string | null;
 
     /** Spotnana trip ID, set on travel transactions and used to link the expense to its trip room */
     tripID?: string;
@@ -193,7 +196,7 @@ type TransactionCustomUnit = {
      * The distance in meters from the route Mapbox or Google Maps chose through the user supplied waypoints.
      * It is used to track when the user has manually increased the distance above the system-calculated route distance.
      */
-    routeDistanceMeters?: number;
+    routeDistanceMeters?: number | null;
 
     /** Sub Rates for the custom unit */
     subRates?: Array<{
@@ -212,15 +215,30 @@ type TransactionCustomUnit = {
         /** Custom unit rate */
         rate: number;
     }>;
+
+    /** Distance deducted from quantity by the workspace commuter exclusion, in the same unit as quantity */
+    commuterExclusion?: number;
+
+    /** Reimbursable distance after commuter exclusion: max(0, quantity - commuterExclusion) */
+    reimbursableDistance?: number;
+
+    /** The kind of commute the exclusion represents (R3 — currently unused) */
+    commuterExclusionType?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_TYPE>;
+
+    /** How the exclusion was configured on the policy (R1: fixedDistance; R2: homeAndOffice) */
+    commuterExclusionMethod?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
 };
 
 /** Types of geometry */
 type GeometryType = 'LineString';
 
+/** A single `[longitude, latitude]` point */
+type Coordinate = [number, number];
+
 /** Geometry data */
 type Geometry = {
     /** Matrix of points, indexed by their coordinates, GPS trip is represented as a 3 dimensional array to support multiple routes in a single trip */
-    coordinates: number[][] | number[][][] | null;
+    coordinates: Coordinate[] | Coordinate[][] | null;
 
     /** Type of connections between coordinates */
     type?: GeometryType;
@@ -481,7 +499,7 @@ type TransactionCommentVendor = {
     name?: string;
 
     /** Whether the vendor was set manually by a user (vs. auto-matched by the fuzzy matcher) */
-    isManuallySet: boolean;
+    wasManuallySet: boolean;
 };
 
 /** Model of transaction */
@@ -735,6 +753,9 @@ type AdditionalTransactionChanges = {
 
     /** The unit for the distance/quantity */
     quantity?: number;
+
+    /** Key of the route selected by the user when multiple alternative routes are available (e.g. 'route0', 'route1') */
+    selectedRouteKey?: string;
 
     /** Accounting-system vendor on the transaction's comment NVP. `null` clears the vendor. */
     vendor?: TransactionCommentVendor | null;

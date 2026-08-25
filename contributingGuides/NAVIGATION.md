@@ -246,7 +246,7 @@ Navigation.dismissModalWithReport({
 > Why do we need a separate method to open a report from a modal?
 >
 > 1. On a narrow screen, we do not want to perform two operations: closing the modal and opening the report. This would cause two actions to be displayed on the screen, which could be confusing for users. Instead of two operations, we perform a replace on the modal, thanks to which there is a smooth transition to the report with simultaneous closing of the modal.
-> 2. On a wide screen, we need to be sure that the modal has been closed before we want to navigate to the report. For this purpose, `navigate` called after `dismissModal` is wrapped in `InteractionManager.runAfterInteractions`.
+> 2. On a wide screen, we need to be sure that the modal has been closed before we want to navigate to the report. For this purpose, `navigate` is passed as the `afterTransition` callback to `dismissModal`, so it only runs once the dismiss transition has completed (tracked via `TransitionTracker`).
 
 ### Summary
 

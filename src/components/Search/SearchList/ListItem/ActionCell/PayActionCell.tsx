@@ -14,8 +14,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
-import {getSearchPayOnyxData} from '@libs/actions/Search';
+import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -40,7 +41,7 @@ type PayActionCellProps = {
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -82,7 +83,13 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const {currency} = iouReport ?? {};
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
-        if (!type || !reportID || !hash || !amount || !chatReport) {
+        if (!type || !reportID || !hash || !amount) {
+            Log.info('[SearchPay] Dropping row pay: missing required data', false, {
+                hasPaymentType: !!type,
+                reportID,
+                hasHash: !!hash,
+                hasAmount: !!amount,
+            });
             return;
         }
 
@@ -94,6 +101,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
 
         if (isInvoiceReport(iouReport)) {
+            // Invoice payments rely on the invoice room data, so they can't proceed without the chat report.
+            if (!chatReport) {
+                Log.info('[SearchPay] Dropping invoice row pay: chat report is not loaded', false, {reportID});
+                return;
+            }
             const existingB2BInvoiceReport = getParticipantsInvoiceReport(
                 allReports,
                 reportNameValuePairs,
@@ -110,6 +122,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: iouReport,
@@ -134,9 +147,21 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             return;
         }
 
+        // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
+        // built from the known IDs and let the server fill in the chat data.
+        const fallbackChatReportID = iouReport?.chatReportID ?? iouReport?.parentReportID;
+        const fallbackPolicyID = iouReport?.policyID ?? policyID;
+        const {chatReport: chatReportForPayment, isFallbackChatReport} = getChatReportWithFallback(chatReport, fallbackChatReportID, fallbackPolicyID);
+        if (!chatReportForPayment) {
+            Log.info('[SearchPay] Dropping row pay: chat report is not loaded and no chatReportID is available', false, {reportID});
+            return;
+        }
+
         payMoneyRequest({
+            getCurrencyDecimals,
             paymentType: type,
-            chatReport,
+            chatReport: chatReportForPayment,
+            isFallbackChatReport,
             iouReport,
             introSelected,
             currentUserAccountID,

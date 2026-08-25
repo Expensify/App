@@ -1,8 +1,8 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {DomainRowData} from '@components/Tables/DomainListTable';
 import DomainListTable from '@components/Tables/DomainListTable';
-import WorkspaceListLayout from '@components/WorkspaceListLayout';
+import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -16,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,19 +75,21 @@ function DomainsListPage() {
         }
     }
 
-    const activityIndicatorReasonAttributes = {
-        context: 'DomainsListPage',
-        isOffline,
-    } satisfies SkeletonSpanReasonAttributes;
-
     const headerButton = !!domainRows.length && (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             accessibilityLabel={translate('common.new')}
-            text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}
-            icon={icons.Plus}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.new')}</Button.Text>
+        </Button>
+    );
+    const headerComponent = (
+        <WorkspaceListHeaderContent
+            activeTabKey="domains"
+            headerButton={headerButton}
         />
     );
 
@@ -96,18 +97,25 @@ function DomainsListPage() {
         <WorkspaceListLayout
             activeTabKey="domains"
             headerButton={headerButton}
+            headerComponent={headerComponent}
+            scrollHeaderWithTable
         >
             <View style={styles.flex1}>
                 {shouldShowLoadingIndicator && (
-                    <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={activityIndicatorReasonAttributes}
-                        />
-                    </View>
+                    <>
+                        {headerComponent}
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                        </View>
+                    </>
                 )}
 
-                {!shouldShowLoadingIndicator && <DomainListTable domains={domainRows} />}
+                {!shouldShowLoadingIndicator && (
+                    <DomainListTable
+                        domains={domainRows}
+                        headerComponent={headerComponent}
+                    />
+                )}
             </View>
         </WorkspaceListLayout>
     );

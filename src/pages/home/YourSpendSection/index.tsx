@@ -21,7 +21,7 @@ import SpendSummaryRow from './SpendSummaryRow';
 import {useYourSpendData, YOUR_SPEND_ROW_STATE} from './useYourSpendData';
 
 function YourSpendSection() {
-    const {approvalRowState, approvalTotals, paymentRowState, paymentTotals, cardRows, awaitingApprovalQuery, repaidLast30DaysQuery} = useYourSpendData();
+    const {approvalRowState, approvalTotals, paymentRowState, paymentTotals, cardRows, awaitingApprovalQuery, repaidLast30DaysQuery, isApprovalStale, isPaymentStale} = useYourSpendData();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -63,6 +63,7 @@ function YourSpendSection() {
                     onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: awaitingApprovalQuery}))}
                     wrapperStyle={wrapperStyle}
                     skeletonRowIndex={0}
+                    isStale={isApprovalStale}
                 />
 
                 <SpendSummaryRow
@@ -74,6 +75,7 @@ function YourSpendSection() {
                     onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: repaidLast30DaysQuery}))}
                     wrapperStyle={wrapperStyle}
                     skeletonRowIndex={1}
+                    isStale={isPaymentStale}
                 />
 
                 {visibleCardRows.map((cardRow) => (

@@ -6,6 +6,8 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
@@ -55,6 +57,7 @@ type SelectPaymentTypeParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BusinessBankAccountOption = {
@@ -230,6 +233,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         delegateAccountID,
         isTrackIntentUser,
         ownerLogin,
+        getCurrencyDecimals,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -266,6 +270,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         }
         return;
@@ -335,8 +340,11 @@ function getActivePaymentType(
 
 /**
  * Get the last 4 digits of a bank account used for payment.
+ *
+ * `policyACHAccountNumber` is the account number of the policy's default reimbursement account
+ * (`policy.achAccount.accountNumber`), used as a fallback when the payment doesn't name an account.
  */
-function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>): string {
+function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policyACHAccountNumber: string | undefined): string {
     const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
 
     if (bankAccount?.accountData?.accountNumber) {
@@ -347,7 +355,7 @@ function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAcc
     if (bankAccountID != null) {
         return '';
     }
-    return policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+    return policyACHAccountNumber?.slice(-4) ?? '';
 }
 
 export {

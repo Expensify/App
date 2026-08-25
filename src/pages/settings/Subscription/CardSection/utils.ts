@@ -12,6 +12,7 @@ import type {Purchase} from '@src/types/onyx/PurchaseList';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
@@ -28,6 +29,7 @@ type BillingStatusResult = {
 };
 
 type GetBillingStatusProps = {
+    dateFnsLocale: DateFnsLocale | undefined;
     translate: LocaleContextProps['translate'];
     stripeCustomerId: OnyxEntry<StripeCustomerID>;
     accountData?: AccountData;
@@ -41,10 +43,12 @@ type GetBillingStatusProps = {
     fundList: OnyxEntry<FundList>;
     amountOwed: number;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    ownerTravelBillingGracePeriodEnd: OnyxEntry<number>;
 };
 
 function getBillingStatus({
     translate,
+    dateFnsLocale,
     stripeCustomerId,
     accountData,
     purchase,
@@ -56,6 +60,7 @@ function getBillingStatus({
     closeIcon,
     fundList,
     ownerBillingGracePeriodEnd,
+    ownerTravelBillingGracePeriodEnd,
     amountOwed,
 }: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
@@ -69,11 +74,13 @@ function getBillingStatus({
         billingStatus,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        ownerTravelBillingGracePeriodEnd,
     );
 
-    const endDate = ownerBillingGracePeriodEnd;
+    const endDate = ownerTravelBillingGracePeriodEnd ?? ownerBillingGracePeriodEnd;
 
-    const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
+    // formatWithUTCTimeZone parses ISO 8601, so an RFC 1123 string from toUTCString would silently format as empty
+    const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) : null;
 
     const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
 
@@ -81,7 +88,7 @@ function getBillingStatus({
     const purchaseCurrency = purchase?.currency;
     const purchaseDate = purchase?.created;
     const isBillingFailed = purchase?.message.billingType === CONST.BILLING.TYPE_FAILED_2018;
-    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : undefined;
+    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) : undefined;
     const purchaseAmountWithCurrency = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
 
     switch (subscriptionStatus?.status) {
@@ -117,6 +124,22 @@ function getBillingStatus({
             return {
                 title: translate('subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title'),
                 subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicingOverdue.subtitle'),
+                isError: true,
+                isAddButtonDark: true,
+            };
+
+        case PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE:
+            return {
+                title: translate('subscription.billingBanner.travelInvoiceOverdue.title'),
+                subtitle: translate('subscription.billingBanner.travelInvoiceOverdue.subtitle', endDateFormatted ?? ''),
+                isError: true,
+                isAddButtonDark: true,
+            };
+
+        case PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED:
+            return {
+                title: translate('subscription.billingBanner.travelInvoiceOverdueLocked.title'),
+                subtitle: translate('subscription.billingBanner.travelInvoiceOverdueLocked.subtitle'),
                 isError: true,
                 isAddButtonDark: true,
             };
@@ -187,12 +210,12 @@ function getBillingStatus({
  *
  * @returns - The next billing date in 'yyyy-MM-dd' format.
  */
-function getNextBillingDate(): string {
+function getNextBillingDate(dateFnsLocale: DateFnsLocale | undefined): string {
     const today = new Date();
 
     const nextBillingDate = startOfMonth(addMonths(today, 1));
 
-    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
 }
 
 export default {getBillingStatus, getNextBillingDate};

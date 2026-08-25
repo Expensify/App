@@ -2,23 +2,30 @@ import {render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
+import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import QuickActionMenuItem from '@pages/inbox/sidebar/FABPopoverContent/menuItems/QuickActionMenuItem';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import {createRegularChat} from '../utils/collections/reports';
+import createRandomPolicy from '../utils/collections/policies';
+import {createPolicyExpenseChat, createRegularChat} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockTranslate = jest.fn((path: string) => path);
 const mockFormatPhoneNumber = jest.fn((value: string) => value);
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, formatPhoneNumber: mockFormatPhoneNumber}));
+jest.mock('@hooks/useCurrentUserPersonalDetails');
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => new Proxy({}, {get: (_, name) => String(name)}),
@@ -41,14 +48,53 @@ jest.mock('@libs/ReportUtils', () => {
 });
 
 const mockGetDisplayNameForParticipant = jest.mocked(getDisplayNameForParticipant);
+const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
+const mockFABFocusableMenuItem = jest.mocked(FABFocusableMenuItem);
 
 const QUICK_ACTION_REPORT_ID = '991001';
+const ACTIVE_POLICY_ID = '1234';
+const POLICY_CHAT_REPORT_ID = '1235';
 
 describe('QuickActionMenuItem', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
     });
+
+    beforeEach(() => {
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1});
+        mockFABFocusableMenuItem.mockClear();
+        mockTranslate.mockClear();
+        mockFormatPhoneNumber.mockClear();
+        mockGetDisplayNameForParticipant.mockClear();
+    });
+
+    const renderWithActivePolicy = async (policyType: ValueOf<typeof CONST.POLICY.TYPE>) => {
+        const activePolicy = createRandomPolicy(Number(ACTIVE_POLICY_ID), policyType);
+        Reflect.deleteProperty(activePolicy as Record<string, unknown>, 'isPolicyExpenseChatEnabled');
+
+        const policyExpenseChat = {
+            ...createPolicyExpenseChat(Number(POLICY_CHAT_REPORT_ID)),
+            reportID: POLICY_CHAT_REPORT_ID,
+            policyID: ACTIVE_POLICY_ID,
+            ownerAccountID: 1,
+        };
+
+        await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, ACTIVE_POLICY_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${ACTIVE_POLICY_ID}`, activePolicy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_CHAT_REPORT_ID}`, policyExpenseChat);
+        await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, null);
+        await waitForBatchedUpdates();
+
+        render(
+            <OnyxListItemProvider>
+                <QuickActionMenuItem reportID={QUICK_ACTION_REPORT_ID} />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        return mockFABFocusableMenuItem.mock.calls.at(-1)?.[0];
+    };
 
     it('resolves the pay-someone title name through the translate function from useLocalize', async () => {
         const report = {...createRegularChat(Number(QUICK_ACTION_REPORT_ID), [1, AVATAR_ACCOUNT_ID]), reportID: QUICK_ACTION_REPORT_ID};
@@ -66,5 +112,19 @@ describe('QuickActionMenuItem', () => {
         // The pay-someone quick action resolves the payee name via getDisplayNameForParticipant, which must receive the translate from useLocalize.
         expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: AVATAR_ACCOUNT_ID, shouldUseShortForm: true, translate: mockTranslate}));
         expect(mockTranslate).toHaveBeenCalledWith('quickAction.paySomeone', 'SPY_NAME');
+    });
+
+    it('shows the workspace fallback quick action for a group policy even if the policy expense chat flag is absent', async () => {
+        const props = await renderWithActivePolicy(CONST.POLICY.TYPE.TEAM);
+
+        expect(mockFABFocusableMenuItem).toHaveBeenCalled();
+        expect(props).toEqual(expect.objectContaining({isVisible: true}));
+    });
+
+    it('hides the workspace fallback quick action for a personal policy even if the policy expense chat flag is absent', async () => {
+        const props = await renderWithActivePolicy(CONST.POLICY.TYPE.PERSONAL);
+
+        expect(mockFABFocusableMenuItem).toHaveBeenCalled();
+        expect(props).toEqual(expect.objectContaining({isVisible: false}));
     });
 });
