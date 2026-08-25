@@ -12,7 +12,6 @@ import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isExpenseReport, isInvoiceReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
-import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {
     getChildTransactions,
     getOriginalTransactionWithSplitInfo,
@@ -89,6 +88,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReportsTransactionsAndViolations] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
@@ -332,8 +332,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 });
             }
 
-            const transactionsByReportID = buildTransactionsByReportID(allTransactions);
-
             for (const {transactionID, action} of nonSplitTransactions) {
                 if (!action) {
                     continue;
@@ -401,7 +399,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
                     iouReport,
-                    iouReportTransactions: iouReport?.reportID ? (transactionsByReportID[iouReport.reportID] ?? []) : [],
+                    iouReportTransactions: Object.values((iouReport?.reportID ? allReportsTransactionsAndViolations?.[iouReport.reportID]?.transactions : undefined) ?? {}),
                     chatReport,
                     isChatIOUReportArchived,
                     isSingleTransactionView,
@@ -431,6 +429,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allReportActions,
             allSnapshots,
             allTransactions,
+            allReportsTransactionsAndViolations,
             currentUserPersonalDetails,
             currentSearchQueryJSON,
             currentSearchResults?.data,
