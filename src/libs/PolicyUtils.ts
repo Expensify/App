@@ -2612,6 +2612,27 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
 }
 
 /**
+ * Resolves the text shown for a stored merchant-rule vendor ID. Prefer the active vendor-matching
+ * source, use the unavailable label when its loaded list no longer contains the vendor, and retain
+ * the stored ID only while an active source is still hydrating. This keeps every merchant-rule
+ * surface consistent after an accounting connection is disconnected.
+ */
+function getVendorRuleDisplayValue(policy: OnyxEntry<Policy>, vendorID: string, unavailableLabel: string): string {
+    const activeVendorName = getMatchingVendorByID(policy, vendorID)?.name;
+    if (activeVendorName) {
+        return activeVendorName;
+    }
+
+    if (isMatchingVendorListLoaded(policy)) {
+        return unavailableLabel;
+    }
+
+    const historicalVendorName = findVendorByID(policy, vendorID)?.name;
+    const hasActiveVendorMatchingSource = getActiveVendorMatchingIntegration(policy) !== undefined || isXeroActiveMatchingSource(policy);
+    return historicalVendorName ?? (hasActiveVendorMatchingSource ? vendorID : unavailableLabel);
+}
+
+/**
  * Xero-scoped supplier list, normalized to the shared `Vendor` shape. Use this from Xero-specific
  * UI (the default-supplier picker, the Xero export config row) so the data source stays bound to
  * `connections.xero.data.contacts` regardless of whether QBO or Intacct is the *active* matching
@@ -3101,6 +3122,7 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    getVendorRuleDisplayValue,
     getXeroSupplierByID,
     getXeroSuppliers,
     isXeroActiveMatchingSource,
