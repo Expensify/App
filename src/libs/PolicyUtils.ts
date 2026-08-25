@@ -698,17 +698,19 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
 }
 
 /**
- * The roles that are allowed to pay (reimburse) on a workspace. The Authorized Payer (reimburser) must always hold one of
- * these, so any role change for a payer is restricted to this set.
- */
-const PAYER_ROLES = [CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN] as const;
-
-/**
- * Whether the given role is allowed to pay (reimburse) on a workspace.
+ * Whether the given role is allowed to pay (reimburse) on a workspace. This is derived from the WORKFLOWS_PAYMENTS feature
+ * permission rather than a hardcoded role list, so any future role that is granted payment permission (for example upcoming
+ * customer roles) is automatically treated as a valid payer, matching how the rest of the app determines who can pay.
  */
 function canRolePay(role: string | undefined): boolean {
-    return PAYER_ROLES.some((payerRole) => payerRole === role);
+    return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
 }
+
+/**
+ * The roles that are allowed to pay (reimburse) on a workspace, derived from the WORKFLOWS_PAYMENTS permission. The
+ * Authorized Payer (reimburser) must always hold one of these, so any role change for a payer is restricted to this set.
+ */
+const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
 
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
     if (!policy) {

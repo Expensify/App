@@ -40,7 +40,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
-    // The Authorized Payer (reimburser) must stay a valid payer, so restrict them to the roles that can pay (Admin or Payments Admin).
+    // The Authorized Payer (reimburser) must stay a valid payer, so restrict them to the roles that can pay (for example Admin or Payments Admin).
     const reimburserEmail = getReimburserEmail(policy);
     const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
     const allowedRoles = isReimburser ? [...PAYER_ROLES] : undefined;

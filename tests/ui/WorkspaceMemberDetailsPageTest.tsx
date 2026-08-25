@@ -273,9 +273,9 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should keep the Role field read-only for an admin Authorized Payer on a non-Control workspace where no other payer role is available', async () => {
-        // On a Team (non-Control) workspace, Payments Admin is not an assignable role, so an admin payer has no other valid
-        // payer role to switch to. The Role row must stay read-only instead of opening a page with no actionable option.
+    it('should keep the Role field interactive for an admin Authorized Payer on a non-Control workspace because Editor also holds the payments permission', async () => {
+        // On a Team (non-Control) workspace, Payments Admin is not assignable, but Editor also holds the WORKFLOWS_PAYMENTS
+        // permission, so an admin payer still has another valid payer role to switch to. The Role row must stay interactive.
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                 type: CONST.POLICY.TYPE.TEAM,
@@ -293,9 +293,9 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         const roleItem = await screen.findByTestId('member-role-menu-item');
 
-        // There is no valid role change to make, so the row is disabled and shows no caret.
-        expect(roleItem).toBeDisabled();
-        expect(within(roleItem).queryByTestId('ArrowRight Icon')).not.toBeOnTheScreen();
+        // Editor is another payer role the admin payer can switch to, so the row is interactive with no lock hint.
+        expect(roleItem).not.toBeDisabled();
+        expect(screen.queryByText(/Role can/)).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
