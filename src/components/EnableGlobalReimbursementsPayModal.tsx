@@ -4,12 +4,13 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import {clearCorpayPayModal} from '@userActions/App';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useEffect, useEffectEvent, useRef} from 'react';
-import Onyx from 'react-native-onyx';
 
 function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
@@ -35,7 +36,7 @@ function EnableGlobalReimbursementsPayModal() {
                     ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(bankAccountID, CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER),
                 );
             }
-            Onyx.set(ONYXKEYS.CORPAY_PAY_MODAL, null);
+            clearCorpayPayModal();
         });
     });
 
