@@ -52,7 +52,11 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                         >
                             <Text style={styles.flexShrink1}>
                                 {event.lengthInDays > 0
-                                    ? translate('chronos.oooEventSummaryFullDay', event.summary, event.lengthInDays, DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale))
+                                    ? translate('chronos.oooEventSummaryFullDay', {
+                                          summary: event.summary,
+                                          count: event.lengthInDays,
+                                          date: DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale),
+                                      })
                                     : translate(
                                           'chronos.oooEventSummaryPartialDay',
                                           event.summary,
