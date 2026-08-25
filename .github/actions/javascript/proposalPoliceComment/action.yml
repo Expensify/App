@@ -7,6 +7,9 @@ inputs:
   PROPOSAL_POLICE_API_KEY:
     description: 'OpenAI API key for accessing AI services'
     required: true
+  TRUSTED_COMMENTER:
+    description: 'Whether the commenter is a verified approved contributor or partner'
+    required: true
 runs:
   using: 'node24'
   main: './index.js'

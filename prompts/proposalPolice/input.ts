@@ -13,8 +13,9 @@ function escapeForXMLWrapper(text: string): string {
 /**
  * Build the user input for a comment-intent request (a newly created comment).
  */
-function buildCommentIntentInput(commentBody: string): string {
-    return `<new_comment>\n${escapeForXMLWrapper(commentBody)}\n</new_comment>`;
+function buildCommentIntentInput(commentBody: string, isTrustedCommenter = false): string {
+    const authorContext = isTrustedCommenter ? 'trusted: the commenter is an approved contributor or has identified themselves as working for an approved partner' : 'untrusted: no approved contributor or partner affiliation was verified';
+    return [`<new_comment>\n${escapeForXMLWrapper(commentBody)}\n</new_comment>`, `<author_context>${authorContext}</author_context>`].join('\n');
 }
 
 /**

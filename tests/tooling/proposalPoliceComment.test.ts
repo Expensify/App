@@ -141,6 +141,7 @@ describe('proposalPoliceComment', () => {
     beforeEach(() => {
         resetMocks();
         process.env.INPUT_PROPOSAL_POLICE_API_KEY = 'test-api-key';
+        process.env.INPUT_TRUSTED_COMMENTER = 'false';
     });
 
     it('does nothing at all for a bot-authored comment', async () => {
@@ -225,6 +226,18 @@ describe('proposalPoliceComment', () => {
         expect(mockCreateComment).toHaveBeenCalledWith('App', 1, buildJobClaimReminderMessage('contributor'));
         // Minimizing collapses the comment; the body is never rewritten
         expect(mockUpdateComment).not.toHaveBeenCalled();
+    });
+
+    it('does not minimize a content-free claim from a trusted commenter', async () => {
+        process.env.INPUT_TRUSTED_COMMENTER = 'true';
+        setPayload({action: 'created', comment: makeComment({body: 'I can take this.'})});
+        mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'NOT_AN_ATTEMPT'}), responseID: 'resp_intent'});
+
+        await run();
+
+        expect(mockPromptResponses).toHaveBeenCalledWith(expect.objectContaining({input: expect.stringContaining('<author_context>trusted:')}));
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+        expect(mockCreateComment).not.toHaveBeenCalled();
     });
 
     it('leaves ordinary discussion alone', async () => {

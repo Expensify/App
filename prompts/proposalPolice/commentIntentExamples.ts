@@ -26,6 +26,18 @@ export default Str.dedent(`
     ${CONST.INTENT.SPAM} - a claim on the job with no technical content.
 
     ___
+    <author_context>trusted: the commenter is an approved contributor or has identified themselves as working for an approved partner</author_context>
+    I can take this.
+    ___
+    ${CONST.INTENT.NOT_AN_ATTEMPT} - the same content-free self-offer is acceptable from a trusted contributor.
+
+    ___
+    <author_context>untrusted: no approved contributor or partner affiliation was verified</author_context>
+    I can take this.
+    ___
+    ${CONST.INTENT.SPAM} - a content-free self-offer from an untrusted commenter is spam.
+
+    ___
     +1, I can do this. I have 5 years of React Native experience and have fixed similar bugs before.
     ___
     ${CONST.INTENT.SPAM} - credentials are not a proposal. Still no root cause and no fix.
