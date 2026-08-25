@@ -151,8 +151,8 @@ jest.mock('@components/MenuItem', () => {
 });
 
 jest.mock('@components/Modal', () => {
-    function MockModal(): null {
-        return null;
+    function MockModal({isVisible, children}: {isVisible: boolean; children?: React.ReactNode}): React.ReactNode {
+        return isVisible ? children : null;
     }
     return MockModal;
 });
@@ -376,19 +376,6 @@ jest.mock('@components/Icon', () => {
         return null;
     }
     return MockIcon;
-});
-
-// The real empty state renders illustrations/Lottie, so stub it with a lightweight component we can assert on.
-jest.mock('@components/EmptyStateComponent/GenericEmptyStateComponent', () => {
-    const {View: RNView, Text: RNText} = jest.requireActual<Record<string, React.FC<Record<string, unknown>>>>('react-native');
-    function MockGenericEmptyState({title}: {title?: string}) {
-        return (
-            <RNView testID="table-empty-state">
-                <RNText>{title}</RNText>
-            </RNView>
-        );
-    }
-    return MockGenericEmptyState;
 });
 
 jest.mock('@hooks/useGenericEmptyStateIllustration', () => jest.fn(() => ({headerMedia: 'illustration'})));
@@ -2389,7 +2376,7 @@ describe('Table', () => {
             // the empty state must NOT appear.
             expect(screen.getByTestId('row-1')).toBeTruthy();
             expect(screen.queryByTestId('row-2')).toBeNull();
-            expect(screen.queryByTestId('table-empty-state')).toBeNull();
+            expect(screen.queryByTestId('generic-empty-state')).toBeNull();
         });
 
         it('renders the empty state when the default view hides every row even though data exists', () => {
@@ -2416,7 +2403,7 @@ describe('Table', () => {
 
             expect(screen.queryByTestId('row-1')).toBeNull();
             expect(screen.queryByTestId('row-2')).toBeNull();
-            expect(screen.getByTestId('table-empty-state')).toBeTruthy();
+            expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
         });
     });
 
