@@ -85,6 +85,11 @@ type WorkspaceTagsPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT>;
 
+// The pending-switch spinner exists to give feedback while a toggle's optimistic update blocks the JS thread,
+// which is only noticeable on very large single-level tag lists. Below this size the toggle is effectively
+// instant, so the spinner would just add visual noise — only show it once the list is large enough to lag.
+const PENDING_SWITCH_TAG_COUNT_THRESHOLD = 5000;
+
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -381,6 +386,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const firstTagList = policyTagLists.at(0);
         const enabledTagsCount = getCountOfEnabledTagsOfList(firstTagList?.tags);
         const isLastEnabledTagLocked = !!firstTagList?.required && enabledTagsCount === 1;
+        const shouldShowPendingSwitch = Object.keys(firstTagList?.tags ?? {}).length > PENDING_SWITCH_TAG_COUNT_THRESHOLD;
 
         return Object.values(firstTagList?.tags ?? {}).reduce<WorkspaceTagTableRowData[]>((acc, tag) => {
             const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -407,7 +413,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 disabled: isDisabled,
                 errors: tag.errors ?? undefined,
                 pendingAction: tag.pendingAction,
-                pending: tag.pendingFields?.enabled === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                pending: shouldShowPendingSwitch && tag.pendingFields?.enabled === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 isLocked: !canWriteTags || isLastEnabledTagAndEnabled,
                 showEnabledSwitch: true,
                 showRequiredSwitch: false,
