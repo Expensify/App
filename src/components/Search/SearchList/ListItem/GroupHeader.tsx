@@ -420,8 +420,7 @@ function GroupHeader({
                                         style={styles.stickToTop}
                                         onLayout={onSubHeaderLayout}
                                     >
-                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl3]}>
-                                            <View style={[{width: 20, height: 20, borderWidth: 2, borderColor: 'transparent'}]} />
+                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
                                             <SearchTableHeader
                                                 canSelectMultiple
                                                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
