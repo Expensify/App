@@ -8,7 +8,7 @@ import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
 import MenuItem from '@components/MenuItem';
 import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/MenuItemDescription';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
+import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -257,7 +257,7 @@ function Comparison() {
                     </MenuItem.Root>
                 }
                 preset={
-                    <MenuItemEntity
+                    <MenuItemAvatarNavigation
                         title="John Doe"
                         description="john@example.com"
                         avatarSource={icons.FallbackAvatar}
@@ -268,7 +268,7 @@ function Comparison() {
             />
 
             <Card
-                title="MenuItemEntity — avatar source variants and disabled"
+                title="MenuItemAvatarNavigation — avatar source variants and disabled"
                 legacy={
                     <>
                         <Variant label="icon={FallbackAvatar} + displayInDefaultIconColor">
@@ -300,7 +300,7 @@ function Comparison() {
                 preset={
                     <>
                         <Variant label="no avatarSource (default avatar for accountID)">
-                            <MenuItemEntity
+                            <MenuItemAvatarNavigation
                                 title="John Doe"
                                 description="123 Main St, Springfield, IL 62704"
                                 accountID={CONST.DEFAULT_NUMBER_ID}
@@ -308,7 +308,7 @@ function Comparison() {
                             />
                         </Variant>
                         <Variant label="isDisabled">
-                            <MenuItemEntity
+                            <MenuItemAvatarNavigation
                                 title="John Doe"
                                 description="123 Main St, Springfield, IL 62704"
                                 accountID={CONST.DEFAULT_NUMBER_ID}

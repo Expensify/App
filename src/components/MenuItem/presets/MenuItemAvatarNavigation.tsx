@@ -20,9 +20,9 @@ import type {GestureResponderEvent} from 'react-native';
 
 import React from 'react';
 
-type MenuItemEntityProps = WithSentryLabel &
+type MenuItemAvatarNavigationProps = WithSentryLabel &
     WithTestID & {
-        /** The entity's name, rendered as the row's title */
+        /** The title text of the row. Typically the name of whoever the avatar belongs to */
         title: string;
 
         /** Supporting line under the title — an email, address, or other secondary identifier */
@@ -31,7 +31,7 @@ type MenuItemEntityProps = WithSentryLabel &
         /** Account ID the avatar belongs to. Picks the default avatar when `avatarSource` is absent */
         accountID: number;
 
-        /** The entity's avatar. Falls back to the default avatar for `accountID` when omitted */
+        /** Avatar for the leading cell. Falls back to the default avatar for `accountID` when omitted */
         avatarSource?: AvatarSource;
 
         /** Function to fire when the row is pressed */
@@ -42,10 +42,10 @@ type MenuItemEntityProps = WithSentryLabel &
     };
 
 /**
- * The entity MenuItem preset — a tappable row led by a person's avatar, with their name as the title
+ * The avatar-navigation MenuItem preset — a tappable row led by a person's avatar, with their name as the title
  * and a secondary identifier below, that navigates.
  */
-function MenuItemEntity({title, description, accountID, avatarSource, onPress, isDisabled = false, sentryLabel, testID}: MenuItemEntityProps) {
+function MenuItemAvatarNavigation({title, description, accountID, avatarSource, onPress, isDisabled = false, sentryLabel, testID}: MenuItemAvatarNavigationProps) {
     return (
         <MenuItemRoot
             onPress={callFunctionIfActionIsAllowed(onPress)}
@@ -73,4 +73,4 @@ function MenuItemEntity({title, description, accountID, avatarSource, onPress, i
     );
 }
 
-export default MenuItemEntity;
+export default MenuItemAvatarNavigation;

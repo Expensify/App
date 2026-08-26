@@ -1,6 +1,6 @@
 import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
+import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
@@ -47,7 +47,7 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
             const ownerData = getValuesForBeneficialOwner(ownerKey, reimbursementAccountDraft);
 
             return (
-                <MenuItemEntity
+                <MenuItemAvatarNavigation
                     key={ownerKey}
                     title={`${ownerData.firstName} ${ownerData.lastName}`}
                     description={`${ownerData.street}, ${ownerData.city}, ${ownerData.state} ${ownerData.zipCode}`}
