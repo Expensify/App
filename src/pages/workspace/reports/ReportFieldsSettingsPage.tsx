@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {getReportFieldInitialValue, getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
@@ -53,7 +54,7 @@ function ReportFieldsSettingsPage({
         return <NotFoundPage />;
     }
 
-    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, hasAccountingConnections(policy));
 
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;

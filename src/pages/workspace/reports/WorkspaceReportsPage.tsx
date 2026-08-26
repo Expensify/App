@@ -29,7 +29,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getConnectedIntegration, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, hasAccountingConnections, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
@@ -84,7 +84,8 @@ function WorkspaceReportFieldsPage({
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
-    const hasImportedReportField = Object.values(policy?.fieldList ?? {}).some(isReportFieldImportedFromIntegration);
+    const hasAccountingConnection = hasAccountingConnections(policy);
+    const hasImportedReportField = Object.values(policy?.fieldList ?? {}).some((reportField) => isReportFieldImportedFromIntegration(reportField, hasAccountingConnection));
 
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 

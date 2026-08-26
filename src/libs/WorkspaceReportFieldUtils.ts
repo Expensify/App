@@ -116,15 +116,19 @@ function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> 
 /**
  * Determines whether a report field was imported from an accounting integration.
  *
- * A field is treated as integration-imported when either signal is present:
+ * `origin` and `externalIDs` are not sufficient on their own: per the `PolicyReportField` type, `origin`
+ * can be set by any automated action (not only an integration) and `externalIDs` can be auto-generated
+ * by us. To avoid false positives, the field is only treated as accounting-imported when the workspace
+ * actually has an accounting connection (`hasAccountingConnection`) AND one of those integration signals
+ * is present:
  * - `origin` is set (the automated action or integration that added the field), or
  * - `externalIDs` is non-empty (external IDs imported from the integration).
  *
  * Manually-created fields are created with no `origin` and an empty `externalIDs`
  * (see `src/libs/actions/Policy/ReportField.ts`), so they are never treated as imported.
  */
-function isReportFieldImportedFromIntegration(reportField: PolicyReportField | undefined | null): boolean {
-    if (!reportField) {
+function isReportFieldImportedFromIntegration(reportField: PolicyReportField | undefined | null, hasAccountingConnection: boolean): boolean {
+    if (!reportField || !hasAccountingConnection) {
         return false;
     }
 
