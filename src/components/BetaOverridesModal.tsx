@@ -5,8 +5,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import variables from '@styles/variables';
-
 import {clearBetaOverrides, setBetaOverride} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -78,8 +76,7 @@ function BetaOverridesModal({isVisible, onClose}: BetaOverridesModalProps) {
                                         <Badge
                                             text={translate('initialSettingsPage.troubleshoot.overridden')}
                                             isCondensed
-                                            // The condensed badge keeps the pill compact next to the beta name, but its 9px text is too small to read at a glance.
-                                            textStyles={{fontSize: variables.fontSizeSmall}}
+                                            textStyles={styles.condensedBadgeTextLarge}
                                             success
                                         />
                                     )}
