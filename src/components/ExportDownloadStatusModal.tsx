@@ -20,7 +20,7 @@ import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
@@ -72,6 +72,15 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
     const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
 
+    const wasPreparingRef = useRef(false);
+    useEffect(() => {
+        if (state !== CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
+            return;
+        }
+
+        wasPreparingRef.current = true;
+    }, [state]);
+
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
     // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
     // via the encryptedAuthToken, so no separate OldDot sign-in is needed.
@@ -88,7 +97,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     useEffect(() => {
         // Only the leader tab auto-downloads, so a ready export isn't downloaded once per open tab.
-        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts || !isClientTheLeader()) {
+        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts || !isClientTheLeader() || !wasPreparingRef.current) {
             return;
         }
         downloadFile();
