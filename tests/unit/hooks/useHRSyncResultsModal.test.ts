@@ -2,8 +2,10 @@ import {renderHook} from '@testing-library/react-native';
 
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 
+import type HrSyncResult from '@libs/API/HrSyncResult';
+
 import CONST from '@src/CONST';
-import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncProgress, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 
 const mockShowModal = jest.fn();
 
@@ -29,13 +31,18 @@ const RUNNING = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE;
 const JOB_DONE = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
 /** Build one sync progress entry. Each backend update carries a fresh timestamp, therefore the caller supplies it. */
-function syncProgress(stageInProgress: string, timestamp: string, result?: PolicyConnectionSyncProgress['result']): PolicyConnectionSyncProgress {
+function syncProgress(
+    stageInProgress: PolicyConnectionSyncStage,
+    timestamp: string,
+    result?: HrSyncResult,
+    connectionName: ConnectionName = CONST.POLICY.CONNECTIONS.NAME.GUSTO,
+): PolicyConnectionSyncProgress {
     return {
-        connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,
+        connectionName,
         stageInProgress,
         timestamp,
         ...(result ? {result} : {}),
-    } as PolicyConnectionSyncProgress;
+    };
 }
 
 function renderWith(initialProps: PolicyConnectionSyncProgress) {
@@ -94,18 +101,10 @@ describe('useHRSyncResultsModal', () => {
     });
 
     it('shows no modal for a non-HR connection', () => {
-        const {rerender} = renderWith({
-            connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
-            stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.XERO_SYNC_STEP,
-            timestamp: '2026-08-26 10:00:00.000',
-        } as PolicyConnectionSyncProgress);
+        const xero = CONST.POLICY.CONNECTIONS.NAME.XERO;
+        const {rerender} = renderWith(syncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.XERO_SYNC_STEP, '2026-08-26 10:00:00.000', undefined, xero));
 
-        rerender({
-            connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
-            stageInProgress: JOB_DONE,
-            timestamp: '2026-08-26 10:00:05.000',
-            result: RESULT,
-        } as PolicyConnectionSyncProgress);
+        rerender(syncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT, xero));
         expect(mockShowModal).not.toHaveBeenCalled();
     });
 });
