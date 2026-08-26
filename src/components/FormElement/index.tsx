@@ -46,5 +46,3 @@ function FormElement({ref, ...props}: FormElementProps) {
 }
 
 export default FormElement;
-
-export type {default as FormElementProps} from './types';

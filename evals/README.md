@@ -26,7 +26,7 @@ Two things about the wiring are load-bearing and easy to break:
   explicit paths too, so running the evals on purpose means overriding it with a pattern that matches
   nothing.
 
-`evals/` typechecks as part of the Bun project (`tsconfig.bun.json`) and is included in `npm run typecheck`.
+`evals/` is type-checked as part of the Bun project (`tsconfig.bun.json`) and is included in `npm run typecheck`.
 
 ## ProposalPolice
 

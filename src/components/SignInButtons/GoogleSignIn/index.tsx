@@ -95,4 +95,3 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
 }
 
 export default GoogleSignIn;
-export type {GoogleSignInProps};

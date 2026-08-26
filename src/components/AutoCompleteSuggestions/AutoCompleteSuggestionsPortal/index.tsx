@@ -55,4 +55,3 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
 }
 
 export default AutoCompleteSuggestionsPortal;
-export type {AutoCompleteSuggestionsPortalProps};

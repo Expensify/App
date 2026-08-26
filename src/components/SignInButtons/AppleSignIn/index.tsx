@@ -154,4 +154,3 @@ function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
 }
 
 export default AppleSignIn;
-export type {default as AppleSignInProps} from './types';
