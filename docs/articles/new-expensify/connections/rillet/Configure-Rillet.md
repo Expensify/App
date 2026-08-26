@@ -9,7 +9,7 @@ internalScope: Audience is Workspace Admins configuring an existing Rillet conne
 
 Configure how Expensify imports accounting data from Rillet and exports expenses back to your accounting system.
 
-If you haven't connected Rillet yet, learn how to [connect to Rillet](/articles/new-expensify/Unlisted/Connect-to-Rillet).
+If you haven't connected Rillet yet, learn how to [connect to Rillet](/articles/new-expensify/connections/rillet/Connect-to-Rillet).
 
 Once configured, you can:
 
@@ -26,6 +26,8 @@ Each Workspace has its own Rillet integration. To view or update the configurati
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Workspaces > [workspace name]**.
 2. Select **Accounting**. 
 3. On the Rillet connection, select **Import**, **Export**, or **Advanced**.
+
+![Accounting page showing Rillet connection]({{site.url}}/assets/images/Accounting_Rillet_Configure.png){:width="100%"}
 
 ---
 
