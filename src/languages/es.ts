@@ -9,8 +9,9 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+
 import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
@@ -485,6 +486,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -1196,7 +1198,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'No se han añadido reglas de comerciante, ya que todas ya existen.' : 'No se han añadido reglas de comerciante.';
             }
-
             return {
                 one: 'Se ha añadido 1 regla de comerciante.',
                 other: `Se han añadido ${count} reglas de comerciante.`,
@@ -1547,7 +1548,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'basado en actividad pasada',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `basado en <a href="${rulesLink}">reglas del espacio de trabajo</a>` : 'basado en regla del espacio de trabajo'),
         threadExpenseReportName: (formattedAmount, comment) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
-        invoiceReportName: ({linkedReportID}) => `Informe de facturación #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Informe de factura n.º ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount, comment) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName, workspaceName) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
         movedToPersonalSpace: 'movió el gasto a su espacio personal',
@@ -1859,7 +1860,9 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Selecciona los detalles',
             pageTitle: 'Selecciona los detalles que deseas conservar:',
             noDifferences: 'No se encontraron diferencias entre las transacciones',
-            pleaseSelectError: ({field}) => `Por favor, selecciona un(a) ${field}`,
+            pleaseSelectError: ({field}: {field: string}) => {
+                return `Por favor, selecciona un(a) ${field}`;
+            },
             pleaseSelectAttendees: 'Por favor, selecciona asistentes',
             selectAllDetailsError: 'Selecciona todos los detalles antes de continuar.',
         },
