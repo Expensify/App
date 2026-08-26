@@ -98,6 +98,9 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
     const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceIOUAction?.childReportID)}`);
 
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`);
+
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 
@@ -131,6 +134,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                 transaction: targetTransaction,
                 transactionViolations: allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`],
                 personalDetails,
+                conciergeChat,
                 hasOptimisticReportActions: true,
             });
 
