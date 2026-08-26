@@ -52,7 +52,7 @@ function MoneyRequestReportPreview({
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout, shouldUseNarrowLayoutIgnoringWideRHP, isSmallScreenWidth} = useResponsiveLayoutOnWideRHP();
+    const {shouldUseNarrowLayoutIgnoringWideRHP, isSmallScreenWidth} = useResponsiveLayoutOnWideRHP();
     const personalDetailsList = usePersonalDetails();
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
@@ -106,8 +106,8 @@ function MoneyRequestReportPreview({
     );
 
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
-        [StyleUtils, widths, shouldUseNarrowLayout, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayoutIgnoringWideRHP, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
+        [StyleUtils, widths, shouldUseNarrowLayoutIgnoringWideRHP, transactions.length],
     );
     const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {

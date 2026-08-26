@@ -3,7 +3,6 @@ import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransa
 import CONST from '@src/CONST';
 import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
-import arraysEqual from '@src/utils/arraysEqual';
 
 import {useEffect, useState} from 'react';
 
@@ -46,8 +45,14 @@ function useNewTransactions(
     const [diffState, setDiffState] = useState<DiffState>(() => ({reportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS}));
     const trackedTransactionIDs = hasOnceLoadedReportActions && transactions ? transactions.map(({transactionID}) => transactionID) : undefined;
     const baselineSourceIDs = diffState.sourceIDs;
+    const baselineIDs = baselineSourceIDs === undefined ? undefined : new Set(baselineSourceIDs);
     const isReportSwitch = reportID !== diffState.reportID;
-    const hasSameTransactionIDs = trackedTransactionIDs !== undefined && baselineSourceIDs !== undefined && arraysEqual(trackedTransactionIDs, baselineSourceIDs);
+    // Membership, not sequence: a reorder says nothing about what is new, so recording one would cost a render pass and change nothing.
+    const hasSameTransactionIDs =
+        trackedTransactionIDs !== undefined &&
+        baselineIDs !== undefined &&
+        trackedTransactionIDs.length === baselineIDs.size &&
+        trackedTransactionIDs.every((transactionID) => baselineIDs.has(transactionID));
     if (isReportSwitch) {
         // The list in hand can still be the outgoing report's, so let the incoming report's own list set the baseline.
         setDiffState({reportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS});
@@ -56,14 +61,13 @@ function useNewTransactions(
         }
     } else if (trackedTransactionIDs !== baselineSourceIDs && !hasSameTransactionIDs) {
         let addedIDs = EMPTY_TRANSACTION_IDS;
-        if (baselineSourceIDs !== undefined && trackedTransactionIDs !== undefined && trackedTransactionIDs.length > baselineSourceIDs.length) {
-            const baselineSet = new Set(baselineSourceIDs);
+        if (baselineIDs !== undefined && trackedTransactionIDs !== undefined && trackedTransactionIDs.length > baselineIDs.size) {
             // A longer list sharing nothing with a non-empty baseline replaced it, so re-baseline instead of calling it all new.
-            const hasReplacedBaseline = baselineSet.size > 0 && !trackedTransactionIDs.some((transactionID) => baselineSet.has(transactionID));
+            const hasReplacedBaseline = baselineIDs.size > 0 && !trackedTransactionIDs.some((transactionID) => baselineIDs.has(transactionID));
             if (!hasSettledAfterInitialLoad) {
                 setHasSettledAfterInitialLoad(true);
             } else if (!hasReplacedBaseline) {
-                addedIDs = trackedTransactionIDs.filter((transactionID) => !baselineSet.has(transactionID));
+                addedIDs = trackedTransactionIDs.filter((transactionID) => !baselineIDs.has(transactionID));
             }
         } else if (diffState.addedIDs.length && trackedTransactionIDs !== undefined) {
             // A reorder or a removal says nothing about what is new, and the read below filters these against the live
