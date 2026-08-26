@@ -14,11 +14,11 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 // Relative on purpose: module aliases are not resolved when this config is evaluated.
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import getAppVersion from '../../src/libs/VersionUtils.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
-// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
-import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
