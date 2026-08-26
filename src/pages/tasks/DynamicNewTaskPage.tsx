@@ -263,7 +263,7 @@ function DynamicNewTaskPage() {
                                             <TaskFieldAvatar reportID={task?.shareDestination} />
                                         </MenuItem.Leading>
                                         <MenuItem.Content>
-                                            {shareDestination.shouldUseFullTitleToDisplay ? (
+                                            {shareDestination.shouldUseFullTitleToDisplay || !shareDestination.displayNamesWithTooltips?.length ? (
                                                 <MenuItem.Title>{shareDestination.displayName}</MenuItem.Title>
                                             ) : (
                                                 <MenuItem.Title accessibilityLabel={shareDestination.displayName}>

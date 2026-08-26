@@ -192,6 +192,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         /** Whether multi selection is enabled */
         selectionEnabled?: boolean;
 
+        /** Whether selected row keys should remain selected while the search query changes. */
+        shouldPreserveSelectionOnSearch?: boolean;
+
         /**
          * Whether the selection UX (checkboxes / long-press selection mode) should be driven by the real screen size
          * (isSmallScreenWidth) instead of shouldUseNarrowLayout. Set this for tables rendered inside a narrow pane modal

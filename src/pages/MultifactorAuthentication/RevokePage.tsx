@@ -3,7 +3,6 @@ import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -22,6 +21,8 @@ import CONST from '@src/CONST';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
+import RevokeRow from './RevokeRow';
+
 type ConfirmMode = 'thisDevice' | 'single' | 'multiple' | 'all';
 
 const confirmPromptKeys = {
@@ -30,42 +31,6 @@ const confirmPromptKeys = {
     multiple: 'multifactorAuthentication.revoke.confirmationPromptMultiple',
     all: 'multifactorAuthentication.revoke.confirmationPromptAll',
 } as const;
-
-type RevokeRowProps = {
-    /** Which set of devices this row revokes */
-    title: string;
-
-    /** Whether this row's revoke request is in flight */
-    isLoading: boolean;
-
-    /** Opens the confirmation modal for this row's set of devices */
-    onPress: () => void;
-};
-
-/** A row naming a set of registered devices, with a `Revoke` button in the trailing cell */
-function RevokeRow({title, isLoading, onPress}: RevokeRowProps) {
-    const {translate} = useLocalize();
-
-    return (
-        <MenuItem.Root>
-            <MenuItem.Row>
-                <MenuItem.Content>
-                    <MenuItem.Title>{title}</MenuItem.Title>
-                </MenuItem.Content>
-                <MenuItem.Trailing>
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.DANGER}
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        isLoading={isLoading}
-                        onPress={onPress}
-                    >
-                        <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
-                    </Button>
-                </MenuItem.Trailing>
-            </MenuItem.Row>
-        </MenuItem.Root>
-    );
-}
 
 /**
  * Revoke page for multifactor authentication (biometric/passkey) credentials.

@@ -1,6 +1,6 @@
 import Button from '@components/ButtonComposed';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
+import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -190,7 +190,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                     </View>
-                    <MenuItemEntity
+                    <MenuItemAvatarNavigation
                         title={cardholderName}
                         description={cardholderEmail}
                         avatarSource={cardholder?.avatar}
