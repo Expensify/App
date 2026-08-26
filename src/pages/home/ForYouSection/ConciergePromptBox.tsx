@@ -90,9 +90,10 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const {pickAttachments, PDFValidationComponent} = useConciergeAttachmentPicker(conciergeTargetReportID, sendAttachment);
     const {debouncedCommentMaxLengthValidation, isExceedingMaxLength, exceededMaxLength} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID});
 
-    useEffect(() => {
-        debouncedCommentMaxLengthValidation(value);
-    }, [value, debouncedCommentMaxLengthValidation]);
+    const onChangeValue = (newValue: string) => {
+        setValue(newValue);
+        debouncedCommentMaxLengthValidation(newValue);
+    };
 
     // Anchor the "+" popover above the button.
     useEffect(() => {
@@ -232,7 +233,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                     <Composer
                         style={[styles.textInputCompose, styles.textInputCollapseCompose]}
                         value={value}
-                        onChangeText={setValue}
+                        onChangeText={onChangeValue}
                         selection={selection}
                         onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
                         shouldCalculateCaretPosition
