@@ -114,7 +114,7 @@ nr benchmark-app-startup android 20 \
     --wait-time 30
 ```
 
-Use `--output-a` and `--output-b` to choose the per-app sample CSV files. Use `--results-output-a` and `--results-output-b` to choose the corresponding statistics table files. By default, the sample files are written as `<platform>-<span>-<mode>-a.csv` and `...-b.csv` under `.benchmarks`, and each statistics filename adds `-results.csv`. The terminal also prints a separate multi-span summary table for each app. The unsuffixed output options are reserved for single-app mode.
+Use `--output-a` and `--output-b` to choose the per-app sample CSV files. Use `--results-output-a` and `--results-output-b` to choose the corresponding statistics table files. By default, the sample files are written as `<platform>-<span>-<mode>-a.csv` and `...-b.csv` under `.benchmarks`, and each statistics filename adds `-results.csv`. The terminal also prints a separate multi-span summary table for each app. Output options without the `-a` or `-b` suffix are reserved for single-app mode.
 
 Pass `--cold` together with `--app-path-a` and `--app-path-b` when you want each comparison app reinstalled before every warm-up and measured launch. The paths identify the corresponding Android APKs or signed iOS `.app` bundles. Cold comparison mode also clears app state using the platform-specific cold-start behavior; artifact paths are rejected in process mode.
 

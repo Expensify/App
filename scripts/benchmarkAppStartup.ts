@@ -284,6 +284,7 @@ async function benchmarkAppStartupsAlternating(options: BenchmarkAppStartupsAlte
 }
 
 async function main(): Promise<void> {
+    // The CLI framework requires kebab-case named argument keys, which the naming-convention rule cannot express.
     /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
         positionalArgs: [

@@ -1,4 +1,4 @@
-// cspell:ignore devicectl serialno
+// cspell:ignore BEGINSWITH devicectl serialno
 
 import type {TupleToUnion} from 'type-fest';
 

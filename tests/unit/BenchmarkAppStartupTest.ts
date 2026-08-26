@@ -1,3 +1,5 @@
+// cspell:ignore appex
+
 import {benchmarkAlternatingStartups, benchmarkStartups, parseSpanNames, selectBenchmarkSpanNames} from '@scripts/benchmarkAppStartup';
 import {
     assertAndroidAppInstalled,

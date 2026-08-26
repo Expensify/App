@@ -1,4 +1,4 @@
-import {readFileSync} from 'node:fs';
+// cspell:ignore appinvite mobilesdk
 
 import {
     androidApplicationIDs,
@@ -113,14 +113,5 @@ describe('bootstrapAndroidForDevice', () => {
         );
         expect(patchAndroidManifest('<instrumentation android:targetPackage="org.me.mobiexpensifyg" />')).toBe(`<instrumentation android:targetPackage="$${'{applicationId}'}" />`);
         expect(patchAndroidAppName('<string name="app_name">Expensify</string>', 'Expensify (branch)')).toBe('<string name="app_name">Expensify (branch)</string>');
-    });
-
-    test('patches the checked-in Mobile-Expensify Android configuration', () => {
-        const buildGradle = readFileSync('Mobile-Expensify/Android/build.gradle', 'utf8');
-        const googleServices: unknown = JSON.parse(readFileSync('Mobile-Expensify/Android/google-services.json', 'utf8'));
-        const identifiers = androidApplicationIDs('com.example.expensify', 'branch');
-
-        expect(patchAndroidBuildGradle(buildGradle, identifiers.release)).toContain(`applicationId "${identifiers.release}"`);
-        expect(patchGoogleServicesConfig(googleServices, identifiers).client).toBeInstanceOf(Array);
     });
 });

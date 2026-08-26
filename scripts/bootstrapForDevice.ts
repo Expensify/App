@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+// cspell:ignore apos noverify smime
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -455,6 +456,7 @@ function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): void {
 }
 
 async function main(): Promise<void> {
+    // The CLI framework requires kebab-case named argument keys, which the naming-convention rule cannot express.
     /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
         positionalArgs: [

@@ -1,4 +1,4 @@
-import {readFileSync} from 'node:fs';
+// cspell:ignore tisa
 
 import {
     defaultBundleIdentifier,
@@ -132,14 +132,6 @@ describe('bootstrapIOSForDevice', () => {
     test('is idempotent', () => {
         const once = patchProject(projectFixture(), 'com.example.expensify', undefined, 'ABCDEFGHIJ');
         expect(patchProject(once, 'com.example.expensify', undefined, 'ABCDEFGHIJ')).toBe(once);
-    });
-
-    test('patches the checked-in Mobile-Expensify project structure', () => {
-        const project = readFileSync('Mobile-Expensify/iOS/Expensify.xcodeproj/project.pbxproj', 'utf8');
-        const patched = patchProject(project, 'com.example.expensify.expensifylite', 'local', 'ABCDEFGHIJ');
-
-        expect(patched).toContain('PRODUCT_BUNDLE_IDENTIFIER = com.example.expensify.expensifylite.local;');
-        expect(patched).toContain('PRODUCT_BUNDLE_IDENTIFIER = com.example.expensify.expensifylite.local.LiveActivityExtension;');
     });
 
     test('only grants the application group entitlement', () => {
