@@ -576,9 +576,24 @@ function getQueryHashes(query: SearchQueryJSON) {
         filterSet.add(exactMatchIdentity);
     }
 
-    // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
-    // actually filter out results
-    const similarSearchIgnoredFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+    // Only filters that are part of a suggested search's base query should affect the
+    // similarSearchHash (i.e. the tab identity). All other flat filters are user-applied
+    // refinements within the same tab and must not change the tab identity or the
+    // backend searchKey derived from it. FEED is intentionally excluded because it is
+    // a user-applied refinement in reconciliation even though it is part of the
+    // UNAPPROVED_CARD base query — UNAPPROVED_CARD is still uniquely identified by its
+    // groupBy and status.
+    const similarSearchIdentityFilters = new Set<SearchFilterKey>([
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
+    ]);
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
     // their value when computing the similarSearchHash
@@ -599,7 +614,7 @@ function getQueryHashes(query: SearchQueryJSON) {
             continue;
         }
 
-        if (!similarSearchIgnoredFilters.has(filterKey)) {
+        if (similarSearchIdentityFilters.has(filterKey)) {
             filterSet.add(filterKey);
         }
 
