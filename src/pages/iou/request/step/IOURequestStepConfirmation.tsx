@@ -646,9 +646,15 @@ function IOURequestStepConfirmation({
     // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
     const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat;
     const reusableP2PReportID = isP2PDestination ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
-    const existingP2PDestinationReportID = isP2PDestination
-        ? getChatByParticipants([firstParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID])?.reportID
-        : undefined;
+    const p2pRecipientAccountID = firstParticipant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    // Read reports reactively: if the chat lands mid-flow the optimistic ID must drop out, or we'd reveal an uncreated report.
+    const existingP2PChatSelector = useCallback(
+        (reports: Parameters<typeof getChatByParticipants>[1]) =>
+            isP2PDestination ? getChatByParticipants([p2pRecipientAccountID, currentUserPersonalDetails.accountID], reports)?.reportID : undefined,
+        [isP2PDestination, p2pRecipientAccountID, currentUserPersonalDetails.accountID],
+    );
+    const [existingP2PDestinationReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: existingP2PChatSelector});
     const optimisticP2PDestinationReportID = !existingP2PDestinationReportID && reusableP2PReportID ? reusableP2PReportID : undefined;
     const preMountDestinationReportID = optimisticP2PDestinationReportID ?? existingP2PDestinationReportID ?? destinationReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${preMountDestinationReportID}`);
