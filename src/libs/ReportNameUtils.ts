@@ -1001,9 +1001,6 @@ function computeChatThreadReportName(
 
     const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
     const reportActionMessage = getReportActionText(parentReportAction).replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
-    if (isAttachment && reportActionMessage) {
-        return `[${translate('common.attachment')}]`;
-    }
     if (
         parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
         parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
@@ -1019,6 +1016,9 @@ function computeChatThreadReportName(
         isConciergeChatReport(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`], conciergeReportID)
     ) {
         return report.reportName;
+    }
+    if (isAttachment && reportActionMessage) {
+        return `[${translate('common.attachment')}]`;
     }
     if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
         return reportActionMessage;
