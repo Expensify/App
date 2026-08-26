@@ -26,7 +26,7 @@ type NumberFormStateContextValue = {
     /** Whether negative values are allowed. */
     allowNegative: boolean;
 
-    /** Error supplied by FormProvider. */
+    /** Error supplied by FormProvider. Rendered inline by the text input, which owns the label and error slots. */
     errorText?: string;
 };
 

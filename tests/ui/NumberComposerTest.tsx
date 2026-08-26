@@ -276,6 +276,33 @@ describe('NumberComposer imperative API', () => {
         expect(screen.getByDisplayValue('12.345')).toBeOnTheScreen();
     });
 
+    it('does not preserve a sign installed by updateNumber through edits when negative input is disabled', async () => {
+        const numberFormRef = React.createRef<NumberComposerRef>();
+        const onInputChange = jest.fn();
+
+        // Given negative input disabled and a signed value pushed through the updateNumber validation bypass
+        renderSymbolInput({}, {value: '5', decimals: 2, numberFormRef, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            numberFormRef.current?.updateNumber('-5');
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the bypassed value is stored as-is per the updateNumber contract
+        expect(numberFormRef.current?.getNumber()).toBe('-5');
+        expect(screen.getByText('-')).toBeOnTheScreen();
+
+        // When the user edits the magnitude
+        fireEvent.changeText(screen.getByDisplayValue('5'), '56');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the sign is not re-attached because negative values are not allowed
+        expect(numberFormRef.current?.getNumber()).toBe('56');
+        expect(onInputChange).toHaveBeenLastCalledWith('56');
+        expect(screen.queryByText('-')).not.toBeOnTheScreen();
+    });
+
     it('clearSelection collapses the selection onto its end', async () => {
         const numberFormRef = React.createRef<NumberComposerRef>();
 
