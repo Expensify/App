@@ -46,7 +46,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
     const cardList = useNonPersonalCardList();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const isAdmin = isPolicyAdmin(policy);
+    const shouldNavigateToCardDetails = isPolicyAdmin(policy);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const companyCard = cardList?.[(getOriginalMessage(action) as IssueNewCardOriginalMessage)?.cardID];
     const shouldShowAddMissingDetailsButton =
@@ -59,7 +59,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     return (
         <>
             <RenderHTML
-                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, policyID, buildDynamicRoute: isAdmin ? buildDynamicRoute : undefined, expensifyCard, companyCard, translate, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID})}</muted-text>`}
+                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, buildDynamicRoute, expensifyCard, companyCard, translate, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID})}</muted-text>`}
             />
             {shouldShowAddMissingDetailsButton && (
                 <Button

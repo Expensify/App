@@ -4709,6 +4709,7 @@ function isCardActive(card?: Card): boolean {
 function getCardIssuedMessage({
     reportAction,
     shouldRenderHTML = false,
+    shouldNavigateToCardDetails = false,
     policyID = '-1',
     buildDynamicRoute,
     expensifyCard,
@@ -4718,13 +4719,14 @@ function getCardIssuedMessage({
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
+    shouldNavigateToCardDetails?: boolean;
     policyID?: string;
     /**
-     * Supplying this both opts into the admin card-details link and provides its base path, so the link can never be
-     * built against the active route by accident. Pass `useScreenBoundDynamicRoute()`; omit it for viewers who should
-     * get the domain-card route instead.
+     * Required so the card-details link can never be built against the active route by accident. Components pass
+     * `useScreenBoundDynamicRoute()`; callers that only produce plain text pass `createDynamicRoute`, since they never
+     * reach the link.
      */
-    buildDynamicRoute?: (dynamicRouteSuffixWithParams: string) => Route;
+    buildDynamicRoute: (dynamicRouteSuffixWithParams: string) => Route;
     expensifyCard?: Card;
     companyCard?: Card;
     translate: LocaleContextProps['translate'];
@@ -4736,7 +4738,7 @@ function getCardIssuedMessage({
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
 
-    const navigateRoute = buildDynamicRoute
+    const navigateRoute = shouldNavigateToCardDetails
         ? buildDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(String(cardID), policyID))
         : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
     const isExpensifyCardActive = isCardActive(expensifyCard);

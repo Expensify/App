@@ -2265,6 +2265,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: undefined,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -2278,6 +2279,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: activeExpensifyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe(
@@ -2295,6 +2297,7 @@ describe('ReportActionsUtils', () => {
                 getCardIssuedMessage({
                     reportAction: mockVirtualCardIssuedAction,
                     shouldRenderHTML: true,
+                    shouldNavigateToCardDetails: true,
                     policyID: testPolicyID,
                     buildDynamicRoute,
                     expensifyCard: activeExpensifyCardForAdmin,
@@ -2356,6 +2359,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 456,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toContain(`<a href='https://dev.new.expensify.com:8082/settings/wallet'>`);
@@ -2368,6 +2372,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).not.toContain('<a href=');
