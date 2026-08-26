@@ -10,7 +10,7 @@ import React, {useState} from 'react';
 import ExportDownloadStatusModal from './ExportDownloadStatusModal';
 
 /**
- * Renders the queued export status modal for the whole app. It watches the export collection and shows the modal
+ * Renders the export status modal for the whole app. It watches the export collection and shows the modal
  * for the active export (preparing, ready, or failed). Because it is the single owner of the modal and reads
  * straight from Onyx, a screen only has to start an export (which writes its record); this shows the progress,
  * delivers the file when it is ready, and still surfaces it after a reload or once the screen that started it is
