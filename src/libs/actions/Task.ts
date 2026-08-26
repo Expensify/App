@@ -11,7 +11,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
@@ -1164,7 +1163,7 @@ function getShareDestination(
 
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails),
+        PersonalDetailsUtils.getPersonalDetailsForAccountIDs(participants, personalDetails),
         isMultipleParticipant,
         localeCompare,
         formatPhoneNumber,
