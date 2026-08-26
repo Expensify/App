@@ -108,6 +108,7 @@ import Onyx from 'react-native-onyx';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 
+import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
@@ -1889,6 +1890,8 @@ function queueExportSearchItemsToCSV({
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
+    markExportInitiatedLocally(exportID);
+
     write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {
         optimisticData,
         failureData,
@@ -1939,6 +1942,10 @@ function queueExportSearchWithTemplate(
         exportName,
         ...(shouldTrackExportProgress ? {exportID} : {}),
     }) as QueueExportSearchWithTemplateParams;
+
+    if (shouldTrackExportProgress) {
+        markExportInitiatedLocally(exportID);
+    }
 
     write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
 
