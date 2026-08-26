@@ -48,10 +48,10 @@ Onyx.connectWithoutView({
         }
         const previousEmail = session?.email;
         session = value;
-        sendPoliciesContext();
         if (previousEmail && previousEmail !== value.email) {
             clearGlobalSpanAttributes();
         }
+        sendPoliciesContext();
     },
 });
 
@@ -63,7 +63,7 @@ Onyx.connectWithoutView({
         }
         policies = value;
         sendPoliciesContext();
-        requestDatabaseSizeRemeasurement();
+        requestDatabaseSizeRemeasurement(Object.keys(value).length);
     },
 });
 
@@ -73,8 +73,9 @@ Onyx.connectWithoutView({
         if (!value) {
             return;
         }
-        sendReportsCount(Object.keys(value).length);
-        requestDatabaseSizeRemeasurement();
+        const reportsCount = Object.keys(value).length;
+        sendReportsCount(reportsCount);
+        requestDatabaseSizeRemeasurement(reportsCount);
     },
 });
 
@@ -84,8 +85,9 @@ Onyx.connectWithoutView({
         if (!value) {
             return;
         }
-        sendPersonalDetailsCount(Object.keys(value).length);
-        requestDatabaseSizeRemeasurement();
+        const personalDetailsCount = Object.keys(value).length;
+        sendPersonalDetailsCount(personalDetailsCount);
+        requestDatabaseSizeRemeasurement(personalDetailsCount);
     },
 });
 
@@ -93,11 +95,10 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (value) => {
-        if (!value) {
-            return;
-        }
-        sendTransactionsCount(Object.keys(value).length);
-        requestDatabaseSizeRemeasurement();
+        // An account can have zero transactions, which Onyx delivers as undefined. Count it as 0 so the zero cohort stays in the data.
+        const transactionsCount = Object.keys(value ?? {}).length;
+        sendTransactionsCount(transactionsCount);
+        requestDatabaseSizeRemeasurement(transactionsCount);
     },
 });
 

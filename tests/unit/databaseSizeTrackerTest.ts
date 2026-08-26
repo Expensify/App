@@ -41,7 +41,7 @@ describe('databaseSizeTracker', () => {
     it('ignores re-measurement requests before the initial measurement ran', async () => {
         jest.useFakeTimers();
 
-        requestDatabaseSizeRemeasurement();
+        requestDatabaseSizeRemeasurement(1);
         await jest.advanceTimersByTimeAsync(REMEASURE_DEBOUNCE_TIME_MS * 2);
 
         expect(mockMeasureDatabaseSize).not.toHaveBeenCalled();
@@ -78,8 +78,8 @@ describe('databaseSizeTracker', () => {
         mockMeasureDatabaseSize.mockClear();
         mockMeasureDatabaseSize.mockResolvedValue({bytes: 6000, source: CONST.TELEMETRY.DB_SIZE_SOURCE.SQLITE});
 
-        requestDatabaseSizeRemeasurement();
-        requestDatabaseSizeRemeasurement();
+        requestDatabaseSizeRemeasurement(1);
+        requestDatabaseSizeRemeasurement(1);
         expect(mockMeasureDatabaseSize).not.toHaveBeenCalled();
 
         await jest.advanceTimersByTimeAsync(REMEASURE_DEBOUNCE_TIME_MS * 2);
@@ -94,7 +94,7 @@ describe('databaseSizeTracker', () => {
         mockMeasureDatabaseSize.mockRejectedValue(new Error('no storage manager'));
         const setSpy = jest.spyOn(Onyx, 'set');
 
-        requestDatabaseSizeRemeasurement();
+        requestDatabaseSizeRemeasurement(1);
         await jest.advanceTimersByTimeAsync(REMEASURE_DEBOUNCE_TIME_MS * 2);
 
         expect(mockMeasureDatabaseSize).toHaveBeenCalledTimes(1);
@@ -114,6 +114,17 @@ describe('databaseSizeTracker', () => {
         await jest.advanceTimersByTimeAsync(INITIAL_MEASUREMENT_DELAY_MS);
 
         expect(mockMeasureDatabaseSize).toHaveBeenCalledTimes(1);
+        expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(7000);
+    });
+
+    it('ignores a re-measurement for an emptied collection, so an Onyx.clear does not persist the size of the emptied database', async () => {
+        jest.useFakeTimers();
+        mockMeasureDatabaseSize.mockClear();
+
+        requestDatabaseSizeRemeasurement(0);
+        await jest.advanceTimersByTimeAsync(REMEASURE_DEBOUNCE_TIME_MS * 2);
+
+        expect(mockMeasureDatabaseSize).not.toHaveBeenCalled();
         expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(7000);
     });
 });

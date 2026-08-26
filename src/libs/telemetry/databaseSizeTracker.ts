@@ -20,7 +20,7 @@ const REMEASURE_DEBOUNCE_TIME_MS = 5000;
 const REMEASURE_MAX_WAIT_MS = 60000;
 
 let hasScheduledInitialMeasurement = false;
-let hasMeasuredThisSession = false;
+let hasCompletedInitialMeasurement = false;
 let initialMeasurementTimeout: NodeJS.Timeout | undefined;
 
 function applyMeasurement(measurement: DatabaseSizeMeasurement) {
@@ -35,7 +35,7 @@ function applyMeasurement(measurement: DatabaseSizeMeasurement) {
 Onyx.connectWithoutView({
     key: ONYXKEYS.LAST_MEASURED_DATABASE_SIZE,
     callback: (value) => {
-        if (!value || hasMeasuredThisSession) {
+        if (!value || hasCompletedInitialMeasurement) {
             return;
         }
         applyMeasurement(value);
@@ -46,7 +46,7 @@ function measureAndStoreDatabaseSize(): Promise<unknown> {
     return measureDatabaseSize()
         .catch((): DatabaseSizeMeasurement => ({source: CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE}))
         .then((measurement) => {
-            hasMeasuredThisSession = true;
+            hasCompletedInitialMeasurement = true;
             if (measurement.source === CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE) {
                 // Report unavailable when no size is known, but only persist successful measurements.
                 if (getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES] === undefined) {
@@ -71,8 +71,12 @@ function scheduleInitialDatabaseSizeMeasurement() {
     }, INITIAL_MEASUREMENT_DELAY_MS);
 }
 
-function requestDatabaseSizeRemeasurement() {
-    if (!hasMeasuredThisSession) {
+/**
+ * Debounced re-measurement for data changes, ignored until the initial measurement ran.
+ * A count of 0 means the collection was just emptied by an `Onyx.clear`, so skip it to not persist the emptied database's size.
+ */
+function requestDatabaseSizeRemeasurement(itemCount: number) {
+    if (!hasCompletedInitialMeasurement || itemCount === 0) {
         return;
     }
     debouncedMeasureAndStoreDatabaseSize();
@@ -82,7 +86,7 @@ function cleanupDatabaseSizeTracking() {
     clearTimeout(initialMeasurementTimeout);
     debouncedMeasureAndStoreDatabaseSize.cancel();
     hasScheduledInitialMeasurement = false;
-    hasMeasuredThisSession = false;
+    hasCompletedInitialMeasurement = false;
 }
 
 export {cleanupDatabaseSizeTracking, INITIAL_MEASUREMENT_DELAY_MS, REMEASURE_DEBOUNCE_TIME_MS, requestDatabaseSizeRemeasurement, scheduleInitialDatabaseSizeMeasurement};
