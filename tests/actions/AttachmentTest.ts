@@ -125,7 +125,7 @@ describe('AttachmentStorage', () => {
         expect(resolvedSource).toBe(sourceURL);
     });
     it('should return the cached local source with a file:// scheme so the native Image can load it', async () => {
-        // Given a cached attachment whose schemeless file path still exists on disk
+        // Given a cached attachment whose stored file path (no scheme) still exists on disk
         const attachmentID = 'cached-attachment';
         const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
         const localSource = `/mock/caches/attachments/${attachmentID}.jpg`;
@@ -135,7 +135,7 @@ describe('AttachmentStorage', () => {
         // When reading it from the cache
         const resolvedSource = await getCachedAttachment({attachmentID, attachment, currentSource: sourceURL});
 
-        // Then the path is returned prefixed with file:// (Android's <Image> can't load a schemeless local path)
+        // Then the path is returned prefixed with file:// (Android's <Image> can't load a local path without a scheme)
         expect(resolvedSource).toBe(`file://${localSource}`);
     });
     it('should cache markdown attachment', async () => {
