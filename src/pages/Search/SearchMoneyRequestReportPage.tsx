@@ -126,6 +126,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
     const {transactionThreadReportID, effectiveTransactionThreadReportID, reportActions} = useTransactionThreadReportID(reportIDFromRoute);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
@@ -202,6 +204,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
             createTransactionThreadReport({
                 introSelected,
+                conciergeChat,
                 currentUserLogin: currentUserEmail ?? '',
                 currentUserAccountID,
                 betas,
@@ -212,7 +215,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, betas, hasReportActions, currentUserAccountID});
+        openReport({reportID: reportIDFromRoute, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID});
         isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:
@@ -278,6 +281,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
         createTransactionThreadReport({
             introSelected,
+            conciergeChat,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
@@ -304,6 +308,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         snapshotViolations,
         transactionThreadReportID,
         visibleTransactions,
+        conciergeChat,
     ]);
 
     const shouldUseSnapshotTransaction = reportTransactions.length === 0 && !!snapshotTransaction;
@@ -406,6 +411,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                 <DragAndDropProvider isDisabled={isEditingDisabled}>
                                     <MoneyRequestReportView
                                         report={report}
+                                        reportIDFromRoute={reportIDFromRoute}
                                         reportLoadingState={reportLoadingState}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         key={report?.reportID}

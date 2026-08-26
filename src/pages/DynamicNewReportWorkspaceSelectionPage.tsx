@@ -16,7 +16,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -33,7 +32,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {canSubmitPerDiemExpenseFromWorkspace, getGroupPoliciesWhereReportCanBeCreated, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
@@ -58,7 +56,7 @@ import {View} from 'react-native';
 
 type WorkspaceListItem = {
     text: string;
-    policyID?: string;
+    policyID: string;
     isPolicyAdmin?: boolean;
 } & ListItem;
 
@@ -68,7 +66,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const {isMovingExpenses} = route.params ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path);
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const {selectedTransactions, selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const styles = useThemeStyles();
@@ -204,7 +201,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             return;
         }
 
-        const policyForRestriction = policy.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`] : undefined;
+        const policyForRestriction = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`];
         if (
             policyForRestriction &&
             shouldRestrictUserBillableActions(policyForRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)
@@ -238,18 +235,9 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             }
 
             result.push({
-                text: policy?.name ?? '',
-                policyID: policy?.id,
-                icons: [
-                    {
-                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                        fallbackIcon: icons.FallbackWorkspaceAvatar,
-                        name: policy?.name,
-                        type: CONST.ICON_TYPE_WORKSPACE,
-                        id: policy?.id,
-                    },
-                ],
-                keyForList: `${policy?.id}-${index}`,
+                text: policy.name,
+                policyID: policy.id,
+                keyForList: `${policy.id}-${index}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
             });
