@@ -6,24 +6,21 @@ import useSidePanelReportID from '@hooks/useSidePanelReportID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
-import {addAttachmentWithComment, addComment} from '@userActions/Report';
+import {addComment} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FileObject} from '@src/types/utils/Attachment';
 
 /**
  * Returns a callback that opens the side panel (or Concierge chat on native)
  * and sends the provided search query as a message.
  * Also returns a flag indicating whether the Ask Concierge item is ready to be displayed.
- *
- * @param forceConcierge Always target the Concierge report, ignoring the report the side panel currently maps to.
  */
-function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = {}) {
+function useAskConcierge() {
     const sidePanelReportID = useSidePanelReportID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {openConciergeAnywhere, isInSidePanel} = useOpenConciergeAnywhere();
-    const targetReportID = !forceConcierge && isInSidePanel && sidePanelReportID ? sidePanelReportID : conciergeReportID;
+    const targetReportID = (isInSidePanel ? sidePanelReportID : undefined) ?? conciergeReportID;
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetReportID)}`);
     const {timezone, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -34,7 +31,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         if (!trimmedQuery || !shouldShowAskConcierge) {
             return;
         }
-        openConciergeAnywhere({forceConcierge});
+        openConciergeAnywhere();
         addComment({
             report: targetReport,
             notifyReportID: targetReportID,
@@ -49,27 +46,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         });
     };
 
-    const askConciergeWithAttachment = (attachments: FileObject | FileObject[], searchQuery: string) => {
-        if (!shouldShowAskConcierge) {
-            return;
-        }
-        openConciergeAnywhere({forceConcierge});
-        addAttachmentWithComment({
-            report: targetReport,
-            notifyReportID: targetReportID,
-            ancestors: [],
-            attachments,
-            currentUserAccountID,
-            text: searchQuery.trim(),
-            timezone: timezone ?? CONST.DEFAULT_TIME_ZONE,
-            shouldPlaySound: true,
-            isInSidePanel,
-            delegateAccountID,
-            conciergeReportID,
-        });
-    };
-
-    return {askConcierge, askConciergeWithAttachment, shouldShowAskConcierge, conciergeTargetReportID: targetReportID};
+    return {askConcierge, shouldShowAskConcierge};
 }
 
 export default useAskConcierge;

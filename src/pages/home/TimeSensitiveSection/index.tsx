@@ -1,17 +1,32 @@
+import WidgetContainer from '@components/WidgetContainer';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
+import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
+import {getConnectedHRProvider} from '@libs/HRUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
+
+import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
 
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import {createTimeSensitiveAdminPoliciesSelector} from '@selectors/Policy';
+import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddBankAccount from './hooks/useTimeSensitiveAddBankAccount';
@@ -34,18 +49,38 @@ import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
 import ValidateAccount from './items/ValidateAccount';
 
+type BrokenPolicyConnection = {
+    /** The policy ID associated with this connection */
+    policyID: string;
+
+    /** The policy name associated with this connection */
+    policyName: string;
+
+    /** The connection name that has an error */
+    connectionName: PolicyConnectionName;
+
+    /** Human-readable integration name (e.g. "QuickBooks Online", "Gusto", "BambooHR"). */
+    integrationName: string;
+};
+
 type BrokenPersonalCardConnection = {
     /** The card ID associated with this connection */
     cardID: string;
 };
 
-/**
- * Builds the prioritized list of time-sensitive action rows for the Home page. Returns an empty array when the user
- * has no time-sensitive content, so the caller can decide whether to render the "Time sensitive" group at all.
- */
-function useTimeSensitiveItems(): React.ReactNode[] {
+function TimeSensitiveSection() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login} = useCurrentUserPersonalDetails();
     const isAnonymous = useIsAnonymousUser();
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => setIsExpanded(false);
+        }, []),
+    );
 
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
@@ -62,24 +97,51 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     } = useTimeSensitiveCards();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
 
-    const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
-    // the selector derives both, so this never deep-compares employeeList/connections/customUnits per policy
-    const [adminPoliciesData] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: createTimeSensitiveAdminPoliciesSelector(login, connectionSyncProgress),
+    // Selector for filtering admin policies (Release 4)
+    const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
+    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: adminPoliciesSelectorWrapper,
     });
-    const adminPolicies = adminPoliciesData?.policies;
-    const brokenPolicyConnections = adminPoliciesData?.brokenConnections ?? CONST.EMPTY_ARRAY;
+    const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
-    const {pendingSignerInfo} = useTimeSensitiveSignerInfo();
+    const {shouldShowEnterSignerInfo, pendingSignerInfo} = useTimeSensitiveSignerInfo();
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
     const brokenCompanyCardConnections = useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies);
+
+    // Find policies with broken connections (accounting + HR, only for admins)
+    const brokenPolicyConnections: BrokenPolicyConnection[] = [];
+    for (const policy of adminPolicies ?? []) {
+        const policyConnections = policy.connections;
+        if (!policyConnections) {
+            continue;
+        }
+
+        // Check if there's a sync in progress for this policy using the proper check that handles JOB_DONE and timeout
+        const syncProgress = connectionSyncProgress?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
+        const isSyncInProgress = isConnectionInProgress(syncProgress, policy);
+
+        for (const connectionName of Object.keys(policyConnections) as ConnectionName[]) {
+            if (hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
+                const integrationName =
+                    connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR
+                        ? (getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])
+                        : CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+                brokenPolicyConnections.push({
+                    policyID: policy.id,
+                    policyName: policy.name,
+                    connectionName,
+                    integrationName,
+                });
+            }
+        }
+    }
 
     // Get personal cards with broken connections
     const brokenPersonalCardConnections: BrokenPersonalCardConnection[] = [];
@@ -92,8 +154,33 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         }
     }
 
+    const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
+    const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
+    const hasBrokenPolicyConnections = brokenPolicyConnections.length > 0;
     const isCurrentLoginValidated = isCurrentUserValidated(loginList, sessionEmail ?? login);
     const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
+
+    // This guard must exactly match the conditions used to render each widget below.
+    // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
+    // must be reflected here to avoid showing an empty "Time sensitive" section.
+    const hasAnyTimeSensitiveContent =
+        lockedBankAccounts.length > 0 ||
+        shouldShowEnterSignerInfo ||
+        shouldShowValidateAccount ||
+        shouldShowFixFailedBilling ||
+        shouldShowReviewCardFraud ||
+        shouldShowAddPaymentCard ||
+        shouldShowAddBankAccount ||
+        hasBrokenCompanyCards ||
+        hasBrokenPersonalCards ||
+        hasBrokenPolicyConnections ||
+        shouldShowAddShippingAddress ||
+        shouldShowActivateCard ||
+        shouldShowAddVirtualCardPersonalDetails;
+
+    if (!hasAnyTimeSensitiveContent) {
+        return null;
+    }
 
     // Priority order:
     // 1. Validate account
@@ -236,7 +323,23 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         }
     }
 
-    return items;
+    const hiddenCount = Math.max(0, items.length - CONST.HOME.SECTION_VISIBLE_LIMIT);
+    const visibleItems = isExpanded ? items : items.slice(0, CONST.HOME.SECTION_VISIBLE_LIMIT);
+
+    return (
+        <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
+            <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
+                {visibleItems}
+                {hiddenCount > 0 && (
+                    <HomeSectionExpandToggle
+                        isExpanded={isExpanded}
+                        onPress={() => setIsExpanded((prev) => !prev)}
+                        collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
+                    />
+                )}
+            </View>
+        </WidgetContainer>
+    );
 }
 
-export default useTimeSensitiveItems;
+export default TimeSensitiveSection;

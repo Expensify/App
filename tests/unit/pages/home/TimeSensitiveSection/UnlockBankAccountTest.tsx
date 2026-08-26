@@ -6,8 +6,7 @@ import {navigateToConciergeChat} from '@libs/actions/Report';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
-import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
+import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -70,11 +69,6 @@ const LOCKED_BANK_ACCOUNT_ID = 99;
 const POLICY_ID = 'policy_1';
 const POLICY_NAME = 'My Workspace';
 const CONCIERGE_REPORT_ID = 'concierge_report_1';
-
-// Renders the "Time sensitive" group the way the Home "For you" card now does (hook + presentational group).
-function TimeSensitiveSection() {
-    return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
-}
 
 const renderTimeSensitiveSection = () =>
     render(

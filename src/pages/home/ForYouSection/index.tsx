@@ -1,5 +1,4 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
-import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 
 import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
@@ -15,9 +14,6 @@ import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
-import TimeSensitiveGroup from '@pages/home/TimeSensitiveSection/TimeSensitiveGroup';
-import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
-
 import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
@@ -25,24 +21,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
-import ConciergePromptBox from './ConciergePromptBox';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
 import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
-type ForYouSectionProps = {
-    /** Concierge "+" menu visibility, owned by HomePage so it survives this section's remount on breakpoint change. */
-    isConciergeMenuVisible: boolean;
-    setIsConciergeMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForYouSectionProps) {
+function ForYouSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -57,10 +47,10 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
     // The onboarding NVP defaults to "completed" before it loads, so only trust it once the value is present.
     const isOnboardingStatusKnown = onboarding !== undefined;
+    // Old/migrated accounts have an empty onboarding NVP; a non-empty record marks a NewDot-onboarded (new) user.
+    const isNewDotOnboardedUser = !isEmptyObject(onboarding);
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
-    // "Time sensitive" now lives inside this card as a group above the "For you" todos (chat input stays on top).
-    const timeSensitiveItems = useTimeSensitiveItems();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
@@ -203,38 +193,22 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
 
-    const hideForYou = shouldHideForYouSection({
-        isInitialLoad,
-        hasAnyTodos,
-        hasSeenTodo: hasSeenForYouTodo,
-        firstDayFreeTrial,
-        cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
-        isOnboardingCompleted,
-        isOnboardingStatusKnown,
-    });
+    if (
+        shouldHideForYouSection({
+            isInitialLoad,
+            hasAnyTodos,
+            hasSeenTodo: hasSeenForYouTodo,
+            firstDayFreeTrial,
+            cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
+            isOnboardingCompleted,
+            isOnboardingStatusKnown,
+            isNewDotOnboardedUser,
+        })
+    ) {
+        return null;
+    }
 
-    // The card always renders so the Concierge input stays on the home page. `hideForYou` only gates the "For you"
-    // heading and todos or empty-state below it. When hidden with no time-sensitive content, the card is just the box.
-    return (
-        <WidgetContainer
-            titleContent={
-                <ConciergePromptBox
-                    isMenuVisible={isConciergeMenuVisible}
-                    setIsMenuVisible={setIsConciergeMenuVisible}
-                />
-            }
-        >
-            <TimeSensitiveGroup items={timeSensitiveItems} />
-            {!hideForYou && (
-                <>
-                    <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4, styles.mb2]}>
-                        <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.forYou')}</Text>
-                    </View>
-                    {renderContent()}
-                </>
-            )}
-        </WidgetContainer>
-    );
+    return <WidgetContainer title={translate('homePage.forYou')}>{renderContent()}</WidgetContainer>;
 }
 
 export default ForYouSection;

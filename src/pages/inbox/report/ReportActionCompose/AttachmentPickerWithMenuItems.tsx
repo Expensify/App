@@ -412,11 +412,21 @@ function AttachmentPickerWithMenuItems({
     }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
 
     // 1. Limit the container width to a single column.
-    const outerContainerStyles = styles.composerButtonColumn;
+    const outerContainerStyles = [{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0];
 
     // 2. If there isn't enough height for two buttons, the Expand/Collapse button wraps to the next column so that it's intentionally hidden.
     //    The Create button stays anchored to the bottom (flex-start in a reversed column) to match the Emoji and Send buttons.
-    const innerContainerStyles = styles.composerButtonStack;
+    const innerContainerStyles = [
+        styles.dFlex,
+        styles.flexColumnReverse,
+        styles.flexWrap,
+        styles.justifyContentStart,
+        styles.pAbsolute,
+        styles.h100,
+        styles.w100,
+        styles.overflowHidden,
+        {paddingVertical: styles.composerSizeButton.marginHorizontal},
+    ];
 
     // 3. If there is enough height for two buttons, the Expand/Collapse button is at the top.
     const expandCollapseButtonContainerStyles = [styles.flexGrow1, styles.flexShrink0];

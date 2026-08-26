@@ -180,12 +180,6 @@ function useConciergeSidePanelReportActions({
             }
             const filtered = actions.filter(isCurrentSessionAction);
             if (filtered.length === 0) {
-                // Side panel: nothing matched the current session yet (e.g. just after reopen, before the new
-                // message propagates). Show the greeting instead of `actions` to avoid flashing stale history.
-                if (!isConciergeMainDM && conciergeGreetingAction) {
-                    const createdAction = actions.find(isCreatedAction);
-                    return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
-                }
                 return actions;
             }
             if (conciergeGreetingAction) {
@@ -194,16 +188,7 @@ function useConciergeSidePanelReportActions({
             }
             return filtered;
         },
-        [
-            showConciergeSidePanelWelcome,
-            conciergeGreetingAction,
-            isConciergeHiddenHistory,
-            showFullHistory,
-            sessionStartTime,
-            isCurrentSessionAction,
-            hadUserMessageAtSessionStart,
-            isConciergeMainDM,
-        ],
+        [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeHiddenHistory, showFullHistory, sessionStartTime, isCurrentSessionAction, hadUserMessageAtSessionStart],
     );
 
     const filteredVisibleActions = useMemo(() => filterActions(visibleReportActions), [filterActions, visibleReportActions]);

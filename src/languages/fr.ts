@@ -1132,13 +1132,6 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Créez-en un ou faites glisser un reçu ici',
         },
         insightsSection: {chartUnavailable: 'Graphique indisponible', notEnoughData: 'Nous n’avons pas encore suffisamment de données pour remplir ce graphique'},
-        conciergePrompt: {
-            goodMorning: ({name}: {name?: string}) => (name ? `Bonjour, ${name}.` : 'Bonjour.'),
-            goodAfternoon: ({name}: {name?: string}) => (name ? `Bonjour, ${name}.` : 'Bon après-midi.'),
-            goodEvening: ({name}: {name?: string}) => (name ? `Bonsoir, ${name}.` : 'Bonsoir.'),
-            inputPlaceholder: 'Demander à Concierge d’analyser vos dépenses ou d’obtenir de l’aide',
-            inputPlaceholderMobile: 'Demander n’importe quoi à Concierge',
-        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

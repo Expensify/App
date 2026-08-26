@@ -1078,13 +1078,6 @@ const translations: TranslationDeepObject<typeof en> = {
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
         recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
         insightsSection: {chartUnavailable: '图表不可用', notEnoughData: '我们目前没有足够的数据来填充此图表'},
-        conciergePrompt: {
-            goodMorning: ({name}: {name?: string}) => (name ? `早上好，${name}。` : '早上好。'),
-            goodAfternoon: ({name}: {name?: string}) => (name ? `下午好，${name}。` : '下午好。'),
-            goodEvening: ({name}: {name?: string}) => (name ? `晚上好，${name}。` : '晚上好。'),
-            inputPlaceholder: '向 Concierge 请求分析你的报销或获取支持',
-            inputPlaceholderMobile: '向 Concierge 提问任何问题',
-        },
     },
     allSettingsScreen: {
         subscription: '订阅',

@@ -1128,13 +1128,6 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Maak er een aan of sleep hier een bonnetje naartoe',
         },
         insightsSection: {chartUnavailable: 'Diagram niet beschikbaar', notEnoughData: 'We hebben nog niet genoeg gegevens om deze grafiek te vullen'},
-        conciergePrompt: {
-            goodMorning: ({name}: {name?: string}) => (name ? `Goedemorgen, ${name}.` : 'Goedemorgen.'),
-            goodAfternoon: ({name}: {name?: string}) => (name ? `Goedemiddag, ${name}.` : 'Goedemiddag.'),
-            goodEvening: ({name}: {name?: string}) => (name ? `Goedenavond, ${name}.` : 'Goedenavond.'),
-            inputPlaceholder: 'Vraag Concierge om je uitgaven te analyseren of om hulp te krijgen',
-            inputPlaceholderMobile: 'Stel Concierge alles gerust een vraag',
-        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

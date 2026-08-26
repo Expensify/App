@@ -1144,13 +1144,6 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Utwórz jeden lub przeciągnij tu paragon',
         },
         insightsSection: {chartUnavailable: 'Wykres niedostępny', notEnoughData: 'Nie mamy jeszcze wystarczającej ilości danych, żeby wypełnić ten wykres'},
-        conciergePrompt: {
-            goodMorning: ({name}: {name?: string}) => (name ? `Dzień dobry, ${name}.` : 'Dzień dobry.'),
-            goodAfternoon: ({name}: {name?: string}) => (name ? `Dzień dobry, ${name}.` : 'Dzień dobry.'),
-            goodEvening: ({name}: {name?: string}) => (name ? `Dobry wieczór, ${name}.` : 'Dobry wieczór.'),
-            inputPlaceholder: 'Poproś Concierge o przeanalizowanie swoich wydatków lub uzyskaj pomoc',
-            inputPlaceholderMobile: 'Zapytaj Concierge o cokolwiek',
-        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',

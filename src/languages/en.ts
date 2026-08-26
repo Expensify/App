@@ -1003,13 +1003,6 @@ const translations = {
     },
     homePage: {
         forYou: 'For you',
-        conciergePrompt: {
-            goodMorning: ({name}: {name?: string}) => (name ? `Good morning, ${name}.` : 'Good morning.'),
-            goodAfternoon: ({name}: {name?: string}) => (name ? `Good afternoon, ${name}.` : 'Good afternoon.'),
-            goodEvening: ({name}: {name?: string}) => (name ? `Good evening, ${name}.` : 'Good evening.'),
-            inputPlaceholder: 'Ask Concierge to analyze your expenses or get support',
-            inputPlaceholderMobile: 'Ask Concierge anything',
-        },
         timeSensitiveSection: {
             title: 'Time sensitive',
             ctaFix: 'Fix',
