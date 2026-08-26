@@ -1514,7 +1514,7 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1000, [currentUserAccountID, 1, 2]),
             });
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe('Ragnar, floki@vikings.net');
         });
 
@@ -1523,7 +1523,7 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1001, [currentUserAccountID, 1]),
             });
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe('Ragnar Lothbrok');
         });
 
@@ -1538,6 +1538,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: {[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}},
                 currentUserAccountID,
                 translate: translateWithHiddenMarker,
+                formatPhoneNumber,
             });
             expect(name).toBe('HiddenMarker');
         });
