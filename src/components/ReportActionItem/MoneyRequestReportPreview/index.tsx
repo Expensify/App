@@ -142,7 +142,13 @@ function MoneyRequestReportPreview({
         selector: pendingNewTransactionIDsSelector,
     });
     const isFocused = useIsFocused();
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
+    // The transactions arrive in steps, and `useNewTransactions` reads every step as newly added expenses. Withhold the
+    // list until it is complete so the first full delivery becomes the baseline. Counted against the unfiltered set,
+    // since `transactionCount` includes rows `transactions` hides while a delete is pending.
+    const expectedTransactionCount = iouReport?.transactionCount;
+    const isDeliveryComplete = expectedTransactionCount === undefined ? allReportTransactions.length > 0 : allReportTransactions.length >= expectedTransactionCount;
+    const transactionsForDiff = isDeliveryComplete ? transactions : undefined;
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isFocused);
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
     const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
