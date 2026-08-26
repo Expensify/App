@@ -1735,8 +1735,7 @@ function openReport(params: OpenReportActionParams) {
     // can only be non-null on a first load if it was persisted from before the refresh, so clearing it here
     // clears the marker on a page refresh while leaving genuine first opens (marker already null) untouched.
     const isFirstLoadAfterRefresh = !allReportLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`]?.hasOnceLoadedReportActions;
-    const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> =
-        hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
+    const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
 
     // An explicit mark-as-unread keeps its "New" marker anchored while the user stays in the report
     // (readNewestAction no longer clears it, and the repeated openReport calls of a single visit don't

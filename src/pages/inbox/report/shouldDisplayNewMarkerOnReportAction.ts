@@ -183,6 +183,17 @@ const getUnreadMarkerReportAction = ({
         return [null, -1];
     }
 
+    // The stable manual-mark anchor is only valid while the marked action is still present and not pending
+    // deletion. Once it is deleted, keeping the anchor would leave every visible action failing the
+    // `reportActionID === manuallyMarkedUnreadReportActionID` check, so the marker would vanish instead of
+    // moving on. Drop the anchor in that case so the timestamp-based scan below can move the marker to the
+    // next unread message.
+    const manuallyMarkedUnreadReportAction = manuallyMarkedUnreadReportActionID
+        ? visibleReportActions.find((action) => action.reportActionID === manuallyMarkedUnreadReportActionID)
+        : undefined;
+    const activeManuallyMarkedUnreadReportActionID =
+        manuallyMarkedUnreadReportAction && !shouldHideNewMarker(manuallyMarkedUnreadReportAction, isOffline) ? manuallyMarkedUnreadReportActionID : null;
+
     const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestReceivedOfflineMessageIndex ?? 0);
     const endIndex = isReversed ? (earliestReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
     const step = isReversed ? -1 : 1;
@@ -218,7 +229,7 @@ const getUnreadMarkerReportAction = ({
                 isScrolledOverThreshold,
                 isOffline,
                 prevUnreadMarkerReportActionID,
-                manuallyMarkedUnreadReportActionID,
+                manuallyMarkedUnreadReportActionID: activeManuallyMarkedUnreadReportActionID,
                 hasWindowFocus,
             });
 
