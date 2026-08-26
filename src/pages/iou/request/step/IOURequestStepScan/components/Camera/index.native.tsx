@@ -22,6 +22,7 @@ import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/componen
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
+import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -177,12 +178,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
                 });
                 if (!isMultiScanEnabled) {
-                    startSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE, {
-                        name: CONST.TELEMETRY.SPAN_RECEIPT_PREPARE,
-                        op: CONST.TELEMETRY.SPAN_RECEIPT_PREPARE,
-                        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-                        attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
-                    });
+                    startReceiptPrepareSpan();
                 }
                 return ReceiptStorage.adopt(photo.path);
             })

@@ -21,6 +21,7 @@ import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/co
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import variables from '@styles/variables';
 
@@ -130,12 +131,7 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
         cropImageToAspectRatio(imageObject, viewfinderLayoutRef.current?.width, viewfinderLayoutRef.current?.height, shouldAlignTop).then(({file, source}) => {
             endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             if (!isMultiScanEnabled) {
-                startSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE, {
-                    name: CONST.TELEMETRY.SPAN_RECEIPT_PREPARE,
-                    op: CONST.TELEMETRY.SPAN_RECEIPT_PREPARE,
-                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-                    attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
-                });
+                startReceiptPrepareSpan();
             }
             onCapture(file, source);
         });
