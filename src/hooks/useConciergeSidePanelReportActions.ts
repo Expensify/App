@@ -2,6 +2,7 @@ import DateUtils from '@libs/DateUtils';
 import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -144,7 +145,13 @@ function useConciergeSidePanelReportActions({
                 return false;
             }
             if (isConciergeMainDM) {
-                return isCreatedAction(action) || isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime;
+                // A still-OPEN child task (e.g. an unfinished onboarding task) stays pinned even though it predates
+                // the session, so collapsing read history behind "Show history" never buries a task the user still
+                // has to act on. This replaces the blanket `hasOutstandingChildTask` bypass that used to force the
+                // entire history open, which is what suppressed the "Show history" button altogether.
+                const isOpenChildTask =
+                    action.childType === CONST.REPORT.TYPE.TASK && action.childStateNum === CONST.REPORT.STATE_NUM.OPEN && action.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN;
+                return isCreatedAction(action) || isCurrentUserPendingAddAction(action, currentUserAccountID) || isOpenChildTask || action.created >= sessionStartTime;
             }
             if (!firstUserMessageCreated) {
                 return false;
