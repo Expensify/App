@@ -285,7 +285,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
             SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
@@ -306,7 +306,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
             SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
@@ -327,7 +327,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
             SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
             SCREENS.WORKSPACE.CREATE_DISTANCE_RATE,
             SCREENS.WORKSPACE.CREATE_DISTANCE_RATE_UPGRADE,
@@ -388,15 +388,17 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
-        // `splitReportID` is deliberately not named `reportID` so it cannot inherit the base path's report:
+        // `splitReportID` is deliberately not named `reportID` so it cannot inherit the base path's report.
+        // `originalTransactionID` is deliberately not named `transactionID` so it cannot collide with the
+        // `transactionID` query param used by the expense step screens nested under this dynamic route.
         getRoute: (splitReportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string) => {
             if (!splitReportID || !originalTransactionID) {
                 Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE route`);
             }
 
-            return getUrlWithParams('split-expense-overview', {splitReportID, transactionID: originalTransactionID, splitExpenseTransactionID});
+            return getUrlWithParams('split-expense-overview', {splitReportID, originalTransactionID, splitExpenseTransactionID});
         },
-        queryParams: ['splitReportID', 'transactionID', 'splitExpenseTransactionID'],
+        queryParams: ['splitReportID', 'originalTransactionID', 'splitExpenseTransactionID'],
     },
     MONEY_REQUEST_SPLIT_EXPENSE_SEARCH: {
         path: 'split-expense-overview-search',
@@ -412,12 +414,12 @@ const DYNAMIC_ROUTES = {
                 Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE_SEARCH route`);
             }
 
-            return getUrlWithParams('split-expense-overview-search', {splitReportID, transactionID: originalTransactionID, splitExpenseTransactionID});
+            return getUrlWithParams('split-expense-overview-search', {splitReportID, originalTransactionID, splitExpenseTransactionID});
         },
-        queryParams: ['splitReportID', 'transactionID', 'splitExpenseTransactionID'],
+        queryParams: ['splitReportID', 'originalTransactionID', 'splitExpenseTransactionID'],
     },
     MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE: {
-        // No query params of its own: `splitReportID`/`transactionID` are inherited from the overview screen underneath.
+        // No query params of its own: `splitReportID`/`originalTransactionID` are inherited from the overview screen underneath.
         path: 'split-expense-create-date-range',
         entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
     },
@@ -432,12 +434,22 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
         ],
         // `orderWeight` is stringified explicitly because the first tag list has index 0, which `getUrlWithParams` would drop as falsy.
         getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, reportActionID?: string) =>
             getUrlWithParams('expense-tag', {action, iouType, orderWeight: String(orderWeight), transactionID, reportID, reportActionID}),
         queryParams: ['action', 'iouType', 'orderWeight', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    SPLIT_EXPENSE_EDIT: {
+        path: 'split-expense/edit/:reportID/:splitExpenseTransactionID?',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
+        getRoute: (reportID: string, splitExpenseTransactionID?: string) => {
+            if (!splitExpenseTransactionID) {
+                return `split-expense/edit/${reportID}` as const;
+            }
+            return `split-expense/edit/${reportID}/${splitExpenseTransactionID}` as const;
+        },
     },
     MONEY_REQUEST_STEP_MERCHANT: {
         path: 'expense-merchant',
@@ -467,7 +479,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
             SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
@@ -484,7 +496,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
             SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
@@ -1744,7 +1756,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SHARE.SUBMIT_DETAILS,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('taxRate', {action, iouType, transactionID, reportID}),
         queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
@@ -1782,7 +1794,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
             SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
             SCREENS.REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
@@ -2464,16 +2476,6 @@ const ROUTES = {
     CHRONOS_SCHEDULE_OOO: {
         route: 'r/:reportID/chronos/schedule-ooo',
         getRoute: (reportID: string) => `r/${reportID}/chronos/schedule-ooo` as const,
-    },
-    SPLIT_EXPENSE_EDIT: {
-        route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
-        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
-            if (!reportID || !originalTransactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
-            }
-
-            return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
-        },
     },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID/:backToReport?',

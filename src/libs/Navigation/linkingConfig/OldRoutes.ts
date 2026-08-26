@@ -164,6 +164,7 @@ const oldRoutes: Record<string, string> = {
     '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/edit/split-expense/overview/*/*/*': '/create/split-expense/overview/$1/$2/0/split-expense/edit/$1/$3',
     '/*/*/accountant/*/*': '/r/$4/accountant?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/upgrade/*/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4&upgradePath=$5',
     '/*/*/upgrade/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4',

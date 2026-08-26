@@ -1856,10 +1856,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             },
                         },
                         [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE]: DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path,
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
-                            path: ROUTES.SPLIT_EXPENSE_EDIT.route,
-                            exact: true,
-                        },
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT]: DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.path,
                         [SCREENS.SET_DEFAULT_WORKSPACE]: ROUTES.SET_DEFAULT_WORKSPACE.route,
                     },
                 },

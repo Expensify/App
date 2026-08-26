@@ -106,6 +106,14 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/subscription/downgrade')).toBe(undefined);
     });
 
+    it('redirects old split expense edit path to the dynamic split expense edit route', () => {
+        expect(getMatchingNewRoute('/edit/split-expense/overview/123/456/789')).toBe('/create/split-expense/overview/123/456/0/split-expense/edit/123/789');
+    });
+
+    it('preserves query params when redirecting the old split expense edit path', () => {
+        expect(getMatchingNewRoute('/edit/split-expense/overview/123/456/789?backTo=/r/123')).toBe('/create/split-expense/overview/123/456/0/split-expense/edit/123/789?backTo=/r/123');
+    });
+
     it('redirects old card reconciliation account path with two wildcards', () => {
         expect(getMatchingNewRoute('/workspaces/abc/accounting/xero/card-reconciliation/account')).toBe(
             '/workspaces/abc/accounting/xero/card-reconciliation/account-reconciliation-settings',
