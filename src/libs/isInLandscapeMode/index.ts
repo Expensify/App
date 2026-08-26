@@ -1,5 +1,7 @@
 import {isMobile} from '@libs/Browser';
 
+import {Dimensions} from 'react-native';
+
 const TABLET_MIN_SCREEN_DIMENSION = 600;
 
 function isTabletScreen(): boolean {
@@ -12,7 +14,7 @@ const screenShortSide = Math.min(window.screen.width, window.screen.height);
 const screenLongSide = Math.max(window.screen.width, window.screen.height);
 
 function getViewportWidth(): number {
-    return window.visualViewport?.width ?? window.innerWidth;
+    return Dimensions.get('window').width;
 }
 
 /**
