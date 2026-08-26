@@ -2,6 +2,7 @@ import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy, getExpensifyCar
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, Domain, Policy} from '@src/types/onyx';
 import type {CardFeedWithNumber, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 
@@ -25,6 +26,14 @@ function createTestCard(overrides: Partial<Card> & Pick<Card, 'cardID' | 'bank'>
 
 function createCardNameValuePairs(nameValuePairs: Partial<NonNullable<Card['nameValuePairs']>>): NonNullable<Card['nameValuePairs']> {
     return createMock<NonNullable<Card['nameValuePairs']>>(nameValuePairs);
+}
+
+function createTestDomain(overrides: Partial<Domain> & Pick<Domain, 'accountID' | 'email'>): Domain {
+    return {
+        validated: true,
+        domain_defaultSecurityGroupID: '',
+        ...overrides,
+    };
 }
 
 function createTestPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Policy {
@@ -86,7 +95,7 @@ describe('Card Feed Utils', () => {
     it('returns card feeds for display with custom names', () => {
         const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, cardListMock, translateLocal);
         expect(cardFeedsForDisplay).toEqual({
-            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: 'Expensify Card', name: 'Expensify Card'},
+            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: 'Expensify Card', name: 'Expensify Card', subtitle: 'test.com'},
             '1234_oauth.americanexpressfdx.com 1001': {id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'},
             '1234_vcf': {id: '1234_vcf', fundID: '1234', feed: 'vcf', name: 'Custom feed name'},
             '1234_oauth.citibank.com': {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
@@ -102,6 +111,31 @@ describe('Card Feed Utils', () => {
             '1234_oauth.citibank.com': {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
             '1234_stripe': {id: '1234_stripe', fundID: '1234', feed: 'stripe', name: 'Stripe'},
         });
+    });
+
+    it('adds the origin workspace name as the subtitle for workspace-level company feeds via preferredPolicy', () => {
+        const policies: OnyxCollection<Policy> = {
+            [`${ONYXKEYS.COLLECTION.POLICY}AA1BB2CC3`]: createTestPolicy({id: 'AA1BB2CC3', name: 'Marketing'}),
+            [`${ONYXKEYS.COLLECTION.POLICY}XX1YY2ZZ3`]: createTestPolicy({id: 'XX1YY2ZZ3', name: 'Engineering'}),
+        };
+
+        const result = getCardFeedsForDisplay(cardFeedsMock, {}, translateLocal, undefined, policies);
+
+        // Visa and Citibank both point at preferredPolicy AA1BB2CC3, Stripe at XX1YY2ZZ3.
+        expect(result['1234_vcf']?.subtitle).toBe('Marketing');
+        expect(result['1234_oauth.citibank.com']?.subtitle).toBe('Marketing');
+        expect(result['1234_stripe']?.subtitle).toBe('Engineering');
+    });
+
+    it('falls back to the domain name as the subtitle for domain-level company feeds without a preferredPolicy', () => {
+        // American Express has no preferredPolicy, so it resolves via the domain backing fundID 1234.
+        const domains: OnyxCollection<Domain> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN}1234`]: createTestDomain({accountID: 1234, email: 'admin@acme.com'}),
+        };
+
+        const result = getCardFeedsForDisplay(cardFeedsMock, {}, translateLocal, undefined, undefined, domains);
+
+        expect(result['1234_oauth.americanexpressfdx.com 1001']?.subtitle).toBe('acme.com');
     });
 
     it('returns numbered commercial card feed names for search display', () => {
@@ -306,7 +340,7 @@ describe('getExpensifyCardFeedsForDisplay', () => {
         };
 
         expect(getExpensifyCardFeedsForDisplay(allCards, undefined)).toEqual({
-            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK},
+            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK, subtitle: 'test.com'},
         });
     });
 
@@ -319,7 +353,7 @@ describe('getExpensifyCardFeedsForDisplay', () => {
 
         const result = getExpensifyCardFeedsForDisplay(allCards, undefined);
         expect(Object.keys(result)).toHaveLength(1);
-        expect(result['5555_Expensify Card']).toEqual({id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK});
+        expect(result['5555_Expensify Card']).toEqual({id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK, subtitle: 'test.com'});
     });
 
     it('returns separate entries for different fundIDs', () => {
@@ -330,8 +364,8 @@ describe('getExpensifyCardFeedsForDisplay', () => {
 
         const result = getExpensifyCardFeedsForDisplay(allCards, undefined);
         expect(Object.keys(result)).toHaveLength(2);
-        expect(result['5555_Expensify Card']).toEqual({id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK});
-        expect(result['6666_Expensify Card']).toEqual({id: '6666_Expensify Card', fundID: '6666', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK});
+        expect(result['5555_Expensify Card']).toEqual({id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK, subtitle: 'test.com'});
+        expect(result['6666_Expensify Card']).toEqual({id: '6666_Expensify Card', fundID: '6666', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK, subtitle: 'test.com'});
     });
 
     it('filters out non-Expensify cards from mixed card list', () => {
