@@ -46,7 +46,7 @@ function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerSt
                 <AvatarImage
                     avatarSource={avatarSource}
                     size={size}
-                    type={CONST.ICON_TYPE_WORKSPACE}
+                    shape={CONST.AVATAR_SHAPE.ROUNDED_SQUARE}
                     imageStyles={imageStyles}
                     imageContainerAdditionalStyles={iconAdditionalStyles}
                     onImageError={onImageError}
@@ -65,7 +65,7 @@ function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerSt
             <AvatarIcon
                 avatarSource={avatarSource}
                 size={size}
-                type={CONST.ICON_TYPE_WORKSPACE}
+                shape={CONST.AVATAR_SHAPE.ROUNDED_SQUARE}
                 iconContainerStyles={imageStyles}
                 iconAdditionalStyles={iconAdditionalStyles}
                 fallbackAvatarTestID={fallbackAvatarTestID}

@@ -1,3 +1,4 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import AvatarNamesTooltip from '@components/Avatar/tooltips/AvatarNamesTooltip';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import Text from '@components/Text';
@@ -16,8 +17,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {MultipleAvatarsProps} from './types';
-
-import Avatar from '..';
 
 type HorizontalStackingOptions = Partial<{
     isHovered: boolean;
@@ -79,7 +78,7 @@ function HorizontalAvatars({
                     fallbackDisplayName={fallbackDisplayName}
                     style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}
                 >
-                    <Avatar
+                    <AvatarFromIcon
                         iconAdditionalStyles={[
                             StyleUtils.getHorizontalStackedAvatarBorderStyle({
                                 theme,
@@ -91,11 +90,7 @@ function HorizontalAvatars({
                             }),
                             StyleUtils.getAvatarBorderWidth(size),
                         ]}
-                        type={icon.type}
-                        source={icon.source}
-                        name={icon.name ?? ''}
-                        avatarID={icon.id ?? CONST.DEFAULT_NUMBER_ID}
-                        fallbackIcon={icon.fallbackIcon}
+                        icon={icon}
                         fill={icon.fill}
                         size={size}
                         testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"

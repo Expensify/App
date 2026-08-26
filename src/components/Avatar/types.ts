@@ -1,8 +1,8 @@
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import type {AvatarSizeName} from '@styles/utils';
+import type {AvatarShape, AvatarSizeName} from '@styles/utils';
 
-import type {AvatarType, Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
@@ -36,8 +36,8 @@ type AvatarPrimitivesCommonProps = {
     /** Size of Avatar */
     size: AvatarSizeName;
 
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type: AvatarType;
+    /** Shape of the avatar: round for users, rounded square for workspaces */
+    shape: AvatarShape;
 };
 
 type AvatarIcon = Icon & {

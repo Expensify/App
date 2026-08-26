@@ -4699,6 +4699,13 @@ const CONST = {
         XXXX_LARGE: 'xxxx-large',
     },
 
+    AVATAR_SHAPE: {
+        // Fully round, used for user avatars
+        CIRCLE: 'circle',
+        // Corner radius scaled to the avatar size, used for workspace avatars
+        ROUNDED_SQUARE: 'rounded-square',
+    },
+
     COMPANY_CARD: {
         // Mostly used for feed details
         FEED_BANK_NAME: {

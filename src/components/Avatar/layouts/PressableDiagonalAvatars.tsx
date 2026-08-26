@@ -1,3 +1,4 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 
@@ -13,7 +14,6 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-import Avatar from '..';
 import DiagonalAvatarsFrame from './DiagonalAvatarsFrame';
 import getDiagonalAvatarSizing from './getDiagonalAvatarSizing';
 
@@ -56,12 +56,8 @@ function PressableDiagonalAvatars({size, primaryAvatar, secondaryAvatar, iconCou
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={sentryLabel}
             >
-                <Avatar
-                    type={avatar.type}
-                    source={avatar.source}
-                    name={avatar.name ?? ''}
-                    avatarID={avatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                    fallbackIcon={avatar.fallbackIcon}
+                <AvatarFromIcon
+                    icon={avatar}
                     fill={avatar.fill}
                     size={avatarSize}
                     imageStyles={styles[singleAvatarStyleKey]}

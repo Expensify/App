@@ -25,6 +25,7 @@ import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
 import type {ThemeStyles} from '..';
 import type {
     AllStyles,
+    AvatarShape,
     AvatarSizeName,
     AvatarStyle,
     ButtonSizeValue,
@@ -311,12 +312,12 @@ function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
 }
 
 /**
- * Return the border style for an avatar
+ * Return the border style for an avatar of the given shape
  */
-function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
+function getAvatarBorderStyle(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
     return {
         overflow: 'hidden',
-        ...getAvatarBorderRadius(size, type),
+        borderRadius: shape === CONST.AVATAR_SHAPE.ROUNDED_SQUARE ? avatarBorderSizes[size] : variables.buttonBorderRadius,
     };
 }
 
@@ -2458,4 +2459,4 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
 export default createStyleUtils;
-export type {StyleUtilsType, AvatarSizeName};
+export type {StyleUtilsType, AvatarShape, AvatarSizeName};
