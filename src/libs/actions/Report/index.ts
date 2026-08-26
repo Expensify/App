@@ -3232,10 +3232,11 @@ function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
 /**
  * Removes a report created by `promoteDraftReportForPreMount`, for when the caller backs out before submission actually happens.
  */
-async function clearPromotedDraftReportForPreMount(reportID: string) {
-    // Remove the report first. If the app terminates between these writes, startup cleanup consumes the remaining marker.
-    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-    return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`, null);
+function clearPromotedDraftReportForPreMount(reportID: string) {
+    return Onyx.multiSet({
+        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`]: null,
+    });
 }
 
 /**

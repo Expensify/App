@@ -612,6 +612,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
             return;
         }
+        onExpenseWriteWillStart?.();
         if (isTrackExpense) {
             const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
             submitPerDiemExpenseForSelfDM({
@@ -869,11 +870,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant) {
             return;
         }
+        onExpenseWriteWillStart?.();
 
         // Same reasoning as above: reuse the confirmation screen's optimistic report ID for a brand-new
         // P2P recipient, so the screen isn't left subscribed to a report ID that's never created.
-        const isBrandNewP2PRecipient = !report && !participant.isPolicyExpenseChat && !participant.reportID;
-        const optimisticChatReportID = isBrandNewP2PRecipient && !!transaction.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : undefined;
+        const optimisticChatReportID = getReusableP2PReportID(participant, transaction.reportID);
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
@@ -1259,9 +1260,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            onExpenseWriteWillStart?.();
             setIsConfirmed(true);
             sendMoneyElsewhere(sendMoneyParams);
         } else if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            onExpenseWriteWillStart?.();
             setIsConfirmed(true);
             sendMoneyWithWallet(sendMoneyParams);
         } else {

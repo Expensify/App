@@ -454,6 +454,34 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 expect(transactionParams).not.toHaveProperty('modifiedMerchant');
             }
         });
+
+        it('uses the transaction report ID for a brand-new P2P recipient even when a page-level report is still set', async () => {
+            // Given a distance expense whose brand-new P2P recipient already reserved an optimistic report ID,
+            // while the page-level report still points at the flow's origin report
+            const optimisticP2PReportID = 'reused-p2p-distance-1';
+            const distanceTransaction = buildTransaction({reportID: optimisticP2PReportID, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL});
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        transaction: distanceTransaction,
+                        transactions: [distanceTransaction],
+                        requestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                        isDistanceRequest: true,
+                        isManualDistanceRequest: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the distance request is submitted
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+
+            // Then the reserved ID is forwarded, so the chat is built at the ID the screen subscribes to
+            expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
+        });
     });
 
     describe('trackExpense path', () => {

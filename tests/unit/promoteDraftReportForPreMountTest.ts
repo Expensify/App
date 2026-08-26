@@ -52,25 +52,6 @@ describe('promoteDraftReportForPreMount lifecycle', () => {
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toBeUndefined();
     });
 
-    it('clearPromotedDraftReportForPreMount removes the speculative report before clearing the marker, so a mid-flight crash leaves only the marker for startup cleanup to consume', async () => {
-        // Given a promoted draft that must remain recoverable during rollback
-        const reportID = '123';
-        const draftReport = {reportID} as Report;
-        await promoteDraftReportForPreMount(reportID, draftReport);
-
-        // When cancellation clears its speculative Onyx state
-        const setSpy = jest.spyOn(Onyx, 'set');
-        await clearPromotedDraftReportForPreMount(reportID);
-
-        // Then the marker outlives the report so a crash still leaves a cleanup signal
-        const reportSetCallIndex = setSpy.mock.calls.findIndex((call) => call[0] === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-        const markerSetCallIndex = setSpy.mock.calls.findIndex((call) => call[0] === `${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`);
-        expect(reportSetCallIndex).toBeGreaterThanOrEqual(0);
-        expect(markerSetCallIndex).toBeGreaterThan(reportSetCallIndex);
-
-        setSpy.mockRestore();
-    });
-
     it('clearPromotedDraftReportPreMountMarker is a no-op on the report row when no promotion ever happened', async () => {
         // Given a report ID without any promotion lifecycle state
         const reportID = 'never-promoted';
