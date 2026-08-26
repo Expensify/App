@@ -268,11 +268,6 @@ function AvatarWithDisplayName({
         }
 
         if (isChatThread(report)) {
-            if (report?.parentReportID === conciergeReportID) {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(CONST.ACCOUNT_ID.CONCIERGE)));
-                return;
-            }
-
             // In an ideal situation account ID won't be 0
             if (actorAccountID.current && actorAccountID.current > 0) {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(actorAccountID.current)));
