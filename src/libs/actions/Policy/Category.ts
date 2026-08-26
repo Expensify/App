@@ -1958,6 +1958,81 @@ function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string
 }
 
 /**
+ * Removes a category's tax default. There is no dedicated delete command: writing the workspace's own default tax rate
+ * is what clears the override, since `getCategoryDefaultTaxRate` falls back to that same rate when no rule exists. The
+ * rule is dropped from the array optimistically so the row disappears rather than lingering as a no-op.
+ *
+ * Returns the rules array as it stands after this write, so a caller deleting several in a row can thread it through.
+ */
+function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, baseExpenseRules?: ExpenseRule[]): ExpenseRule[] | undefined {
+    const defaultExternalID = policy?.taxRates?.defaultExternalID;
+    if (!policy?.id || !defaultExternalID) {
+        return;
+    }
+    const policyID = policy.id;
+    const expenseRules = baseExpenseRules ?? policy.rules?.expenseRules ?? [];
+    const matchesCategory = (rule: ExpenseRule) => rule.applyWhen.some((when) => when.value === categoryName);
+
+    if (!expenseRules.some(matchesCategory)) {
+        return expenseRules;
+    }
+
+    const pendingExpenseRules = expenseRules.map((rule) => (matchesCategory(rule) ? {...rule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null} : rule));
+    const deletedExpenseRules = expenseRules.filter((rule) => !matchesCategory(rule));
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules: pendingExpenseRules}},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules: deletedExpenseRules}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        // Put the rule back carrying the error so a failed delete is visible rather than the row just
+                        // reappearing with no explanation.
+                        expenseRules: expenseRules.map((rule) =>
+                            matchesCategory(rule) ? {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')} : rule,
+                        ),
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyCategoryTaxParams = {
+        policyID,
+        categoryName,
+        taxID: defaultExternalID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
+
+    return deletedExpenseRules;
+}
+
+/** Removes the tax defaults for several categories at once, threading the array through as `setPolicyCategoryTaxes` does. */
+function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[]) {
+    let workingExpenseRules = policy?.rules?.expenseRules ?? [];
+
+    for (const categoryName of categoryNames) {
+        workingExpenseRules = deletePolicyCategoryTax(policy, categoryName, workingExpenseRules) ?? workingExpenseRules;
+    }
+}
+
+/**
  * Dismisses the error on a category's tax default. A rule whose add never landed is dropped outright, since there is no
  * stored rule left to show — matching how a failed coding rule is cleared.
  */
@@ -2064,6 +2139,8 @@ export {
     isDefaultMccGroupID,
     clearCategoryErrors,
     clearPolicyCategoryTaxErrors,
+    deletePolicyCategoryTax,
+    deletePolicyCategoryTaxes,
     createPolicyCategory,
     deleteWorkspaceCategories,
     downloadCategoriesCSV,

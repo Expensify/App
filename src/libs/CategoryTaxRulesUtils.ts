@@ -4,6 +4,8 @@ import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseD
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {MerchantRuleForm} from '@src/types/form/MerchantRuleForm';
+import INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {Policy} from '@src/types/onyx';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
 
@@ -90,9 +92,6 @@ function getCategoryTaxRulesTableData({
             ruleID: getCategoryTaxRuleKey(categoryName),
             section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES,
             isRename: false,
-            // Deleting a category tax default needs a backend command that doesn't exist yet, so these rows can't take
-            // part in the table's bulk delete.
-            isSelectionDisabled: true,
             typeLabel,
             conditionText,
             ruleDescription,
@@ -106,4 +105,34 @@ function getCategoryTaxRulesTableData({
     });
 }
 
-export {categoryHasTaxRule, getCategoryTaxRule, getCategoryTaxRulesTableData, getCategoryTaxRuleTaxID, getTaxRateDisplayName, isCategoryTaxRuleKey};
+/** The category a rule key from the Expense defaults table refers to. */
+function getCategoryNameFromTaxRuleKey(key: string): string {
+    return key.slice(CATEGORY_TAX_RULE_KEY_PREFIX.length);
+}
+
+/**
+ * The defaults a category rule can't carry, of the ones the draft currently has set. A category rule only sets a tax, so
+ * anything else in the draft would be silently dropped on save — the picker warns before clearing them.
+ */
+function getIncompatibleCategoryRuleDefaults(form: MerchantRuleForm | undefined): string[] {
+    if (!form) {
+        return [];
+    }
+    const incompatibleKeys = [INPUT_IDS.MERCHANT, INPUT_IDS.CATEGORY, INPUT_IDS.TAG, INPUT_IDS.DESCRIPTION, INPUT_IDS.VENDOR_ID, INPUT_IDS.REIMBURSABLE, INPUT_IDS.BILLABLE] as const;
+
+    return incompatibleKeys.filter((key) => {
+        const value = form[key];
+        return typeof value === 'boolean' || (value !== undefined && value !== '');
+    });
+}
+
+export {
+    categoryHasTaxRule,
+    getCategoryNameFromTaxRuleKey,
+    getCategoryTaxRule,
+    getCategoryTaxRulesTableData,
+    getCategoryTaxRuleTaxID,
+    getIncompatibleCategoryRuleDefaults,
+    getTaxRateDisplayName,
+    isCategoryTaxRuleKey,
+};

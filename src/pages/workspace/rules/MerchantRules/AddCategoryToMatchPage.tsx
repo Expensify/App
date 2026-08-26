@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -9,6 +10,7 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,8 +21,8 @@ import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
-import {updateDraftMerchantRule} from '@libs/actions/User';
-import {categoryHasTaxRule} from '@libs/CategoryTaxRulesUtils';
+import {setDraftMerchantRule, updateDraftMerchantRule} from '@libs/actions/User';
+import {categoryHasTaxRule, getIncompatibleCategoryRuleDefaults} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,6 +52,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policy = usePolicy(policyID);
+    const {showConfirmModal} = useConfirmModal();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -130,7 +133,35 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         setSelectedCategories((prev) => Array.from(new Set([...prev, ...visibleValues])));
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        // Clearing the condition leaves an ordinary merchant rule behind, so the other defaults stay untouched.
+        if (selectedCategories.length === 0) {
+            updateDraftMerchantRule({categoriesToMatch: []});
+            Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
+            return;
+        }
+
+        // A category rule can only set a tax, so anything else already in the draft would be dropped on save. Say so
+        // before clearing it rather than blanking the rows silently.
+        if (getIncompatibleCategoryRuleDefaults(form).length > 0) {
+            const {action} = await showConfirmModal({
+                title: translate('workspace.rules.merchantRules.clearIncompatibleDefaultsTitle'),
+                prompt: translate('workspace.rules.merchantRules.clearIncompatibleDefaultsPrompt'),
+                confirmText: translate('workspace.rules.merchantRules.clearFields'),
+                cancelText: translate('common.cancel'),
+            });
+
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            // Replace the draft rather than merging, so the incompatible defaults are gone. Tax is the one default a
+            // category rule keeps.
+            setDraftMerchantRule({categoriesToMatch: selectedCategories, ...(form?.tax ? {tax: form.tax} : {})});
+            Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
+            return;
+        }
+
         updateDraftMerchantRule({categoriesToMatch: selectedCategories});
         Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
@@ -199,7 +230,9 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.save')}
                             isAlertVisible={false}
-                            onSubmit={handleSave}
+                            onSubmit={() => {
+                                handleSave();
+                            }}
                             enabledWhenOffline
                             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                         />

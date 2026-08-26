@@ -23,7 +23,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openPolicyCategoriesPage, setPolicyCategoryTaxes} from '@libs/actions/Policy/Category';
+import {deletePolicyCategoryTax, openPolicyCategoriesPage, setPolicyCategoryTaxes} from '@libs/actions/Policy/Category';
 import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
@@ -439,7 +439,10 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         if (!canWriteRules) {
             return;
         }
-        if (!ruleID || !policy) {
+        if (!policy) {
+            return;
+        }
+        if (!ruleID && !editCategoryTaxRuleFor) {
             return;
         }
 
@@ -454,7 +457,11 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                 return;
             }
             setIsDeleting(true);
-            deletePolicyCodingRule(policy, ruleID);
+            if (editCategoryTaxRuleFor) {
+                deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
+            } else if (ruleID) {
+                deletePolicyCodingRule(policy, ruleID);
+            }
             Navigation.goBack();
         });
     };
@@ -464,7 +471,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         if (!isCategoryRule) {
             return item;
         }
-        return {...item, title: undefined, isLocked: true, onPress: showCategoryOnlyTaxExplainer};
+        return {...item, isLocked: true, onPress: showCategoryOnlyTaxExplainer};
     };
 
     const sections: SectionType[] = [
@@ -586,7 +593,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         return <NotFoundPage />;
     }
 
-    if (isEditingCategoryTaxRule && !existingCategoryTaxID) {
+    if (isEditingCategoryTaxRule && !existingCategoryTaxID && !isDeleting) {
         return <NotFoundPage />;
     }
 
@@ -637,7 +644,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                             <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
                         </Button>
                     )}
-                    {isEditing && (
+                    {(isEditing || isEditingCategoryTaxRule) && (
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={handleDelete}
