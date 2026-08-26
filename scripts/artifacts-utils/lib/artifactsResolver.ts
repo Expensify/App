@@ -69,6 +69,9 @@ const LOG_PREFIX = '[PatchedArtifacts]';
 const FETCH_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1000;
 
+/** A response the server actually gave us. Retrying it would return the same thing, so it ends the attempt loop. */
+class DurableHttpError extends Error {}
+
 // stdout carries the JSON result that Gradle and CocoaPods parse, so every diagnostic goes to stderr
 // (warnings and errors already do). Set here rather than in the CLI entry point, so the invariant
 // holds for any consumer of this module.
@@ -133,11 +136,11 @@ async function fetchWithToken(url: string, githubToken: string): Promise<string>
             }
             // A 4xx is an answer about the artifact, not about the network, so it is not retried.
             if (response.status < 500) {
-                throw new Error(`Request to ${url} failed with status ${response.status}`);
+                throw new DurableHttpError(`Request to ${url} failed with status ${response.status}`);
             }
             lastError = new Error(`Request to ${url} failed with status ${response.status}`);
         } catch (error) {
-            if (error instanceof Error && error.message.includes('failed with status')) {
+            if (error instanceof DurableHttpError) {
                 throw error;
             }
             lastError = error instanceof Error ? error : new Error(String(error));

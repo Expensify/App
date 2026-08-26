@@ -7,12 +7,17 @@
 # matches and verifyPodfile.sh passes. This checks the resolved content instead, by looking for the
 # pods that only exist in one graph.
 #
-# Deliberately just grep: no pod install, no credentials, no submodule clone and no macOS runner, so
-# it also works on pull requests from forks.
+# Mobile-Expensify keeps its own copy of this check, because that one has to run without an App
+# checkout. Marker pod names are coupled to the react-native version, so a bump that renames one has
+# to be applied in both places.
+#
+# Deliberately just grep: no pod install, no credentials and no submodule clone, so it can run
+# anywhere, including on pull requests from forks. App invokes it from verifyPodfile.sh, which needs
+# a macOS runner for its own reasons; Mobile-Expensify runs its copy on Linux.
 #
 # Usage: verifyPodfileMode.sh <path/to/Podfile.lock> <source|prebuilt>
 
-set -e
+set -euo pipefail
 
 START_DIR=$(pwd)
 ROOT_DIR=$(dirname "$(dirname "$(dirname "${BASH_SOURCE[0]}")")")
@@ -25,8 +30,8 @@ function cleanupAndExit {
   exit "$1"
 }
 
-LOCKFILE="$1"
-EXPECTED_MODE="$2"
+LOCKFILE="${1:-}"
+EXPECTED_MODE="${2:-}"
 
 if [[ -z "$LOCKFILE" || -z "$EXPECTED_MODE" ]]; then
   error "Usage: $0 <path/to/Podfile.lock> <source|prebuilt>"

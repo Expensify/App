@@ -64,8 +64,8 @@ module RNMode
     # Ours and PatchedIOSArtifacts', never the invoking shell's.
     MODE_ENV_VARS = %w[RCT_USE_RN_DEP RCT_USE_PREBUILT_RNCORE].freeze
 
-    # Bounds connection setup rather than total transfer: upstream had no timeout at all, so a slow
-    # but working Maven must still succeed.
+    # Bounds connection setup rather than total transfer, so a slow but working Maven still succeeds.
+    # Upstream sets no timeout at all, which is why this is ours to choose.
     CONNECT_TIMEOUT_SECONDS = 5
     PROBE_TIMEOUT_SECONDS = 30
     PROBE_ATTEMPTS = 3
@@ -130,7 +130,7 @@ module RNMode
 
             banner("hermes-engine resolved to #{source_type}, not the prebuilt tarball both Podfile.lock files pin.",
                    "This rewrites hermes-engine's pod source, version and checksum in Podfile.lock.",
-                   "hermes-engine is no longer pinned to a prebuilt tag; do not commit the resulting Podfile.lock.")
+                   "hermes-engine is not pinned to a prebuilt tag; do not commit the resulting Podfile.lock.")
         end
 
         private
@@ -279,8 +279,8 @@ module RNMode
             # prepends correctly against a later definition, but a rename there stays undetectable.
             return if missing.empty?
 
-            log("react-native no longer defines #{missing.join(', ')}, so those checks are inactive. " \
-                'This usually means a react-native upgrade moved them.', :error)
+            log("react-native does not define #{missing.join(', ')}, so those checks are inactive. " \
+                'A react-native upgrade has most likely moved them.', :error)
         end
 
         # Returns [:present | :absent | :unreachable, detail].

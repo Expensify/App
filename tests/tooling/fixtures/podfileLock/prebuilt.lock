@@ -1,0 +1,23 @@
+PODS:
+  - AFNetworking (4.0.1)
+  - React-Core-prebuilt (0.86.0)
+  - ReactNativeDependencies (0.86.0)
+  - RNSVG (15.14.0):
+    - React-Core
+  - Yoga (0.0.0)
+
+DEPENDENCIES:
+  - React-Core-prebuilt (from `../node_modules/react-native/React-Core-prebuilt.podspec`)
+  - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+
+EXTERNAL SOURCES:
+  hermes-engine:
+    :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
+    :tag: hermes-v250829098.0.14
+
+SPEC CHECKSUMS:
+  AFNetningok: 0000000000000000000000000000000000000000
+
+PODFILE CHECKSUM: 0000000000000000000000000000000000000000
+
+COCOAPODS: 1.16.2

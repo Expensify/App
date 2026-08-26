@@ -24,7 +24,7 @@
     "ios-standalone": "./scripts/set-pusher-suffix.sh && STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ios",
     "pod-install": "./scripts/pod-install.sh",
     "pod-install-standalone": "STANDALONE_NEW_DOT=true ./scripts/pod-install.sh",
-    "verify-podfile-mode": "./.github/scripts/verifyPodfileMode.sh ios/Podfile.lock source && { [ ! -f Mobile-Expensify/.github/scripts/verifyPodfileMode.sh ] || ./Mobile-Expensify/.github/scripts/verifyPodfileMode.sh; }",
+    "verify-podfile-mode": "./.github/scripts/verifyPodfileMode.sh ios/Podfile.lock source && { [ ! -f Mobile-Expensify/iOS/Podfile.lock ] || ./.github/scripts/verifyPodfileMode.sh Mobile-Expensify/iOS/Podfile.lock prebuilt; }",
     "ipad": "concurrently \"./scripts/run-build.sh --ipad\"",
     "ipad-standalone": "concurrently \"STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ipad\"",
     "ipad-sm": "concurrently \"./scripts/run-build.sh --ipad-sm\"",

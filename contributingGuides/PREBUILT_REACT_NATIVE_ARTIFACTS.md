@@ -14,8 +14,9 @@ never fails it.
 On iOS that warning is worth reading, because the two modes are different dependency graphs and
 `pod install` writes whichever one it resolved into `Podfile.lock`. A degraded install therefore
 produces a lockfile roughly 130KB different from the committed one. **The build is fine; the lockfile
-is not.** Don't commit it — regenerate once the cause is fixed. CI rejects a lockfile committed in the
-wrong mode.
+is not.** Don't commit it, regenerate once the cause is fixed. Each repository's CI rejects its own
+lockfile in the wrong mode: App checks `ios/Podfile.lock`, Mobile-Expensify checks
+`iOS/Podfile.lock`. Neither checks the other's, so a submodule pointer bump is not covered.
 
 > [!NOTE]
 > These are not the remote builds described in the "Running the mobile application using Rock" sections
