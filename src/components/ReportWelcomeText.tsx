@@ -1,11 +1,11 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDynamicRoute from '@hooks/useDynamicRoute';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -51,7 +51,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const buildDynamicRoute = useDynamicRoute();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();

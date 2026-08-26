@@ -6,10 +6,10 @@ import Text from '@components/Text';
 
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useDynamicRoute from '@hooks/useDynamicRoute';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
@@ -138,7 +138,7 @@ function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domai
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
     const reconciliationDomainName = settings?.domainName ?? domainName;
     const {environmentURL} = useEnvironment();
-    const buildDynamicRoute = useDynamicRoute();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const selectBankAccount = (newBankAccountID?: string) => {
         if (!newBankAccountID) {

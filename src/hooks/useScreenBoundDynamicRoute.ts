@@ -7,17 +7,17 @@ import type {Route} from '@src/ROUTES';
 import {useStateForPath} from '@react-navigation/core';
 
 /**
- * Binds a dynamic route to the component's own screen instead of the active route, so a link built during render
- * still resolves once another screen is stacked over it.
+ * Builds dynamic routes against the screen this component is mounted on rather than the active route, so a link
+ * created during render still resolves once another screen is stacked over it.
  *
- * Uses `useStateForPath` rather than `useRoutePath` because the latter throws when the component renders outside a
- * navigator screen, which shared components legitimately do. There the base falls back to the active route.
+ * `useStateForPath` is used over `useRoutePath` because the latter throws outside a navigator screen; the base
+ * falls back to the active route there.
  */
-function useDynamicRoute(): (dynamicRouteSuffixWithParams: string) => Route {
+function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) => Route {
     const state = useStateForPath();
     const basePath = state ? getPathFromState(state as State) : undefined;
 
     return (dynamicRouteSuffixWithParams: string) => createDynamicRoute(dynamicRouteSuffixWithParams, basePath);
 }
 
-export default useDynamicRoute;
+export default useScreenBoundDynamicRoute;

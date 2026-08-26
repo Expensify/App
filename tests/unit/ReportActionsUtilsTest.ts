@@ -2295,7 +2295,6 @@ describe('ReportActionsUtils', () => {
                 getCardIssuedMessage({
                     reportAction: mockVirtualCardIssuedAction,
                     shouldRenderHTML: true,
-                    shouldNavigateToCardDetails: true,
                     policyID: testPolicyID,
                     buildDynamicRoute,
                     expensifyCard: activeExpensifyCardForAdmin,

@@ -6,12 +6,12 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 
-import useDynamicRoute from './useDynamicRoute';
 import useOnyx from './useOnyx';
+import useScreenBoundDynamicRoute from './useScreenBoundDynamicRoute';
 
 function usePayAndDowngrade(continueAction: () => void) {
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
-    const buildDynamicRoute = useDynamicRoute();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
     const isDeletingPaidWorkspaceRef = useRef(false);
 
