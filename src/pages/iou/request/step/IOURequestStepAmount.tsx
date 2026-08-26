@@ -148,7 +148,7 @@ function IOURequestStepAmount({
         setIsAmountNegative(currentSign);
         setTypedAmount(undefined);
         // The active request type is the tab identity. Reset only when the user changes tabs, not for Onyx updates.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [iouRequestType]);
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
