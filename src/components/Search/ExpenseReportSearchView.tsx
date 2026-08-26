@@ -1,5 +1,7 @@
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
+import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+
 import {isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -58,6 +60,8 @@ function ExpenseReportSearchView({
     ref,
 }: ExpenseReportSearchViewProps) {
     const {type} = queryJSON;
+    // Normalize keyboard-copied report rows so their grid cells paste as one space-separated row.
+    useCopySelectionHelper();
 
     const {
         isOffline,

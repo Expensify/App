@@ -36,13 +36,16 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <UserAvatar
-                imageStyles={styles.alignSelfCenter}
-                size={avatarSize ?? CONST.AVATAR_SIZE.XXX_SMALL}
-                source={avatar}
-                accountID={accountID}
-                containerStyles={[styles.pr2, avatarStyle]}
-            />
+            {/* Avatar fallback initials are visual decoration and should not leak into multi-cell copied text. */}
+            <View style={styles.userSelectNone}>
+                <UserAvatar
+                    imageStyles={styles.alignSelfCenter}
+                    size={avatarSize ?? CONST.AVATAR_SIZE.XXX_SMALL}
+                    source={avatar}
+                    accountID={accountID}
+                    containerStyles={[styles.pr2, avatarStyle]}
+                />
+            </View>
             <Text
                 numberOfLines={1}
                 style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroSupporting, styles.flexShrink1, textStyle, styles.userSelectText]}
