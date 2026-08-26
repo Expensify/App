@@ -73,6 +73,32 @@ describe('getPathWithoutDynamicSuffix', () => {
         expect(result).toBe('');
     });
 
+    describe('stacked dynamic suffixes', () => {
+        it("should keep the query params the base path's own dynamic suffix declares", () => {
+            // `expense-report` and `expense-tag` both declare action/iouType/transactionID/reportID, so stripping
+            // `expense-tag`'s params wholesale would leave the `expense-report` base without the params it needs.
+            const result = getPathWithoutDynamicSuffix('/search/view/123/expense-report/expense-tag?action=edit&iouType=submit&transactionID=1&reportID=2&orderWeight=0', 'expense-tag');
+
+            expect(result).toBe('/search/view/123/expense-report?action=edit&iouType=submit&transactionID=1&reportID=2');
+        });
+
+        it('should still strip the params only the suffix declares', () => {
+            // `orderWeight` belongs to `expense-tag` alone, so it must not survive on the `expense-report` base.
+            const result = getPathWithoutDynamicSuffix(
+                '/search/view/123/expense-report/expense-tag?action=edit&iouType=submit&transactionID=1&reportID=2&orderWeight=0&reportActionID=9',
+                'expense-tag',
+            );
+
+            expect(result).toBe('/search/view/123/expense-report?action=edit&iouType=submit&transactionID=1&reportID=2&reportActionID=9');
+        });
+
+        it('should strip every suffix param when the base path is not itself a dynamic route', () => {
+            const result = getPathWithoutDynamicSuffix('/r/123/expense-tag?action=edit&iouType=submit&transactionID=1&reportID=2&orderWeight=0', 'expense-tag');
+
+            expect(result).toBe('/r/123');
+        });
+    });
+
     describe('actualSuffix shorter than registered pattern (optional absent)', () => {
         it('strips only the actualSuffix length when trailing optional is absent', () => {
             const result = getPathWithoutDynamicSuffix('/r/123/opt-page', 'opt-page', 'opt-page/:id?');

@@ -9,8 +9,14 @@ import splitPathAndQuery from './splitPathAndQuery';
 /**
  * Merges two query strings into one. When both contain the same key, the suffix
  * value wins (it is the intended destination of the navigation) and the duplicate
- * from the base path is overwritten. A differing value is logged but never fatal,
- * because throwing here crashes the app on a legitimate navigation.
+ * from the base path is overwritten.
+ *
+ * Stacked dynamic suffixes are a supported URL shape (see `getDynamicRouteAdaptedState`) and sibling
+ * suffixes deliberately share param names - every money-request step declares `action`, `iouType`,
+ * `transactionID` and `reportID` - so a collision is not an invariant violation and must not be fatal.
+ * A collision on *differing* values is still worth knowing about, so it is reported via `Log.alert`,
+ * which is forwarded to Sentry (see `FORWARDED_LOG_PREFIXES`) with the call site's stack attached.
+ *
  * @param baseQuery - The query string of the base path
  * @param suffixQuery - The query string of the suffix
  * @returns The merged query string or an empty string if both are empty
@@ -19,7 +25,7 @@ import splitPathAndQuery from './splitPathAndQuery';
  *
  * @example
  * mergeQueryStrings('foo=bar', 'baz=qux') => '?foo=bar&baz=qux'
- * mergeQueryStrings('action=edit', 'action=create') => '?action=create' (suffix wins)
+ * mergeQueryStrings('action=edit', 'action=create') => '?action=create' (suffix wins, reported to Sentry)
  */
 const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     if (!baseQuery && !suffixQuery) {
@@ -30,7 +36,7 @@ const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     const suffixParamsEntries = suffixParams.entries();
     for (const [key, value] of suffixParamsEntries) {
         if (params.has(key) && params.get(key) !== value) {
-            Log.warn('[createDynamicRoute.ts] Query param exists in both base path and dynamic suffix with different values; suffix value takes precedence', {
+            Log.alert('[createDynamicRoute] Query param exists in both base path and dynamic suffix with different values; suffix value takes precedence', {
                 key,
                 baseValue: params.get(key),
                 suffixValue: value,

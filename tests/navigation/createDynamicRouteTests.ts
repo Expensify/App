@@ -8,6 +8,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@libs/Log', () => ({
     warn: jest.fn(),
+    alert: jest.fn(),
 }));
 
 jest.mock('@src/ROUTES', () => ({
@@ -27,7 +28,7 @@ jest.mock('@src/ROUTES', () => ({
 describe('createDynamicRoute', () => {
     const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
     // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock doesn't rely on `this` binding
-    const mockLogWarn = jest.mocked(Log.warn);
+    const mockLogAlert = jest.mocked(Log.alert);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -154,10 +155,22 @@ describe('createDynamicRoute', () => {
         const result = createDynamicRoute(suffixWithQuery);
 
         expect(result).toBe(expectedPath);
-        expect(mockLogWarn).toHaveBeenCalled();
     });
 
-    it('should not warn when a colliding query param has the same value in base and suffix', () => {
+    it('should report a colliding query param with a differing value', () => {
+        const activeRoute = 'settings/profile/address?country=GB';
+        const suffixWithQuery = 'country?country=US';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        createDynamicRoute(suffixWithQuery);
+
+        expect(mockLogAlert).toHaveBeenCalledTimes(1);
+        // The `[createDynamicRoute]` prefix is what routes this line to Sentry, see FORWARDED_LOG_PREFIXES.
+        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('[createDynamicRoute]'), {key: 'country', baseValue: 'GB', suffixValue: 'US'});
+    });
+
+    it('should not report when a colliding query param has the same value in base and suffix', () => {
         const activeRoute = 'settings/profile/address?country=US';
         const suffixWithQuery = 'country?country=US';
         const expectedPath = 'settings/profile/address/country?country=US';
@@ -167,7 +180,7 @@ describe('createDynamicRoute', () => {
         const result = createDynamicRoute(suffixWithQuery);
 
         expect(result).toBe(expectedPath);
-        expect(mockLogWarn).not.toHaveBeenCalled();
+        expect(mockLogAlert).not.toHaveBeenCalled();
     });
 
     it('should append parametric suffix with single param to path', () => {

@@ -1,5 +1,6 @@
 import type {Route} from '@src/ROUTES';
 
+import {findMatchingDynamicSuffix} from './findAllMatchingDynamicSuffixes';
 import getDynamicRouteQueryParams from './getDynamicRouteQueryParams';
 import splitPathAndQuery from './splitPathAndQuery';
 
@@ -26,8 +27,13 @@ function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string, pa
     const paramsToStrip = getDynamicRouteQueryParams(patternSuffix ?? dynamicSuffix);
     let filteredQuery = query;
     if (paramsToStrip?.length && query) {
+        const baseSuffixMatch = findMatchingDynamicSuffix(pathWithoutDynamicSuffix);
+        const paramsOwnedByBase = new Set(baseSuffixMatch ? (getDynamicRouteQueryParams(baseSuffixMatch.pattern) ?? []) : []);
         const params = new URLSearchParams(query);
         for (const key of paramsToStrip) {
+            if (paramsOwnedByBase.has(key)) {
+                continue;
+            }
             params.delete(key);
         }
         const result = params.toString();
