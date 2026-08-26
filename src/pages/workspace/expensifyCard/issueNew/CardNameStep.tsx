@@ -24,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 
 type CardNameStepProps = {
@@ -40,7 +39,7 @@ type CardNameStepProps = {
 
 function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const isInLandscapeMode = useIsInLandscapeMode();
 
@@ -52,7 +51,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const data = issueNewCard?.data;
     const userName = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return Str.removeSMSDomain(personalDetail?.firstName || data?.assigneeEmail || '');
+        return formatPhoneNumber(personalDetail?.firstName || data?.assigneeEmail || '');
     });
     const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
     const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);

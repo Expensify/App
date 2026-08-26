@@ -34,7 +34,6 @@ import type {IssueNewCardData} from '@src/types/onyx/Card';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {Str} from 'expensify-common';
 import React, {useEffect, useMemo, useState} from 'react';
 
 type AssigneeStepProps = {
@@ -67,7 +66,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const currentAssigneeFirstName = usePersonalDetailByLogin(issueNewCard?.data?.assigneeEmail, (personalDetail) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return Str.removeSMSDomain(personalDetail?.firstName || issueNewCard?.data?.assigneeEmail || '');
+        return formatPhoneNumber(personalDetail?.firstName || issueNewCard?.data?.assigneeEmail || '');
     });
 
     const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
@@ -104,7 +103,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(currentAssigneeFirstName)) {
             // If the card title is the default card title, update it with the new assignee's name
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const newAssigneeFirstName = Str.removeSMSDomain(employeePersonalDetails[assignee?.login ?? '']?.firstName || assignee?.login || '');
+            const newAssigneeFirstName = formatPhoneNumber(employeePersonalDetails[assignee?.login ?? '']?.firstName || assignee?.login || '');
             data.cardTitle = getCardDefaultName(newAssigneeFirstName);
         }
 

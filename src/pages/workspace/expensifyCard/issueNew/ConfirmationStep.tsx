@@ -29,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -45,7 +44,7 @@ type ConfirmationStepProps = {
 };
 
 function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -59,7 +58,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const data = issueNewCard?.data;
     const cardholder = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return Str.removeSMSDomain(personalDetail?.displayName || data?.assigneeEmail || '');
+        return formatPhoneNumber(personalDetail?.displayName || data?.assigneeEmail || '');
     });
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
