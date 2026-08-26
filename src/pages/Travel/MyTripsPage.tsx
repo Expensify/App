@@ -30,9 +30,10 @@ function MyTripsPage({route}: MyTripsPageProps) {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
 
-    // Travel is always booked with the default workspace and a personal one can never book it, so a personal policy in
-    // the params means the default changed after this screen was opened. Unknown policies keep resolving to not found.
-    const shouldUseDefaultPolicy = !!activePolicyID && activePolicyID !== routePolicyID && routePolicy?.type === CONST.POLICY.TYPE.PERSONAL;
+    // A personal workspace can never book travel and a workspace the backend rejected is left in Onyx as pending, so
+    // either one in the params means the default has moved on. Unknown policies keep resolving to not found.
+    const isStalePolicyInParams = routePolicy?.type === CONST.POLICY.TYPE.PERSONAL || routePolicy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const shouldUseDefaultPolicy = !!activePolicyID && activePolicyID !== routePolicyID && isStalePolicyInParams;
     const policyID = shouldUseDefaultPolicy ? activePolicyID : routePolicyID;
 
     // Rewrite the params too: BookTravelButton builds its sub-routes from the active URL (hasPolicyIDInActiveRoute),
