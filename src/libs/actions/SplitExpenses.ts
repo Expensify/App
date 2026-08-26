@@ -1,13 +1,16 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {calculateAmount} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getTransactionDetails, isOpenReport, isSelfDM} from '@libs/ReportUtils';
+import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
@@ -56,7 +59,9 @@ function initSplitExpense(
     // When set, the caller's workspace is billing-restricted: redirect to RESTRICTED_ACTION instead of opening the split flow
     restrictedActionPolicyID: string | undefined,
     personalPolicyOutputCurrency: string | undefined,
-    {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+    {navigateToEditSplitExpense = false}: {navigateToEditSplitExpense?: boolean} = {},
 ): void {
     if (!transaction) {
         return;
@@ -68,18 +73,13 @@ function initSplitExpense(
     }
 
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-
-    if (isProduction && (isSelfDM(report) || isSelfDM(parentReport))) {
-        return;
-    }
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID, isProduction);
-    const hasMultipleSplits = getChildTransactions(allTransactions, originalTransactionID, false).length > 1;
+    const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID);
+    const hasMultipleSplits = relatedTransactions.length > 1;
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const isReportOpen = isOpenReport(transactionReport);
-    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || (isProduction && isReportOpen));
+    const shouldShowSplitIndicator = isExpenseSplit && hasMultipleSplits;
 
     const isSelfDMReport = isSelfDM(report) || isSelfDM(parentReport);
 
@@ -104,7 +104,7 @@ function initSplitExpense(
                 selfDMContextReportID: isSelfDMReport ? reportID : undefined,
                 selfDMReportIDFallback: selfDMReportID,
             });
-            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: itemReportID});
+            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: itemReportID, policy: effectivePolicy, getCurrencyDecimals});
         });
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
@@ -124,26 +124,32 @@ function initSplitExpense(
         Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
         if (navigateToEditSplitExpense) {
             const splitExpenseOverviewRoute = isSearchTopmostFullScreenRoute()
-                ? ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute())
-                : ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute());
+                ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID))
+                : createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(reportID, originalTransactionID));
             initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
             Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, originalTransactionID, transaction.transactionID, splitExpenseOverviewRoute));
             return;
         }
         if (isSearchTopmostFullScreenRoute()) {
-            Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID)));
         } else {
-            Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID)));
         }
         return;
     }
 
     const transactionDetails = getTransactionDetails(transaction);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+    const transactionDetailsCurrency = transactionDetails?.currency ?? '';
+    const transactionTaxAmount = transactionDetails?.taxAmount ?? 0;
 
     const splitAmounts = [
-        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
-        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
+        calculateAmount(1, transactionDetailsAmount, transactionDetailsCurrency, false, false, getCurrencyDecimals),
+        calculateAmount(1, transactionDetailsAmount, transactionDetailsCurrency, true, false, getCurrencyDecimals),
+    ];
+    const splitTaxAmounts = [
+        calculateAmount(1, transactionTaxAmount, transactionDetailsCurrency, false, false, getCurrencyDecimals),
+        calculateAmount(1, transactionTaxAmount, transactionDetailsCurrency, true, false, getCurrencyDecimals),
     ];
     const splitCustomUnits: Array<TransactionCustomUnit | undefined> = [undefined, undefined];
     const splitMerchants: Array<string | undefined> = [undefined, undefined];
@@ -164,6 +170,7 @@ function initSplitExpense(
                         unit,
                         transaction.comment.customUnit,
                         {currency},
+                        getCurrencySymbol,
                         transactionDetails?.currency,
                     );
 
@@ -177,19 +184,25 @@ function initSplitExpense(
     const splitExpenses = [
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(0) ?? 0,
+            taxAmount: splitTaxAmounts.at(0) ?? 0,
             transactionID: rand64(),
             reportID,
             customUnit: splitCustomUnits.at(0),
             merchant: splitMerchants.at(0),
             isManuallyEdited: false,
+            policy: effectivePolicy,
+            getCurrencyDecimals,
         }),
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(1) ?? 0,
+            taxAmount: splitTaxAmounts.at(1) ?? 0,
             transactionID: rand64(),
             reportID,
             customUnit: splitCustomUnits.at(1),
             merchant: splitMerchants.at(1),
             isManuallyEdited: false,
+            policy: effectivePolicy,
+            getCurrencyDecimals,
         }),
     ];
 
@@ -215,9 +228,9 @@ function initSplitExpense(
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
 
     if (isSearchTopmostFullScreenRoute()) {
-        Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.getRoute(reportID, transaction.transactionID)));
     } else {
-        Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(reportID, transaction.transactionID)));
     }
 }
 

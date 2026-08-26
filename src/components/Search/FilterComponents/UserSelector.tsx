@@ -1,5 +1,5 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 
@@ -13,18 +13,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
+import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 
 import ListFilterWrapper from './ListFilterViewWrapper';
 
-type UserSelectorProps = SearchFilterCommonProps<string[] | undefined>;
+type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    /** The currently selected workspace filter, used to limit suggestions to those workspaces' members */
+    policyID: Filter | undefined;
+};
 
-function UserSelector({value = [], isNegatable, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
+function UserSelector({value = [], isNegatable, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
@@ -44,22 +49,53 @@ function UserSelector({value = [], isNegatable, selectionListTextInputStyle, sel
 
     const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
 
+    // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
+    // top on first render without repinning rows that are toggled afterwards.
+    const initialSelectedValues = useInitialValue(() => value);
+
+    // When the workspace filter is set, only suggest the members of the selected workspaces. Users that were already
+    // selected when the filter opened are kept in the list even when they aren't members, so they can still be deselected here.
+    const workspaceMemberLogins = (() => {
+        if (!policyID?.value?.length) {
+            return undefined;
+        }
+
+        const logins = new Set<string>();
+        const selectedPolicies = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
+        for (const policy of selectedPolicies) {
+            if (policy.employeeList) {
+                const employeeLogins = Object.keys(policy.employeeList);
+                for (const login of employeeLogins) {
+                    const employee = policy.employeeList[login];
+                    if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(employee.errors)) {
+                        continue;
+                    }
+                    logins.add(login);
+                }
+            }
+            logins.add(policy.owner);
+        }
+        for (const accountID of initialSelectedValues) {
+            const login = personalDetails?.[accountID]?.login;
+            if (login) {
+                logins.add(login);
+            }
+        }
+        return logins.size ? logins : undefined;
+    })();
+
     const {searchTerm, setSearchTerm, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         initialSelected: initialSelectedAccountIDs,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         excludeFromSuggestionsOnly: expensifyTeamExclusions,
-        includeUserToInvite: true,
+        includeLoginsOnly: workspaceMemberLogins,
         includeCurrentUser: false,
         includeRecentReports: false,
         shouldInitialize: ready,
         onSelectionChange: onChange,
         shouldKeepSelectedInAvailableOptions: true,
     });
-
-    // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
-    // top on first render without repinning rows that are toggled afterwards (see https://github.com/Expensify/App/issues/61414).
-    const initialSelectedValues = useInitialValue(() => value);
 
     // The current user is excluded from personalDetails, so include it (when present) in the list. moveInitialSelectionToTop
     // keys on `value`, so map each option's accountID (keyForList) onto it. Pre-selected rows are moved to the top,

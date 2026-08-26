@@ -45,7 +45,7 @@ function DynamicTaskAssigneeSelectorModal() {
         | PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.DYNAMIC_TASK_ASSIGNEE>
         | PlatformStackRouteProp<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DYNAMIC_TASK_ASSIGNEE>
     >();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const isNewTaskFlow = route.name === SCREENS.NEW_TASK.DYNAMIC_TASK_ASSIGNEE;
     const backPath = useDynamicBackPath(isNewTaskFlow ? DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path : DYNAMIC_ROUTES.TASK_ASSIGNEE.path);
     const reportID = !isNewTaskFlow && route.params && 'reportID' in route.params ? route.params.reportID : undefined;
@@ -176,6 +176,7 @@ function DynamicTaskAssigneeSelectorModal() {
                     assigneeAccountID: option?.accountID,
                     assigneeChatReport,
                     isOptimisticReport,
+                    formatPhoneNumber,
                 });
             }
             Navigation.goBack(backPath);

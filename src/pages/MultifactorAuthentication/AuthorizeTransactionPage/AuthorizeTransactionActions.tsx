@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import LoadingIndicator from '@components/LoadingIndicator';
 
@@ -6,6 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -29,19 +31,21 @@ function MultifactorAuthenticationAuthorizeTransactionActions({onAuthorize, onDe
             ) : (
                 <>
                     <Button
-                        danger
-                        large
+                        variant={CONST.BUTTON_VARIANT.DANGER}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.flex1}
                         onPress={onDeny}
-                        text={translate('multifactorAuthentication.reviewTransaction.deny')}
-                    />
+                    >
+                        <Button.Text>{translate('multifactorAuthentication.reviewTransaction.deny')}</Button.Text>
+                    </Button>
                     <Button
-                        success
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.flex1}
                         onPress={onAuthorize}
-                        text={translate('multifactorAuthentication.reviewTransaction.approve')}
-                    />
+                    >
+                        <Button.Text>{translate('multifactorAuthentication.reviewTransaction.approve')}</Button.Text>
+                    </Button>
                 </>
             )}
         </FixedFooter>

@@ -92,6 +92,7 @@ function FlagForReviewRulePageBase({
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
 
+    const draftMaxExpenseAmount = form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT];
     const parsedMaxAmount = Number.parseFloat(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '');
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), policyCurrency) : '';
 
@@ -114,14 +115,18 @@ function FlagForReviewRulePageBase({
             return;
         }
 
-        if (selectedCategoryName === categoryName) {
+        // A draft holding the category *and* an amount is either already seeded or the user's in-progress edit, so
+        // leave it alone. A draft with only the category came from the create flow's initial seed, which is what
+        // happens when this page opens before policyCategories has loaded: the rule is only recognized once the
+        // category arrives, and the amount still has to be seeded then.
+        if (selectedCategoryName === categoryName && draftMaxExpenseAmount !== undefined) {
             initializedDraftForRuleKeyRef.current = categoryName;
             return;
         }
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, getCurrencyDecimals, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
+    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
@@ -146,7 +151,9 @@ function FlagForReviewRulePageBase({
 
         saveFlagForReviewRule(policyID, policyData.categories, form, isEditing ? categoryName : undefined);
 
-        if (!isEditing && isRulesRevampEnabled) {
+        // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
+        // case going back one step would land on the New rule hub instead of the category we came from.
+        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
             const savedCategoryName = form[INPUT_IDS.CATEGORY] ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
                 Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));

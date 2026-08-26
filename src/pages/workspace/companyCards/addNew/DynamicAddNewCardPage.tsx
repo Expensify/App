@@ -10,7 +10,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -83,13 +82,7 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }, [policyID]);
 
     if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'AddNewCardPage',
-            isAddCardFeedLoading,
-            isAllFeedsResultLoading,
-            isBlockedToAddNewFeeds,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (isActingAsDelegate) {

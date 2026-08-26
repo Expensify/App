@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -6,7 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,6 +17,7 @@ import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, 
 import {canUserPerformWriteAction, formatReportLastMessageText, getInvoiceReceiverPolicyID, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -30,7 +31,7 @@ type DebugReportActionsProps = {
 };
 
 function DebugReportActions({reportID}: DebugReportActionsProps) {
-    const {translate, datetimeToCalendarTime, localeCompare} = useLocalize();
+    const {translate, datetimeToCalendarTime, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -41,7 +42,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportAttributes = useReportAttributes();
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
 
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID),
@@ -72,8 +73,9 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                         translate,
                         localeCompare,
                         conciergeReportID,
-                        reportAttributes,
+                        derivedReportName,
                         isReportArchived,
+                        formatPhoneNumber,
                     }).messageText ?? translate('report.noActivityYet'),
                 );
             }
@@ -84,7 +86,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, conciergeReportID, reportAttributes, isReportArchived],
+        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, conciergeReportID, derivedReportName, isReportArchived, formatPhoneNumber],
     );
 
     const searchedReportActions = useMemo(() => {
@@ -115,12 +117,13 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     return (
         <ScrollView style={styles.mv3}>
             <Button
-                success
-                large
-                text={translate('common.create')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_CREATE.getRoute(reportID))}
                 style={[styles.pb3, styles.ph3]}
-            />
+            >
+                <Button.Text>{translate('common.create')}</Button.Text>
+            </Button>
             <SelectionList
                 data={searchedReportActions}
                 style={{listItemTitleStyles: styles.fontWeightNormal}}

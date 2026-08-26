@@ -83,7 +83,7 @@ describe('ProductTrainingContextProvider', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+    const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
     mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
 
     describe('Basic Tooltip Registration', () => {

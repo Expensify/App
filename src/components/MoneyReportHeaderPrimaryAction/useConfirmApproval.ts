@@ -1,6 +1,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
@@ -22,6 +23,7 @@ import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
 function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void) {
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -29,7 +31,6 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -58,13 +59,13 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
                 startApprovedAnimation();
             }
             approveMoneyRequest({
+                getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,

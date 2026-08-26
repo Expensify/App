@@ -12,6 +12,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
+import type * as ReactIs from 'react-is';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -53,9 +55,14 @@ jest.mock('@libs/actions/Policy/Rules', () => {
 });
 
 jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
+    const ReactMock = jest.requireActual<typeof React>('react');
 
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    const {isValidElementType} = jest.requireActual<typeof ReactIs>('react-is');
+    const reactNativeActual: unknown = jest.requireActual('react-native');
+    if (typeof reactNativeActual !== 'object' || reactNativeActual === null || !('Text' in reactNativeActual) || !isValidElementType(reactNativeActual.Text)) {
+        throw new Error('Expected react-native to expose a valid Text element type');
+    }
+    const {Text} = reactNativeActual;
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');
@@ -89,11 +96,11 @@ function buildPolicy(): Policy {
     } as Policy;
 }
 
-const rulesRoute = {
+const rulesRoute: React.ComponentProps<typeof PolicyRulesPage>['route'] = {
     key: 'rules-route',
     name: SCREENS.WORKSPACE.RULES,
     params: {policyID: POLICY_ID},
-} as never;
+};
 
 const renderRulesPage = () =>
     render(

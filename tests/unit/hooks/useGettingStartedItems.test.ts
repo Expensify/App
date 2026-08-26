@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import useGettingStartedItems from '@pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 
 import CONST from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
@@ -12,6 +15,7 @@ import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize', () =>
@@ -103,7 +107,7 @@ async function setupTrackPersonalScenario(overrides: {policy?: Partial<Policy>; 
     await waitForBatchedUpdates();
 }
 
-async function setupManageTeamScenario(overrides: {policy?: Partial<Policy>; accounting?: string | null; firstDayTrial?: string; lastDayTrial?: string} = {}) {
+async function setupManageTeamScenario(overrides: {policy?: Partial<Policy>; accounting?: OnboardingAccounting; firstDayTrial?: string; lastDayTrial?: string} = {}) {
     // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
     const policy = buildPolicy({areCategoriesEnabled: true, ...overrides.policy});
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
@@ -111,7 +115,7 @@ async function setupManageTeamScenario(overrides: {policy?: Partial<Policy>; acc
     await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
 
     if (overrides.accounting !== undefined) {
-        await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, overrides.accounting as never);
+        await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, overrides.accounting);
     }
 
     const now = new Date();
@@ -186,7 +190,7 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
-            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -246,7 +250,7 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             const policy = buildPolicy();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -348,13 +352,13 @@ describe('useGettingStartedItems', () => {
 
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: true},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -372,13 +376,13 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areConnectionsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: false},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -397,13 +401,13 @@ describe('useGettingStartedItems', () => {
 
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: false, successfulDate: '2024-01-01'},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -433,13 +437,13 @@ describe('useGettingStartedItems', () => {
 
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: true},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -471,13 +475,13 @@ describe('useGettingStartedItems', () => {
 
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: true},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -915,7 +919,7 @@ describe('useGettingStartedItems', () => {
                 policy: {
                     areRulesEnabled: true,
                     type: CONST.POLICY.TYPE.CORPORATE,
-                    rules: {
+                    rules: createMock<NonNullable<Policy['rules']>>({
                         approvalRules: [
                             {
                                 applyWhen: [{condition: 'matches', field: 'amount', value: '1000'}],
@@ -923,7 +927,7 @@ describe('useGettingStartedItems', () => {
                                 id: 'rule-1',
                             },
                         ],
-                    } as Policy['rules'],
+                    }),
                 },
             });
 
@@ -980,7 +984,7 @@ describe('useGettingStartedItems', () => {
             await waitForBatchedUpdates();
 
             const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
-            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID));
+            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID, CONST.TAB.WORKFLOWS.APPROVALS));
         });
 
         it('should be not completed for the default workflow (approver is the owner, no forwarding, no custom submitters)', async () => {
@@ -1260,7 +1264,7 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
-            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -1397,6 +1401,27 @@ describe('useGettingStartedItems', () => {
                 expect(createWorkspaceItem?.route).toContain(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID).split('?').at(0) ?? '');
             });
 
+            it('should pin the createWorkspace backTo to Home on narrow layout even when the active route has drifted to the workspace page', async () => {
+                // Regression guard for #96172: opening the Connect-to-accounting task re-renders this section while a
+                // workspaces/{id} route is active, so Navigation.getActiveRoute() returns that route. Baking it into backTo
+                // made the createWorkspace route self-referential (workspaces/{id}?backTo=workspaces/{id}), which the linkTo
+                // arePathAndBackToEqual guard swallows, so the tap did nothing. backTo must stay Home regardless of the live route.
+                const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID));
+                // renderHook re-renders as Onyx settles, so pin narrow across every render (mockReturnValueOnce gets consumed by an early render).
+                useResponsiveLayoutMock.mockReturnValue({shouldUseNarrowLayout: true});
+                try {
+                    await setupTrackWorkspaceScenario();
+
+                    const {result} = renderHook(() => useGettingStartedItems());
+
+                    const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
+                    expect(createWorkspaceItem?.route).toBe(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID, ROUTES.HOME));
+                } finally {
+                    useResponsiveLayoutMock.mockReturnValue({shouldUseNarrowLayout: false});
+                    getActiveRouteSpy.mockRestore();
+                }
+            });
+
             it('should resolve customizeCategories route to WORKSPACE_CATEGORIES', async () => {
                 await setupTrackWorkspaceScenario();
 
@@ -1441,16 +1466,16 @@ describe('useGettingStartedItems', () => {
                 await setupTrackWorkspaceScenario({
                     policy: {
                         areConnectionsEnabled: true,
-                        connections: {
+                        connections: createMock<NonNullable<Policy['connections']>>({
                             [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                                 config: {},
                                 data: {},
                                 lastSync: {isConnected: true},
                             },
-                        } as Policy['connections'],
+                        }),
                     },
                 });
-                await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
+                await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO);
                 await waitForBatchedUpdates();
 
                 const {result} = renderHook(() => useGettingStartedItems());

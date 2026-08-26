@@ -1,8 +1,8 @@
-import type {Beta, IntroSelected, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Beta, IntroSelected, PersonalDetailsList, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {createTransactionThreadReport} from './actions/Report';
+import {createTransactionThreadReport, setOptimisticTransactionThread} from './actions/Report';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportOrDraftReport} from './ReportUtils';
 import {isExpenseUnreported} from './TransactionUtils';
@@ -32,6 +32,8 @@ type ResolveReportContext = {
     betas: OnyxEntry<Beta[]>;
     currentUserEmail: string | undefined;
     currentUserAccountID: number;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergeChat: OnyxEntry<Report>;
 };
 
 /**
@@ -70,15 +72,70 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
 
     const transactionThreadReport = createTransactionThreadReport({
         introSelected: context.introSelected,
+        conciergeChat: context.conciergeChat,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
         betas: context.betas,
         iouReport: getReportOrDraftReport(reportID) ?? expense.report,
         iouReportAction: iouAction,
         transaction,
+        personalDetails: context.personalDetails,
     });
     return transactionThreadReport?.reportID ?? reportID;
 }
 
-export {getReportIDToOpenForExpense};
+/**
+ * Resolves the transaction thread report to navigate to for a given expense's IOU action: returns the existing
+ * thread — optimistically materializing it in Onyx when the action references a thread that hasn't been fetched
+ * yet — or creates a new thread when none exists. Shared by the duplicate-review action and the prev/next carousel.
+ */
+function getOrCreateTransactionThreadReportID(
+    {
+        threadReportID,
+        threadReportExists,
+        iouReport,
+        iouReportAction,
+        transaction,
+    }: {
+        /** The transaction thread report ID from the IOU action's childReportID, if any */
+        threadReportID: string | undefined;
+
+        /** Whether the thread report already exists in Onyx */
+        threadReportExists: boolean;
+
+        /** The expense's parent IOU report */
+        iouReport: OnyxEntry<Report>;
+
+        /** The expense's parent IOU report action */
+        iouReportAction: OnyxEntry<ReportAction>;
+
+        /** The expense transaction */
+        transaction: OnyxEntry<Transaction>;
+    },
+    context: ResolveReportContext,
+): string | undefined {
+    // The thread already exists; it just may not have been fetched into Onyx yet, so set it optimistically.
+    if (threadReportID) {
+        if (!threadReportExists) {
+            setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouReportAction?.reportActionID, iouReport?.policyID);
+        }
+        return threadReportID;
+    }
+
+    // No thread yet, so create it.
+    const transactionThreadReport = createTransactionThreadReport({
+        introSelected: context.introSelected,
+        conciergeChat: context.conciergeChat,
+        currentUserLogin: context.currentUserEmail ?? '',
+        currentUserAccountID: context.currentUserAccountID,
+        betas: context.betas,
+        iouReport,
+        iouReportAction,
+        transaction,
+        personalDetails: context.personalDetails,
+    });
+    return transactionThreadReport?.reportID;
+}
+
+export {getReportIDToOpenForExpense, getOrCreateTransactionThreadReportID};
 export type {TransactionThreadNavigationDescriptor};
