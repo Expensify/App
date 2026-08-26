@@ -34,7 +34,7 @@ function logInertCall(method: string) {
 /**
  * Used by trees rendered outside a navigator screen (e.g. the side panel report). There is no screen to act on,
  * so actions are inert - but callable, since a missing method throws `x is not a function` in the caller.
- * Action-shaped no-ops log so a swallowed call isn't mistaken for a dead `Button`; state-shaped ones stay silent.
+ * Action-shaped no-ops log so a swallowed call isn't mistaken for a dead `Button`. State-shaped ones stay silent.
  */
 const FALLBACK_NAVIGATION_CONTEXT_VALUE: NavigationContextValue = {
     isFocused: () => true,
