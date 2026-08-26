@@ -23,7 +23,6 @@ import {
     getAddExpenseDropdownOptions,
     getPolicyExpenseChat,
     isDM,
-    isOpenReport,
     isSelfDM,
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
@@ -35,13 +34,14 @@ import {
     getDeleteExpenseTitle,
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
+    hasAppliedCommuterExclusion,
     isDistanceRequest,
     isPerDiemRequest,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
-import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantsFromReport, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -53,7 +53,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {ValueOf} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
@@ -64,13 +63,13 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useEnvironment from './useEnvironment';
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useMoneyRequestPolicyTagsForReport from './useMoneyRequestPolicyTagsForReport';
 import useOnyx from './useOnyx';
 import useParentReportAction from './useParentReportAction';
+import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
@@ -98,8 +97,7 @@ type UseExpenseActionsReturn = {
 
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {isProduction} = useEnvironment();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -128,6 +126,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             nonPendingDeleteTransactions.push(transaction);
         }
     }
+    const hasCommuterExclusionDistanceRequest = nonPendingDeleteTransactions.some(hasAppliedCommuterExclusion);
 
     const currentTransaction = transactions.at(0);
     const splitEffectivePolicy = useSplitEffectivePolicy(moneyRequestReport, undefined, currentTransaction);
@@ -142,7 +141,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
@@ -153,6 +152,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -187,9 +188,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Split indicator
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID, false).length > 1;
-    const isReportOpen = isOpenReport(moneyRequestReport);
-    const hasSplitIndicator = isExpenseSplit && (hasMultipleSplits || (isProduction && isReportOpen));
+    const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID).length > 1;
+    const hasSplitIndicator = isExpenseSplit && hasMultipleSplits;
     const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
 
     // Duplicate report throttle
@@ -243,6 +243,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
+    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
         if (!transactionList.length) {
@@ -257,6 +259,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
             duplicateTransactionAction({
+                dateFnsLocale,
+                getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
                 optimisticIOUReportID,
@@ -280,6 +284,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 delegateAccountID,
                 policyTagList,
                 formatPhoneNumber,
+                participantsPolicyTags,
+                conciergeChat,
             });
         }
     };
@@ -333,7 +339,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     personalPolicy?.outputCurrency,
                     getCurrencyDecimals,
                     getCurrencySymbol,
-                    {isProduction},
                 );
             },
         },
@@ -427,8 +432,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
+                const reportDuplicateParticipants = getMoneyRequestParticipantsFromReport(targetChatForDuplicate, currentUserPersonalDetails?.accountID);
+                const reportDuplicateParticipantsPolicyTags = getPolicyTagsSelector(reportDuplicateParticipants)(allPolicyTags);
 
                 duplicateReportAction({
+                    dateFnsLocale,
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',
@@ -451,6 +459,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     isTrackIntentUser,
                     delegateAccountID,
                     formatPhoneNumber,
+                    getCurrencyDecimals,
+                    participantsPolicyTags: reportDuplicateParticipantsPolicyTags,
+                    conciergeChat,
                 });
             },
         },
@@ -459,7 +470,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             icon: expensifyIcons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CHANGE_WORKSPACE,
-            shouldShow: transactions.length === 0 || nonPendingDeleteTransactions.length > 0,
+            shouldShow: (transactions.length === 0 || nonPendingDeleteTransactions.length > 0) && !hasCommuterExclusionDistanceRequest,
             onSelected: () => {
                 if (!moneyRequestReport) {
                     return;
@@ -541,6 +552,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             iouReport,
                             chatIOUReport,
                             isChatIOUReportArchived,
+                            getCurrencyDecimals,
                             false,
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
@@ -609,6 +621,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     reportTransactions,
                                     allTransactionViolations,
                                     bankAccountList,
+                                    delegateAccountID,
                                     hash: currentSearchHash,
                                 });
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);

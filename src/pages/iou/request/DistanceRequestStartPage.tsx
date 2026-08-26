@@ -3,6 +3,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -13,7 +15,9 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {getPayeeName} from '@libs/ReportUtils';
+import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
+import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -29,8 +33,8 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
+import DynamicIOURequestStepDistanceManual from './step/DynamicIOURequestStepDistanceManual';
 import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
-import IOURequestStepDistanceManual from './step/IOURequestStepDistanceManual';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
 import IOURequestStepDistanceOdometer from './step/IOURequestStepDistanceOdometer';
 
@@ -49,19 +53,41 @@ function DistanceRequestStartPage({
 }: DistanceRequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {participants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserLogin).filter(isGroupPolicy);
+    const onlyActivePolicy = activeGroupPolicies.length === 1 ? activeGroupPolicies.at(0) : undefined;
+    const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
+    const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
+    const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
+    const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+    // Manual/Odometer distance can't honor commuter exclusion (exclusions are derived from the mapped
+    // route), so hide those tabs whenever the resolved destination enforces exclusion:
+    // - Report-scoped flows (workspace chat / expense report): use that report's own policy.
+    // - Global FAB flows: never hide for a Self-DM target (personal expenses are exempt); otherwise hide
+    //   when the single target workspace excludes, or when the user has multiple workspaces that ALL
+    //   exclude. `length > 1` is required because a single workspace is handled by `targetPolicy`, and
+    //   `[].every()` is vacuously true (which would wrongly hide the tabs for personal-only users).
+    const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
+    const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
+    const everyActiveWorkspaceExcludesCommuters = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled);
+    const shouldHideManualAndOdometerTabs = isReportScopedTarget
+        ? isCommuterExclusionEnabled(reportPolicy)
+        : !isSelfDMTarget && (isCommuterExclusionEnabled(targetPolicy) || everyActiveWorkspaceExcludesCommuters);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report, translate)),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report, translate)),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report, translate, currentUserAccountID)),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report, translate, currentUserAccountID)),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackDistance'),
@@ -149,16 +175,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceManual
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <DynamicIOURequestStepDistanceManual
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
                             {() => (
                                 <TabScreenWithFocusTrapWrapper>
@@ -169,16 +197,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceOdometer
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceOdometer
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>

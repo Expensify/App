@@ -2,8 +2,11 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {GovernmentRateCountry} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CustomUnit, Rate, RateAttributes} from '@src/types/onyx/Policy';
+import type {Policy} from '@src/types/onyx';
+import type {CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
@@ -203,4 +206,51 @@ function isGovernmentRateUnmodified(rate: Rate): boolean {
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
-export {validateRateValue, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus, isGovernmentRateUnmodified};
+/** The country publishing government mileage rates for a currency, or undefined when we can't auto-update them. */
+function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateCountry | undefined {
+    if (!currency) {
+        return undefined;
+    }
+
+    const currencyToCountry: Record<string, GovernmentRateCountry> = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_CURRENCY_TO_COUNTRY;
+    return currencyToCountry[currency];
+}
+
+/** Whether we can auto-update government distance rates for this output currency. */
+function isCurrencySupportedForAutoUpdate(currency?: string): boolean {
+    return !!getGovernmentRateCountryForCurrency(currency);
+}
+
+/** The unit the currency's country publishes its mileage rates in. */
+function getExpectedUnitForCurrency(currency?: string): Unit | undefined {
+    const country = getGovernmentRateCountryForCurrency(currency);
+    return country ? CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT[country] : undefined;
+}
+
+/** Translation key for the country phrase in the auto-update copy, e.g. "the United States". */
+function getGovernmentRateCountryPhraseTranslationKey(currency?: string): TranslationPaths | undefined {
+    const country = getGovernmentRateCountryForCurrency(currency);
+    if (!country) {
+        return undefined;
+    }
+
+    return `workspace.distanceRates.governmentRateCountries.${country}`;
+}
+
+function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {
+    return !!policy?.id && !!policy.commuterExclusions;
+}
+
+export {
+    validateRateValue,
+    validateTaxClaimableValue,
+    validateCreateDistanceRateForm,
+    buildOnyxDataForPolicyDistanceRateUpdates,
+    getRateStatus,
+    getGovernmentRateCountryForCurrency,
+    isCurrencySupportedForAutoUpdate,
+    getExpectedUnitForCurrency,
+    getGovernmentRateCountryPhraseTranslationKey,
+    isCommuterExclusionEnabled,
+    isGovernmentRateUnmodified,
+};

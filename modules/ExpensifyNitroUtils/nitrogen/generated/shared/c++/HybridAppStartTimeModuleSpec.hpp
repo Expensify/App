@@ -15,7 +15,8 @@
 
 
 
-
+#include <string>
+#include <unordered_map>
 
 namespace margelo::nitro::utils {
 
@@ -45,6 +46,7 @@ namespace margelo::nitro::utils {
     public:
       // Properties
       virtual double getAppStartTime() = 0;
+      virtual std::unordered_map<std::string, double> getAppStartupMarkers() = 0;
 
     public:
       // Methods

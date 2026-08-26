@@ -128,6 +128,10 @@ Common reasons include:
 
 When you add or edit a rule and open the **Category**, **Tag**, or **Tax** field, select **None** to clear the previously selected value. Then select **Save rule**.
 
+## How do I leave Reimbursable or Billable unset in a Merchant Rule?
+
+When you open the **Reimbursable** or **Billable** selector, it shows three options: **Don’t change**, **Yes**, and **No**. **Don’t change** is selected by default and leaves the field unset, so matching expenses keep their existing value.
+
 ## What expense fields can be updated by Merchant Rules?
 
 Merchant Rules can update: 

@@ -1,3 +1,5 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -9,6 +11,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePrevious from '@hooks/usePrevious';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStallLogger from '@hooks/useStallLogger';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -20,6 +23,7 @@ import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
+    getOneOnOneChatParticipants,
     isChatThread,
     isHiddenForCurrentUser,
     isMoneyRequestReport,
@@ -55,6 +59,7 @@ import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 type ReportScreenRoute =
@@ -96,6 +101,7 @@ function ReportFetchHandler() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
@@ -111,7 +117,10 @@ function ReportFetchHandler() {
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
@@ -149,6 +158,8 @@ function ReportFetchHandler() {
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const isRegularOnboardingPending = !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted;
     const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
     const onboardingSignal = introSelected ? `${introSelected.choice ?? ''}:${introSelected.inviteType ?? ''}:${isInviteOnboardingComplete ? 'complete' : 'pending'}` : '';
@@ -195,7 +206,21 @@ function ReportFetchHandler() {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions, currentUserAccountID});
+        // For a cached 1:1 DM, pass the other participant so the server can resolve a stale/optimistic
+        // reportID to the real chat (via preexistingReportID) instead of failing with "Report not found".
+        const dmParticipants = getOneOnOneChatParticipants(report, personalDetails, currentUserAccountID);
+        openReport({
+            reportID: reportIDFromRoute,
+            introSelected,
+            conciergeChat,
+            reportActionID: reportActionIDFromRoute,
+            participants: dmParticipants,
+            betas,
+            hasReportActions,
+            currentUserAccountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+        });
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
@@ -206,12 +231,14 @@ function ReportFetchHandler() {
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
         createTransactionThreadReport({
             introSelected,
+            conciergeChat,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
             iouReport: report,
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
+            personalDetails,
         });
     });
 
@@ -227,7 +254,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID});
+        openReport({reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -235,7 +262,16 @@ function ReportFetchHandler() {
         if (!viewingPublicRoomReportID || viewingPublicRoomReportID === reportIDFromRoute) {
             return;
         }
-        openReport({reportID: viewingPublicRoomReportID, introSelected, betas, hasReportActions: hasViewingPublicRoomReportActions, currentUserAccountID});
+        openReport({
+            reportID: viewingPublicRoomReportID,
+            introSelected,
+            conciergeChat,
+            betas,
+            hasReportActions: hasViewingPublicRoomReportActions,
+            currentUserAccountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+        });
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.
@@ -364,6 +400,22 @@ function ReportFetchHandler() {
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
 
+    // isLoadingInitialReportActions only clears via OpenReport's success/failure Onyx update (no client timeout), so
+    // a reconciliation stall that pauses the queue before that response arrives leaves the skeleton stuck with
+    // nothing else to log it. See Expensify#667674.
+    // Excluded while offline: OpenReport is legitimately queued and waiting for connectivity, not stuck.
+    // Excluded for draft-only reports (see the fetchReport bail above): openReport is never called for these by
+    // design, and nothing else sets hasOnceLoadedReportActions for them either, so they'd otherwise always false-positive.
+    // Keyed by reportIDFromRoute (not just a boolean) because this screen can be re-parameterized to a different
+    // report without unmounting (e.g. picking another report in the LHN while this one is still loading), and a
+    // plain boolean can't tell "still waiting on report A" apart from "now waiting on report B".
+    const isDraftOnlyReport = !reportOnyx?.reportID && !!reportDraftOnyx?.reportID;
+    useStallLogger(
+        isFocused && !isOffline && !isDraftOnlyReport && !!reportLoadingState.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions ? reportIDFromRoute : false,
+        '[OpenReportStall] isLoadingInitialReportActions never cleared while the report screen was focused',
+        {reportID: reportIDFromRoute},
+    );
+
     useEffect(() => {
         // Both `Navigation.setParams` and `forceReplace` below act on the currently focused route, but this effect
         // can fire late (after a slow `OpenReport`) while this SearchReport RHP has been blurred but is still mounted.
@@ -486,17 +538,20 @@ function ReportFetchHandler() {
         // It will be created optimistically and in the backend when call openReport
         createTransactionThreadReport({
             introSelected,
+            conciergeChat,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
             iouReport: report,
             transaction,
+            personalDetails,
         });
     }, [
         introSelected,
         currentUserEmail,
         currentUserAccountID,
         betas,
+        personalDetails,
         report,
         visibleTransactions,
         transactionThreadReport,
@@ -505,6 +560,7 @@ function ReportFetchHandler() {
         route.name,
         reportLoadingState?.hasOnceLoadedReportActions,
         reportActions.length,
+        conciergeChat,
     ]);
 
     return null;

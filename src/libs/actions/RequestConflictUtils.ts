@@ -75,6 +75,25 @@ function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], reque
     };
 }
 
+/**
+ * Duplicate resolver for an incoming OpenApp. See the Conflict Resolution section of
+ * contributingGuides/SEQUENTIAL_QUEUE.md.
+ *
+ * OpenApp re-fetches the whole account, so one already in flight makes an incoming one redundant. The generic
+ * resolver cannot see that, because the in-flight request has already left the persisted queue.
+ */
+function resolveOpenAppDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean): ConflictActionData {
+    if (shouldDedupeWithInFlight && ongoingRequest?.command === WRITE_COMMANDS.OPEN_APP) {
+        return {
+            conflictAction: {
+                type: 'noAction',
+            },
+        };
+    }
+
+    return resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP);
+}
+
 function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
     for (let index = 0; index < persistedRequests.length; index++) {
         const request = persistedRequests.at(index);
@@ -258,6 +277,7 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
+    shouldRemoveQueuedAttachment = false,
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -271,6 +291,14 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     let nextAction = null;
     if (currentAddComment) {
         currentAddComment.data = {...currentAddComment.data, ...parameters};
+
+        // The queued request keeps its own file, so without dropping it the server would re-add an attachment the edit removed.
+        if (shouldRemoveQueuedAttachment) {
+            delete currentAddComment.data.file;
+            delete currentAddComment.data.attachmentID;
+            currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+        }
+
         nextAction = {
             type: 'replace',
             index: addCommentIndex,
@@ -354,10 +382,12 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: 
 
 export {
     resolveDuplicationConflictAction,
+    resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
     readUpdateIDFrom,
     isFullDownloadRequest,
+    isReconnectFamilyRequest,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,

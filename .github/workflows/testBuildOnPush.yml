@@ -5,23 +5,13 @@ on:
     branches: [main]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**', 'jest/**', '.claude/**']
 
+concurrency:
+  group: testBuildOnPush
+  cancel-in-progress: false
+  queue: max
+
 jobs:
-  queue:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 120
-    steps:
-      - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
-
-      - name: Wait for earlier runs to finish (FIFO queue)
-        uses: ./.github/actions/javascript/waitForPreviousRuns
-        with:
-          GITHUB_TOKEN: ${{ github.token }}
-          WORKFLOW_ID: testBuildOnPush.yml
-          CURRENT_RUN_ID: ${{ github.run_id }}
-
   prep:
-    needs: [queue]
     runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       APP_REF: ${{ github.sha }}

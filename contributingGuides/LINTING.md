@@ -124,7 +124,7 @@ Commit the updated `config/eslint/eslint.seatbelt.tsv` alongside the rename. The
 
 ## CI behavior
 
-The [`ESLint check`](../.github/workflows/lint.yml) workflow runs `npm run lint`. In CI, `readOnly` is off (so seatbelt can write) and `SEATBELT_FROZEN=0` is exported from [`scripts/lint.sh`](../scripts/lint.sh) so GitHub Actions' auto-set `CI=true` doesn't flip seatbelt into frozen mode.
+The [`ESLint check`](../.github/workflows/lint.yml) workflow runs `npm run lint`. In CI, `readOnly` is off (so seatbelt can write) and `SEATBELT_FROZEN=0` is exported from [`scripts/lint.ts`](../scripts/lint.ts) so GitHub Actions' auto-set `CI=true` doesn't flip seatbelt into frozen mode.
 
 - **PR runs:** counts go down → passes (TSV rewrite is ephemeral and thrown away with the runner). Counts go up without `SEATBELT_INCREASE` → fails with seatbelt's "exceeds allowed count" error.
 - **`push: main` runs:** same behavior, plus an extra step — if `config/eslint/eslint.seatbelt.tsv` changed, OSBotify commits the tightened baseline straight back to `main`.

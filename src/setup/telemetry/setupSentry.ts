@@ -2,6 +2,7 @@ import {isDevelopment} from '@libs/Environment/Environment';
 import {
     breadcrumbsIntegration,
     browserProfilingIntegration,
+    classCallCheckNoiseFilterIntegration,
     consoleIntegration,
     navigationIntegration,
     reportingObserverIntegration,
@@ -18,6 +19,20 @@ import * as Sentry from '@sentry/react-native';
 import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
+/**
+ * Schemes browser extensions inject code under. An error whose top stack frame lives at one of these
+ * URLs was thrown inside extension code, not ours, so there is nothing for us to act on.
+ */
+const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
+
+/**
+ * Ordered pair, not two independent entries: Sentry runs each integration's `processEvent` in list order, and
+ * `classCallCheckNoiseFilterIntegration` reads the `third_party_code` tag `thirdPartyErrorFilterIntegration`
+ * writes. Swapped, the filter goes inert with no type error to catch it - hence one constant that reorders as a
+ * unit, with the order pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
+ */
+const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration];
+
 function setupSentry(): void {
     const integrations = [
         navigationIntegration,
@@ -26,7 +41,7 @@ function setupSentry(): void {
         breadcrumbsIntegration,
         consoleIntegration,
         reportingObserverIntegration,
-        thirdPartyErrorFilterIntegration,
+        ...THIRD_PARTY_NOISE_INTEGRATIONS,
     ].filter((integration): integration is NonNullable<typeof integration> => integration !== undefined);
 
     Sentry.init({
@@ -44,6 +59,7 @@ function setupSentry(): void {
         release: `${pkg.name}@${pkg.version}`,
         // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
         ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
+        denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,

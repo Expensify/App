@@ -4,9 +4,9 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 
-import CONST from '@src/CONST';
-
 import React from 'react';
+
+import getSearchPageHeaderTitle from './getSearchPageHeaderTitle';
 
 type SearchPageHeaderWideProps = {
     queryJSON: SearchQueryJSON;
@@ -14,24 +14,10 @@ type SearchPageHeaderWideProps = {
 
 function SearchPageHeaderWide({queryJSON}: SearchPageHeaderWideProps) {
     const {translate} = useLocalize();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections(queryJSON);
-    const selectedItem = typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex);
+    const {typeMenuSections, activeItemIndex, activeSavedSearch} = useSearchTypeMenuSections(queryJSON);
+    const selectedItem = activeItemIndex >= 0 ? typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex) : undefined;
 
-    let title = translate('common.spend');
-    if (activeItemIndex >= 0 && selectedItem) {
-        title = translate(selectedItem.translationPath);
-    } else {
-        const {type} = queryJSON;
-        if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-            title = translate(`common.tasks`);
-        } else if (type === CONST.SEARCH.DATA_TYPES.TRIP) {
-            title = translate(`travel.trips`);
-        } else if (type === CONST.SEARCH.DATA_TYPES.INVOICE) {
-            title = translate(`workspace.common.invoices`);
-        } else if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-            title = translate(`common.chats`);
-        }
-    }
+    const title = getSearchPageHeaderTitle({translate, type: queryJSON.type, activeSavedSearch, selectedItem});
 
     return (
         <TopBar

@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import shouldShowChangeWorkspaceOwnerPage from '@libs/shouldShowChangeWorkspaceOwnerPage';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -81,17 +80,12 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
 
     const isLoading = isLoadingPolicy || !!policy?.isLoading;
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'DynamicWorkspaceOwnerChangeWrapperPage',
-        isLoadingPolicy: !!isLoadingPolicy,
-        isPolicyLoading: !!policy?.isLoading,
-    };
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             shouldBeBlocked={!shouldShowChangeWorkspaceOwnerPage(fundList, error)}
+            canBeAccessedIfArchived
         >
             <ScreenWrapper testID="DynamicWorkspaceOwnerChangeWrapperPage">
                 <HeaderWithBackButton
@@ -104,10 +98,7 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
                 <View style={[styles.containerWithSpaceBetween, shouldShowPaymentCardForm ? styles.ph0 : styles.ph5, styles.pb0]}>
                     {isLoading && (
                         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={reasonAttributes}
-                            />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     )}
                     {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}

@@ -91,7 +91,7 @@ function CategoryField({
                                 iouType,
                                 transactionID,
                                 reportID,
-                                upgradeBackTo: ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                upgradeBackTo: createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})),
                                 upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                             }),
                         ),
@@ -99,11 +99,11 @@ function CategoryField({
                 } else if (!policy && shouldSelectPolicy) {
                     Navigation.navigate(
                         ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})),
                         ),
                     );
                 } else {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})));
                 }
             }}
             style={[styles.moneyRequestMenuItem]}

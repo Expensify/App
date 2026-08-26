@@ -15,7 +15,7 @@ jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     canSubmitReport: jest.fn(),
 }));
 
-const mockedCanSubmitReport = canSubmitReport as jest.Mock;
+const mockedCanSubmitReport = jest.mocked(canSubmitReport);
 
 const CURRENT_USER_ACCOUNT_ID = 5;
 const OTHER_USER_ACCOUNT_ID = 99;

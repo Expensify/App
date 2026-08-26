@@ -130,7 +130,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
     }
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'BankInfo', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
