@@ -224,6 +224,7 @@ import type {
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
+    ReportLoadingState,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
     SidePanelContext,
@@ -529,6 +530,18 @@ function flagReportNavigatedAway(reportID: string | undefined) {
     }
     reportsNavigatedAwayFrom.add(reportID);
 }
+
+// RAM-only per-report loading state. `hasOnceLoadedReportActions` is false until the first successful
+// openReport of the session and resets only on a genuine reload (page refresh / cold start), so it's the
+// signal for "has this report already been loaded this session" — used by openReport below to also clear the
+// manual unread marker on a page refresh, on top of the navigate-away-and-back case above.
+let allReportLoadingStates: OnyxCollection<ReportLoadingState>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
+    callback: (value) => {
+        allReportLoadingStates = value;
+    },
+});
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
@@ -1563,21 +1576,26 @@ function openReport(params: OpenReportActionParams) {
     // Whether the user navigated away from this report and is now coming back to it. The flag is set only when
     // the report screen blurs/unmounts (see `flagReportNavigatedAway`), so it is true on a genuine return trip
     // but false on the first open, on the repeated openReport calls of a single visit, and after a page refresh
-    // (the set is RAM-only). We consume it here to clear a manual unread marker only on that return trip.
+    // (the set is RAM-only). We consume it here to clear a manual unread marker on that return trip.
     const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
     reportsNavigatedAwayFrom.delete(reportID);
+    // Whether this is the first load of the report this session. `hasOnceLoadedReportActions` is RAM-only, so a
+    // page refresh / cold start resets it to falsy — that's how we detect a refresh here. A manual unread marker
+    // can only be non-null on a first load if it was persisted from before the refresh, so clearing it here
+    // clears the marker on a page refresh while leaving genuine first opens (marker already null) untouched.
+    const isFirstLoadAfterRefresh = !allReportLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`]?.hasOnceLoadedReportActions;
     const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> =
         (hasReportActions ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
 
     // An explicit mark-as-unread keeps its "New" marker anchored while the user stays in the report
     // (readNewestAction no longer clears it, and the repeated openReport calls of a single visit don't
-    // either), so the user sees the marker they created. It is reconciled away only when the user navigates
-    // away and comes back — `didNavigateBackToReport` is true only on that return trip. A page refresh leaves
-    // the RAM-only set empty, so the marker survives a refresh. This is a purely client-side decision, so it
-    // lives in optimisticData: it must apply immediately and offline, and must not be dropped if openReport
-    // never succeeds (the flag is already consumed above). We deliberately do NOT restore it in failureData —
-    // resurrecting a marker the user has already moved past would be wrong.
-    if (didNavigateBackToReport) {
+    // either), so the user sees the marker they created. It is reconciled away in two cases: when the user
+    // navigates away and comes back (`didNavigateBackToReport`), and on a page refresh (`isFirstLoadAfterRefresh`).
+    // This is a purely client-side decision, so it lives in optimisticData: it must apply immediately and
+    // offline, and must not be dropped if openReport never succeeds (the navigate-away flag is already consumed
+    // above). We deliberately do NOT restore it in failureData — resurrecting a marker the user has already
+    // moved past would be wrong.
+    if (didNavigateBackToReport || isFirstLoadAfterRefresh) {
         optimisticReport.manuallyMarkedUnreadReportActionID = null;
     }
 
