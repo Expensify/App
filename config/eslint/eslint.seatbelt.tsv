@@ -1278,7 +1278,7 @@
 "../../src/polyfills/requestIdleCallback.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/selectors/AdvancedSearchFiltersForm.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/selectors/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/selectors/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/addUtilsToWindow.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../src/setup/moduleInitPolyfill.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/telemetry/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
