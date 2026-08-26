@@ -295,13 +295,12 @@ function isValidSwiftBic(value?: string): boolean {
 }
 
 /**
- * IBAN/SWIFT/BIC can come from either the dedicated `iban`/`swiftCode` fields filled in on the international bank
- * account details step, or from `accountNumber`/`swiftBicCode`, which the Corpay bank-details step already collects
- * for some countries. Either pairing satisfies the requirement, so both are checked. The Corpay fields are matched
- * against the same formats because their own validation rules vary by country and don't guarantee an IBAN or a BIC.
+ * IBAN/SWIFT can come from the dedicated `iban`/`swiftCode` fields or from `accountNumber`/`swiftBicCode` on the
+ * Corpay bank-details step. IBAN must match the IBAN format in either place. Dedicated `swiftCode` must be a BIC;
+ * first-page `swiftBicCode` is already Corpay-validated, so non-empty is enough (it may not be a BIC).
  */
 function hasValidInternationalBankAccountDetails(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string) {
-    return (isValidIBAN(iban) || isValidIBAN(accountNumber)) && (isValidSwiftBic(swiftCode) || isValidSwiftBic(swiftBicCode));
+    return (isValidIBAN(iban) || isValidIBAN(accountNumber)) && (isValidSwiftBic(swiftCode) || !!swiftBicCode);
 }
 
 /**

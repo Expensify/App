@@ -780,12 +780,17 @@ describe('BankAccountUtils', () => {
             expect(hasValidInternationalBankAccountDetails(iban, swiftBicCode, '123456789', 'XXXX')).toBe(true);
         });
 
-        it('returns true when accountNumber and swiftBicCode are valid even if dedicated fields are empty', () => {
+        it('returns true when accountNumber is an IBAN and swiftBicCode is set even if dedicated fields are empty', () => {
             expect(hasValidInternationalBankAccountDetails(undefined, undefined, iban, swiftBicCode)).toBe(true);
         });
 
-        it('returns false when neither source has both a valid IBAN and SWIFT/BIC', () => {
-            expect(hasValidInternationalBankAccountDetails(iban, undefined, iban, 'XXXX')).toBe(false);
+        it('returns true when dedicated IBAN is set and first-page SWIFT is a Corpay value that is not a BIC', () => {
+            expect(hasValidInternationalBankAccountDetails(iban, 'XXXX', '123456789', 'XXXX')).toBe(true);
+        });
+
+        it('returns false when there is no IBAN or no SWIFT from either source', () => {
+            expect(hasValidInternationalBankAccountDetails(undefined, swiftBicCode, '123456789', 'XXXX')).toBe(false);
+            expect(hasValidInternationalBankAccountDetails(iban, undefined, iban, undefined)).toBe(false);
         });
     });
 
