@@ -159,7 +159,6 @@ describe('getSecondaryAction', () => {
                 violations: {},
                 bankAccountList: {},
                 policy,
-                isProduction: false,
             }),
         ).toEqual(result);
     });
@@ -183,7 +182,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(true);
@@ -204,7 +202,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
@@ -225,7 +222,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
@@ -277,7 +273,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY)).toBe(true);
@@ -304,7 +299,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(false);
@@ -334,7 +328,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(true);
@@ -373,7 +366,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
@@ -407,7 +399,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -446,7 +437,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -489,7 +479,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -534,7 +523,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -577,7 +565,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -630,7 +617,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -670,7 +656,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -707,7 +692,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -744,7 +728,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -778,7 +761,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -819,7 +801,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -867,7 +848,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -900,7 +880,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -949,7 +928,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -985,7 +963,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1026,7 +1003,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1073,7 +1049,6 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1115,7 +1090,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1156,7 +1130,6 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1196,7 +1169,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1240,7 +1212,6 @@ describe('getSecondaryAction', () => {
             violations,
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         // Then APPROVE should be included because DEW approval is not in progress
@@ -1287,7 +1258,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
-            isProduction: false,
         });
 
         // Then APPROVE should not be included because DEW is already processing an approval
@@ -1332,7 +1302,6 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
@@ -1376,7 +1345,6 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
@@ -1419,7 +1387,6 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1461,7 +1428,6 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1500,7 +1466,6 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1539,7 +1504,6 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1575,7 +1539,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1602,7 +1565,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1632,7 +1594,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1661,7 +1622,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1690,7 +1650,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -1720,7 +1679,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -1750,7 +1708,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -1781,7 +1738,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -1813,7 +1769,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         // Then UNAPPROVE should not be included because DEW policies restrict unapprove to admins only
@@ -1848,7 +1803,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         // Then UNAPPROVE should be included because admins can unapprove on DEW policies
@@ -1891,7 +1845,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -1933,7 +1886,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -1985,7 +1937,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2037,7 +1988,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
             reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -2090,7 +2040,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
             reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -2141,7 +2090,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
             reimbursementCancellableStatus: {canCancel: false},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -2186,7 +2134,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
             reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -2231,7 +2178,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
             reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -2279,7 +2225,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2318,7 +2263,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy: undefined,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2357,7 +2301,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy: undefined,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2396,7 +2339,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy: undefined,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2435,7 +2377,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy: undefined,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2466,7 +2407,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2497,7 +2437,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2528,7 +2467,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2560,7 +2498,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2598,7 +2535,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [reportAction],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2634,7 +2570,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2672,7 +2607,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [reportAction],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2704,7 +2638,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2736,7 +2669,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2769,7 +2701,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2805,7 +2736,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2837,7 +2767,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2872,7 +2801,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [actionR14932],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -2906,7 +2834,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [actionR14932],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -2943,7 +2870,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [actionR14932],
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -2989,7 +2915,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -3036,7 +2961,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3098,8 +3022,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: oldPolicy,
             policies,
-
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3161,7 +3083,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3223,7 +3144,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3250,7 +3170,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3313,7 +3232,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -3345,7 +3263,6 @@ describe('getSecondaryAction', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -3392,8 +3309,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
-
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3440,8 +3355,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
-
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3503,8 +3416,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
-
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3550,7 +3461,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3602,7 +3512,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3645,7 +3554,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3684,7 +3592,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3739,8 +3646,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
-
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3784,7 +3689,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3816,7 +3720,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -3852,7 +3755,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -3899,8 +3801,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
-
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(true);
     });
@@ -3932,7 +3832,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             originalTransaction: createMock<Transaction>({}),
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -3994,8 +3893,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
-
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4037,7 +3934,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4084,8 +3980,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
-
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4124,8 +4018,6 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             moveExpenseReportNameValuePairs,
-
-            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
@@ -4164,8 +4056,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
-
-            isProduction: false,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -4592,7 +4482,6 @@ describe('getReportAccountingExportActions', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4628,7 +4517,6 @@ describe('getSecondaryTransactionThreadActions', () => {
                 originalTransaction: createMock<Transaction>({}),
                 policy,
                 isChatReportArchived: false,
-                isProduction: false,
             }),
         ).toEqual(result);
     });
@@ -4659,7 +4547,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -4687,7 +4574,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             transactionThreadReport,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
@@ -4703,7 +4589,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             transactionThreadReport,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4730,7 +4615,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -4791,7 +4675,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction,
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -4846,8 +4729,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             policies,
             reportActions,
-
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -4894,7 +4775,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -4957,7 +4837,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction,
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
 
         // Then the SPLIT option is available
@@ -5005,7 +4884,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5052,7 +4930,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5103,7 +4980,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5133,21 +5009,20 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
-    describe('SEND_TO_SOMEONE gate', () => {
+    describe('self-DM convert-from-track actions gate (SEND_TO_SOMEONE / SEND_TO_EMPLOYER)', () => {
         // These cases install persistent spies (mockReturnValue); the enclosing beforeEach only clears call data, not
         // implementations, so restore them here to avoid leaking into later getSecondaryTransactionThreadActions tests.
         afterEach(() => {
             jest.restoreAllMocks();
         });
 
-        function getSendToSomeoneResult(isExpenseSplit: boolean, hasWorkspaceToSubmitTo: boolean, isChatReportArchived = false) {
+        function getSelfDMConvertActionsResult(isExpenseSplit: boolean, hasWorkspaceToSubmitTo: boolean, isChatReportArchived = false) {
             jest.spyOn(ReportUtils, 'isTrackExpenseReportNew').mockReturnValue(true);
-            // An archived self-DM has no write access; mirror that so the write-action guard on SEND_TO_SOMEONE is exercised.
+            // An archived self-DM has no write access; mirror that so the shared write-action guard is exercised.
             jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(!isChatReportArchived);
             jest.spyOn(TransactionUtils, 'getOriginalTransactionWithSplitInfo').mockReturnValue({
                 originalTransaction: createMock<Transaction>({}),
@@ -5164,25 +5039,40 @@ describe('getSecondaryTransactionThreadActions', () => {
                 originalTransaction: createMock<Transaction>({}),
                 policy: createMock<Policy>({}),
                 isChatReportArchived,
-                isProduction: false,
                 hasWorkspaceToSubmitTo,
             });
         }
 
         it('includes SEND_TO_SOMEONE for an unreported self-tracked expense that is not a split', () => {
-            expect(getSendToSomeoneResult(false, false)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+            expect(getSelfDMConvertActionsResult(false, false)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         });
 
         it('hides SEND_TO_SOMEONE for a self-DM split expense when the user has no workspace to submit to', () => {
-            expect(getSendToSomeoneResult(true, false)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+            expect(getSelfDMConvertActionsResult(true, false)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         });
 
-        it('includes SEND_TO_SOMEONE for a self-DM split expense when the user has a workspace to submit to', () => {
-            expect(getSendToSomeoneResult(true, true)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        it('hides SEND_TO_SOMEONE for a self-DM split expense even when the user has a workspace, since a split has no personal destination', () => {
+            expect(getSelfDMConvertActionsResult(true, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         });
 
         it('hides SEND_TO_SOMEONE on an archived self-DM (no write access)', () => {
-            expect(getSendToSomeoneResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+            expect(getSelfDMConvertActionsResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        });
+
+        it('includes SEND_TO_EMPLOYER for an unreported self-tracked expense that is not a split', () => {
+            expect(getSelfDMConvertActionsResult(false, false)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+        });
+
+        it('hides SEND_TO_EMPLOYER for a self-DM split expense when the user has no workspace to submit to', () => {
+            expect(getSelfDMConvertActionsResult(true, false)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+        });
+
+        it('includes SEND_TO_EMPLOYER for a self-DM split expense when the user has a workspace to submit to', () => {
+            expect(getSelfDMConvertActionsResult(true, true)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+        });
+
+        it('hides SEND_TO_EMPLOYER on an archived self-DM (no write access)', () => {
+            expect(getSelfDMConvertActionsResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
         });
     });
 
@@ -5218,7 +5108,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             grandParentReport: selfDMReport,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5248,7 +5137,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5281,7 +5169,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             reportNameValuePairs,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
@@ -5317,7 +5204,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
-            isProduction: false,
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -5377,8 +5263,6 @@ describe('getSecondaryTransactionThreadActions', () => {
                 violations: {},
                 bankAccountList: {},
                 policy,
-
-                isProduction: false,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
@@ -5434,8 +5318,6 @@ describe('getSecondaryTransactionThreadActions', () => {
                 violations: {},
                 bankAccountList: {},
                 policy,
-
-                isProduction: false,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
