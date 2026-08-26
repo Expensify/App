@@ -21,10 +21,10 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
 
 import {clearError} from '@userActions/CloseAccount';
-import {closeAccount} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 
 import {Str} from 'expensify-common';
@@ -62,7 +62,7 @@ function CloseAccountPage() {
     // here, we left this as is during refactor to limit the breaking changes.
     useEffect(() => () => clearError(), []);
 
-    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
+    const onSubmit = () => {
         if (ruleBotEnforcedPolicy) {
             showRuleBotGuardModal('closeAccount', ruleBotEnforcedPolicy.id);
             return;
@@ -71,7 +71,7 @@ function CloseAccountPage() {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            closeAccount(values.reasonForLeaving);
+            Navigation.navigate(ROUTES.SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE);
         });
     };
 
@@ -122,8 +122,8 @@ function CloseAccountPage() {
                 style={[styles.flexGrow1, styles.mh5]}
                 isSubmitActionDangerous
                 // onSubmit only opens a confirmation modal, so the press spinner would stay on forever when the modal
-                // is dismissed or blocked; the real loading state comes from the form's Onyx isLoading once the
-                // CloseAccount request is sent.
+                // is dismissed or blocked; the loading state belongs to the validateCode page that sends the
+                // CloseAccount request.
                 shouldShowLoadingImmediatelyOnPress={false}
             >
                 <View
@@ -134,6 +134,8 @@ function CloseAccountPage() {
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.REASON_FOR_LEAVING}
+                        // The validateCode page reads the reason from the draft, so it has to survive navigating there
+                        shouldSaveDraft
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         label={translate('closeAccountPage.enterMessageHere')}

@@ -171,7 +171,7 @@ function clearRevokeError(loginKey: string) {
 /**
  * Attempt to close the user's account
  */
-function closeAccount(reason: string) {
+function closeAccount(reason: string, validateCode: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
 
@@ -179,7 +179,7 @@ function closeAccount(reason: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
-            value: {isLoading: true},
+            value: {isLoading: true, errors: null},
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>> = [
@@ -190,17 +190,18 @@ function closeAccount(reason: string) {
         },
     ];
 
-    const parameters: CloseAccountParams = {message: reason};
+    const parameters: CloseAccountParams = {message: reason, validateCode};
 
     API.write(WRITE_COMMANDS.CLOSE_ACCOUNT, parameters, {
         optimisticData,
         failureData,
-    });
-
-    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
-    if (CONFIG.IS_HYBRID_APP) {
+    }).then((response) => {
+        // The account stays open when the validateCode is rejected, so OldDot must stay signed in to keep the state of both apps in sync
+        if (!CONFIG.IS_HYBRID_APP || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
+        }
         HybridAppModule.signOutFromOldDot();
-    }
+    });
 }
 
 /**

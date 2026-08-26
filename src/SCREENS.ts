@@ -86,6 +86,7 @@ const SCREENS = {
         BANK_ACCOUNT_PURPOSE: 'Settings_Bank_Account_Purpose',
         DEVICE_MANAGEMENT: 'Settings_Device_Management',
         CLOSE: 'Settings_Close',
+        CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE: 'Settings_CloseAccount_ConfirmValidateCode',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmValidateCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
