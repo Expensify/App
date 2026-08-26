@@ -336,6 +336,7 @@ describe('Create Search Router navigation source', () => {
         {visible: true, text: 'Track distance', icon: mockIcon, action: createAction, keyForList: 'create_trackDistance'},
         {visible: true, text: 'Start chat', icon: mockIcon, action: createAction, keyForList: 'create_chat', matchTerms: ['Start chat', 'New chat screen']},
         {visible: false, text: 'Create invoice', icon: mockIcon, action: createAction, keyForList: 'create_invoice'},
+        {visible: true, text: 'Book travel', icon: mockIcon, action: createAction, keyForList: 'create_travel'},
         {visible: false, text: 'New workspace', icon: mockIcon, action: createAction, keyForList: 'create_workspace', matchTerms: ['New workspace', 'Create workspace']},
     ];
 
@@ -346,13 +347,13 @@ describe('Create Search Router navigation source', () => {
     it('builds visible Create rows with direct action labels and excludes unavailable items', () => {
         const items = CreateNavigationSuggestions.buildCreateNavigationItems(createItems);
 
-        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'Start chat']);
-        expect(items.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat']);
-        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon, mockIcon]);
-        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense', 'Add expense'], ['Create report'], ['Track distance'], ['Start chat', 'New chat screen']]);
+        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'Start chat', 'Book travel']);
+        expect(items.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat', 'create_travel']);
+        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon, mockIcon, mockIcon]);
+        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense', 'Add expense'], ['Create report'], ['Track distance'], ['Start chat', 'New chat screen'], ['Book travel']]);
         expect(items.some((item) => item.text?.startsWith('Go to'))).toBe(false);
         expect(items.some((item) => item.keyForList === 'create_invoice' || item.keyForList === 'create_workspace')).toBe(false);
-        expect(items.some((item) => item.keyForList === 'create_travel' || item.keyForList === 'create_quickAction')).toBe(false);
+        expect(items.some((item) => item.keyForList === 'create_quickAction')).toBe(false);
     });
 
     it('matches Create rows through the existing navigation suggestion pipeline', () => {
@@ -362,6 +363,9 @@ describe('Create Search Router navigation source', () => {
         expect(buildNavigationSuggestions('add expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
         expect(buildNavigationSuggestions('new chat', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_chat']);
         expect(buildNavigationSuggestions('go to track distance', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_trackDistance']);
+        expect(buildNavigationSuggestions('book travel', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_travel']);
+        expect(buildNavigationSuggestions('BOOK TRAVEL', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_travel']);
+        expect(buildNavigationSuggestions('go to book     travel', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_travel']);
     });
 
     it('matches hidden Create aliases without changing row text', () => {
