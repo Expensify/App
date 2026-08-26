@@ -17,6 +17,7 @@ import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
+import AccountAvatar from './Avatar/connected/AccountAvatar';
 import {AvatarTooltipsProvider} from './Avatar/tooltips/AvatarTooltipContext';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
@@ -202,15 +203,24 @@ function OptionRow({
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length && !!firstIcon && (
                                     <AvatarTooltipsProvider isEnabled={showTitleTooltip && !option.private_isArchived}>
-                                        <ReportActionAvatars
-                                            subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                            reportID={reportID}
-                                            accountIDs={!reportID && option.accountID ? [option.accountID] : []}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
-                                            secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                        />
+                                        {!reportID && option.accountID ? (
+                                            <AccountAvatar
+                                                accountID={option.accountID}
+                                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                            />
+                                        ) : (
+                                            <ReportActionAvatars
+                                                subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                                reportID={reportID}
+                                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                                secondaryAvatarContainerStyle={[
+                                                    StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor),
+                                                ]}
+                                            />
+                                        )}
                                     </AvatarTooltipsProvider>
                                 )}
+
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}

@@ -1156,6 +1156,7 @@ function getShareDestination(
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    pendingDeleteMemberAccountIDs?: string[],
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
@@ -1181,7 +1182,19 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, formatPhoneNumber, translate, personalDetails, FallbackAvatar),
+        icons: ReportUtils.getIcons(
+            report,
+            formatPhoneNumber,
+            translate,
+            personalDetails,
+            FallbackAvatar,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            pendingDeleteMemberAccountIDs,
+        ),
         displayName: deprecatedGetReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,

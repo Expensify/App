@@ -3,8 +3,8 @@ import {
     connectPolicyToNetSuite,
     getNetSuiteSetupLink,
     updateNetSuiteTokens,
-    updateNetSuiteTravelInvoicingJournalPostingPreference,
-    updateNetSuiteTravelInvoicingPayableAccount,
+    updateNetSuiteTravelBillingJournalPostingPreference,
+    updateNetSuiteTravelBillingPayableAccount,
 } from '@libs/actions/connections/NetSuiteCommands';
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
@@ -186,12 +186,12 @@ describe('actions/connections/NetSuite', () => {
         });
     });
 
-    describe('updateNetSuiteTravelInvoicingPayableAccount', () => {
-        it('writes the UpdateNetSuiteTravelInvoicingPayableAccount command with the bankAccountID', () => {
-            updateNetSuiteTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+    describe('updateNetSuiteTravelBillingPayableAccount', () => {
+        it('writes the UpdateNetSuiteTravelBillingPayableAccount command with the bankAccountID', () => {
+            updateNetSuiteTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {command} = getFirstWriteCall();
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT);
 
             const call = writeSpy.mock.calls.at(0);
 
@@ -199,7 +199,7 @@ describe('actions/connections/NetSuite', () => {
         });
 
         it('merges travelInvoicingPayableAccountID optimistically onto the NetSuite options config', () => {
-            updateNetSuiteTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+            updateNetSuiteTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {onyxData} = getFirstWriteCall();
             const optimisticUpdate = onyxData?.optimisticData?.at(0);
@@ -211,7 +211,7 @@ describe('actions/connections/NetSuite', () => {
                         netsuite: expect.objectContaining({
                             options: expect.objectContaining({
                                 config: expect.objectContaining({
-                                    [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: 'account-123',
+                                    [CONST.NETSUITE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]: 'account-123',
                                 }),
                             }),
                         }),
@@ -221,16 +221,16 @@ describe('actions/connections/NetSuite', () => {
         });
     });
 
-    describe('updateNetSuiteTravelInvoicingJournalPostingPreference', () => {
-        it('writes the UpdateNetSuiteTravelInvoicingJournalPostingPreference command with the posting preference', () => {
-            updateNetSuiteTravelInvoicingJournalPostingPreference(
+    describe('updateNetSuiteTravelBillingJournalPostingPreference', () => {
+        it('writes the UpdateNetSuiteTravelBillingJournalPostingPreference command with the posting preference', () => {
+            updateNetSuiteTravelBillingJournalPostingPreference(
                 MOCK_POLICY_ID,
                 CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
                 CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
             );
 
             const {command} = getFirstWriteCall();
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE);
 
             const call = writeSpy.mock.calls.at(0);
             expect(call?.[1]).toEqual(
@@ -242,7 +242,7 @@ describe('actions/connections/NetSuite', () => {
         });
 
         it('merges travelInvoicingJournalPostingPreference optimistically onto the NetSuite options config', () => {
-            updateNetSuiteTravelInvoicingJournalPostingPreference(
+            updateNetSuiteTravelBillingJournalPostingPreference(
                 MOCK_POLICY_ID,
                 CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
                 CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
@@ -258,7 +258,7 @@ describe('actions/connections/NetSuite', () => {
                         netsuite: expect.objectContaining({
                             options: expect.objectContaining({
                                 config: expect.objectContaining({
-                                    [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE]: CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
+                                    [CONST.NETSUITE_CONFIG.TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE]: CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
                                 }),
                             }),
                         }),
@@ -268,7 +268,7 @@ describe('actions/connections/NetSuite', () => {
         });
 
         it('reverts travelInvoicingJournalPostingPreference to the old value on failure', () => {
-            updateNetSuiteTravelInvoicingJournalPostingPreference(
+            updateNetSuiteTravelBillingJournalPostingPreference(
                 MOCK_POLICY_ID,
                 CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
                 CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
@@ -282,7 +282,7 @@ describe('actions/connections/NetSuite', () => {
                         netsuite: expect.objectContaining({
                             options: expect.objectContaining({
                                 config: expect.objectContaining({
-                                    [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE]: CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
+                                    [CONST.NETSUITE_CONFIG.TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE]: CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
                                 }),
                             }),
                         }),

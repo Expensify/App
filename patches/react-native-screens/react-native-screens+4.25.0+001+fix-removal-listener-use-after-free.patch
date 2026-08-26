@@ -1,0 +1,206 @@
+diff --git a/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.cpp b/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.cpp
+index 239e03a..3e32c09 100644
+--- a/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.cpp
++++ b/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.cpp
+@@ -2,6 +2,7 @@
+ #include <react/fabric/Binding.h>
+ #include <react/renderer/scheduler/Scheduler.h>
+ 
++#include <memory>
+ #include <string>
+ 
+ #include "NativeProxy.h"
+@@ -11,6 +12,19 @@ using namespace react;
+ 
+ namespace rnscreens {
+ 
++namespace {
++// Keep this listener process-lifetime to avoid races during initialization,
++// when nativeAddMutationsListener() can be called concurrently from different
++// threads. A function-local static initializes thread-safely, and an immortal
++// instance suits core's delegate list, which is append-only. For more details:
++// https://github.com/software-mansion/react-native-screens/pull/4413
++const std::shared_ptr<RNSScreenRemovalListener> &removalListener() {
++  static const std::shared_ptr<RNSScreenRemovalListener> instance =
++      std::make_shared<RNSScreenRemovalListener>();
++  return instance;
++}
++} // namespace
++
+ NativeProxy::NativeProxy(jni::alias_ref<NativeProxy::javaobject> jThis)
+     : javaPart_(jni::make_global(jThis)) {}
+ 
+@@ -32,13 +46,18 @@ void NativeProxy::nativeAddMutationsListener(
+   auto uiManager =
+       fabricUIManager->getBinding()->getScheduler()->getUIManager();
+ 
+-  if (!screenRemovalListener_) {
+-    screenRemovalListener_ =
+-        std::make_shared<RNSScreenRemovalListener>([this](int tag) {
++  {
++    // Capture a copy of the global ref, never `this`: the listener outlives
++    // this NativeProxy, and the old live read of javaPart_ at call time raced
++    // invalidateNative(). installMutex_ keeps the copy from racing the
++    // invalidation write and keeps the stored token matching the last install.
++    std::lock_guard<std::mutex> lock(installMutex_);
++    removalListenerToken_ =
++        removalListener()->setListener([javaPart = javaPart_](int tag) {
+           static const auto method =
+-              javaPart_->getClass()->getMethod<void(jint)>(
++              javaPart->getClass()->getMethod<void(jint)>(
+                   "notifyScreenRemoved");
+-          method(javaPart_, tag);
++          method(javaPart, tag);
+         });
+   }
+ 
+@@ -79,7 +98,7 @@ void NativeProxy::addMountingCoordinatorIfNeeded(
+       });
+ 
+   if (!wasRegistered) {
+-    coordinator->setMountingOverrideDelegate(screenRemovalListener_);
++    coordinator->setMountingOverrideDelegate(removalListener());
+     coordinatorsWithMountingOverrides_.push_back(coordinator);
+   }
+ }
+@@ -90,6 +109,11 @@ jni::local_ref<NativeProxy::jhybriddata> NativeProxy::initHybrid(
+ }
+ 
+ void NativeProxy::invalidateNative() {
++  // Disarm before the hybrid is collected; also releases the captured global
++  // ref so the Java NativeProxy stays collectable. Serialized with the install
++  // path so the token is never stale and javaPart_ is not nulled mid-capture.
++  std::lock_guard<std::mutex> lock(installMutex_);
++  removalListener()->clearListener(removalListenerToken_);
+   javaPart_ = nullptr;
+ }
+ 
+diff --git a/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.h b/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.h
+index c4dbb12..4361c93 100644
+--- a/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.h
++++ b/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.h
+@@ -4,6 +4,7 @@
+ #include <react/fabric/JFabricUIManager.h>
+ #include "RNSScreenRemovalListener.h"
+ 
++#include <cstdint>
+ #include <mutex>
+ #include <string>
+ 
+@@ -13,7 +14,6 @@ using namespace facebook::jni;
+ 
+ class NativeProxy : public jni::HybridClass<NativeProxy> {
+  public:
+-  std::shared_ptr<RNSScreenRemovalListener> screenRemovalListener_;
+   std::vector<std::weak_ptr<const facebook::react::MountingCoordinator>>
+       coordinatorsWithMountingOverrides_;
+   static auto constexpr kJavaDescriptor =
+@@ -28,6 +28,12 @@ class NativeProxy : public jni::HybridClass<NativeProxy> {
+ 
+   std::mutex coordinatorsMutex_;
+ 
++  // Serializes callback install (nativeAddMutationsListener) with
++  // invalidateNative: the install-time copy of javaPart_ must not race the
++  // invalidation write, and the stored token must match the last install.
++  std::mutex installMutex_;
++  uint64_t removalListenerToken_{0};
++
+   explicit NativeProxy(jni::alias_ref<NativeProxy::javaobject> jThis);
+ 
+   void nativeAddMutationsListener(
+diff --git a/node_modules/react-native-screens/cpp/RNSScreenRemovalListener.cpp b/node_modules/react-native-screens/cpp/RNSScreenRemovalListener.cpp
+index 50dee1e..13b8545 100644
+--- a/node_modules/react-native-screens/cpp/RNSScreenRemovalListener.cpp
++++ b/node_modules/react-native-screens/cpp/RNSScreenRemovalListener.cpp
+@@ -1,12 +1,42 @@
+ #include "RNSScreenRemovalListener.h"
+ #include <react/renderer/mounting/ShadowViewMutation.h>
++#include <utility>
+ using namespace facebook::react;
+ 
++uint64_t RNSScreenRemovalListener::setListener(
++    std::function<void(int)> &&listenerFunction) {
++  std::lock_guard<std::mutex> lock(listenerMutex_);
++  listenerFunction_ = std::move(listenerFunction);
++  return ++currentToken_;
++}
++
++void RNSScreenRemovalListener::clearListener(uint64_t token) {
++  std::lock_guard<std::mutex> lock(listenerMutex_);
++  if (token == currentToken_) {
++    listenerFunction_ = nullptr;
++  }
++}
++
+ std::optional<MountingTransaction> RNSScreenRemovalListener::pullTransaction(
+     SurfaceId surfaceId,
+     MountingTransaction::Number transactionNumber,
+     const TransactionTelemetry &telemetry,
+     ShadowViewMutationList mutations) const {
++  // Copy under the lock, invoke outside it: the callback makes a JNI call and
++  // must not run while holding a lock the module thread also takes.
++  std::function<void(int)> listener;
++  {
++    std::lock_guard<std::mutex> lock(listenerMutex_);
++    listener = listenerFunction_;
++  }
++
++  if (!listener) {
++    // Orphaned between module teardown and the next install: pass the
++    // transaction through untouched.
++    return MountingTransaction{
++        surfaceId, transactionNumber, std::move(mutations), telemetry};
++  }
++
+   for (const ShadowViewMutation &mutation : mutations) {
+     // When using RNSModalScreen on Android it should be added here.
+     if (mutation.type == ShadowViewMutation::Type::Remove &&
+@@ -16,7 +46,7 @@ std::optional<MountingTransaction> RNSScreenRemovalListener::pullTransaction(
+       // We call the listener function even if this screen has not been owned
+       // by RNSScreenStack as since RN 0.78 we do not have enough information
+       // here. This final filter is applied later in NativeProxy.
+-      listenerFunction_(mutation.oldChildShadowView.tag);
++      listener(mutation.oldChildShadowView.tag);
+     }
+   }
+ 
+diff --git a/node_modules/react-native-screens/cpp/RNSScreenRemovalListener.h b/node_modules/react-native-screens/cpp/RNSScreenRemovalListener.h
+index 5bf6629..f1868a3 100644
+--- a/node_modules/react-native-screens/cpp/RNSScreenRemovalListener.h
++++ b/node_modules/react-native-screens/cpp/RNSScreenRemovalListener.h
+@@ -4,12 +4,22 @@
+ #include <react/renderer/mounting/MountingOverrideDelegate.h>
+ #include <react/renderer/mounting/ShadowView.h>
+ 
++#include <cstdint>
++#include <functional>
++#include <mutex>
++
+ using namespace facebook::react;
+ 
+ struct RNSScreenRemovalListener : public MountingOverrideDelegate {
+-  std::function<void(int)> listenerFunction_;
+-  RNSScreenRemovalListener(std::function<void(int)> &&listenerFunction_)
+-      : listenerFunction_(std::move(listenerFunction_)) {}
++  RNSScreenRemovalListener() = default;
++
++  // RN core lacks a `removeMountingOverrideDelegate` API, so this instance is
++  // process-immortal and swaps its callback instead of being replaced. The
++  // ownership token keeps a stale proxy's teardown from clearing a newer
++  // proxy's listener.
++  // See https://github.com/software-mansion/react-native-screens/pull/4413
++  uint64_t setListener(std::function<void(int)> &&listenerFunction);
++  void clearListener(uint64_t token);
+ 
+   bool shouldOverridePullTransaction() const override;
+   std::optional<MountingTransaction> pullTransaction(
+@@ -17,4 +27,9 @@ struct RNSScreenRemovalListener : public MountingOverrideDelegate {
+       MountingTransaction::Number number,
+       const TransactionTelemetry &telemetry,
+       ShadowViewMutationList mutations) const override;
++
++ private:
++  mutable std::mutex listenerMutex_;
++  std::function<void(int)> listenerFunction_;
++  uint64_t currentToken_{0};
+ };

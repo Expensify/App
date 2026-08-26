@@ -7,8 +7,9 @@ import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isUnread} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
 
+import type {ReportNameValuePairsArchivedState} from '@selectors/ReportNameValuePairs';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -27,7 +28,10 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
-function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
+// The archived state is passed in by the caller (read via useOnyx with reportNameValuePairsArchivedSelector) rather
+// than subscribed to here, so this action stays a plain function and callers only re-render when the archived flags
+// actually change.
+function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>) {
     if (isAnonymousUser()) {
         return;
     }

@@ -136,7 +136,7 @@ function getImportPerDiemRatesFinalModal(ratesLength: number): ImportFinalModal 
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importPerDiemRatesSuccessfulDescription',
         promptKeyParams: {
-            rates: ratesLength,
+            count: ratesLength,
         },
     };
 }

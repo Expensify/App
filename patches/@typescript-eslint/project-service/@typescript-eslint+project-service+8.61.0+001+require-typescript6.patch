@@ -1,0 +1,13 @@
+diff --git a/node_modules/@typescript-eslint/project-service/dist/createProjectService.js b/node_modules/@typescript-eslint/project-service/dist/createProjectService.js
+index 3f569a8..df248b0 100644
+--- a/node_modules/@typescript-eslint/project-service/dist/createProjectService.js
++++ b/node_modules/@typescript-eslint/project-service/dist/createProjectService.js
+@@ -39,7 +39,7 @@ function createProjectService({ host, jsDocParsingMode, options: optionsRaw = {}
+     // We import this lazily to avoid its cost for users who don't use the service
+     // TODO: Once we drop support for TS<5.3 we can import from "typescript" directly
+     // eslint-disable-next-line @typescript-eslint/no-require-imports
+-    const tsserver = require('typescript/lib/tsserverlibrary');
++    const tsserver = require('@typescript/old/lib/tsserverlibrary');
+     // TODO: see getWatchProgramsForProjects
+     // We don't watch the disk, we just refer to these when ESLint calls us
+     // there's a whole separate update pass in maybeInvalidateProgram at the bottom of getWatchProgramsForProjects

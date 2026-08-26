@@ -97,7 +97,7 @@ type OptionRowLHNProps = {
     /** The testID of the row */
     testID: number;
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 type RenderItemProps = {item: Report; index: number};

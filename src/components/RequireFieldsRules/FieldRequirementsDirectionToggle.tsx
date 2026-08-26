@@ -29,7 +29,7 @@ function FieldRequirementsDirectionToggle({direction, disabled = false, onSelect
     };
 
     return (
-        <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
+        <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal, styles.alignSelfStart]}>
             <Button
                 onPress={() => selectDirection(isRequireSelected, CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE)}
                 isDisabled={disabled}

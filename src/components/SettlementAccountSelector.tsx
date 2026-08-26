@@ -55,7 +55,7 @@ function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
 
 /**
  * Abstract component for selecting a settlement bank account.
- * Used by both Expensify Card and Travel Invoicing settlement account pages.
+ * Used by both Expensify Card and Travel Billing settlement account pages.
  * Follows composition over configuration pattern - different pages compose this
  * with their specific callbacks and content.
  */

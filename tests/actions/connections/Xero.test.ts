@@ -1,4 +1,4 @@
-import {updateXeroTravelInvoicingPayableAccount} from '@libs/actions/connections/Xero';
+import {updateXeroTravelBillingPayableAccount} from '@libs/actions/connections/Xero';
 import * as API from '@libs/API';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -34,27 +34,27 @@ describe('actions/connections/Xero', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    describe('updateXeroTravelInvoicingPayableAccount', () => {
-        it('writes the UpdateXeroTravelInvoicingPayableAccount command with travelInvoicingPayableAccountID', () => {
-            updateXeroTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+    describe('updateXeroTravelBillingPayableAccount', () => {
+        it('writes the UpdateXeroTravelBillingPayableAccount command with travelInvoicingPayableAccountID', () => {
+            updateXeroTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const call = writeSpy.mock.calls.at(0);
             if (!call) {
                 throw new Error('API.write was not called');
             }
             const [command, parameters] = call;
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT);
 
             const expectedParameters = {
                 policyID: MOCK_POLICY_ID,
                 settingValue: 'account-123',
-                idempotencyKey: CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
-            } satisfies ApiRequestCommandParameters[typeof WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT];
+                idempotencyKey: CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT,
+            } satisfies ApiRequestCommandParameters[typeof WRITE_COMMANDS.UPDATE_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT];
             expect(parameters).toEqual(expectedParameters);
         });
 
         it('merges travelInvoicingPayableAccountID optimistically onto the Xero config', () => {
-            updateXeroTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+            updateXeroTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const call = writeSpy.mock.calls.at(0);
             if (!call) {
@@ -69,8 +69,8 @@ describe('actions/connections/Xero', () => {
                     connections: expect.objectContaining({
                         xero: expect.objectContaining({
                             config: expect.objectContaining({
-                                export: expect.objectContaining({[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: 'account-123'}),
-                                pendingFields: {[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                export: expect.objectContaining({[CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]: 'account-123'}),
+                                pendingFields: {[CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                             }),
                         }),
                     }),

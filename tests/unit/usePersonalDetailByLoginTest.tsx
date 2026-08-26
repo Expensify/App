@@ -126,6 +126,48 @@ describe('usePersonalDetailByLogin', () => {
 
         expect(renderCount).toBeGreaterThan(renderCountBeforeUpdate);
     });
+
+    it('returns the selected value when a selector is passed', async () => {
+        await setPersonalDetails([ALICE]);
+
+        const {result} = renderHook(() => usePersonalDetailByLogin(ALICE.login, (personalDetails) => personalDetails?.displayName), {wrapper});
+
+        expect(result.current).toBe(ALICE.displayName);
+    });
+
+    it('does not re-render when the part of the personal details the selector returns is unchanged', async () => {
+        await setPersonalDetails([ALICE]);
+
+        let renderCount = 0;
+        renderHook(
+            () => {
+                renderCount += 1;
+                return usePersonalDetailByLogin(ALICE.login, (personalDetails) => personalDetails?.displayName);
+            },
+            {wrapper},
+        );
+        const renderCountBeforeUpdate = renderCount;
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {avatar: 'https://test.com/avatar.png'}});
+        });
+        await waitForBatchedUpdates();
+
+        expect(renderCount).toBe(renderCountBeforeUpdate);
+    });
+
+    it('re-renders when the part of the personal details the selector returns changes', async () => {
+        await setPersonalDetails([ALICE]);
+
+        const {result} = renderHook(() => usePersonalDetailByLogin(ALICE.login, (personalDetails) => personalDetails?.displayName), {wrapper});
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {displayName: 'Alice Renamed'}});
+        });
+        await waitForBatchedUpdates();
+
+        expect(result.current).toBe('Alice Renamed');
+    });
 });
 
 describe('usePersonalDetailsByLogins', () => {
@@ -221,5 +263,47 @@ describe('usePersonalDetailsByLogins', () => {
         await waitForBatchedUpdates();
 
         expect(renderCount).toBeGreaterThan(renderCountBeforeUpdate);
+    });
+
+    it('returns the selected value when a selector is passed', async () => {
+        await setPersonalDetails([ALICE, BOB]);
+
+        const {result} = renderHook(() => usePersonalDetailsByLogins([ALICE.login, BOB.login], (personalDetailsByLogin) => Object.keys(personalDetailsByLogin).length), {wrapper});
+
+        expect(result.current).toBe(2);
+    });
+
+    it('does not re-render when the part of the personal details the selector returns is unchanged', async () => {
+        await setPersonalDetails([ALICE]);
+
+        let renderCount = 0;
+        renderHook(
+            () => {
+                renderCount += 1;
+                return usePersonalDetailsByLogins([ALICE.login], (personalDetailsByLogin) => Object.keys(personalDetailsByLogin).length);
+            },
+            {wrapper},
+        );
+        const renderCountBeforeUpdate = renderCount;
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {displayName: 'Alice Renamed'}});
+        });
+        await waitForBatchedUpdates();
+
+        expect(renderCount).toBe(renderCountBeforeUpdate);
+    });
+
+    it('re-renders when the part of the personal details the selector returns changes', async () => {
+        await setPersonalDetails([ALICE]);
+
+        const {result} = renderHook(() => usePersonalDetailsByLogins([ALICE.login, BOB.login], (personalDetailsByLogin) => Object.keys(personalDetailsByLogin).length), {wrapper});
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[BOB.accountID]: BOB});
+        });
+        await waitForBatchedUpdates();
+
+        expect(result.current).toBe(2);
     });
 });

@@ -62,7 +62,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const showSectionHeader = hasMultipleSections && (rowIndex === 0 || !!prevItem?.isMerchantType !== !!item.isMerchantType);
 
     const lockIcon = item.isMerchantType ? (
-        <Tooltip text={translate('common.locked')}>
+        <Tooltip text={translate('workspace.rules.spendRules.defaultRulesCannotBeDeleted')}>
             <View>
                 <Icon
                     src={Expensicons.Lock}

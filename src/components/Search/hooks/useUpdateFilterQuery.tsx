@@ -14,6 +14,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     function getUpdatedFilterFormValues(currentValues: Partial<SearchAdvancedFiltersForm>, newValues: Partial<SearchAdvancedFiltersForm>) {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -42,6 +43,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
                 values,
                 {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
                 {sortBy: queryJSON?.sortBy, sortOrder: queryJSON?.sortOrder},
+                policies,
             ) ?? '';
         if (!queryString) {
             return;

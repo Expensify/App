@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import ImageSVG from './ImageSVG';
 import Modal from './Modal';
 import Text from './Text';
@@ -60,19 +60,21 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
 
                 {/* Buttons */}
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt5]}
                     onPress={onPositive}
-                    pressOnEnter
-                    text={translate('proactiveAppReview.positiveButton')}
-                    large
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('proactiveAppReview.positiveButton')}</Button.Text>
+                </Button>
                 <Button
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt3, styles.noSelect]}
                     onPress={onNegative}
-                    text={translate('proactiveAppReview.negativeButton')}
-                    large
-                />
+                >
+                    <Button.Text>{translate('proactiveAppReview.negativeButton')}</Button.Text>
+                </Button>
             </View>
         </Modal>
     );

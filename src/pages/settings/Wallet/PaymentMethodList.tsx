@@ -20,6 +20,7 @@ import {
     getCardConnectionStatusDisplay,
     getCardFeedIcon,
     getCardFeedWithDomainID,
+    getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
     isActionableVirtualExpensifyCard,
     isBrokenConnectionPastDismissThreshold,
@@ -40,10 +41,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getDescriptionForPolicyDomainCard, getPolicyIDFromDomainName, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
+import {getTravelBillingCard, isTravelCVVEligible} from '@libs/TravelBillingUtils';
 
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
+import {updateSelectedFeed} from '@userActions/Card';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -290,9 +293,10 @@ function PaymentMethodList({
                     icon = getCardFeedIcon(card.bank, illustrations, companyCardFeedIcons);
                 }
 
+                const feedNameWithDomainID = card.fundID ? getCardFeedWithDomainID(card.bank, card.fundID) : undefined;
+
                 let shouldShowRBR = false;
-                if (card.fundID) {
-                    const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
+                if (feedNameWithDomainID) {
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
                 } else if ((!shouldShowConnectionStatus || !isUserPersonalCard) && card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
                     // Don't show red dot for CSV imported cards without fundID
@@ -314,6 +318,7 @@ function PaymentMethodList({
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
+                const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
                 const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
@@ -339,9 +344,10 @@ function PaymentMethodList({
                 }
                 let cardConnectionStatus: PaymentMethodItem['connectionStatus'];
                 if (cardConnectionStatusDisplay) {
+                    const companyCardsRoute = policyIDForCard ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard) : undefined;
                     let cardConnectionMessage: string | undefined;
-                    if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && policyIDForCard) {
-                        cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard)}`);
+                    if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute) {
+                        cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${companyCardsRoute}`);
                     } else if (cardConnectionStatusDisplay.shouldUseReauthMessage) {
                         cardConnectionMessage = translate('walletPage.cardStatus.reconnectBank');
                     } else if (cardConnectionStatusDisplay.shouldUsePersonalCardFix) {
@@ -359,9 +365,14 @@ function PaymentMethodList({
                             ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
                             : undefined,
                         onLinkPress:
-                            cardConnectionStatusDisplay.shouldUseCompanyCardsLink && policyIDForCard
+                            cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute
                                 ? () => {
-                                      Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard));
+                                      // The Company cards page opens the last selected feed, so select this card's feed before going there.
+                                      // An unknown feed is ignored by getSelectedFeed, which falls back to the first available one.
+                                      if (companyCardFeedForCard && policyIDForCard) {
+                                          updateSelectedFeed(companyCardFeedForCard, policyIDForCard);
+                                      }
+                                      Navigation.navigate(companyCardsRoute);
                                   }
                                 : undefined,
                     };
@@ -511,14 +522,14 @@ function PaymentMethodList({
             }
 
             const travelCardGrouped: PaymentMethodItem[] = [];
-            const travelCard = getTravelInvoicingCard(cardList);
+            const travelCard = getTravelBillingCard(cardList);
             if (isTravelCVVEligible(cardList) && travelCard) {
                 travelCardGrouped.push({
                     title: translate('walletPage.travelCVV.title'),
                     description: translate('walletPage.travelCVV.subtitle'),
                     icon: expensifyIcons.LuggageWithLines,
                     iconFill: colors.productLight100,
-                    iconStyles: styles.travelInvoicingIcon,
+                    iconStyles: styles.travelBillingIcon,
                     shouldShowRightIcon: true,
                     shouldShowThreeDotsMenu: false,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV),
@@ -584,7 +595,11 @@ function PaymentMethodList({
             };
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
-            const bankConnectionStatus = shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData)) : undefined;
+            // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const bankAccountCurrency = ('bankCurrency' in paymentMethod ? paymentMethod.bankCurrency : undefined) || paymentMethod.accountData?.additionalData?.currency;
+            const bankConnectionStatus =
+                shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData), bankAccountCurrency) : undefined;
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                 pressHandler({
                     event: e,

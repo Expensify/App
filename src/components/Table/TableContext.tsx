@@ -1,9 +1,14 @@
+import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {FlashListRef} from '@shopify/flash-list';
+import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 
 import React, {createContext, useContext} from 'react';
 
+import type {TableListMetadata} from './buildTableListData';
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting} from './middlewares/sorting';
+import type {TableHeaderProps} from './TableHeader';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
 
 /**
@@ -17,8 +22,29 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The title of the table when shown on smaller screens. */
     title?: string;
 
+    /** Declarative content rendered as the FlashList header so it scrolls with the table rows. */
+    listHeaderElement?: React.ReactNode;
+
+    /** Declarative column-header child relocated into the table list when page content is present. */
+    tableHeaderElement?: React.ReactElement<TableHeaderProps>;
+
+    /** Empty-state element extracted from the table children; rendered by TableBody in its page-header empty layout. */
+    emptyStateElement?: React.ReactElement;
+
+    /** No-results element extracted from the table children; rendered by TableBody in its page-header empty layout. */
+    noResultsStateElement?: React.ReactElement;
+
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
+
+    /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
+    listContainerRef: React.RefObject<View | null>;
+
+    /** Tracks the list scroll offset for the focused-input scroll helper; wired into the list's onScroll. */
+    trackScrollOffset: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Scrolls the table list so the given input stays visible above the keyboard (no-op on web). */
+    scrollInputIntoView: (input: MeasurableInput) => void;
 
     /** FlashList props passed through from the Table component. */
     listProps: SharedListProps<DataType>;
@@ -36,7 +62,13 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     originalDataLength: number;
 
     /** Column configuration for the table. */
-    columns: Array<TableColumn<ColumnKey>>;
+    columns: Array<TableColumn<ColumnKey, DataType>>;
+
+    /**
+     * The CSS grid tracks the header and every row must render, when the columns are sized from their content.
+     * `undefined` means the columns keep their static tracks (fixed widths and equal `1fr` shares).
+     */
+    dynamicGridTemplateColumns: string[] | undefined;
 
     /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig<FilterKey> | undefined;
@@ -65,8 +97,14 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether search string is not empty. */
     hasSearchString: boolean;
 
+    /** Synthetic row metadata shared by the FlashList data and table ref methods. */
+    tableListMetadata: TableListMetadata;
+
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
+
+    /** Whether the default (unfiltered) view resolves to zero visible rows even though data exists (e.g. a default `isItemInFilter` hides everything). */
+    isDefaultViewEmpty: boolean;
 
     /** Whether or not table selection is enabled on mobile */
     isMobileSelectionEnabled: boolean;
@@ -80,9 +118,13 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
     listRef: React.createRef(),
+    listContainerRef: React.createRef(),
+    trackScrollOffset: () => {},
+    scrollInputIntoView: () => {},
     processedData: [],
     originalDataLength: 0,
     columns: [],
+    dynamicGridTemplateColumns: undefined,
     activeFilters: {},
     activeSorting: {
         columnKey: undefined,
@@ -96,12 +138,21 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     listProps: {} as SharedListProps<TableData>,
     hasActiveFilters: false,
     hasSearchString: false,
+    tableListMetadata: {
+        hasPageHeader: false,
+        shouldRenderStickyHeader: false,
+        syntheticRowsBeforeData: 0,
+        stickyTableHeaderIndex: 0,
+        listDataRowOffset: 0,
+    },
     isEmptyResult: false,
+    isDefaultViewEmpty: false,
     shouldUseNarrowTableLayout: false,
     isMobileSelectionEnabled: false,
 };
 
 const TableContext = createContext(defaultTableContextValue);
+const TableRowSemanticIDContext = createContext<string | null | undefined>(undefined);
 
 /**
  * Hook to access the Table context.
@@ -130,6 +181,10 @@ function useTableContext<DataType extends TableData, ColumnKey extends string = 
     return context as unknown as TableContextValue<DataType, ColumnKey>;
 }
 
+function useTableRowSemanticID() {
+    return useContext(TableRowSemanticIDContext);
+}
+
 export default TableContext;
-export {useTableContext};
+export {TableRowSemanticIDContext, useTableContext, useTableRowSemanticID};
 export type {TableContextValue};

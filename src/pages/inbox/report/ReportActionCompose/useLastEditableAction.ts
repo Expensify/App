@@ -27,7 +27,8 @@ function useLastEditableAction(reportID: string): OnyxEntry<OnyxTypes.ReportActi
     const isOnSearchMoneyRequestReport = route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || route.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT;
     const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
 
-    return [...actionsForLastEditable, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined));
+    // reportActions is intentionally omitted: money request actions are filtered out first, so canEditReportAction never reaches the canEditMoneyRequest check that reads them
+    return [...actionsForLastEditable, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined, undefined));
 }
 
 export default useLastEditableAction;

@@ -1,6 +1,6 @@
-import {createTransactionThreadReport} from '@libs/actions/Report';
+import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
-import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
+import {getOrCreateTransactionThreadReportID, getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,12 +18,14 @@ jest.mock('@libs/actions/Report', () => {
     return {
         ...actual,
         createTransactionThreadReport: jest.fn(() => ({reportID: 'created_thread'})),
+        setOptimisticTransactionThread: jest.fn(),
     };
 });
 
 const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
+const mockSetOptimisticTransactionThread = jest.mocked(setOptimisticTransactionThread);
 
-const CONTEXT = {introSelected: undefined, betas: undefined, currentUserEmail: 'me@test.com', currentUserAccountID: 1, personalDetails: undefined};
+const CONTEXT = {introSelected: undefined, betas: undefined, currentUserEmail: 'me@test.com', currentUserAccountID: 1, personalDetails: undefined, conciergeChat: undefined};
 
 function buildTransaction(transactionID: string, reportID: string): Transaction {
     return {transactionID, reportID, amount: 0, created: '', currency: 'USD', merchant: '', comment: {}};
@@ -100,5 +102,73 @@ describe('getReportIDToOpenForExpense', () => {
 
         expect(getReportIDToOpenForExpense(expense, CONTEXT)).toBe('parent4');
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+    });
+});
+
+describe('getOrCreateTransactionThreadReportID', () => {
+    const iouReport = {reportID: 'parent', policyID: 'policy1'} as Report;
+
+    beforeEach(() => {
+        mockCreateTransactionThreadReport.mockClear();
+        mockSetOptimisticTransactionThread.mockClear();
+    });
+
+    it('returns the existing thread without side effects when it is already in Onyx', () => {
+        const reportID = getOrCreateTransactionThreadReportID(
+            {
+                threadReportID: 'existing_thread',
+                threadReportExists: true,
+                iouReport,
+                iouReportAction: buildIOUAction('a1', 'existing_thread'),
+                transaction: buildTransaction('t1', 'parent'),
+            },
+            CONTEXT,
+        );
+
+        expect(reportID).toBe('existing_thread');
+        expect(mockSetOptimisticTransactionThread).not.toHaveBeenCalled();
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+    });
+
+    it('optimistically materializes the existing thread when it has not been fetched to Onyx yet', () => {
+        const reportID = getOrCreateTransactionThreadReportID(
+            {
+                threadReportID: 'existing_thread',
+                threadReportExists: false,
+                iouReport,
+                iouReportAction: buildIOUAction('a1', 'existing_thread'),
+                transaction: buildTransaction('t1', 'parent'),
+            },
+            CONTEXT,
+        );
+
+        expect(reportID).toBe('existing_thread');
+        expect(mockSetOptimisticTransactionThread).toHaveBeenCalledTimes(1);
+        expect(mockSetOptimisticTransactionThread).toHaveBeenCalledWith('existing_thread', 'parent', 'a1', 'policy1');
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+    });
+
+    it('creates a new thread when none exists yet', () => {
+        const reportID = getOrCreateTransactionThreadReportID(
+            {
+                threadReportID: undefined,
+                threadReportExists: false,
+                iouReport,
+                iouReportAction: buildIOUAction('a1'),
+                transaction: buildTransaction('t1', 'parent'),
+            },
+            CONTEXT,
+        );
+
+        expect(reportID).toBe('created_thread');
+        expect(mockSetOptimisticTransactionThread).not.toHaveBeenCalled();
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                iouReport: expect.objectContaining({reportID: 'parent'}),
+                iouReportAction: expect.objectContaining({reportActionID: 'a1'}),
+                transaction: expect.objectContaining({transactionID: 't1'}),
+            }),
+        );
     });
 });

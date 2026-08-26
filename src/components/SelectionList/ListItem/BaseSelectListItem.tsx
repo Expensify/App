@@ -1,5 +1,6 @@
 import TextWithTooltip from '@components/TextWithTooltip';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -41,6 +42,7 @@ function BaseSelectListItem<TItem extends ListItem>({
     selectionButtonPosition,
 }: BaseSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
@@ -81,7 +83,7 @@ function BaseSelectListItem<TItem extends ListItem>({
                             isMultilineSupported ? styles.preWrap : styles.pre,
                             item.alternateText || item.alternateTextComponent ? styles.mb1 : null,
                             isDisabled && styles.colorMuted,
-                            isMultilineSupported ? {paddingLeft} : null,
+                            isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
                             titleStyles,
                             item.titleStyles,
                         ]}
@@ -98,6 +100,7 @@ function BaseSelectListItem<TItem extends ListItem>({
                                 styles.lh16,
                                 isAlternateTextMultilineSupported ? styles.preWrap : styles.pre,
                                 isAlternateTextMultilineSupported ? {maxWidth: alternateTextMaxWidth} : null,
+                                isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
                             ]}
                             numberOfLines={isAlternateTextMultilineSupported ? alternateTextNumberOfLines : 1}
                         />

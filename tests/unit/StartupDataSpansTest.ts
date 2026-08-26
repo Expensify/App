@@ -1,12 +1,12 @@
 import Reauthentication, {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 import reauthenticate from '@libs/Reauthentication';
-import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
 import trackStartupDataRender from '@libs/telemetry/trackStartupDataRender';
 
 import CONST from '@src/CONST';
-import {flushQueue} from '@src/libs/actions/QueuedOnyxUpdates';
-import {WRITE_COMMANDS} from '@src/libs/API/types';
+import {flushQueue, queueOnyxUpdates} from '@src/libs/actions/QueuedOnyxUpdates';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@src/libs/API/types';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
@@ -27,7 +27,7 @@ jest.mock('@libs/telemetry/activeSpans');
 jest.mock('@libs/telemetry/trackStartupDataRender');
 
 const mockStartSpan = jest.mocked(startSpan);
-const mockEndSpan = jest.mocked(endSpan);
+const mockEndSpanWithAttributes = jest.mocked(endSpanWithAttributes);
 const mockTrackStartupDataRender = jest.mocked(trackStartupDataRender);
 
 const APPLY = CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY;
@@ -79,7 +79,7 @@ describe('StartupData.Apply / StartupData.Render placement', () => {
 
         let hasLoadedAppWhenApplyEnded: boolean | undefined;
         let hasLoadedAppWhenRenderTrackingStarted: boolean | undefined;
-        mockEndSpan.mockImplementation((spanId) => {
+        mockEndSpanWithAttributes.mockImplementation((spanId) => {
             if (!spanId.startsWith(APPLY)) {
                 return;
             }
@@ -130,5 +130,24 @@ describe('StartupData.Apply / StartupData.Render placement', () => {
                 expect(startedSpanIdsFor(APPLY)).toHaveLength(1);
                 expect(mockTrackStartupDataRender).toHaveBeenCalledTimes(1);
             });
+    });
+
+    it('ends the Search apply phase without waiting on an unrelated write flush', () => {
+        // A Search READ applies its snapshot inline, so it must not inherit the pending flush of whatever write is in flight.
+        mockFetch.mockAPICommand(READ_COMMANDS.SEARCH, () => ({jsonCode: 200}));
+        queueOnyxUpdates([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true}]);
+
+        const request: OnyxRequest<typeof ONYXKEYS.HAS_LOADED_APP> = {
+            command: READ_COMMANDS.SEARCH,
+            data: {authToken: 'testToken', apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+        };
+
+        return Request.processWithMiddleware(request)
+            .then(() => waitForBatchedUpdates())
+            .then(() => {
+                const endedSpanIds = mockEndSpanWithAttributes.mock.calls.map(([spanId]) => spanId);
+                expect(endedSpanIds.some((spanId) => spanId.startsWith(CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY))).toBe(true);
+            })
+            .finally(() => flushQueue());
     });
 });

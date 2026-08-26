@@ -8,6 +8,7 @@ import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {Scheduler} from '@libs/Scheduler';
 
@@ -63,6 +64,16 @@ jest.mock('@libs/fileDownload/FileUtils', () => {
         }),
     };
 });
+
+// Jest resolves the bare specifier to the web no-op, so mock the shape and let each test opt into the native move.
+jest.mock('@libs/ReceiptStorage', () => ({
+    __esModule: true,
+    default: {
+        adopt: jest.fn((uriOrPath: string) => Promise.resolve(uriOrPath)),
+        toLocalUri: jest.fn((durableName: string) => durableName),
+        resolve: jest.fn((source: string) => source),
+    },
+}));
 
 jest.mock('@libs/getCurrentPosition', () => jest.fn());
 
@@ -342,6 +353,61 @@ describe('SubmitDetailsPage', () => {
 
         // Confirm must bail out (no raw HEIC uploaded) until the converted file is ready.
         expect(jest.mocked(readFileAsync)).not.toHaveBeenCalled();
+    });
+
+    // Error #12 — the share extension wipes its folder on the next share, so the read must come from the receipts folder.
+    it('adopts the shared file into the receipts folder and uploads from there', async () => {
+        // Given a share whose file adopt moves into the receipts folder
+        const durableUri = 'file:///Documents/Receipts-Upload/shared_1234.jpg';
+        jest.mocked(ReceiptStorage.adopt).mockResolvedValueOnce('shared_1234.jpg');
+        jest.mocked(ReceiptStorage.toLocalUri).mockReturnValueOnce(durableUri);
+
+        // When the user confirms the submit
+        await renderAndConfirm();
+
+        // Then the upload reads the durable copy, never the app-group path
+        expect(ReceiptStorage.adopt).toHaveBeenCalledWith('file://shared.jpg', expect.any(String));
+        expect(jest.mocked(readFileAsync).mock.calls.at(0)?.[0]).toBe(durableUri);
+    });
+
+    // Error #12b — a failed move must not block the submit: the shared path still works for this session.
+    it('submits with the shared path when adopting the file fails', async () => {
+        // Given adopt rejects
+        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+        jest.mocked(ReceiptStorage.adopt).mockRejectedValueOnce(new Error('move failed'));
+
+        // When the user confirms the submit
+        await renderAndConfirm();
+
+        // Then the upload falls back to the shared path, logs the failure, and the expense is still created
+        expect(jest.mocked(readFileAsync).mock.calls.at(0)?.[0]).toBe('file://shared.jpg');
+        expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('adopt failed'), expect.objectContaining({captureSource: 'share'}));
+        expect(TrackExpense.requestMoney).toHaveBeenCalled();
+
+        logAlertSpy.mockRestore();
+    });
+
+    // Error #12c — adopt is a move, so a retry after a read failure has to work off the durable copy.
+    it('retries from the durable copy after a file-read failure', async () => {
+        // Given a share that adopts fine but fails its first read
+        const durableUri = 'file:///Documents/Receipts-Upload/shared_1234.jpg';
+        jest.mocked(ReceiptStorage.adopt).mockResolvedValueOnce('shared_1234.jpg');
+        jest.mocked(ReceiptStorage.toLocalUri).mockReturnValueOnce(durableUri);
+        jest.mocked(readFileAsync).mockImplementationOnce((_path, _fileName, _onSuccess, onFailure) => {
+            onFailure?.('[FileUtils] Could not read uploaded file');
+            return Promise.resolve();
+        });
+
+        // When the user confirms, the read fails, and the user confirms again
+        await renderAndConfirm();
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the second attempt works off the durable copy, not the shared path the move emptied
+        expect(jest.mocked(readFileAsync).mock.calls.at(0)?.[0]).toBe(durableUri);
+        expect(jest.mocked(ReceiptStorage.adopt).mock.calls.at(1)?.[0]).toBe(durableUri);
+        expect(jest.mocked(readFileAsync).mock.calls.at(1)?.[0]).toBe(durableUri);
+        expect(TrackExpense.requestMoney).toHaveBeenCalled();
     });
 
     // Error #5 — wide layout fallback: when destination is not topmost, reveal it via revealRouteBeforeDismissingModal

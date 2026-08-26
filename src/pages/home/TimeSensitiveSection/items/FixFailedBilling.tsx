@@ -7,6 +7,8 @@ import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscrip
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 function FixFailedBilling() {
@@ -22,7 +24,7 @@ function FixFailedBilling() {
             subtitle={translate('homePage.timeSensitiveSection.fixFailedBilling.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={navigateToSubscriptionPayment}
-            buttonProps={{danger: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

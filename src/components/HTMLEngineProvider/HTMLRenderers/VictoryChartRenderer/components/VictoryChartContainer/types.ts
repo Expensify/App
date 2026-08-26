@@ -8,6 +8,7 @@ type VictoryChartContainerLayout =
       }
     | {
           kind: 'scaled';
+          designWidth: number;
           designHeight: number;
           scale: number;
       }

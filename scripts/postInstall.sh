@@ -23,10 +23,15 @@ fi
 
 # Setup Skia WASM
 echo -e "\n${GREEN}Setting up Skia WASM!${NC}"
-npx setup-skia-web
+./node_modules/.bin/setup-skia-web
 
 # Clean up web/static created by setup-skia-web
 rm -rf "$ROOT_DIR/web/static"
 
 # Apply packages using patch-package
-scripts/applyPatches.sh
+bun scripts/applyPatches.ts
+
+# `@typescript/old` (pulled in by `@typescript/typescript6`) also ships a `tsc` bin.
+# npm's last-writer-wins linking can point `node_modules/.bin/tsc` at TypeScript 6.
+# Force the TypeScript 7 native compiler so a bare `npx tsc` matches `npm run typecheck`.
+ln -sfn ../typescript/bin/tsc "$ROOT_DIR/node_modules/.bin/tsc"

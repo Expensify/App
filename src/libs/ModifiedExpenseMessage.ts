@@ -498,7 +498,7 @@ function getForReportAction({
     // fallback.
     const hasModifiedVendor = isReportActionOriginalMessageAnObject && ('oldVendor' in reportActionOriginalMessage || 'vendor' in reportActionOriginalMessage);
     if (hasModifiedVendor) {
-        // Vendor is stored on the action as `{externalID, name?, isManuallySet}` (or absent/null).
+        // Vendor is stored on the action as `{externalID, name?, wasManuallySet}` (or absent/null).
         // Resolve the display name from any connection that has the vendor data (QBO, Intacct, or
         // Xero), without gating on the workspace's current export mode — a past "set vendor" action
         // should still render the vendor name after an admin switches the non-reimbursable export

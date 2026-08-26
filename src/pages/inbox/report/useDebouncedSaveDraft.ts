@@ -9,6 +9,7 @@ import {useRef} from 'react';
 type UseDebouncedSaveDraftResult = {
     saveDraft: (...args: unknown[]) => void;
     isSavePending: RefObject<boolean>;
+    cancelSaveDraft: () => void;
 };
 
 /**
@@ -20,6 +21,9 @@ function useDebouncedSaveDraftImpl(saveDraftFn: (...args: unknown[]) => void, wa
 
     const debouncedSaveDraft = useDebounce(
         (...args: unknown[]) => {
+            if (!isSavePending.current) {
+                return;
+            }
             saveDraftFn(...args);
             isSavePending.current = false;
         },
@@ -32,9 +36,14 @@ function useDebouncedSaveDraftImpl(saveDraftFn: (...args: unknown[]) => void, wa
         debouncedSaveDraft(...args);
     };
 
+    const cancelSaveDraft = () => {
+        isSavePending.current = false;
+    };
+
     return {
         saveDraft,
         isSavePending,
+        cancelSaveDraft,
     };
 }
 
@@ -52,6 +61,7 @@ function useDebouncedSaveDraft<SaveDraftArgs extends unknown[]>(saveDraftFn: (..
     return useDebouncedSaveDraftImpl(saveDraftFn as (...args: unknown[]) => void, wait, shouldExecuteOnUnmount) as {
         saveDraft: (...args: SaveDraftArgs) => void;
         isSavePending: RefObject<boolean>;
+        cancelSaveDraft: () => void;
     };
 }
 

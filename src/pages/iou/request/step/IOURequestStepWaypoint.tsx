@@ -1,4 +1,5 @@
 import AddressSearch from '@components/AddressSearch';
+import type {PredefinedPlace} from '@components/AddressSearch/types';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
@@ -47,7 +48,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
 // that the google autocomplete component expects for it's "predefined places" feature.
-function recentWaypointsSelector(waypoints: RecentWaypoint[] = []) {
+function recentWaypointsSelector(waypoints: RecentWaypoint[] = []): PredefinedPlace[] {
     return waypoints
         .slice(0, CONST.RECENT_WAYPOINTS_NUMBER)
         .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true && waypoint.lat != null && waypoint.lng != null)
@@ -58,6 +59,8 @@ function recentWaypointsSelector(waypoints: RecentWaypoint[] = []) {
                 location: {
                     lat: waypoint.lat ?? 0,
                     lng: waypoint.lng ?? 0,
+                    latitude: waypoint.lat ?? 0,
+                    longitude: waypoint.lng ?? 0,
                 },
             },
         }));

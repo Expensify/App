@@ -49,9 +49,9 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     default: () => ({accountID: 123, login: 'test@example.com'}),
 }));
 
-const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
-const mockSendFromConcierge = sendExportFileFromConcierge as jest.MockedFunction<typeof sendExportFileFromConcierge>;
-const mockClearExportDownload = clearExportDownload as jest.MockedFunction<typeof clearExportDownload>;
+const mockFileDownload = jest.mocked(fileDownload);
+const mockSendFromConcierge = jest.mocked(sendExportFileFromConcierge);
+const mockClearExportDownload = jest.mocked(clearExportDownload);
 
 const EXPORT_ID = 'test-export-123';
 const CSV_FILE_NAME = 'export_2026-06-09_02-41-38_6a277d629c569.csv';

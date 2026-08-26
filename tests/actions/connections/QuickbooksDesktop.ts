@@ -3,7 +3,7 @@ import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
-import {updateQuickbooksDesktopTravelInvoicingPayableAccount} from '@src/libs/actions/connections/QuickbooksDesktop';
+import {updateQuickbooksDesktopTravelBillingPayableAccount} from '@src/libs/actions/connections/QuickbooksDesktop';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -34,27 +34,27 @@ describe('actions/connections/QuickbooksDesktop', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    describe('updateQuickbooksDesktopTravelInvoicingPayableAccount', () => {
+    describe('updateQuickbooksDesktopTravelBillingPayableAccount', () => {
         it('writes the dedicated payable account command with the selected account', () => {
-            updateQuickbooksDesktopTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+            updateQuickbooksDesktopTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const call = writeSpy.mock.calls.at(0);
             if (!call) {
                 throw new Error('API.write was not called');
             }
             const [command, parameters] = call;
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_PAYABLE_ACCOUNT);
 
             const expectedParameters = {
                 policyID: MOCK_POLICY_ID,
                 settingValue: 'account-123',
-                idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
-            } satisfies ApiRequestCommandParameters[typeof WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT];
+                idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT),
+            } satisfies ApiRequestCommandParameters[typeof WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_PAYABLE_ACCOUNT];
             expect(parameters).toEqual(expectedParameters);
         });
 
         it('merges the payable account optimistically onto the QBD export config', () => {
-            updateQuickbooksDesktopTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+            updateQuickbooksDesktopTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const call = writeSpy.mock.calls.at(0);
             if (!call) {

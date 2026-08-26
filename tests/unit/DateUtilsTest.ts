@@ -725,6 +725,29 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('getTimeOfDayGreetingKey', () => {
+        const atHour = (hour: number, minute = 0) => set(new Date(), {hours: hour, minutes: minute, seconds: 0, milliseconds: 0});
+
+        it('should return goodMorning from 4am up to noon', () => {
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(4))).toBe('goodMorning');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(8, 30))).toBe('goodMorning');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(11, 59))).toBe('goodMorning');
+        });
+
+        it('should return goodAfternoon from noon up to 5pm', () => {
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(12))).toBe('goodAfternoon');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(14, 15))).toBe('goodAfternoon');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(16, 59))).toBe('goodAfternoon');
+        });
+
+        it('should return goodEvening from 5pm up to 4am', () => {
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(17))).toBe('goodEvening');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(21))).toBe('goodEvening');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(0))).toBe('goodEvening');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(3, 59))).toBe('goodEvening');
+        });
+    });
+
     describe('time picker helpers with a non-English date-fns locale', () => {
         beforeEach(() => IntlStore.load(CONST.LOCALES.DE));
 

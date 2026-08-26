@@ -39,7 +39,11 @@ function useDomainHighlightOnReturn<DataType extends TableData, ColumnKey extend
             return;
         }
 
-        tableRef.current?.scrollToIndex({index, animated: false});
+        tableRef.current?.scrollToIndex({
+            index,
+            animated: false,
+            viewPosition: 0.5,
+        });
         tableRef.current?.highlightItems([highlightKey]);
         clearDomainHighlightItems(domainAccountID);
     }, [isFocused, highlightKey, domainAccountID, tableRef]);

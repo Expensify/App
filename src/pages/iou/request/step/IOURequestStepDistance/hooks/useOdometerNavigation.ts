@@ -5,6 +5,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {rand64} from '@libs/NumberUtils';
@@ -140,6 +141,7 @@ function useOdometerNavigation({
     introSelected,
     personalOutputCurrency,
 }: UseOdometerNavigationParams): (options: NavigateOptions) => void {
+    const {isOffline} = useNetwork();
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -202,6 +204,7 @@ function useOdometerNavigation({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
+            isOffline,
             selfDMReport,
             policyForMovingExpenses,
             odometerStart,

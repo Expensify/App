@@ -62,6 +62,34 @@ describe('usePreferredPolicy', () => {
         expect(result.current.preferredPolicyID).toBe(restrictedPolicyID);
     });
 
+    it('should return restricted workspace when the security group is under the sharedNVP key and has enableRestrictedPrimaryPolicy enabled', async () => {
+        const securityGroupID = '123456';
+        const ownerAccountID = 42;
+        const restrictedPolicyID = 'C3D4E5F6A7B8C9D0';
+
+        // Given a signed-in user with an object membership for their domain
+        await Onyx.set(ONYXKEYS.SESSION, {
+            email: 'user@example.com',
+        });
+
+        const domain = 'example.com';
+        await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[domain]: {securityGroupID, ownerAccountID}});
+
+        // Given the group restricts the primary workspace, stored under the sharedNVP key
+        const securityGroupKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}` as const;
+        await Onyx.set(securityGroupKey, {
+            enableRestrictedPrimaryPolicy: true,
+            restrictedPrimaryPolicyID: restrictedPolicyID,
+        });
+
+        // When we render the hook
+        const {result} = renderHook(() => usePreferredPolicy());
+
+        // Then it should report the restriction and the workspace ID
+        expect(result.current.isRestrictedToPreferredPolicy).toBe(true);
+        expect(result.current.preferredPolicyID).toBe(restrictedPolicyID);
+    });
+
     it('should return false when security group has enableRestrictedPrimaryPolicy disabled', async () => {
         const securityGroupID = 'securityGroup123';
         const restrictedPolicyID = 'policy456';

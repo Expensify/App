@@ -112,11 +112,17 @@ describe('normalizeForKey', () => {
 
     it('sorts object keys recursively', () => {
         const result = normalizeForKey({c: 1, a: 2, b: 3});
-        expect(Object.keys(result as Record<string, unknown>)).toEqual(['a', 'b', 'c']);
+        if (typeof result !== 'object' || result === null || Array.isArray(result)) {
+            throw new Error('Expected normalizeForKey to return an object');
+        }
+        expect(Object.keys(result)).toEqual(['a', 'b', 'c']);
     });
 
     it('preserves explicit-undefined nested values via the placeholder', () => {
-        const result = normalizeForKey([undefined, 1]) as unknown[];
+        const result = normalizeForKey([undefined, 1]);
+        if (!Array.isArray(result)) {
+            throw new Error('Expected normalizeForKey to return an array');
+        }
         expect(result.at(0)).not.toBeNull();
         expect(result.at(0)).not.toBeUndefined();
     });

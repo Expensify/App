@@ -27,7 +27,7 @@ type ExpensifyCardSettingsBase = {
     /** The bank account chosen for the card settlement */
     paymentBankAccountID?: number;
 
-    /** Whether the card program (e.g., Travel Invoicing) is enabled */
+    /** Whether the card program (e.g., Travel Billing) is enabled */
     isEnabled?: boolean;
 
     /** The previous bank account chosen for the card settlement, used for reverting failed updates */
@@ -72,7 +72,7 @@ type ExpensifyCardSettingsBase = {
     /** Credit limit for the card program */
     limit?: number;
 
-    /** Per-user monthly spend limit for travel invoicing cards (in cents) */
+    /** Per-user monthly spend limit for travel billing cards (in cents) */
     monthlySpendLimitPerUser?: number;
 
     /** Currency for the card program (e.g. USD, GBP, EUR) */
@@ -142,7 +142,7 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
          *
          */
         GB?: NestedExpensifyCardSettings;
-        /** Nested Travel Invoicing settings from backend */
+        /** Nested Travel Billing settings from backend */
 
         /**
          *

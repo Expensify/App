@@ -160,6 +160,7 @@ function WorkspaceCompanyCardsTableControls({
                     icon: icons.RemoveMembers,
                     text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
                     value: 'unassign',
+                    shouldSkipFocusRestore: !!bankName,
                     onSelected: confirmBulkUnassign,
                 });
             }

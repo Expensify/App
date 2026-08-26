@@ -58,27 +58,27 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
 }
 
 describe('computeReportActionsSkeletonState', () => {
-    it('shows the initial skeleton for a pending OpenReport matching this report', () => {
+    it('shows the loading skeleton for a pending OpenReport matching this report', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
                 isReportLoadPending: true,
             }),
         );
 
-        expect(state.shouldShowInitialSkeleton).toBe(true);
+        expect(state.shouldShowLoadingSkeleton).toBe(true);
     });
 
-    it('does not show the initial skeleton when no OpenReport matching this report is pending', () => {
+    it('does not show the loading skeleton when no OpenReport matching this report is pending', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
                 isReportLoadPending: false,
             }),
         );
 
-        expect(state.shouldShowInitialSkeleton).toBe(false);
+        expect(state.shouldShowLoadingSkeleton).toBe(false);
     });
 
-    it('does not show the initial skeleton for a pending OpenReport while offline', () => {
+    it('does not show the loading skeleton for a pending OpenReport while offline', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
                 isOffline: true,
@@ -86,17 +86,17 @@ describe('computeReportActionsSkeletonState', () => {
             }),
         );
 
-        expect(state.shouldShowInitialSkeleton).toBe(false);
+        expect(state.shouldShowLoadingSkeleton).toBe(false);
     });
 
-    it('releases the initial skeleton after a terminal OpenReport failure', () => {
+    it('releases the loading skeleton after a terminal OpenReport failure', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
                 isReportLoadPending: false,
             }),
         );
 
-        expect(state.shouldShowInitialSkeleton).toBe(false);
+        expect(state.shouldShowLoadingSkeleton).toBe(false);
     });
 
     it('releases the unread initial load when no report load is pending', () => {
@@ -196,7 +196,7 @@ describe('computeReportActionsSkeletonState', () => {
             }),
         );
 
-        expect(state.shouldShowInitialSkeleton).toBe(false);
+        expect(state.shouldShowLoadingSkeleton).toBe(false);
     });
 
     it('preserves the linked message skeleton when the report load is pending', () => {
@@ -210,6 +210,6 @@ describe('computeReportActionsSkeletonState', () => {
             }),
         );
 
-        expect(state.shouldShowInitialSkeleton).toBe(true);
+        expect(state.shouldShowLoadingSkeleton).toBe(true);
     });
 });

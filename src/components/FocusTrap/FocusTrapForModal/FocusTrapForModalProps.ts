@@ -13,7 +13,7 @@ type FocusTrapForModalProps = {
     shouldReturnFocus?: boolean;
 
     /**
-     * The element that opened this trap — a popover's anchor. Only consulted when `document.activeElement`
+     * The element that opened this trap, a popover's anchor. Only consulted when `document.activeElement`
      * is `body` at activation time: triggers that blur themselves to avoid a focus ring (the FAB, the composer
      * "+") leave nothing to infer the launcher from, so both the dismiss-time focus return and the nav-back
      * restore have no target. Pass the same ref the popover already uses to position itself.

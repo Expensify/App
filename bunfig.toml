@@ -6,4 +6,6 @@ preload = ["./scripts/stubReactNative.js"]
 # their roots explicitly along with the --parallel and --preload flags they need (see tests/tooling/README.md).
 [test]
 root = "server"
-pathIgnorePatterns = ["**/fixtures/**", "**/dist/**", "**/.dev/**", "**/__output__/**", "**/__golden__/**"]
+# `evals/` is listed even though `root` already excludes it: the evals spend real OpenAI tokens on every
+# run and must never be swept into CI if that root is ever widened.
+pathIgnorePatterns = ["**/fixtures/**", "**/dist/**", "**/.dev/**", "**/__output__/**", "**/__golden__/**", "**/evals/**"]

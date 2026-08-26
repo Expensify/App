@@ -1,4 +1,3 @@
-#!/usr/bin/env bun
 import * as versionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
@@ -6,7 +5,6 @@ import type {SemVer} from 'semver';
 import type {PackageJson} from 'type-fest';
 
 import {execSync, exec as originalExec} from 'child_process';
-import CLI from 'expensify-common/CLI';
 import {promises as fs} from 'fs';
 import path from 'path';
 import getMajorVersion from 'semver/functions/major';
@@ -29,7 +27,7 @@ const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
 
 /**
  * This is a utility function to get the repo root.
- * It's a helpful alternative to __dirname, which doesn't work with ncc-compiled scripts.
+ * It's a helpful alternative to __dirname, which doesn't work with bundled/compiled scripts.
  * __dirname doesn't work, because:
  *   - if it's evaluated at compile time it will include an absolute path in the computer in which the file was compiled
  *   - if it's evaluated at runtime, it won't refer to the directory of the imported module, because the code will have moved to wherever it's bundled
@@ -207,34 +205,6 @@ async function run(semanticVersionLevel: SemverLevel) {
     // Apply the version changes in Android, iOS, and JS config files (E/App and Mobile-Expensify)
     await Promise.all([updateAndroid(newVersion), updateIOS(newVersion), updateNPM(newVersion), updateConfigJSON(newVersion)]);
     return newVersion;
-}
-
-if (require.main === module) {
-    const semverLevelOptions = Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS).join(', ');
-    const cli = new CLI({
-        positionalArgs: [
-            {
-                name: 'semverLevel',
-                description: `Semantic version level to bump (${semverLevelOptions})`,
-                default: versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD,
-                parse: (val) => {
-                    if (!versionUpdater.isValidSemverLevel(val)) {
-                        throw new Error(`Invalid semver level. Must be one of: ${semverLevelOptions}`);
-                    }
-                    return val;
-                },
-            },
-        ],
-    });
-
-    run(cli.positionalArgs.semverLevel).catch((error: unknown) => {
-        if (error instanceof Error) {
-            console.error(error.message);
-        } else {
-            console.error('An unexpected error occurred.');
-        }
-        process.exit(1);
-    });
 }
 
 export default run;

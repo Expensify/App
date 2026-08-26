@@ -68,10 +68,14 @@ function findCandidateFiles(targets: string[]): string[] {
     }
 }
 
-async function run(): Promise<void> {
-    const candidates = findCandidateFiles(process.argv.slice(2));
+/**
+ * Checks `targets` for new Onyx.connect() ban bypasses, reporting any to stderr.
+ * Returns `true` if a new bypass was found (i.e. the caller should fail).
+ */
+async function checkOnyxConnectBypass(targets: string[]): Promise<boolean> {
+    const candidates = findCandidateFiles(targets);
     if (candidates.length === 0) {
-        return;
+        return false;
     }
 
     const rule = await loadNoOnyxConnectRule();
@@ -93,7 +97,7 @@ async function run(): Promise<void> {
     const results = await eslint.lintFiles(candidates);
     const newBypasses = findNewBypasses(collectSuppressedBans(results, projectRoot));
     if (newBypasses.length === 0) {
-        return;
+        return false;
     }
 
     console.error('Onyx.connect() is banned and the ban cannot be bypassed with eslint-disable. Use the useOnyx() hook to read Onyx data instead.');
@@ -101,10 +105,21 @@ async function run(): Promise<void> {
     for (const bypass of newBypasses) {
         console.error(`  ${bypass.file}:${bypass.line}`);
     }
-    process.exitCode = 1;
+    return true;
 }
 
-run().catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : error);
-    process.exitCode = 1;
-});
+if (require.main === module) {
+    checkOnyxConnectBypass(process.argv.slice(2))
+        .then((failed) => {
+            if (!failed) {
+                return;
+            }
+            process.exitCode = 1;
+        })
+        .catch((error: unknown) => {
+            console.error(error instanceof Error ? error.message : error);
+            process.exitCode = 1;
+        });
+}
+
+export default checkOnyxConnectBypass;

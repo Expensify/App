@@ -90,7 +90,7 @@ Use this tour if you want a high-level introduction to:
 - Where to review expenses and reports  
 - How to move between personal and Workspace settings  
 
-👉 **[Start the interactive New Expensify navigation tour](https://expensify.storylane.io/share/nfrgmfpppolt)**
+👉 **[Start the interactive New Expensify navigation tour](https://expensify.storylane.io/share/qlgnexxbsdtp)**
 
 ---
 

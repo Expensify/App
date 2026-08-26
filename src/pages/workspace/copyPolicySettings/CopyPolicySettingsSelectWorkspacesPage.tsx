@@ -1,4 +1,5 @@
-import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
+import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -36,7 +37,6 @@ const SEARCH_THRESHOLD = 12;
 type EligiblePolicyItem = {
     id: string;
     title: string;
-    avatarURL?: string;
 };
 
 function CopyPolicySettingsSelectWorkspacesPage() {
@@ -72,7 +72,6 @@ function CopyPolicySettingsSelectWorkspacesPage() {
               .map((policy) => ({
                   id: policy.id,
                   title: policy.name,
-                  avatarURL: policy.avatarURL,
               }))
               .sort((a, b) => localeCompare(a.title, b.title));
 
@@ -87,13 +86,13 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         keyForList: policy.id,
         isSelected: resolvedSelectedTargetIDs.includes(policy.id),
         leftElement: (
-            <View style={styles.mr3}>
-                <WorkspaceAvatar
-                    source={policy.avatarURL}
-                    name={policy.title}
-                    avatarID={policy.id}
+            <AvatarTooltipsProvider isEnabled={false}>
+                <PolicyAvatar
+                    policyID={policy.id}
+                    fallbackDisplayName={policy.title}
+                    containerStyle={styles.mr3}
                 />
-            </View>
+            </AvatarTooltipsProvider>
         ),
     }));
 

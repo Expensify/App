@@ -658,6 +658,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
 
+    /** Who pays the currency conversion fees on cross-border reimbursements */
+    preference?: ValueOf<typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE>;
+
     /** Default value of a report field */
     defaultValue?: string;
 
@@ -1435,7 +1438,8 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls?: string[];
 
     /**
-     * A list of URLs to the Travel Invoicing Journal Entry records
+     * A list of URLs to the Travel Billing Journal Entry records.
+     * The key keeps the legacy spelling because it is stored in existing report actions.
      */
     travelInvoicingUrls?: string[];
 

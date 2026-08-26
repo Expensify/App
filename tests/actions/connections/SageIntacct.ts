@@ -1,4 +1,4 @@
-import {updateSageIntacctTravelInvoicingPayableAccount} from '@libs/actions/connections/SageIntacct';
+import {updateSageIntacctTravelBillingPayableAccount} from '@libs/actions/connections/SageIntacct';
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -63,59 +63,59 @@ describe('actions/connections/SageIntacct', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    describe('updateSageIntacctTravelInvoicingPayableAccount', () => {
+    describe('updateSageIntacctTravelBillingPayableAccount', () => {
         beforeEach(() => {
             writeSpy.mockClear();
         });
 
-        it('writes the UpdateSageIntacctTravelInvoicingPayableAccount command with creditCardAccountID', () => {
-            updateSageIntacctTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+        it('writes the UpdateSageIntacctTravelBillingPayableAccount command with creditCardAccountID', () => {
+            updateSageIntacctTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {command} = getFirstWriteCall();
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT);
 
             const call = writeSpy.mock.calls.at(0);
             expect(call?.[1]).toMatchObject({policyID: MOCK_POLICY_ID, creditCardAccountID: 'account-123'});
         });
 
         it('updates travelInvoicingPayableAccountID optimistically, sets pending field, and clears error field', () => {
-            updateSageIntacctTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+            updateSageIntacctTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {onyxData} = getFirstWriteCall();
             const optimisticUpdate = onyxData?.optimisticData?.at(0);
             expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
 
             const configUpdate = getRequiredSageIntacctConfig(optimisticUpdate);
-            expect(configUpdate.export?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe('account-123');
-            expect(configUpdate.pendingFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            expect(configUpdate.errorFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBeNull();
+            expect(configUpdate.export?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBe('account-123');
+            expect(configUpdate.pendingFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(configUpdate.errorFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBeNull();
         });
 
         it('reverts to the old value and sets an error in failure data', () => {
-            updateSageIntacctTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+            updateSageIntacctTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {onyxData} = getFirstWriteCall();
             const failureUpdate = onyxData?.failureData?.at(0);
             const configUpdate = getRequiredSageIntacctConfig(failureUpdate);
 
-            expect(configUpdate.export?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe('old-account');
-            expect(configUpdate.pendingFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBeNull();
-            expect(configUpdate.errorFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe(MOCK_ONYX_ERROR);
+            expect(configUpdate.export?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBe('old-account');
+            expect(configUpdate.pendingFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBeNull();
+            expect(configUpdate.errorFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBe(MOCK_ONYX_ERROR);
         });
 
         it('clears pending and error fields on success', () => {
-            updateSageIntacctTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+            updateSageIntacctTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {onyxData} = getFirstWriteCall();
             const successUpdate = onyxData?.successData?.at(0);
             const configUpdate = getRequiredSageIntacctConfig(successUpdate);
 
-            expect(configUpdate.pendingFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBeNull();
-            expect(configUpdate.errorFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBeNull();
+            expect(configUpdate.pendingFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBeNull();
+            expect(configUpdate.errorFields?.[CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBeNull();
         });
 
         it('uses MERGE operations for each update stage', () => {
-            updateSageIntacctTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+            updateSageIntacctTravelBillingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {onyxData} = getFirstWriteCall();
             const updateGroups = [onyxData?.optimisticData, onyxData?.failureData, onyxData?.successData];

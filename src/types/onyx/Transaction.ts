@@ -128,8 +128,8 @@ type Comment = {
     /**
      * Accounting-system vendor matched to this expense.
      * Stored on non-reimbursable card expenses when a vendor is set either by the
-     * PHP fuzzy matcher (`isManuallySet=false`) or by the user / a merchant rule
-     * (`isManuallySet=true`). The flag prevents auto-match from overwriting a
+     * PHP fuzzy matcher (`wasManuallySet=false`) or by the user / a merchant rule
+     * (`wasManuallySet=true`). The flag prevents auto-match from overwriting a
      * deliberate selection.
      */
     vendor?: TransactionCommentVendor;
@@ -499,7 +499,7 @@ type TransactionCommentVendor = {
     name?: string;
 
     /** Whether the vendor was set manually by a user (vs. auto-matched by the fuzzy matcher) */
-    isManuallySet: boolean;
+    wasManuallySet: boolean;
 };
 
 /** Model of transaction */

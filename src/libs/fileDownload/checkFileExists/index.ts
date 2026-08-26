@@ -1,4 +1,5 @@
 import fileURIToPath from '@libs/fileURIToPath';
+import {logReceiptStatFailed} from '@libs/telemetry/ReceiptObservability';
 
 import RNFS from 'react-native-fs';
 
@@ -22,7 +23,12 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
 
     const statIsFile = (candidate: string) => RNFS.stat(candidate).then((fileStat) => fileStat.isFile());
 
-    return statIsFile(decodedPath).catch(() => (decodedPath === rawPath ? false : statIsFile(rawPath).catch(() => false)));
+    const statFailed = (error: unknown) => {
+        logReceiptStatFailed(typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : undefined);
+        return false;
+    };
+
+    return statIsFile(decodedPath).catch((error: unknown) => (decodedPath === rawPath ? statFailed(error) : statIsFile(rawPath).catch(() => statFailed(error))));
 }
 
 export default checkFileExists;

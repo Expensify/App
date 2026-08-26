@@ -1,5 +1,3 @@
-import type {components as OctokitComponents} from '@octokit/openapi-types/types';
-
 import {Str} from 'expensify-common';
 
 import CONST from './CONST';
@@ -44,7 +42,9 @@ class NoOpenDeployChecklistError extends Error {
     }
 }
 
-type OctokitIssueItem = OctokitComponents['schemas']['issue'];
+// Derived from the endpoint response rather than `@octokit/openapi-types` directly, for the reason given
+// above the matching alias in GithubUtils.ts.
+type OctokitIssueItem = Awaited<ReturnType<typeof GithubUtils.octokit.issues.listForRepo>>['data'][number];
 
 type ChecklistItem = {
     url: string;

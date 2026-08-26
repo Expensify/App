@@ -1,11 +1,13 @@
 import Icon from '@components/Icon';
-import {PressableWithFeedback} from '@components/Pressable';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 
@@ -39,8 +41,8 @@ function ExpandCollapseButton({
     ...restProps
 }: ExpandCollapseButtonProps) {
     const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['Collapse', 'Expand'] as const);
 
     if (!isFullComposerAvailable && !isComposerFullSize) {
@@ -59,7 +61,7 @@ function ExpandCollapseButton({
                 text={tooltipText}
                 key={shouldCollapse ? 'composer-collapse' : 'composer-expand'}
             >
-                <PressableWithFeedback
+                <PressableWithoutFeedback
                     onPress={(e) => {
                         e?.preventDefault();
                         raiseIsScrollLikelyLayoutTriggered();
@@ -67,17 +69,19 @@ function ExpandCollapseButton({
                     }}
                     // Keep focus on the composer when Collapse/Expand button is clicked.
                     onMouseDown={(e) => e.preventDefault()}
-                    style={styles.composerSizeButton}
+                    style={({hovered, pressed}) => [styles.composerSizeButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                     disabled={disabled}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={tooltipText}
                     sentryLabel={sentryLabel}
                 >
-                    <Icon
-                        fill={theme.icon}
-                        src={iconSrc}
-                    />
-                </PressableWithFeedback>
+                    {({hovered, pressed}) => (
+                        <Icon
+                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                            src={iconSrc}
+                        />
+                    )}
+                </PressableWithoutFeedback>
             </Tooltip>
         </View>
     );

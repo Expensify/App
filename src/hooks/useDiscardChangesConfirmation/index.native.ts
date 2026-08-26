@@ -40,6 +40,10 @@ function useDiscardChangesConfirmation({
     });
     const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
 
+    // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
+    // The save suppression stays out of it because `isSavingRef` is a ref: the callback below applies that.
+    const shouldPreventRemove = isFocused && getHasUnsavedChanges();
+
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
     const showDiscardModal = (blockedAction?: NavigationAction) => {
@@ -70,7 +74,7 @@ function useDiscardChangesConfirmation({
         });
     };
 
-    usePreventRemove(true, ({data}: {data: {action: NavigationAction}}) => {
+    usePreventRemove(shouldPreventRemove, ({data}: {data: {action: NavigationAction}}) => {
         // The action delivered here carries react-navigation's visited-routes marker, so re-dispatching it skips this screen's prevention
         if (isReplayingBlockedNavigation.current || !hasUnsavedChanges()) {
             navigationRef.current?.dispatch(data.action);

@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/ButtonComposed';
 import type {DomainRowData} from '@components/Tables/DomainListTable';
 import DomainListTable from '@components/Tables/DomainListTable';
-import WorkspaceListLayout from '@components/WorkspaceListLayout';
+import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -86,20 +86,36 @@ function DomainsListPage() {
             <Button.Text>{translate('common.new')}</Button.Text>
         </Button>
     );
+    const headerComponent = (
+        <WorkspaceListHeaderContent
+            activeTabKey="domains"
+            headerButton={headerButton}
+        />
+    );
 
     return (
         <WorkspaceListLayout
             activeTabKey="domains"
             headerButton={headerButton}
+            headerComponent={headerComponent}
+            scrollHeaderWithTable
         >
             <View style={styles.flex1}>
                 {shouldShowLoadingIndicator && (
-                    <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                    </View>
+                    <>
+                        {headerComponent}
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                        </View>
+                    </>
                 )}
 
-                {!shouldShowLoadingIndicator && <DomainListTable domains={domainRows} />}
+                {!shouldShowLoadingIndicator && (
+                    <DomainListTable
+                        domains={domainRows}
+                        headerComponent={headerComponent}
+                    />
+                )}
             </View>
         </WorkspaceListLayout>
     );

@@ -149,6 +149,8 @@ jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => {
             cardRows: [],
             awaitingApprovalQuery: '',
             repaidLast30DaysQuery: '',
+            isApprovalStale: false,
+            isPaymentStale: false,
         })),
     };
 });
@@ -165,6 +167,8 @@ function mockHook(data: Partial<MockHookData>) {
         cardRows: [],
         awaitingApprovalQuery: 'type:expense status:outstanding',
         repaidLast30DaysQuery: 'type:expense status:paid',
+        isApprovalStale: false,
+        isPaymentStale: false,
         ...data,
     });
 }

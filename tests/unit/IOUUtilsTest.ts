@@ -54,67 +54,67 @@ describe('IOUUtils', () => {
 
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY', true)).toBe(3500);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY')).toBe(3400);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY', true, false, getCurrencyDecimalsLocal)).toBe(3500);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY', false, false, getCurrencyDecimalsLocal)).toBe(3400);
         });
 
         test('103 USD split among 3 participants including the default user should be [34.34, 34.33, 34.33]', () => {
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD', true)).toBe(3434);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD')).toBe(3433);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD', true, false, getCurrencyDecimalsLocal)).toBe(3434);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD', false, false, getCurrencyDecimalsLocal)).toBe(3433);
         });
 
         test('10 AFN split among 4 participants including the default user should be [1, 3, 3, 3]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN', true)).toBe(100);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN')).toBe(300);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN', true, false, getCurrencyDecimalsLocal)).toBe(100);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN', false, false, getCurrencyDecimalsLocal)).toBe(300);
         });
 
         test('10.12 USD split among 4 participants including the default user should be [2.53, 2.53, 2.53, 2.53]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true)).toBe(253);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD')).toBe(253);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true, false, getCurrencyDecimalsLocal)).toBe(253);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', false, false, getCurrencyDecimalsLocal)).toBe(253);
         });
 
         test('10.12 USD split among 3 participants including the default user should be [3.38, 3.37, 3.37]', () => {
             const participantsAccountIDs = [100, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true)).toBe(338);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD')).toBe(337);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true, false, getCurrencyDecimalsLocal)).toBe(338);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', false, false, getCurrencyDecimalsLocal)).toBe(337);
         });
 
         test('0.02 USD split among 4 participants including the default user should be [-0.01, 0.01, 0.01, 0.01]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', true)).toBe(-1);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD')).toBe(1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', true, false, getCurrencyDecimalsLocal)).toBe(-1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', false, false, getCurrencyDecimalsLocal)).toBe(1);
         });
 
         test('1 RSD split among 3 participants including the default user should be [0.34, 0.33, 0.33]', () => {
             // RSD is a special case that we forced to have 2 decimals
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD', true)).toBe(34);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD')).toBe(33);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD', true, false, getCurrencyDecimalsLocal)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD', false, false, getCurrencyDecimalsLocal)).toBe(33);
         });
 
         test('1 BHD split among 3 participants including the default user should be [0.34, 0.33, 0.33]', () => {
             // BHD has 3 decimal places, but it still produces parts with only 2 decimal places because of a backend limitation
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', true)).toBe(34);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD')).toBe(33);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', true, false, getCurrencyDecimalsLocal)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', false, false, getCurrencyDecimalsLocal)).toBe(33);
         });
 
         describe('calculateAmount - floorToLast rounding', () => {
             test('Positive total: remainder added entirely to default user', () => {
                 // $10.00 among 3 -> base 3.33, remainder 0.01 -> default gets 3.34
                 const numberOfSplits = 2; // total participants = 3
-                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', true, true)).toBe(334);
-                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', false, true)).toBe(333);
+                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', true, true, getCurrencyDecimalsLocal)).toBe(334);
+                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', false, true, getCurrencyDecimalsLocal)).toBe(333);
             });
 
             test('Negative total: use ceil to move toward zero and remainder applied to default user', () => {
                 // -$10.00 among 3 -> base -3.33 (ceil to -3333 subunits), remainder -0.01 -> default -3.34
                 const numberOfSplits = 2;
-                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', true, true)).toBe(-334);
-                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', false, true)).toBe(-333);
+                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', true, true, getCurrencyDecimalsLocal)).toBe(-334);
+                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', false, true, getCurrencyDecimalsLocal)).toBe(-333);
             });
         });
     });
@@ -1281,6 +1281,33 @@ describe('pickReportForPolicy', () => {
     });
 });
 
+describe('getSelectedWorkspacePolicyID', () => {
+    const workspaceParticipant = {accountID: 0, isPolicyExpenseChat: true, selected: true, policyID: 'ABC123'};
+    const senderParticipant = {isSender: true, selected: false, policyID: 'DEF456'};
+    const p2pParticipant = {accountID: 1, selected: true};
+
+    it('should return the policy of the selected workspace chat', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(1), participants: [workspaceParticipant]}, CONST.IOU.ACTION.CREATE)).toBe('ABC123');
+    });
+
+    it('should prefer the invoice sender workspace over the workspace chat', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(2), participants: [workspaceParticipant, senderParticipant]}, CONST.IOU.ACTION.CREATE)).toBe('DEF456');
+    });
+
+    it('should return undefined for a P2P participant, so the report keeps driving the policy', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(3), participants: [p2pParticipant]}, CONST.IOU.ACTION.CREATE)).toBeUndefined();
+    });
+
+    it('should return undefined when the transaction has no participants', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(4), participants: undefined}, CONST.IOU.ACTION.CREATE)).toBeUndefined();
+        expect(IOUUtils.getSelectedWorkspacePolicyID(undefined, CONST.IOU.ACTION.CREATE)).toBeUndefined();
+    });
+
+    it('should return undefined when editing, because an existing expense is authoritative about its report', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(5), participants: [workspaceParticipant]}, CONST.IOU.ACTION.EDIT)).toBeUndefined();
+    });
+});
+
 describe('shouldShowPerDiemTabOption', () => {
     it('never shows for a split, even when a per diem policy exists', () => {
         expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.SPLIT, true, true, true)).toBe(false);
@@ -1308,5 +1335,24 @@ describe('shouldShowPerDiemTabOption', () => {
 
     it('hides for a track expense when no per diem policy exists', () => {
         expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.TRACK, false, false, false)).toBe(false);
+    });
+});
+
+describe('isLookingAroundSearchRoutingActive', () => {
+    // This is the single source of truth for the LOOKING_AROUND "route the self-DM create to Spend > Expenses" gate,
+    // shared by the confirmation step and every skip-confirmation flow. The critical property is that it is FALSE while
+    // offline (Search can't load its server snapshot offline, so those users fall back to the self-DM landing), which is
+    // the routing flag the PR must keep in sync across all create paths.
+    it('routes to Search when a LOOKING_AROUND user is online', () => {
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(true, false)).toBe(true);
+    });
+
+    it('is suppressed while offline for a LOOKING_AROUND user (falls back to the self-DM landing)', () => {
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(true, true)).toBe(false);
+    });
+
+    it('is inactive for a non-LOOKING_AROUND user, online or offline', () => {
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(false, false)).toBe(false);
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(false, true)).toBe(false);
     });
 });

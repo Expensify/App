@@ -322,6 +322,32 @@ describe('BankAccountUtils', () => {
             });
         });
 
+        it.each([CONST.CURRENCY.USD, undefined])('keeps the confirm action for a PENDING account in currency "%s"', (currency) => {
+            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING, currency)).toEqual(
+                expect.objectContaining({
+                    labelKey: 'walletPage.bankAccountStatus.pending',
+                    actionKey: 'common.confirm',
+                }),
+            );
+        });
+
+        it.each(['GBP', 'EUR', 'AUD'])('maps a PENDING account in currency "%s" to Incomplete, since only USD accounts have test transactions', (currency) => {
+            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING, currency)).toEqual({
+                labelKey: 'walletPage.bankAccountStatus.incomplete',
+                messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
+                actionKey: 'walletPage.bankAccountStatus.finish',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            });
+        });
+
+        it.each([CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
+            'is unaffected by a non-USD currency in state "%s"',
+            (state) => {
+                expect(getBankAccountConnectionStatus(state, 'GBP')).toEqual(getBankAccountConnectionStatus(state));
+            },
+        );
+
         it.each([undefined, '', 'UNKNOWN'])('returns undefined for unsupported state "%s"', (state) => {
             expect(getBankAccountConnectionStatus(state)).toBeUndefined();
         });

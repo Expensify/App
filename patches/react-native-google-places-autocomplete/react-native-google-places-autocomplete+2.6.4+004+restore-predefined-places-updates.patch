@@ -1,0 +1,56 @@
+diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+index 6dbdded..131b42b 100644
+--- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
++++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+@@ -29,6 +29,10 @@ import {
+ // CONSTANTS
+ // ============================================================================
+ 
++// Stable identity so that omitting the prop does not produce a new array on every
++// render, which would retrigger every hook memoized on it.
++const EMPTY_PREDEFINED_PLACES = [];
++
+ const defaultStyles = {
+   container: {
+     flex: 1,
+@@ -115,7 +119,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     onTimeout = () =>
+       console.warn('google places autocomplete: request timeout'),
+     placeholder = '',
+-    predefinedPlaces: predefinedPlacesProp = [],
++    predefinedPlaces: predefinedPlacesProp = EMPTY_PREDEFINED_PLACES,
+     predefinedPlacesAlwaysVisible = false,
+     query = {
+       key: 'missing api key',
+@@ -135,9 +139,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+   // ==========================================================================
+   // STATE & REFS
+   // ==========================================================================
+-  const predefinedPlaces = useMemo(() => predefinedPlacesProp || [], [
+-    predefinedPlacesProp,
+-  ]);
++  const predefinedPlaces = useMemo(
++    () => predefinedPlacesProp || EMPTY_PREDEFINED_PLACES,
++    [predefinedPlacesProp],
++  );
+ 
+   // Store results array - useRef prevents re-renders when updating results, allows access to latest results in callbacks
+   const resultsRef = useRef([]);
+@@ -1086,11 +1091,14 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     setUrl(getRequestUrl(props.requestUrl));
+   }, [props.requestUrl]);
+ 
+-  // Initialize dataSource on mount
++  // Rebuild dataSource on mount and whenever the predefined places change.
++  // buildRowsFromResults is memoized on predefinedPlaces / currentLocation, so this
++  // mirrors 2.5.6, where the effect depended on props.predefinedPlaces. Without the
++  // dependency, predefined places that arrive (or are filtered out) after mount never
++  // reach the list, and stale rows keep the list non-empty so the loader never shows.
+   useEffect(() => {
+     setDataSource(buildRowsFromResults([]));
+-    // eslint-disable-next-line react-hooks/exhaustive-deps
+-  }, []);
++  }, [buildRowsFromResults]);
+ 
+   // Keep requestRef updated
+   requestRef.current = _request;

@@ -22,10 +22,10 @@ type ErrorBadgeProps = {
     actionBadge: OptionData['actionBadge'];
 
     /** Whether to show the "Mark as Done" state for this row. */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
-function ErrorBadge({brickRoadIndicator, actionBadge, isMarkAsDone}: ErrorBadgeProps) {
+function ErrorBadge({brickRoadIndicator, actionBadge, shouldShowMarkAsDoneCopy}: ErrorBadgeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -35,7 +35,7 @@ function ErrorBadge({brickRoadIndicator, actionBadge, isMarkAsDone}: ErrorBadgeP
         return null;
     }
 
-    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     return (
         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>

@@ -489,20 +489,11 @@ describe('createHasWorkspaceToSubmitToSelector', () => {
         expect(createHasWorkspaceToSubmitToSelector(undefined)(policies)).toBe(false);
     });
 
-    it('returns false for a Submit (submit2026) workspace when the SUBMIT_2026 beta is disabled', () => {
+    it('returns true for a Submit (submit2026) workspace', () => {
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.SUBMIT, role: CONST.POLICY.ROLE.USER}),
         };
 
-        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
-        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN, false)(policies)).toBe(false);
-    });
-
-    it('returns true for a Submit (submit2026) workspace when the SUBMIT_2026 beta is enabled', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.SUBMIT, role: CONST.POLICY.ROLE.USER}),
-        };
-
-        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN, true)(policies)).toBe(true);
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
     });
 });

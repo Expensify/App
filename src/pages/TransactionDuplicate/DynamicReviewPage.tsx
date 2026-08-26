@@ -65,6 +65,8 @@ function DynamicReviewPage() {
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const originalTransactionIDsListRef = useRef<string[] | null>(null);
 
@@ -118,8 +120,8 @@ function DynamicReviewPage() {
         if (!route.params.reportID || report?.reportID) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID: currentPersonalDetails.accountID});
-    }, [report?.reportID, route.params.reportID, introSelected, betas, hasReportActions, currentPersonalDetails.accountID]);
+        openReport({reportID: route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID: currentPersonalDetails.accountID});
+    }, [report?.reportID, route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentPersonalDetails.accountID]);
 
     useEffect(() => {
         if (!transactionID) {

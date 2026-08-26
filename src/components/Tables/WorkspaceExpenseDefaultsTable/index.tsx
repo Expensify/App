@@ -1,4 +1,4 @@
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
@@ -24,9 +24,10 @@ type WorkspaceExpenseDefaultsTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceExpenseDefaultsTableProps) {
+function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -100,6 +101,9 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={rulesData}
@@ -115,7 +119,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             narrowLayoutSortColumn="condition"
             title={translate('workspace.rules.tabs.expenseDefaults')}
         >
-            <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

@@ -90,7 +90,7 @@ type FloatingMessageCounterProps = {
     onActionBadgePress?: () => void;
 
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 const MARKER_INACTIVE_TRANSLATE_Y = -40;
@@ -103,7 +103,7 @@ function FloatingMessageCounter({
     actionBadge,
     actionBadgeBrickRoadStatus,
     onActionBadgePress,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: FloatingMessageCounterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const theme = useTheme();
@@ -139,7 +139,7 @@ function FloatingMessageCounter({
         transform: [{translateY: translateY.get()}],
     }));
 
-    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     return (
         <Animated.View
