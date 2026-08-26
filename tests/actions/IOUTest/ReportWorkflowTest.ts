@@ -2754,6 +2754,57 @@ describe('actions/IOU/ReportWorkflow', () => {
             );
         });
 
+        it('sends the manager email alone from search submit when the chosen manager email has no accountID', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+            const submitterAccountID = 100;
+            const defaultManagerAccountID = 101;
+            const submitterEmail = 'submitter@example.com';
+            const defaultManagerEmail = 'default-manager@example.com';
+            // The chosen manager is neither in personal details nor in the employee list, so it can't be resolved to an accountID.
+            const chosenManagerEmail = 'chosen-manager@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [defaultManagerAccountID]: {accountID: defaultManagerAccountID, login: defaultManagerEmail},
+            });
+            await waitForBatchedUpdates();
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: defaultManagerEmail,
+                owner: defaultManagerEmail,
+                employeeList: {
+                    [defaultManagerEmail]: {email: defaultManagerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ''},
+                    [submitterEmail]: {email: submitterEmail, role: CONST.POLICY.ROLE.USER, submitsTo: defaultManagerEmail},
+                },
+            };
+            const report: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: defaultManagerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal, undefined, chosenManagerEmail);
+
+            const [, parameters] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            expect(parameters.managerEmail).toBe(chosenManagerEmail);
+            // The approval chain points at the default approver, so sending its accountID would route the report to someone
+            // other than the chosen manager. Sending the email alone lets the server resolve the chosen approver instead.
+            expect(parameters).not.toHaveProperty('managerAccountID');
+        });
+
         it('resolves search submit managerAccountID from employeeList when personal details are missing', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());

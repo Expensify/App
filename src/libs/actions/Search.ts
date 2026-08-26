@@ -36,7 +36,6 @@ import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
-import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
@@ -52,7 +51,6 @@ import {
     buildOptimisticIOUReportAction,
     buildOptimisticSubmittedReportAction,
     generateReportID,
-    getApprovalChain,
     getParsedComment,
     getReportOrDraftReport,
     getReportTransactions,
@@ -1497,10 +1495,12 @@ function submitMoneyRequestOnSearch(
     }
 
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport, submitterLogin).at(0));
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin);
-    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain) : submitReportManagerAccountID;
+
+    // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
+    // accountID from the approval chain, which would point the server at someone other than the chosen approver.
+    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail) : submitReportManagerAccountID;
 
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
