@@ -167,6 +167,27 @@ The remaining initial app skeleton consumers use `HAS_LOADED_APP` to distinguish
 
 Keep `HAS_LOADED_APP` and the cold-restart fallback. The queue hook is the primary signal. The fallback covers a fresh process where no in-memory latch could have observed the earlier `OpenApp`. `ForYouSection` also keeps `IS_LOADING_REPORT_DATA` in its first-load gate.
 
+`HomePage` adds one condition on top of that table, and it is the only consumer whose offline behavior differs from the rest. Every other consumer either drops the skeleton whenever the device is offline, which shows a false empty state when signal is lost partway through a load, or applies no offline condition at all, which leaves a skeleton shimmering indefinitely after an offline cold start. Home distinguishes the two cases by asking whether this application load ever reached the network, which is the only thing that separates a load still in progress from one that never started:
+
+| State, with the table above already saying "shown" | Home skeleton |
+|---|---|
+| Online | shown |
+| Offline, and an `OpenApp` sits in `PERSISTED_ONGOING_REQUESTS` | shown |
+| Offline, and an `OpenApp` still in `PERSISTED_REQUESTS` was queued while online | shown |
+| Offline, and the `OpenApp` still in `PERSISTED_REQUESTS` was itself initiated offline | not shown |
+| Offline, and the `OpenApp` has left both keys but its deferred updates have not flushed | shown |
+| Offline, and nothing is queued, reached through the cold-restart recovery fallback | not shown |
+
+Home gets this from `useIsOnlineAppLoadPending`, a second app-load hook backed by an `appLoadOnline` group that sets `ignoreOfflineInitiatedPersisted`. The condition lives in the group rather than on the page because the page has no business knowing the queue's shape, and because a group composes the two keys and the deferred-update latch that a page-level selector cannot reach.
+
+The organizing question is **whether this load ever reached the network**, not whether it is moving right now. A request queued while online either already reached the server or will as soon as the queue runs, so holding the skeleton across a signal drop is right: the load is unfinished, not absent. A request queued while offline means the app has not been online at all this session, so there is no load to wait for and the skeleton would sit there for as long as the device stays offline.
+
+That framing settles two cases that look like exceptions:
+
+- **The ongoing key is exempt from the offline filter.** Reaching it means the request was being sent, so its `initiatedOffline` stamp is stale. This holds even after a restart: `PERSISTED_ONGOING_REQUESTS` is persisted deliberately, so a crash mid-flight does not lose the request (`processNextRequest`, Bug #80759 Issue 3a). A rehydrated ongoing request is not being sent at that instant, but `SequentialQueue.process` proceeds on an ongoing request alone, so it resumes on reconnect exactly like a queued one. Do not "fix" this by filtering the ongoing key.
+- **The deferred-update window counts.** After the request leaves both keys, `IS_LOADING_APP` stays true until the held updates flush, so the fetched data is not on screen yet. The latch inside the hook covers that window. It is per group, because an offline-initiated request must not leave a mark that makes the window read as pending.
+- **A relaunch re-stamps a surviving queued request.** Read literally, an online-initiated `OpenApp` that outlives a process kill would hold the skeleton forever on an offline relaunch. It does not: the relaunch's own `openApp` resolves through `resolveOpenAppDuplicationConflictAction`, which returns `{type: 'replace', index}` for a queued duplicate, and `updatePersistedRequest` swaps the whole request object — so the surviving entry carries the relaunch's `initiatedOffline: true` and the skeleton is not shown. Do not add a separate age or staleness check for this case.
+
 Report skeleton consumers use `useIsReportLoadPending(reportID)` wherever pending `OpenReport` work is part of the loading decision. They keep existing readiness checks, including `hasOnceLoadedReportActions`, report data completeness, and offline behavior. A stranded `isLoadingInitialReportActions` value without a matching queue request or in-memory latch must not show a skeleton.
 
 Do not remove the legacy fields as part of this migration. `IS_LOADING_APP` and report loading state still support recovery, report positioning, navigation guards, and the deferred-flush bridge. Skeleton consumers should use the public hooks. Full flag deletion is outside this plan.

@@ -1,6 +1,6 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
-import {useIsAppLoadPending, useIsLoadingBarPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import {useIsAppLoadPending, useIsLoadingBarPending, useIsOnlineAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
 
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
@@ -40,11 +40,14 @@ describe('useInFlightRequests', () => {
 
     beforeEach(async () => {
         await Onyx.clear().then(waitForBatchedUpdates);
-        // Module-level state survives `Onyx.clear()`. Mount both hooks once so their effects reset it before each test.
+        // Module-level state survives `Onyx.clear()`. Mount every hook that owns some once so their effects
+        // reset it before each test. The two app-load hooks keep separate latches, so both have to run.
         const {unmount: unmountAppLoad} = renderHook(() => useIsAppLoadPending());
+        const {unmount: unmountOnlineAppLoad} = renderHook(() => useIsOnlineAppLoadPending());
         const {unmount: unmountReportLoad} = renderHook(() => useIsReportLoadPending('1234'));
         await act(() => waitForBatchedUpdates());
         unmountAppLoad();
+        unmountOnlineAppLoad();
         unmountReportLoad();
     });
 
@@ -131,6 +134,68 @@ describe('useInFlightRequests', () => {
             await setHasLoadedApp(true);
             await setIsLoadingApp(true);
             const {result} = renderHook(() => useIsAppLoadPending());
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+        });
+    });
+
+    describe('useIsOnlineAppLoadPending', () => {
+        it('returns true when a persisted OpenApp request was queued while online', async () => {
+            await setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_APP)]);
+            const {result} = renderHook(() => useIsOnlineAppLoadPending());
+            await waitFor(() => expect(result.current).toBe(true));
+        });
+
+        // The one behaviour that separates this hook from useIsAppLoadPending, which reports true here.
+        it('returns false for a persisted OpenApp request that was initiated offline', async () => {
+            await setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_APP, {}, {initiatedOffline: true})]);
+            const {result} = renderHook(() => useIsOnlineAppLoadPending());
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+        });
+
+        // Reaching the ongoing key means the request was being sent, so the offline stamp is stale by then.
+        it('returns true for an ongoing OpenApp request even when it was initiated offline', async () => {
+            await setOngoingRequest(buildRequest(WRITE_COMMANDS.OPEN_APP, {}, {initiatedOffline: true}));
+            const {result} = renderHook(() => useIsOnlineAppLoadPending());
+            await waitFor(() => expect(result.current).toBe(true));
+        });
+
+        it('returns false for a ReconnectApp request', async () => {
+            await setPersistedRequests([buildRequest(WRITE_COMMANDS.RECONNECT_APP)]);
+            const {result} = renderHook(() => useIsOnlineAppLoadPending());
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+        });
+
+        it('stays pending across the OpenApp flush window, after the request has left both queue keys', async () => {
+            await setIsLoadingApp(true);
+
+            await act(() => setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_APP)]));
+            const {result} = renderHook(() => useIsOnlineAppLoadPending());
+            await waitFor(() => expect(result.current).toBe(true));
+
+            // The request is gone from both keys but its deferred updates have not flushed, so the data it
+            // fetched is not on screen yet. Dropping to false here would show an empty page mid-load.
+            await act(() => setPersistedRequests([]));
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(true);
+
+            await act(() => setIsLoadingApp(false));
+            await waitFor(() => expect(result.current).toBe(false));
+        });
+
+        // The latch is per group for this reason: an offline-initiated request must not leave a mark that
+        // makes the flush window read as pending, which is precisely the offline cold start this hook excludes.
+        it('does not latch on an offline-initiated request, so the flush window stays false', async () => {
+            await setIsLoadingApp(true);
+
+            await act(() => setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_APP, {}, {initiatedOffline: true})]));
+            const {result} = renderHook(() => useIsOnlineAppLoadPending());
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+
+            await act(() => setPersistedRequests([]));
             await act(() => waitForBatchedUpdates());
             expect(result.current).toBe(false);
         });

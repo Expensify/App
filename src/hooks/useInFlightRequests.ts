@@ -62,6 +62,11 @@ const PENDING_REQUEST_GROUPS = {
     appLoad: {
         commands: new Set<string>(APP_LOAD_COMMANDS),
     },
+    // Reports whether this application load ever reached the network, rather than whether it is moving now.
+    appLoadOnline: {
+        commands: new Set<string>(APP_LOAD_COMMANDS),
+        ignoreOfflineInitiatedPersisted: true,
+    },
     reportLoad: {
         commands: new Set<string>(REPORT_LOAD_COMMANDS),
         getScopeKey: (request) => (typeof request.data?.reportID === 'string' ? request.data.reportID : undefined),
@@ -73,6 +78,8 @@ const PENDING_REQUEST_GROUPS = {
 } satisfies Record<string, PendingRequestGroupConfig>;
 
 type PendingRequestGroup = keyof typeof PENDING_REQUEST_GROUPS;
+
+type AppLoadGroup = Extract<PendingRequestGroup, 'appLoad' | 'appLoadOnline'>;
 
 type PendingRequestSelectors = {
     /** Selector over the persisted request queue. */
@@ -113,32 +120,47 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
 // OpenApp rather than HAS_LOADED_APP is what also covers an account switch, where HAS_LOADED_APP is
 // already true but a real OpenApp still fires (see Delegate's atomic reset).
 //
-// This is deliberately module scoped, not a useRef: the observing consumer can unmount while the flush is
+// These are deliberately module scoped, not a useRef: the observing consumer can unmount while the flush is
 // still in progress (an account switch remounts screens), and a different consumer that mounts during the
 // window must still see the latch. Reading a mutable module value during render is safe here because the
-// only value the render combines it with is the reactive isLoadingApp, and the latch only changes inside
-// the effect below, whose deps are exactly [hasPendingOpenApp, isLoadingApp]: any latch change is therefore
-// accompanied by a dep change that re-renders every consumer, so no consumer can strand a stale read.
-let hasObservedOpenAppFlushPending = false;
+// only value the render combines it with is the reactive isLoadingApp, and a latch only changes inside
+// the effect below, whose deps are exactly [group, hasPendingOpenApp, isLoadingApp]: any latch change is
+// therefore accompanied by a dep change that re-renders every consumer, so no consumer can strand a stale
+// read.
+const openAppFlushPendingByGroup: Partial<Record<AppLoadGroup, boolean>> = {};
 
 // Keep this outside the hook so a new consumer can see a report whose deferred updates are still pending.
 const reportIDsWithPendingOpenReportFlush = new Set<string>();
 
-/** Whether an OpenApp request or its deferred Onyx updates are pending. */
-function useIsAppLoadPending(): boolean {
-    const hasPendingOpenApp = useIsPendingInternal('appLoad');
+function useIsAppLoadPendingInternal(group: AppLoadGroup): boolean {
+    const hasPendingOpenApp = useIsPendingInternal(group);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     useEffect(() => {
         if (hasPendingOpenApp) {
-            hasObservedOpenAppFlushPending = true;
+            openAppFlushPendingByGroup[group] = true;
         } else if (isLoadingApp !== true) {
             // The flag cleared, so the deferred OpenApp updates flushed: stop covering the window.
-            hasObservedOpenAppFlushPending = false;
+            openAppFlushPendingByGroup[group] = false;
         }
-    }, [hasPendingOpenApp, isLoadingApp]);
+    }, [group, hasPendingOpenApp, isLoadingApp]);
 
-    return hasPendingOpenApp || (hasObservedOpenAppFlushPending && isLoadingApp === true);
+    return hasPendingOpenApp || (!!openAppFlushPendingByGroup[group] && isLoadingApp === true);
+}
+
+/** Whether an OpenApp request or its deferred Onyx updates are pending. */
+function useIsAppLoadPending(): boolean {
+    return useIsAppLoadPendingInternal('appLoad');
+}
+
+/**
+ * The same as `useIsAppLoadPending`, except an OpenApp still queued from while the device was offline does
+ * not count. Use this to decide whether to keep a full-page loader up while offline: it stays true for a load
+ * that reached the network and is waiting to finish, and goes false for one that has never been online, which
+ * would otherwise hold a loader on screen for as long as the device stays offline.
+ */
+function useIsOnlineAppLoadPending(): boolean {
+    return useIsAppLoadPendingInternal('appLoadOnline');
 }
 
 /**
@@ -211,4 +233,4 @@ function useLoadingBarVisibility(): boolean {
     return !isOffline && hasPendingLoadingBarRequest;
 }
 
-export {useIsAppLoadPending, useAppLoadSkeletonState, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};
+export {useIsAppLoadPending, useIsOnlineAppLoadPending, useAppLoadSkeletonState, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};

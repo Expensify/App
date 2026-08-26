@@ -7272,6 +7272,9 @@ const plainStyles = (theme: ThemeColors) =>
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',
+                // Claims the leftover height of the scroll container, which sets `flexGrow: 1` too, so a
+                // column can hand that space to a child that asks for it.
+                flexGrow: 1,
             }) satisfies ViewStyle,
 
         centeredContentWidthLimiter: {
