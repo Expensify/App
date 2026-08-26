@@ -4,6 +4,7 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getPlatform from '@libs/getPlatform';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
@@ -29,7 +30,7 @@ import {CommonActions, StackActions, TabActions} from '@react-navigation/native'
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {DeviceEventEmitter, Dimensions, Platform} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -1238,7 +1239,7 @@ function recoverFromPreMountBuffer() {
  * the RHP closing so it can be cleaned up.
  */
 function captureBufferTransaction(stateAfter: ReturnType<typeof navigationRef.getRootState>, wasTabSwitched: boolean) {
-    if (Platform.OS === 'web' || !stateAfter) {
+    if (getPlatform() === CONST.PLATFORM.WEB || !stateAfter) {
         return;
     }
     const rhpRoute = stateAfter.routes.at(-1);

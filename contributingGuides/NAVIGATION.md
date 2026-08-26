@@ -281,7 +281,7 @@ See `IOURequestStepConfirmation.tsx` for a reference implementation.
 -   `shouldPreservePreInsertedRouteOnUnmount`: pass when the component unmounts before `reveal()` runs but the pre-insert should survive (e.g. the caller dismisses separately after a submit).
 
 > [!NOTE]
-> Only one component may own a pre-inserted route at a time. `reveal()` logs a warning if it runs while a *different* flow's pre-insert flag is still set - that's a sign the previous owner didn't clean up.
+> Only one component may own a pre-inserted route at a time. `reveal()` logs an alert if it runs while a *different* flow's pre-insert flag is still set - that's a sign the previous owner didn't clean up.
 
 > [!NOTE]
 > When the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP instead (`[origin, RHP] -> [origin, destination, RHP]`). Which one happens is determined by the destination route, not by anything the caller configures.
@@ -300,7 +300,7 @@ Native swipe-back can pop the RHP at the native layer before any JS cleanup runs
 **Examples when NOT to use `usePreMountDestination`:**
 
 - **The destination is heavy and rarely reached from the dismiss path.** If most users dismiss rather than actually submitting, pre-inserting on every RHP open pays the concurrent-mount cost far more often than it pays off. Search logs to profile the production dismiss-to-reveal ratio before assuming pre-insert wins.
-- **The flow already has a working, simpler dismiss helper** (e.g. `dismissModalWithReport`, or a flow-specific strategy in `submitDismissStrategies.ts`). Don't replace something that already handles the gap/flash tradeoff correctly just to use the "standard" hook - `usePreMountDestination` is one tool for this class of problem, not the only one.
+- **The dismiss isn't RHP-to-fullscreen with a destination known at mount time.** `dismissModalWithReport` and the strategies in `submitDismissStrategies.ts` handle shapes this hook doesn't model: RHP-to-RHP transitions (`dismissToPreviousRHP`), and destinations resolved at dismiss time (`dismissRHPToReport` branches on `report.transactionCount` when the user submits). Converging those on the hook would mean growing the hook to cover them, not migrating call sites.
 - **You're tempted to use `shouldPreservePreInsertedRouteOnUnmount` as a default escape hatch.** It exists for one narrow case: a *different* caller finishes the dismiss after this component unmounts. Anywhere else it leaves a pre-inserted route with no owner left to clean it up, so the next flow's `reveal()` runs into an already-set pre-insert flag.
 
 ### Summary

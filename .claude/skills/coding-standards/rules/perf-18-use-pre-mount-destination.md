@@ -65,7 +65,7 @@ const handleSubmit = () => {
 
 **Other invariants:**
 
-- Only one component may own a pre-inserted route at a time. `reveal()` logs a warning if the global pre-insert flag is set by a different flow when it runs - a sign the previous owner didn't clean up.
+- Only one component may own a pre-inserted route at a time. `reveal()` logs an alert if the global pre-insert flag is set by a different flow when it runs - a sign the previous owner didn't clean up.
 - When the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP (`[origin, RHP] -> [origin, destination, RHP]`). Determined by the destination route, not caller-configured.
 
 **Caller responsibilities:**
@@ -108,7 +108,7 @@ Pre-inserting is a real second screen mounted concurrently. Its effects run whet
 - The destination is already the screen behind the modal
 - The destination is heavy or rarely actually reached from this dismiss path. In these cases, pre-inserting on every open pays the concurrent-mount cost more often than it pays off
 - The transition is already fast enough on its own
-- Flow-specific dismiss strategies that do not use pre-insert/reveal already handle this correctly (e.g. `dismissModalWithReport`, a strategy in `submitDismissStrategies.ts`). Keep those helpers rather than replacing working code to use the "standard" hook
+- The dismiss is not RHP-to-fullscreen with a destination known at mount time. Helpers like `dismissModalWithReport` and the strategies in `submitDismissStrategies.ts` cover shapes the hook does not model - RHP-to-RHP transitions, and destinations resolved at dismiss time - so they are not call sites waiting to be migrated
 - The caller is reaching for `shouldPreservePreInsertedRouteOnUnmount` to sidestep cleanup ordering. It exists only for the case where a genuinely different component finishes the dismiss after this one unmounts - anywhere else it leaves a pre-inserted route with no owner left to clean it up
 
 ### Review Metadata

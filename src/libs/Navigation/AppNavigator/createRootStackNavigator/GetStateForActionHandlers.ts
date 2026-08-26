@@ -15,7 +15,6 @@ import type {CommonActions, NavigationState, PartialState, RouterConfigOptions, 
 import type {ParamListBase, Router} from '@react-navigation/routers';
 
 import {StackActions} from '@react-navigation/native';
-import {Platform} from 'react-native';
 
 import type {
     PushActionType,
@@ -486,7 +485,7 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
  * gesture involved and never clear the buffer afterward - inserting one there would leave it stuck on top.
  */
 function buildPreMountBufferRoute(rhpRouteKey: string, shouldInsertPreMountBuffer: boolean | undefined): StackNavigationState<ParamListBase>['routes'][number] | undefined {
-    if (Platform.OS === 'web' || !shouldInsertPreMountBuffer) {
+    if (getPlatform() === CONST.PLATFORM.WEB || !shouldInsertPreMountBuffer) {
         return undefined;
     }
     return {name: SCREENS.PRE_MOUNT_BUFFER, key: `pre-mount-buffer-${rhpRouteKey}`};
@@ -547,13 +546,12 @@ function handleReplaceFullscreenUnderRHP(
         // second dispatch would re-run state rehydration on top of the placeholder tab state built
         // above, permanently locking in that placeholder instead of letting it resolve normally.
         const bufferRouteForTab = buildPreMountBufferRoute(rhpRoute.key, action.payload.shouldInsertPreMountBuffer);
-        const newRoutes = [
-            ...routesWithoutRHP.slice(0, tabNavIndex),
-            updatedTabRoute,
-            ...routesWithoutRHP.slice(tabNavIndex + 1),
-            ...(bufferRouteForTab ? [bufferRouteForTab] : []),
-            rhpRoute,
-        ];
+        const newRoutes = [...routesWithoutRHP];
+        newRoutes[tabNavIndex] = updatedTabRoute;
+        if (bufferRouteForTab) {
+            newRoutes.push(bufferRouteForTab);
+        }
+        newRoutes.push(rhpRoute);
         return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
     }
 
@@ -582,10 +580,16 @@ function handleReplaceFullscreenUnderRHP(
     const rehydratedStateAfterPush = stackRouter.getRehydratedState(stateAfterPush, configOptions);
     // Build Buffer into this same dispatch (same reasoning as the tab branch above).
     const bufferRouteForPush = buildPreMountBufferRoute(rhpRoute.key, action.payload.shouldInsertPreMountBuffer);
+    const routesWithRHP = [...rehydratedStateAfterPush.routes];
+    if (bufferRouteForPush) {
+        routesWithRHP.push(bufferRouteForPush);
+    }
+    routesWithRHP.push(rhpRoute);
+
     return {
         ...rehydratedStateAfterPush,
-        routes: [...rehydratedStateAfterPush.routes, ...(bufferRouteForPush ? [bufferRouteForPush] : []), rhpRoute],
-        index: rehydratedStateAfterPush.routes.length + (bufferRouteForPush ? 1 : 0),
+        routes: routesWithRHP,
+        index: routesWithRHP.length - 1,
     };
 }
 
