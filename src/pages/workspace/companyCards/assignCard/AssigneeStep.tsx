@@ -10,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +23,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -63,6 +63,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const employeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     // Seed the selection from the already-assigned cardholder (e.g. when returning to this step in edit mode) so
     // Next continues with the saved cardholder instead of demanding a fresh selection. Matches CardSelectionStep.
@@ -73,7 +74,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         }
         return {
             login: assignedEmail,
-            accountID: getPersonalDetailByEmail(assignedEmail)?.accountID,
+            accountID: employeePersonalDetails[assignedEmail]?.accountID,
             keyForList: assignedEmail,
         };
     });
@@ -107,7 +108,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const initialAssigneeEmail = useInitialSelection(assignCard?.cardToAssign?.email, {resetOnFocus: true});
 
     const submit = (assignee: ListItem) => {
-        const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
+        const personalDetail = employeePersonalDetails[assignee?.login ?? ''];
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const defaultCardName = getDefaultCardName(memberName);
         // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the currently selected assignee.
@@ -215,7 +216,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 continue;
             }
 
-            const personalDetail = getPersonalDetailByEmail(email);
+            const personalDetail = employeePersonalDetails[email];
             membersDetails.push({
                 keyForList: email,
                 text: personalDetail?.displayName,

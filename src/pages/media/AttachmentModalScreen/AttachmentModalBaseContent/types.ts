@@ -133,6 +133,9 @@ type AttachmentModalBaseContentProps = {
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: (file: FileObject | FileObject[]) => void;
 
+    /** Set when `onConfirm` navigates off the current screen, so the modal sequences its close with that transition instead of flashing the screen underneath. */
+    confirmLeavesScreen?: boolean;
+
     /** Callback triggered when the modal is closed */
     onClose?: (options?: AttachmentModalOnCloseOptions) => void;
 
