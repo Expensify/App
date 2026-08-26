@@ -1,14 +1,19 @@
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {
+    canSendInvoice,
     getActiveAdminWorkspaces,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
+    getPolicyRole,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
     isPendingDeletePolicy,
+    isPerDiemEligiblePolicy,
     isPolicyAdmin,
+    isArchivedPolicy,
+    isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
@@ -19,6 +24,7 @@ import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import escapeRegExp from 'lodash/escapeRegExp';
 
@@ -72,6 +78,9 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
     /** Whether the policy is optimistically pending deletion */
     isPendingDelete: boolean;
 
+    /** Whether the policy has been archived */
+    isArchived: boolean;
+
     /** Whether the current user has a pending request to join the policy */
     isJoinRequestPending: boolean;
 
@@ -90,14 +99,15 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
  * employeeList, customUnits, connections, etc.).
  */
 const createWorkspaceListPoliciesSelector =
-    (currentUserLogin: string | undefined) =>
+    (currentUserLogin: string | undefined, showArchived = false) =>
     (policies: OnyxCollection<Policy>): WorkspaceListPolicy[] => {
         const result: WorkspaceListPolicy[] = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin)) {
+            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin, showArchived)) {
                 continue;
             }
 
+            const isArchived = isArchivedPolicy(policy);
             const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
             let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
             if (isJoinRequestPending) {
@@ -121,12 +131,13 @@ const createWorkspaceListPoliciesSelector =
                 id: policy.id,
                 name: policy.name,
                 type: policy.type,
-                role: policy.role,
+                role: getPolicyRole(policy, currentUserLogin) as ValueOf<typeof CONST.POLICY.ROLE>,
                 ownerAccountID: policy.ownerAccountID,
                 avatarURL: policy.avatarURL,
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 isPendingDelete: isPendingDeletePolicy(policy),
+                isArchived,
                 isJoinRequestPending,
                 nonMemberDetails,
             });
@@ -194,8 +205,11 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
 
 type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
-const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
-    (policy && {
+const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => {
+    if (!policy) {
+        return undefined;
+    }
+    return {
         type: policy.type,
         role: policy.role,
         id: policy.id,
@@ -204,42 +218,55 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
         avatarURL: policy.avatarURL,
         name: policy.name,
         areInvoicesEnabled: policy.areInvoicesEnabled,
-    }) as PolicySelector;
+    };
+};
 
-// deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
-const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
-    if (!policies) {
-        return {};
-    }
+type IOURequestStartPolicies = {
+    hasPerDiemPolicy: boolean;
+    hasMultiplePerDiemPolicies: boolean;
+    firstPerDiemPolicyID: string | undefined;
+    hasTimePolicy: boolean;
+    hasMultipleTimePolicies: boolean;
+    firstTimePolicyID: string | undefined;
 
-    const result: Record<string, Policy> = {};
+    /** false unless the invoice flow asked for it */
+    canSendInvoiceFromAnyWorkspace: boolean;
+};
 
-    for (const [id, policyItem] of Object.entries(policies)) {
-        if (!policyItem) {
-            continue;
+// Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual and no growing ID list
+const createIOURequestStartPoliciesSelector =
+    (currentUserLogin: string | undefined, isInvoice: boolean) =>
+    (policies: OnyxCollection<Policy>): IOURequestStartPolicies => {
+        let perDiemCount = 0;
+        let timeCount = 0;
+        let firstPerDiemPolicyID: string | undefined;
+        let firstTimePolicyID: string | undefined;
+
+        for (const policy of getActivePoliciesWithExpenseChat(policies, currentUserLogin)) {
+            if (perDiemCount < 2 && isPerDiemEligiblePolicy(policy)) {
+                firstPerDiemPolicyID ??= policy.id;
+                perDiemCount++;
+            }
+            if (timeCount < 2 && isTimeTrackingEnabled(policy)) {
+                firstTimePolicyID ??= policy.id;
+                timeCount++;
+            }
+            // counts cap at 2, nothing downstream needs the real total
+            if (perDiemCount >= 2 && timeCount >= 2) {
+                break;
+            }
         }
 
-        result[id] = {
-            id: policyItem.id,
-            type: policyItem.type,
-            name: policyItem.name,
-            pendingAction: policyItem.pendingAction,
-            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
-            role: policyItem.role,
-            chatReportIDAdmins: policyItem.chatReportIDAdmins,
-            employeeList: policyItem.employeeList,
-            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
-            customUnits: policyItem.customUnits,
-            units: policyItem.units,
-            isJoinRequestPending: policyItem.isJoinRequestPending,
-            errors: policyItem.errors,
-            owner: policyItem.owner,
-            areInvoicesEnabled: policyItem.areInvoicesEnabled,
-        } as Policy;
-    }
-
-    return result;
-};
+        return {
+            hasPerDiemPolicy: perDiemCount > 0,
+            hasMultiplePerDiemPolicies: perDiemCount > 1,
+            firstPerDiemPolicyID,
+            hasTimePolicy: timeCount > 0,
+            hasMultipleTimePolicies: timeCount > 1,
+            firstTimePolicyID,
+            canSendInvoiceFromAnyWorkspace: isInvoice && canSendInvoice(policies, currentUserLogin),
+        };
+    };
 
 type FilteredPoliciesInfo = {
     /** Number of policies that should be shown to the user (short-circuited at 2) */
@@ -404,7 +431,7 @@ export {
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
-    iouRequestPolicyCollectionSelector,
+    createIOURequestStartPoliciesSelector,
     policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
