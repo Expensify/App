@@ -11562,6 +11562,7 @@ describe('SearchUIUtils', () => {
         const currentUserAccountID = 1;
         const personalDetails: OnyxTypes.PersonalDetailsList = {[currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserLogin}};
         const baseParams = {
+            conciergeChat: undefined,
             item: transactionListItem,
             introSelected: introSelectedData,
             getCurrencyDecimals: getCurrencyDecimalsLocal,

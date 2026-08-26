@@ -290,6 +290,7 @@ describe('createWorkspaceListPoliciesSelector', () => {
             'pendingAction',
             'errors',
             'isPendingDelete',
+            'isArchived',
             'isJoinRequestPending',
             'nonMemberDetails',
         ]);
