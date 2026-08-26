@@ -9009,12 +9009,29 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
     };
 }
 
+/**
+ * Builds the report action for a change of approver. Pass isReassignment when the new approver replaces the
+ * report's current one instead of being added to the workflow, so the message names the skipped approver.
+ */
 function buildOptimisticChangeApproverReportAction(
     managerID: number,
     actorAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    isReassignment = false,
+    previousApproverID?: number,
 ): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
+    const newApproverName = getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber});
+    let text = `changed the approver to ${newApproverName}`;
+    let html = `changed the approver to <mention-user accountID="${managerID}"/>`;
+    if (isReassignment) {
+        text = `reassigned approval to ${newApproverName}`;
+        html = `reassigned approval to <mention-user accountID="${managerID}"/>`;
+        if (previousApproverID) {
+            text += `, skipped ${getDisplayNameForParticipant({accountID: previousApproverID, formatPhoneNumber})}`;
+            html += `, skipped <mention-user accountID="${previousApproverID}"/>`;
+        }
+    }
     return {
         actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.REROUTE,
         actorAccountID,
@@ -9023,8 +9040,8 @@ function buildOptimisticChangeApproverReportAction(
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber})}`,
-                html: `changed the approver to <mention-user accountID="${managerID}"/>`,
+                text,
+                html,
             },
         ],
         person: [
@@ -9037,6 +9054,7 @@ function buildOptimisticChangeApproverReportAction(
         originalMessage: {
             lastModified: created,
             mentionedAccountIDs: [managerID],
+            ...(isReassignment ? {isReassignment: true, previousApproverID} : {}),
         },
         shouldShow: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,

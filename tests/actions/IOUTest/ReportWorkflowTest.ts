@@ -3800,6 +3800,47 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(formatPhoneNumberSpy).toHaveBeenCalledWith(approverLogin);
             expect(reportAction.message).toEqual([expect.objectContaining({text: `changed the approver to ${formatPhoneNumber(approverLogin)}`})]);
         });
+
+        it('names the skipped approver and flags the action when the new approver is a reassignment', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write optimistic data to verify the reassignment wording.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policy = createRandomPolicy(1);
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'reassign-approver-report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: policy.id,
+                managerID: CARLOS_ACCOUNT_ID,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            addReportApprover({
+                report,
+                newApproverEmail: RORY_EMAIL,
+                newApproverAccountID: RORY_ACCOUNT_ID,
+                accountID: CARLOS_ACCOUNT_ID,
+                email: CARLOS_EMAIL,
+                policy,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                isReassignment: true,
+            });
+
+            const [, params, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            expect(params).toEqual(expect.objectContaining({isReassignment: true}));
+
+            const reportActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, Onyx.METHOD.MERGE, true);
+            const reportAction = getRequiredReportAction(reportActionsUpdate);
+
+            expect(reportAction.message).toEqual([
+                expect.objectContaining({
+                    html: `reassigned approval to <mention-user accountID="${RORY_ACCOUNT_ID}"/>, skipped <mention-user accountID="${CARLOS_ACCOUNT_ID}"/>`,
+                }),
+            ]);
+            expect(reportAction.originalMessage).toEqual(expect.objectContaining({isReassignment: true, previousApproverID: CARLOS_ACCOUNT_ID}));
+        });
     });
 
     describe('approveMoneyRequest Submit workspace upgrade', () => {

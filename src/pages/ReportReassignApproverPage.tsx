@@ -7,24 +7,29 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
-import {getDisplayNameForParticipant, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -35,6 +40,11 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type ReportReassignApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.REASSIGN_APPROVER>;
 
+type MemberListItem = ListItem & {
+    /** Account ID of the workspace member */
+    accountID: number;
+};
+
 function ReportReassignApproverPage({report, policy}: ReportReassignApproverPageProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -42,6 +52,12 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [selectedMemberEmail, setSelectedMemberEmail] = useState<string>();
     const [hasError, setHasError] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading();
+    const currentUserDetails = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
     const employeeList = policy?.employeeList;
     const members = (() => {
@@ -51,7 +67,7 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
 
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
         const memberOptions = Object.values(employeeList)
-            .map((employee): ListItem | null => {
+            .map((employee): MemberListItem | null => {
                 const email = employee.email;
                 if (!email) {
                     return null;
@@ -71,12 +87,13 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
                     alternateText: email,
                     keyForList: email,
                     login: email,
+                    accountID,
                     isSelected: selectedMemberEmail === email,
                     icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: employee.role === CONST.POLICY.ROLE.ADMIN ? <Badge text={translate('common.admin')} /> : undefined,
                 };
             })
-            .filter((member): member is ListItem => !!member);
+            .filter((member): member is MemberListItem => !!member);
 
         return sortAlphabetically(memberOptions, 'text', localeCompare);
     })();
@@ -92,18 +109,34 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
     );
 
     const save = () => {
-        if (!selectedMemberEmail) {
+        const newApproverAccountID = members.find((member) => member.login === selectedMemberEmail)?.accountID;
+        if (!selectedMemberEmail || !newApproverAccountID) {
             setHasError(true);
             return;
         }
-        // TODO: call the API
-        Navigation.dismissToPreviousRHP();
+        startWithLoading(() => {
+            addReportApprover({
+                report,
+                newApproverEmail: selectedMemberEmail,
+                newApproverAccountID,
+                accountID: currentUserDetails.accountID,
+                email: currentUserDetails.email ?? '',
+                policy,
+                hasViolations,
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                isTrackIntentUser,
+                formatPhoneNumber,
+                isReassignment: true,
+            });
+            Navigation.dismissToPreviousRHP();
+        });
     };
 
     const footerContent = (
         <FormAlertWithSubmitButton
             buttonText={translate('common.save')}
             onSubmit={save}
+            isLoading={isLoading}
             isAlertVisible={hasError}
             message={translate('common.error.pleaseSelectOne')}
             shouldShowLoadingImmediatelyOnPress={false}
