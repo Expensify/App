@@ -5,11 +5,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import variables from '@styles/variables';
+
 import {clearBetaOverrides, setBetaOverride} from '@userActions/User';
 
 import CONST from '@src/CONST';
-import variables from '@styles/variables';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
