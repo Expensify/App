@@ -64,13 +64,6 @@ jest.mock('@components/MoneyReportHeaderModals', () => {
     const reactModule = jest.requireActual<typeof React>('react');
     return jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
 });
-jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusProvider', () => {
-    const reactModule = jest.requireActual<typeof React>('react');
-    return {
-        __esModule: true,
-        ExportDownloadStatusProvider: jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children)),
-    };
-});
 jest.mock('@components/PaymentAnimationsContext', () => {
     const reactModule = jest.requireActual<typeof React>('react');
     return {
