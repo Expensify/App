@@ -2283,6 +2283,11 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
             showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
+            betaOverrides: 'Remplacements de bêtas',
+            betaOverridesDescription:
+                "Les remplacements ne s'appliquent qu'à cet appareil et n'affectent que les vérifications côté frontend. Activer ou désactiver une bêta la fige sur cette valeur, et elle le reste jusqu'à ce que vous la réinitialisiez. « Réinitialiser tous les remplacements » les efface tous et rétablit pour chaque bêta la valeur associée à votre compte côté backend. Certaines fonctionnalités sont aussi contrôlées par le backend, donc forcer l'activation d'une bêta que votre compte ne possède pas peut échouer au niveau de la requête.",
+            resetAllOverrides: 'Réinitialiser tous les remplacements',
+            overridden: 'Remplacée',
         },
         security: 'Sécurité',
         signOut: 'Se déconnecter',
