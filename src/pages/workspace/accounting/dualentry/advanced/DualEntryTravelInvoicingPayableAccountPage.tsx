@@ -1,5 +1,6 @@
 import type {SelectorType} from '@components/SelectionScreen';
 
+import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {clearDualEntryErrorField, updateDualEntryTravelInvoicingPayableAccount} from '@libs/actions/connections/DualEntry';
@@ -18,7 +19,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 
 function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
