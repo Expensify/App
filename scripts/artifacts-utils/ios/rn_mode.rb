@@ -15,12 +15,11 @@ module RNMode
 
     # Intentional source build. Already consumed by Mobile-Expensify/iOS/Podfile.
     OPT_OUT_ENV_VAR = 'BUILD_RN_FROM_SOURCE'.freeze
-    ALLOW_OVERRIDES_ENV_VAR = 'EXPENSIFY_RN_ALLOW_ENV_OVERRIDES'.freeze
-
     # react-native's test-only overrides. Each one can move a lockfile on its own, and a local
-    # artifact path outranks the mode flags entirely in react-native's own resolution. A stale
-    # `export` in a shell is indistinguishable from a deliberate one, so they are cleared by default.
-    SCRUBBED_ENV_VARS = %w[
+    # artifact path outranks the mode flags entirely in react-native's own resolution. They are
+    # reported rather than cleared: a deliberate one stays honoured, and one left over from an
+    # earlier session shows up in the log next to the mode it produced.
+    REPORTED_ENV_VARS = %w[
         RCT_USE_LOCAL_RN_DEP
         RCT_TESTONLY_RNCORE_TARBALL_PATH
         RCT_DEPS_VERSION
@@ -45,7 +44,7 @@ module RNMode
         REACT_NATIVE_WORKLETS_NODE_MODULES_DIR
     ].freeze
 
-    # Deliberately NOT scrubbed, because this repo sets them itself:
+    # Deliberately NOT reported, because this repo sets them itself:
     #   REACT_NATIVE_NODE_MODULES_DIR        Mobile-Expensify/iOS/Podfile
     #   RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS  PatchedIOSArtifacts.required_classifiers
     #   CI / GITHUB_TOKEN / GITHUB_ACTOR     the resolver's credential source
@@ -89,7 +88,7 @@ module RNMode
 
             @mode = mode
             @downgrade_reasons = []
-            scrub_environment!
+            report_overrides!
             # In :prebuilt mode PatchedIOSArtifacts.setup owns these, and sets both from one
             # resolution so RNCore and ReactNativeDependencies cannot disagree.
             MODE_ENV_VARS.each { |name| ENV[name] = '0' } if source?
@@ -155,17 +154,20 @@ module RNMode
                 return
             end
 
-            # Only reachable if something re-set a prebuilt override after declare! ran, which is a
-            # broken configuration rather than a degraded network — so this one still stops.
-            raise <<~MESSAGE
-                #{LOG_PREFIX} #{component} resolved to prebuilt artifacts, but this Podfile declares :source.
-
-                Something set a prebuilt or local-artifact override after RNMode.declare!(:source) ran.
-                Check for #{(MODE_ENV_VARS + SCRUBBED_ENV_VARS).join(', ')} in your shell and in any wrapper script.
-            MESSAGE
+            banner("#{component} resolved to prebuilt artifacts, but this Podfile declares :source.",
+                   "Check for #{(MODE_ENV_VARS + REPORTED_ENV_VARS).join(', ')} in your shell and in any wrapper script.",
+                   'Podfile.lock is written in prebuilt mode; do not commit it.',
+                   offer_opt_out: false)
         end
 
-        def banner(headline, consequence, summary = 'Podfile.lock is written in source-build mode; do not commit it.')
+        # offer_opt_out is false in the :source direction, where BUILD_RN_FROM_SOURCE would not
+        # silence anything.
+        def banner(headline, consequence, summary = 'Podfile.lock is written in source-build mode; do not commit it.', offer_opt_out: true)
+            closing = if offer_opt_out
+                          "Do not commit the resulting Podfile.lock. Re-run once the cause is fixed, or set\n#{OPT_OUT_ENV_VAR}=1 to silence this when the source build is deliberate."
+                      else
+                          'Do not commit the resulting Podfile.lock. Re-run once the cause is fixed.'
+                      end
             body = [
                 '',
                 "#{LOG_PREFIX} #{headline}",
@@ -174,8 +176,7 @@ module RNMode
                 '',
                 consequence,
                 '',
-                "Do not commit the resulting Podfile.lock. Re-run once the cause is fixed, or set",
-                "#{OPT_OUT_ENV_VAR}=1 to silence this when the source build is deliberate.",
+                closing,
                 '',
             ].join("\n")
 
@@ -193,23 +194,19 @@ module RNMode
             "Cause:\n#{@downgrade_reasons.map { |reason| "  - #{reason}" }.join("\n")}\n"
         end
 
-        def scrub_environment!
+        def report_overrides!
             # Ours to set, so an inherited value is always stale.
             MODE_ENV_VARS.each { |name| ENV.delete(name) }
 
             # Presence, not truthiness: react-native tests several of these with ENV.has_key?, so an
-            # exported-but-empty value still changes what resolves. hermes-utils.rb would take the
-            # local-tarball branch and abort on File.exist?('').
-            present = SCRUBBED_ENV_VARS.select { |name| ENV.key?(name) }
+            # exported-but-empty value still changes what resolves — hermes-utils.rb takes the
+            # local-tarball branch on one and then aborts on File.exist?(''). Naming it here is what
+            # makes that abort traceable back to the shell it came from.
+            present = REPORTED_ENV_VARS.select { |name| ENV.key?(name) }
             return if present.empty?
 
-            if ENV[ALLOW_OVERRIDES_ENV_VAR] == '1'
-                log("Keeping react-native overrides from the environment (#{ALLOW_OVERRIDES_ENV_VAR}=1): #{present.join(', ')}. Podfile.lock may not be reproducible.", :error)
-                return
-            end
-
-            present.each { |name| ENV.delete(name) }
-            log("Ignoring react-native overrides found in the environment: #{present.join(', ')}. Re-run with #{ALLOW_OVERRIDES_ENV_VAR}=1 to keep them.", :error)
+            @downgrade_reasons << "react-native overrides set in the environment: #{present.join(', ')}"
+            log("react-native overrides are set in the environment: #{present.join(', ')}. They are honoured, and Podfile.lock may not be reproducible on another machine.", :error)
         end
 
         # Reopened rather than patched: anything under patches/ feeds the artifact hash, so a patch

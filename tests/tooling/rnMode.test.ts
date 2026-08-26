@@ -69,12 +69,13 @@ describe('RNMode behaviour', () => {
     });
 
     it.each([
-        'scrubs_overrides',
+        'keeps_overrides',
+        'records_overrides_as_cause',
         'pins_mode_flags',
         'pins_shared_vars',
-        'scrubs_empty_overrides',
+        'reports_empty_overrides',
         'degraded_install_continues',
-        'prebuilt_in_source_mode_raises',
+        'prebuilt_in_source_mode_continues',
         'hermes_fallback_continues_prebuilt',
         'hermes_fallback_continues_source',
         'classifies_404_vs_unreachable',

@@ -103,19 +103,27 @@ published artifact yet — and it also silences the `[RNMode]` warning. **Do not
 
 ## Environment overrides
 
-`RNMode` (`scripts/artifacts-utils/ios/rn_mode.rb`) clears `react-native`'s test-only environment
-overrides before resolving, because each of them can silently move a committed `Podfile.lock` and a
-stale `export` is indistinguishable from a deliberate one. Among them are `HERMES_ENGINE_TARBALL_PATH`,
-`REACT_NATIVE_OVERRIDE_HERMES_DIR`, `HERMES_COMMIT` and `RCT_BUILD_HERMES_FROM_SOURCE`, which are
-legitimate tools when debugging Hermes. The install logs which ones it ignored. To keep them:
+`react-native` has test-only environment overrides that each move a committed `Podfile.lock` on their
+own — among them `HERMES_ENGINE_TARBALL_PATH`, `REACT_NATIVE_OVERRIDE_HERMES_DIR`, `HERMES_COMMIT`
+and `RCT_BUILD_HERMES_FROM_SOURCE`, all legitimate tools when debugging Hermes. `RNMode`
+(`scripts/artifacts-utils/ios/rn_mode.rb`) honours them and logs which ones were set, so the lockfile
+they produce is explainable rather than mysterious:
 
-```bash
-EXPENSIFY_RN_ALLOW_ENV_OVERRIDES=1 npm run pod-install
+```
+[RNMode] react-native overrides are set in the environment: HERMES_ENGINE_TARBALL_PATH. They are
+honoured, and Podfile.lock may not be reproducible on another machine.
 ```
 
-The resulting `Podfile.lock` is not reproducible, so do not commit it.
+Prefer setting them for one command rather than exporting them, which is how `react-native` documents
+them itself:
 
-The flag is read during `pod install`, so switching it requires reinstalling the pods, not just
+```bash
+HERMES_ENGINE_TARBALL_PATH=/path/to/hermes.tar.gz npm run pod-install
+```
+
+Either way, do not commit the resulting `Podfile.lock`.
+
+These are read during `pod install`, so changing one requires reinstalling the pods, not just
 rebuilding.
 
 To get symbolicated native stack traces from a prebuilt React Core, install the pods with the dSYMs:
