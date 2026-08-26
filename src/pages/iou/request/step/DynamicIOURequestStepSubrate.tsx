@@ -9,6 +9,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
+import type {InlineValuePickerConfig} from '@components/ValuePicker/types';
+import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -113,6 +115,8 @@ function DynamicIOURequestStepSubrate({
     const currentSubrate: CommentSubrate | undefined = allSubrates.at(parsedIndex) ?? undefined;
     const totalSubrateCount = allPossibleSubrates.length;
     const filledSubrateCount = allSubrates.length;
+    // When set (centered RHP modal), the subrate selection list is rendered inline here over the still-mounted form instead of in a second modal.
+    const [activeValuePicker, setActiveValuePicker] = useState<InlineValuePickerConfig | null>(null);
     const [subrateValue, setSubrateValue] = useState(currentSubrate?.id);
     const [quantityValue, setQuantityValue] = useState(() => (currentSubrate?.quantity ? String(currentSubrate.quantity) : undefined));
 
@@ -218,6 +222,8 @@ function DynamicIOURequestStepSubrate({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
+    const titleDefault = isEditPage ? translate('common.subrate') : tabTitles[iouType];
+    const title = shouldDisableEditor || !activeValuePicker ? titleDefault : (activeValuePicker.label ?? '');
 
     return (
         <ScreenWrapper
@@ -227,10 +233,10 @@ function DynamicIOURequestStepSubrate({
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
-                    title={isEditPage ? translate('common.subrate') : tabTitles[iouType]}
+                    title={title}
                     shouldShowBackButton
-                    onBackButtonPress={goBack}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                    onBackButtonPress={activeValuePicker ? () => setActiveValuePicker(null) : goBack}
+                    shouldShowThreeDotsButton={!activeValuePicker && shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
                     threeDotsMenuItems={[
                         {
@@ -243,57 +249,74 @@ function DynamicIOURequestStepSubrate({
                         },
                     ]}
                 />
-                <FormProvider
-                    style={[styles.flexGrow1, styles.mh5]}
-                    formID={ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM}
-                    enabledWhenOffline
-                    validate={validate}
-                    onSubmit={submit}
-                    shouldValidateOnChange
-                    shouldValidateOnBlur={false}
-                    submitButtonText={translate('common.save')}
-                >
-                    <Text style={[styles.pv3]}>{translate('iou.subrateSelection')}</Text>
-                    <View style={[styles.mhn5]}>
-                        <InputWrapperWithRef
-                            InputComponent={ValuePicker}
-                            inputID={`subrate${pageIndex}`}
-                            label={translate('common.subrate')}
-                            value={subrateValue}
-                            defaultValue={currentSubrate?.id}
-                            items={validOptions}
-                            onValueChange={(value) => {
-                                setSubrateValue(value as string);
+                <View style={[styles.flex1, styles.pRelative]}>
+                    <FormProvider
+                        style={[styles.flexGrow1, styles.mh5]}
+                        formID={ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM}
+                        enabledWhenOffline
+                        validate={validate}
+                        onSubmit={submit}
+                        shouldValidateOnChange
+                        shouldValidateOnBlur={false}
+                        submitButtonText={translate('common.save')}
+                    >
+                        <Text style={[styles.pv3]}>{translate('iou.subrateSelection')}</Text>
+                        <View style={[styles.mhn5]}>
+                            <InputWrapperWithRef
+                                InputComponent={ValuePicker}
+                                inputID={`subrate${pageIndex}`}
+                                label={translate('common.subrate')}
+                                value={subrateValue}
+                                defaultValue={currentSubrate?.id}
+                                items={validOptions}
+                                onRequestOpenInline={setActiveValuePicker}
+                                onValueChange={(value) => {
+                                    setSubrateValue(value as string);
 
-                                // Focus the Quantity input after the ValuePicker modal closes.
-                                // TransitionTracker's callback fires synchronously inside Reanimated's animation
-                                // callback (outside React's event handler), so React flushes state updates async
-                                // via MessageChannel. requestIdleCallback ensures focus() runs after React commits
-                                // and the modal's FocusTrap (web) deactivates, preventing focus from being stolen.
-                                TransitionTracker.runAfterTransitions({
-                                    callback: () => {
-                                        requestIdleCallback(() => textInputRef.current?.focus());
-                                    },
-                                    waitForUpcomingTransition: true,
-                                });
-                            }}
-                            onOpen={() => {
-                                textInputRef.current?.blur();
-                            }}
+                                    // Focus the Quantity input after the ValuePicker modal closes.
+                                    // TransitionTracker's callback fires synchronously inside Reanimated's animation
+                                    // callback (outside React's event handler), so React flushes state updates async
+                                    // via MessageChannel. requestIdleCallback ensures focus() runs after React commits
+                                    // and the modal's FocusTrap (web) deactivates, preventing focus from being stolen.
+                                    TransitionTracker.runAfterTransitions({
+                                        callback: () => {
+                                            requestIdleCallback(() => textInputRef.current?.focus());
+                                        },
+                                        waitForUpcomingTransition: true,
+                                    });
+                                }}
+                                onOpen={() => {
+                                    textInputRef.current?.blur();
+                                }}
+                            />
+                        </View>
+                        <InputWrapperWithRef
+                            InputComponent={TextInput}
+                            inputID={`quantity${pageIndex}`}
+                            ref={textInputRef}
+                            containerStyles={[styles.mt4]}
+                            label={translate('iou.quantity')}
+                            value={quantityValue}
+                            inputMode={CONST.INPUT_MODE.NUMERIC}
+                            maxLength={CONST.IOU.QUANTITY_MAX_LENGTH}
+                            onChangeText={onChangeQuantity}
                         />
-                    </View>
-                    <InputWrapperWithRef
-                        InputComponent={TextInput}
-                        inputID={`quantity${pageIndex}`}
-                        ref={textInputRef}
-                        containerStyles={[styles.mt4]}
-                        label={translate('iou.quantity')}
-                        value={quantityValue}
-                        inputMode={CONST.INPUT_MODE.NUMERIC}
-                        maxLength={CONST.IOU.QUANTITY_MAX_LENGTH}
-                        onChangeText={onChangeQuantity}
-                    />
-                </FormProvider>
+                    </FormProvider>
+                    {!!activeValuePicker && (
+                        // Overlay the selection list on the still-mounted form so its onItemSelected stays valid.
+                        <View style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.b0, styles.appBG]}>
+                            <ValueSelectionList
+                                items={activeValuePicker.items}
+                                selectedItem={activeValuePicker.selectedItem}
+                                shouldShowTooltips={activeValuePicker.shouldShowTooltips}
+                                onItemSelected={(item) => {
+                                    activeValuePicker.onItemSelected?.(item);
+                                    setActiveValuePicker(null);
+                                }}
+                            />
+                        </View>
+                    )}
+                </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
