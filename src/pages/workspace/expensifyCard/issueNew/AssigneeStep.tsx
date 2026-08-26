@@ -103,8 +103,9 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
 
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(currentAssigneeFirstName)) {
             // If the card title is the default card title, update it with the new assignee's name
-            const newAssigneeFirstName = employeePersonalDetails[assignee?.login ?? '']?.firstName;
-            data.cardTitle = getCardDefaultName(Str.removeSMSDomain(newAssigneeFirstName ? newAssigneeFirstName : (assignee?.login ?? '')));
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const newAssigneeFirstName = Str.removeSMSDomain(employeePersonalDetails[assignee?.login ?? '']?.firstName || assignee?.login || '');
+            data.cardTitle = getCardDefaultName(newAssigneeFirstName);
         }
 
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
