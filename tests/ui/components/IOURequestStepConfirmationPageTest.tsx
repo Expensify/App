@@ -1588,6 +1588,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
         }
 
         async function selectParticipants(participants: Participant[]) {
+            fireEvent.press(await screen.findByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${SOURCE_CHAT_REPORT_ID}`));
+            await waitForBatchedUpdatesWithAct();
+
             mockSelectedParticipants = participants;
             fireEvent.press(await screen.findByTestId('MockParticipantPicker'));
             await waitForBatchedUpdatesWithAct();
