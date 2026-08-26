@@ -1,0 +1,39 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        // Empty on purpose. `types: ["react-native"]` would load
+        // `@types/react-native@0.72` (a transitive leftover), which is not RN's
+        // own types and is not the native type environment we want. RN types
+        // come in via imports of `react-native`.
+        "types": [],
+        "lib": ["ESNext"],
+        "moduleSuffixes": [".ios", ".android", ".native", ""]
+    },
+    "include": ["src", "modules", "assets", "prompts"],
+    "exclude": [
+        "**/node_modules/*",
+        "**/dist/*",
+        "src/stories/**",
+        "src/**/__mocks__/**",
+        "src/types/env.d.ts",
+        "src/types/modules/jest.d.ts",
+        "src/types/web/**",
+        "src/**/*.web.ts",
+        "src/**/*.web.tsx",
+        "src/setup/addUtilsToWindow.ts",
+        "src/hooks/useWebCamera.ts",
+        "src/components/Attachments/AttachmentView/AttachmentViewPdf/index.tsx",
+        "src/components/Composer/implementation/index.tsx",
+        "src/components/PDFThumbnail/index.tsx",
+        "src/components/ReportActionItem/LocalPDFReceiptPreview/index.tsx",
+        "src/components/SignInButtons/AppleSignIn/index.tsx",
+        "src/components/SignInButtons/GoogleSignIn/index.tsx",
+        "src/libs/Navigation/AppNavigator/FreezeWrapper/index.tsx",
+        "src/libs/Pusher/index.ts",
+        "src/libs/actions/Attachment/index.ts",
+        "src/pages/iou/request/step/IOURequestStepOdometerImage/index.tsx",
+        "src/pages/iou/request/step/IOURequestStepScan/components/Camera/CameraCapture.tsx",
+        "src/pages/iou/request/step/IOURequestStepScan/components/Camera/index.tsx",
+        "modules/ExpensifyNitroUtils/**"
+    ]
+}

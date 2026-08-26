@@ -90,4 +90,5 @@ const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
 
 const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange};
 
+export type {SimplifiedKeyboardEvent} from './types';
 export default utils;

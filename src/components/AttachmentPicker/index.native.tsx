@@ -360,7 +360,7 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                pickAttachment: () => showImagePicker(launchCamera),
+                pickAttachment: () => showImagePicker(launchCamera as (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>),
             });
         }
 

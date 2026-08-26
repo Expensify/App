@@ -2,7 +2,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
-function openSearch() {
+function openSearch(_setIsSearchRouterDisplayed?: React.Dispatch<React.SetStateAction<boolean>>) {
     return Navigation.navigate(ROUTES.SEARCH_ROUTER);
 }
 

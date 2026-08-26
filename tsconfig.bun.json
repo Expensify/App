@@ -4,6 +4,6 @@
         "types": ["bun"],
         "lib": ["ESNext"]
     },
-    "include": ["scripts", "tests/tooling", "server/libs", "server/plugins", "server/stubs", "evals"],
+    "include": ["scripts", "tests/tooling", "server/libs", "server/plugins", "server/stubs", "evals", "types/env.d.ts"],
     "exclude": ["**/node_modules/*", "**/dist/*", "server/victory-chart-renderer/**"]
 }

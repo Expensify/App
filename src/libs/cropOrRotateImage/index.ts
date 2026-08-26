@@ -7,7 +7,15 @@ import getSaveFormat from './getSaveFormat';
 const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
     new Promise((resolve, reject) => {
         const format = getSaveFormat(options.type);
-        const context = ImageManipulator.manipulate(uri);
+        const context = (
+            ImageManipulator as unknown as {
+                manipulate: (uri: string) => {
+                    crop: (crop: unknown) => void;
+                    rotate: (rotate: unknown) => void;
+                    renderAsync: () => Promise<{saveAsync: (options: {compress?: number; format?: unknown}) => Promise<{uri: string}>}>;
+                };
+            }
+        ).manipulate(uri);
         for (const action of actions) {
             if ('crop' in action) {
                 context.crop(action.crop);
@@ -17,8 +25,8 @@ const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
         }
         context
             .renderAsync()
-            .then((imageRef) => imageRef.saveAsync({compress: options.compress, format}))
-            .then((result) =>
+            .then((imageRef: {saveAsync: (options: {compress?: number; format?: unknown}) => Promise<{uri: string}>}) => imageRef.saveAsync({compress: options.compress, format}))
+            .then((result: {uri: string}) =>
                 fetch(result.uri)
                     .then((res) => res.blob())
                     .then((blob) => {

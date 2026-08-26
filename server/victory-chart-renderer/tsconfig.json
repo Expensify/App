@@ -3,5 +3,6 @@
     "compilerOptions": {
         "types": ["react-native", "react-native-web", "node"]
     },
-    "include": ["src", "tests", "scripts", "../../src/types"]
+    "include": ["src", "tests", "scripts", "../../src/types/**/*.d.ts"],
+    "exclude": ["**/node_modules/*", "**/dist/*", "../../src/types/native/**"]
 }

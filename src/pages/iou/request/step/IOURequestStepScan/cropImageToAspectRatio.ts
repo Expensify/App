@@ -91,12 +91,21 @@ const THUMBNAIL_MAX_WIDTH = 512;
  * 256px is sufficient for the confirmation screen preview and decodes ~4x faster than 512px.
  */
 function generateThumbnail(sourceUri: string, maxWidth = THUMBNAIL_MAX_WIDTH): Promise<string | undefined> {
-    return ImageManipulator.manipulate(sourceUri)
+    return (
+        ImageManipulator as typeof ImageManipulator & {
+            manipulate: (uri: string) => {
+                resize: (size: {width: number}) => {
+                    renderAsync: () => Promise<{saveAsync: (options: {compress: number; format: typeof SaveFormat.JPEG}) => Promise<{uri: string}>}>;
+                };
+            };
+        }
+    )
+        .manipulate(sourceUri)
         .resize({width: maxWidth})
         .renderAsync()
         .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}))
         .then((result) => result.uri)
-        .catch((error) => {
+        .catch((error: unknown) => {
             Log.warn(`Failed to generate thumbnail: ${error}`);
             return undefined;
         });

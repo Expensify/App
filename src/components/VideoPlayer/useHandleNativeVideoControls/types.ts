@@ -1,11 +1,11 @@
 import type {VideoView} from 'expo-video';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 
 type UseHandleNativeVideoControlParams = {
     /**
      * Reference to the VideoView component being handled.
      */
-    videoViewRef: RefObject<VideoView | null>;
+    videoViewRef: RefObject<(ComponentRef<typeof VideoView> & {nativeRef?: {current?: HTMLVideoElement | null}}) | null>;
 
     /**
      * Whether the video source is a local file.

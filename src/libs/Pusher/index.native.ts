@@ -474,11 +474,11 @@ function getPusherSocketID(): string | undefined {
     return pusherSocketID;
 }
 
-if (window) {
+if (typeof window !== 'undefined') {
     /**
      * Pusher socket for debugging purposes
      */
-    window.getPusherInstance = () => socket;
+    (window as {getPusherInstance?: () => unknown}).getPusherInstance = () => socket;
 }
 
 const MobilePusher: PusherModule = {

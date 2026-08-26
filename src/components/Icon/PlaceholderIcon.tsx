@@ -14,7 +14,7 @@ function PlaceholderIcon({width = 24, height = 24, fill, style, testID}: SvgProp
             height={height}
             viewBox="0 0 24 24"
             fill={fill}
-            style={style}
+            style={style as never}
             testID={testID}
         >
             {/* Completely empty - no visible content, just maintains dimensions */}

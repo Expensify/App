@@ -7,14 +7,16 @@ import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
 import type Locale from '@src/types/onyx/Locale';
+import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/web/dom';
 
 import type {NativeConfig} from 'react-native-config';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import Config from 'react-native-config';
+
+import type AppleSignInProps from './types';
 
 import MAP_EXFY_LOCALE_TO_APPLE_LOCALE from './AppleSignInLocales';
 
@@ -28,13 +30,6 @@ type AppleSignInDivProps = {
 };
 
 type SingletonAppleSignInButtonProps = AppleSignInDivProps;
-
-type AppleSignInProps = {
-    isDesktopFlow?: boolean;
-    onPointerDown?: () => void;
-    // eslint-disable-next-line react/no-unused-prop-types
-    onPress?: () => void;
-};
 
 /**
  * Apple Sign In Configuration for Web.
@@ -159,4 +154,4 @@ function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
 }
 
 export default AppleSignIn;
-export type {AppleSignInProps};
+export type {default as AppleSignInProps} from './types';

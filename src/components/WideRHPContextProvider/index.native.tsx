@@ -56,4 +56,4 @@ export {
     useWideRHPState,
     useWideRHPActions,
 };
-export type {WideRHPStateContextType, WideRHPActionsContextType};
+export type {WideRHPStateContextType, WideRHPActionsContextType, RHPWidth} from './types';

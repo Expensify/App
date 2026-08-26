@@ -11,7 +11,7 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string): Promise<TokenizationStatus> {
+function handleAddCardToWallet(card: Card, cardHolderName: string, _cardDescription?: string, _onFinished?: () => void): Promise<TokenizationStatus> {
     return getSecureWalletInfo().then((walletData: AndroidWalletData) =>
         createDigitalGoogleWallet({cardID: card.cardID, cardHolderName, ...walletData}).then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData)),
     );

@@ -7,18 +7,13 @@ import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Response from '@src/types/modules/google';
 import type Locale from '@src/types/onyx/Locale';
+import type Response from '@src/types/web/google';
 
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
-type GoogleSignInProps = {
-    isDesktopFlow?: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
-    onPress?: () => void;
-    onPointerDown?: () => void;
-};
+import type GoogleSignInProps from './GoogleSignInProps';
 
 /** Div IDs for styling the two different Google Sign-In buttons. */
 const mainId = 'google-sign-in-main';

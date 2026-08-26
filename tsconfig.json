@@ -4,6 +4,7 @@
     "compilerOptions": {
         "types": ["react-native", "react-native-web", "jest", "node"],
         "lib": ["DOM", "ESNext"],
+        "moduleSuffixes": [".web", ""],
         // Babel reads this config directly and does not resolve its `extends` chain.
         "paths": {
             "@assets/*": ["./assets/*"],
@@ -23,20 +24,17 @@
             "tests/*": ["./tests/*"]
         }
     },
-    "include": ["src", "website", "docs", "assets", "tests", "jest", "prompts", "__mocks__", ".storybook/**/*", ".claude/**/*", "modules", "**/*.nitro/*.ts", "**/*.nitro/*.tsx"],
+    "include": ["tests", "jest", "__mocks__", "wdyr.ts", "src/types/**/*.d.ts", "src/types/web/**/*.d.ts", "src/types/app/**/*.d.ts"],
     "exclude": [
         "**/node_modules/*",
         "**/dist/*",
-        ".github/actions/**/index.js",
-        "**/docs/*",
-        ".claude/worktrees/**",
         "tests/tooling",
-        "server/libs",
-        "server/plugins",
-        "server/stubs",
-        "evals",
-        ".github",
-        "web/proxy.ts",
-        "config"
+        "src/**/*.native.ts",
+        "src/**/*.native.tsx",
+        "src/**/*.ios.ts",
+        "src/**/*.ios.tsx",
+        "src/**/*.android.ts",
+        "src/**/*.android.tsx",
+        "modules/ExpensifyNitroUtils/**"
     ]
 }

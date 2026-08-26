@@ -9,9 +9,9 @@ type PopoverStateContextType = {
 };
 
 type PopoverActionsContextType = {
-    onOpen: () => void;
-    close: () => void;
-    setActivePopoverExtraAnchorRef: () => void;
+    onOpen: (...args: unknown[]) => void;
+    close: (...args: unknown[]) => void;
+    setActivePopoverExtraAnchorRef: (...args: unknown[]) => void;
 };
 
 const defaultPopoverActionsContext: PopoverActionsContextType = {
@@ -32,9 +32,9 @@ function PopoverContextProvider(props: PopoverContextProps) {
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsContextValue: PopoverActionsContextType = {
-        onOpen: () => {},
-        close: () => {},
-        setActivePopoverExtraAnchorRef: () => {},
+        onOpen: (..._args: unknown[]) => {},
+        close: (..._args: unknown[]) => {},
+        setActivePopoverExtraAnchorRef: (..._args: unknown[]) => {},
     };
 
     // Because of the React Compiler we don't need to memoize it manually

@@ -12,7 +12,7 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string): Promise<TokenizationStatus> {
+function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string, _onFinished?: () => void): Promise<TokenizationStatus> {
     const data = {
         network: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
         lastDigits: card.lastFourPAN,

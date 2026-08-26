@@ -70,4 +70,4 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
     );
 }
 
-export default memo(AttachmentModalContainer);
+export default memo(AttachmentModalContainer) as typeof AttachmentModalContainer;

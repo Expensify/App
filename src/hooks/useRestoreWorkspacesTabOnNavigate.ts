@@ -53,7 +53,7 @@ function useRestoreWorkspacesTabOnNavigate() {
         })();
 
         // If the last route was a specific workspace or domain, extract its ID from params
-        const params = lastWorkspacesTabNavigatorRoute?.state?.routes?.at(0)?.params as
+        const params = (lastWorkspacesTabNavigatorRoute as {state?: {routes?: Array<{params?: unknown}>}} | undefined)?.state?.routes?.at(0)?.params as
             | WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL]
             | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
         const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;

@@ -70,7 +70,7 @@ function BaseAnchorForCommentsOnly({
         <PressableWithSecondaryInteraction
             inline
             suppressHighlighting
-            style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)]}
+            style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)] as never}
             onSecondaryInteraction={(event) => {
                 showContextMenu({
                     type: isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK,

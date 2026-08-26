@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 
 import type {SourceLoadEventPayload} from 'expo-video';
 import type LottieView from 'lottie-react-native';
+import type {ComponentRef} from 'react';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -82,7 +83,7 @@ function FeatureTrainingContentIllustration({
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
-    const animationRef = useRef<LottieView | null>(null);
+    const animationRef = useRef<ComponentRef<typeof LottieView> | null>(null);
     useEffect(() => {
         if (isMobile() || !isCarousel || !animationRef.current || isReduceMotionEnabled) {
             return;

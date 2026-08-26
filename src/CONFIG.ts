@@ -108,7 +108,7 @@ export default {
     },
     CAPTURE_METRICS: get(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: get(Config, 'ONYX_METRICS', 'false') === 'true',
-    DEV_PORT: process.env.PORT ?? 8082,
+    DEV_PORT: Number(process.env.PORT) || 8082,
     SEND_CRASH_REPORTS: get(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
     IS_USING_WEB_PROXY: getPlatform() === 'web' && useWebProxy,
     APPLE_SIGN_IN: {

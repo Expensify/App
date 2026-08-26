@@ -5,6 +5,7 @@ import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
@@ -89,7 +90,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const shareVideoPlayerElements: PlaybackActionsContextValues['shareVideoPlayerElements'] = useCallback(
         (
             videoPlayerRef: VideoPlayer | null,
-            videoViewRef: VideoView | null,
+            videoViewRef: ComponentRef<typeof VideoView> | null,
             parent: View | HTMLDivElement | null,
             child: View | HTMLDivElement | null,
             shouldNotAutoPlay: boolean,

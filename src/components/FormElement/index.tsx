@@ -1,15 +1,10 @@
 import {ACCESSIBILITY_ROLE_FORM} from '@libs/ComponentUtils/index';
 import mergeRefs from '@libs/mergeRefs';
 
-import type {ForwardedRef} from 'react';
-import type {ViewProps} from 'react-native';
-
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-type FormElementProps = ViewProps & {
-    ref?: ForwardedRef<View>;
-};
+import type FormElementProps from './types';
 
 const preventFormDefault = (event: SubmitEvent) => {
     // When Enter is pressed, the form is submitted to the action URL (POST /).
@@ -52,4 +47,4 @@ function FormElement({ref, ...props}: FormElementProps) {
 
 export default FormElement;
 
-export type {FormElementProps};
+export type {default as FormElementProps} from './types';

@@ -1,2 +1,2 @@
 // Modal back-guard synchronization with the browser history is only supported for web.
-export default function useSyncModalWithHistory() {}
+export default function useSyncModalWithHistory(_params?: unknown) {}

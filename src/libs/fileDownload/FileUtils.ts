@@ -656,7 +656,7 @@ const getImageDimensionsAfterResize = async (file: FileObject): Promise<{width: 
     return calculateScaledDimensions(width, height);
 };
 
-const createFile = (file: File): FileObject => {
+const createFile = (file: File | FileObject): FileObject => {
     if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
         return {
             uri: file.uri,
@@ -664,7 +664,7 @@ const createFile = (file: File): FileObject => {
             type: file.type,
         };
     }
-    return new File([file], file.name, {
+    return new File([file as Blob], file.name ?? '', {
         type: file.type,
         lastModified: file.lastModified,
     });
@@ -676,7 +676,7 @@ const resizeImageIfNeeded = (file: FileObject) => {
     }
     return getImageDimensionsAfterResize(file)
         .then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}))
-        .then((result) => createFile(result));
+        .then((result) => createFile(result as File));
 };
 
 const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {

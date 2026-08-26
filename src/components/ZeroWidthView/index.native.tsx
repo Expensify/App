@@ -1,4 +1,4 @@
-function ZeroWidthView() {
+function ZeroWidthView(_props: {text?: string; displayAsGroup?: boolean}) {
     return null;
 }
 

@@ -304,7 +304,7 @@ const config = defineConfig([
 
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.json'),
+                project: path.resolve(projectRoot, 'tsconfig.app.web.json'),
                 projectService: false,
             },
 
@@ -713,6 +713,35 @@ const config = defineConfig([
         ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
         rules: {
             'max-lines': ['error', 4000],
+            'no-restricted-globals': [
+                'error',
+                {name: 'jest', message: 'Jest globals are not available in app code. Tests belong in tests/.'},
+                {name: 'describe', message: 'Jest globals are not available in app code. Tests belong in tests/.'},
+                {name: 'it', message: 'Jest globals are not available in app code. Tests belong in tests/.'},
+                {name: 'test', message: 'Jest globals are not available in app code. Tests belong in tests/.'},
+                {name: 'expect', message: 'Jest globals are not available in app code. Tests belong in tests/.'},
+            ],
+        },
+    },
+
+    {
+        files: ['src/**/*.native.ts', 'src/**/*.native.tsx', 'src/**/*.ios.ts', 'src/**/*.ios.tsx', 'src/**/*.android.ts', 'src/**/*.android.tsx'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        files: ['tests/**/*.{ts,tsx}', 'jest/**/*.{ts,tsx}', '__mocks__/**/*.{ts,tsx}'],
+        ignores: ['tests/tooling/**'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.json'),
+                projectService: false,
+            },
         },
     },
 

@@ -1,7 +1,7 @@
 // No-op on native — hover states don't exist on mobile
-function resetButtonHoverState() {}
+function resetButtonHoverState(_addButtonRef?: unknown) {}
 
-function isElementHovered(): boolean {
+function isElementHovered(_ref?: unknown): boolean {
     return false;
 }
 
