@@ -159,7 +159,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                 <Text style={styles.textLabelSupporting}>{dateLabel}</Text>
                 <Text style={styles.textHeadlineH1}>{greeting}</Text>
             </View>
-            <View>
+            <View style={styles.pRelative}>
                 <View
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -290,10 +290,12 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                     </View>
                 </View>
                 {!!exceededMaxLength && (
-                    <ExceededCommentLength
-                        maxCommentLength={exceededMaxLength}
-                        isTaskTitle={isTaskTitle}
-                    />
+                    <View style={styles.conciergePromptBoxExceededLength}>
+                        <ExceededCommentLength
+                            maxCommentLength={exceededMaxLength}
+                            isTaskTitle={isTaskTitle}
+                        />
+                    </View>
                 )}
             </View>
             {PDFValidationComponent}
