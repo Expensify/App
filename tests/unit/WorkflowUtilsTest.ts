@@ -801,7 +801,7 @@ describe('WorkflowUtils', () => {
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         config: {
-                            approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER,
+                            approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER,
                             finalApprover: 'finalapprover@example.com',
                             integration: 'workday',
                             groups: [],

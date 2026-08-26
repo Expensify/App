@@ -5,7 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type HrSyncResult from '@libs/API/HrSyncResult';
-import {getConnectedHRProvider} from '@libs/HRUtils';
+import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

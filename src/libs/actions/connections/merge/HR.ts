@@ -1,12 +1,9 @@
 import {write} from '@libs/API';
-import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getCommandURL} from '@libs/ApiUtils';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
-import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 
@@ -14,15 +11,6 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
-
-function getMergeHRSetupLink(policyID: string, integration: MergeHRProviderSlug) {
-    const params: ConnectPolicyToMergeParams = {policyID, integration};
-    const commandURL = getCommandURL({
-        command: READ_COMMANDS.CONNECT_POLICY_TO_MERGE,
-        shouldSkipWebProxy: true,
-    });
-    return commandURL + new URLSearchParams(params).toString();
-}
 
 /**
  * Triggers a data sync for the Merge HR connection.
@@ -43,8 +31,8 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         lastSync: {
-                            syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING,
-                            syncType: CONST.MERGE_HR.SYNC_TYPE.MANUAL,
+                            syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING,
+                            syncType: CONST.MERGE.SYNC_TYPE.MANUAL,
                             manualSyncTimestamps: [DateUtils.getDBTime(), ...(previousLastSync?.manualSyncTimestamps ?? [])],
                         },
                     },
@@ -61,7 +49,7 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         lastSync: {
-                            syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED,
+                            syncStatus: CONST.MERGE.SYNC_STATUS.FAILED,
                             errorMessage: null,
                             manualSyncTimestamps: previousLastSync?.manualSyncTimestamps ?? null,
                         },
@@ -77,7 +65,7 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
 /**
  * Updates the approval mode for the Merge HR connection.
  */
-function updateMergeHRApprovalMode(policyID: string, approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE>, currentApprovalMode?: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null) {
+function updateMergeHRApprovalMode(policyID: string, approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE>, currentApprovalMode?: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null) {
     const previousApprovalMode = currentApprovalMode ?? null;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
@@ -295,5 +283,3 @@ function clearHRConnectionErrorField(policyID: string | undefined, provider: HRP
 
 export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, updateMergeHRGroups, clearHRConnectionErrorField, setMergeHRInitialSyncModalShown};
 export type {HRConnectionErrorFieldName};
-
-export default getMergeHRSetupLink;

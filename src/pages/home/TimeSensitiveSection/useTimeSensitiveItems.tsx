@@ -4,7 +4,7 @@ import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useOnyx from '@hooks/useOnyx';
 
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
-import {getConnectedHRProvider} from '@libs/HRUtils';
+import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';

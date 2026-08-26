@@ -298,6 +298,8 @@ export type {default as UpdateGustoFinalApproverParams} from './UpdateGustoFinal
 export type {default as UpdateMergeApprovalModeParams} from './UpdateMergeApprovalModeParams';
 export type {default as UpdateMergeFinalApproverParams} from './UpdateMergeFinalApproverParams';
 export type {default as UpdateMergeGroupsParams} from './UpdateMergeGroupsParams';
+export type {default as UpdateMergeATSFiltersParams} from './UpdateMergeATSFiltersParams';
+export type {default as UpdateMergeATSApproverFieldParams} from './UpdateMergeATSApproverFieldParams';
 export type {default as UpdateZenefitsApprovalModeParams} from './UpdateZenefitsApprovalModeParams';
 export type {default as UpdateZenefitsFinalApproverParams} from './UpdateZenefitsFinalApproverParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
