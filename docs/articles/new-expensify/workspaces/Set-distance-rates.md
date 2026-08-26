@@ -103,6 +103,10 @@ When Auto-update government rate is enabled and a new supported government rate 
 
 Workspace Admins can still edit or disable an automatically added rate.
 
+![Distance rates showing automatically created government rates]({{site.url}}/assets/images/Distance_rates_automatic_update.png){:width="100%"}
+
+---
+
 ## How Expensify selects a Distance rate based on the expense date
 
 When a workspace has more than one Distance rate, Expensify uses effective dates to determine which rate applies to an expense. This allows a workspace to keep multiple rates active, such as a previous year's rate and a new rate.
