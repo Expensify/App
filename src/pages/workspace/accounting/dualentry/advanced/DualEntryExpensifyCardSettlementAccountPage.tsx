@@ -3,12 +3,14 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDualEntryErrorField, updateDualEntrySettlementsAccount} from '@libs/actions/connections/DualEntry';
+import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -39,8 +41,10 @@ function DualEntryExpensifyCardSettlementAccountPage({policy}: WithPolicyConnect
     const settlementsBankAccountID = dualentryConfig?.sync?.settlementsBankAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
 
+    const allCardSettings = useExpensifyCardFeeds(policyID);
+    const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const syncExpensifyCardSettlements = dualentryConfig?.sync?.syncExpensifyCardSettlements ?? true;
-    const shouldBeBlocked = !syncExpensifyCardSettlements;
+    const shouldBeBlocked = !isExpensifyCardsEnabled || !syncExpensifyCardSettlements;
 
     const data: AccountListItem[] =
         dualentryData?.accounts
