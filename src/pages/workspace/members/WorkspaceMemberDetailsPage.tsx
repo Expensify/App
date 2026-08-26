@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -335,11 +335,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
-                                <Avatar
+                                <UserAvatar
                                     containerStyles={[styles.mb4, styles.noOutline]}
                                     source={details.avatar}
-                                    avatarID={accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
+                                    accountID={accountID}
                                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={fallbackIcon}
                                 />
