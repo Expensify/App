@@ -56,6 +56,7 @@ import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './HRUtils';
+import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
@@ -139,7 +140,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => isPerDiemEnabled(policy) && isControlPolicy(policy));
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isPerDiemEligiblePolicy);
 }
 
 function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
@@ -355,6 +356,11 @@ function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined
  */
 function isPerDiemEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.arePerDiemRatesEnabled ?? !!getPerDiemCustomUnit(policy)?.enabled;
+}
+
+// Per Diem is Control-only, so both checks travel together - keep one definition or counts and pickers drift
+function isPerDiemEligiblePolicy(policy: OnyxEntry<Policy>): boolean {
+    return isControlPolicy(policy) && isPerDiemEnabled(policy);
 }
 
 /**
@@ -1391,10 +1397,10 @@ const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boole
  * `login` enables the per-employee role fallback in `getPolicyRole`, so partially-loaded/summary
  * policies (where `policy.role` isn't populated yet) don't incorrectly route admins/editors away.
  *
- * Archived policies are never editable, regardless of role.
+ * Archived policies are not editable regardless of role, unless `canBeAccessedIfArchived` is true.
  */
-function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
-    if (isArchivedPolicy(policy)) {
+function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string, canBeAccessedIfArchived = false): boolean {
+    if (!canBeAccessedIfArchived && isArchivedPolicy(policy)) {
         return false;
     }
     return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
@@ -2612,6 +2618,27 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
 }
 
 /**
+ * Resolves the text shown for a stored merchant-rule vendor ID. Prefer the active vendor-matching
+ * source, use the unavailable label when its loaded list no longer contains the vendor, and retain
+ * the stored ID only while an active source is still hydrating. This keeps every merchant-rule
+ * surface consistent after an accounting connection is disconnected.
+ */
+function getVendorRuleDisplayValue(policy: OnyxEntry<Policy>, vendorID: string, unavailableLabel: string): string {
+    const activeVendorName = getMatchingVendorByID(policy, vendorID)?.name;
+    if (activeVendorName) {
+        return activeVendorName;
+    }
+
+    if (isMatchingVendorListLoaded(policy)) {
+        return unavailableLabel;
+    }
+
+    const historicalVendorName = findVendorByID(policy, vendorID)?.name;
+    const hasActiveVendorMatchingSource = getActiveVendorMatchingIntegration(policy) !== undefined || isXeroActiveMatchingSource(policy);
+    return historicalVendorName ?? (hasActiveVendorMatchingSource ? vendorID : unavailableLabel);
+}
+
+/**
  * Xero-scoped supplier list, normalized to the shared `Vendor` shape. Use this from Xero-specific
  * UI (the default-supplier picker, the Xero export config row) so the data source stays bound to
  * `connections.xero.data.contacts` regardless of whether QBO or Intacct is the *active* matching
@@ -2785,7 +2812,12 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
         return CONST.EMPTY_ARRAY;
     }
     return Object.values(policies).filter(
-        (policy): policy is Policy => !!policy && !policy.isJoinRequestPending && (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) && shouldShowPolicy(policy, false, currentUserLogin),
+        (policy): policy is Policy =>
+            !!policy &&
+            !policy.isJoinRequestPending &&
+            (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
+            shouldShowPolicy(policy, false, currentUserLogin) &&
+            !isTeachersUnitePolicyID(policy.id),
     );
 }
 
@@ -2793,7 +2825,10 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
  * Resolves the default workspace for report creation: the active policy when it's one of the eligible
  * workspaces, otherwise the only eligible workspace, else undefined.
  */
-function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
+function getDefaultChatEnabledPolicy(
+    groupPoliciesWithChatEnabled: ReadonlyArray<OnyxInputOrEntry<Policy>>,
+    activePolicy?: OnyxInputOrEntry<Policy> | null,
+): OnyxInputOrEntry<Policy> | undefined {
     // Only default to the active policy when it's actually eligible, so we never pick an ineligible policy
     // (e.g. a personal or free workspace) over an eligible fallback.
     if (activePolicy && isGroupPolicy(activePolicy) && groupPoliciesWithChatEnabled.some((policy) => policy?.id === activePolicy.id)) {
@@ -2805,6 +2840,17 @@ function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInp
     }
 
     return undefined;
+}
+
+/** Scalar version for useOnyx selectors: an eligible-policy array makes useOnyx deep-compare every policy on each policy_ update */
+function getDefaultChatEnabledPolicySelection(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, activePolicyID: string | undefined) {
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+    const activePolicy = activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
+
+    return {
+        defaultChatEnabledPolicyID: getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy)?.id,
+        hasMultipleChatEnabledPolicies: groupPoliciesWithChatEnabled.length > 1,
+    };
 }
 
 function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentPolicyID: string) {
@@ -3029,7 +3075,8 @@ function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
 }
 
 function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: string) => number): Policy[] {
-    return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    // copy first: callers pass memoized selector output, sorting it in place makes the next deepEqual report a change
+    return [...policies].sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
 /**
@@ -3087,6 +3134,7 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    getVendorRuleDisplayValue,
     getXeroSupplierByID,
     getXeroSuppliers,
     isXeroActiveMatchingSource,
@@ -3227,6 +3275,7 @@ export {
     getGroupPaidPolicies,
     getGroupPoliciesWhereReportCanBeCreated,
     getDefaultChatEnabledPolicy,
+    getDefaultChatEnabledPolicySelection,
     getForwardsToAccount,
     getSubmitToAccountID,
     getSubmitReportManagerAccountID,
@@ -3266,6 +3315,7 @@ export {
     hasDynamicExternalWorkflow,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
+    isPerDiemEligiblePolicy,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     hasAcceptedTravelTerms,

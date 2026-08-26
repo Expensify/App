@@ -40,7 +40,7 @@ import {
     isOpenExpenseReport,
     isOpenReport,
     isProcessingReport,
-    isSelfDM,
+    isReportManager,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
@@ -760,25 +760,49 @@ function getUpdatedTransaction({
                 (selectedRouteKey ? transactionChanges.routes?.[selectedRouteKey]?.distance : undefined) ??
                 transactionChanges.routes?.route0?.distance ??
                 getDistanceInMeters(transaction, unit);
-            const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+            // Sync customUnit.quantity + routeDistanceMeters to the recalculated route BEFORE computing the
+            // commuter exclusion below. Without the quantity sync the prior manually-edited value would linger
+            // and drive getDistanceInMeters (which prefers quantity over routes). getTransactionCommuterExclusionData
+            // also reads routeDistanceMeters off the transaction and re-emits it, so it must be set first — the
+            // whole customUnit is then replaced by that function's return value.
+            if (unit) {
+                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)));
+                lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', distanceInMeters);
+            }
+
+            const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
+                ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                      transaction: updatedTransaction,
+                      policy,
+                      storedCustomUnit: transaction?.comment?.customUnit,
+                      personalPolicyOutputCurrency,
+                  })
+                : undefined;
+
+            if (commuterExclusionTransactionData) {
+                lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            }
+
+            const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             // Use the rate's resolved currency (which may come from personalPolicyOutputCurrency for a P2P expense),
             // not transaction.currency, so the merchant symbol/rate and the recalculated amount stay in the same currency.
             const updatedCurrency = mileageRate.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
-            const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency, getCurrencySymbol);
+            const updatedMerchant = getRecalculatedDistanceMerchant(
+                transaction,
+                distanceInMeters,
+                unit,
+                rate,
+                updatedCurrency,
+                getCurrencySymbol,
+                DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
+            );
 
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
             if (getCurrency(updatedTransaction) !== updatedCurrency) {
                 updatedTransaction.modifiedCurrency = updatedCurrency;
-            }
-
-            // Sync `customUnit.quantity` to the new route distance. Without this the prior manual
-            // quantity (set when the user edited distance manually before changing waypoints) would
-            // linger and drive `getDistanceInMeters`, since that helper prefers quantity over routes.
-            if (unit) {
-                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)));
             }
         }
     }
@@ -844,6 +868,7 @@ function getUpdatedTransaction({
                 ? DistanceRequestUtils.getTransactionCommuterExclusionData({
                       transaction: updatedTransaction,
                       policy,
+                      storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
                   })
                 : undefined;
@@ -949,6 +974,7 @@ function getUpdatedTransaction({
             ? DistanceRequestUtils.getTransactionCommuterExclusionData({
                   transaction: updatedTransaction,
                   policy,
+                  storedCustomUnit: transaction?.comment?.customUnit,
                   personalPolicyOutputCurrency,
               })
             : undefined;
@@ -1890,10 +1916,7 @@ function hasTransactionBeenRejected(transactionViolations: OnyxEntry<Transaction
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
     return !!transactionViolations?.some(
         (transactionViolation: TransactionViolation) =>
-            transactionViolation.name === CONST.VIOLATIONS.RTER &&
-            transactionViolation.data?.pendingPattern &&
-            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION &&
-            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+            transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern && !isBrokenConnectionViolation(transactionViolation),
     );
 }
 
@@ -1941,8 +1964,20 @@ function hasBrokenConnectionViolation(
 function isBrokenConnectionViolation(violation: TransactionViolation) {
     return (
         violation.name === CONST.VIOLATIONS.RTER &&
-        (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530)
+        (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH)
     );
+}
+
+/**
+ * Finds the broken-connection violation that drives the money-request header status and its personal-card
+ * suppression. It intentionally excludes the `brokenCardConnection530` subtype (scraper being fixed on
+ * Expensify's side): 530 keeps its own dedicated `brokenConnection530Error` header regardless of card type,
+ * so it must never be swallowed by the personal-card suppression.
+ */
+function getBrokenConnectionViolation(transactionViolations: TransactionViolation[] | undefined): TransactionViolation | undefined {
+    return transactionViolations?.find((violation) => isBrokenConnectionViolation(violation) && violation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
 }
 
 function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
@@ -1998,7 +2033,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            return shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction);
+            return shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction);
         });
     });
 
@@ -2046,7 +2081,7 @@ function getVisibleTransactionViolations(
         transactionViolations.filter(
             (violation) =>
                 !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy) &&
-                shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
+                shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, currentUserAccountID, shouldShowRterForSettledReport, transaction),
         ),
     );
 }
@@ -2059,10 +2094,11 @@ function shouldShowViolation(
     policy: OnyxEntry<Policy>,
     violationName: ViolationName,
     currentUserEmail: string,
+    currentUserAccountID: number,
     shouldShowRterForSettledReport = true,
     transaction?: OnyxEntry<Transaction>,
 ): boolean {
-    const isSubmitter = isCurrentUserSubmitter(iouReport);
+    const isSubmitter = isCurrentUserSubmitter(iouReport, currentUserAccountID);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
@@ -2070,7 +2106,9 @@ function shouldShowViolation(
     }
 
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
-        return isPolicyAdmin(policy) && !isSubmitter && isProcessingReport(iouReport);
+        // Submitters are not shown this notice because they cannot act on it, but a submitter who is also the report's
+        // approver is the person who has to approve it manually, so they still need to know why it was not auto-approved.
+        return isPolicyAdmin(policy) && (!isSubmitter || isReportManager(iouReport, currentUserAccountID)) && isProcessingReport(iouReport);
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
@@ -2113,7 +2151,7 @@ function allHavePendingRTERViolation(
         const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy)?.filter(
             (violation) =>
                 // Further filter to only violations visible to the current user
-                shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction),
+                shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction),
         );
         // Check if there is pending rter violation in the filtered violations
         return hasPendingRTERViolation(filteredTransactionViolations);
@@ -3184,24 +3222,17 @@ const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: isExpenseSplit(transaction, originalTransaction), originalTransaction: originalTransaction ?? transaction};
 };
 
-function shouldRedirectDeleteToSplitExpenseEdit(
-    transaction: OnyxEntry<Transaction>,
-    originalTransaction: OnyxEntry<Transaction>,
-    isSelfDMSplit: boolean | undefined,
-    isProduction: boolean,
-): boolean {
+function shouldRedirectDeleteToSplitExpenseEdit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>, isSelfDMSplit?: boolean): boolean {
     const {isExpenseSplit: isExpenseSplitTransaction, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-
-    if (isProduction) {
-        return isExpenseSplitTransaction && !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined) && isPerDiemRequest(sourceTransaction);
-    }
 
     if (!isExpenseSplitTransaction || !isPerDiemRequest(sourceTransaction)) {
         return false;
     }
+
     if (isSelfDMSplit) {
         return true;
     }
+
     return !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined);
 }
 
@@ -3223,13 +3254,10 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Retrieves all "child" transactions associated with a given original transaction.
  */
-function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined, isProduction: boolean) {
+function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined) {
     return Object.values(transactions ?? {}).filter((currentTransaction) => {
         const isSplitChild = currentTransaction?.comment?.originalTransactionID === originalTransactionID;
         if (!isSplitChild || currentTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return false;
-        }
-        if (isProduction && (currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || isSelfDM(getReportOrDraftReport(currentTransaction?.reportID)))) {
             return false;
         }
         return currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
@@ -3522,6 +3550,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
+    getBrokenConnectionViolation,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
