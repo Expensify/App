@@ -16,17 +16,15 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import AnnouncementSection from './AnnouncementSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
 import InsightsSection from './InsightsSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
-import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 import YourSpendSection from './YourSpendSection';
 
@@ -39,6 +37,10 @@ function HomePage() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
+
+    // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
+    // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
+    const [isConciergeMenuVisible, setIsConciergeMenuVisible] = useState(false);
 
     return (
         <View style={styles.flex1}>
@@ -63,21 +65,26 @@ function HomePage() {
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
                     >
-                        {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
+                        {!shouldUseNarrowLayout && (
+                            <View style={styles.centeredContentWidthLimiter}>
+                                <QuickCreationActionsBar />
+                            </View>
+                        )}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                             {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                             {shouldUseNarrowLayout ? (
                                 <>
                                     <FreeTrialSection />
-                                    <TimeSensitiveSection />
+                                    <ForYouSection
+                                        isConciergeMenuVisible={isConciergeMenuVisible}
+                                        setIsConciergeMenuVisible={setIsConciergeMenuVisible}
+                                    />
                                     <GettingStartedSection />
-                                    <ForYouSection />
                                     <UpcomingTravelSection />
-                                    <RecentlyAddedSection />
                                     <YourSpendSection />
+                                    <RecentlyAddedSection />
                                     <InsightsSection />
                                     <DiscoverSection />
-                                    <AnnouncementSection />
                                 </>
                             ) : (
                                 <>
@@ -85,10 +92,11 @@ function HomePage() {
                                         testID="homePageLeftColumn"
                                         style={styles.homePageLeftColumn}
                                     >
-                                        <TimeSensitiveSection />
+                                        <ForYouSection
+                                            isConciergeMenuVisible={isConciergeMenuVisible}
+                                            setIsConciergeMenuVisible={setIsConciergeMenuVisible}
+                                        />
                                         <GettingStartedSection />
-                                        <ForYouSection />
-                                        <RecentlyAddedSection />
                                         <InsightsSection />
                                     </View>
                                     <View
@@ -96,10 +104,10 @@ function HomePage() {
                                         style={styles.homePageRightColumn}
                                     >
                                         <FreeTrialSection />
-                                        <UpcomingTravelSection />
                                         <YourSpendSection />
+                                        <RecentlyAddedSection />
+                                        <UpcomingTravelSection />
                                         <DiscoverSection />
-                                        <AnnouncementSection />
                                     </View>
                                 </>
                             )}

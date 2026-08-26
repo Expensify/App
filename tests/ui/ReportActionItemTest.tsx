@@ -1574,6 +1574,15 @@ describe('ReportActionItem', () => {
 
     describe('System notification actions', () => {
         it('MOVED action renders moved message', async () => {
+            // Seed the destination policy locally so the message is computed live (the member scenario).
+            // Without a local policy, getMovedActionMessage falls back to the stored action HTML.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+                    id: 'policy1',
+                    name: 'Test Workspace',
+                });
+            });
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED, {
                 toPolicyID: 'policy1',
                 newParentReportID: 'report2',
@@ -1621,6 +1630,50 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/QuickBooks Online/)).toBeOnTheScreen();
         });
 
+        it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {
+            const policyID = 'iesPolicy';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    connections: {
+                        quickbooksOnline: {
+                            config: {
+                                credentials: {
+                                    scope: 'com.intuit.quickbooks.accounting',
+                                },
+                            },
+                        },
+                    },
+                });
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED, {
+                label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
+                errorMessage: 'Token expired',
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Intuit Enterprise Suite/)).toBeOnTheScreen();
+            expect(screen.queryByText(/QuickBooks Online/)).not.toBeOnTheScreen();
+        });
+
         it('COMPANY_CARD_CONNECTION_BROKEN action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN, {
                 feedName: 'Chase Visa',
@@ -1651,6 +1704,64 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/1234/)).toBeOnTheScreen();
+        });
+
+        describe('COMMUTER_EXCLUSION action', () => {
+            const COMMUTER_EXCLUSION_POLICY_ID = 'commuterPolicy';
+
+            function renderCommuterExclusionAction() {
+                const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION, {
+                    distance: '1.00',
+                    unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                });
+                return render(
+                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={{reportID: 'testReport', policyID: COMMUTER_EXCLUSION_POLICY_ID}}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </ComposeProviders>,
+                );
+            }
+
+            it('renders the workspace distance settings as a link for an admin', async () => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${COMMUTER_EXCLUSION_POLICY_ID}`, {
+                        id: COMMUTER_EXCLUSION_POLICY_ID,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    });
+                });
+                renderCommuterExclusionAction();
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByText(/Removed 1.00 commuter/)).toBeOnTheScreen();
+                // The anchor renders a nested pressable, so more than one node carries the link role
+                expect(screen.getAllByRole(CONST.ROLE.LINK, {name: 'workspace distance settings'}).length).toBeGreaterThan(0);
+            });
+
+            it('renders the workspace distance settings as plain text for a member', async () => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${COMMUTER_EXCLUSION_POLICY_ID}`, {
+                        id: COMMUTER_EXCLUSION_POLICY_ID,
+                        role: CONST.POLICY.ROLE.USER,
+                    });
+                });
+                renderCommuterExclusionAction();
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByText(/Removed 1.00 commuter/)).toBeOnTheScreen();
+                expect(screen.queryByRole(CONST.ROLE.LINK, {name: 'workspace distance settings'})).not.toBeOnTheScreen();
+            });
         });
 
         it('TAKE_CONTROL action renders changed approver message', async () => {
@@ -3164,7 +3275,7 @@ describe('ReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submit' as TranslationPaths))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submitToEmployer' as TranslationPaths))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('actionableMentionTrackExpense.nothing' as TranslationPaths))).toBeOnTheScreen();
         });
     });

@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +31,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagLists, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -82,7 +83,7 @@ type SectionType = {
 
 const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
     if (value === undefined) {
-        return '';
+        return translate('common.dontChange');
     }
     return translate(value ? 'common.yes' : 'common.no');
 };
@@ -133,6 +134,15 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
     const didInitializeCreateDraftRef = useRef(false);
 
+    // The "Set vendor to" row gate below reads policy.connections (via hasVendorFeature and
+    // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page requiring
+    // connections is opened. This editor only fetches categories and tags, so prefetch connections
+    // here unconditionally so the row appears and resolves the stored vendor once connections
+    // hydrate. It can't be narrowed by hasVendorFeature, because that itself depends on the
+    // connection data being fetched. The hook already skips the fetch when the app is offline, when
+    // the workspace has no accounting connection, and when the data has already been fetched.
+    usePolicyConnectionsPrefetch(policy, true);
+
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
 
@@ -154,6 +164,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                 category: existingRule.category,
                 tag: existingRule.tag,
                 tax: existingRule.tax?.field_id_TAX?.externalID,
+                vendorID: existingRule.vendorID,
                 comment: commentMarkdown,
                 reimbursable: existingRule.reimbursable,
                 billable: existingRule.billable,
@@ -213,6 +224,12 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     };
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
+
+    const isVendorFeatureEnabled = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isOnXero = isXeroActiveMatchingSource(policy);
+    const vendorFieldLabel = translate(isOnXero ? 'common.supplier' : 'common.vendor');
+    const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+    const vendorDisplayName = form?.vendorID ? getVendorRuleDisplayValue(policy, form.vendorID, unavailableLabel) : undefined;
 
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     const taxDisplayName = () => {
@@ -392,6 +409,15 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           title: taxDisplayName(),
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID)),
                           icon: getItemIcon(icons.InvoiceGeneric),
+                      }
+                    : undefined,
+                isVendorFeatureEnabled
+                    ? {
+                          key: 'vendorID',
+                          description: vendorFieldLabel,
+                          title: vendorDisplayName,
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID)),
+                          icon: getItemIcon(icons.Basket),
                       }
                     : undefined,
                 {

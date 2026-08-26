@@ -1,15 +1,19 @@
+// cspell:ignore bssid
 import CONST from '@src/CONST';
 import type Middleware from '@src/libs/Middleware/types';
 import type * as NetworkState from '@src/libs/NetworkState';
 import type Request from '@src/types/onyx/Request';
 
-import type {NetInfoState} from '@react-native-community/netinfo';
+import type {NetInfoState, NetInfoWifiState} from '@react-native-community/netinfo';
 import type {OnyxKey} from 'react-native-onyx';
+
+import {NetInfoStateType} from '@react-native-community/netinfo';
 
 let netInfoListener: ((state: NetInfoState) => void) | null = null;
 const mockOnyxCallbacks = new Map<string, (value: unknown) => void>();
 
 jest.mock('@react-native-community/netinfo', () => ({
+    NetInfoStateType: {wifi: 'wifi'},
     addEventListener: jest.fn((cb: (state: NetInfoState) => void) => {
         netInfoListener = cb;
         return () => {
@@ -28,17 +32,28 @@ jest.mock('react-native-onyx', () => ({
     }),
 }));
 
-function fireNetInfoState(overrides: Partial<NetInfoState>) {
+function fireNetInfoState(overrides: Partial<NetInfoWifiState>) {
     if (!netInfoListener) {
         throw new Error('NetInfo listener not registered');
     }
     netInfoListener({
         isConnected: true,
         isInternetReachable: true,
-        type: 'wifi' as NetInfoState['type'],
-        details: null,
+        type: NetInfoStateType.wifi,
+        details: {
+            isConnectionExpensive: false,
+            ssid: null,
+            bssid: null,
+            strength: null,
+            ipAddress: null,
+            subnet: null,
+            frequency: null,
+            linkSpeed: null,
+            rxLinkSpeed: null,
+            txLinkSpeed: null,
+        },
         ...overrides,
-    } as NetInfoState);
+    });
 }
 
 function fireSessionChange(accountID: number) {

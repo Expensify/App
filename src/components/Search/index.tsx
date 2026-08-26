@@ -1,5 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -16,7 +17,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,7 +25,6 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -62,7 +62,7 @@ import {
     getNavigateToReportsSpans,
 } from '@libs/telemetry/navigateToReportsSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {isDeletedTransaction, isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
+import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -142,7 +142,7 @@ function Search({
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
@@ -160,11 +160,18 @@ function Search({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasCompletedGuidedSetupFlowSelector,
+    });
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
@@ -180,7 +187,21 @@ function Search({
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0, areAllMatchingItemsSelected);
+    const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
+    const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
+    const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
+    const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
+    const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
+    const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
+
+    useEffect(() => {
+        if (searchRequestOffset === offset) {
+            return;
+        }
+        // Defer so this effect does not synchronously chain another render from setState (eslint react-hooks/set-state-in-effect).
+        const timeoutID = setTimeout(() => setOffset(searchRequestOffset), 0);
+        return () => clearTimeout(timeoutID);
+    }, [offset, searchRequestOffset]);
 
     // Retrying a failed page always resets pagination to the first page, so totals eligibility
     // must be evaluated as if we're on the first page rather than the (possibly paginated) offset.
@@ -241,7 +262,13 @@ function Search({
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
-    } = useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions});
+    } = useSearchSnapshot({
+        queryJSON,
+        searchResults,
+        newSearchResultKeys,
+        transactions,
+        reportActions,
+    });
 
     // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
     // (which has empty deps) can read the latest value without re-creating its callback.
@@ -357,7 +384,14 @@ function Search({
             return;
         }
 
-        Log.info('[Search] Showing skeleton', false, {isOffline, isDataLoaded, isCardFeedsLoading, isSearchLoading: !!searchResults?.search?.isLoading, hasErrors, shouldUseLiveData});
+        Log.info('[Search] Showing skeleton', false, {
+            isOffline,
+            isDataLoaded,
+            isCardFeedsLoading,
+            isSearchLoading: !!searchResults?.search?.isLoading,
+            hasErrors,
+            shouldUseLiveData,
+        });
     }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
 
     useEffect(() => {
@@ -371,8 +405,11 @@ function Search({
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
 
-        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
-        if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
+        // A failed search keeps its previous results, so only the error tells us a retry is still needed.
+        const comingBackOnlineWithNoResultsOrError = prevIsOffline && !isOffline && (isEmptyObject(searchResults?.data) || hasErrors);
+        const comingBackOnlineWithMissingAllMatchingTotals = prevIsOffline && !isOffline && isExpenseAllMatchingSelection && isAllMatchingItemsCountMissing;
+        const shouldRefreshOnReconnect = comingBackOnlineWithNoResultsOrError || comingBackOnlineWithMissingAllMatchingTotals;
+        if (!shouldRefreshOnReconnect && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
             return;
         }
 
@@ -392,14 +429,32 @@ function Search({
             return;
         }
 
-        if (hasErrors && !comingBackOnlineWithNoResults) {
+        if (hasErrors && !shouldRefreshOnReconnect) {
+            return;
+        }
+
+        // Once a totals request for an already-loaded page completes, `shouldCalculateTotals` switches
+        // back to false. Do not immediately repeat that same page request without totals; the next real
+        // pagination offset change will trigger the appropriate request.
+        const didJustFinishAllMatchingTotalsRequest =
+            isExpenseAllMatchingSelection &&
+            previousShouldCalculateTotals === true &&
+            !shouldCalculateTotals &&
+            typeof searchResults?.search?.count === 'number' &&
+            searchResults.search.offset === offset;
+        if (didJustFinishAllMatchingTotalsRequest) {
+            return;
+        }
+        const didEnableAllMatchingTotalsWithExistingCount =
+            isExpenseAllMatchingSelection && previousShouldCalculateTotals === false && shouldCalculateTotals && typeof searchResults?.search?.count === 'number';
+        if (didEnableAllMatchingTotalsWithExistingCount) {
             return;
         }
 
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
-            offset,
+            offset: searchRequestOffset,
             shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
             isLoading: !!searchResults?.search?.isLoading,
@@ -407,7 +462,7 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
+    }, [handleSearch, hasErrors, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -425,12 +480,22 @@ function Search({
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
-            offset,
+            offset: searchRequestOffset,
             shouldCalculateTotals: true,
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
-    }, [filteredDataLength, handleSearch, offset, queryJSON, currentSearchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
+    }, [
+        filteredDataLength,
+        handleSearch,
+        queryJSON,
+        currentSearchKey,
+        searchResults?.search?.count,
+        searchResults?.search?.isLoading,
+        shouldCalculateTotals,
+        validGroupBy,
+        searchRequestOffset,
+    ]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -509,29 +574,13 @@ function Search({
 
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
-
-            // When opening an expense from the Spend page (flat transaction list), populate the carousel
-            // with all sibling transactions so prev/next navigation works in the RHP transaction view.
-            if (isTransactionItem) {
-                const siblingTransactionIDs = (filteredData as SearchListItem[])
-                    .filter(
-                        (t): t is TransactionListItemType =>
-                            !!t && isTransactionListItemType(t) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedTransaction(t),
-                    )
-                    .map((t) => t.transactionID);
-                if (siblingTransactionIDs.length > 1) {
-                    setActiveTransactionIDs(siblingTransactionIDs, hash);
-                } else {
-                    clearActiveTransactionIDs();
-                }
-            }
-
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 const shouldOpenTransactionThreadInNewTab = shouldOpenTransactionThread && isModifiedMousePress(event);
                 const targetReportID = createAndOpenSearchTransactionThread({
+                    conciergeChat,
                     getCurrencyDecimals,
                     item,
                     introSelected,
@@ -539,6 +588,7 @@ function Search({
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
                     betas,
+                    personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     IOUTransactionID: item?.reportAction?.childReportID,
@@ -594,6 +644,7 @@ function Search({
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread({
+                            conciergeChat,
                             getCurrencyDecimals,
                             item: firstTransaction,
                             introSelected,
@@ -601,6 +652,7 @@ function Search({
                             currentUserLogin: email ?? '',
                             currentUserAccountID: accountID,
                             betas,
+                            personalDetails,
                             isSelfTourViewed,
                             hasCompletedGuidedSetupFlow,
                             IOUTransactionID: firstTransaction?.reportAction?.childReportID,
@@ -628,7 +680,10 @@ function Search({
                     allowPostSearchRecount: true,
                 });
 
-                const route = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo});
+                const route = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
+                    reportID,
+                    backTo,
+                });
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
                 }
@@ -643,7 +698,11 @@ function Search({
                     isCreatedTaskReportAction(reportActionItem) && (isOptimisticCreatedTaskAction || reportActionItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                 const reportActionID = shouldSkipReportActionID ? undefined : reportActionItem.reportActionID;
-                const route = ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo});
+                const route = ROUTES.SEARCH_REPORT.getRoute({
+                    reportID,
+                    reportActionID,
+                    backTo,
+                });
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
                 }
@@ -678,17 +737,17 @@ function Search({
             unmarkReportRHPWidth,
             introSelected,
             betas,
+            personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             email,
             accountID,
             queryJSON,
-            hash,
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
-            filteredData,
             getCurrencyDecimals,
+            conciergeChat,
         ],
     );
 
@@ -755,7 +814,9 @@ function Search({
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
+            [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
+        });
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
         TransitionTracker.runAfterTransitions({
@@ -810,7 +871,9 @@ function Search({
 
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
+            [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
+        });
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
     }, []);
@@ -899,7 +962,13 @@ function Search({
     );
 
     const amountIndicators = useMemo(
-        () => (searchResults?.data ? getWideAmountIndicators(searchResults.data) : {shouldShowAmountInWideColumn: false, shouldShowTaxAmountInWideColumn: false}),
+        () =>
+            searchResults?.data
+                ? getWideAmountIndicators(searchResults.data)
+                : {
+                      shouldShowAmountInWideColumn: false,
+                      shouldShowTaxAmountInWideColumn: false,
+                  },
         [searchResults?.data],
     );
 
@@ -964,9 +1033,8 @@ function Search({
                     {...(!isInvalidQuery && {
                         buttonTranslationKey: 'common.tryAgain',
                         onButtonPress: () => {
-                            // A failed load-more clears the whole snapshot (data: null), so retrying with the
-                            // paginated offset would refetch only the later page into an empty snapshot and drop
-                            // the initial results. Reset pagination to the first page before retrying.
+                            // A response replaces the snapshot's results rather than appending to them, so retrying at
+                            // the paginated offset would leave only that later page behind. Retry from the first page.
                             setOffset(0);
                             handleSearch({
                                 queryJSON,

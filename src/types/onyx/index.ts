@@ -77,6 +77,7 @@ import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
+import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
 import type ExpensifyCardStatement from './ExpensifyCardStatement';
@@ -85,6 +86,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GovernmentMileageRate from './GovernmentMileageRate';
 import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
@@ -172,6 +174,7 @@ import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
 import type SecurityGroup from './SecurityGroup';
+import type {DomainSecurityGroupMembership} from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
@@ -188,7 +191,7 @@ import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
-import type TravelInvoiceStatement from './TravelInvoiceStatement';
+import type TravelBillingStatement from './TravelBillingStatement';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
@@ -248,10 +251,12 @@ export type {
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
+    ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
     Fund,
     FundID,
     FundList,
+    GovernmentMileageRate,
     GpsDraftDetails,
     IntroSelected,
     IssueNewCard,
@@ -334,6 +339,7 @@ export type {
     Response,
     ScreenShareRequest,
     SecurityGroup,
+    DomainSecurityGroupMembership,
     SelectedTabRequest,
     Session,
     Task,
@@ -354,7 +360,7 @@ export type {
     WalletAdditionalQuestionDetails,
     WalletOnfido,
     ExpensifyCardStatement,
-    TravelInvoiceStatement,
+    TravelBillingStatement,
     WalletStatement,
     WalletTerms,
     WalletTransfer,

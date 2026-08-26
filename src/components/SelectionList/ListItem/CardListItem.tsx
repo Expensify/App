@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -56,7 +56,7 @@ function CardListItem<TItem extends ListItem>({
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
 
     const ownersAvatar = {
@@ -98,18 +98,16 @@ function CardListItem<TItem extends ListItem>({
                             <View>
                                 <UserDetailsTooltip
                                     shouldRender={showTooltip}
-                                    accountID={Number(item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
+                                    accountID={ownersAvatar.id}
                                     icon={ownersAvatar}
                                     fallbackUserDetails={{
                                         displayName: item.cardOwnerPersonalDetails?.displayName,
                                     }}
                                 >
                                     <View>
-                                        <Avatar
+                                        <UserAvatar
                                             source={ownersAvatar.source}
-                                            name={ownersAvatar.name}
-                                            avatarID={ownersAvatar.id}
-                                            type={CONST.ICON_TYPE_AVATAR}
+                                            accountID={ownersAvatar.id}
                                             fallbackIcon={ownersAvatar.fallbackIcon}
                                         />
                                     </View>
@@ -150,7 +148,7 @@ function CardListItem<TItem extends ListItem>({
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            text={Str.removeSMSDomain(item.text ?? '')}
+                            text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
                             style={[
                                 styles.optionDisplayName,
                                 styles.sidebarLinkText,
