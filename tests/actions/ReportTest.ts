@@ -9963,6 +9963,7 @@ describe('actions/Report', () => {
                 selfDMReportActions: undefined,
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -10040,6 +10041,7 @@ describe('actions/Report', () => {
                 selfDMReportActions: undefined,
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -10107,6 +10109,7 @@ describe('actions/Report', () => {
                 selfDMReportActions: undefined,
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 

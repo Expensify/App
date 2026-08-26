@@ -1,6 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
@@ -22,6 +21,7 @@ import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -318,7 +318,7 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from the associated category
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimals);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimalsLocal);
 
             // Then it should return the associated tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_1');
@@ -338,7 +338,7 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimals);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimalsLocal);
 
             // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
@@ -370,7 +370,7 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimals);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimalsLocal);
 
             // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_2');
@@ -393,7 +393,7 @@ describe('TransactionUtils', () => {
                 };
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimals);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimalsLocal);
 
                 // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
@@ -412,7 +412,7 @@ describe('TransactionUtils', () => {
                 const transaction = generateTransaction();
 
                 // When retrieving the tax from a category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimals);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimalsLocal);
 
                 // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
@@ -441,8 +441,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {category},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Then the updated transaction should contain the tax from the matched rule
@@ -493,8 +493,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Then: quantity should be updated
@@ -557,8 +557,8 @@ describe('TransactionUtils', () => {
                 policy: undefined,
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(updatedTransaction.routes).toEqual(routes);
@@ -604,8 +604,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Then: the amount/merchant are recalculated locally against the new rate (10 mi × rate2), not deferred to the server
@@ -652,8 +652,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Then: the rate id updates, but amount/merchant recalculation is deferred to the server (no valid local mileage data)
@@ -715,8 +715,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Then: the rate id updates, but the stale distance is not turned into an amount/merchant
@@ -781,8 +781,8 @@ describe('TransactionUtils', () => {
                         ...(rateUnitChanged ? {customUnitRateID: 'ID2'} : {}),
                     },
                     personalPolicyOutputCurrency: undefined,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 const expectedExclusion = rateUnitChanged ? 4.83 : 3;
@@ -873,8 +873,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {selectedRouteKey: 'route1'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // The commute is excluded from the new route's distance, so only the 17 reimbursable miles are charged.
@@ -914,14 +914,13 @@ describe('TransactionUtils', () => {
                     policy: undefined,
                     transactionChanges: {distance: 20},
                     personalPolicyOutputCurrency: 'EUR',
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 // Currency + merchant follow the threaded personal currency (EUR), and amount = 20 mi × 30¢ = 600.
-                // (The merchant shows the "EUR" code rather than the € glyph because the currency list isn't loaded in this unit test.)
                 expect(updatedTransaction.modifiedCurrency).toBe('EUR');
-                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('€');
                 expect(updatedTransaction.modifiedMerchant).toContain('0.30');
                 expect(updatedTransaction.modifiedAmount).toBe(600);
             } finally {
@@ -970,13 +969,13 @@ describe('TransactionUtils', () => {
                         },
                     },
                     personalPolicyOutputCurrency: 'EUR',
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 // Merchant currency and modifiedCurrency both follow the EUR personal-policy rate, not the USD transaction currency.
                 expect(updatedTransaction.modifiedCurrency).toBe('EUR');
-                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('€');
                 expect(updatedTransaction.modifiedMerchant).toContain('0.30');
                 expect(updatedTransaction.modifiedAmount).toBe(600);
             } finally {
@@ -1031,8 +1030,8 @@ describe('TransactionUtils', () => {
                     },
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(updatedTransaction.comment?.customUnit).toMatchObject({quantity: 20, commuterExclusion: 3, reimbursableDistance: 17});
@@ -1048,8 +1047,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
@@ -1064,8 +1063,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
@@ -1079,8 +1078,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(updatedTransaction.taxValue).toBe('5%');
@@ -1096,8 +1095,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(updatedTransaction.taxValue).toBe('10%');

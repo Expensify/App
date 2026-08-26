@@ -1,5 +1,4 @@
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
-import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
@@ -16,7 +15,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getRequiredOnyxUpdates, getRequiredWriteCall} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal, getRequiredOnyxUpdates, getRequiredWriteCall} from '../../utils/TestHelper';
 import {isObject, parseJSONRecord} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -101,8 +100,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -176,8 +175,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).not.toHaveBeenCalled();
@@ -240,8 +239,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const getOptimisticTotal = (callIndex: number) => {
@@ -313,8 +312,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -390,8 +389,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -457,8 +456,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -523,8 +522,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -595,8 +594,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -654,8 +653,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -716,8 +715,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -785,8 +784,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -854,8 +853,8 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -934,8 +933,8 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -1002,8 +1001,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -1082,8 +1081,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -1143,8 +1142,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // category/billable changes must be silently dropped for IOUs —
@@ -1211,8 +1210,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -1302,8 +1301,8 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
@@ -1398,8 +1397,8 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
@@ -1471,8 +1470,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -1544,8 +1543,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -1610,8 +1609,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -1670,8 +1669,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -1778,8 +1777,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -1874,8 +1873,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -1960,8 +1959,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2061,8 +2060,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2146,8 +2145,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2224,8 +2223,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2304,8 +2303,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
