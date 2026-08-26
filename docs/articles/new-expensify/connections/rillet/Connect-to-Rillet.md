@@ -41,11 +41,9 @@ Expensify validates the API key, connects to your Rillet organization, and retri
 
 **Note:** Your API key is encrypted and stored securely on Expensify's servers. It is never exposed in the app or stored on your device.
 
-<!-- SCREENSHOT:
-Suggestion: Capture the single-screen Rillet connection form showing the setup instructions, the API key field, and the Confirm button.
-Location: After step 7.
-Purpose: Confirms admins are on the correct API-key entry screen, which differs from the OAuth login flow used by other accounting connections and is a common point of confusion.
--->
+![Connections page showing Rillet option]({{site.url}}/assets/images/Accounting_Rillet.png){:width="100%"}
+
+---
 
 ## What happens after you connect to Rillet
 
@@ -58,7 +56,7 @@ After the connection is established, the **Connections** section updates to show
 
 If your Rillet organization has multiple subsidiaries, you can choose which one to connect. If only one eligible subsidiary is available, Expensify selects it automatically. The selected subsidiary determines which accounting data is available in Expensify.
 
-After the initial sync completes, you can configure your import, export, and advanced accounting settings. Learn how to [configure your Rillet import, export, and advanced settings](/articles/Unlisted/Configure-Rillet).
+After the initial sync completes, you can configure your import, export, and advanced accounting settings. Learn how to [configure your Rillet import, export, and advanced settings](/articles/new-expensify/connections/rillet/Configure-Rillet).
 
 ---
 
