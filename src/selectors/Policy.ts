@@ -1,6 +1,7 @@
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {
+    canSendInvoice,
     getActiveAdminWorkspaces,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
@@ -9,8 +10,10 @@ import {
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
     isPendingDeletePolicy,
+    isPerDiemEligiblePolicy,
     isPolicyAdmin,
     isArchivedPolicy,
+    isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
@@ -218,40 +221,52 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => 
     };
 };
 
-// deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
-const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
-    if (!policies) {
-        return {};
-    }
+type IOURequestStartPolicies = {
+    hasPerDiemPolicy: boolean;
+    hasMultiplePerDiemPolicies: boolean;
+    firstPerDiemPolicyID: string | undefined;
+    hasTimePolicy: boolean;
+    hasMultipleTimePolicies: boolean;
+    firstTimePolicyID: string | undefined;
 
-    const result: Record<string, Policy> = {};
+    /** false unless the invoice flow asked for it */
+    canSendInvoiceFromAnyWorkspace: boolean;
+};
 
-    for (const [id, policyItem] of Object.entries(policies)) {
-        if (!policyItem) {
-            continue;
+// Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual and no growing ID list
+const createIOURequestStartPoliciesSelector =
+    (currentUserLogin: string | undefined, isInvoice: boolean) =>
+    (policies: OnyxCollection<Policy>): IOURequestStartPolicies => {
+        let perDiemCount = 0;
+        let timeCount = 0;
+        let firstPerDiemPolicyID: string | undefined;
+        let firstTimePolicyID: string | undefined;
+
+        for (const policy of getActivePoliciesWithExpenseChat(policies, currentUserLogin)) {
+            if (perDiemCount < 2 && isPerDiemEligiblePolicy(policy)) {
+                firstPerDiemPolicyID ??= policy.id;
+                perDiemCount++;
+            }
+            if (timeCount < 2 && isTimeTrackingEnabled(policy)) {
+                firstTimePolicyID ??= policy.id;
+                timeCount++;
+            }
+            // counts cap at 2, nothing downstream needs the real total
+            if (perDiemCount >= 2 && timeCount >= 2) {
+                break;
+            }
         }
 
-        result[id] = {
-            id: policyItem.id,
-            type: policyItem.type,
-            name: policyItem.name,
-            pendingAction: policyItem.pendingAction,
-            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
-            role: policyItem.role,
-            chatReportIDAdmins: policyItem.chatReportIDAdmins,
-            employeeList: policyItem.employeeList,
-            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
-            customUnits: policyItem.customUnits,
-            units: policyItem.units,
-            isJoinRequestPending: policyItem.isJoinRequestPending,
-            errors: policyItem.errors,
-            owner: policyItem.owner,
-            areInvoicesEnabled: policyItem.areInvoicesEnabled,
-        } as Policy;
-    }
-
-    return result;
-};
+        return {
+            hasPerDiemPolicy: perDiemCount > 0,
+            hasMultiplePerDiemPolicies: perDiemCount > 1,
+            firstPerDiemPolicyID,
+            hasTimePolicy: timeCount > 0,
+            hasMultipleTimePolicies: timeCount > 1,
+            firstTimePolicyID,
+            canSendInvoiceFromAnyWorkspace: isInvoice && canSendInvoice(policies, currentUserLogin),
+        };
+    };
 
 type FilteredPoliciesInfo = {
     /** Number of policies that should be shown to the user (short-circuited at 2) */
@@ -416,7 +431,7 @@ export {
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
-    iouRequestPolicyCollectionSelector,
+    createIOURequestStartPoliciesSelector,
     policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
