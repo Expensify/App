@@ -71,6 +71,7 @@ import ChatTransactionPreview from './ChatTransactionPreview';
 import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
+import IntegrationMessage from './IntegrationMessage';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
 import JoinRequestContent from './JoinRequestContent';
 import MemberChangeContent from './MemberChangeContent';
@@ -471,6 +472,9 @@ function ActionContentRouter({
                 originalReport={originalReport}
             />
         );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE)) {
+        return <IntegrationMessage action={action} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
         return (
