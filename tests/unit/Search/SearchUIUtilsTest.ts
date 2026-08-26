@@ -15,6 +15,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
+import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 
@@ -31,6 +32,7 @@ import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
+import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -11560,6 +11562,7 @@ describe('SearchUIUtils', () => {
         const currentUserAccountID = 1;
         const personalDetails: OnyxTypes.PersonalDetailsList = {[currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserLogin}};
         const baseParams = {
+            conciergeChat: undefined,
             item: transactionListItem,
             introSelected: introSelectedData,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -12743,5 +12746,77 @@ describe('getViolationsFromSearchData', () => {
         const data = createMock<OnyxTypes.SearchResults['data']>({});
         Reflect.set(data, `${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1'});
         expect(SearchUIUtils.getViolationsFromSearchData(data)).toEqual({});
+    });
+});
+
+describe('splitGroupsIntoPairs', () => {
+    it('splits each group into a header + children container that keep the original group key in groupKeyForList', () => {
+        const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs(transactionReportGroupListItems);
+
+        expect(splitData).toHaveLength(transactionReportGroupListItems.length * 2);
+        // Sticky headers point at each header row (the even indices).
+        expect(stickyHeaderIndices).toEqual(transactionReportGroupListItems.map((_group, index) => index * 2));
+
+        // groupKeyForList must stay the original key, since both halves ask the selection about the group under it.
+        for (const [index, group] of transactionReportGroupListItems.entries()) {
+            expect(splitData.at(index * 2)).toMatchObject({
+                listItemType: GROUP_ITEM_TYPES.GROUP_HEADER,
+                keyForList: `header_${group.keyForList}`,
+                groupKeyForList: group.keyForList,
+            });
+            expect(splitData.at(index * 2 + 1)).toMatchObject({
+                listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER,
+                keyForList: `children_${group.keyForList}`,
+                groupKeyForList: group.keyForList,
+            });
+        }
+    });
+
+    it('passes non-group rows through unchanged', () => {
+        const leaf = transactionReportGroupListItems.at(0)?.transactions.at(0);
+        expect(leaf).toBeDefined();
+        if (!leaf) {
+            return;
+        }
+
+        const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs([leaf]);
+        expect(splitData).toEqual([leaf]);
+        expect(stickyHeaderIndices).toEqual([]);
+    });
+});
+
+describe('getSavedSearchIconName', () => {
+    it.each([
+        [CONST.SEARCH.DATA_TYPES.EXPENSE, 'type:expense', 'ReceiptBookmark'],
+        [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 'type:expense-report', 'DocumentBookmark'],
+        [CONST.SEARCH.DATA_TYPES.CHAT, 'type:chat', 'CommentBubbleBookmark'],
+        [CONST.SEARCH.DATA_TYPES.INVOICE, 'type:invoice', 'InvoiceBookmark'],
+        [CONST.SEARCH.DATA_TYPES.TRIP, 'type:trip', 'LuggageBookmark'],
+        [CONST.SEARCH.DATA_TYPES.TASK, 'type:task', 'TaskBookmark'],
+    ])('returns the type-specific icon for %s saved searches', (_type, query, expectedIcon) => {
+        expect(SearchUIUtils.getSavedSearchIconName(query)).toBe(expectedIcon);
+    });
+
+    it('falls back to the bookmark icon when the query cannot be parsed into a type', () => {
+        const spy = jest.spyOn(SearchQueryUtils, 'buildSearchQueryJSON').mockReturnValue(undefined);
+        expect(SearchUIUtils.getSavedSearchIconName('an-unparseable-query')).toBe('Bookmark');
+        spy.mockRestore();
+    });
+
+    it('falls back to the bookmark icon when the query has a type outside the supported set (e.g. a hand-edited type:test URL)', () => {
+        // `buildSearchQueryJSON` passes an unrecognized `type` value straight through, so the map lookup
+        // misses and the icon must still resolve to the fallback rather than to `undefined`.
+        expect(SearchUIUtils.getSavedSearchIconName('type:test')).toBe('Bookmark');
+    });
+
+    it.each([[''], [undefined]])('falls back to the bookmark icon for a missing/empty query (%p) so every render path stays consistent', (query) => {
+        // A missing query must resolve to the fallback everywhere. Without the guard, '' would parse to the
+        // grammar default (type:expense -> ReceiptBookmark) while an undefined query would throw and log a
+        // console error, so the static twin and the interactive menus would disagree for the same search.
+        const spy = jest.spyOn(SearchQueryUtils, 'buildSearchQueryJSON');
+        expect(SearchUIUtils.getSavedSearchIconName(query)).toBe('Bookmark');
+        // The guard short-circuits before buildSearchQueryJSON, so no parse (and no console error) happens.
+        expect(spy).not.toHaveBeenCalled();
+        spy.mockRestore();
     });
 });

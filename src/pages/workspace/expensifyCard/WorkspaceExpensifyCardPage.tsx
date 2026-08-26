@@ -1,6 +1,8 @@
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -28,6 +30,7 @@ import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEm
 type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
+    const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
@@ -40,6 +43,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     // A single fund can hold both programs' cards in one Onyx list, so keep only the selected program's cards.
     const cardsList = filterCardsListByProgram(allProgramsCardsList, selectedProgramKey);
+    const [cardsPageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`);
 
     const fetchExpensifyCards = useCallback(() => {
         updateSelectedExpensifyCardFeed(defaultFundID, policyID, selectedProgramKey);
@@ -53,9 +57,23 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     }, [fetchExpensifyCards]);
 
     const paymentBankAccountID = settings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isLoading = !isOffline && (!cardSettings || settings?.isLoading) && !cardSettings?.hasOnceLoaded;
+
+    // Persisted settings can render immediately while the RAM-only page state is rebuilt after a reload.
+    const hasOnceLoadedPage = cardsPageLoadingState?.hasOnceLoadedPage ?? cardSettings?.hasOnceLoaded;
+    const isLoading = !isOffline && !hasOnceLoadedPage;
 
     const renderContent = () => {
+        if (!isOffline && cardsPageLoadingState?.hasLoadingError && !hasOnceLoadedPage) {
+            return (
+                <FullPageErrorView
+                    shouldShow
+                    title={translate('errorPage.title', {isBreakLine: false})}
+                    subtitle={translate('errorPage.subtitle')}
+                    buttonTranslationKey="common.tryAgain"
+                    onButtonPress={fetchExpensifyCards}
+                />
+            );
+        }
         if (isLoading) {
             return <FullScreenLoadingIndicator shouldUseGoBackButton />;
         }

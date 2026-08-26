@@ -13,6 +13,7 @@ import {fs as memfsFs, vol} from 'memfs';
 import path from 'path';
 
 import createMock from '../utils/createMock';
+import materializeOctokitNamespace from '../utils/materializeOctokitNamespace';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -56,6 +57,9 @@ beforeAll(() => {
     if (!mockOctokit) {
         throw new Error('GithubUtils failed to initialize Octokit.');
     }
+
+    mockOctokit.rest.issues = materializeOctokitNamespace(mockOctokit.rest.issues);
+    mockOctokit.rest.pulls = materializeOctokitNamespace(mockOctokit.rest.pulls);
 
     // Octokit endpoint methods carry `defaults`/`endpoint` statics. A Bun mock doesn't, and `paginate` reads them
     // off the method, so the real ones are copied back onto each mock and stub below.

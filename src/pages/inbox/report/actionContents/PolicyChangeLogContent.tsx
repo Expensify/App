@@ -128,6 +128,9 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS]: (translate) => translate('workspaceActions.importTags'),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS]: (translate) => translate('workspaceActions.deletedAllTags'),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM]: (translate) => translate('report.actions.type.leftTheChat'),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_RULE]: (translate) => translate('workspaceActions.addedRule'),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULE]: (translate) => translate('workspaceActions.updatedRule'),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_RULE]: (translate) => translate('workspaceActions.removedRule'),
 
     // HTML results
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE]: (translate) => ({html: `<muted-text>${translate('workspaceActions.forcedCorporateUpgrade')}</muted-text>`}),

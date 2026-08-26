@@ -111,7 +111,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     }, [isVisible, windowWidth]);
 
     const requestLimitIncrease = () => {
-        requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID);
+        requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
         setVisible(false);
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
     };
