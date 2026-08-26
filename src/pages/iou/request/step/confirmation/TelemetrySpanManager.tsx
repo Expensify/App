@@ -1,4 +1,4 @@
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -31,7 +31,13 @@ function TelemetrySpanManager({iouType, requestType, hasReceipt}: TelemetrySpanM
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
-        endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
+
+        // Tagged on end rather than on start: the routes that start this span don't know the request type,
+        // but the confirmation surface does. Lets the mount duration be compared per expense type.
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT, {
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType,
+        });
 
         // Grab parent ref before ending it — children need it for parent_span_id linking
         const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION) ?? getSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION);
