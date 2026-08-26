@@ -16,6 +16,7 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import isOpaqueNativeFetchError from './isOpaqueNativeFetchError';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
@@ -234,6 +235,14 @@ function processHTTPRequest<TKey extends OnyxKey>(
             // A rejected fetch skips the success path above, leaving these spans open to record everything until something else tears them down.
             cancelSpan(waitSpanId);
             cancelSpan(downloadSpanId);
+
+            if (isOpaqueNativeFetchError(error)) {
+                throw new HttpsError({
+                    message: CONST.ERROR.NATIVE_FETCH_FAILED,
+                    title: error.message,
+                });
+            }
+
             throw error;
         })
         .finally(() => markAppStartupNetworkRequestEnd(command));

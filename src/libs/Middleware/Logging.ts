@@ -115,6 +115,8 @@ const Logging: Middleware = (response, request) => {
                 // Log when we get a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario like
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] API request error: Failed to fetch', logParams);
+            } else if (error.message === CONST.ERROR.NATIVE_FETCH_FAILED) {
+                Log.hmmm('[Network] API request error: NitroFetch request failed', logParams);
             } else if (
                 [
                     CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
