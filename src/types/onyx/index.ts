@@ -78,6 +78,7 @@ import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
+import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
 import type ExpensifyCardStatement from './ExpensifyCardStatement';
@@ -176,6 +177,7 @@ import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
 import type SecurityGroup from './SecurityGroup';
+import type {DomainSecurityGroupMembership} from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
@@ -252,6 +254,7 @@ export type {
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
+    ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
     Fund,
     FundID,
@@ -341,6 +344,7 @@ export type {
     Response,
     ScreenShareRequest,
     SecurityGroup,
+    DomainSecurityGroupMembership,
     SelectedTabRequest,
     Session,
     Task,
