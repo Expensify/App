@@ -316,12 +316,12 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         await waitForBatchedUpdatesWithAct();
         expect(preventRemoveFlags.some(Boolean)).toBe(false);
 
-        fireEvent.press(screen.getByLabelText('iou.flip'));
+        fireEvent.press(screen.getByText('iou.flip'));
         await waitForBatchedUpdatesWithAct();
         expect(preventRemoveFlags.some(Boolean)).toBe(true);
 
         preventRemoveFlags.length = 0;
-        fireEvent.press(screen.getByLabelText('iou.flip'));
+        fireEvent.press(screen.getByText('iou.flip'));
         await waitForBatchedUpdatesWithAct();
         expect(preventRemoveFlags.some(Boolean)).toBe(false);
     });
