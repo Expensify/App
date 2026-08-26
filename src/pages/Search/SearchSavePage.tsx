@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getSearchColumnTranslationKey, getValidGroupBy, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -112,7 +112,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 
 function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate) {
     const appliedDisplays = [];
-    const groupBy = searchAdvancedFiltersForm.groupBy;
+    const groupBy = getValidGroupBy(searchAdvancedFiltersForm.groupBy);
     if (groupBy) {
         appliedDisplays.push({label: translate('search.display.groupBy'), value: translate(`search.filters.groupBy.${groupBy}`)});
     }

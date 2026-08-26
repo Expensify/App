@@ -108,6 +108,7 @@ const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
+const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -177,7 +178,16 @@ function sanitizeSearchValue(str: string) {
     return escaped;
 }
 
-const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
+const syntaxKeyPattern = `-?(?:${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(?:-[^\\s:><=]+)+)`;
+const syntaxOperatorPattern = '\\*?:|[<>]=?|=';
+const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOperatorPattern})\\s*([^\\s].*?)?(?=$|\\s+${syntaxKeyPattern}\\s*(?:${syntaxOperatorPattern}))`, 'gi');
+
+function quoteSyntaxSpans(segment: string) {
+    return segment.replace(syntaxSpanRegex, (match: string, prefix: string) => {
+        const syntaxValue = match.slice(prefix.length).trim();
+        return `${prefix}"${syntaxValue}"`;
+    });
+}
 /**
  * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
  * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
@@ -186,12 +196,12 @@ const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRI
 function escapeKeyword(keywords: string) {
     return (
         keywords
-            .match(/"([^"]*)"|(\S+)/g)
+            .match(/"([^"]*)"|([^"]+)/g)
             ?.map((q) => {
-                if (q.toLowerCase().match(syntaxRegex)) {
-                    return `"${q}"`;
+                if (q.startsWith('"')) {
+                    return q;
                 }
-                return q;
+                return quoteSyntaxSpans(q).trim();
             })
             .join(' ') ?? ''
     );
@@ -724,11 +734,18 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
-        const rawFilterList = rawQuery ? getRawFilterListFromQuery(rawQuery) : result.rawFilterList;
+        let rawFilterList = rawQuery ? getRawFilterListFromQuery(rawQuery) : result.rawFilterList;
 
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+
+        if (result.groupBy && !VALID_GROUP_BYS.has(result.groupBy)) {
+            result.groupBy = undefined;
+            (result as Partial<SearchQueryJSON>).view = undefined;
+            rawFilterList = rawFilterList?.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY && filter.key !== CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW);
+        }
+
         result.isViewExplicitlySet = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
 
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
