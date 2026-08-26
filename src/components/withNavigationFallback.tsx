@@ -26,7 +26,9 @@ type NavigationContextValue = {
 };
 
 function logInertCall(method: string) {
-    Log.hmmm(`[withNavigationFallback] ignored navigation.${method}() outside a navigator screen`);
+    // Throwing would only crash the user: the misuse shows up when the call happens (an event or effect), never at render.
+    // `alert` attaches a stack and its prefix is forwarded to Sentry (FORWARDED_LOG_PREFIXES), so we still see the call site.
+    Log.alert(`[withNavigationFallback] ignored navigation.${method}() outside a navigator screen`, {method});
 }
 
 /**

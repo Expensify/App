@@ -12,7 +12,19 @@ import {getFakeReportAction} from '../utils/ReportTestUtils';
 const mockNavigationSetParams = jest.fn();
 const mockGlobalSetParams = jest.fn();
 const mockOpenReport = jest.fn();
+const mockLogAlert = jest.fn();
 let newActionHandler: ((isFromCurrentUser: boolean, action?: ReportAction) => void) | undefined;
+
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {
+        alert: (...args: unknown[]) => {
+            mockLogAlert(...args);
+        },
+        hmmm: jest.fn(),
+        info: jest.fn(),
+    },
+}));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -172,6 +184,31 @@ describe('useReportActionsNewActionLiveTail', () => {
 });
 
 describe('withNavigationFallback stub', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('reports every swallowed navigation call at alert level so it is findable in Sentry', () => {
+        // Given a tree rendered outside a navigator screen, where every navigation action is inert
+        FALLBACK_NAVIGATION_CONTEXT_VALUE.setParams({reportActionID: ''});
+        FALLBACK_NAVIGATION_CONTEXT_VALUE.goBack();
+
+        // Then each swallowed call is reported with the method that was called, so it cannot pass unnoticed
+        expect(mockLogAlert).toHaveBeenCalledWith('[withNavigationFallback] ignored navigation.setParams() outside a navigator screen', {method: 'setParams'});
+        expect(mockLogAlert).toHaveBeenCalledWith('[withNavigationFallback] ignored navigation.goBack() outside a navigator screen', {method: 'goBack'});
+    });
+
+    it('stays silent for the state-shaped reads, which have a meaningful inert answer', () => {
+        // Given the state-shaped members of the stub
+        FALLBACK_NAVIGATION_CONTEXT_VALUE.getState();
+        FALLBACK_NAVIGATION_CONTEXT_VALUE.getParent();
+        FALLBACK_NAVIGATION_CONTEXT_VALUE.canGoBack();
+        FALLBACK_NAVIGATION_CONTEXT_VALUE.isFocused();
+
+        // Then nothing is reported - unlike an action, a read that returns "no navigator" is not a mistake
+        expect(mockLogAlert).not.toHaveBeenCalled();
+    });
+
     it('exposes callable navigation methods that do not throw', () => {
         expect(() => FALLBACK_NAVIGATION_CONTEXT_VALUE.setParams({reportActionID: ''})).not.toThrow();
         expect(() => FALLBACK_NAVIGATION_CONTEXT_VALUE.navigate('Report')).not.toThrow();
