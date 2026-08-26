@@ -3128,6 +3128,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
         getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/fx-expense-account-selector',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/fx-expense-account-selector` as const,
+    },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'workspaces/:policyID/accounting/:connection/card-reconciliation',
         getRoute: (policyID?: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => {
@@ -4106,6 +4110,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import',
         getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/import` as const,
+    },
+    POLICY_ACCOUNTING_INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/intuit-enterprise-suite/entity-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/intuit-enterprise-suite/entity-selector` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/accounts',

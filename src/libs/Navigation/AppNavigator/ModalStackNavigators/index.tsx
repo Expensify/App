@@ -714,6 +714,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyReasonPage').default,
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyConfirmPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/QuickbooksOnlineSetupPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/IntuitEnterpriseSuiteEntitySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/import/QuickbooksChartOfAccountsPage').default,
@@ -733,6 +735,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksInvoiceAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksFxExpenseAccountSelectPage').default,
 
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroImportPage').default,

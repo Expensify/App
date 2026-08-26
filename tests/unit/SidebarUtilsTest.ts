@@ -7,9 +7,9 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
-import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
+import {getLastActorDisplayName} from '@libs/ReportAlternateTextUtils';
 import {
     buildOptimisticReportPreview,
     formatReportLastMessageText,
