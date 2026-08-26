@@ -5,10 +5,10 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {updateTravelBillingSettlementFrequency} from '@libs/actions/TravelBilling';
 import {getCardSettings} from '@libs/CardUtils';
@@ -36,8 +36,8 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const defaultFundID = useDefaultFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
 
     const currentFrequency = getTravelSettlementFrequency(travelSettings);
@@ -68,7 +68,7 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
     const monthlySettlementDate = travelSettings?.monthlySettlementDate;
     const saveAndGoBack = () => {
         if (selectedFrequency && (selectedFrequency !== currentFrequency || hasFrequencyError)) {
-            updateTravelBillingSettlementFrequency(workspaceAccountID, selectedFrequency, monthlySettlementDate ? new Date(monthlySettlementDate) : undefined);
+            updateTravelBillingSettlementFrequency(defaultFundID, selectedFrequency, monthlySettlementDate ? new Date(monthlySettlementDate) : undefined);
         }
         Navigation.goBack();
     };

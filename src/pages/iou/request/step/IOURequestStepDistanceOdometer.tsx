@@ -206,7 +206,7 @@ function IOURequestStepDistanceOdometer({
         initialStartImageRef,
         initialEndImageRef,
         resetOdometerLocalState,
-        hasInitializedRefs,
+        readingsBaseline,
     } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft, userHasUnsavedTypingRef});
 
     useEffect(() => {
@@ -525,7 +525,7 @@ function IOURequestStepDistanceOdometer({
     const getHasUnsavedChanges = () =>
         getOdometerHasUnsavedChanges({
             isGuardActive:
-                hasInitializedRefs.current &&
+                readingsBaseline.hasInitialized &&
                 isFocused &&
                 !isEditing &&
                 !shouldBypassDiscardConfirmationRef.current &&
@@ -538,7 +538,7 @@ function IOURequestStepDistanceOdometer({
             transactionEndImageUri: getOdometerImageIdentity(transaction?.comment?.odometerEndImage),
             baselineStartImageUri: getOdometerImageIdentity(initialStartImageRef.current),
             baselineEndImageUri: getOdometerImageIdentity(initialEndImageRef.current),
-            hasReadingChanges: startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current,
+            hasReadingChanges: startReading !== readingsBaseline.start || endReading !== readingsBaseline.end,
         });
 
     const handleTabSwitchDiscard = () => {

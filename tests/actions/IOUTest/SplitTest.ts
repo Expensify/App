@@ -16,7 +16,15 @@ import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {completeSplitBill, createDistanceRequest, setDraftSplitTransaction, splitBill, startSplitBill} from '@userActions/IOU/Split';
+import {
+    completeSplitBill,
+    createDistanceRequest,
+    resolveOptimisticSplitChatReportID,
+    setDraftSplitTransaction,
+    splitBill,
+    splitBillAndOpenReport,
+    startSplitBill,
+} from '@userActions/IOU/Split';
 import {
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
@@ -8643,7 +8651,7 @@ describe('initSplitExpenseItemData', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {getCurrencyDecimals: () => 2});
 
         expect(splitExpense.transactionID).toBe('123');
         expect(splitExpense.amount).toBe(100);
@@ -8697,6 +8705,7 @@ describe('initSplitExpenseItemData', () => {
             created: '2024-01-01',
             merchant: 'Custom Merchant',
             customUnit,
+            getCurrencyDecimals: () => 2,
         });
 
         expect(splitExpense.transactionID).toBe('999');
@@ -8743,7 +8752,7 @@ describe('initSplitExpenseItemData', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {getCurrencyDecimals: () => 2});
 
         expect(splitExpense.waypoints).toEqual(transaction.comment?.waypoints);
         expect(splitExpense.odometerStart).toBe(1000);
@@ -10288,5 +10297,63 @@ describe('startSplitBill delegateAccountID forwarding', () => {
 
         expect(splitTransactionID).toBeTruthy();
         expect(splitIOUAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+    });
+});
+
+describe('resolveOptimisticSplitChatReportID', () => {
+    it('returns the existing chat and no optimistic ID when the participants already share one', async () => {
+        const reportID = 'existing-split-chat';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(reportID, [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}], RORY_ACCOUNT_ID);
+
+        expect(optimisticSplitChatReportID).toBeUndefined();
+        expect(chatReportID).toBe(reportID);
+    });
+
+    it('mints an optimistic ID that splitBillAndOpenReport then builds the chat under, so the UI navigates to the report the split wrote', async () => {
+        const brandNewParticipantAccountID = 987654;
+        const participants: IOUParticipant[] = [{accountID: brandNewParticipantAccountID, login: 'brand-new@test.com'}];
+
+        const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, participants, RORY_ACCOUNT_ID);
+
+        expect(optimisticSplitChatReportID).toBeTruthy();
+        expect(chatReportID).toBe(optimisticSplitChatReportID);
+
+        splitBillAndOpenReport({
+            participants,
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            comment: '',
+            amount: 100,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            merchant: 'test',
+            created: '',
+            optimisticSplitChatReportID,
+            isASAPSubmitBetaEnabled: false,
+            transactionViolations: {},
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+            participantsPolicyTags: {},
+        });
+        await waitForBatchedUpdates();
+
+        const splitChatReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticSplitChatReportID}`);
+        expect(splitChatReport?.reportID).toBe(optimisticSplitChatReportID);
     });
 });

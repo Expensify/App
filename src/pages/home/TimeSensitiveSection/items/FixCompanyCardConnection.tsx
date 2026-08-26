@@ -113,7 +113,7 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
                 }
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             }}
-            buttonProps={{danger: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }
