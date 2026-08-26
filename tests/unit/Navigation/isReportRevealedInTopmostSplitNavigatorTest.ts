@@ -34,6 +34,25 @@ function rootStateWithReportsSplitRoutes(innerRoutes: Array<{name: string; param
     };
 }
 
+function rootStateWithPendingReportParams(params: Record<string, unknown>) {
+    return {
+        routes: [
+            {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    index: 0,
+                    routes: [
+                        {
+                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                            params,
+                        },
+                    ],
+                },
+            },
+        ],
+    };
+}
+
 describe('isReportRevealedInTopmostSplitNavigator', () => {
     beforeEach(() => {
         mockGetRootState.mockReset();
@@ -74,5 +93,25 @@ describe('isReportRevealedInTopmostSplitNavigator', () => {
     it('returns true for a REPORT route with a non-empty reportID param', () => {
         mockGetRootState.mockReturnValue(rootStateWithReportsSplitRoutes([{name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID: '1234'}}]));
         expect(isReportRevealedInTopmostSplitNavigator()).toBe(true);
+    });
+
+    it('returns true for a pending REPORT route encoded in navigator params', () => {
+        mockGetRootState.mockReturnValue(
+            rootStateWithPendingReportParams({
+                screen: SCREENS.REPORT,
+                params: {reportID: '1234'},
+            }),
+        );
+        expect(isReportRevealedInTopmostSplitNavigator()).toBe(true);
+    });
+
+    it('returns false for a pending REPORT route with an empty reportID', () => {
+        mockGetRootState.mockReturnValue(
+            rootStateWithPendingReportParams({
+                screen: SCREENS.REPORT,
+                params: {reportID: ''},
+            }),
+        );
+        expect(isReportRevealedInTopmostSplitNavigator()).toBe(false);
     });
 });
