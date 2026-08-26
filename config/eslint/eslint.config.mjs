@@ -335,7 +335,8 @@ const config = defineConfig([
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
-            'rulesdir/no-useOnyx-dependencies-arg': 'error',
+            'rulesdir/no-raw-typography': 'error',
+            'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -606,6 +607,32 @@ const config = defineConfig([
     },
 
     {
+        // Only the sources that esbuild bundles into an action's index.js. Those bundles are real ESM (see
+        // .github/actions/javascript/package.json), where `module`/`__dirname`/`__filename` don't exist. esbuild
+        // leaves the identifiers untouched rather than failing, so a CJS idiom here builds fine and then throws
+        // a ReferenceError when the action runs in CI. `.github/scripts/` is excluded: it runs directly under
+        // Bun, which does provide these.
+        files: ['.github/actions/**/*.ts', '.github/libs/**/*.ts'],
+        rules: {
+            'no-restricted-globals': [
+                'error',
+                {
+                    name: 'module',
+                    message: 'This file is bundled as ESM and runs on Node 24. For an entry-point guard use `import.meta.main` instead of `require.main === module`.',
+                },
+                {
+                    name: '__dirname',
+                    message: 'This file is bundled as ESM. Use `import.meta.dirname` instead of `__dirname`.',
+                },
+                {
+                    name: '__filename',
+                    message: 'This file is bundled as ESM. Use `import.meta.filename` instead of `__filename`.',
+                },
+            ],
+        },
+    },
+
+    {
         files: ['**/*.ts', '**/*.tsx'],
         plugins: {
             '@typescript-eslint': tseslint.plugin,
@@ -655,6 +682,14 @@ const config = defineConfig([
         rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
     },
 
+    // The typography token files are where raw font sizes and line heights are defined.
+    {
+        files: ['src/styles/typography.ts', 'src/styles/variables.ts'],
+        rules: {
+            'rulesdir/no-raw-typography': 'off',
+        },
+    },
+
     // Restrict `computeReportName` imports everywhere except the one file that
     // legitimately consumes it. This block overrides the main `no-restricted-imports`
     // for ts/tsx files, so we re-apply the main `restrictedImportPaths`/`restrictedImportPatterns`
@@ -689,12 +724,33 @@ const config = defineConfig([
     },
 
     {
-        files: ['server/**/*.ts', 'server/**/*.tsx'],
+        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts'],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'server/tsconfig.json'),
+                project: path.resolve(projectRoot, 'tsconfig.bun.json'),
                 projectService: false,
             },
+        },
+    },
+
+    {
+        files: ['.github/**/*.{ts,tsx,js}', 'web/proxy.ts', 'config/**/*.{ts,tsx,mts,mjs,cjs,js}'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.node.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        files: ['tests/tooling/**/*.ts'],
+        rules: {
+            // bun-types declares `expect(...).resolves`/`.rejects` matchers as returning `void` even though Bun's
+            // own docs recommend (and its runtime requires) awaiting them, so this rule reports every correct use
+            // of that pattern here. See https://github.com/oven-sh/bun/pull/23425. The cost of turning it off is
+            // that a *missing* await on `.rejects` also lints clean, so check those by hand in review.
+            '@typescript-eslint/await-thenable': 'off',
         },
     },
 
@@ -746,6 +802,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/el.ts',
         'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',

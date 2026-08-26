@@ -1,6 +1,16 @@
 // cspell:ignore dani
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 
+import {isTag} from 'domhandler';
+import {parseDocument} from 'htmlparser2';
+
+/** Tag names of the chart element's direct element children, as a renderer walking the tree would see them. */
+function getChartChildTags(html: string): string[] {
+    const chart = parseDocument(html, {recognizeSelfClosing: true}).children.find(isTag);
+
+    return (chart?.children ?? []).filter(isTag).map((child) => child.tagName);
+}
+
 describe('tokenizeForReveal', () => {
     it('returns just the empty stage for an empty input', () => {
         expect(tokenizeForReveal('')).toEqual(['']);
@@ -93,6 +103,21 @@ describe('tokenizeForReveal', () => {
         for (let i = 1; i < lengths.length; i++) {
             expect(lengths.at(i) ?? 0).toBeGreaterThanOrEqual(lengths.at(i - 1) ?? 0);
         }
+    });
+
+    it('keeps self-closing chart tags as siblings rather than nesting them', () => {
+        const html =
+            '<victorychart width="680"><victoryaxis style="{axis: {stroke: \'transparent\'}}" /><victorypie data="[{x: \'Equipment\', y: 40}]" /><victorylabel text="Total" /></victorychart>';
+        const stages = tokenizeForReveal(html);
+
+        expect(getChartChildTags(html)).toEqual(['victoryaxis', 'victorypie', 'victorylabel']);
+        expect(getChartChildTags(stages.at(-1) ?? '')).toEqual(['victoryaxis', 'victorypie', 'victorylabel']);
+    });
+
+    it('leaves escaped markup escaped instead of turning it into live markup', () => {
+        const html = '<p>Type &lt;strong&gt;bold&lt;/strong&gt; to embolden, Jack &amp; Jill.</p>';
+
+        expect(tokenizeForReveal(html).at(-1)).toBe(html);
     });
 
     it('produces enough anchors that a typical multi-paragraph response trickles smoothly', () => {

@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCategoryRuleCreateBackPath from '@hooks/useCategoryRuleCreateBackPath';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +22,7 @@ import {clearDraftFlagForReviewRule, setDraftFlagForReviewRule} from '@libs/acti
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, saveFlagForReviewRule} from '@libs/FlagForReviewRulesUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -30,7 +32,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES, getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 
@@ -41,6 +43,12 @@ import {View} from 'react-native';
 type FlagForReviewRulePageBaseProps = {
     policyID: string;
     categoryName?: string;
+    /** Pre-scopes the category when creating a rule (e.g. from the category details RHP). */
+    initialCategoryName?: string;
+    /** When true, the category field is non-interactive (category-scoped create/edit). */
+    isCategoryLocked?: boolean;
+    /** When true, nested create pages use category dynamic routes (keeps Categories underlay). */
+    isCategoryScopedFlow?: boolean;
     testID: string;
 };
 
@@ -52,7 +60,14 @@ function getValidationError(form: FlagForReviewRuleForm | null | undefined, tran
     return getFlagForReviewRuleAmountError(form[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) ?? '';
 }
 
-function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForReviewRulePageBaseProps) {
+function FlagForReviewRulePageBase({
+    policyID,
+    categoryName,
+    initialCategoryName,
+    isCategoryLocked: isCategoryLockedProp,
+    isCategoryScopedFlow = false,
+    testID,
+}: FlagForReviewRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
@@ -63,6 +78,9 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'CoinsButton']);
     const isEditing = !!categoryName;
+    const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
+    const canEditCategory = canWriteRules && !isCategoryLocked;
+    const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_NEW.path);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
@@ -74,6 +92,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
 
+    const draftMaxExpenseAmount = form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT];
     const parsedMaxAmount = Number.parseFloat(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '');
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), policyCurrency) : '';
 
@@ -83,7 +102,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftFlagForReviewRule({});
+                setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
             }
             return;
         }
@@ -96,15 +115,18 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
             return;
         }
 
-        if (selectedCategoryName === categoryName) {
+        // A draft holding the category *and* an amount is either already seeded or the user's in-progress edit, so
+        // leave it alone. A draft with only the category came from the create flow's initial seed, which is what
+        // happens when this page opens before policyCategories has loaded: the rule is only recognized once the
+        // category arrives, and the amount still has to be seeded then.
+        if (selectedCategoryName === categoryName && draftMaxExpenseAmount !== undefined) {
             initializedDraftForRuleKeyRef.current = categoryName;
             return;
         }
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, getCurrencyDecimals, isEditing, policyCurrency, selectedCategoryName]);
-
+    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
@@ -129,7 +151,15 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
 
         saveFlagForReviewRule(policyID, policyData.categories, form, isEditing ? categoryName : undefined);
 
-        if (!isEditing && isRulesRevampEnabled) {
+        // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
+        // case going back one step would land on the New rule hub instead of the category we came from.
+        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
+            const savedCategoryName = form[INPUT_IDS.CATEGORY] ?? initialCategoryName;
+            if (initialCategoryName && savedCategoryName) {
+                Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
+                return;
+            }
+
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.FLAG_FOR_REVIEW);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
             return;
@@ -175,7 +205,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             shouldBeBlocked={!isRulesRevampEnabled}
         >
@@ -193,10 +223,10 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
                         title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        errorText={canEditCategory && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
+                        onPress={canEditCategory ? () => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)) : undefined}
+                        shouldShowRightIcon={canEditCategory}
+                        interactive={canEditCategory}
                         icon={icons.Folder}
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
@@ -207,7 +237,16 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         description={translate('iou.amount')}
                         title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : undefined}
                         errorText={canWriteRules && shouldShowError ? getFlagForReviewRuleAmountError(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleAmountRoute(policyID, categoryName)) : undefined}
+                        onPress={
+                            canWriteRules
+                                ? () =>
+                                      Navigation.navigate(
+                                          isCategoryScopedFlow
+                                              ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path)
+                                              : getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked),
+                                      )
+                                : undefined
+                        }
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.CoinsButton}

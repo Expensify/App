@@ -1,17 +1,19 @@
 ---
 title: Merchant Rules
 description: Learn how to enable and use Merchant Rules to automatically apply consistent expense coding based on the expense merchant name.
-keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings]
-internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and using Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
+keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet]
+internalScope: Audience is Workspace Admins on the Control plan. Covers creating, using, and bulk-importing Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
 ---
 
 # Merchant Rules
 
 Merchant Rules let Workspace Admins automatically update expense fields when an expense matches a merchant name. Use them to apply consistent categories, tags, merchant names, tax settings, and other expense fields across expenses. 
 
+Merchant Rules are only available after **Rules** are enabled for the workspace. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules).
+
 ---
 
-## How to create Merchant Rules
+## How to create a single Merchant Rule
 
 To create a Merchant Rule:
 
@@ -25,8 +27,30 @@ To create a Merchant Rule:
 6. Optionally apply the rule to existing unsubmitted expenses and review matching expenses using **Preview matches**.
 7. Select **Save Rule**
 
-**Note:** Merchant Rules are only available after **Rules** are enabled for the workspace. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules).
+---
 
+## How to import multiple Merchant Rules
+
+Instead of creating Merchant Rules one at a time, you can import multiple Merchant Rules from a spreadsheet.
+
+1. Download and complete the [Merchant Rules import template]({{site.url}}/assets/Files/merchant-rule-import-template.csv), or create a spreadsheet with the following columns:
+   - **Merchant** — The merchant the rule should apply to (required).
+   - **Updated merchant** — Replace the merchant name (optional).
+   - **Updated category** — Apply a category (optional).
+   - **Updated tag** — Apply a tag (optional).
+   - **Updated description** — Apply a description (optional).
+   - **Reimbursable** — Set reimbursable status to **True** or **False** (optional).
+   - **Billable** — Set billable status to **True** or **False** (optional).
+2. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
+3. Click **Rules**.
+4. Click **More**, then select **Import merchant rules**.
+5. Select **Choose file** and upload your completed spreadsheet.
+6. Map each spreadsheet column to the corresponding Merchant Rule field:
+   - For **Merchant**, choose how the merchant name should match:
+     - **Merchant is** — Requires an exact match.
+     - **Merchant contains** — Matches merchants whose names contain the value.
+7. Click **Import**.
+   
 ---
 
 ## How Merchant Rules are applied
@@ -43,7 +67,7 @@ Keep these behaviors in mind:
 
 ---
 
-## How to make Merchant Rules more accurate
+## How to improve Merchant Rule matching
 
 Use these best practices to ensure predictable results:
 
@@ -103,6 +127,10 @@ Common reasons include:
 ## How do I clear a Category, Tag, or Tax value from a Merchant Rule?
 
 When you add or edit a rule and open the **Category**, **Tag**, or **Tax** field, select **None** to clear the previously selected value. Then select **Save rule**.
+
+## How do I leave Reimbursable or Billable unset in a Merchant Rule?
+
+When you open the **Reimbursable** or **Billable** selector, it shows three options: **Don’t change**, **Yes**, and **No**. **Don’t change** is selected by default and leaves the field unset, so matching expenses keep their existing value.
 
 ## What expense fields can be updated by Merchant Rules?
 

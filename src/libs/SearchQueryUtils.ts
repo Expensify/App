@@ -1,4 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 import type {
     ASTNode,
     Filter,
@@ -44,6 +46,7 @@ import type {
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -53,6 +56,7 @@ import Onyx from 'react-native-onyx';
 
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 
+import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
@@ -161,13 +165,16 @@ function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
 
 /**
  * @private
- * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
+ * Escapes the characters the parser would otherwise act on, then wraps the value in quotes "" if it contains a space,
+ * &nbsp; (no-breaking space) or a comma. Callers pass one value at a time and join them with commas themselves, so a
+ * comma inside the value is part of it and has to survive being read back.
  */
 function sanitizeSearchValue(str: string) {
-    if (str.includes(' ') || str.includes(`\xA0`)) {
-        return `"${str}"`;
+    const escaped = str.replaceAll(/[\\"“”]/g, '\\$&');
+    if (escaped.includes(' ') || escaped.includes(`\xA0`) || escaped.includes(',')) {
+        return `"${escaped}"`;
     }
-    return str;
+    return escaped;
 }
 
 const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
@@ -234,7 +241,13 @@ function getRangeBoundariesFromFormValue(rangeValue?: string, fallbackAfter?: st
     };
 }
 
-function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackAfter?: string, fallbackBefore?: string, shouldOmitCurrentYear = false) {
+function getDateRangeDisplayValueFromFormValue(
+    dateFnsLocale: DateFnsLocale | undefined,
+    rangeValue?: string,
+    fallbackAfter?: string,
+    fallbackBefore?: string,
+    shouldOmitCurrentYear = false,
+) {
     if (!rangeValue) {
         return '';
     }
@@ -242,11 +255,11 @@ function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackAfte
     const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, fallbackAfter, fallbackBefore);
     if (rangeBoundaries.from && rangeBoundaries.to) {
         const shouldShowFullYear = !shouldOmitCurrentYear || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.from) || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.to);
-        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, shouldShowFullYear, shouldOmitCurrentYear);
+        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, dateFnsLocale, shouldShowFullYear, shouldOmitCurrentYear);
     }
 
     const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
-    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary) : '';
+    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary, dateFnsLocale) : '';
 }
 
 function parseRangeQueryValue(rangeValue?: string) {
@@ -356,7 +369,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-            filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
             const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
             if (rangeBoundaries.from) {
@@ -445,12 +458,27 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 }
 
 /**
+ * Resolves a typed workspace name to its ID. Names are not unique, so an ambiguous one is left alone rather than
+ * guessing which workspace was meant.
+ */
+function resolvePolicyIDFromName(value: string, policies: OnyxCollection<OnyxTypes.Policy>) {
+    if (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${value}`]) {
+        return value;
+    }
+
+    const lowerCaseValue = value.toLowerCase();
+    const matches = Object.values(policies ?? {}).filter((policy) => policy?.name?.toLowerCase() === lowerCaseValue);
+    return matches.length === 1 ? (matches.at(0)?.id ?? value) : value;
+}
+
+/**
  * @private
  * Returns an updated filter value for some query filters.
  * - for `AMOUNT` it formats value to "backend" amount
  * - for personal filters it tries to substitute any user emails with accountIDs
+ * - for `POLICY_ID` it tries to substitute an unambiguous workspace name with its ID
  */
-function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string | string[], shouldSkipAmountConversion = false) {
+function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string | string[], shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     if (AMOUNT_FILTER_KEYS.includes(filterName as SearchAmountFilterKeys)) {
         if (shouldSkipAmountConversion) {
             return filterValue;
@@ -477,6 +505,13 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
         }
 
         return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
+    }
+
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+        if (typeof filterValue === 'string') {
+            return resolvePolicyIDFromName(filterValue, policies);
+        }
+        return filterValue.map((value) => resolvePolicyIDFromName(value, policies));
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {
@@ -545,16 +580,22 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
 
     const status = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
-    orderedQuery += ` ${status.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
+    orderedQuery += ` ${status.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
     const policyID = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     if (policyID.value) {
-        orderedQuery += ` ${policyID.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyID.value.join(',')} `;
+        orderedQuery += ` ${policyID.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyID.value.join(',')} `;
     }
 
     const filterSet = new Set<string>(orderedQuery);
+    const exactMatchFilterKeys = [...(query.exactMatchFilterKeys ?? [])].sort();
+    if (exactMatchFilterKeys.length > 0) {
+        const exactMatchIdentity = `exactMatch:${exactMatchFilterKeys.join(',')}`;
+        orderedQuery += ` ${exactMatchIdentity}`;
+        filterSet.add(exactMatchIdentity);
+    }
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
@@ -607,6 +648,17 @@ function getQueryHashes(query: SearchQueryJSON) {
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
+}
+
+function withExactMatchFilterKeys(queryJSON: Readonly<SearchQueryJSON>, exactMatchFilterKeys: SearchFilterKey[]): SearchQueryJSON {
+    const queryWithExactMatches = {...queryJSON, exactMatchFilterKeys};
+    const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(queryWithExactMatches);
+    return {
+        ...queryWithExactMatches,
+        hash: primaryHash,
+        recentSearchHash,
+        similarSearchHash,
+    };
 }
 
 /**
@@ -879,7 +931,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     if (columns?.length) {
         const filterValueArray = [...new Set<string>(columns)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -891,7 +943,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 filterKey = filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
             }
 
-            const prefix = isNegated ? '-' : '';
+            const prefix = isNegated ? CONST.SEARCH.NOT_PREFIX : '';
 
             if (
                 (filterKey === FILTER_KEYS.MERCHANT ||
@@ -899,6 +951,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.TITLE ||
+                    filterKey === FILTER_KEYS.SUBMITTER_USER_ID ||
+                    filterKey === FILTER_KEYS.SUBMITTER_PAYROLL_ID ||
+                    filterKey === FILTER_KEYS.ORDER_DEAL_NUMBERS ||
                     filterKey === FILTER_KEYS.PAYER ||
                     filterKey === FILTER_KEYS.GROUP_CURRENCY ||
                     filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
@@ -1008,10 +1063,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
-                    if (!isNegated && filterKey === FILTER_KEYS.TAG && filterValueArray.length === 1 && filterValueArray.at(0) === CONST.SEARCH.TAG_EMPTY_VALUE) {
-                        return `-${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}:${CONST.SEARCH.HAS_VALUES.TAG}`;
-                    }
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`;
                 }
             }
 
@@ -1303,6 +1355,13 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.join(',');
         }
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS
+        ) {
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.join(',');
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
             const actionValue = filterValues.join(',');
             filtersForm[addNegation(filterKey, isNegated)] =
@@ -1320,21 +1379,7 @@ function buildFilterFormValuesFromQuery(
             }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            const validHasFilters = filterList.filter((item) => VALID_HAS_TYPES.has(item.value as HasFilterValue));
-            const positiveHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
-            const negatedHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
-            const hasNegatedTagFilter = negatedHasFilters.includes(CONST.SEARCH.HAS_VALUES.TAG);
-            const remainingNegatedHasFilters = negatedHasFilters.filter((hasType) => hasType !== CONST.SEARCH.HAS_VALUES.TAG);
-
-            if (hasNegatedTagFilter) {
-                filtersForm[FILTER_KEYS.TAG] = [CONST.SEARCH.TAG_EMPTY_VALUE];
-            }
-            if (positiveHasFilters.length > 0) {
-                filtersForm[FILTER_KEYS.HAS] = positiveHasFilters;
-            }
-            if (remainingNegatedHasFilters.length > 0) {
-                filtersForm[FILTER_KEYS.HAS_NOT] = remainingNegatedHasFilters;
-            }
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as IsFilterValue)) as IsFilterValues;
@@ -1655,6 +1700,7 @@ type GetFilterDisplayValueParams = {
     policies: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     bankAccountList?: OnyxTypes.BankAccountList;
@@ -1673,6 +1719,7 @@ function getFilterDisplayValue({
     policies,
     currentUserAccountID,
     translate,
+    formatPhoneNumber,
     reportAttributes,
     feedKeysWithCards,
     bankAccountList,
@@ -1690,7 +1737,13 @@ function getFilterDisplayValue({
         }
         return filterValue === currentUserAccountID.toString()
             ? CONST.SEARCH.ME
-            : temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[filterValue], defaultValue: filterValue, shouldFallbackToHidden: false, translate});
+            : temporaryGetDisplayNameOrDefault({
+                  passedPersonalDetails: personalDetails?.[filterValue],
+                  defaultValue: filterValue,
+                  shouldFallbackToHidden: false,
+                  translate,
+                  formatPhoneNumber,
+              });
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
         const cardID = parseInt(filterValue, 10);
@@ -1709,7 +1762,13 @@ function getFilterDisplayValue({
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return deprecatedGetReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
     }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
+    if (
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED
+    ) {
         // Added 2 here as this is the maximum number of decimals an amount can have. So, we can run a search with 2 decimals here.
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue), 2);
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
@@ -1725,13 +1784,8 @@ function getFilterDisplayValue({
         return getPolicyNameWithFallback(filterValue, policies, reports);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
-        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT) {
-            return CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT;
-        }
-        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT) {
-            return CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
-        }
-        return filterValue;
+        // A query can carry a standard template's ID, so display the label the backend records for it. Custom template names are returned as-is.
+        return getStandardExportTemplateDisplayName(filterValue);
     }
     return filterValue;
 }
@@ -1748,6 +1802,7 @@ function getDisplayQueryFiltersForKey(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
     bankAccountList?: OnyxTypes.BankAccountList,
@@ -1815,6 +1870,7 @@ function getDisplayQueryFiltersForKey(
                 policies,
                 currentUserAccountID,
                 translate,
+                formatPhoneNumber,
                 reportAttributes,
                 feedKeysWithCards,
                 bankAccountList,
@@ -1834,6 +1890,7 @@ function getDisplayQueryFiltersForKey(
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             feedKeysWithCards,
             bankAccountList,
@@ -1914,6 +1971,7 @@ type BuildUserReadableQueryStringParams = {
     currentUserAccountID: number;
     autoCompleteWithSpace: boolean;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
     bankAccountList?: OnyxTypes.BankAccountList;
@@ -1930,6 +1988,7 @@ function buildUserReadableQueryString({
     currentUserAccountID,
     autoCompleteWithSpace = false,
     translate,
+    formatPhoneNumber,
     feedKeysWithCards,
     reportAttributes,
     bankAccountList,
@@ -1976,6 +2035,7 @@ function buildUserReadableQueryString({
                 policies,
                 currentUserAccountID,
                 translate,
+                formatPhoneNumber,
                 reportAttributes,
                 feedKeysWithCards,
                 bankAccountList,
@@ -2025,6 +2085,7 @@ function buildUserReadableQueryString({
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             feedKeysWithCards,
             bankAccountList,
@@ -2143,7 +2204,7 @@ function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString,
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
-function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false) {
+function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     const queryJSON = buildSearchQueryJSON(query);
 
     if (!queryJSON) {
@@ -2151,7 +2212,7 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         return;
     }
 
-    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
+    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion, policies);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
     const rawFilterList = getRawFilterListFromQuery(query);
     const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
@@ -2292,13 +2353,13 @@ function shouldHighlight(referenceText: string, searchText: string) {
         return false;
     }
 
-    const escapedText = StringUtils.normalizeAccents(searchText)
+    const escapedText = StringUtils.normalizeForMatch(searchText)
         .toLowerCase()
         .trim()
         .replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
 
-    return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
+    return pattern.test(StringUtils.normalizeForMatch(referenceText).toLowerCase());
 }
 
 const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
@@ -2351,6 +2412,7 @@ function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
     previousState: {view?: string; groupBy?: string},
     currentQueryOptions: {sortBy?: string; sortOrder?: string},
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): string | undefined {
     const resetSort = shouldResetSort({
         newGroupBy: filterValues.groupBy,
@@ -2374,7 +2436,7 @@ function buildFilterQueryWithSortDefaults(
         return queryString;
     }
 
-    return getQueryWithUpdatedValues(queryString, true);
+    return getQueryWithUpdatedValues(queryString, true, policies);
 }
 
 /**
@@ -2468,22 +2530,26 @@ function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdva
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
  */
-const TEXT_SEARCH_FIELDS = new Set<string>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+function isTextSearchField(key: string): key is SearchFilterKey {
+    return key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION;
+}
 
 /**
  * Recursively traverses a search AST and replaces the `eq` operator with `contains`
  * for free-text filter fields (merchant, description). This enables partial/substring
  * matching on the backend for text searches while preserving the user-facing `:` syntax.
+ * Keys in `exactMatchFilterKeys` keep their original `eq` operator.
  */
-function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
-    if (typeof node.left === 'string' && TEXT_SEARCH_FIELDS.has(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+function applyContainsOperatorToTextFields(node: ASTNode, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): ASTNode {
+    const filterKey = typeof node.left === 'string' && isTextSearchField(node.left) ? node.left : undefined;
+    if (filterKey && !exactMatchFilterKeys?.has(filterKey) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
         return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
     }
 
     return {
         ...node,
-        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left) : node.left,
-        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right) : node.right,
+        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left, exactMatchFilterKeys) : node.left,
+        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right, exactMatchFilterKeys) : node.right,
     };
 }
 
@@ -2505,13 +2571,14 @@ function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIE
  * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
  * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
  * so all backend commands use consistent partial-match semantics — matching what the search view shows.
+ * Keys in `exactMatchFilterKeys` keep exact-match semantics for generated filters.
  * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
  */
-function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
-    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): string {
+    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters, exactMatchFilterKeys) : queryData.filters;
     const normalizedRawFilterList = queryData.rawFilterList
         ? queryData.rawFilterList.map((filter) => {
-              if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+              if (isTextSearchField(filter.key) && !exactMatchFilterKeys?.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                   return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
               }
               return filter;
@@ -2524,12 +2591,31 @@ function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `$
     return isNegated ? `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` : filterKey;
 }
 
-function removeNegation(filterKey: string) {
-    return filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+type RemoveNegation<T extends string> = T extends `${infer S}${typeof CONST.SEARCH.NOT_MODIFIER}` ? S : T;
+
+function removeNegation<T extends string>(filterKey: T): RemoveNegation<T>;
+function removeNegation(filterKey: string): string {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER) ? filterKey.slice(0, -CONST.SEARCH.NOT_MODIFIER.length) : filterKey;
 }
 
 function isFilterNegatable(key: SearchAdvancedFiltersKey) {
     return NEGATABLE_FILTERS.has(removeNegation(key) as SearchNegatableFilterKeys);
+}
+
+function isFilterNegated(filterKey: SearchAdvancedFiltersKey) {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
+}
+
+function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
+    baseFilterKey: K,
+    value: SearchAdvancedFiltersForm[K] | undefined,
+    isNegated: boolean,
+): Partial<SearchAdvancedFiltersForm> {
+    const update: Partial<Record<K | `${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>> = {};
+    const negatedFilterKey = addNegation(baseFilterKey, true);
+    update[negatedFilterKey] = isNegated ? value : undefined;
+    update[baseFilterKey] = isNegated ? undefined : value;
+    return update;
 }
 
 export {
@@ -2537,6 +2623,7 @@ export {
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
     getQueryHashes,
+    withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
     getDateFilterRange,
@@ -2552,6 +2639,7 @@ export {
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
+    resolvePolicyIDFromName,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
@@ -2580,8 +2668,11 @@ export {
     getParamsState,
     getRoutes,
     isSearchRootParams,
-    getFilterFromQuery,
+    isFilterNegated,
     isFilterNegatable,
+    removeNegation,
+    getFilterFormValues,
+    getFilterFromQuery,
 };
 
 export type {BuildUserReadableQueryStringParams};

@@ -49,6 +49,7 @@ function WorkspaceVendorsTable({vendors}: WorkspaceVendorsTableProps) {
     const renderVendorItem = ({item, index}: ListRenderItemInfo<WorkspaceVendorTableRowData>) => (
         <Table.Row
             interactive={false}
+            accessibilityLabel={item.name}
             rowIndex={index}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
         >

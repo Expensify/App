@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCategoryRuleCreateBackPath from '@hooks/useCategoryRuleCreateBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -43,7 +44,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {getRequireFieldsRuleCategoryRoute} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
@@ -54,10 +55,14 @@ import {View} from 'react-native';
 type RequireFieldsRulePageBaseProps = {
     policyID: string;
     categoryName?: string;
+    /** Pre-scopes the category when creating a rule (e.g. from the category details RHP). */
+    initialCategoryName?: string;
+    /** When true, the category field is non-interactive (category-scoped create/edit). */
+    isCategoryLocked?: boolean;
     testID: string;
 };
 
-function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFieldsRulePageBaseProps) {
+function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
@@ -68,6 +73,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const isEditing = !!categoryName;
+    const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
+    const canEditCategory = canWriteRules && !isCategoryLocked;
+    const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW.path);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -153,11 +161,14 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         }
     }
 
+    // Otherwise cleared only on save, so backing out left the draft for the next rule to inherit.
+    useEffect(() => () => clearDraftRequireFieldsRule(), []);
+
     useEffect(() => {
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftRequireFieldsRule({});
+                setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
             }
             return;
         }
@@ -188,7 +199,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             [INPUT_IDS.CATEGORY]: categoryName,
             ...getRequireFieldsFormFromCategory(category),
         });
-    }, [category, categoryName, form, isEditing]);
+    }, [category, categoryName, form, initialCategoryName, isEditing]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
@@ -216,6 +227,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             isVisible: true,
         },
         {
+            key: INPUT_IDS.ATTENDEES_SETTING,
+            label: translate('iou.attendees'),
+            isVisible: isAttendeeFieldApplicable,
+        },
+        {
             key: INPUT_IDS.RECEIPT_SETTING,
             label: translate('common.receipt'),
             isVisible: true,
@@ -224,11 +240,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
             key: INPUT_IDS.ITEMIZED_RECEIPT_SETTING,
             label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'),
             isVisible: true,
-        },
-        {
-            key: INPUT_IDS.ATTENDEES_SETTING,
-            label: translate('iou.attendees'),
-            isVisible: isAttendeeFieldApplicable,
         },
     ];
 
@@ -342,7 +353,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
 
         if (isEditing && !didChangeCategory && !hasRequireFieldsRuleChanges(selectedCategory ?? category, formToSave, touchedFields, clearedFields)) {
             clearDraftRequireFieldsRule();
-            Navigation.goBack();
+            Navigation.goBack(initialCategoryName ? (categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, initialCategoryName)) : undefined);
             return;
         }
 
@@ -356,7 +367,15 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
 
         clearDraftRequireFieldsRule();
 
-        if (!isEditing && isRulesRevampEnabled) {
+        // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
+        // case going back one step would land on the New rule hub instead of the category we came from.
+        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
+            const savedCategoryName = savedCategory ?? initialCategoryName;
+            if (initialCategoryName && savedCategoryName) {
+                Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
+                return;
+            }
+
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.REQUIRE_FIELDS);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
             return;
@@ -403,7 +422,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             shouldBeBlocked={!isRulesRevampEnabled}
         >
@@ -421,10 +440,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
                         title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)) : undefined}
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
+                        errorText={canEditCategory && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
+                        onPress={canEditCategory ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)) : undefined}
+                        shouldShowRightIcon={canEditCategory}
+                        interactive={canEditCategory}
                         icon={icons.Folder}
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}

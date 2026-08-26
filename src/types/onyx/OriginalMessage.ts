@@ -94,6 +94,18 @@ type OriginalMessageIOU = {
     /** Currency of the transaction money */
     currency?: string;
 
+    /** Cross-border FX reimbursement: amount credited to the employee, in their deposit currency */
+    creditedAmount?: number;
+
+    /** Cross-border FX reimbursement: currency of `creditedAmount` (the employee deposit currency) */
+    creditedCurrency?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the company withdrawal (VBA) account that was debited */
+    debitBankAccountLast4?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
+    creditBankAccountLast4?: string;
+
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -646,6 +658,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
 
+    /** Who pays the currency conversion fees on cross-border reimbursements */
+    preference?: ValueOf<typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE>;
+
     /** Default value of a report field */
     defaultValue?: string;
 
@@ -904,6 +919,21 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Currency of the spend rule */
     currency?: string;
+};
+
+/** Model of a workspace agent rule change log action (add, update, or delete) */
+type OriginalMessageAgentRuleChangeLog = {
+    /** ID of the policy the agent rule belongs to */
+    policyID?: string;
+
+    /** ID of the agent rule that changed */
+    ruleID?: string;
+
+    /** Server-generated one-line title of the agent rule */
+    ruleTitle?: string;
+
+    /** Natural-language prompt of the agent rule (present for add/update, omitted for delete) */
+    prompt?: string;
 };
 
 /** Model of a policy copy change log action */
@@ -1308,6 +1338,12 @@ type OriginalMessageReimbursed = {
 
     /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
     stripePaymentType?: string;
+
+    /** Cents credited to the employee on a cross-border FX reimbursement, in the employee's deposit currency */
+    creditedAmount?: number;
+
+    /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
+    creditedCurrency?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -1402,7 +1438,8 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls?: string[];
 
     /**
-     * A list of URLs to the Travel Invoicing Journal Entry records
+     * A list of URLs to the Travel Billing Journal Entry records.
+     * The key keeps the legacy spelling because it is stored in existing report actions.
      */
     travelInvoicingUrls?: string[];
 
@@ -1498,6 +1535,19 @@ type OriginalMessagePlaidBalanceFailure = {
 };
 
 /**
+ * Original message for a COMMUTER_EXCLUSION system action,
+ * posted to the workspace chat when a distance expense has the workspace's
+ * commuter exclusion applied to it.
+ */
+type OriginalMessageCommuterExclusion = {
+    /** The distance that was deducted, formatted to 2 decimals (e.g. "1.00") */
+    distance: string;
+
+    /** Display unit ("mi" or "km") */
+    unit: string;
+};
+
+/**
  * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
  */
 type OriginalMessageDEWFailed = {
@@ -1575,6 +1625,9 @@ type OriginalMessageIntegrationMessage = {
     result: {
         /** Wether action was successful */
         success: boolean;
+
+        /** Whether the message is informational (the export was reconciled as already recorded in the integration) rather than an error */
+        reconciled?: boolean;
     };
 };
 
@@ -1596,6 +1649,20 @@ type OriginalMessageTakeControl = {
 type OriginalMessageReassignApprover = {
     /** Account ID of the new approver assigned by the system */
     newApproverID: number;
+};
+
+/**
+ * Model of Delegate Submit action original message (posted when a report is auto-forwarded to a vacation delegate)
+ */
+type OriginalMessageDelegateSubmit = {
+    /** Email of the manager the report would normally have been sent to */
+    originalManager: string;
+
+    /** Email of the vacation delegate the report was sent to (or would have been sent to) */
+    delegate: string;
+
+    /** Whether the delegate is a member of the report's policy. Defaults to true when absent. */
+    isOnPolicy?: boolean;
 };
 
 /**
@@ -1757,20 +1824,25 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION]: OriginalMessageCommuterExclusion;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: OriginalMessageSmartScanFailed;
     [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
+    [CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
-} & OldDotOriginalMessageMap &
+} & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
@@ -1779,6 +1851,7 @@ export default OriginalMessage;
 export type {
     DecisionName,
     OriginalMessageIOU,
+    OriginalMessageReportPreview,
     ChronosOOOEvent,
     PaymentMethodType,
     OriginalMessageSource,

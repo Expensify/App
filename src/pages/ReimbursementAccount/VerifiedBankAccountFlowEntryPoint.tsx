@@ -21,6 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 
@@ -39,7 +40,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -130,7 +131,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const removeExistingBankAccountDetails = useCallback(() => {
         // In a "change bank account" flow, start a completely fresh setup so the new account's steps aren't prefilled.
         if (isChangingBankAccount && currency) {
-            prepareNewBankAccountSetup(currency);
+            prepareNewBankAccountSetup(currency, reimbursementAccount);
             return;
         }
         const bankAccountData: Partial<ReimbursementAccountForm> = {
@@ -144,7 +145,7 @@ function VerifiedBankAccountFlowEntryPoint({
         };
         updateReimbursementAccountDraft(bankAccountData);
         updateReimbursementAccount({bankAccountID: 0});
-    }, [isChangingBankAccount, currency]);
+    }, [isChangingBankAccount, currency, reimbursementAccount]);
 
     /**
      * Prepares and redirects user to next step in the USD flow
@@ -192,7 +193,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const handleConnectManually = () => {
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(policyID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             return;
         }
 
@@ -216,7 +217,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(policyID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             return;
         }
 

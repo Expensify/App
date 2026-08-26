@@ -20,13 +20,13 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isCurrencySupportedForECards} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import {hasInProgressUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 
@@ -46,12 +46,18 @@ import {
 import {setDraftValues} from '@userActions/FormActions';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {cancelChangingToNewBankAccount, clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {
+    cancelChangingToNewBankAccount,
+    clearReimbursementAccount,
+    clearReimbursementAccountBackup,
+    clearReimbursementAccountDraft,
+    restoreReimbursementAccountBackup,
+} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -97,6 +103,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
     const [isChangingToNewBankAccount] = useOnyx(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT);
+    const [reimbursementAccountBackup] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP);
 
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
@@ -151,7 +158,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         workspaceRoute = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
     }
 
-    const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
+    const contactMethodRoute = `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo)}`;
     const isPreviousPolicy =
         policyIDParam && !!reimbursementAccount && !isLoadingOnyxValue(reimbursementAccountMetadata) ? policyIDParam === achData?.policyID : isLoadingOnyxValue(reimbursementAccountMetadata);
     const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
@@ -277,20 +284,43 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingWorkspaceReimbursement, prevIsLoadingWorkspaceReimbursement]);
 
-    // A pushed "change bank account" instance and its setup steps mutate the shared reimbursement account. When focus
-    // returns to this connected (non-changing) screen and the shared data has been clobbered, reload it so the
-    // "you're all set" page is shown again instead of the setup entry.
+    const isBackupMatchRoute =
+        (bankAccountIDParam !== undefined && reimbursementAccountBackup?.achData?.bankAccountID === Number(bankAccountIDParam)) ||
+        (!!policyIDParam && reimbursementAccountBackup?.achData?.policyID === policyIDParam);
+
+    // A "change bank account" flow clears the shared reimbursement account. When focus returns to this (non-changing)
+    // screen, restore the original account if the user backed out instead of showing the abandoned setup.
     useEffect(() => {
-        if (isConnectedVerifiedBankAccountData && !isChangingBankAccount) {
-            hasShownConnectedBankAccountRef.current = true;
+        if (isChangingBankAccount || !isFocused) {
             return;
         }
-        if (isFocused && !isChangingBankAccount && hasShownConnectedBankAccountRef.current && !isConnectedVerifiedBankAccountData) {
+
+        if (reimbursementAccountBackup && !isBackupMatchRoute) {
+            clearReimbursementAccountBackup();
+        }
+        const hasRestorableBackup = !!reimbursementAccountBackup && isBackupMatchRoute;
+
+        // A fully connected account is shown (original untouched, or the replacement finished) — drop the stale backup.
+        if (isConnectedVerifiedBankAccountData) {
+            hasShownConnectedBankAccountRef.current = true;
+            if (hasRestorableBackup) {
+                clearReimbursementAccountBackup();
+            }
+            return;
+        }
+
+        // A backup means the user backed out of a change flow; restore the original account (preferred over any
+        // in-progress replacement) instantly, without a refetch.
+        if (hasRestorableBackup) {
+            restoreReimbursementAccountBackup(reimbursementAccountBackup);
+            return;
+        }
+        if (!shouldShowContinueSetupButtonValue && hasShownConnectedBankAccountRef.current) {
             fetchData();
         }
-        // fetchData is intentionally omitted; this must react to the connected data being clobbered, not to fetchData's identity.
+        // fetchData is intentionally omitted; this must react to the shared data being clobbered, not to fetchData's identity.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isChangingBankAccount, isConnectedVerifiedBankAccountData]);
+    }, [isFocused, isChangingBankAccount, isConnectedVerifiedBankAccountData, shouldShowContinueSetupButtonValue, reimbursementAccountBackup, isBackupMatchRoute]);
 
     useEffect(() => {
         // Consume this route intent only once so the response changing isPreviousPolicy does not trigger another request.
@@ -530,11 +560,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
 
     if (isLoadingPolicy) {
-        const loadingPolicyReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'ReimbursementAccountPage',
-            isLoadingPolicy,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={loadingPolicyReasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server

@@ -1,6 +1,6 @@
-import Avatar from '@components/Avatar';
-import Button from '@components/Button';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -21,18 +21,29 @@ import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPersonalDetailByEmail, getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {canMemberAssignRole, canMemberManageMemberWithRole, canMemberWrite, isControlPolicy, isPolicyApprover, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {
+    canMemberAssignRole,
+    canMemberManageMemberWithRole,
+    canMemberWrite,
+    getReimburserEmail,
+    isControlPolicy,
+    isPolicyApprover,
+    tryNavigateToSubmitWorkspaceUpgrade,
+} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {generateAccountID} from '@libs/UserUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -111,16 +122,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
-    const memberPersonalDetails = personalDetails?.[routeAccountID] ?? getPersonalDetailByEmail(memberLogin);
+    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const member = policy?.employeeList?.[memberLogin];
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
     const isCurrentUserAdmin = policy?.employeeList?.[currentUserLogin]?.role === CONST.POLICY.ROLE.ADMIN;
@@ -129,14 +141,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const policyOwnerDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate})) ?? policy?.owner ?? '';
+    const policyOwnerDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
-    const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
+    const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.PAYMENTS)}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
-    const isReimburser =
-        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) &&
-        policy?.achAccount?.reimburser === memberLogin;
+    const reimburserEmail = getReimburserEmail(policy);
+    const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
+    const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && !isReimburser && canManageSelectedMemberRole;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -255,6 +267,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const askForConfirmationToRemove = () => {
+        if (isRuleBotEnforcingRules(accountID, policy)) {
+            showRuleBotGuardModal('remove', policyID);
+            return;
+        }
         if (isReimburser) {
             showConfirmModal({
                 shouldShowCancelButton: false,
@@ -318,13 +334,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
-                                <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
-                                    imageStyles={[styles.avatarXLarge]}
+                                <UserAvatar
+                                    containerStyles={[styles.mb4, styles.noOutline]}
                                     source={details.avatar}
-                                    avatarID={accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.X_LARGE}
+                                    accountID={accountID}
+                                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={fallbackIcon}
                                 />
                             </OfflineWithFeedback>
@@ -339,20 +353,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                 shouldRenderTransferOwnerButton(fundList) && (
                                     <ButtonDisabledWhenOffline
-                                        text={translate('workspace.people.transferOwner')}
                                         onPress={startChangeOwnershipFlow}
-                                        icon={icons.Transfer}
                                         style={styles.mb5}
-                                    />
+                                    >
+                                        <Button.Icon src={icons.Transfer} />
+                                        <Button.Text>{translate('workspace.people.transferOwner')}</Button.Text>
+                                    </ButtonDisabledWhenOffline>
                                 )
                             ) : (
                                 <Button
-                                    text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                     onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
                                     isDisabled={!canRemoveSelectedMember}
-                                    icon={icons.RemoveMembers}
                                     style={styles.mb5}
-                                />
+                                >
+                                    <Button.Icon src={icons.RemoveMembers} />
+                                    <Button.Text>{translate('workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
+                                </Button>
                             )}
                         </View>
                         <View style={styles.w100}>
@@ -364,11 +380,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 copyable
                             />
                             <MenuItemWithTopDescription
-                                disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser || !canManageSelectedMemberRole}
+                                disabled={!canEditSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}
-                                interactive={!isReimburser && canManageSelectedMemberRole}
+                                interactive={canEditSelectedMemberRole}
                                 description={translate('common.role')}
-                                shouldShowRightIcon={!isReimburser && canManageSelectedMemberRole}
+                                shouldShowRightIcon={canEditSelectedMemberRole}
+                                shouldGreyOutWhenDisabled={false}
+                                shouldUseDefaultCursorWhenDisabled
                                 pressableTestID="member-role-menu-item"
                                 onPress={() => {
                                     if (

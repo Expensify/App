@@ -14,6 +14,7 @@ const INPUT_IDS = {
     REIMBURSABLE: 'reimbursable',
     TAG: 'tag',
     TAX: 'tax',
+    VENDOR_ID: 'vendorID',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -30,6 +31,7 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.REIMBURSABLE]: boolean;
         [INPUT_IDS.TAG]: string;
         [INPUT_IDS.TAX]: string;
+        [INPUT_IDS.VENDOR_ID]: string;
     }
 >;
 

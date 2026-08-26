@@ -2,6 +2,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {usePreventRemove} from '@react-navigation/native';
 import type ReactTestRendererType from 'react-test-renderer';
 
 // These rules are disabled because `require()` is used inside jest.mock factories for module resolution,
@@ -12,7 +13,6 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-// eslint-disable-next-line
 const ReactTestRenderer: typeof ReactTestRendererType = require('react-test-renderer');
 
 Onyx.init({keys: ONYXKEYS});
@@ -120,12 +120,16 @@ function getNavigationMock() {
 }
 
 function getUsePreventRemove() {
-    return jest.requireMock<{usePreventRemove: jest.Mock}>('@react-navigation/native').usePreventRemove;
+    return jest.requireMock<{usePreventRemove: jest.MockedFunction<typeof usePreventRemove>}>('@react-navigation/native').usePreventRemove;
 }
 
 function lastPreventRemoveCondition(): boolean {
     const mock = getUsePreventRemove();
-    return mock.mock.calls.at(-1)?.[0] as boolean;
+    const lastCall = mock.mock.calls.at(-1);
+    if (!lastCall) {
+        throw new Error('Expected usePreventRemove to have been called');
+    }
+    return lastCall[0];
 }
 
 async function renderScreenWrapper(): Promise<ReactTestRendererType.ReactTestRenderer> {

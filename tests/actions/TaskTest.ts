@@ -42,7 +42,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
-import {getGlobalFetchMock, translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -1384,6 +1384,7 @@ describe('actions/Task', () => {
                 hasOutstandingChildTask: false,
                 delegateEmail: DELEGATE_EMAIL,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+                formatPhoneNumber,
             });
 
             const calls = mockWrite.mock.calls;
@@ -1414,6 +1415,7 @@ describe('actions/Task', () => {
                 hasOutstandingChildTask: false,
                 delegateEmail: undefined,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+                formatPhoneNumber,
             });
 
             const calls = mockWrite.mock.calls;
@@ -1549,6 +1551,39 @@ describe('actions/Task', () => {
 
             expect(result).toBe(`r/${parentReportID}`);
             expect(Navigation.goBack).toHaveBeenCalled();
+        });
+
+        it('should skip fallback navigation when task delete navigation was already handled', async () => {
+            const taskReportID = 'task_report_delete_skip_navigation';
+            const parentReportID = 'parent_report_delete_skip_navigation';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Test Task To Delete Without Fallback Navigation',
+                parentReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            const parentReport = {
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined, undefined, {shouldNavigateBack: false});
+
+            expect(result).toBeUndefined();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).toHaveBeenCalledWith('CancelTask', expect.objectContaining({taskReportID}), expect.any(Object));
         });
 
         it('should return conciergeReportID-based URL when no parentReportID and no recent report', async () => {
@@ -1726,7 +1761,7 @@ describe('actions/Task', () => {
             const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, undefined, undefined, translateLocal);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal);
 
             // Then the subtitle is the other participant's login and the display name matches getReportName
             expect(result.subtitle).toBe(OTHER_LOGIN);
@@ -1743,7 +1778,7 @@ describe('actions/Task', () => {
             };
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, policy, undefined, translateLocal);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, policy, undefined, translateLocal);
 
             // Then the subtitle falls back to the workspace name resolved by getChatRoomSubtitle
             expect(result.subtitle).toBe(policy.name);
@@ -1755,7 +1790,7 @@ describe('actions/Task', () => {
             const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, undefined, undefined, translateLocal);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal);
 
             // Then it includes the icons and tooltip metadata used to render the destination
             expect(Array.isArray(result.icons)).toBe(true);
@@ -1772,7 +1807,7 @@ describe('actions/Task', () => {
                 [assigneeAccountID]: {accountID: assigneeAccountID, displayName: 'Assignee', login: 'assignee@test.com', avatar: ''},
             };
 
-            const assignee = getAssignee(assigneeAccountID, personalDetails, translateLocal);
+            const assignee = getAssignee(assigneeAccountID, personalDetails, translateLocal, formatPhoneNumber);
 
             expect(assignee?.displayName).toBe('Assignee');
             expect(assignee?.subtitle).toBe('assignee@test.com');
@@ -1784,7 +1819,7 @@ describe('actions/Task', () => {
             };
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const assignee = getAssignee(assigneeAccountID, personalDetails, translateWithHiddenMarker);
+            const assignee = getAssignee(assigneeAccountID, personalDetails, translateWithHiddenMarker, formatPhoneNumber);
 
             expect(assignee?.displayName).toBe('HiddenMarker');
         });

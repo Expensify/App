@@ -1,4 +1,5 @@
 import useAttendees from '@hooks/useAttendees';
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -14,6 +15,7 @@ import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -32,7 +34,7 @@ import {
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -254,6 +256,11 @@ function MoneyRequestConfirmationList({
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: isPolicyExpenseChat ? policy?.id : undefined,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouCurrencyCode = getCurrency(transaction);
@@ -305,6 +312,7 @@ function MoneyRequestConfirmationList({
         isMovingTransactionFromTrackExpense,
         customUnitRateID,
         distance,
+        distanceUnit: unit,
         previousTransactionCurrency,
     });
 
@@ -332,9 +340,11 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
     const [showMoreFields, setShowMoreFields] = useState(false);
+    const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
 
     useEffect(() => {
         setShowMoreFields(false);
+        setIsTaxAmountEmpty(false);
     }, [transactionID]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
@@ -429,6 +439,7 @@ function MoneyRequestConfirmationList({
 
     const sections = useConfirmationSections({
         isTypeSplit,
+        isTypeInvoice,
         shouldHideToSection,
         shouldForceTopEmptySections,
         participantRowErrors,
@@ -453,7 +464,7 @@ function MoneyRequestConfirmationList({
         }
 
         const newIOUType = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(newIOUType, transactionID, transaction?.reportID, Navigation.getActiveRoute(), action));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType: newIOUType, transactionID, reportID: transaction?.reportID})));
     };
 
     const {validate} = useConfirmationValidation({
@@ -487,13 +498,13 @@ function MoneyRequestConfirmationList({
         isNewManualExpenseFlowEnabled,
         isReadOnly,
         shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
+        isTaxAmountEmpty,
     });
 
     const confirm = buildConfirmAction({
         iouType,
         policy,
         transactionID,
-        reportID,
         routeError,
         formError,
         isDelegateAccessRestricted,
@@ -501,7 +512,12 @@ function MoneyRequestConfirmationList({
         setFormError,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
-        onConfirm,
+        onConfirm: () => {
+            if (blockManualOrOdometerDistanceRequestIfNeeded()) {
+                return;
+            }
+            onConfirm?.();
+        },
         onSendMoney,
     });
 
@@ -509,7 +525,7 @@ function MoneyRequestConfirmationList({
     const selectionListStyle = {
         containerStyle: [styles.flexBasisAuto],
         contentContainerStyle: isCompactMode ? [styles.flexGrow1] : undefined,
-        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mv3] : [styles.mv3],
+        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mb3] : [styles.mb3],
     };
 
     const footerContent = isReadOnly ? undefined : (
@@ -555,13 +571,13 @@ function MoneyRequestConfirmationList({
                     distance,
                     hasRoute,
                     unit,
-                    rate,
                     distanceRateName: mileageRate.name,
                     distanceRateCurrency: currency,
                     mileageRate,
                     expenseDate: getCreated(transaction),
                     customUnitRateID,
                     shouldShowRateAutoUpdatedTooltip,
+                    customUnit: transaction?.comment?.customUnit,
                 }}
                 amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
                 requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
@@ -587,6 +603,7 @@ function MoneyRequestConfirmationList({
                 compactControls={{showMoreFields, setShowMoreFields}}
                 scrollFocusedInputIntoView={scrollFocusedInputIntoView}
                 onSubmitForm={confirm}
+                onTaxAmountEmptyChange={setIsTaxAmountEmpty}
             />
         </View>
     );

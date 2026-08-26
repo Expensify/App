@@ -3,7 +3,6 @@ import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/Side
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -18,6 +17,7 @@ import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingN
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
+import {buildCannedSearchQuery} from './SearchQueryUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
 Onyx.connectWithoutView({
@@ -26,6 +26,11 @@ Onyx.connectWithoutView({
         onboardingRHPVariant = value;
     },
 });
+
+type NavigateAfterOnboardingOptions = {
+    afterTransition?: () => void;
+    variantOverride?: OnboardingRHPVariant | null;
+};
 
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
@@ -71,7 +76,7 @@ function navigateAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    variantOverride?: OnboardingRHPVariant | null,
+    options?: NavigateAfterOnboardingOptions,
 ) {
     setDisableDismissOnEscape(false);
 
@@ -79,14 +84,16 @@ function navigateAfterOnboarding(
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // This check is outside shouldOpenRHPVariant because that function returns false on native
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
+    const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
+    const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
         return;
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions);
         return;
     }
 
@@ -100,10 +107,10 @@ function navigateAfterOnboarding(
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
     } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(ROUTES.HOME, navigationOptions);
     }
 }
 
@@ -115,7 +122,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    variantOverride?: OnboardingRHPVariant | null,
+    options?: NavigateAfterOnboardingOptions,
 ) {
     dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -127,15 +134,14 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
-            variantOverride,
+            options,
         );
     });
 }
 
 /**
- * After creating or joining a Submit workspace during onboarding,
- * navigate to Workspace > Categories with the side panel open so
- * the #admins room is visible in Concierge Anywhere.
+ * After creating or joining a Submit workspace during onboarding, navigate to Spend > Expenses
+ * with the side panel open so the #admins room is visible in Concierge Anywhere.
  */
 function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
     setDisableDismissOnEscape(false);
@@ -146,11 +152,7 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
     }
 
     setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-
-    const categoriesRoute = ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID);
-    const backToRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACES_LIST.route;
-    Navigation.navigate(`${categoriesRoute}?backTo=${encodeURIComponent(backToRoute)}` as Route);
-
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
     SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 

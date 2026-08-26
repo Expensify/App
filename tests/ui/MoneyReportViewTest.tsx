@@ -4,6 +4,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -112,6 +114,7 @@ const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Polic
 describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+        initOnyxDerivedValues();
     });
 
     afterEach(async () => {
@@ -329,6 +332,7 @@ describe('MoneyReportView report fields visibility', () => {
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+        initOnyxDerivedValues();
     });
 
     afterEach(async () => {

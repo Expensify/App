@@ -1,5 +1,5 @@
 import CompactMenuContext from '@components/CompactMenuContext';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
@@ -26,8 +26,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useState} from 'react';
 
+import CurrencyPopup from './CurrencyPopup';
 import GroupByPopup from './GroupByPopup';
-import GroupCurrencyPopup from './GroupCurrencyPopup';
 import SingleSelectPopup from './SingleSelectPopup';
 import SortByPopup from './SortByPopup';
 import SortOrderPopup from './SortOrderPopup';
@@ -125,7 +125,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 )}
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
-                        <MenuItem
+                        <MenuItemAction
                             icon={expensifyIcons.Columns}
                             title={translate('search.editColumns')}
                             onPress={() => {
@@ -193,10 +193,13 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
             );
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
             return (
-                <GroupCurrencyPopup
+                <CurrencyPopup
+                    value={searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]}
                     onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
+                    label={translate('common.groupCurrency')}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
+                    searchPlaceholder={translate('common.groupCurrency')}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:

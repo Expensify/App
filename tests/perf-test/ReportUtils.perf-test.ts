@@ -37,7 +37,8 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import createMock from '../utils/createMock';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -101,10 +102,10 @@ describe('ReportUtils', () => {
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
         const reportID = '1';
         const transaction = createRandomTransaction(1);
-        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
+        const reportAction = createMock<ReportAction>({...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
@@ -150,13 +151,16 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getReportPreviewReportActionMessage({
-                reportOrID: report,
-                iouReportAction: reportAction,
-                shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
-                isPreviewMessageForParentChatReport,
-                policy,
-            }),
+            getReportPreviewReportActionMessage(
+                {
+                    reportOrID: report,
+                    iouReportAction: reportAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
+                    isPreviewMessageForParentChatReport,
+                    policy,
+                },
+                getCurrencyDecimalsLocal,
+            ),
         );
     });
 
@@ -301,6 +305,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction));
+        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, undefined));
     });
 });

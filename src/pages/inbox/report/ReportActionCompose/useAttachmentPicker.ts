@@ -3,11 +3,13 @@ import useLocalize from '@hooks/useLocalize';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {cleanFileObject, cleanFileObjectName, getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
+import getPlatform from '@libs/getPlatform';
 
 import Navigation from '@navigation/Navigation';
 
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -22,6 +24,8 @@ function useAttachmentPicker(reportID: string) {
     const {clearComposer} = useComposerActions();
     const {attachmentFileRef, suggestionsRef} = useComposerMeta();
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
 
@@ -43,6 +47,15 @@ function useAttachmentPicker(reportID: string) {
             return;
         }
 
+        if (isNative) {
+            // prevent the user paste or drop files when the composer is exceeding the max length
+            if (exceededMaxLength) {
+                return;
+            }
+            addAttachment(files);
+            return;
+        }
+
         reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>({
             reportID,
             file: files,
@@ -56,7 +69,7 @@ function useAttachmentPicker(reportID: string) {
         Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated);
 
     const pickAttachments = ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
         if (isAttachmentPreviewActive) {
@@ -100,7 +113,7 @@ function useAttachmentPicker(reportID: string) {
         validateFiles(fileObjects, filteredItems, {isValidatingReceipts: false});
     };
 
-    return {pickAttachments, PDFValidationComponent, ErrorModal};
+    return {pickAttachments, PDFValidationComponent};
 }
 
 export default useAttachmentPicker;

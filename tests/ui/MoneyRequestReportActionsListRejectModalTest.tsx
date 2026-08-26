@@ -7,8 +7,13 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import type * as InFlightRequests from '@hooks/useInFlightRequests';
+import useNetwork from '@hooks/useNetwork';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
 import type * as CoreNavigation from '@react-navigation/core';
@@ -17,6 +22,7 @@ import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -30,11 +36,14 @@ jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useNavigationState: () => true,
     usePreventRemove: jest.fn(),
-    useRoute: () => ({
-        key: 'test-key',
-        name: 'Report' as never,
-        params: {reportID: FAKE_REPORT_ID},
-    }),
+    useRoute: () => {
+        const SCREENS_MOCK = jest.requireActual<{default: typeof SCREENS}>('@src/SCREENS').default;
+        return {
+            key: 'test-key',
+            name: SCREENS_MOCK.REPORT,
+            params: {reportID: FAKE_REPORT_ID},
+        };
+    },
 }));
 
 jest.mock('@react-navigation/core', () => ({
@@ -43,6 +52,11 @@ jest.mock('@react-navigation/core', () => ({
 }));
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
+jest.mock('@hooks/useInFlightRequests', () => ({
+    ...jest.requireActual<typeof InFlightRequests>('@hooks/useInFlightRequests'),
+    useIsReportLoadPending: jest.fn(),
+}));
+jest.mock('@hooks/useNetwork', () => jest.fn());
 
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
@@ -66,16 +80,18 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return ({listFooterComponent}: {listFooterComponent?: React.ReactElement}) => <View testID="MockMoneyRequestReportTransactionList">{listFooterComponent}</View>;
+    return ({listFooterComponent, isLoadingInitialActions}: {listFooterComponent?: React.ReactElement; isLoadingInitialActions: boolean}) => (
+        <View testID="MockMoneyRequestReportTransactionList">
+            {isLoadingInitialActions ? <View testID="MockInitialReportActionsSkeleton" /> : null}
+            {listFooterComponent}
+        </View>
+    );
 });
 
-jest.mock('@pages/home/report/ConciergeThinkingMessage', () => {
+jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return {
-        __esModule: true,
-        default: () => <View testID="ConciergeThinkingMessage" />,
-    };
+    return () => <View testID="MockSearchMoneyRequestReportEmptyState" />;
 });
 
 jest.mock('@components/HoldOrRejectEducationalModal', () => {
@@ -111,6 +127,8 @@ jest.mock('@components/ButtonWithDropdownMenu', () => {
 });
 
 const mockOriginalRejectOnSelected = jest.fn();
+const mockUseIsReportLoadPending = jest.mocked(useIsReportLoadPending);
+const mockUseNetwork = jest.mocked(useNetwork);
 jest.mock('@hooks/useSelectedTransactionsActions', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {default: C} = require('@src/CONST');
@@ -190,7 +208,7 @@ const mockTransaction: Transaction = {
     status: CONST.TRANSACTION.STATUS.POSTED,
 } as Transaction;
 
-const mockReportAction: ReportAction = {
+const mockReportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
     reportActionID: 'ACTION_001',
     reportID: FAKE_REPORT_ID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -204,7 +222,7 @@ const mockReportAction: ReportAction = {
         currency: CONST.CURRENCY.USD,
     },
     childReportID: 'CHILD_001',
-} as unknown as ReportAction;
+});
 
 const renderComponent = () => {
     return render(
@@ -234,28 +252,12 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
+        mockUseIsReportLoadPending.mockReturnValue(false);
+        mockUseNetwork.mockReturnValue({isOffline: false});
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
-    });
-
-    it('renders Concierge thinking indicator in the money request report table path', async () => {
-        await act(async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
-                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
-                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
-                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
-            });
-        });
-
-        renderComponent();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.getByTestId('ConciergeThinkingMessage')).toBeTruthy();
     });
 
     it('should show reject educational modal when reject option is selected and explanation has NOT been dismissed', async () => {
@@ -307,5 +309,81 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         // Modal should NOT be shown; original handler should be called directly
         expect(screen.queryByTestId('HoldOrRejectEducationalModal')).toBeNull();
         expect(mockOriginalRejectOnSelected).toHaveBeenCalled();
+    });
+
+    it('shows the empty state when only the stored loading flag is true', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
+        expect(screen.queryByTestId('MockMoneyRequestReportTransactionList')).toBeNull();
+    });
+
+    it('keeps the loading list mounted when only the report pending state is true', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockMoneyRequestReportTransactionList')).toBeTruthy();
+        expect(screen.getByTestId('MockInitialReportActionsSkeleton')).toBeTruthy();
+        expect(screen.queryByTestId('MockSearchMoneyRequestReportEmptyState')).toBeNull();
+        expect(mockUseIsReportLoadPending).toHaveBeenCalledWith(FAKE_REPORT_ID);
+    });
+
+    it('shows a warm empty report without a skeleton or loading list while a report request is pending', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
+        expect(screen.queryByTestId('MockMoneyRequestReportTransactionList')).toBeNull();
+        expect(screen.queryByTestId('MockInitialReportActionsSkeleton')).toBeNull();
+    });
+
+    it('shows cached empty behavior for an offline queued report load', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
+        expect(screen.queryByTestId('MockMoneyRequestReportTransactionList')).toBeNull();
+        expect(screen.queryByTestId('MockInitialReportActionsSkeleton')).toBeNull();
     });
 });

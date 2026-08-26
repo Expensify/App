@@ -16,6 +16,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 
 describe('ReportActionsUtils', () => {
     describe('validateAmount', () => {
@@ -207,7 +208,8 @@ describe('ReportActionsUtils', () => {
         describe('invalid inputs', () => {
             it('should return false for nullish and NaN values', () => {
                 expect(isValidMoneyRequestAmount(undefined, CONST.IOU.TYPE.SUBMIT)).toBe(false);
-                expect(isValidMoneyRequestAmount(null as unknown as number, CONST.IOU.TYPE.SUBMIT)).toBe(false);
+                // @ts-expect-error -- Deliberately verifies the defensive runtime behavior for null input.
+                expect(isValidMoneyRequestAmount(null, CONST.IOU.TYPE.SUBMIT)).toBe(false);
                 expect(isValidMoneyRequestAmount(NaN, CONST.IOU.TYPE.SUBMIT)).toBe(false);
             });
         });
@@ -274,15 +276,15 @@ describe('ReportActionsUtils', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
         } as Report;
 
-        const unreportedTransaction = {
+        const unreportedTransaction = createMock<Transaction>({
             reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             amount: 0,
-        } as Transaction;
+        });
 
-        const reportedTransaction = {
+        const reportedTransaction = createMock<Transaction>({
             reportID: '123',
             amount: 0,
-        } as Transaction;
+        });
 
         describe('empty merchants', () => {
             it('should return true for empty/undefined merchant when transaction is unreported or IOU', () => {

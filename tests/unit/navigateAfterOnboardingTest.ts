@@ -20,7 +20,7 @@ const ONBOARDING_POLICY_ID = '2';
 const REPORT_ID = '3';
 const USER_ID = '4';
 const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
-const mockShouldOpenOnAdminRoom = jest.fn();
+const mockShouldOpenOnAdminRoom = jest.fn(() => false);
 const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
@@ -71,7 +71,7 @@ jest.mock('@libs/ReportUtils', () => ({
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     __esModule: true,
-    default: () => mockShouldOpenOnAdminRoom() as boolean,
+    default: () => mockShouldOpenOnAdminRoom(),
 }));
 
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
@@ -97,7 +97,7 @@ describe('navigateAfterOnboarding', () => {
         const testSession = {email: 'realaccount@gmail.com'};
 
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
 
     it('should navigate to home if onboardingAdminsChatReportID is not provided on larger screens and no report is topmost', () => {
@@ -106,7 +106,7 @@ describe('navigateAfterOnboarding', () => {
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
         // Without an admins chat report, we fall back to HOME to trigger guard evaluation instead of opening a report.
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
     it('should preserve the topmost report if onboardingAdminsChatReportID is not provided on larger screens', () => {
@@ -162,7 +162,7 @@ describe('navigateAfterOnboarding', () => {
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
 
         navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID), undefined);
     });
 
     it('should pass reportNameValuePairs when looking up last accessed report', () => {
@@ -183,12 +183,12 @@ describe('navigateAfterOnboarding', () => {
         const testSession = {email: 'test+account@gmail.com'};
 
         navigateAfterOnboarding(true, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID), undefined);
     });
 
     it('should navigate to the admin room when the inboxAdminsBespoke variant is assigned', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
-        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE);
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE});
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
 });

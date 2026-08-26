@@ -1,14 +1,16 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, magic code]
+keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, security code]
 ---
+
+# Account Settings
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
 
 ---
 
-# Profile Customization Options
+## How to customize your profile 
 
 You can update the following profile settings:
 
@@ -23,7 +25,59 @@ You can update the following profile settings:
 - **Personal Information** – Add or update your legal name, date of birth, phone number, and address.
 
 ---
-# Supported Languages
+
+## How to upload a profile photo
+
+To upload or update a profile photo:
+
+1. In the navigation tabs, click **Account > Profile**.
+2. Click the pencil icon next to your profile image.
+3. Select **Upload Image** and choose a new photo.
+
+---
+
+## How to set a custom avatar
+
+To use an avatar instead of a profile photo:
+
+1. In the navigation tabs, click **Account > Profile**.
+2. Click the pencil icon next to your profile image.
+3. Scroll down to **Or choose a custom avatar**.
+4. Select an avatar in your desired colored palette.
+5. Click **Save**.
+
+---
+
+## How to set your timezone manually
+
+To manually set or update your timezone:
+
+1. Go to **Account > Profile**.
+2. Click **Timezone**.
+3. Turn off **Automatically determine your location**.
+4. Click **Timezone**
+5. Select the your time zone from the list.
+6. Click **Save**.
+
+---
+
+## How to set your language
+
+To set or change your language:
+
+1. In the navigation tabs, select **Account > Preferences**.
+2. Tap or click on **Language**.
+3. Choose your preferred language from the list.
+4. The checkmark will confirm the selected language.
+5. Your account will update automatically to reflect the new language setting.
+
+**Note:** Language changes affect your personal account view only. Workspace members must update their own preferences individually.
+
+---
+
+## What languages does Expensify support
+
+Expensify supports the following languages:
 
    - English
    - German (Deutsch)
@@ -33,78 +87,58 @@ You can update the following profile settings:
    - Dutch (Nederlands)
    - Polish (Polski)
    - Portuguese (Português – Brasil)
+   - Greek (Ελληνικά)
    - Japanese (日本語)
    - Chinese (中文 (简体))
 
 ---
 
-# How to Update Profile and Preferences
-
-## Profile Photo
-
-To upload or update your photo:
-1. In the navigation tabs, click **Account > Profile**.
-2. Click the pencil icon next to your profile image.
-3. Select **Upload Image** and choose a new photo.
-
-## Customized Avatar  
-
-To choose an avatar instead of a photo:
-1. In the navigation tabs, click **Account > Profile**.
-2. Click the pencil icon next to your profile image.
-3. Scroll down to **Or choose a custom avatar**.
-4. Select an avatar in your desired colored palette.
-5. Click **Save**.
-
-## Timezone
-
-To update your timezone:
-1. Go to **Account > Profile**.
-2. Click **Timezone** and select the correct time zone from the list.
-
-## Language
-To change your language:
-1. In the navigation tabs, select **Account > Preferences**.
-2. Tap or click on **Language**.
-3. Choose your preferred language from the list.
-4. The checkmark will confirm the selected language.
-5. Your account will update automatically to reflect the new language setting.
-
-**Note:** Language changes affect your personal account view only. Workspace members must update their own preferences individually.
-
-## Notifications
+## How to manage notification settings
 
 To manage notification settings:
+
 1. Go to **Account > Preferences > App preferences**.
 2. Adjust the notification toggles:
    - **Receive relevant feature updates and Expensify news**
    - **Mute all sounds from Expensify**
+  
+---
 
-## Status
+## How to set a profile status 
 
-To set a status message:
+Set your profile status with an emoji and optional message.
+
 1. Go to **Account > Profile**.
 2. Click **Status** and enter your custom message.
 3. (Optional) Add an emoji.
 4. Choose when to clear the status (e.g., 1 hour, 1 day, or Never).
 5. Click **Save**.
 
-## Pronouns
+---
 
-To update your pronouns:
+## How to set your pronouns
+
+To set or update your pronouns:
+
 1. Go to **Account > Profile**.
 2. Click **Pronouns**.
 3. Choose your pronouns from the list of options.
 4. Click **Save**.
 
-## How to change your theme
+---
+
+## How to change the appearance theme
 
 To change the app’s appearance:
+
 1. Go to **Account > Preferences**.
 2. Click **Theme** and choose from:
-   - **Dark Mode**
-   - **Light Mode**
-   - **Use Device Settings**
+   - **Light**
+   - **Dark**
+   - **Use device settings**
+3. Click **Save**.
+
+---
 
 ## How to enable high contrast mode
 
@@ -113,10 +147,13 @@ High contrast mode increases the visual contrast of UI elements, making text and
 1. Go to **Account > Preferences**.
 2. Click **Theme**.
 3. Toggle **High contrast mode** on.
+4. Click **Save**.
 
 You can also enable high contrast mode from the [login page](https://new.expensify.com/) by selecting **Enable high contrast**.
 
-## How to update personal information
+---
+
+## How to update your personal information
 
 To update your legal name, date of birth, phone number, or address:
 1. Go to **Account > Profile**.
@@ -124,11 +161,13 @@ To update your legal name, date of birth, phone number, or address:
 3. Click **Legal Name**, **Date of Birth**, **Phone Number**, or **Address**.
 4. Enter the updated information.
 5. Click **Save**.
-6. Enter the magic code sent to your email or phone to verify the changes.
+6. Enter the security code sent to your email or phone to verify the changes.
 
 When typing in the **Address line 1** field, a list of address suggestions appears. Select a suggestion to auto-populate the address fields including city, state, ZIP code, and country.
 
 If no address is saved, the **Country** field is pre-filled based on your current location.
+
+---
 
 ## How to update your display name or legal name
 
@@ -140,7 +179,7 @@ To edit your legal name:
 1. Go to **Account > Profile**.
 2. Scroll to **Private** and click **Legal Name**.
 3. Enter the updated information and click **Save**.
-4. Enter the magic code sent to you to verify the change.
+4. Enter the security code sent to you to verify the change.
 
 ---
 

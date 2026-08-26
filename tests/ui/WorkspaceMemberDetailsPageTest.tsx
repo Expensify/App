@@ -1,9 +1,11 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -37,7 +39,7 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.MEMBER_DETAILS]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, ModalProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrentReportIDContextProvider, ModalProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.MEMBER_DETAILS}>
@@ -190,6 +192,38 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should show the unable-to-remove modal when the member is a RuleBot enforcing agent rules', async () => {
+        // The invited member acts as the workspace RuleBot with an active agent rule
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                ruleBotAccountID: invitedAccountID,
+                rules: {
+                    agentRules: {
+                        rule1: {ruleID: 'rule1', prompt: 'Flag all weekend expenses', created: '2025-01-01 00:00:00'},
+                    },
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle')));
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('workspace.rules.agentRules.unableToRemoveTitle'))).toBeOnTheScreen();
+        });
+        expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeMemberTitle'))).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should show the not found page when the accountID matches no workspace member', async () => {
         const {unmount} = renderPage({policyID: policy.id, accountID: '999999'});
         await waitForBatchedUpdatesWithAct();
@@ -198,6 +232,23 @@ describe('WorkspaceMemberDetailsPage', () => {
             expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
         });
         expect(screen.queryByTestId('WorkspaceMemberDetailsPage')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should render the read-only role of the owner at full opacity and without a caret', async () => {
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const roleItem = await screen.findByTestId('member-role-menu-item');
+
+        // The owner's role stays disabled so the edit flow cannot be opened...
+        expect(roleItem).toBeDisabled();
+
+        // ...but it must not be dimmed or keep the caret, so it matches the other read-only fields.
+        expect(roleItem).not.toHaveStyle({opacity: 0.5});
+        expect(within(roleItem).queryByTestId('ArrowRight Icon')).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

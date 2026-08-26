@@ -1,18 +1,18 @@
+/**
+ * Clears the prefetch on app start.
+ */
 import Log from '@libs/Log';
-import PrefetchQueries from '@libs/Prefetch/PrefetchQueries';
 
-import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
+import {clearTokenRefresh, removeAllFromAutoprefetch} from 'react-native-nitro-fetch';
 
 import type ClearPrefetchOnAppStart from './types';
 
-const clearPrefetchOnAppStart: ClearPrefetchOnAppStart = () => {
+const clearPrefetchOnAppStart: ClearPrefetchOnAppStart = async () => {
     clearTokenRefresh('fetch');
 
-    for (const command of PrefetchQueries) {
-        removeFromAutoPrefetch(command).catch((error) => {
-            Log.warn(`[HttpUtils] removeFromAutoPrefetch failed for ${command}`, {error});
-        });
-    }
+    await removeAllFromAutoprefetch().catch((error) => {
+        Log.warn('[HttpUtils] removeAllFromAutoprefetch failed', {error});
+    });
 };
 
 export default clearPrefetchOnAppStart;

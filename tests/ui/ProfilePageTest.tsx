@@ -21,6 +21,8 @@ import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
+// eslint-disable-next-line no-restricted-imports -- React Native Text is required only to type the actual Jest module export; this does not import it at runtime.
+import type {Text as ReactNativeText} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -29,6 +31,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
+import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -41,8 +44,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<{Text: typeof ReactNativeText}>('react-native');
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');
@@ -71,8 +74,8 @@ jest.mock('@react-navigation/native', () => {
 
 // Replace MenuItemWithTopDescription with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{testID: string; children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<{Text: typeof ReactNativeText}>('react-native');
     return ({pressableTestID, brickRoadIndicator}: {pressableTestID: string; brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
         ReactMock.createElement(Text, {testID: pressableTestID}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
 });
@@ -91,7 +94,7 @@ describe('ProfilePage contact method indicator', () => {
     function renderPage() {
         return render(
             <NavigationContainer>
-                <ComposeProviders components={[DelegateNoAccessModalProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, DelegateNoAccessModalProvider]}>
                     <ProfilePage
                         // @ts-expect-error - route typing is not necessary for this test
                         route={{}}
@@ -217,7 +220,7 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    async function setupUser(email: string) {
+    async function setupUser(email: string, isCustomAgent = false) {
         const accountID = 123;
         await TestHelper.signInWithTestUser(accountID, email);
 
@@ -228,6 +231,7 @@ describe('ProfilePage - agent account', () => {
                 displayName: email,
                 avatar: 'https://example.com/avatar.png',
                 avatarThumbnail: 'https://example.com/avatar.png',
+                isCustomAgent,
             } as PersonalDetails,
         };
 
@@ -240,7 +244,7 @@ describe('ProfilePage - agent account', () => {
     }
 
     it('shows contact methods and private section but hides pronouns and timezone for agent account', async () => {
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
@@ -265,7 +269,7 @@ describe('ProfilePage - agent account', () => {
 
     it('shows AI prompt section with prompt text for agent account', async () => {
         const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -295,7 +299,7 @@ describe('ProfilePage - agent account', () => {
 
     it('calls openProfilePage on mount for agent account', async () => {
         const mockOpenProfilePage = jest.mocked(AgentActions.openProfilePage);
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
@@ -316,7 +320,7 @@ describe('ProfilePage - agent account', () => {
     it('calls updateAgentPrompt when saving non-empty prompt', async () => {
         const accountID = 123;
         const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -339,7 +343,7 @@ describe('ProfilePage - agent account', () => {
 
     it('does not show loading state on save button for a pending prompt update that was not user-initiated', async () => {
         const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -352,13 +356,13 @@ describe('ProfilePage - agent account', () => {
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
-        expect(saveButtonProps.accessibilityState?.disabled).toBe(false);
+        const saveButtonAccessibilityState: unknown = screen.getByTestId('save-prompt-button').props.accessibilityState;
+        expect(isObject(saveButtonAccessibilityState) ? saveButtonAccessibilityState.disabled : undefined).toBe(false);
     });
 
     it('shows loading state on save button while a user-initiated prompt update is pending', async () => {
         const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -382,14 +386,14 @@ describe('ProfilePage - agent account', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
-        expect(saveButtonProps.accessibilityState?.disabled).toBe(true);
+        const saveButtonAccessibilityState: unknown = screen.getByTestId('save-prompt-button').props.accessibilityState;
+        expect(isObject(saveButtonAccessibilityState) ? saveButtonAccessibilityState.disabled : undefined).toBe(true);
     });
 
     it('allows re-saving an edited prompt while offline even when a previous save is still pending', async () => {
         const accountID = 123;
         const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             // Simulate a first offline save that is queued but not yet replayed: pendingAction stays 'update',
@@ -414,7 +418,7 @@ describe('ProfilePage - agent account', () => {
 
     it('clears save loader when network drops mid-save', async () => {
         const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -440,8 +444,8 @@ describe('ProfilePage - agent account', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const loadingButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
-        expect(loadingButtonProps.accessibilityState?.disabled).toBe(true);
+        const loadingButtonAccessibilityState: unknown = screen.getByTestId('save-prompt-button').props.accessibilityState;
+        expect(isObject(loadingButtonAccessibilityState) ? loadingButtonAccessibilityState.disabled : undefined).toBe(true);
 
         // Network drops while the request is still in flight: pendingAction stays 'update'.
         await act(async () => {
@@ -449,14 +453,14 @@ describe('ProfilePage - agent account', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const offlineButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
-        expect(offlineButtonProps.accessibilityState?.disabled).toBe(false);
+        const offlineButtonAccessibilityState: unknown = screen.getByTestId('save-prompt-button').props.accessibilityState;
+        expect(isObject(offlineButtonAccessibilityState) ? offlineButtonAccessibilityState.disabled : undefined).toBe(false);
     });
 
     it('does not call updateAgentPrompt when saving blank prompt', async () => {
         const accountID = 123;
         const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {

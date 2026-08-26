@@ -1,15 +1,33 @@
-import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
+import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-// eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getConnectedHRProvider} from '@libs/HRUtils';
+import {
+    canSendInvoice,
+    getActiveAdminWorkspaces,
+    getActivePoliciesWithExpenseChat,
+    getOwnedPaidPolicies,
+    getPolicyIDFromDomainName,
+    getPolicyRole,
+    hasPolicyWithXeroConnection,
+    // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPerDiemEligiblePolicy,
+    isPolicyAdmin,
+    isArchivedPolicy,
+    isTimeTrackingEnabled,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField} from '@src/types/onyx';
-import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
+import type {Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import escapeRegExp from 'lodash/escapeRegExp';
 
@@ -18,9 +36,8 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT
     | typeof CONST.POLICY.CONNECTIONS.NAME.QBD
     | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA
-    | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET;
-
-const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
+    | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
@@ -64,6 +81,9 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
     /** Whether the policy is optimistically pending deletion */
     isPendingDelete: boolean;
 
+    /** Whether the policy has been archived */
+    isArchived: boolean;
+
     /** Whether the current user has a pending request to join the policy */
     isJoinRequestPending: boolean;
 
@@ -82,14 +102,15 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
  * employeeList, customUnits, connections, etc.).
  */
 const createWorkspaceListPoliciesSelector =
-    (currentUserLogin: string | undefined) =>
+    (currentUserLogin: string | undefined, showArchived = false) =>
     (policies: OnyxCollection<Policy>): WorkspaceListPolicy[] => {
         const result: WorkspaceListPolicy[] = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin)) {
+            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin, showArchived)) {
                 continue;
             }
 
+            const isArchived = isArchivedPolicy(policy);
             const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
             let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
             if (isJoinRequestPending) {
@@ -113,12 +134,13 @@ const createWorkspaceListPoliciesSelector =
                 id: policy.id,
                 name: policy.name,
                 type: policy.type,
-                role: policy.role,
+                role: getPolicyRole(policy, currentUserLogin) as ValueOf<typeof CONST.POLICY.ROLE>,
                 ownerAccountID: policy.ownerAccountID,
                 avatarURL: policy.avatarURL,
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 isPendingDelete: isPendingDeletePolicy(policy),
+                isArchived,
                 isJoinRequestPending,
                 nonMemberDetails,
             });
@@ -128,7 +150,88 @@ const createWorkspaceListPoliciesSelector =
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
-const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
+type BrokenPolicyConnection = {
+    /** The policy ID associated with this connection */
+    policyID: string;
+
+    /** The policy name associated with this connection */
+    policyName: string;
+
+    /** The connection name that has an error */
+    connectionName: PolicyConnectionName;
+
+    /** Human-readable integration name (e.g. "QuickBooks Online", "Gusto", "BambooHR"). */
+    integrationName: string;
+};
+
+/** Only what the Time sensitive widgets read, so the section never deep-compares whole policies */
+type TimeSensitiveAdminPolicy = Pick<Policy, 'id' | 'name' | 'achAccount' | 'policyAccountID'>;
+
+type TimeSensitiveAdminPolicies = {
+    policies: TimeSensitiveAdminPolicy[];
+    brokenConnections: BrokenPolicyConnection[];
+};
+
+// derive the broken-connection verdict here: the sync-progress check needs the policy's `connections`
+const createTimeSensitiveAdminPoliciesSelector =
+    (currentUserLogin: string | undefined, connectionSyncProgress: OnyxCollection<PolicyConnectionSyncProgress>) =>
+    (policies: OnyxCollection<Policy>): TimeSensitiveAdminPolicies => {
+        const result: TimeSensitiveAdminPolicies = {policies: [], brokenConnections: []};
+
+        for (const policy of getActiveAdminWorkspaces(policies, currentUserLogin)) {
+            result.policies.push({
+                id: policy.id,
+                name: policy.name,
+                achAccount: policy.achAccount,
+                policyAccountID: policy.policyAccountID,
+            });
+
+            const policyConnections = policy.connections;
+            if (!policyConnections) {
+                continue;
+            }
+
+            // Check if there's a sync in progress for this policy using the proper check that handles JOB_DONE and timeout
+            const syncProgress = connectionSyncProgress?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
+            const isSyncInProgress = isConnectionInProgress(syncProgress, policy);
+
+            for (const [connectionName] of ObjectUtils.typedEntries(policyConnections)) {
+                if (!hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
+                    continue;
+                }
+                const integrationName =
+                    connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR
+                        ? (getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])
+                        : CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+                result.brokenConnections.push({
+                    policyID: policy.id,
+                    policyName: policy.name,
+                    connectionName,
+                    integrationName,
+                });
+            }
+        }
+
+        return result;
+    };
+
+// boolean out, so subscribers don't deep-compare a policy array on every policy_ write
+const createHasAdminPolicyWithXeroConnectionSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
+
+const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+/**
+ * Creates a selector returning only whether the user has any active workspace they can submit expenses to
+ * (paid Collect/Control workspaces, plus free Submit (submit2026) workspaces),
+ * so subscribers don't re-render when anything else on the policy collection changes.
+ */
+const createHasWorkspaceToSubmitToSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        getActivePoliciesWithExpenseChat(policies, currentUserLogin).length > 0;
 
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,
@@ -149,12 +252,7 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
 };
 
 const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
-    const policyIDs = new Set(
-        domainNames
-            .map((domainName) => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1])
-            .filter((policyID): policyID is string => !!policyID)
-            .map((policyID) => policyID.toUpperCase()),
-    );
+    const policyIDs = new Set(domainNames.map(getPolicyIDFromDomainName).filter((policyID): policyID is string => !!policyID));
 
     return (policies: OnyxCollection<Policy>) => {
         if (policyIDs.size === 0) {
@@ -181,8 +279,11 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
 
 type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
-const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
-    (policy && {
+const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => {
+    if (!policy) {
+        return undefined;
+    }
+    return {
         type: policy.type,
         role: policy.role,
         id: policy.id,
@@ -191,42 +292,55 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
         avatarURL: policy.avatarURL,
         name: policy.name,
         areInvoicesEnabled: policy.areInvoicesEnabled,
-    }) as PolicySelector;
+    };
+};
 
-// deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
-const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
-    if (!policies) {
-        return {};
-    }
+type IOURequestStartPolicies = {
+    hasPerDiemPolicy: boolean;
+    hasMultiplePerDiemPolicies: boolean;
+    firstPerDiemPolicyID: string | undefined;
+    hasTimePolicy: boolean;
+    hasMultipleTimePolicies: boolean;
+    firstTimePolicyID: string | undefined;
 
-    const result: Record<string, Policy> = {};
+    /** false unless the invoice flow asked for it */
+    canSendInvoiceFromAnyWorkspace: boolean;
+};
 
-    for (const [id, policyItem] of Object.entries(policies)) {
-        if (!policyItem) {
-            continue;
+// Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual and no growing ID list
+const createIOURequestStartPoliciesSelector =
+    (currentUserLogin: string | undefined, isInvoice: boolean) =>
+    (policies: OnyxCollection<Policy>): IOURequestStartPolicies => {
+        let perDiemCount = 0;
+        let timeCount = 0;
+        let firstPerDiemPolicyID: string | undefined;
+        let firstTimePolicyID: string | undefined;
+
+        for (const policy of getActivePoliciesWithExpenseChat(policies, currentUserLogin)) {
+            if (perDiemCount < 2 && isPerDiemEligiblePolicy(policy)) {
+                firstPerDiemPolicyID ??= policy.id;
+                perDiemCount++;
+            }
+            if (timeCount < 2 && isTimeTrackingEnabled(policy)) {
+                firstTimePolicyID ??= policy.id;
+                timeCount++;
+            }
+            // counts cap at 2, nothing downstream needs the real total
+            if (perDiemCount >= 2 && timeCount >= 2) {
+                break;
+            }
         }
 
-        result[id] = {
-            id: policyItem.id,
-            type: policyItem.type,
-            name: policyItem.name,
-            pendingAction: policyItem.pendingAction,
-            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
-            role: policyItem.role,
-            chatReportIDAdmins: policyItem.chatReportIDAdmins,
-            employeeList: policyItem.employeeList,
-            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
-            customUnits: policyItem.customUnits,
-            units: policyItem.units,
-            isJoinRequestPending: policyItem.isJoinRequestPending,
-            errors: policyItem.errors,
-            owner: policyItem.owner,
-            areInvoicesEnabled: policyItem.areInvoicesEnabled,
-        } as Policy;
-    }
-
-    return result;
-};
+        return {
+            hasPerDiemPolicy: perDiemCount > 0,
+            hasMultiplePerDiemPolicies: perDiemCount > 1,
+            firstPerDiemPolicyID,
+            hasTimePolicy: timeCount > 0,
+            hasMultipleTimePolicies: timeCount > 1,
+            firstTimePolicyID,
+            canSendInvoiceFromAnyWorkspace: isInvoice && canSendInvoice(policies, currentUserLogin),
+        };
+    };
 
 type FilteredPoliciesInfo = {
     /** Number of policies that should be shown to the user (short-circuited at 2) */
@@ -279,12 +393,16 @@ const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =
 const adminPoliciesConnectedToRilletSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET));
 
+const adminPoliciesConnectedToDualEntrySelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY));
+
 const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: adminPoliciesConnectedToQBDSelector,
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: adminPoliciesConnectedToCertiniaSelector,
     [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: adminPoliciesConnectedToDualEntrySelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
@@ -337,7 +455,11 @@ const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
+
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
+
+const policyACHAccountNumberSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.accountNumber;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
     return (policies: OnyxCollection<Policy> | null): boolean => {
@@ -360,14 +482,18 @@ const createAdminPoliciesSelector =
             if (!isCurrentPolicy && (policy.type === CONST.POLICY.TYPE.PERSONAL || policy.role !== CONST.POLICY.ROLE.ADMIN)) {
                 return acc;
             }
-            acc[key] = {id: policy.id, name: policy.name, avatarURL: policy.avatarURL, created: policy.created};
+            acc[key] = {
+                id: policy.id,
+                name: policy.name,
+                avatarURL: policy.avatarURL,
+                created: policy.created,
+            };
             return acc;
         }, {});
     };
 
-export type {PolicySelector};
+export type {PolicySelector, TimeSensitiveAdminPolicy};
 export {
-    activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
@@ -376,9 +502,12 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    createHasAdminPolicyWithXeroConnectionSelector,
+    createTimeSensitiveAdminPoliciesSelector,
+    createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
-    iouRequestPolicyCollectionSelector,
+    createIOURequestStartPoliciesSelector,
     policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
@@ -386,8 +515,10 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     policyNameSelector,
+    policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
+    policyACHAccountNumberSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };

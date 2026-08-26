@@ -39,7 +39,7 @@ const defaultListOptions = {
 
 function ShareTab() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -61,6 +61,7 @@ function ShareTab() {
     const {options: listOptions, isLoading} = useFilteredOptions({
         enabled: didScreenTransitionEnd,
         isSearching: !!debouncedTextInputValue.trim(),
+        includeP2P: true,
     });
     const areOptionsInitialized = !isLoading;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -70,6 +71,7 @@ function ShareTab() {
 
     const searchOptions = areOptionsInitialized
         ? getSearchOptions({
+              dateFnsLocale,
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
               betas: betas ?? [],
@@ -88,6 +90,7 @@ function ShareTab() {
               sortedActions,
               conciergeReportID,
               isTrackIntentUser,
+              translate,
           }).options
         : defaultListOptions;
 

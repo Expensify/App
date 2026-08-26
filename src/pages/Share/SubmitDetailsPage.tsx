@@ -4,6 +4,7 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -13,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -36,7 +38,7 @@ import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
+import {getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,17 +46,21 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
-import {logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
+import {logReceiptAdoptFailed, logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
+import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
+import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -71,13 +77,15 @@ import {showErrorAlert} from './ShareRootPage';
 import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
+
 function SubmitDetailsPage({
     route: {
         params: {reportOrAccountID},
     },
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
@@ -88,6 +96,7 @@ function SubmitDetailsPage({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionReport?.reportID)}`);
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     // Self-DM's FAKE policyID can't load real policy data — usePolicyForTransaction resolves the active workspace instead.
     const {policy} = usePolicyForTransaction({
@@ -125,7 +134,13 @@ function SubmitDetailsPage({
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
+    // Set when the destination report didn't exist at submit time (e.g. a brand-new recipient) — the expense create
+    // writes it optimistically, and we keep the confirm button in its loading state until it lands so dismissing doesn't flash the inbox.
+    const [pendingNavigationReportID, setPendingNavigationReportID] = useState<string | undefined>(undefined);
+    const [pendingNavigationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(pendingNavigationReportID)}`);
+    const hasStartedPendingNavigation = useRef(false);
     const formHasBeenSubmitted = useRef(false);
+    const hasCalledReveal = useRef(false);
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
@@ -137,6 +152,8 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const {isOffline} = useNetwork();
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
 
     const hasEndedOpenSubmitFlowSpan = useRef(false);
     const endOpenSubmitFlowSpan = () => {
@@ -173,14 +190,13 @@ function SubmitDetailsPage({
             report,
             parentReport,
             currentDate,
-            currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });
         // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
+    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies]);
 
     // Use the branch-aware values computed above: for a share that needs conversion (e.g. HEIC), these resolve to the
     // converted JPEG from VALIDATED_FILE_OBJECT; otherwise they fall back to the raw attachment. Re-deriving from
@@ -212,13 +228,15 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
+                  translate,
+                  dateFnsLocale,
+              });
     });
 
     const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
     const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
     const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
-    const {isOffline} = useNetwork();
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     const defaultBillable = !!policy?.defaultBillable;
@@ -243,7 +261,8 @@ function SubmitDetailsPage({
     const transactionAmount = transaction?.amount ?? 0;
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const taxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxCode = resolveCurrentTaxCode(policy, taxCode);
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -251,13 +270,88 @@ function SubmitDetailsPage({
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const listOfParticipants = participants.filter((participant) => participant.selected);
     const participant = listOfParticipants.at(0) ?? selectedParticipants.at(0);
-    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy});
+    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy, reportNameValuePair});
+    const postSubmitNavigationReportID = (isSelfDM(report) ? report : reportToSubmit)?.reportID ?? reportOrAccountID;
     const isIouReport = isMoneyRequestReport(reportToSubmit);
     const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
         moneyRequestReportID: isIouReport ? reportToSubmit?.reportID : undefined,
         parentChatReportPolicyID: reportToSubmit?.policyID,
         participantReportID: participant?.reportID,
     });
+
+    const hasNavigationDestination = !!transaction && !!postSubmitNavigationReportID;
+    // Empty draft skips REPORT_DRAFT fallback — report must be in COLLECTION.REPORT to render behind the share modal.
+    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport(postSubmitNavigationReportID, undefined, undefined, {}) : undefined;
+    // Destination report isn't in COLLECTION.REPORT yet (e.g. a recipient with no existing chat) — it will only
+    // exist after the expense create writes it optimistically, so pre-mounting is impossible.
+    const isDestinationReportMissing = hasNavigationDestination && !destinationReportInCollection?.reportID;
+    // Keep pre-mount off while pending navigation owns the reveal — otherwise once the optimistic
+    // report lands, isDestinationReportMissing flips false and usePreMountDestination would schedule
+    // a narrow pre-insert alongside the pending revealRouteBeforeDismissingModal (dual nav).
+    const preMountDestinationRoute = getSubmitExpensePreMountDestinationRoute({
+        isTransactionReady: hasNavigationDestination && !isDestinationReportMissing && !pendingNavigationReportID,
+        destinationReportID: postSubmitNavigationReportID,
+        destinationReport: destinationReportInCollection,
+        isFromGlobalCreate: false,
+        canPreInsertSearch: false,
+        iouType,
+        isCreatingTrackExpense,
+        isSelfDMDestination: isSelfDM(report),
+        isLookingAroundUser,
+        isMovingTransactionFromTrackExpense: false,
+    });
+
+    const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
+        shouldPreservePreInsertedRouteOnUnmount: () => hasCalledReveal.current,
+    });
+
+    // Single entry point for the pending-navigation reveal — the ref guard makes it safe to call from either
+    // path below, so whichever fires first wins and the other becomes a no-op.
+    const revealPendingNavigation = (reportID: string) => {
+        if (hasStartedPendingNavigation.current) {
+            return;
+        }
+        hasStartedPendingNavigation.current = true;
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {
+            afterTransition: () => {
+                setIsConfirming(false);
+            },
+        });
+    };
+
+    // Once the optimistically created destination report lands in Onyx, reveal it directly over the modal —
+    // navigating before it exists would dismiss to the inbox and flash it while the report screen mounts.
+    useEffect(() => {
+        if (!pendingNavigationReportID || !pendingNavigationReport?.reportID) {
+            return;
+        }
+        revealPendingNavigation(pendingNavigationReportID);
+    }, [pendingNavigationReportID, pendingNavigationReport?.reportID, revealPendingNavigation]);
+
+    // Fallback: if optimistic report lands under different ID, still reveal to intended destination after timeout.
+    useEffect(() => {
+        if (!pendingNavigationReportID || hasStartedPendingNavigation.current || pendingNavigationReport?.reportID) {
+            return;
+        }
+
+        const timeoutId = setTimeout(() => revealPendingNavigation(pendingNavigationReportID), 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [pendingNavigationReportID, pendingNavigationReport?.reportID, revealPendingNavigation]);
+
+    // Timeout for pending report arrival — if optimistic write doesn't land within 5s, something's broken anyway.
+    // Fallback dismisses spinner and lets user navigate back without indefinite hang.
+    useEffect(() => {
+        if (!pendingNavigationReportID) {
+            return;
+        }
+
+        const timeoutId = setTimeout(() => {
+            setIsConfirming(false);
+        }, 5000);
+
+        return () => clearTimeout(timeoutId);
+    }, [pendingNavigationReportID]);
 
     const finishRequestAndNavigate = (receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction || !participant) {
@@ -276,106 +370,162 @@ function SubmitDetailsPage({
             iouType,
         });
 
-        if (isSelfDM(report)) {
-            trackExpense({
-                report: report ?? {reportID: reportOrAccountID},
-                isDraftPolicy: false,
-                isDraftChatReport: !!reportDraft,
-                participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTags, policyCategories},
-                action: CONST.IOU.TYPE.CREATE,
-                transactionParams: {
-                    attendees: transaction.comment?.attendees,
-                    amount: transactionAmount,
-                    currency: transaction.currency,
-                    comment: trimmedComment,
-                    receipt,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    taxCode: transactionTaxCode,
-                    taxAmount: transactionTaxAmount,
-                    taxValue: transactionTaxValue,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    merchant: transaction.merchant ?? '',
-                    created: transaction.created,
-                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
-                    isLinkedTrackedExpenseReportArchived,
-                    gpsPoint,
-                },
-                existingTransaction: transaction,
-                isASAPSubmitBetaEnabled,
-                currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
-                introSelected,
-                conciergeChat,
-                quickAction,
-                recentWaypoints,
-                betas,
-                draftTransactionIDs,
-                isSelfTourViewed,
-                optimisticTransactionID,
-                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-                delegateAccountID,
-                reportActionsList: undefined,
-            });
-        } else {
-            const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+        const performExpenseCreate = () => {
+            if (isSelfDM(report)) {
+                trackExpense({
+                    getCurrencyDecimals,
+                    report: report ?? {reportID: reportOrAccountID},
+                    isDraftPolicy: false,
+                    isDraftChatReport: !!reportDraft,
+                    participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
+                    policyParams: {policy, policyTagList: policyTags, policyCategories},
+                    action: CONST.IOU.TYPE.CREATE,
+                    transactionParams: {
+                        attendees: transaction.comment?.attendees,
+                        amount: transactionAmount,
+                        currency: transaction.currency,
+                        comment: trimmedComment,
+                        receipt,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        merchant: transaction.merchant ?? '',
+                        created: transaction.created,
+                        actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                        isLinkedTrackedExpenseReportArchived,
+                        gpsPoint,
+                    },
+                    existingTransaction: transaction,
+                    isASAPSubmitBetaEnabled,
+                    currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
+                    introSelected,
+                    conciergeChat,
+                    quickAction,
+                    recentWaypoints,
+                    betas,
+                    draftTransactionIDs,
+                    isSelfTourViewed,
+                    optimisticTransactionID,
+                    currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                    delegateAccountID,
+                    reportActionsList: undefined,
+                });
+            } else {
+                const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-            requestMoney({
-                report: reportToSubmit,
-                participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTagsForRequestMoney, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
-                gpsPoint,
-                action: CONST.IOU.TYPE.CREATE,
-                transactionParams: {
-                    attendees: transaction.comment?.attendees,
-                    amount: transactionAmount,
-                    currency: transaction.currency,
-                    comment: trimmedComment,
-                    receipt,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    taxCode: transactionTaxCode,
-                    taxAmount: transactionTaxAmount,
-                    taxValue: transactionTaxValue,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    merchant: transaction.merchant ?? '',
-                    created: transaction.created,
-                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
-                    isLinkedTrackedExpenseReportArchived,
-                },
-                shouldGenerateTransactionThreadReport: false,
-                isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                transactionViolations,
-                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                quickAction,
-                existingTransactionDraft,
-                existingTransaction: storedTransaction ?? transaction,
-                draftTransactionIDs,
-                isSelfTourViewed,
-                betas,
-                personalDetails,
-                optimisticTransactionID,
-                isTrackIntentUser,
-                delegateAccountID,
-            });
-        }
-        cleanupAndNavigateAfterExpenseCreate({
+                requestMoney({
+                    getCurrencyDecimals,
+                    report: reportToSubmit,
+                    participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
+                    policyParams: {policy, policyTagList: policyTagsForRequestMoney, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
+                    gpsPoint,
+                    action: CONST.IOU.TYPE.CREATE,
+                    transactionParams: {
+                        attendees: transaction.comment?.attendees,
+                        amount: transactionAmount,
+                        currency: transaction.currency,
+                        comment: trimmedComment,
+                        receipt,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        merchant: transaction.merchant ?? '',
+                        created: transaction.created,
+                        actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                        isLinkedTrackedExpenseReportArchived,
+                    },
+                    shouldGenerateTransactionThreadReport: false,
+                    isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    transactionViolations,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    quickAction,
+                    existingTransactionDraft,
+                    existingTransaction: storedTransaction ?? transaction,
+                    draftTransactionIDs,
+                    isSelfTourViewed,
+                    conciergeChat,
+                    betas,
+                    personalDetails,
+                    optimisticTransactionID,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                    formatPhoneNumber,
+                    optimisticChatReportID: routeReportID,
+                });
+            }
+        };
+
+        const cleanupParams = {
             report: isSelfDM(report) ? report : reportToSubmit,
             action: CONST.IOU.ACTION.CREATE,
             draftTransactionIDs,
             transactionID: optimisticTransactionID,
             isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-            optimisticChatReportID: reportOrAccountID,
+            optimisticChatReportID: routeReportID,
+            navigationReportID: postSubmitNavigationReportID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-        });
+            isLookingAroundUser,
+            isSelfDMDestination: isSelfDM(report),
+        };
+
+        const runExpenseCreateAndCleanup = (shouldNavigate: boolean) => {
+            performExpenseCreate();
+            cleanupAndNavigateAfterExpenseCreate({...cleanupParams, shouldNavigate});
+        };
+
+        // Share never calls startTracking, so cancel any stale span from a prior flow to avoid the warning
+        // at cleanupAndNavigateAfterExpenseCreate when shouldNavigate: false.
+        cancelTracking();
+
+        if (preMountDestinationRoute) {
+            performExpenseCreate();
+            hasCalledReveal.current = true;
+            revealPreMountDestination(() => {
+                cleanupAndNavigateAfterExpenseCreate({...cleanupParams, shouldNavigate: false});
+                setIsConfirming(false);
+            });
+            return;
+        }
+
+        // Pre-mount wasn't possible because the destination report doesn't exist yet. Create the expense without
+        // navigating — the optimistic write creates the report — and let the pending-navigation effect reveal it
+        // once it lands. isConfirming stays true until the reveal transition ends, so the confirm button keeps
+        // its loading state exactly like the pre-mounted path.
+        if (isDestinationReportMissing) {
+            runExpenseCreateAndCleanup(false);
+            setPendingNavigationReportID(postSubmitNavigationReportID);
+            return;
+        }
+
+        // Wide layout fallback: destination exists but is not topmost — reveal it via dismissal modal instead of pre-insert.
+        const topmostReportId = Navigation.getTopmostReportId();
+        if (topmostReportId !== postSubmitNavigationReportID) {
+            performExpenseCreate();
+            hasCalledReveal.current = true;
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(postSubmitNavigationReportID), {
+                afterTransition: () => {
+                    cleanupAndNavigateAfterExpenseCreate({...cleanupParams, shouldNavigate: false});
+                    setIsConfirming(false);
+                },
+            });
+            return;
+        }
+
+        runExpenseCreateAndCleanup(true);
     };
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
@@ -420,17 +570,31 @@ function SubmitDetailsPage({
             return;
         }
         formHasBeenSubmitted.current = true;
-        readFileAsync(
-            currentReceiptSource,
-            currentReceiptName,
-            (file) => onSuccess(file, locationPermissionGranted),
-            () => {
-                // Allow retry after a file-read failure.
-                formHasBeenSubmitted.current = false;
-                setIsConfirming(false);
-            },
-            currentReceiptType,
-        );
+        // Nothing ever deletes from ReceiptStorage, so we only adopt once the user submits. A cancelled share stays in
+        // the share extension's own folder, which the next share wipes.
+        ReceiptStorage.adopt(currentReceiptSource, currentReceiptName)
+            .then((durableName) => {
+                const uri = ReceiptStorage.toLocalUri(durableName);
+                // The shared path is empty once the move lands, and the draft is what a retry re-reads.
+                setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, uri, currentReceiptName, true, currentReceiptType);
+                return uri;
+            })
+            .catch((error: unknown) => {
+                logReceiptAdoptFailed({error, captureSource: 'share'});
+                return currentReceiptSource;
+            })
+            .then((uri) =>
+                readFileAsync(
+                    uri,
+                    currentReceiptName,
+                    (file) => onSuccess(file, locationPermissionGranted),
+                    () => {
+                        formHasBeenSubmitted.current = false;
+                        setIsConfirming(false);
+                    },
+                    currentReceiptType,
+                ),
+            );
     };
 
     const onConfirm = (gpsRequired?: boolean) => {
@@ -466,7 +630,10 @@ function SubmitDetailsPage({
                 />
                 <HeaderWithBackButton
                     title={translate('iou.confirmDetails')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => {
+                        cleanupPreMount();
+                        Navigation.goBack();
+                    }}
                 />
                 <LocationPermissionModal
                     startPermissionFlow={startLocationPermissionFlow}
