@@ -1205,7 +1205,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD],
     },
     WORKSPACE_TRAVEL_BILLING_SELECT_FEED: {
-        path: 'select-feed',
+        path: 'travel-select-feed',
         entryScreens: [SCREENS.WORKSPACE.TRAVEL],
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
