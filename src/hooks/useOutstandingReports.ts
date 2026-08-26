@@ -29,7 +29,7 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     if (shouldUseAllPolicies) {
         const result = [];
         for (const policyID of Object.values(allPoliciesID ?? {})) {
-            // Teachers Unite doesn't support reimbursement, so its reports can never be a move-expense destination.
+            // Teachers Unite only supports expenses via split expense, so its reports can never be a move-expense destination.
             if (!policyID || policyID === personalPolicyID || isTeachersUnitePolicyID(policyID)) {
                 continue;
             }

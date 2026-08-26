@@ -49,7 +49,7 @@ export default function useDefaultExpensePolicy() {
     // Per-key lookup for the single group policy (only fires when that specific policy changes)
     const [singleGroupPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${singleGroupPolicyID}`);
 
-    // Teachers Unite doesn't support reimbursement, so it can never be the default destination for a new expense.
+    // Teachers Unite only supports expenses via split expense , so it can never be the default destination for a new expense.
     if (isRestrictedToPreferredPolicy && isGroupPolicy(preferredPolicy) && isPolicyAccessible(preferredPolicy, login) && !isTeachersUnitePolicyID(preferredPolicy?.id)) {
         return preferredPolicy;
     }

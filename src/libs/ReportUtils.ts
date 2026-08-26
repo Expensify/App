@@ -3241,7 +3241,7 @@ function getAddExpenseDropdownOptions({
     const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
 
     return [
-        // Teachers Unite doesn't support reimbursement, so "Create expense" and "Track distance" are hidden for those reports.
+        // Teachers Unite only supports expenses via split expense
         ...(isReportTeachersUnite
             ? []
             : [
