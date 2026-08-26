@@ -1369,7 +1369,6 @@ type GetReportOptionParams = {
     currentUserAccountID: number;
     localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined};
     policyTags?: OnyxCollection<PolicyTagLists>;
-    sortedActions: Record<string, ReportAction[]> | undefined;
 };
 
 /**
@@ -1386,7 +1385,6 @@ function getReportOption({
     currentUserAccountID,
     localize,
     policyTags,
-    sortedActions,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
@@ -1408,7 +1406,6 @@ function getReportOption({
         policyTags: reportPolicyTags,
         visibleReportActionsData: {},
         conciergeReportID,
-        sortedActions,
         currentUserAccountID,
     });
 

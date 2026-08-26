@@ -337,7 +337,6 @@ function IOURequestStepConfirmation({
                           reportDraft: participantReportDraft,
                           currentUserAccountID: currentUserPersonalDetails.accountID,
                           localize: {translate, dateFnsLocale},
-                          sortedActions: undefined,
                       });
             }) ?? [],
         [

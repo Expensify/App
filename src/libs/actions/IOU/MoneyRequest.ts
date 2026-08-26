@@ -298,7 +298,6 @@ function getMoneyRequestParticipantOptions(
                       translate,
                       dateFnsLocale,
                   },
-                  sortedActions: undefined,
               });
     });
 }

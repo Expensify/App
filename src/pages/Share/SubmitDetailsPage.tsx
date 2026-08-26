@@ -238,7 +238,6 @@ function SubmitDetailsPage({
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
                   localize: {translate, dateFnsLocale},
-                  sortedActions: undefined,
               });
     });
 

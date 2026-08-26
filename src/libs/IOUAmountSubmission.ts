@@ -270,7 +270,6 @@ function buildReportParticipants(args: SubmitAmountArgs) {
                       translate,
                       dateFnsLocale,
                   },
-                  sortedActions: undefined,
               });
     });
 }

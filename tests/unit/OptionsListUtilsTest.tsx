@@ -8270,7 +8270,6 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy,
@@ -8312,7 +8311,6 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant: {reportID},
                 privateIsArchived: undefined,
                 policy: undefined,
@@ -8378,7 +8376,6 @@ describe('OptionsListUtils', () => {
 
             // Pass the real personalDetails so the submits-to subtitle resolves to a name
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy,
@@ -8412,7 +8409,6 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8464,7 +8460,6 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8510,7 +8505,6 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8563,7 +8557,6 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: !!reportNameValuePair?.private_isArchived,
                 policy: POLICY,
@@ -8617,7 +8610,6 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: !!reportNameValuePair?.private_isArchived,
                 policy: POLICY,
@@ -8647,7 +8639,6 @@ describe('OptionsListUtils', () => {
 
             // Pass reportDraft = undefined → not a draft, should NOT be disabled
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8674,7 +8665,6 @@ describe('OptionsListUtils', () => {
 
             // Pass reportDraft explicitly → should be disabled regardless of Onyx state
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8705,7 +8695,6 @@ describe('OptionsListUtils', () => {
 
             // Callers are responsible for passing reportDraft explicitly — undefined means not disabled
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8907,7 +8896,6 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8939,7 +8927,6 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: undefined,
@@ -8972,7 +8959,6 @@ describe('OptionsListUtils', () => {
 
             // Test that the function works with reportAttributesDerived parameter (optional)
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9019,7 +9005,6 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9093,7 +9078,6 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy,
@@ -9129,7 +9113,6 @@ describe('OptionsListUtils', () => {
 
             // Pass empty personalDetails
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9162,7 +9145,6 @@ describe('OptionsListUtils', () => {
 
             // Pass undefined personalDetails
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9223,7 +9205,6 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9256,7 +9237,6 @@ describe('OptionsListUtils', () => {
             const participant = {reportID};
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9286,7 +9266,6 @@ describe('OptionsListUtils', () => {
             const participant = {reportID};
 
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9334,7 +9313,6 @@ describe('OptionsListUtils', () => {
             // Passing conciergeReportID matching the reportID identifies this as the Concierge chat,
             // which affects getMovedTransactionMessage to use CONST.CONCIERGE_DISPLAY_NAME ('Concierge')
             const option = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9365,7 +9343,6 @@ describe('OptionsListUtils', () => {
             const participant = {reportID};
 
             const optionWithConcierge = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9377,7 +9354,6 @@ describe('OptionsListUtils', () => {
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
             const optionWithoutConcierge = getReportOption({
-                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
