@@ -12,7 +12,6 @@ import INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {Policy} from '@src/types/onyx';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
 
-import {clearPolicyCategoryTaxErrors} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 
 const CATEGORY_TAX_RULE_KEY_PREFIX = 'category-tax:';
@@ -68,12 +67,10 @@ function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undef
 function getCategoryTaxRulesTableData({
     policy,
     translate,
-    isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
     translate: LocaleContextProps['translate'];
-    isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
     if (!policy?.id) {
@@ -84,36 +81,26 @@ function getCategoryTaxRulesTableData({
     const typeLabel = translate('workspace.rules.expenseDefaultsTable.update');
     const fieldLabel = translate('common.tax').toLowerCase();
 
-    return (
-        getCategoryTaxRules(policy.rules?.expenseRules)
-            // Online a deleting row goes at once, since the write is about to land. Offline it stays, greyed, so the queued
-            // change is visible until it can be sent. Same rule the merchant rows follow.
-            .filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .map((rule) => {
-                // `getCategoryTaxRules` already dropped the rules without a category, so this is always set.
-                const categoryName = getRuleCategoryName(rule) ?? '';
-                const decodedCategoryName = getDecodedCategoryName(categoryName);
-                const taxDisplayName = getTaxRateDisplayName(policy, rule.tax?.field_id_TAX?.externalID);
-                const conditionText = translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName);
-                const ruleDescription = translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, taxDisplayName);
+    return getCategoryTaxRules(policy.rules?.expenseRules).map((rule) => {
+        // `getCategoryTaxRules` already dropped the rules without a category, so this is always set.
+        const categoryName = getRuleCategoryName(rule) ?? '';
+        const decodedCategoryName = getDecodedCategoryName(categoryName);
+        const taxDisplayName = getTaxRateDisplayName(policy, rule.tax?.field_id_TAX?.externalID);
+        const conditionText = translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName);
+        const ruleDescription = translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, taxDisplayName);
 
-                return {
-                    keyForList: getCategoryTaxRuleKey(categoryName),
-                    ruleID: getCategoryTaxRuleKey(categoryName),
-                    section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES,
-                    isRename: false,
-                    typeLabel,
-                    conditionText,
-                    ruleDescription,
-                    searchTokens: [decodedCategoryName, conditionText, ruleDescription, taxDisplayName],
-                    pendingAction: rule.pendingAction,
-                    errors: rule.errors ?? undefined,
-                    onCloseError: () => clearPolicyCategoryTaxErrors(policy, categoryName),
-                    disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    action: () => onNavigate(ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName)),
-                };
-            })
-    );
+        return {
+            keyForList: getCategoryTaxRuleKey(categoryName),
+            ruleID: getCategoryTaxRuleKey(categoryName),
+            section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES,
+            isRename: false,
+            typeLabel,
+            conditionText,
+            ruleDescription,
+            searchTokens: [decodedCategoryName, conditionText, ruleDescription, taxDisplayName],
+            action: () => onNavigate(ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName)),
+        };
+    });
 }
 
 /** The category a rule key from the Expense defaults table refers to. */

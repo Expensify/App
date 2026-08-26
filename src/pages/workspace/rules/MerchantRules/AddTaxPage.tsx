@@ -17,7 +17,7 @@ import React from 'react';
 type AddTaxPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAX>;
 
 function AddTaxPage({route}: AddTaxPageProps) {
-    const {policyID, ruleID} = route.params;
+    const {policyID, ruleID, categoryName} = route.params;
     const isEditing = ruleID !== ROUTES.NEW;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
@@ -33,7 +33,15 @@ function AddTaxPage({route}: AddTaxPageProps) {
 
     const selectedTaxItem = form?.tax ? taxItems.find(({value}) => value === form.tax) : undefined;
 
-    const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+    // A category tax default carries no ruleID, so it has to route back by category or the picker would return to the
+    // create page and drop the edit context.
+    const getBackToRoute = () => {
+        if (categoryName) {
+            return ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName);
+        }
+        return isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+    };
+    const backToRoute = getBackToRoute();
 
     const onSave = (value?: string) => {
         updateDraftMerchantRule({tax: value});

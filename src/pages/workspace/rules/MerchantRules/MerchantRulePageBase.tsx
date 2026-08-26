@@ -576,7 +576,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                           key: 'tax',
                           description: translate('common.tax'),
                           title: taxDisplayName(),
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID)),
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID, editCategoryTaxRuleFor)),
                           icon: getItemIcon(icons.InvoiceGeneric),
                       }
                     : undefined,

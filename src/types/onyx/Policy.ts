@@ -2733,12 +2733,6 @@ type ExpenseRule = {
 
     /** An id of the rule */
     id?: string;
-
-    /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
-
-    /** Error objects keyed by field name containing errors keyed by microtime */
-    errors?: OnyxCommon.Errors | null;
 };
 
 /** Coding rule filter condition */

@@ -1767,6 +1767,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
         policyID: string;
         ruleID: string;
+        /** Set when editing a category tax default, so the picker returns to that editor. */
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR]: {
         policyID: string;
