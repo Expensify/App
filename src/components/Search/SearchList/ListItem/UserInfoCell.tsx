@@ -36,7 +36,6 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            {/* Avatar fallback initials are visual decoration and should not leak into multi-cell copied text. */}
             <View style={styles.userSelectNone}>
                 <UserAvatar
                     imageStyles={styles.alignSelfCenter}
