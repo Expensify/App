@@ -11,7 +11,6 @@ import type Middleware from './types';
  * Any resolved response counts as success — if the server responded at all, the network works.
  * Only genuine connectivity issues count as failures:
  * - FAILED_TO_FETCH → failure (DNS, no internet, network timeout)
- * - NATIVE_FETCH_FAILED → failure (NitroFetch lost the underlying iOS network error)
  * - EXPENSIFY_SERVICE_INTERRUPTED → failure (server down: 500/502/504/520, auth socket)
  */
 const FailureTracking: Middleware = (response) =>
@@ -21,9 +20,7 @@ const FailureTracking: Middleware = (response) =>
             return data;
         })
         .catch((error: Error) => {
-            const isConnectivityError = [CONST.ERROR.FAILED_TO_FETCH, CONST.ERROR.NATIVE_FETCH_FAILED, CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED].some(
-                (message) => message === error.message,
-            );
+            const isConnectivityError = error.message === CONST.ERROR.FAILED_TO_FETCH || error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED;
 
             if (isConnectivityError && !getShouldFailAllRequests()) {
                 recordFailure();

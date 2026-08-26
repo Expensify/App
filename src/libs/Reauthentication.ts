@@ -155,7 +155,7 @@ function shouldRetryAuthenticateError(error: unknown): boolean {
     // Only retry transient connectivity/service issues. Real HTTP auth failures,
     // and auth throttling, should fall through to the normal sign-out path so we
     // do not spin on Authenticate before redirecting to sign in.
-    return [CONST.ERROR.FAILED_TO_FETCH, CONST.ERROR.NATIVE_FETCH_FAILED, CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED].some((message) => message === error.message);
+    return error.message === CONST.ERROR.FAILED_TO_FETCH || error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED;
 }
 
 function getAuthenticationErrorResponse(error: HttpsError): Response<OnyxKey> {

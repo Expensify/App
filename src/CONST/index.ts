@@ -2567,7 +2567,6 @@ const CONST = {
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
         FAILED_TO_FETCH: 'Failed to fetch',
-        NATIVE_FETCH_FAILED: 'NitroFetch request failed',
         ENSURE_BUG_BOT: 'ENSURE_BUGBOT',
         PUSHER_ERROR: 'PusherError',
         WEB_SOCKET_ERROR: 'WebSocketError',
