@@ -5476,6 +5476,9 @@ ${amount} für ${merchant} – ${date}`,
                 error: {
                     customFormID: 'Bitte gib eine gültige numerische benutzerdefinierte Formular-ID ein',
                 },
+                fxExpenseAccount: 'Konto für Währungsumrechnungsgebühren',
+                fxExpenseAccountDescription:
+                    'Wenn Ihr Unternehmen die Währungsumrechnungskosten für eine im Ausland gezahlte Erstattung übernimmt, buchen wir diese Kosten als Buchungssatz auf das untenstehende NetSuite-Konto.',
             },
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in NetSuite hinzu und synchronisieren Sie die Verbindung erneut.',

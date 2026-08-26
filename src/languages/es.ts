@@ -9,7 +9,6 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-
 import CONST from '@src/CONST';
 import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
@@ -5406,6 +5405,9 @@ ${amount} para ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Introduzca un ID numérico válido para el formulario personalizado',
                 },
+                fxExpenseAccount: 'Cuenta de comisión por conversión de moneda',
+                fxExpenseAccountDescription:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un reembolso pagado en el extranjero, registraremos ese coste en la cuenta de NetSuite de abajo como un asiento contable.',
             },
             noAccountsFound: 'No se han encontrado cuentas',
             noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza la conexión de nuevo',
