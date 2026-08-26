@@ -11,7 +11,7 @@ Distance rates determine how much members are reimbursed for distance-based trav
 
 ---
 
-## Who can use Distance rates
+## Who can set Distance rates
 
 Workspace Admins can configure Distance rates for a workspace.
 
@@ -19,7 +19,7 @@ Automatic updates are available for Collect workspaces with a default currency o
 
 ---
 
-## How to enable Distance rates 
+## How to enable Distance rates for a workspace
 
 To activate Distance rates for a workspace:
 
