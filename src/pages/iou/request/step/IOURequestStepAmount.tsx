@@ -135,21 +135,35 @@ function IOURequestStepAmount({
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
     const isAmountCreateEntry = !backTo && !isEditing;
-    // Mirrors the amount input, signed the same way the form composes it. `undefined` until the form reports
-    // a change, so the baseline below stands in and a prefilled amount starts clean.
+    // `undefined` until the form reports a change, so the baseline below stands in and a prefilled amount starts clean.
     const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+    const [typedIsNegative, setTypedIsNegative] = useState<boolean | undefined>(undefined);
     const [initialIsNegative, setInitialIsNegative] = useState(() => transactionAmount < 0);
-    const [isAmountNegative, setIsAmountNegative] = useState(initialIsNegative);
+    const [prevRequestType, setPrevRequestType] = useState(iouRequestType);
+    if (prevRequestType !== iouRequestType) {
+        const currentSign = transactionAmount < 0;
+        setPrevRequestType(iouRequestType);
+        setTypedAmount(undefined);
+        setTypedIsNegative(undefined);
+        setInitialIsNegative(currentSign);
+    }
+
+    // Before the user changes the sign, use the latest transaction value. Once they do, keep the original sign as
+    // the baseline so asynchronous transaction updates cannot reset the dirty state.
+    const baselineIsNegative = typedIsNegative === undefined ? transactionAmount < 0 : initialIsNegative;
+    const isAmountNegative = typedIsNegative ?? baselineIsNegative;
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
 
-    useEffect(() => {
-        const currentSign = transactionAmount < 0;
-        setInitialIsNegative(currentSign);
-        setIsAmountNegative(currentSign);
-        setTypedAmount(undefined);
-        // The active request type is the tab identity. Reset only when the user changes tabs, not for Onyx updates.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [iouRequestType]);
+    const handleNegativeChange = useCallback(
+        (isNegative: boolean) => {
+            if (typedIsNegative === undefined) {
+                setInitialIsNegative(transactionAmount < 0);
+            }
+            setTypedIsNegative(isNegative);
+        },
+        [setInitialIsNegative, setTypedIsNegative, transactionAmount, typedIsNegative],
+    );
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
@@ -158,7 +172,7 @@ function IOURequestStepAmount({
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
                 originalCurrency,
-                hasSignChanged: isAmountNegative !== initialIsNegative,
+                hasSignChanged: isAmountNegative !== baselineIsNegative,
             }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -342,7 +356,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
                 onAmountChange={setTypedAmount}
-                onNegativeChange={setIsAmountNegative}
+                onNegativeChange={handleNegativeChange}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
