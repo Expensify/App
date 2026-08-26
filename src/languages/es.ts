@@ -9,7 +9,6 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-
 import CONST from '@src/CONST';
 import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
@@ -10228,31 +10227,31 @@ ${reportName}`,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'No se puede conciliar automáticamente el recibo debido a una conexión bancaria interrumpida.';
+                return 'No se puede vincular automáticamente el recibo debido a una conexión bancaria interrumpida.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
-                return 'No se puede conciliar automáticamente el recibo debido a un problema temporal con el banco. Por favor, inténtalo de nuevo más tarde.';
+                return 'No se puede conciliar automáticamente el recibo debido a un problema bancario temporal. Por favor, inténtalo de nuevo más tarde.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'No se puede emparejar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse.';
+                        return 'No se puede hacer la conciliación automática del recibo porque tu conexión bancaria necesita volver a autenticarse.';
                     }
                     return isMarkAsCash
-                        ? `No se puede emparejar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">vuelve a conectarte</a> para asociar el recibo.`
-                        : `No se puede emparejar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. <a href="${connectionLink}">Vuelve a conectarte</a> para asociar el recibo.`;
+                        ? `No se puede conciliar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. Márcalo como en efectivo para ignorarlo o <a href="${connectionLink}">vuelve a conectar</a> para conciliar el recibo.`
+                        : `No se puede conciliar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. <a href="${connectionLink}">Vuelve a conectar</a> para conciliar el recibo.`;
                 }
                 return isAdmin
-                    ? `La conexión bancaria necesita volver a autenticarse. <a href="${companyCardPageURL}">Vuelve a conectarte para emparejar el recibo</a>`
-                    : 'La conexión bancaria necesita volver a autenticarse. Pide a un administrador que la vuelva a conectar para emparejar el recibo.';
+                    ? `La conexión bancaria necesita volver a autenticar. <a href="${companyCardPageURL}">Vuelve a conectar para hacer coincidir el recibo</a>`
+                    : 'La conexión bancaria necesita volver a autenticarse. Pide a una persona administradora que la vuelva a conectar para que coincida con el recibo.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'No se puede conciliar automáticamente el recibo debido a una conexión bancaria interrumpida.';
+                    return 'No se puede vincular automáticamente el recibo debido a una conexión bancaria interrumpida.';
                 }
                 return isMarkAsCash
-                    ? `No se puede asociar automáticamente el recibo debido a una conexión de tarjeta interrumpida. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">repara la tarjeta</a> para hacer coincidir el recibo.`
-                    : `No se puede conciliar automáticamente el recibo debido a una conexión de tarjeta rota. <a href="${connectionLink}">Repara la tarjeta</a> para conciliar el recibo.`;
+                    ? `No se puede conciliar automáticamente el recibo debido a una conexión de tarjeta rota. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">repara la tarjeta</a> para conciliar el recibo.`
+                    : `No se puede asociar automáticamente el recibo debido a una conexión de tarjeta rota. <a href="${connectionLink}">Repara la tarjeta</a> para asociar el recibo.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
@@ -10260,12 +10259,12 @@ ${reportName}`,
                     : 'Conexión bancaria interrumpida. Pide a un administrador que la vuelva a conectar para que coincida con el recibo.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Pídele a ${member} que lo marque como efectivo o espera 7 días y vuelve a intentarlo` : 'En espera de combinar con la transacción de la tarjeta.';
+                return isAdmin ? `Pídele a ${member} que lo marque como efectivo o espera 7 días e inténtalo de nuevo` : 'En espera de combinarse con la transacción de tarjeta.';
             }
             return '';
         },
         brokenConnection530Error: 'Recibo pendiente debido a una conexión bancaria rota',
-        brokenConnection531Error: 'No se puede conciliar automáticamente el recibo debido a un problema temporal con el banco. Por favor, inténtalo de nuevo más tarde.',
+        brokenConnection531Error: 'No se puede conciliar automáticamente el recibo debido a un problema bancario temporal. Por favor, inténtalo de nuevo más tarde.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}) =>
             `<muted-text-label>Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en <a href="${workspaceCompanyCardRoute}">Tarjetas de empresa</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',

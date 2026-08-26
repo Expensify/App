@@ -10038,44 +10038,44 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Impossible de faire correspondre automatiquement le reçu en raison d’une connexion bancaire rompue.';
+                return 'Impossible d’associer automatiquement le reçu en raison d’une connexion bancaire rompue.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
-                return 'Impossible de faire correspondre automatiquement le reçu en raison d’un problème temporaire de banque. Veuillez réessayer plus tard.';
+                return 'Impossible d’associer automatiquement le reçu en raison d’un problème bancaire temporaire. Veuillez réessayer ultérieurement.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée.';
+                        return 'Impossible d’associer automatiquement le reçu, car votre connexion bancaire doit être réauthentifiée.';
                     }
                     return isMarkAsCash
-                        ? `Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée. Marquez-le comme paiement en espèces pour l’ignorer, ou <a href="${connectionLink}">reconnectez-vous</a> pour associer le reçu.`
-                        : `Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée. <a href="${connectionLink}">Reconnectez-vous</a> pour associer le reçu.`;
+                        ? `Impossible de faire correspondre automatiquement le reçu, car votre connexion bancaire nécessite une nouvelle authentification. Marquez-le comme espèces pour ignorer, ou <a href="${connectionLink}">reconnectez-vous</a> pour faire correspondre le reçu.`
+                        : `Impossible d’associer automatiquement le reçu, car la connexion à votre banque nécessite une nouvelle authentification. <a href="${connectionLink}">Reconnectez-vous</a> pour associer le reçu.`;
                 }
                 return isAdmin
-                    ? `La connexion bancaire doit être ré-authentifiée. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
-                    : 'La connexion bancaire doit être ré-authentifiée. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
+                    ? `La connexion bancaire nécessite une nouvelle authentification. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
+                    : 'La connexion bancaire doit être réauthentifiée. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Impossible de faire correspondre automatiquement le reçu en raison d’une connexion bancaire rompue.';
+                    return 'Impossible d’associer automatiquement le reçu en raison d’une connexion bancaire rompue.';
                 }
                 return isMarkAsCash
-                    ? `Impossible d’associer automatiquement le reçu en raison d’une connexion carte défaillante. Marquez-le comme paiement en espèces pour l’ignorer, ou <a href="${connectionLink}">corrigez la carte</a> pour associer le reçu.`
-                    : `Impossible d’associer automatiquement le reçu en raison d’une connexion de carte défectueuse. <a href="${connectionLink}">Réparer la carte</a> pour associer le reçu.`;
+                    ? `Impossible d’associer automatiquement le reçu en raison d’une connexion carte défectueuse. Marquez-le comme espèce pour ignorer, ou <a href="${connectionLink}">réparez la carte</a> pour faire correspondre le reçu.`
+                    : `Impossible d’associer automatiquement le reçu en raison d’une connexion carte défectueuse. <a href="${connectionLink}">Réparez la carte</a> pour associer le reçu.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Connexion bancaire interrompue. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
-                    : 'Connexion bancaire interrompue. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
+                    ? `Connexion bancaire interrompue. <a href="${companyCardPageURL}">Reconnecter pour faire correspondre le reçu</a>`
+                    : 'Connexion bancaire rompue. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Demandez à ${member} de marquer comme espèce ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
+                return isAdmin ? `Demandez à ${member} de le marquer comme espèces ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
             }
             return '';
         },
         brokenConnection530Error: 'Reçu en attente en raison d’une connexion bancaire rompue',
-        brokenConnection531Error: 'Impossible de faire correspondre automatiquement le reçu en raison d’un problème temporaire de banque. Veuillez réessayer plus tard.',
+        brokenConnection531Error: 'Impossible d’associer automatiquement le reçu en raison d’un problème bancaire temporaire. Veuillez réessayer ultérieurement.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Reçu en attente en raison d’une connexion bancaire rompue. Veuillez résoudre le problème dans les <a href="${workspaceCompanyCardRoute}">Cartes d’entreprise</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Reçu en attente en raison d’une connexion bancaire rompue. Veuillez demander à un administrateur de l’espace de travail de résoudre le problème.',

@@ -9590,27 +9590,27 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return '由于您的银行连接需要重新验证，无法自动匹配收据。';
+                        return '无法自动匹配收据，因为您的银行连接需要重新验证。';
                     }
                     return isMarkAsCash
-                        ? `由于您的银行连接需要重新验证，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>以匹配收据。`
-                        : `由于您的银行连接需要重新验证，无法自动匹配收据。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
+                        ? `无法自动匹配收据，因为你的银行连接需要重新验证。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>来匹配收据。`
+                        : `无法自动匹配收据，因为您的银行连接需要重新验证。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
                 }
-                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请让管理员重新连接以匹配收据。';
+                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请联系管理员重新连接以匹配收据。';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '由于银行连接中断，无法自动匹配收据。';
                 }
                 return isMarkAsCash
-                    ? `由于银行卡连接中断，无法自动匹配收据。将其标记为现金以忽略，或<a href="${connectionLink}">修复银行卡</a>以匹配收据。`
-                    : `由于银行卡连接中断，无法自动匹配收据。请<a href="${connectionLink}">修复该银行卡</a>以匹配收据。`;
+                    ? `由于卡片连接异常，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">修复卡片</a>以匹配收据。`
+                    : `由于卡片连接中断，无法自动匹配收据。请<a href="${connectionLink}">修复此卡</a>以匹配收据。`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin ? `银行连接已中断。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接已断开。请联系管理员重新连接以匹配收据。';
+                return isAdmin ? `银行连接已断开。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接已断开。请让管理员重新连接以匹配收据。';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `请让 ${member} 将其标记为现金，或等待 7 天后重试` : '正在等待与信用卡交易合并。';
+                return isAdmin ? `请让 ${member} 将其标记为现金，或等待 7 天后重试` : '正在等待与卡片交易合并。';
             }
             return '';
         },

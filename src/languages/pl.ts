@@ -9977,28 +9977,28 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                         return 'Nie można automatycznie dopasować paragonu, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia.';
                     }
                     return isMarkAsCash
-                        ? `Nie można automatycznie dopasować paragonu, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia. Oznacz jako gotówkę, aby zignorować, lub <a href="${connectionLink}">połącz ponownie</a>, aby dopasować paragon.`
+                        ? `Nie można automatycznie dopasować paragonu, bo Twoje połączenie z bankiem wymaga ponownego uwierzytelnienia. Oznacz jako gotówkę, żeby zignorować, albo <a href="${connectionLink}">połącz ponownie</a>, żeby dopasować paragon.`
                         : `Nie można automatycznie dopasować paragonu, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia. <a href="${connectionLink}">Połącz ponownie</a>, aby dopasować paragon.`;
                 }
                 return isAdmin
-                    ? `Połączenie z bankiem wymaga ponownego uwierzytelnienia. <a href="${companyCardPageURL}">Połącz ponownie, aby dopasować paragon</a>`
-                    : 'Połączenie z bankiem wymaga ponownego uwierzytelnienia. Poproś administratora o ponowne połączenie, aby dopasować paragon.';
+                    ? `Połączenie z bankiem wymaga ponownego uwierzytelnienia. <a href="${companyCardPageURL}">Połącz ponownie, żeby dopasować paragon</a>`
+                    : 'Połączenie z bankiem wymaga ponownego uwierzytelnienia. Poproś administratora o ponowne połączenie, żeby dopasować paragon.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem.';
                 }
                 return isMarkAsCash
-                    ? `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia karty. Oznacz jako gotówka, aby zignorować, albo <a href="${connectionLink}">napraw kartę</a>, żeby dopasować paragon.`
+                    ? `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z kartą. Oznacz wydatek jako gotówkę, aby go zignorować, albo <a href="${connectionLink}">napraw kartę</a>, żeby dopasować paragon.`
                     : `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z kartą. <a href="${connectionLink}">Napraw kartę</a>, żeby dopasować paragon.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Połączenie z bankiem zostało przerwane. <a href="${companyCardPageURL}">Połącz ponownie, żeby dopasować paragon</a>`
-                    : 'Połączenie z bankiem zostało przerwane. Poproś administratora o ponowne połączenie, żeby dopasować paragon.';
+                    ? `Połączenie z bankiem zostało zerwane. <a href="${companyCardPageURL}">Połącz ponownie, aby dopasować paragon</a>`
+                    : 'Połączenie z bankiem zostało zerwane. Poproś administratora o ponowne połączenie, aby dopasować paragon.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Poproś ${member}, żeby oznaczył to jako gotówkę albo poczekaj 7 dni i spróbuj ponownie` : 'Oczekiwanie na połączenie z transakcją z karty.';
+                return isAdmin ? `Poproś ${member}, żeby oznaczył to jako gotówkę albo poczekaj 7 dni i spróbuj ponownie` : 'Oczekuje na połączenie z transakcją z karty.';
             }
             return '';
         },
