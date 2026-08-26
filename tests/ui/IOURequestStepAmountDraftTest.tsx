@@ -7,6 +7,8 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import type * as DiscardChangesNative from '@hooks/useDiscardChangesConfirmation/index.native';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
@@ -27,6 +29,8 @@ import createMock from '../utils/createMock';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const preventRemoveFlags: boolean[] = [];
 
 // Mock LocaleContextProvider to avoid dynamic import issues with emojis/IntlStore
 jest.mock('@components/LocaleContextProvider', () => {
@@ -73,6 +77,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
 jest.mock('@src/hooks/useResponsiveLayout');
+jest.mock('@hooks/useDiscardChangesConfirmation', () => jest.requireActual<typeof DiscardChangesNative>('@hooks/useDiscardChangesConfirmation/index.native.ts'));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -127,7 +132,9 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
-        usePreventRemove: jest.fn(),
+        usePreventRemove: (shouldPreventRemove: boolean) => {
+            preventRemoveFlags.push(shouldPreventRemove);
+        },
         useRoute: jest.fn(() => ({name: 'Money_Request_Step_Amount'})),
     };
 });
@@ -180,6 +187,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        preventRemoveFlags.length = 0;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -274,5 +282,46 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         const cleanupArg = jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0];
         expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
         expect(cleanupArg?.transactionID).toBe(requestMoneyArg?.optimisticTransactionID);
+    });
+
+    it('arms the native discard guard when only the sign changes and disarms it when the sign is restored', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepAmount
+                        // @ts-expect-error minimal route for test
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE})}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+
+        fireEvent.press(screen.getByLabelText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+
+        preventRemoveFlags.length = 0;
+        fireEvent.press(screen.getByLabelText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
     });
 });
