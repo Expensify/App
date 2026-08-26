@@ -47,10 +47,10 @@ const ROWS_PER_LIST_CARD = 3;
 const ROWS_PER_TABLE_CARD = 5;
 
 // Every card carries the same identifier so a count assertion sees all four, whatever shape each one is.
-export const CARD_TEST_ID = 'homePageSkeletonCard';
-export const SPINNER_TEST_ID = 'homePageSkeletonSpinner';
-export const LEFT_COLUMN_TEST_ID = 'homePageSkeletonLeftColumn';
-export const RIGHT_COLUMN_TEST_ID = 'homePageSkeletonRightColumn';
+const CARD_TEST_ID = 'homePageSkeletonCard';
+const SPINNER_TEST_ID = 'homePageSkeletonSpinner';
+const LEFT_COLUMN_TEST_ID = 'homePageSkeletonLeftColumn';
+const RIGHT_COLUMN_TEST_ID = 'homePageSkeletonRightColumn';
 
 // Alternating leading-bar widths, so stacked rows read as separate rows rather than one block.
 const PILL_ROW_BAR_WIDTHS = [140, 100] as const;
@@ -308,3 +308,4 @@ function HomePageSkeleton() {
 }
 
 export default HomePageSkeleton;
+export {CARD_TEST_ID, SPINNER_TEST_ID, LEFT_COLUMN_TEST_ID, RIGHT_COLUMN_TEST_ID};
