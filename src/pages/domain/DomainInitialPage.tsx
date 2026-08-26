@@ -117,7 +117,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                         {domainMenuItems.map((item) => (
                             <HighlightableMenuItem
                                 key={item.translationKey}
-                                disabled={isExecuting}
+                                disabled={isExecuting && !(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 title={translate(item.translationKey)}
                                 icon={item.icon}
                                 onPress={item.action}
@@ -125,6 +125,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 shouldIconUseAutoWidthStyle
+                                shouldGreyOutWhenDisabled={false}
                             />
                         ))}
                     </View>
