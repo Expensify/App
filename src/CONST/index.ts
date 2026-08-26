@@ -510,6 +510,7 @@ const CONST = {
 
     EXPORT_LABELS: {
         NETSUITE: 'NetSuite',
+        INTUIT_ENTERPRISE_SUITE: 'Intuit Enterprise Suite',
         QBO: 'QuickBooks Online',
         QBD: 'QuickBooks Desktop',
         XERO: 'Xero',
@@ -633,6 +634,12 @@ const CONST = {
         US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
         CA: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
         AU: 'https://powerforms.docusign.net/2ff347bb-172a-4138-b1cd-4001a7c319b5?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+    },
+    // This allows us to know if we are on an older version of the app that does not support
+    // a new marketing window. Do not remove keys from this list, only add new ones
+    MARKETING_WINDOW_UPDATE_KEYS: {
+        PRODUCT_UPDATE_JULY_2026: 'productUpdateJuly2026',
+        PRODUCT_UPDATE_AUGUST_2026: 'productUpdateAugust2026',
     },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -1006,7 +1013,6 @@ const CONST = {
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
-        RILLET: 'rillet',
         DUALENTRY: 'dualEntry',
         INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
@@ -1015,7 +1021,9 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
+        ARCHIVE_POLICIES: 'archivePolicies',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1422,6 +1430,8 @@ const CONST = {
         PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
+        SUPPORTAL_LOGIN_NEWDOT: (supportEmail: string, reason: string) =>
+            `_support/supportLoginNewDot?supportEmail=${encodeURIComponent(supportEmail)}&comment=${encodeURIComponent(reason)}`,
         AGENT_ZERO_TRACER: (agentZeroRequestID: string, shouldLoadFromLocalLogs: boolean) =>
             `_devportal/tools/tracer/?agentZeroRequestID=${encodeURIComponent(agentZeroRequestID)}${shouldLoadFromLocalLogs ? '&mode=locallogs' : ''}`,
     },
@@ -1561,6 +1571,8 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
+            SEND_TO_SOMEONE: 'sendToSomeone',
+            SEND_TO_EMPLOYER: 'sendToEmployer',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',
@@ -2996,6 +3008,7 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_BILLING_VENDOR: 'travelInvoicingVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
@@ -4120,6 +4133,10 @@ const CONST = {
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
         },
+        WORKSPACE_STATUS: {
+            ACTIVE: 'active',
+            ARCHIVED: 'archived',
+        },
         THREE_DOT_MENU_ACTION: {
             LEAVE: 'leave',
             TRANSFER_OWNERSHIP: 'transferOwnership',
@@ -4398,6 +4415,7 @@ const CONST = {
             ACCOUNTING_INTEGRATION_ALIASES: {
                 INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
             },
+            INTUIT_ENTERPRISE_SUITE_SCOPE: 'app-foundations.custom-dimensions.read',
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -4597,6 +4615,7 @@ const CONST = {
     },
 
     HELP_DOC_LINKS: {
+        'Intuit Enterprise Suite': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Desktop': '',
         quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
@@ -4622,6 +4641,20 @@ const CONST = {
         // Rate amounts are stored as `Number(value) * 100` cents, which can introduce tiny floating-point errors. Meaningful
         // amounts differ by at least 0.01 cents, so this tolerance safely absorbs the float noise when matching government rates.
         GOVERNMENT_RATE_MATCH_TOLERANCE: 0.001,
+        // Currencies we can auto-update government mileage rates for, mapped to the publishing country
+        GOVERNMENT_RATE_CURRENCY_TO_COUNTRY: {
+            USD: 'US',
+            CAD: 'CA',
+            GBP: 'GB',
+            AUD: 'AU',
+        },
+        // Unit each country publishes its rates in
+        GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
+            US: 'mi',
+            GB: 'mi',
+            CA: 'km',
+            AU: 'km',
+        },
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
@@ -7993,6 +8026,15 @@ const CONST = {
                 icon: 'ReportReceipt',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
+            governmentDistanceRates: {
+                id: 'governmentDistanceRates' as const,
+                alias: 'auto-update-government-rates',
+                name: 'Auto-update government rates',
+                title: 'workspace.upgrade.governmentDistanceRates.title' as const,
+                description: 'workspace.upgrade.governmentDistanceRates.description' as const,
+                icon: 'CarIce',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             perDiem: {
                 id: 'perDiem' as const,
                 alias: 'per-diem',
@@ -8530,6 +8572,14 @@ const CONST = {
             SINGLE_SELECT: 'singleSelect',
             MULTI_SELECT: 'multiSelect',
         },
+
+        DYNAMIC_COLUMNS: {
+            /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
+            MEASURED_CANDIDATES_PER_COLUMN: 5,
+
+            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+        },
     },
 
     SENTRY_LABEL: {
@@ -8561,6 +8611,7 @@ const CONST = {
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
             FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
             FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
+            SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
         },
         FAB_MENU: {
             CREATE_EXPENSE: 'FABMenu-CreateExpense',
@@ -9559,6 +9610,9 @@ const COUNTRIES_US_BANK_FLOW: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CO
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
+/** A country whose government mileage rates Expensify can auto-update */
+type GovernmentRateCountry = ValueOf<typeof CONST.CUSTOM_UNITS.GOVERNMENT_RATE_CURRENCY_TO_COUNTRY>;
+
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -9580,6 +9634,7 @@ type EnablePaymentsSubPageType =
 
 export type {
     Country,
+    GovernmentRateCountry,
     IOUAction,
     IOUType,
     IOURequestType,

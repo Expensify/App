@@ -123,7 +123,6 @@ export default {
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
-    superWideRHPLeftMargin: 147,
     searchSidebarExpandedWidth: 320,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
@@ -190,6 +189,8 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     checkboxLabelHoverOpacity: 1,
     avatarChatSpacing: 12,
+    // Left padding for the composer text input, tightened so the text sits close to the action button
+    composerTextInputPaddingLeft: 5,
     cornerHandleSize: 12,
     cornerTapTargetSize: 40,
     edgeHandleTapTargetThickness: 12,

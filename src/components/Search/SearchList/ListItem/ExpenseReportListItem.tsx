@@ -122,7 +122,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
         report: parentReport,
         isTrackIntentUser,
@@ -286,8 +286,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
-            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
-            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             introSelected,
@@ -349,6 +349,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isTrackIntentUser,
         liveViolationsForSnapshotTransactions,
         conciergeChat,
+        shouldShowMarkAsDoneCopy,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
@@ -527,7 +528,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             isFocused={isFocused}
                             isPendingDelete={isPendingDelete}
                             shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
-                            isMarkAsDone={shouldUseMarkAsDoneCopy}
+                            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         />
                     </AvatarTooltipsProvider>
                     {getDescription}
