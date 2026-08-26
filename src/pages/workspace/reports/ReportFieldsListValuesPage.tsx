@@ -32,6 +32,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
+import {isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -67,7 +68,10 @@ function ReportFieldsListValuesPage({
     const {showConfirmModal} = useConfirmModal();
     const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
-    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    // Block value management only for a field imported from the accounting connection, not for every field on a
+    // connected workspace — manual fields stay editable while connected (and there is no field yet during creation).
+    const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, hasAccountingConnectionsPolicyUtils(policy));
 
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
@@ -182,7 +186,7 @@ function ReportFieldsListValuesPage({
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         if (canWriteReportFields && (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedKeys.length > 0)) {
-            if (selectedKeys.length > 0 && !hasAccountingConnections) {
+            if (selectedKeys.length > 0 && !isImportedReportField) {
                 options.push({
                     icon: icons.Trashcan,
                     text: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
@@ -301,7 +305,7 @@ function ReportFieldsListValuesPage({
             );
         }
 
-        if (canWriteReportFields && !hasAccountingConnections) {
+        if (canWriteReportFields && !isImportedReportField) {
             return (
                 <Button
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}

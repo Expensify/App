@@ -19,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsUtil} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
+import {isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -66,7 +67,10 @@ function ReportFieldsValueSettingsPage({
         return [reportFieldValue, reportFieldDisabledValue];
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
-    const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
+    // Block deleting a value only for a field imported from the accounting connection, not for every field on a
+    // connected workspace — manual field values stay deletable while connected (and there is no field during creation).
+    const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, hasAccountingConnectionsUtil(policy));
     const oldValueName = usePrevious(currentValueName);
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
@@ -158,7 +162,7 @@ function ReportFieldsValueSettingsPage({
                         interactive={canWriteReportFields && !reportFieldID}
                         onPress={navigateToEditValue}
                     />
-                    {canWriteReportFields && !hasAccountingConnections && (
+                    {canWriteReportFields && !isImportedReportField && (
                         <MenuItemAction
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
