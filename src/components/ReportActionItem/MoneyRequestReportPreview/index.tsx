@@ -1,6 +1,7 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 
+import useIsReportVisible from '@hooks/useIsReportVisible';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -30,7 +31,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
 
-import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 
 import type {MoneyRequestReportPreviewProps} from './types';
@@ -140,10 +140,9 @@ function MoneyRequestReportPreview({
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
         selector: pendingNewTransactionIDsSelector,
     });
-    const isFocused = useIsFocused();
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
     // A modal pane can be covered at any width, so this ignores the wide-RHP adjustment the styles use.
-    const isReportVisible = shouldUseNarrowLayoutIgnoringWideRHP ? isFocused : true;
+    const isReportVisible = useIsReportVisible(shouldUseNarrowLayoutIgnoringWideRHP);
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isReportVisible);
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
