@@ -1566,7 +1566,20 @@ function openReport(params: OpenReportActionParams) {
     // (the set is RAM-only). We consume it here to clear a manual unread marker only on that return trip.
     const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
     reportsNavigatedAwayFrom.delete(reportID);
-    const optimisticReport: Partial<Pick<Report, 'reportName'>> = (hasReportActions ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
+    const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> =
+        (hasReportActions ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
+
+    // An explicit mark-as-unread keeps its "New" marker anchored while the user stays in the report
+    // (readNewestAction no longer clears it, and the repeated openReport calls of a single visit don't
+    // either), so the user sees the marker they created. It is reconciled away only when the user navigates
+    // away and comes back — `didNavigateBackToReport` is true only on that return trip. A page refresh leaves
+    // the RAM-only set empty, so the marker survives a refresh. This is a purely client-side decision, so it
+    // lives in optimisticData: it must apply immediately and offline, and must not be dropped if openReport
+    // never succeeds (the flag is already consumed above). We deliberately do NOT restore it in failureData —
+    // resurrecting a marker the user has already moved past would be wrong.
+    if (didNavigateBackToReport) {
+        optimisticReport.manuallyMarkedUnreadReportActionID = null;
+    }
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1624,12 +1637,6 @@ function openReport(params: OpenReportActionParams) {
                 errorFields: {
                     notFound: null,
                 },
-                // An explicit mark-as-unread keeps its "New" marker anchored while the user stays in the report
-                // (readNewestAction no longer clears it, and the repeated openReport calls of a single visit
-                // don't either), so the user sees the marker they created. It is reconciled away only when the
-                // user navigates away and comes back — `didNavigateBackToReport` is true only on that return
-                // trip. A page refresh leaves the RAM-only set empty, so the marker survives a refresh.
-                ...(didNavigateBackToReport ? {manuallyMarkedUnreadReportActionID: null} : {}),
             },
         },
         {
