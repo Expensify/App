@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
 import {getCardSettings, getIssuedCardFeedCountry} from '@libs/CardUtils';
-import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -70,10 +69,6 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
-        if (!programKey) {
-            Log.alert('[WorkspaceSettlementFrequencyPage] updateSettlementFrequency called without a detected card program key');
-            return;
-        }
         const feedCountry = getIssuedCardFeedCountry(isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK), programKey);
         updateSettlementFrequencyUtil(defaultFundID, programKey, feedCountry, value, settings?.monthlySettlementDate);
     };
