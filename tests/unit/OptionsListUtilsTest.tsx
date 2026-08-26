@@ -29,7 +29,6 @@ import {
     formatSectionsFromSearchTerm,
     getAlternateText,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getLastMessageTextForReport,
     getParticipantsOption,
     getPolicyExpenseReportOption,
     getReportDisplayOption,
@@ -67,7 +66,7 @@ import {
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
 } from '@libs/ReportActionsUtils';
-import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from '@libs/ReportAlternateTextUtils';
+import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, getLastMessageTextForReport, shouldShowLastActorDisplayName} from '@libs/ReportAlternateTextUtils';
 import {
     canCreateTaskInReport,
     canUserPerformWriteAction,

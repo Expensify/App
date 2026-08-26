@@ -1594,19 +1594,15 @@ function getReportAlternateText({
     return alternateText;
 }
 
-export type {WelcomeMessage, WelcomeMessageParams, GetReportAlternateTextParams};
 export {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     deprecatedCachedOneTransactionThreadReportIDs,
-    getExpenseReportPreviewText,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
-    getLatestVisibleMoneyRequestAction,
     getPersonalDetailForAccountID,
     getPersonalDetailsForAccountIDs,
     getReportAlternateText,
-    getRoomWelcomeMessage,
     getWelcomeMessage,
     shouldShowLastActorDisplayName,
 };

@@ -122,7 +122,7 @@ import type {
     SectionForSearchTerm,
 } from './types';
 
-import {getChatPreviewParts} from './getChatPreviewParts';
+import getChatPreviewParts from './getChatPreviewParts';
 import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from './searchMatchUtils';
 
 /**
@@ -2978,10 +2978,8 @@ export {
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getLastMessageTextForReport,
     getNoneOption,
     getParticipantsOption,
-    getPersonalDetailsForAccountIDs,
     getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,

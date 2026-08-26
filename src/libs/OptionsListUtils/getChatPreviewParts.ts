@@ -216,4 +216,4 @@ function getChatPreviewParts({
     return {actorPrefix: displayName ? `${displayName}: ` : '', customAlternateText};
 }
 
-export {getChatPreviewParts};
+export default getChatPreviewParts;
