@@ -129,6 +129,7 @@ function MoneyRequestAmountForm({
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [isNegative, setIsNegative] = useState(false);
+    const hasUserChangedSignRef = useRef(false);
 
     useImperativeHandle(amountFormRef, () => ({
         getNumber: () => {
@@ -161,6 +162,7 @@ function MoneyRequestAmountForm({
 
     const toggleNegative = useCallback(() => {
         const nextIsNegative = !isNegative;
+        hasUserChangedSignRef.current = true;
         setIsNegative(nextIsNegative);
         onNegativeChange?.(nextIsNegative);
         // The sign flip bypasses the input's change handler, so report the newly signed value like a keystroke would
@@ -169,11 +171,20 @@ function MoneyRequestAmountForm({
     }, [isNegative, onAmountChange, onNegativeChange]);
 
     const clearNegative = useCallback(() => {
+        hasUserChangedSignRef.current = true;
         setIsNegative(false);
         onNegativeChange?.(false);
     }, [onNegativeChange]);
 
-    const initializeIsNegative = useCallback((currentAmount: number) => {
+    const initializeIsNegative = useCallback((currentAmount: number, shouldResetUserSign = false) => {
+        if (shouldResetUserSign) {
+            hasUserChangedSignRef.current = false;
+        }
+
+        if (hasUserChangedSignRef.current) {
+            return;
+        }
+
         setIsNegative(currentAmount < 0);
     }, []);
 
@@ -187,7 +198,7 @@ function MoneyRequestAmountForm({
         }
 
         initializeAmount(absoluteAmount);
-        initializeIsNegative(amount);
+        initializeIsNegative(amount, true);
 
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-hooks/exhaustive-deps
