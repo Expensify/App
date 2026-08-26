@@ -51,6 +51,11 @@ ENV['RCT_USE_RN_DEP'] = '1'
 RNMode.declare!(:source)
 report('scrubs_overrides', ENV['RCT_USE_LOCAL_RN_DEP'].nil? && ENV['HERMES_ENGINE_TARBALL_PATH'].nil?)
 report('pins_mode_flags', ENV['RCT_USE_RN_DEP'] == '0' && ENV['RCT_USE_PREBUILT_RNCORE'] == '0')
+# react-native tests several overrides with ENV.has_key?, so an exported-but-empty value still counts.
+ENV['HERMES_ENGINE_TARBALL_PATH'] = ''
+RNMode.declare!(:source)
+report('scrubs_empty_overrides', !ENV.key?('HERMES_ENGINE_TARBALL_PATH'))
+
 report('pins_shared_vars', ENV['USE_FRAMEWORKS'] == 'static' && ENV['RCT_HERMES_V1_ENABLED'] == '1')
 
 # A degraded prebuilt install warns but does not stop: the product requirement.

@@ -72,6 +72,7 @@ describe('RNMode behaviour', () => {
         'scrubs_overrides',
         'pins_mode_flags',
         'pins_shared_vars',
+        'scrubs_empty_overrides',
         'degraded_install_continues',
         'prebuilt_in_source_mode_raises',
         'hermes_fallback_continues_prebuilt',

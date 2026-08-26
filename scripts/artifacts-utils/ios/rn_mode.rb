@@ -201,7 +201,10 @@ module RNMode
             # Ours to set, so an inherited value is always stale.
             MODE_ENV_VARS.each { |name| ENV.delete(name) }
 
-            present = SCRUBBED_ENV_VARS.select { |name| ENV[name] && !ENV[name].empty? }
+            # Presence, not truthiness: react-native tests several of these with ENV.has_key?, so an
+            # exported-but-empty value still changes what resolves. hermes-utils.rb would take the
+            # local-tarball branch and abort on File.exist?('').
+            present = SCRUBBED_ENV_VARS.select { |name| ENV.key?(name) }
             return if present.empty?
 
             if ENV[ALLOW_OVERRIDES_ENV_VAR] == '1'

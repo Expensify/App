@@ -26,18 +26,18 @@ describe('verifyPodfileMode.sh', () => {
     });
 
     it('rejects a prebuilt lockfile that degraded to a source build', () => {
-        // The original bug: a transient failure rewrites the graph, and the Podfile is untouched.
-        expect(run('prebuiltFlippedToSource.lock', 'prebuilt')).toBe(1);
-    });
-
-    it('rejects each lockfile when checked against the opposite mode', () => {
-        expect(run('prebuilt.lock', 'source')).toBe(1);
+        // The original bug. A flip produces exactly a source-mode lockfile, so source.lock is the
+        // artifact under test here; only the mode it is checked against differs.
         expect(run('source.lock', 'prebuilt')).toBe(1);
     });
 
+    it('rejects a source lockfile that resolved prebuilt', () => {
+        expect(run('prebuilt.lock', 'source')).toBe(1);
+    });
+
     it('rejects a hermes fallback that leaves every marker pod intact', () => {
-        // Marker pods alone cannot see this: hermes-engine exists in both graphs, and only its
-        // EXTERNAL SOURCES entry moves from a pinned tag to a git commit.
+        // Marker pods alone cannot see this: hermes-engine exists in both graphs. The signal is the
+        // Pre-built subspec, which CocoaPods emits only when hermes resolved to a prebuilt binary.
         expect(run('prebuiltHermesFromSource.lock', 'prebuilt')).toBe(1);
     });
 
