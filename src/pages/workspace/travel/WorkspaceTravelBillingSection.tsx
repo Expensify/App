@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTravelBillingFeedsForFeedSelector from '@hooks/useTravelBillingFeedsForFeedSelector';
 
 import {
     clearTravelBillingErrors,
@@ -79,6 +80,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
+    const {allFeeds: accessibleTravelFeeds} = useTravelBillingFeedsForFeedSelector(policyID);
 
     const {showConfirmModal, closeModal} = useConfirmModal();
     const [isDisableConfirmModalVisible, setIsDisableConfirmModalVisible] = useState(false);
@@ -218,6 +220,12 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
         if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
             shouldResumeToggleRef.current = true;
             Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policyID));
+            return;
+        }
+
+        // The domain already runs a travel feed this workspace can join, so let the admin pick one instead of provisioning another.
+        if (accessibleTravelFeeds.length > 0) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TRAVEL_BILLING_SELECT_FEED.path, ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)));
             return;
         }
 
