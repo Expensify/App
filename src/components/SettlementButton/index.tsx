@@ -52,7 +52,6 @@ import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -61,8 +60,6 @@ import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import type SettlementButtonProps from './types';
-
-type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
 
@@ -143,8 +140,6 @@ function SettlementButton({
     const reportID = iouReport?.reportID;
     const personalPolicy = usePolicy(personalPolicyID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-
-    const lastPaymentPolicy = usePolicy(lastPaymentMethod);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const bankAccount = bankAccountList?.[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -470,7 +465,7 @@ function SettlementButton({
         paymentButtonOptions = buttonOptions;
     }
 
-    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
+    const selectPaymentType = (iouPaymentType: PaymentMethodType) => {
         if (isInvoiceReport) {
             // if user has intent to pay, we should get the only bank account information to pay the invoice.
             if (hasIntentToPay && isPayInvoiceViaExpensifyBetaEnabled) {
@@ -501,34 +496,33 @@ function SettlementButton({
         }
     };
 
-    const selectPaymentMethod = (event: KYCFlowEvent, paymentType: string, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
+    const selectPaymentMethod = (paymentType: string, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
         const shouldContinueKYCAfterAddingBankAccount = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
 
         triggerKYCFlow({
-            event,
             iouPaymentType: paymentType as PaymentMethodType,
             paymentMethod,
-            policy: selectedPolicy ?? (event ? lastPaymentPolicy : undefined),
+            policy: selectedPolicy,
             personalBankAccountOnSuccessFallbackRoute: shouldContinueKYCAfterAddingBankAccount ? ROUTES.ENABLE_PAYMENTS : undefined,
         });
     };
 
-    const executePaymentSelection = (event: KYCFlowEvent, selectedOption: string, triggerKYCFlow: TriggerKYCFlow, activePaymentType: ReturnType<typeof getActivePaymentType>) => {
+    const executePaymentSelection = (selectedOption: string, triggerKYCFlow: TriggerKYCFlow, activePaymentType: ReturnType<typeof getActivePaymentType>) => {
         const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = activePaymentType;
         const isPayingWithMethod = paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
         if (!!policyFromPaymentMethod || (shouldSelectPaymentMethod && isPayingWithMethod)) {
-            selectPaymentMethod(event, paymentType, triggerKYCFlow, selectedOption as PaymentMethod, policyFromPaymentMethod ?? policyFromContext);
+            selectPaymentMethod(paymentType, triggerKYCFlow, selectedOption as PaymentMethod, policyFromPaymentMethod ?? policyFromContext);
             return;
         }
 
-        selectPaymentType(event, selectedOption as PaymentMethodType);
+        selectPaymentType(selectedOption as PaymentMethodType);
     };
 
-    const handlePaymentSelection = (event: KYCFlowEvent, selectedOption: string, triggerKYCFlow: TriggerKYCFlow) => {
+    const handlePaymentSelection = (selectedOption: string, triggerKYCFlow: TriggerKYCFlow) => {
         const activePaymentType = getActivePaymentType(selectedOption, activeAdminPolicies, businessBankAccountOptions, policyIDKey);
 
-        runPaymentAction(activePaymentType.paymentType, () => executePaymentSelection(event, selectedOption, triggerKYCFlow, activePaymentType));
+        runPaymentAction(activePaymentType.paymentType, () => executePaymentSelection(selectedOption, triggerKYCFlow, activePaymentType));
     };
 
     let customText: string;
@@ -537,22 +531,6 @@ function SettlementButton({
     } else {
         customText = translate('iou.settlePayment', formattedAmount);
     }
-
-    const defaultSelectedIndex = paymentButtonOptions.findIndex((paymentOption) => {
-        if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            return paymentOption.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-        }
-
-        if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA && businessBankAccountOptionList.length) {
-            return paymentOption.value === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT;
-        }
-
-        if (lastPaymentPolicy?.id) {
-            return paymentOption.value === lastPaymentPolicy.id;
-        }
-
-        return false;
-    });
 
     const popoverUseScrollView = shouldPopoverUseScrollView(paymentButtonOptions);
 
@@ -582,12 +560,11 @@ function SettlementButton({
                     isDisabled={isDisabled}
                     stayNormalOnDisable={stayNormalOnDisable}
                     isLoading={isLoading}
-                    defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     variant={!hasOnlyHeldExpenses ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     onPress={() => {}}
-                    onOptionSelected={(option) => handlePaymentSelection(undefined, option.value, triggerKYCFlow)}
+                    onOptionSelected={(option) => handlePaymentSelection(option.value, triggerKYCFlow)}
                     style={style}
                     shouldUseShortForm={shouldUseShortForm}
                     shouldPopoverUseScrollView={popoverUseScrollView}
