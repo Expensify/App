@@ -261,6 +261,30 @@ function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: Dat
 }
 
 /**
+ * Format date to a long date format with weekday but without the year
+ *
+ * @returns Sunday, July 9
+ */
+function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR, {locale: dateFnsLocale});
+}
+
+/**
+ * Get the time-of-day greeting key based on the hour of the given (already timezone-adjusted) date.
+ * Ranges: morning 4am to 12pm, afternoon 12pm to 5pm, evening 5pm to 4am.
+ */
+function getTimeOfDayGreetingKey(date: Date): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
+    const hour = date.getHours();
+    if (hour >= 4 && hour < 12) {
+        return 'goodMorning';
+    }
+    if (hour >= 12 && hour < 17) {
+        return 'goodAfternoon';
+    }
+    return 'goodEvening';
+}
+
+/**
  * Format date to a weekday format
  *
  * @returns Sunday
@@ -1135,6 +1159,16 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
     return datePart >= monthStart && datePart <= monthEnd;
 }
 
+/** Returns a month label, e.g. "September 2025". */
+function getFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
+    return format(new Date(year, month - 1, 1), 'LLLL yyyy', {locale: dateFnsLocale});
+}
+
+/** Returns a compact month label, e.g. "Sep ’25". */
+function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
+    return format(new Date(year, month - 1, 1), 'LLL ’yy', {locale: dateFnsLocale});
+}
+
 /**
  * Returns a formatted date range.
  */
@@ -1148,6 +1182,17 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, date
         return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d', {locale: dateFnsLocale})}`;
     }
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+}
+
+/** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
+function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    const start = parse(startDate, 'yyyy-MM-dd', new Date());
+    const end = parse(endDate, 'yyyy-MM-dd', new Date());
+    if (!isSameYear(start, end)) {
+        return `${format(start, 'MMM d, ’yy', {locale: dateFnsLocale})} - ${format(end, 'MMM d, ’yy', {locale: dateFnsLocale})}`;
+    }
+    const formattedEnd = isSameMonth(start, end) ? format(end, 'd, ’yy', {locale: dateFnsLocale}) : format(end, 'MMM d, ’yy', {locale: dateFnsLocale});
+    return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${formattedEnd}`;
 }
 
 function getYearDateRange(year: number): {start: string; end: string} {
@@ -1180,6 +1225,13 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
     return `Q${quarter} ${year} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
 }
 
+/**
+ * Returns a compact quarter label, e.g. "Q3 ’25".
+ */
+function getShortFormattedQuarterForSearch(year: number, quarter: number): string {
+    return `Q${quarter} ${format(new Date(year, 0, 1), '’yy')}`;
+}
+
 function getNextNthOfMonth(nth: number) {
     const now = new Date();
     const year = now.getFullYear();
@@ -1199,6 +1251,8 @@ const DateUtils = {
     isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
+    formatToLongDateWithWeekdayWithoutYear,
+    getTimeOfDayGreetingKey,
     formatToLocalTime,
     formatToReadableString,
     getZoneAbbreviation,
@@ -1264,10 +1318,14 @@ const DateUtils = {
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,
+    getFormattedMonthForSearch,
+    getShortFormattedMonthForSearch,
     getFormattedDateRangeForSearch,
+    getShortFormattedDateRangeForSearch,
     getYearDateRange,
     getQuarterDateRange,
     getFormattedQuarterForSearch,
+    getShortFormattedQuarterForSearch,
     getNextNthOfMonth,
 };
 
