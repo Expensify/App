@@ -91,10 +91,6 @@ Onyx.connectWithoutView({
 function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
     const rootState = navigationRef.getRootState();
 
-    // resetRoot is only needed to MOUNT the onboarding navigator. The merge below appends routes by
-    // top-level name, so once it is mounted the merged route list cannot change - but resetRoot({stale: true})
-    // would still re-emit the state and fire history.replaceState, and a burst of those trips Safari's
-    // 100-per-10s cap (APP-HT5). Unlike the old payload this no longer re-asserts adaptedState's index.
     if (rootState.routes.some((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR)) {
         return;
     }
@@ -103,8 +99,6 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
     const adaptedState = getAdaptedStateFromPath(onboardingPath as Route, undefined, false);
     const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
 
-    // resetRoot instead of navigate/replace because only replacing the whole root state can mount the target
-    // screen on top of the earlier onboarding steps that getAdaptedStateFromPath rebuilds, keeping Back working.
     navigationRef.resetRoot({
         ...rootState,
         ...adaptedState,
