@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
-    OnyxInputOrEntry,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -23,7 +22,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -36,7 +34,7 @@ import {formatList} from './Localize';
 import {getForReportAction} from './ModifiedExpenseMessage';
 import {getIsOffline} from './NetworkState';
 import Parser from './Parser';
-import {getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsForAccountIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -313,45 +311,6 @@ Onyx.connectWithoutView({
         }
     },
 });
-
-/** Single-account lookup without the allocations required by the plural helper. */
-function getPersonalDetailForAccountID(accountID: number, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetails | undefined {
-    const cleanAccountID = Number(accountID);
-    if (!personalDetails || !cleanAccountID) {
-        return undefined;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const personalDetail: PersonalDetails = personalDetails[accountID] ?? ({} as PersonalDetails);
-
-    if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
-    }
-
-    personalDetail.accountID = cleanAccountID;
-    return personalDetail;
-}
-
-/**
- * Returns the personal details for an array of accountIDs
- * @returns keys of the object are emails, values are PersonalDetails objects.
- */
-function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): SetNonNullable<PersonalDetailsList> {
-    const personalDetailsForAccountIDs: SetNonNullable<PersonalDetailsList> = {};
-    if (!personalDetails) {
-        return personalDetailsForAccountIDs;
-    }
-    if (accountIDs) {
-        for (const accountID of accountIDs) {
-            const personalDetail = getPersonalDetailForAccountID(accountID, personalDetails);
-            if (!personalDetail) {
-                continue;
-            }
-            personalDetailsForAccountIDs[personalDetail.accountID] = personalDetail;
-        }
-    }
-    return personalDetailsForAccountIDs;
-}
 
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number, translate: LocalizedTranslate) {
     if (!lastActorDetails) {
@@ -1600,8 +1559,6 @@ export {
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
-    getPersonalDetailForAccountID,
-    getPersonalDetailsForAccountIDs,
     getReportAlternateText,
     getWelcomeMessage,
     shouldShowLastActorDisplayName,

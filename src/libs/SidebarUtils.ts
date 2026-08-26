@@ -32,8 +32,9 @@ import type {ValueOf} from 'type-fest';
 import type {OptionData} from './ReportUtils';
 
 import {isAnonymousUser} from './actions/Session';
+import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
 import {getIOUReportIDFromReportActionPreview, getReportAction} from './ReportActionsUtils';
-import {getPersonalDetailsForAccountIDs, getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
+import {getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
 import {deprecatedGetReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
