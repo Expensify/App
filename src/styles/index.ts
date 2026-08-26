@@ -2567,6 +2567,11 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        messageEditCancelButtonWrapper: {
+            justifyContent: 'flex-end',
+            paddingBottom: 3,
+        },
+
         chatItemPDFAttachmentLoading: {
             backgroundColor: 'transparent',
             borderColor: theme.border,

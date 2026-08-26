@@ -1,7 +1,9 @@
+import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
 import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -22,7 +24,6 @@ import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
 import createMock from '../../utils/createMock';
-import getOnyxValue from '../../utils/getOnyxValue';
 import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -432,6 +433,33 @@ describe('actions/IOU', () => {
         });
     });
 
+    it('handleNavigateAfterExpenseCreate', async () => {
+        const mockedIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
+        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+        const activeReportID = '1';
+        const transactionID = '1';
+        mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        mockedIsReportTopmostSplitNavigator.mockReturnValue(true);
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, isInvoice: true});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockReset();
+    });
+
     describe('createSplitsAndOnyxData', () => {
         const mockPersonalDetails: PersonalDetailsList = {
             [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
@@ -753,18 +781,6 @@ describe('actions/IOU', () => {
             };
         }
 
-        function getPendingNewTransactionIDsFromOnyx(reportID: string) {
-            return new Promise<Record<string, unknown> | undefined>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    callback: (metadata) => {
-                        Onyx.disconnect(connection);
-                        resolve(metadata?.pendingNewTransactionIDs);
-                    },
-                });
-            });
-        }
-
         it('skips registration during a reverse split operation', async () => {
             // Given one existing child transaction (triggers isReverseSplitOperation when splitExpenses.length === 1)
             const existingChildTx = {
@@ -822,6 +838,56 @@ describe('actions/IOU', () => {
             expect(pendingNewTransactionIDs?.['new-tx-1']).toBeUndefined();
             expect(pendingNewTransactionIDs?.['new-tx-2']).toBeUndefined();
         });
+
+        it('registers the search-route highlight (not report metadata) when splitting from the Search/Spend page', async () => {
+            // Given the user is on the Search (Spend > Expenses) page, where the expense report is never opened
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+            const params = buildBaseParams({
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split from the Search page
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then the new IDs are registered on the search-route highlight, keyed by the current search type.
+            // (The report-metadata rail is asserted separately, in the REPORT_METADATA test below.)
+            // This mechanism highlights optimistically without a server re-search, so it works offline too.
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(
+                'expense',
+                Object.fromEntries([
+                    ['new-tx-1', true],
+                    ['new-tx-2', true],
+                ]),
+            );
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
+        });
+
+        /**
+         * Reads REPORT_METADATA directly: the flags are written as Onyx optimisticData, not through the mocked
+         * addPendingNewTransactionIDs, so mock-only assertions cannot observe them - which is how this regressed.
+         */
+        function getPendingNewTransactionIDsFromOnyx(reportID: string) {
+            return new Promise<Record<string, unknown> | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    callback: (metadata) => {
+                        Onyx.disconnect(connection);
+                        resolve(metadata?.pendingNewTransactionIDs);
+                    },
+                });
+            });
+        }
 
         it('does not write pendingNewTransactionIDs into report metadata when splitting from the Search/Spend page', async () => {
             // Given the user is on the Search (Spend > Expenses) page and the expense report already holds a transaction,
@@ -897,7 +963,10 @@ describe('actions/IOU', () => {
             expect(pendingNewTransactionIDs?.['existing-tx-2']).toBeUndefined();
         });
 
-        it('does not signal the "Expense added" growl during a reverse split operation', async () => {
+        it('skips the search-route highlight during a reverse split from the Search/Spend page', async () => {
+            // Given the user is on the Search page and this is a reverse split (1 expense, existing child present)
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
             const existingChildTx = {
                 transactionID: 'child-tx-1',
                 reportID: EXPENSE_REPORT_ID,
@@ -913,11 +982,90 @@ describe('actions/IOU', () => {
                 },
             });
 
+            // When saving the reverse split
             updateSplitTransactionsFromSplitExpensesFlow(params);
             await waitForBatchedUpdates();
 
-            const growlTransactionIDs = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
-            expect(growlTransactionIDs?.['new-merged-tx']).toBeUndefined();
+            // Then nothing is highlighted — reverse splits create no new transactions
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).not.toHaveBeenCalled();
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
+        });
+
+        it('registers the search-route highlight while offline, so the Spend page still highlights', async () => {
+            // Given the user is offline on the Search page. The auto-detect path in useSearchHighlightAndScroll is
+            // skipped while offline (it waits for a server re-search), so this rail is the only thing that can
+            // highlight the new rows - a reviewer caught the highlight silently disappearing offline.
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+            const params = buildBaseParams({
+                isOffline: true,
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'offline-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'offline-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split offline
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then BOTH new IDs are registered - a reviewer also caught only one of the two rows highlighting
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(
+                'expense',
+                Object.fromEntries([
+                    ['offline-tx-1', true],
+                    ['offline-tx-2', true],
+                ]),
+            );
+
+            // And the report-metadata rail stays clean offline too
+            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
+            expect(pendingNewTransactionIDs?.['offline-tx-1']).toBeUndefined();
+            expect(pendingNewTransactionIDs?.['offline-tx-2']).toBeUndefined();
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
+        });
+
+        it('leaves no highlight flags anywhere when splits move out to a different report', async () => {
+            // Given splits that leave the expense report entirely (each lands in its own other report). Nothing should
+            // be flagged on the source report, and the destination reports are never opened by this flow either, so
+            // no rail entry may be left behind for any of them.
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(false);
+            const expenseReport = {reportID: EXPENSE_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, parentReportID: 'parent-report-1', chatReportID: 'chat-report-1'} as Report;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, expenseReport);
+            const existingTx = {transactionID: 'existing-tx-3', reportID: EXPENSE_REPORT_ID, amount: 1000};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}existing-tx-3`, existingTx);
+            const params = buildBaseParams({
+                expenseReport,
+                allReportsList: {[`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`]: expenseReport},
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}existing-tx-3`]: existingTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'moved-tx-1', reportID: 'other-report-1', statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'moved-tx-2', reportID: 'other-report-2', statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then neither the source report nor the destination reports carry stranded highlight flags
+            const sourceRail = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
+            expect(sourceRail?.['moved-tx-1']).toBeUndefined();
+            expect(sourceRail?.['moved-tx-2']).toBeUndefined();
+            expect((await getPendingNewTransactionIDsFromOnyx('other-report-1'))?.['moved-tx-1']).toBeUndefined();
+            expect((await getPendingNewTransactionIDsFromOnyx('other-report-2'))?.['moved-tx-2']).toBeUndefined();
         });
     });
 });

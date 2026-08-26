@@ -29,7 +29,6 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
-import {getParsableSearchValue} from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
@@ -578,12 +577,11 @@ function SearchAutocompleteList({
 
         if (autocompleteSuggestions.length > 0) {
             const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey, workspaceIcon}) => {
-                const value = mapKey && autocompleteID ? getParsableSearchValue(filterKey, text) : text;
                 return {
                     text: getAutocompleteDisplayText(filterKey, text),
-                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, value) : undefined,
+                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
                     singleIcon: expensifyIcons.MagnifyingGlass,
-                    searchQuery: value,
+                    searchQuery: text,
                     autocompleteID,
                     keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
                     searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
