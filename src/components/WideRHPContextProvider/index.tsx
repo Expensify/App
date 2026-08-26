@@ -188,9 +188,15 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, [visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys]);
 
     /**
-     * Effect that empties the module-level snapshot on teardown, since it outlives the provider and would otherwise answer for the next session.
+     * Effect that resets the module-level snapshot and width on teardown, since both outlive the provider and would otherwise answer for the next session.
      */
-    useEffect(() => () => setVisibleRHPRouteKeysSnapshot(NO_VISIBLE_RHP_ROUTE_KEYS, NO_VISIBLE_RHP_ROUTE_KEYS), []);
+    useEffect(
+        () => () => {
+            setVisibleRHPRouteKeysSnapshot(NO_VISIBLE_RHP_ROUTE_KEYS, NO_VISIBLE_RHP_ROUTE_KEYS);
+            expandedRHPProgress.setValue(0);
+        },
+        [],
+    );
 
     /**
      * Effect that manages the secondary overlay animation for single RHP displayed on Super Wide RHP and rendering state.

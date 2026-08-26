@@ -45,13 +45,13 @@ function useNewTransactions(
     const [diffState, setDiffState] = useState<DiffState>(() => ({reportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS}));
     const trackedTransactionIDs = hasOnceLoadedReportActions && transactions ? transactions.map(({transactionID}) => transactionID) : undefined;
     const baselineSourceIDs = diffState.sourceIDs;
-    const baselineIDs = baselineSourceIDs === undefined ? undefined : new Set(baselineSourceIDs);
+    const baselineIDs = new Set(baselineSourceIDs);
     const isReportSwitch = reportID !== diffState.reportID;
     // Membership, not sequence: a reorder says nothing about what is new, so recording one would cost a render pass and change nothing.
     const hasSameTransactionIDs =
         trackedTransactionIDs !== undefined &&
-        baselineIDs !== undefined &&
-        trackedTransactionIDs.length === baselineIDs.size &&
+        baselineSourceIDs !== undefined &&
+        trackedTransactionIDs.length === baselineSourceIDs.length &&
         trackedTransactionIDs.every((transactionID) => baselineIDs.has(transactionID));
     if (isReportSwitch) {
         // The list in hand can still be the outgoing report's, so let the incoming report's own list set the baseline.
@@ -61,9 +61,9 @@ function useNewTransactions(
         }
     } else if (trackedTransactionIDs !== baselineSourceIDs && !hasSameTransactionIDs) {
         let addedIDs = EMPTY_TRANSACTION_IDS;
-        if (baselineIDs !== undefined && trackedTransactionIDs !== undefined && trackedTransactionIDs.length > baselineIDs.size) {
+        if (baselineSourceIDs !== undefined && trackedTransactionIDs !== undefined && trackedTransactionIDs.length > baselineSourceIDs.length) {
             // A longer list sharing nothing with a non-empty baseline replaced it, so re-baseline instead of calling it all new.
-            const hasReplacedBaseline = baselineIDs.size > 0 && !trackedTransactionIDs.some((transactionID) => baselineIDs.has(transactionID));
+            const hasReplacedBaseline = baselineSourceIDs.length > 0 && !trackedTransactionIDs.some((transactionID) => baselineIDs.has(transactionID));
             if (!hasSettledAfterInitialLoad) {
                 setHasSettledAfterInitialLoad(true);
             } else if (!hasReplacedBaseline) {

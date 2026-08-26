@@ -1,5 +1,3 @@
-import getTopmostFullScreenRoute from '@navigation/helpers/getTopmostFullScreenRoute';
-
 import NAVIGATORS from '@src/NAVIGATORS';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -15,17 +13,23 @@ import useRootNavigationState from './useRootNavigationState';
 function useIsReportVisible(shouldUseNarrowLayout: boolean): boolean {
     const isFocused = useIsFocused();
     const isRHPTopmost = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-    const topmostTabRouteKey = useRootNavigationState(() => getTopmostFullScreenRoute()?.key);
-    const [ownTabRouteKey, setOwnTabRouteKey] = useState(topmostTabRouteKey);
+    const activeTabRouteKey = useRootNavigationState((state) => {
+        // Derived from the subscribed state rather than the navigation ref, which errors before the container is ready.
+        const tabNavigatorState = state?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)?.state;
+        return tabNavigatorState?.routes?.at(tabNavigatorState.index ?? 0)?.key;
+    });
 
-    if (isFocused && ownTabRouteKey !== topmostTabRouteKey) {
-        setOwnTabRouteKey(topmostTabRouteKey);
+    // Seeded only when the screen mounts focused, since a screen that first renders in a background tab would otherwise adopt that tab's key.
+    const [ownTabRouteKey, setOwnTabRouteKey] = useState(() => (isFocused ? activeTabRouteKey : undefined));
+
+    if (isFocused && ownTabRouteKey !== activeTabRouteKey) {
+        setOwnTabRouteKey(activeTabRouteKey);
     }
 
     if (shouldUseNarrowLayout) {
         return isFocused;
     }
-    return isFocused || (isRHPTopmost && ownTabRouteKey === topmostTabRouteKey);
+    return isFocused || (ownTabRouteKey !== undefined && isRHPTopmost && ownTabRouteKey === activeTabRouteKey);
 }
 
 export default useIsReportVisible;

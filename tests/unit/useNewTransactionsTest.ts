@@ -896,6 +896,39 @@ describe('useNewTransactions with a covered report', () => {
     });
 });
 
+describe('useNewTransactions baseline comparison', () => {
+    const txWithID = (transactionID: string): Transaction => ({
+        transactionID,
+        amount: 100,
+        created: '2023-10-01',
+        currency: 'USD',
+        reportID: 'report1',
+        merchant: '',
+    });
+
+    it('settles on a list that repeats a transaction ID, which a set-size comparison could never call equal', () => {
+        const transactions = [txWithID('a'), txWithID('a')];
+        // Re-rendering with the same list is what a render-phase update would turn into an unbounded loop.
+        const {rerender, result} = renderHook(() => useNewTransactions(true, transactions, undefined, 'report1', true));
+        rerender(undefined);
+        rerender(undefined);
+
+        expect(result.current).toEqual([]);
+    });
+
+    it('treats a re-ordered list as unchanged, so no window opens and no render is spent recording it', () => {
+        const first = txWithID('a');
+        const second = txWithID('b');
+        const {rerender, result} = renderHook((props: {transactions: Transaction[]}) => useNewTransactions(true, props.transactions, undefined, 'report1', true), {
+            initialProps: {transactions: [first, second]},
+        });
+
+        rerender({transactions: [second, first]});
+
+        expect(result.current).toEqual([]);
+    });
+});
+
 describe('useNewTransactions rail cleanup lifecycle', () => {
     const baseTx: Transaction = {
         transactionID: 'base',

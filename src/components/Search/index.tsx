@@ -691,7 +691,7 @@ function Search({
 
                 const route = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo});
                 if (item.transactions.length <= 1) {
-                    // Clearing runs either way, since a report that no longer qualifies must not keep a stale hint whichever tab opens it.
+                    // A report that no longer qualifies must not keep the hint an earlier visit left behind, whether or not this click navigates.
                     unmarkReportRHPWidth(reportID, 'super-wide');
                 }
                 // Marked after the new-tab guard: opening in a new tab never mounts the screen that would consume the hint, so it would pin this report wide on a later visit.
