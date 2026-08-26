@@ -10,6 +10,7 @@ import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
 
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import useNavigateToReportOnRefresh from '@pages/media/AttachmentModalScreen/routes/hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from '@pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType';
@@ -24,7 +25,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {View} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 
 import AddAttachmentModalCarouselView from './AddAttachmentModalCarouselView';
 
@@ -44,6 +45,9 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         onShow,
         onClose,
     } = route.params;
+
+    const {getCurrentAttachment} = useContext(AttachmentModalContext);
+    const confirmLeavesScreen = getCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>()?.confirmLeavesScreen;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
@@ -171,6 +175,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             accountID,
             headerTitle,
             shouldDisableSendButton,
+            confirmLeavesScreen,
             submitRef,
             onConfirm,
             onDownloadAttachment,
@@ -187,6 +192,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         accountID,
         headerTitle,
         shouldDisableSendButton,
+        confirmLeavesScreen,
         onConfirm,
         onDownloadAttachment,
     ]);

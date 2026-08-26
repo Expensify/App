@@ -1,14 +1,6 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
-import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
 
@@ -16,6 +8,22 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './params';
+import type {
+    AllConnectionName,
+    ConnectionName,
+    Country,
+    DelegateRole,
+    OnboardingTask,
+    OnyxInputOrEntry,
+    OriginalMessageReportPreview,
+    OriginalMessageSettlementAccountLocked,
+    PersonalRulesModifiedFields,
+    PolicyConnectionSyncStage,
+    PolicyRulesModifiedFields,
+    ReportAction,
+    SageIntacctMappingName,
+    ViolationDataType,
+} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 
 type StateValue = {
@@ -972,6 +980,13 @@ const translations = {
             admins: 'Admins only',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+        reasonLabel: 'Support login reason',
+        reasonHint: 'No recent tickets found for this account.',
+        login: 'Log in',
+    },
     sidebarScreen: {
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
@@ -986,6 +1001,13 @@ const translations = {
     },
     homePage: {
         forYou: 'For you',
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Good morning, ${name}.` : 'Good morning.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Good afternoon, ${name}.` : 'Good afternoon.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Good evening, ${name}.` : 'Good evening.'),
+            inputPlaceholder: 'Ask Concierge to analyze your expenses or get support',
+            inputPlaceholderMobile: 'Ask Concierge anything',
+        },
         timeSensitiveSection: {
             title: 'Time sensitive',
             ctaFix: 'Fix',
@@ -1590,8 +1612,8 @@ const translations = {
         }) => {
             const paymentMethod = isCard ? 'card' : 'bank account';
             return isCurrentUser
-                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`
-                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`;
+                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This generally takes 4-5 business days.`
+                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This generally takes 4-5 business days.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` with direct deposit (ACH)${creditBankAccount ? ` to the bank account ending in ${creditBankAccount}. ` : '. '}${expectedDate ? `The reimbursement is estimated to complete by ${expectedDate}.` : 'This generally takes 4-5 business days.'}`,
@@ -1608,7 +1630,7 @@ const translations = {
         basedOnAI: 'based on past activity',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `based on <a href="${rulesLink}">workspace rules</a>` : 'based on workspace rule'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Invoice Report #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Invoice Report #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
         movedToPersonalSpace: 'moved expense to personal space',
@@ -1670,6 +1692,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         sendToSomeone: 'Send to someone',
+        submitToEmployer: 'Submit to my employer',
         unhold: 'Remove hold',
         holdExpense: () => ({
             one: 'Hold expense',
@@ -1918,7 +1941,7 @@ const translations = {
             pageTitle: 'Select the details you want to keep:',
             noDifferences: 'No differences found between the transactions',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'an' : 'a';
+                const article = startsWithVowel(field) ? 'an' : 'a';
                 return `Please select ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Please select attendees',
@@ -3214,6 +3237,8 @@ const translations = {
         all: 'All',
         todo: 'To-dos',
         unread: 'Unread',
+        markAllAsRead: 'Mark all as read',
+        markAllAsReadConfirmationPrompt: 'Are you sure you want to mark all chats as read?',
     },
     reportDetailsPage: {
         goToRoom: 'Go to room',
@@ -4668,6 +4693,9 @@ const translations = {
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
+            active: 'Active',
+            archived: 'Archived',
+            workspaceStatus: 'Workspace status',
             findDomain: 'Find domain',
             findRoom: 'Find room',
             edit: 'Edit workspace',
@@ -5009,6 +5037,9 @@ const translations = {
         },
         qbo: {
             connectedTo: 'Connected to',
+            entity: 'Entity',
+            entitySelectDescription: 'Select the entity to sync with this workspace.',
+            connectNewEntity: 'Connect a new entity',
             importDescription: (integrationName = 'QuickBooks Online') => `Choose which coding configurations to import from ${integrationName} to Expensify.`,
             classes: 'Classes',
             locations: 'Locations',
@@ -6321,6 +6352,10 @@ const translations = {
                         title: 'Add trip names to expenses',
                         subtitle: 'Automatically add trip names to expense descriptions for travel booked in Expensify.',
                     },
+                    codingSync: {
+                        title: 'Sync coding to Expensify Travel',
+                        subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -6387,6 +6422,7 @@ const translations = {
                 disableCardButton: 'Chat with Concierge',
                 feed: {
                     title: 'Get the Expensify Card',
+                    existingFeedTitle: 'Manage your Expensify Cards',
                     subTitle: 'Streamline your business expenses and save up to 50% on your Expensify bill, plus:',
                     features: {
                         cashBack: 'Cash back on every US purchase',
@@ -6394,6 +6430,7 @@ const translations = {
                         spend: 'Spend controls and custom limits',
                     },
                     ctaTitle: 'Issue new card',
+                    viewCards: 'View cards',
                 },
             },
             companyCards: {
@@ -10110,6 +10147,19 @@ const translations = {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection.";
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return "Can't auto-match receipt because your bank connection needs re-authentication.";
+                    }
+                    return isMarkAsCash
+                        ? `Can't auto-match receipt because your bank connection needs re-authentication. Mark as cash to ignore, or <a href="${connectionLink}">reconnect</a> to match the receipt.`
+                        : `Can't auto-match receipt because your bank connection needs re-authentication. <a href="${connectionLink}">Reconnect</a> to match the receipt.`;
+                }
+                return isAdmin
+                    ? `Bank connection needs re-authentication. <a href="${companyCardPageURL}">Reconnect to match receipt</a>`
+                    : 'Bank connection needs re-authentication. Ask an admin to reconnect to match receipt.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return "Can't auto-match receipt due to broken bank connection.";
@@ -10133,6 +10183,9 @@ const translations = {
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Receipt pending because your bank connection needs re-authentication. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
+        memberReauthConnectionError: 'Receipt pending because your bank connection needs re-authentication. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
@@ -10331,6 +10384,8 @@ const translations = {
             title: 'Payment',
             subtitle: 'Add a card to pay for your Expensify subscription.',
             addCardButton: 'Add payment card',
+            addPaymentCardTitle: 'Add a payment card',
+            addCard: 'Add card',
             cardInfo: (name: string, expiration: string, currency: string) => `Name: ${name}, Expiration: ${expiration}, Currency: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Your next payment date is ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Card ending in ${cardNumber}`,
