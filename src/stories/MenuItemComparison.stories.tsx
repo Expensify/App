@@ -10,6 +10,8 @@ import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/Me
 import {MENU_ITEM_TITLE_VARIANT} from '@components/MenuItem/leaves/text/MenuItemTitle';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -143,11 +145,10 @@ function Comparison() {
 
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
-            <SectionHeading title="Phase 3 — MenuItemWithTopDescription">{`The 84 call sites that unblock now that MenuItem.Title has a non-bold weight variant — one card per prop shape, in frequency order. MenuItemWithTopDescription is MenuItem + shouldShowBasicTitle + shouldShowDescriptionOnTop: the description sits above the title INSIDE the press target, and the title is regular weight. Composable reproduces both by declaring Description before Title in the Content column and passing MENU_ITEM_TITLE_VARIANT.BASIC. See menuitem-top-description-title-weight-migratable.md.`}</SectionHeading>
+            <SectionHeading title="Phase 3 — MenuItemWithTopDescription">One card per prop shape, in frequency order. Every shape is the MenuItemField preset.</SectionHeading>
 
             <Card
                 title="description, onPress, title"
-                note="31 sites — class A. The dominant shape. Column order alone gives description-on-top, since Content stacks its children."
                 legacy={
                     <MenuItemWithTopDescription
                         description="Sort by"
@@ -169,7 +170,6 @@ function Comparison() {
 
             <Card
                 title="description, interactive, onPress, shouldShowRightIcon, title"
-                note="24 sites — class B. interactive gates the handler and the hover/press affordance, but legacy renders the chevron either way. Composable folds interactive into onPress={cond ? handler : undefined}; the chevron is then a separate decision, so the second variant keeps it to stay pixel-faithful to legacy."
                 legacy={
                     <>
                         <Variant label="interactive={true}">
@@ -222,11 +222,27 @@ function Comparison() {
                         </Variant>
                     </>
                 }
+                preset={
+                    <>
+                        <Variant label="onPress passed">
+                            <MenuItemField
+                                description="Name"
+                                title="Standard rate"
+                                onPress={noop}
+                            />
+                        </Variant>
+                        <Variant label="onPress={undefined}">
+                            <MenuItemField
+                                description="Name"
+                                title="Standard rate"
+                            />
+                        </Variant>
+                    </>
+                }
             />
 
             <Card
                 title="description, interactive, title"
-                note="14 sites — class A. Read-only display row, no handler at all. Absent onPress already means non-interactive, so interactive drops on migration."
                 legacy={
                     <MenuItemWithTopDescription
                         description="Country"
@@ -244,11 +260,16 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
+                preset={
+                    <MenuItemField
+                        description="Country"
+                        title="United States"
+                    />
+                }
             />
 
             <Card
                 title="description, onPress, sentryLabel, title"
-                note="7 sites — class A. Identical render to the first shape; sentryLabel passes straight through to MenuItem.Root."
                 legacy={
                     <MenuItemWithTopDescription
                         description="Display"
@@ -270,11 +291,18 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
+                preset={
+                    <MenuItemField
+                        description="Display"
+                        title="Comfortable"
+                        onPress={noop}
+                        sentryLabel="menuItemComparisonStorySentryLabel"
+                    />
+                }
             />
 
             <Card
                 title="description, disabled, onPress, title"
-                note="4 sites — class A. disabled maps to MenuItem.Root isDisabled."
                 legacy={
                     <MenuItemWithTopDescription
                         description="Role"
@@ -296,11 +324,18 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
+                preset={
+                    <MenuItemField
+                        description="Role"
+                        title="Admin"
+                        onPress={noop}
+                        isDisabled
+                    />
+                }
             />
 
             <Card
                 title="description, interactive, onPress, pressableTestID, shouldShowRightIcon, title"
-                note="2 sites — class B. Same render as the 24-site shape; pressableTestID maps to MenuItem.Root testID."
                 legacy={
                     <MenuItemWithTopDescription
                         description="Member"
@@ -327,11 +362,18 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
+                preset={
+                    <MenuItemField
+                        description="Member"
+                        title="John Doe"
+                        onPress={noop}
+                        testID="menuItemComparisonStoryPressable"
+                    />
+                }
             />
 
             <Card
                 title="description, disabled, interactive, key, onPress, pressableTestID, shouldShowRightIcon, title"
-                note="1 site — class B. The widest migratable shape, and still only Root props plus a chevron. key is React-level and does not migrate."
                 legacy={
                     <MenuItemWithTopDescription
                         description="Bank account"
@@ -359,6 +401,84 @@ function Comparison() {
                             </MenuItem.Trailing>
                         </MenuItem.Row>
                     </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        description="Bank account"
+                        title="Chase ••••1234"
+                        onPress={noop}
+                        isDisabled
+                        testID="menuItemComparisonStoryPressableWide"
+                    />
+                }
+            />
+
+            <Card
+                title="description, onPress, title?"
+                legacy={
+                    <>
+                        <Variant label="title present">
+                            <MenuItemWithTopDescription
+                                description="Destination"
+                                title="Warsaw, Poland"
+                                shouldShowRightIcon
+                                onPress={noop}
+                            />
+                        </Variant>
+                        <Variant label="title={undefined}">
+                            <MenuItemWithTopDescription
+                                description="Destination"
+                                shouldShowRightIcon
+                                onPress={noop}
+                            />
+                        </Variant>
+                    </>
+                }
+                composable={
+                    <>
+                        <Variant label="title present">
+                            <MenuItem.Root onPress={noop}>
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.Description>Destination</MenuItem.Description>
+                                        <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Warsaw, Poland</MenuItem.Title>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </Variant>
+                        <Variant label="title={undefined}">
+                            <MenuItem.Root onPress={noop}>
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.Description variant={MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>Destination</MenuItem.Description>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </Variant>
+                    </>
+                }
+                preset={
+                    <>
+                        <Variant label="title present">
+                            <MenuItemField
+                                description="Destination"
+                                title="Warsaw, Poland"
+                                onPress={noop}
+                            />
+                        </Variant>
+                        <Variant label="title={undefined}">
+                            <MenuItemEmptyField
+                                description="Destination"
+                                onPress={noop}
+                            />
+                        </Variant>
+                    </>
                 }
             />
 
