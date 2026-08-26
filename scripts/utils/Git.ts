@@ -39,7 +39,7 @@ function execSync(command: string, options?: ExecSyncOptions) {
 }
 
 const IS_CI = process.env.CI === 'true';
-const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF as string | undefined;
+const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF;
 
 /**
  * Represents a single changed line in a git diff.
