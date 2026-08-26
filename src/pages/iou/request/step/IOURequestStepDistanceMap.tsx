@@ -24,13 +24,14 @@ import {init, stop} from '@libs/actions/MapboxToken';
 import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -195,14 +196,9 @@ function IOURequestStepDistanceMap({
      * Takes the user to the page for editing a specific waypoint
      * @param index of the waypoint to edit
      */
-    const navigateToWaypointEditPage = useCallback(
-        (index: number) => {
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID ?? reportID, index.toString(), Navigation.getActiveRoute()),
-            );
-        },
-        [action, transactionID, report?.reportID, reportID],
-    );
+    const navigateToWaypointEditPage = useCallback((index: number) => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(index)));
+    }, []);
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,

@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {canAddTransaction, isArchivedReport} from '@libs/ReportUtils';
+import {canAddTransaction, isArchivedReport, isTeachersUniteReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 
@@ -51,40 +51,46 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
         isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
         isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
     });
+    const isReportTeachersUnite = isTeachersUniteReport(report);
     const addExpenseDropdownOptions = [
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            text: translate('iou.createExpense'),
-            icon: expensifyIcons.Plus,
-            onSelected: () => {
-                if (!reportId) {
-                    return;
-                }
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs);
-            },
-        },
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
-            text: translate('iou.trackDistance'),
-            icon: expensifyIcons.Location,
-            onSelected: () => {
-                if (!reportId) {
-                    return;
-                }
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                if (blockDistanceRequestIfNeeded()) {
-                    return;
-                }
-                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs, lastDistanceExpenseType);
-            },
-        },
+        // Teachers Unite doesn't support reimbursement, so "Create expense" and "Track distance" are hidden for those reports.
+        ...(isReportTeachersUnite
+            ? []
+            : [
+                  {
+                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+                      text: translate('iou.createExpense'),
+                      icon: expensifyIcons.Plus,
+                      onSelected: () => {
+                          if (!reportId) {
+                              return;
+                          }
+                          if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs);
+                      },
+                  },
+                  {
+                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+                      text: translate('iou.trackDistance'),
+                      icon: expensifyIcons.Location,
+                      onSelected: () => {
+                          if (!reportId) {
+                              return;
+                          }
+                          if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          if (blockDistanceRequestIfNeeded()) {
+                              return;
+                          }
+                          startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs, lastDistanceExpenseType);
+                      },
+                  },
+              ]),
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
             text: translate('iou.addExistingExpense'),

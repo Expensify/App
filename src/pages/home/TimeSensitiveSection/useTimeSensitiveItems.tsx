@@ -3,22 +3,15 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useOnyx from '@hooks/useOnyx';
 
-import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
-import {getConnectedHRProvider} from '@libs/HRUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import {isUserValidatedSelector} from '@selectors/Account';
-import {activeAdminPoliciesSelector} from '@selectors/Policy';
+import {createTimeSensitiveAdminPoliciesSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddBankAccount from './hooks/useTimeSensitiveAddBankAccount';
@@ -42,20 +35,6 @@ import FixPolicyConnection from './items/FixPolicyConnection';
 import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
 import ValidateAccount from './items/ValidateAccount';
-
-type BrokenPolicyConnection = {
-    /** The policy ID associated with this connection */
-    policyID: string;
-
-    /** The policy name associated with this connection */
-    policyName: string;
-
-    /** The connection name that has an error */
-    connectionName: PolicyConnectionName;
-
-    /** Human-readable integration name (e.g. "QuickBooks Online", "Gusto", "BambooHR"). */
-    integrationName: string;
-};
 
 type BrokenPersonalCardConnection = {
     /** The card ID associated with this connection */
@@ -86,12 +65,13 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
-    // Selector for filtering admin policies (Release 4)
-    const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
-    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: adminPoliciesSelectorWrapper,
-    });
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
+    // the selector derives both, so this never deep-compares employeeList/connections/customUnits per policy
+    const [adminPoliciesData] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: createTimeSensitiveAdminPoliciesSelector(login, connectionSyncProgress),
+    });
+    const adminPolicies = adminPoliciesData?.policies;
+    const brokenPolicyConnections = adminPoliciesData?.brokenConnections ?? CONST.EMPTY_ARRAY;
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
@@ -103,34 +83,6 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
     const brokenCompanyCardConnections = useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies);
-
-    // Find policies with broken connections (accounting + HR, only for admins)
-    const brokenPolicyConnections: BrokenPolicyConnection[] = [];
-    for (const policy of adminPolicies ?? []) {
-        const policyConnections = policy.connections;
-        if (!policyConnections) {
-            continue;
-        }
-
-        // Check if there's a sync in progress for this policy using the proper check that handles JOB_DONE and timeout
-        const syncProgress = connectionSyncProgress?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
-        const isSyncInProgress = isConnectionInProgress(syncProgress, policy);
-
-        for (const [connectionName] of ObjectUtils.typedEntries(policyConnections)) {
-            if (hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
-                const integrationName =
-                    connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR
-                        ? (getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])
-                        : CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
-                brokenPolicyConnections.push({
-                    policyID: policy.id,
-                    policyName: policy.name,
-                    connectionName,
-                    integrationName,
-                });
-            }
-        }
-    }
 
     // Get personal cards with broken connections
     const brokenPersonalCardConnections: BrokenPersonalCardConnection[] = [];

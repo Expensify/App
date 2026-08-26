@@ -48,9 +48,8 @@ import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/Re
 import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -429,22 +428,18 @@ function DynamicIOURequestStepDistance({
      */
     const navigateToWaypointEditPage = useCallback(
         (index: number) => {
-            let iouWaypointType = CONST.IOU.TYPE.SUBMIT as IOUType;
-            if (isEditingSplit) {
-                iouWaypointType = CONST.IOU.TYPE.SPLIT_EXPENSE;
-            }
             // In the edit flow this page is wrapped in an OnyxTabNavigator, so Navigation.getActiveRoute()
-            // returns a URL with the tab suffix (e.g. "/distance-map") that doesn't match the stack entry
-            // — Navigation.goBack() then REPLACEs instead of POPs and crashes. Build the backTo URL
+            // returns a URL with the tab suffix (e.g. "/distance-map") that doesn't match the stack entry.
+            // Navigation.goBack() then REPLACEs instead of POPs and crashes, so build the base URL
             // explicitly there. The create flow has no tab navigator, so the production getActiveRoute()
             // path is correct (GH #90037).
-            const waypointBackTo =
+            const waypointBase =
                 isEditing && backTo
                     ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID), backTo)
                     : Navigation.getActiveRoute();
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID, index.toString(), waypointBackTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(index), waypointBase));
         },
-        [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditingSplit, isEditing],
+        [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditing],
     );
 
     const navigateToNextStep = useDistanceNavigation({
