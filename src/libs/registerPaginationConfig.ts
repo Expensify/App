@@ -10,44 +10,53 @@ import {registerPaginationConfig} from './Middleware/Pagination';
 import {getSortedReportActionsForDisplay} from './ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from './ReportUtils';
 
-/**
- * This connection is exclusively used within the `registerPaginationConfig` function.
- * Using connectWithoutView() is appropriate here since these values are not directly
- * bound to any UI components.
- */
-let allReports: OnyxCollection<Report>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (value) => {
-        allReports = value;
-    },
-});
+let paginationConfigReady: Promise<void> | undefined;
 
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-/**
- * This connection is exclusively used within the `registerPaginationConfig` function.
- * Using connectWithoutView() is appropriate here since these values are not directly
- * bound to any UI components.
- */
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    callback: (value) => {
-        allReportNameValuePairs = value;
-    },
-});
+function registerReportActionsPagination(): Promise<void> {
+    if (paginationConfigReady) {
+        return paginationConfigReady;
+    }
 
-registerPaginationConfig({
-    initialCommand: WRITE_COMMANDS.OPEN_REPORT,
-    previousCommand: READ_COMMANDS.GET_OLDER_ACTIONS,
-    nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
-    resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-    sortItems: (reportActions, reportID) => {
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-        const isReportArchived = !!reportNameValuePairs?.private_isArchived;
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-        return getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction, true, undefined, reportID);
-    },
-    getItemID: (reportAction) => reportAction.reportActionID,
-});
+    let allReports: OnyxCollection<Report>;
+    let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    const reportsSnapshot = Promise.withResolvers<void>();
+    const reportNameValuePairsSnapshot = Promise.withResolvers<void>();
+
+    // These snapshots are consumed by the pagination sort callback, which runs outside React.
+    // connectWithoutView() is appropriate because the values are not bound to UI components.
+    Onyx.connectWithoutView({
+        key: ONYXKEYS.COLLECTION.REPORT,
+        callback: (value) => {
+            allReports = value;
+            reportsSnapshot.resolve();
+        },
+    });
+    Onyx.connectWithoutView({
+        key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        callback: (value) => {
+            allReportNameValuePairs = value;
+            reportNameValuePairsSnapshot.resolve();
+        },
+    });
+
+    paginationConfigReady = registerPaginationConfig({
+        initialCommand: WRITE_COMMANDS.OPEN_REPORT,
+        previousCommand: READ_COMMANDS.GET_OLDER_ACTIONS,
+        nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
+        resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+        additionalReadyPromise: Promise.all([reportsSnapshot.promise, reportNameValuePairsSnapshot.promise]).then(() => undefined),
+        sortItems: (reportActions, reportID) => {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+            const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
+            return getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction, true, undefined, reportID);
+        },
+        getItemID: (reportAction) => reportAction.reportActionID,
+    });
+
+    return paginationConfigReady;
+}
+
+export default registerReportActionsPagination;

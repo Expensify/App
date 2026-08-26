@@ -7,16 +7,13 @@ import type {ReportAction} from '@src/types/onyx';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
-type ModuleImport = () => Promise<unknown>;
+type MockConnectOptions = {
+    key: string;
+    callback: (value: Record<string, unknown> | undefined) => void;
+};
 
-const mockRetryDynamicImport = jest.fn<Promise<unknown>, [ModuleImport, string]>();
 const mockLogHmmm = jest.fn();
-const mockConnectWithoutView = jest.fn();
-
-jest.mock('@src/utils/retryDynamicImport', () => ({
-    __esModule: true,
-    default: (moduleImport: ModuleImport, retryKey: string) => mockRetryDynamicImport(moduleImport, retryKey),
-}));
+const mockConnectWithoutView = jest.fn<void, [MockConnectOptions]>();
 
 jest.mock('@libs/Log', () => ({
     __esModule: true,
@@ -27,6 +24,14 @@ jest.mock('@libs/Log', () => ({
     },
 }));
 
+jest.mock('@libs/ReportActionsUtils', () => ({
+    getSortedReportActionsForDisplay: (reportActions: Record<string, ReportAction>) => Object.values(reportActions),
+}));
+
+jest.mock('@libs/ReportUtils', () => ({
+    canUserPerformWriteAction: () => true,
+}));
+
 jest.mock('react-native-onyx', () => ({
     __esModule: true,
     default: {
@@ -34,8 +39,8 @@ jest.mock('react-native-onyx', () => ({
             MERGE: 'merge',
             SET: 'set',
         },
-        connectWithoutView: (...args: unknown[]): void => {
-            mockConnectWithoutView(...args);
+        connectWithoutView: (options: MockConnectOptions): void => {
+            mockConnectWithoutView(options);
         },
     },
 }));
@@ -47,6 +52,11 @@ const REPORT_ID = '1';
 const REPORT_ACTION: ReportAction = {
     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
     created: '2026-08-21 10:00:00.000',
+    reportActionID: '2',
+};
+const CACHED_REPORT_ACTION: ReportAction = {
+    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+    created: '2026-08-21 09:00:00.000',
     reportActionID: '1',
 };
 
@@ -72,14 +82,14 @@ function createResponse(): Response<ReportActionsKey> {
     };
 }
 
-function registerReportActionsPagination({registerPaginationConfig}: PaginationModule) {
-    registerPaginationConfig({
+function registerReportActionsPagination({registerPaginationConfig}: PaginationModule): Promise<void> {
+    return registerPaginationConfig({
         initialCommand: WRITE_COMMANDS.OPEN_REPORT,
         previousCommand: READ_COMMANDS.GET_OLDER_ACTIONS,
         nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
         resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-        sortItems: () => [REPORT_ACTION],
+        sortItems: (items) => [REPORT_ACTION, CACHED_REPORT_ACTION].filter((reportAction) => Object.hasOwn(items, reportAction.reportActionID)),
         getItemID: (reportAction) => reportAction.reportActionID,
     });
 }
@@ -100,65 +110,103 @@ async function loadPaginationModule(): Promise<PaginationModule> {
     return import('@libs/Middleware/Pagination');
 }
 
-describe('Pagination middleware config loading', () => {
+describe('Pagination middleware registration readiness', () => {
     beforeEach(() => {
         jest.resetModules();
-        mockRetryDynamicImport.mockReset();
         mockLogHmmm.mockReset();
         mockConnectWithoutView.mockReset();
+        mockConnectWithoutView.mockImplementation(({callback}) => callback({}));
     });
 
-    it('waits for one shared config import before processing concurrent responses', async () => {
-        const configImport = Promise.withResolvers<unknown>();
-        mockRetryDynamicImport.mockReturnValue(configImport.promise);
-        const paginationModule = await loadPaginationModule();
-        const firstResponse = createResponse();
-        const secondResponse = createResponse();
+    it('registers the report actions pagination config only once', async () => {
+        const {default: registerReportActionsPaginationConfig} = await import('@libs/registerPaginationConfig');
 
-        const firstResultPromise = paginationModule.Pagination(Promise.resolve(firstResponse), createRequest(), false);
-        const secondResultPromise = paginationModule.Pagination(Promise.resolve(secondResponse), createRequest(), false);
-        await Promise.resolve();
+        const firstReadyPromise = registerReportActionsPaginationConfig();
+        const secondReadyPromise = registerReportActionsPaginationConfig();
 
-        expect(mockRetryDynamicImport).toHaveBeenCalledTimes(1);
-        expect(firstResponse.onyxData).toHaveLength(1);
-        expect(secondResponse.onyxData).toHaveLength(1);
-
-        registerReportActionsPagination(paginationModule);
-        configImport.resolve({});
-
-        const [firstResult, secondResult] = await Promise.all([firstResultPromise, secondResultPromise]);
-        expectPageMetadata(firstResult);
-        expectPageMetadata(secondResult);
+        expect(secondReadyPromise).toBe(firstReadyPromise);
+        await firstReadyPromise;
+        expect(mockConnectWithoutView).toHaveBeenCalledTimes(4);
     });
 
-    it('continues without pagination metadata after a load failure and retries on the next request', async () => {
-        const loadError = new Error('pagination chunk failed');
-        const retryImport = Promise.withResolvers<unknown>();
-        mockRetryDynamicImport.mockRejectedValueOnce(loadError).mockReturnValueOnce(retryImport.promise);
+    it('processes responses with a synchronously registered config', async () => {
         const paginationModule = await loadPaginationModule();
-        const failedResponse = createResponse();
-
-        const failedResult = await paginationModule.Pagination(Promise.resolve(failedResponse), createRequest(), false);
-
-        expect(failedResult).toBe(failedResponse);
-        expect(failedResponse.onyxData).toHaveLength(1);
-        expect(mockLogHmmm).toHaveBeenCalledWith('[Pagination] Failed to load pagination config', {error: loadError});
-
-        const retriedResultPromise = paginationModule.Pagination(Promise.resolve(createResponse()), createRequest(), false);
-        registerReportActionsPagination(paginationModule);
-        retryImport.resolve({});
-
-        expectPageMetadata(await retriedResultPromise);
-        expect(mockRetryDynamicImport).toHaveBeenCalledTimes(2);
-    });
-
-    it('uses an existing config without loading the chunk again', async () => {
-        const paginationModule = await loadPaginationModule();
-        registerReportActionsPagination(paginationModule);
+        await registerReportActionsPagination(paginationModule);
 
         const result = await paginationModule.Pagination(Promise.resolve(createResponse()), createRequest(), false);
 
         expectPageMetadata(result);
-        expect(mockRetryDynamicImport).not.toHaveBeenCalled();
+    });
+
+    it('observes a rejected response while the initial snapshots are pending', async () => {
+        let pageSnapshotCallback: MockConnectOptions['callback'] | undefined;
+        mockConnectWithoutView.mockImplementation(({key, callback}) => {
+            if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES) {
+                pageSnapshotCallback = callback;
+                return;
+            }
+
+            callback({});
+        });
+        const paginationModule = await loadPaginationModule();
+        registerReportActionsPagination(paginationModule);
+        const responseError = new Error('OpenReport failed');
+
+        const resultPromise = paginationModule.Pagination(Promise.reject(responseError), createRequest(), false);
+
+        await expect(resultPromise).rejects.toBe(responseError);
+        pageSnapshotCallback?.({});
+    });
+
+    it('waits for the initial page snapshot before preserving cached page metadata', async () => {
+        let pageSnapshotCallback: MockConnectOptions['callback'] | undefined;
+        mockConnectWithoutView.mockImplementation(({key, callback}) => {
+            if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES) {
+                pageSnapshotCallback = callback;
+                return;
+            }
+
+            callback({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: {
+                    [CACHED_REPORT_ACTION.reportActionID]: CACHED_REPORT_ACTION,
+                },
+            });
+        });
+        const paginationModule = await loadPaginationModule();
+        const paginationConfigReady = registerReportActionsPagination(paginationModule);
+
+        const resultPromise = paginationModule.Pagination(Promise.resolve(createResponse()), createRequest(), false);
+        const onSettled = jest.fn();
+        const trackedResultPromise = resultPromise.then((result) => {
+            onSettled();
+            return result;
+        });
+        await Promise.resolve();
+
+        expect(onSettled).not.toHaveBeenCalled();
+        expect(pageSnapshotCallback).toBeDefined();
+
+        pageSnapshotCallback?.({
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`]: [[CONST.PAGINATION_START_ID, CACHED_REPORT_ACTION.reportActionID]],
+        });
+        await paginationConfigReady;
+
+        const result = await trackedResultPromise;
+        const pageUpdate = result?.onyxData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`);
+        expect(pageUpdate).toEqual(
+            expect.objectContaining({
+                value: expect.arrayContaining([expect.arrayContaining([CACHED_REPORT_ACTION.reportActionID])]),
+            }),
+        );
+    });
+
+    it('passes a paginated response through when no config is registered', async () => {
+        const paginationModule = await loadPaginationModule();
+        const response = createResponse();
+
+        const result = await paginationModule.Pagination(Promise.resolve(response), createRequest(), false);
+
+        expect(result).toBe(response);
+        expect(response.onyxData).toHaveLength(1);
     });
 });

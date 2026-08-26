@@ -9,7 +9,6 @@ import type {Request} from '@src/types/onyx';
 import type Pages from '@src/types/onyx/Pages';
 import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import retryDynamicImport from '@src/utils/retryDynamicImport';
 
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 
@@ -34,10 +33,12 @@ type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends O
     initialCommand: ApiCommand;
     previousCommand: ApiCommand;
     nextCommand: ApiCommand;
+    additionalReadyPromise?: Promise<void>;
 };
 
 type PaginationConfigMapValue = PaginationCommonConfig & {
     type: 'initial' | 'next' | 'previous';
+    readyPromise: Promise<void>;
 };
 
 // Map of API commands to their pagination configs
@@ -49,58 +50,48 @@ const resources = new Map<OnyxCollectionKey, OnyxCollection<OnyxValues[OnyxColle
 // Local cache of Onyx pages objects
 const pages = new Map<OnyxPagesKey, OnyxCollection<OnyxValues[OnyxPagesKey]>>();
 
-const PAGINATION_CONFIG_RETRY_KEY = 'paginationConfig';
-let paginationConfigLoadingPromise: Promise<void> | undefined;
-
-/**
- * Preloads the pagination config after the splash screen, or on demand when a paginated request
- * arrives first. All callers share one import. A failed import can be retried by a later request.
- */
-function loadPaginationConfig(): Promise<void> {
-    if (paginationConfigLoadingPromise) {
-        return paginationConfigLoadingPromise;
-    }
-
-    paginationConfigLoadingPromise = retryDynamicImport(() => import('@libs/registerPaginationConfig'), PAGINATION_CONFIG_RETRY_KEY)
-        .then(() => undefined)
-        .catch((error: unknown) => {
-            paginationConfigLoadingPromise = undefined;
-            Log.hmmm('[Pagination] Failed to load pagination config', {error});
-        });
-
-    return paginationConfigLoadingPromise;
-}
-
 function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>({
     initialCommand,
     previousCommand,
     nextCommand,
+    additionalReadyPromise = Promise.resolve(),
     ...config
-}: PaginationConfig<TResourceKey, TPageKey>): void {
+}: PaginationConfig<TResourceKey, TPageKey>): Promise<void> {
+    const resourceSnapshot = Promise.withResolvers<void>();
+    const pageSnapshot = Promise.withResolvers<void>();
+    const readyPromise = Promise.all([resourceSnapshot.promise, pageSnapshot.promise, additionalReadyPromise]).then(() => undefined);
+
     paginationConfigs.set(initialCommand, {
         ...config,
+        readyPromise,
         type: 'initial',
     } as unknown as PaginationConfigMapValue);
     paginationConfigs.set(previousCommand, {
         ...config,
+        readyPromise,
         type: 'previous',
     } as unknown as PaginationConfigMapValue);
     paginationConfigs.set(nextCommand, {
         ...config,
+        readyPromise,
         type: 'next',
     } as unknown as PaginationConfigMapValue);
     Onyx.connectWithoutView<OnyxCollectionKey>({
         key: config.resourceCollectionKey,
         callback: (data) => {
             resources.set(config.resourceCollectionKey, data);
+            resourceSnapshot.resolve();
         },
     });
     Onyx.connectWithoutView<OnyxPagesKey>({
         key: config.pageCollectionKey,
         callback: (data) => {
             pages.set(config.pageCollectionKey, data);
+            pageSnapshot.resolve();
         },
     });
+
+    return readyPromise;
 }
 
 function isPaginatedRequest<TKey extends OnyxKey>(request: Request<TKey> | PaginatedRequest<TKey>): request is PaginatedRequest<TKey> {
@@ -110,7 +101,7 @@ function isPaginatedRequest<TKey extends OnyxKey>(request: Request<TKey> | Pagin
 function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: PaginatedRequest<TKey>, paginationConfig: PaginationConfigMapValue) {
     const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, type} = paginationConfig;
     const {resourceID, cursorID} = request;
-    return requestResponse.then((response) => {
+    return Promise.all([requestResponse, paginationConfig.readyPromise]).then(([response]) => {
         if (!response?.onyxData) {
             return Promise.resolve(response);
         }
@@ -206,14 +197,11 @@ const Pagination: Middleware = (requestResponse, request) => {
     }
 
     const paginationConfig = paginationConfigs.get(request.command);
-    if (paginationConfig) {
-        return processResponse(requestResponse, request, paginationConfig);
+    if (!paginationConfig) {
+        return requestResponse;
     }
 
-    return loadPaginationConfig().then(() => {
-        const loadedPaginationConfig = paginationConfigs.get(request.command);
-        return loadedPaginationConfig ? processResponse(requestResponse, request, loadedPaginationConfig) : requestResponse;
-    });
+    return processResponse(requestResponse, request, paginationConfig);
 };
 
-export {loadPaginationConfig, Pagination, registerPaginationConfig};
+export {Pagination, registerPaginationConfig};

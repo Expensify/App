@@ -1,4 +1,5 @@
 import intlPolyfill from '@libs/IntlPolyfill';
+import registerReportActionsPagination from '@libs/registerPaginationConfig';
 
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -84,6 +85,10 @@ export default function () {
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
         ],
     });
+
+    // Register the commands after Onyx is initialized so every JS runtime can process paginated
+    // responses. Initial snapshots remain asynchronous and gate only pagination, not app startup.
+    registerReportActionsPagination();
 
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
