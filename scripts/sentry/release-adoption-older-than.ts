@@ -287,7 +287,7 @@ function buildReleaseFilter(releases: ReleaseDistribution[]): string | null {
     }
 
     const filters = releases.map(({release, dist}) => (dist ? `(release:${release} AND dist:${dist})` : `release:${release}`));
-    return filters.length === 1 ? filters[0] : `(${filters.join(' OR ')})`;
+    return filters.length === 1 ? (filters.at(0) ?? null) : `(${filters.join(' OR ')})`;
 }
 
 async function countUniqueUsersOnReleases({
