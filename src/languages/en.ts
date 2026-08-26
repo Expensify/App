@@ -8101,6 +8101,8 @@ const translations = {
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
                 confirmErrorCategory: 'Please select a category',
                 confirmErrorCategoryTax: 'Please select a tax rate',
+                confirmErrorCondition: 'Please select a merchant or category',
+                confirmErrorConditionAndDefault: 'Select a merchant or category, and apply at least one default',
                 oneConditionPerRuleTitle: 'Only one condition per rule',
                 alreadyMatchesMerchantPrompt: 'This rule already matches on a merchant. Reset the rule to match on a category instead.',
                 alreadyMatchesCategoryPrompt: 'This rule already matches on a category. Reset the rule to match on a merchant instead.',

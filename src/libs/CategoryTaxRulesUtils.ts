@@ -110,29 +110,30 @@ function getCategoryNameFromTaxRuleKey(key: string): string {
     return key.slice(CATEGORY_TAX_RULE_KEY_PREFIX.length);
 }
 
-/**
- * The defaults a category rule can't carry, of the ones the draft currently has set. A category rule only sets a tax, so
- * anything else in the draft would be silently dropped on save — the picker warns before clearing them.
- */
-function getIncompatibleCategoryRuleDefaults(form: MerchantRuleForm | undefined): string[] {
-    if (!form) {
-        return [];
-    }
-    const incompatibleKeys = [INPUT_IDS.MERCHANT, INPUT_IDS.CATEGORY, INPUT_IDS.TAG, INPUT_IDS.DESCRIPTION, INPUT_IDS.VENDOR_ID, INPUT_IDS.REIMBURSABLE, INPUT_IDS.BILLABLE] as const;
+/** The defaults a category rule can't carry. A category rule only ever sets a tax. */
+const INCOMPATIBLE_CATEGORY_RULE_DEFAULT_KEYS = [
+    INPUT_IDS.MERCHANT,
+    INPUT_IDS.CATEGORY,
+    INPUT_IDS.TAG,
+    INPUT_IDS.DESCRIPTION,
+    INPUT_IDS.VENDOR_ID,
+    INPUT_IDS.REIMBURSABLE,
+    INPUT_IDS.BILLABLE,
+] as const;
 
-    return incompatibleKeys.filter((key) => {
+/**
+ * Whether the draft holds defaults a category rule can't carry. They would be silently dropped on save, so the picker
+ * warns before clearing them.
+ */
+function hasIncompatibleCategoryRuleDefaults(form: MerchantRuleForm | undefined): boolean {
+    if (!form) {
+        return false;
+    }
+
+    return INCOMPATIBLE_CATEGORY_RULE_DEFAULT_KEYS.some((key) => {
         const value = form[key];
         return typeof value === 'boolean' || (value !== undefined && value !== '');
     });
 }
 
-export {
-    categoryHasTaxRule,
-    getCategoryNameFromTaxRuleKey,
-    getCategoryTaxRule,
-    getCategoryTaxRulesTableData,
-    getCategoryTaxRuleTaxID,
-    getIncompatibleCategoryRuleDefaults,
-    getTaxRateDisplayName,
-    isCategoryTaxRuleKey,
-};
+export {categoryHasTaxRule, getCategoryNameFromTaxRuleKey, getCategoryTaxRulesTableData, getCategoryTaxRuleTaxID, hasIncompatibleCategoryRuleDefaults, isCategoryTaxRuleKey};

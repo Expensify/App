@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftMerchantRule, updateDraftMerchantRule} from '@libs/actions/User';
-import {categoryHasTaxRule, getIncompatibleCategoryRuleDefaults} from '@libs/CategoryTaxRulesUtils';
+import {categoryHasTaxRule, hasIncompatibleCategoryRuleDefaults} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,6 +34,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -133,17 +134,23 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         setSelectedCategories((prev) => Array.from(new Set([...prev, ...visibleValues])));
     };
 
+    // The condition can only be chosen while creating a rule, so the way back is always the create page. Passing it
+    // explicitly, as every sibling picker does, keeps a deep link into this page from having nothing to pop to.
+    const backToRoute = ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+    const goBackToRule = () => Navigation.goBack(backToRoute);
+    const goBackAfterSave = () => Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
+
     const handleSave = async () => {
         // Clearing the condition leaves an ordinary merchant rule behind, so the other defaults stay untouched.
         if (selectedCategories.length === 0) {
             updateDraftMerchantRule({categoriesToMatch: []});
-            Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
+            goBackAfterSave();
             return;
         }
 
         // A category rule can only set a tax, so anything else already in the draft would be dropped on save. Say so
         // before clearing it rather than blanking the rows silently.
-        if (getIncompatibleCategoryRuleDefaults(form).length > 0) {
+        if (hasIncompatibleCategoryRuleDefaults(form)) {
             const {action} = await showConfirmModal({
                 title: translate('workspace.rules.merchantRules.clearIncompatibleDefaultsTitle'),
                 prompt: translate('workspace.rules.merchantRules.clearIncompatibleDefaultsPrompt'),
@@ -158,12 +165,12 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
             // Replace the draft rather than merging, so the incompatible defaults are gone. Tax is the one default a
             // category rule keeps.
             setDraftMerchantRule({categoriesToMatch: selectedCategories, ...(form?.tax ? {tax: form.tax} : {})});
-            Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
+            goBackAfterSave();
             return;
         }
 
         updateDraftMerchantRule({categoriesToMatch: selectedCategories});
-        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
+        goBackAfterSave();
     };
 
     if (!areCategoriesEnabled) {
@@ -174,7 +181,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('common.category')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={goBackToRule}
                 />
                 <RuleCategoriesDisabledEmptyState policyID={policyID} />
             </ScreenWrapper>
@@ -190,7 +197,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('common.category')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={goBackToRule}
             />
             {arePolicyCategoriesLoading ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

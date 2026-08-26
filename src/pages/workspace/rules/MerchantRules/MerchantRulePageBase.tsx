@@ -109,7 +109,11 @@ const getCategoryRuleErrorMessage = (translate: LocalizedTranslate, form?: Merch
     return '';
 };
 
-const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
+/**
+ * `isRulesRevampEnabled` picks the copy: the revamp offers a category as a second condition, so telling the admin to
+ * enter a merchant is only right on the legacy page where a merchant is the only condition there is.
+ */
+const getErrorMessage = (translate: LocalizedTranslate, isRulesRevampEnabled: boolean, form?: MerchantRuleForm) => {
     const matchingCriteriaFields = new Set<string>([MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH, MERCHANT_RULE_INPUT_IDS.MATCH_TYPE, MERCHANT_RULE_INPUT_IDS.CATEGORIES_TO_MATCH]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -124,12 +128,12 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         return '';
     }
     if (hasAtLeastOneUpdate) {
-        return translate('workspace.rules.merchantRules.confirmErrorMerchant');
+        return translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.confirmErrorCondition' : 'workspace.rules.merchantRules.confirmErrorMerchant');
     }
     if (form?.merchantToMatch) {
         return translate('workspace.rules.merchantRules.confirmErrorUpdate');
     }
-    return translate('workspace.rules.merchantRules.confirmError');
+    return translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.confirmErrorConditionAndDefault' : 'workspace.rules.merchantRules.confirmError');
 };
 
 function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCategoryTaxRuleFor, titleKey, testID}: MerchantRulePageBaseProps) {
@@ -269,6 +273,9 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     const hasCategoryCondition = categoriesToMatch.length > 0;
     const hasMerchantCondition = !!form?.merchantToMatch;
     const isCategoryRule = hasCategoryCondition || isEditingCategoryTaxRule;
+    // Removing a category tax default means writing the workspace's own default rate back, so without one there is
+    // nothing to write and no way to delete. Hide the affordance rather than leaving a button that does nothing.
+    const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
     const isMerchantConditionLocked = hasCategoryCondition;
     // A category rule sets a tax rate, so with taxes off there is nothing for it to configure.
     const isCategoryConditionLocked = isEditingCategoryTaxRule || hasMerchantCondition || !areTaxesEnabled;
@@ -356,7 +363,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         });
     };
 
-    const errorMessage = isCategoryRule ? getCategoryRuleErrorMessage(translate, form) : getErrorMessage(translate, form);
+    const errorMessage = isCategoryRule ? getCategoryRuleErrorMessage(translate, form) : getErrorMessage(translate, isRulesRevampEnabled, form);
 
     const goBackToExpenseDefaults = () => {
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
@@ -644,7 +651,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                             <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
                         </Button>
                     )}
-                    {(isEditing || isEditingCategoryTaxRule) && (
+                    {(isEditing || canDeleteCategoryTaxRule) && (
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={handleDelete}

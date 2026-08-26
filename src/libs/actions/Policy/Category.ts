@@ -1966,7 +1966,8 @@ function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string
  */
 function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, baseExpenseRules?: ExpenseRule[]): ExpenseRule[] | undefined {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
-    if (!policy?.id || !defaultExternalID) {
+    if (!policy?.id || !defaultExternalID || !categoryName) {
+        Log.warn('Invalid params for deletePolicyCategoryTax');
         return;
     }
     const policyID = policy.id;
