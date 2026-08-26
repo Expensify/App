@@ -4,7 +4,10 @@ import Storage from 'react-native-onyx/dist/storage';
 
 import type MeasureDatabaseSize from './types';
 
-/** usageDetails is the only reliable size source on web and only Chromium provides it, so its absence means the size is unavailable. */
+/**
+ * usageDetails is the only reliable size source on web and only Chromium provides it, so its absence means the size is unavailable.
+ * Errors are mapped to the "unavailable" source by the caller in databaseSizeTracker.
+ */
 const measureDatabaseSize: MeasureDatabaseSize = () =>
     Storage.getDatabaseSize().then(({usageDetails}) => {
         if (usageDetails === undefined) {
