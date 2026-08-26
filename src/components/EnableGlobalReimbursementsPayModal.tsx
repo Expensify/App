@@ -48,9 +48,14 @@ function EnableGlobalReimbursementsPayModal() {
                     clearCorpayPayModal();
                     return;
                 }
+                // Keep the corpayPayModal signal alive here so the business page can read bankCountry/bankCurrency
+                // from it on mount. The business page consumes (clears) the signal once it has captured the values,
+                // which lets the next pay attempt re-trigger this modal (Onyx skips notifications for deeply-equal
+                // SETs, so the signal must transition null -> object each time).
                 Navigation.navigate(
                     ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(bankAccountID, CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER),
                 );
+                return;
             }
             clearCorpayPayModal();
         });

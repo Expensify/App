@@ -1,18 +1,15 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCorpayOnboardingFields} from '@libs/actions/BankAccounts';
-import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import {clearCorpayPayModal} from '@userActions/App';
 import {clearErrors} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -21,8 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useState} from 'react';
 
 import type {BusinessInfoSubPageProps} from './types';
 
@@ -44,12 +40,31 @@ const pages = [
 
 function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimbursementsBusinessPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const network = useNetwork();
     const bankAccountID = route.params?.bankAccountID;
+    // The pay modal sends bankCountry/bankCurrency in the corpayPayModal signal so this page can render without an
+    // extra BANK_ACCOUNT_LIST lookup (which may not be hydrated when deep-linking from the report). The signal is
+    // consumed on mount: its country/currency are captured into local state and the signal is cleared, so the next
+    // pay attempt transitions null -> object and re-triggers the modal. Onyx skips notifications for deeply-equal
+    // SETs, so leaving the signal alive would prevent the modal from reopening on a repeat pay. For the WalletPage
+    // entry (no signal), country/currency fall back to BANK_ACCOUNT_LIST.
+    const [corpayPayModal] = useOnyx(ONYXKEYS.CORPAY_PAY_MODAL);
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
-    const currency = bankAccount?.bankCurrency ?? '';
-    const country = bankAccount?.bankCountry as Country;
+    const [country, setCountry] = useState<Country>('' as Country);
+    const [currency, setCurrency] = useState('');
+
+    useEffect(() => {
+        const modalMatchesAccount = corpayPayModal?.bankAccountID === Number(bankAccountID);
+        if (modalMatchesAccount && corpayPayModal) {
+            setCountry(corpayPayModal.bankCountry as Country);
+            setCurrency(corpayPayModal.bankCurrency);
+            clearCorpayPayModal();
+            return;
+        }
+        if (bankAccount) {
+            setCountry(bankAccount.bankCountry as Country);
+            setCurrency(bankAccount.bankCurrency ?? '');
+        }
+    }, [corpayPayModal, bankAccount, bankAccountID]);
 
     const goToAgreementsPage = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
@@ -64,13 +79,6 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     useEffect(() => {
         getCorpayOnboardingFields(country);
     }, [country]);
-
-    useEffect(() => {
-        if (network.isOffline) {
-            return;
-        }
-        getPaymentMethods();
-    }, [network.isOffline]);
 
     useEffect(() => {
         return clearErrors(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
@@ -103,19 +111,13 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_INDEX_LIST}
             startStepIndex={0}
         >
-            {bankAccount ? (
-                <CurrentPage
-                    isEditing={isEditing}
-                    onNext={nextPage}
-                    onMove={moveTo}
-                    country={country}
-                    currency={currency}
-                />
-            ) : (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator />
-                </View>
-            )}
+            <CurrentPage
+                isEditing={isEditing}
+                onNext={nextPage}
+                onMove={moveTo}
+                country={country}
+                currency={currency}
+            />
         </InteractiveStepWrapper>
     );
 }
