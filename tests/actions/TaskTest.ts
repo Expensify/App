@@ -1059,6 +1059,24 @@ describe('actions/Task', () => {
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
+        it('does not create a task when the title exceeds the title character limit', () => {
+            // Given a shorthand whose title is one character over the limit the composer enforces
+            const overLimitTitle = 'a'.repeat(CONST.TITLE_CHARACTER_LIMIT + 1);
+
+            // Then it is refused, so the caller falls back to sending it as a plain comment
+            expect(createTaskFromMarkdown({text: `[] ${overLimitTitle}`, parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('creates a task from a title that is exactly at the title character limit', () => {
+            // Given a shorthand whose title is exactly at the limit
+            const maxLengthTitle = 'a'.repeat(CONST.TITLE_CHARACTER_LIMIT);
+
+            // Then the task is still created
+            expect(createTaskFromMarkdown({text: `[] ${maxLengthTitle}`, parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(true);
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_TASK, expect.anything(), expect.anything());
+        });
+
         it('does not create a task when there is no parent report', () => {
             expect(createTaskFromMarkdown({text: '[] Buy milk', parentReport: undefined, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
             expect(writeSpy).not.toHaveBeenCalled();

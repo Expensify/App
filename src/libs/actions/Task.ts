@@ -446,7 +446,7 @@ function createTaskFromMarkdown({text, parentReport, currentUserPersonalDetails,
     }
 
     let taskTitle = taskMatch[3] ? taskMatch[3].trim().replaceAll('\n', ' ') : undefined;
-    if (!taskTitle) {
+    if (!taskTitle || taskTitle.length > CONST.TITLE_CHARACTER_LIMIT) {
         return false;
     }
 
