@@ -979,7 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Wallet',
             },
             validateAccount: {title: 'Bestätigen Sie Ihr Konto', subtitle: 'Konto', cta: 'Bestätigen'},
-            addHomeAddress: {title: 'Fügen Sie Ihre Privatadresse für die Entfernungserfassung hinzu', subtitle: 'Konto', cta: 'Adresse hinzufügen'},
+            addHomeAddress: {title: 'Fügen Sie Ihre Privatadresse zur Entfernungserfassung hinzu', subtitle: 'Konto', cta: 'Adresse hinzufügen'},
             fixFailedBilling: {title: 'Wir konnten Ihre hinterlegte Karte nicht belasten', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Ihr Geschäftskonto wurde gesperrt',
@@ -1294,12 +1294,12 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'Die Wohnadresse ist erforderlich',
+            title: 'Privatadresse ist erforderlich',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse in Ihrem privaten Profil hinzufügen. ${workspaceName} verwendet diese Adresse für Fahrtkostenermäßigungen.`
-                    : 'Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse in Ihrem privaten Profil hinzufügen. Dieser Workspace verwendet diese Adresse für Pendlerabzüge.',
-            cta: 'Privatadresse hinzufügen',
+                    ? `Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse zu Ihrem privaten Profil hinzufügen. ${workspaceName} verwendet diese Adresse für Pendlerabzüge.`
+                    : 'Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse in Ihrem privaten Profil hinzufügen. Dieser Arbeitsbereich verwendet diese Adresse für Pendlerabzüge.',
+            cta: 'Heimatadresse hinzufügen',
         },
         amount: 'Betrag',
         percent: 'Prozent',
@@ -7269,16 +7269,16 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 summaryDisabled: 'Kein Ausschluss von Pendelstrecken',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `${distance} ${unit} pro Abrechnung ausschließen`,
                 optionDisabledTitle: 'Pendelfahrten nicht ausschließen',
-                optionDisabledHelp: 'Kein Arbeitsweg wird aus Abrechnungen entfernt.',
+                optionDisabledHelp: 'Keine Pendelfahrt wird von Anträgen abgezogen.',
                 optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
                 optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
                 distanceLabel: 'Entfernung',
-                summaryHomeAndOffice: 'Standortangaben für Zuhause und Büro verwenden',
-                optionHomeAndOfficeTitle: 'Nach Zuhause und Büro berechnen',
-                optionHomeAndOfficeHelp: 'Verwenden Sie die Privatadresse, die Arbeitsregelung und die Bürozuordnung des Mitglieds, um Pendelausschlüsse zu berechnen.',
+                summaryHomeAndOffice: 'Standort für Zuhause und Büro verwenden',
+                optionHomeAndOfficeTitle: 'Nach Wohnsitz und Büro berechnen',
+                optionHomeAndOfficeHelp: 'Verwenden Sie die Privatadresse, die Arbeitsregelung und die Bürozuweisung der betreffenden Person, um Pendlerausschlüsse zu berechnen.',
                 workspaceAddressRequired: {
-                    title: 'Nur nicht so schnell …',
-                    promptStart: 'Sie können die Einstellung „Berechnung nach Zuhause und Büro“ nicht aktivieren, bevor Sie zuerst einen Bürostandort hinzugefügt haben in',
+                    title: 'Nicht so schnell …',
+                    promptStart: 'Sie können die Einstellung „Nach Zuhause und Büro berechnen“ erst aktivieren, nachdem Sie zunächst einen Bürostandort hinzugefügt haben in',
                     linkText: 'Übersicht',
                     promptEnd: ' hinzugefügt haben.',
                     cta: 'Verstanden',

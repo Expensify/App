@@ -9,7 +9,6 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-
 import CONST from '@src/CONST';
 import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
@@ -975,7 +974,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Cuenta',
                 cta: 'Validar',
             },
-            addHomeAddress: {title: 'Añade tu dirección de casa para el seguimiento de distancias', subtitle: 'Cuenta', cta: 'Añadir dirección'},
+            addHomeAddress: {title: 'Añade tu dirección de casa para el seguimiento de distancia', subtitle: 'Cuenta', cta: 'Añadir dirección'},
             fixFailedBilling: {
                 title: 'No pudimos cobrar a la tarjeta registrada.',
                 subtitle: 'Suscripción',
@@ -1291,11 +1290,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'La dirección particular es obligatoria',
+            title: 'La dirección de domicilio es obligatoria',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. ${workspaceName} usa esta dirección para las deducciones por desplazamiento.`
-                    : 'Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. Este espacio de trabajo usa esa dirección para las deducciones por desplazamientos al trabajo.',
+                    ? `Antes de organizar distancias, tienes que añadir tu dirección de casa a tu perfil privado. ${workspaceName} usa esta dirección para las deducciones por desplazamientos al trabajo.`
+                    : 'Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. Este espacio de trabajo utiliza esta dirección para las deducciones por desplazamientos al trabajo.',
             cta: 'Añadir dirección de domicilio',
         },
         amount: 'Importe',
@@ -3552,8 +3551,8 @@ ${amount} para ${merchant} - ${date}`,
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
-        address: 'Dirección de casa',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} utiliza esta dirección para las exclusiones de desplazamientos.`,
+        address: 'Dirección particular',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} usa esta dirección para las exclusiones de desplazamientos al trabajo.`,
         error: {
             dateShouldBeBefore: (dateString) => `La fecha debe ser anterior a ${dateString}`,
             dateShouldBeAfter: (dateString) => `La fecha debe ser posterior a ${dateString}`,
@@ -7242,16 +7241,16 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 title: 'Excluir desplazamientos al trabajo',
                 summaryDisabled: 'Sin exclusión por desplazamiento al trabajo',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por reclamación`,
-                summaryHomeAndOffice: 'Usar ubicaciones de casa y oficina',
+                summaryHomeAndOffice: 'Usa las ubicaciones de casa y oficina',
                 optionDisabledTitle: 'No excluir los desplazamientos al trabajo',
-                optionDisabledHelp: 'Ningún desplazamiento al trabajo se elimina de las reclamaciones.',
+                optionDisabledHelp: 'No se ha eliminado ningún trayecto al trabajo de las reclamaciones.',
                 optionFixedDistanceTitle: 'Excluir una distancia fija por reclamación',
                 optionFixedDistanceHelp: 'Resta la misma distancia de desplazamiento de cada solicitud. Ideal para personas que envían una solicitud por día laborable.',
                 optionHomeAndOfficeTitle: 'Calcular por casa y oficina',
-                optionHomeAndOfficeHelp: 'Usa la dirección de casa del miembro, su modalidad de trabajo y su asignación de oficina para calcular las exclusiones de desplazamiento.',
+                optionHomeAndOfficeHelp: 'Utiliza la dirección de casa del miembro, su modalidad de trabajo y su asignación de oficina para calcular las exclusiones de desplazamiento.',
                 distanceLabel: 'Distancia',
                 workspaceAddressRequired: {
-                    title: 'No tan deprisa...',
+                    title: 'No tan rápido...',
                     promptStart: 'No puedes habilitar la configuración de cálculo por casa y oficina hasta que primero añadas una ubicación de oficina en',
                     linkText: 'Resumen',
                     promptEnd: '.',

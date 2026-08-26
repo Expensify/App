@@ -1292,11 +1292,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'Huisadres is verplicht',
+            title: 'Woonadres is verplicht',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Voordat je de afstand kunt bijhouden, moet je je huisadres toevoegen aan je privéprofiel. ${workspaceName} gebruikt dit adres voor woon-werkaftrek.`
-                    : 'Voordat je afstand kunt bijhouden, moet je je huisadres toevoegen aan je privéprofiel. Deze workspace gebruikt dit adres voor woon-werk aftrekposten.',
+                    ? `Voordat je afstand kunt bijhouden, moet je je huisadres toevoegen aan je privéprofiel. ${workspaceName} gebruikt dit adres voor woon-werk aftrek.`
+                    : 'Voordat je afstand kunt bijhouden, moet je je huisadres toevoegen aan je privéprofiel. Deze werkruimte gebruikt dit adres voor woon-werkverkeeraftrek.',
             cta: 'Thuisadres toevoegen',
         },
         amount: 'Bedrag',
@@ -3628,7 +3628,7 @@ ${amount} voor ${merchant} - ${date}`,
         legalName: 'Wettelijke naam',
         legalFirstName: 'Juridische voornaam',
         legalLastName: 'Wettelijke achternaam',
-        address: 'Huisadres',
+        address: 'Adres thuis',
         commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} gebruikt dit adres voor woon-werkuitzonderingen.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Datum moet vóór ${dateString} zijn`,
@@ -7222,16 +7222,16 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 summaryDisabled: 'Geen woon-werkuitzondering',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Sluit ${distance} ${unit} per declaratie uit`,
                 optionDisabledTitle: 'Woon-werkverkeer niet uitsluiten',
-                optionDisabledHelp: 'Er wordt geen woon-werkverkeer uit declaraties verwijderd.',
+                optionDisabledHelp: 'Er is geen woon-werkverkeer uit declaraties verwijderd.',
                 optionFixedDistanceTitle: 'Een vaste afstand per declaratie uitsluiten',
                 optionFixedDistanceHelp: 'Trek dezelfde woon-werkafstand van elke declaratie af. Het meest geschikt voor leden die één declaratie per werkdag indienen.',
                 distanceLabel: 'Afstand',
-                summaryHomeAndOffice: 'Thuis- en kantoorlocaties gebruiken',
-                optionHomeAndOfficeTitle: 'Bereken per thuis en kantoor',
-                optionHomeAndOfficeHelp: 'Gebruik het woonadres van het lid, de werkafspraak en de kantoorindeling om woon-werkuitsluitingen te berekenen.',
+                summaryHomeAndOffice: 'Gebruik thuis- en kantoorlocaties',
+                optionHomeAndOfficeTitle: 'Berekenen per thuis en kantoor',
+                optionHomeAndOfficeHelp: 'Gebruik het thuisadres van het lid, de werkregeling en de kantoorindeling om woon-werkuitzonderingen te berekenen.',
                 workspaceAddressRequired: {
                     title: 'Niet zo snel...',
-                    promptStart: 'Je kunt de instelling ‘berekenen op basis van thuis en kantoor’ pas inschakelen als je eerst een kantoorlocatie hebt toegevoegd in',
+                    promptStart: 'Je kunt de instelling ‘berekenen op basis van thuis en kantoor’ pas inschakelen nadat je eerst een kantoorlocatie hebt toegevoegd in',
                     linkText: 'Overzicht',
                     promptEnd: '.',
                     cta: 'Begrepen',

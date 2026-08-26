@@ -1298,10 +1298,10 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'L’adresse domicile est obligatoire',
+            title: 'L’adresse du domicile est obligatoire',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. ${workspaceName} utilise cette adresse pour les déductions liées aux trajets domicile-travail.`
+                    ? `Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. ${workspaceName} utilise cette adresse pour les déductions de navette.`
                     : 'Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. Cet espace de travail utilise cette adresse pour les déductions liées aux trajets domicile-travail.',
             cta: 'Ajouter une adresse domicile',
         },
@@ -3648,8 +3648,8 @@ ${amount} pour ${merchant} - ${date}`,
         legalName: 'Nom légal',
         legalFirstName: 'Prénom légal',
         legalLastName: 'Nom de famille légal',
-        address: 'Adresse personnelle',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} utilise cette adresse pour les exclusions liées aux trajets domicile-travail.`,
+        address: 'Adresse du domicile',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} utilise cette adresse pour les exclusions de déplacements domicile-travail.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `La date doit être antérieure au ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `La date doit être postérieure au ${dateString}`,
@@ -7296,13 +7296,12 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
                 optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
                 distanceLabel: 'Distance',
-                summaryHomeAndOffice: 'Utiliser les adresses domicile et bureau',
+                summaryHomeAndOffice: 'Utiliser les emplacements domicile et bureau',
                 optionHomeAndOfficeTitle: 'Calculer par domicile et bureau',
-                optionHomeAndOfficeHelp:
-                    'Utiliser l’adresse personnelle du membre, son mode de travail et son affectation de bureau pour calculer les exclusions de trajet domicile-travail.',
+                optionHomeAndOfficeHelp: 'Utiliser l’adresse personnelle du membre, son mode de travail et son affectation de bureau pour calculer les exclusions de trajet.',
                 workspaceAddressRequired: {
                     title: 'Pas si vite...',
-                    promptStart: 'Vous ne pouvez pas activer le paramètre de calcul par domicile et bureau tant que vous n’avez pas d’abord ajouté une adresse de bureau dans',
+                    promptStart: 'Vous ne pouvez pas activer le paramètre de calcul par domicile et bureau avant d’ajouter d’abord un lieu de travail dans',
                     linkText: 'Aperçu',
                     promptEnd: '.',
                     cta: 'Compris',

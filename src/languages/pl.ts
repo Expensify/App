@@ -986,7 +986,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portfel',
             },
             validateAccount: {title: 'Zweryfikuj swoje konto', subtitle: 'Konto', cta: 'Zatwierdź'},
-            addHomeAddress: {title: 'Dodaj swój adres domowy do śledzenia dystansu', subtitle: 'Konto', cta: 'Dodaj adres'},
+            addHomeAddress: {title: 'Dodaj swój adres domowy do śledzenia odległości', subtitle: 'Konto', cta: 'Dodaj adres'},
             fixFailedBilling: {title: 'Nie mogliśmy obciążyć zapisanej karty', subtitle: 'Subskrypcja'},
             unlockBankAccount: {
                 workspaceTitle: 'Twoje firmowe konto bankowe zostało zablokowane',
@@ -1321,11 +1321,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'Adres domowy jest wymagany',
+            title: 'Adres zamieszkania jest wymagany',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Zanim zaczniesz śledzić dystans, musisz dodać swój adres domowy do prywatnego profilu. ${workspaceName} używa tego adresu do odliczeń za dojazdy do pracy.`
-                    : 'Zanim zaczniesz śledzić dystans, dodaj swój adres domowy do prywatnego profilu. To miejsce pracy użyje tego adresu do odliczeń za dojazdy.',
+                    ? `Zanim zaczniesz śledzić dystans, musisz dodać swój adres domowy do prywatnego profilu. ${workspaceName} używa tego adresu do odliczeń za dojazdy.`
+                    : 'Zanim zaczniesz śledzić dystans, musisz dodać swój adres domowy do prywatnego profilu. To miejsce pracy używa tego adresu do odliczeń dojazdów.',
             cta: 'Dodaj adres domowy',
         },
         amount: 'Kwota',
@@ -3657,7 +3657,7 @@ ${amount} dla ${merchant} - ${date}`,
         legalFirstName: 'Imię (zgodnie z dokumentem tożsamości)',
         legalLastName: 'Nazwisko zgodne z dokumentami',
         address: 'Adres domowy',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} używa tego adresu do wykluczeń dojazdów do pracy.`,
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} używa tego adresu do wyłączeń dla dojeżdżających do pracy.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Data powinna być wcześniejsza niż ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Data powinna być po ${dateString}`,
@@ -7243,19 +7243,19 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 summaryDisabled: 'Bez wykluczenia dojazdów',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Wyklucz ${distance} ${unit} na zgłoszenie`,
                 optionDisabledTitle: 'Nie wykluczaj dojazdów',
-                optionDisabledHelp: 'Z żadnego rozliczenia nie usunięto dojazdu do pracy.',
+                optionDisabledHelp: 'Żaden dojazd do pracy nie jest usuwany z rozliczeń.',
                 optionFixedDistanceTitle: 'Wyklucz stały dystans na każde rozliczenie',
                 optionFixedDistanceHelp: 'Odejmij tę samą odległość dojazdu od każdego rozliczenia. Najlepsze dla osób, które składają jedno rozliczenie na każdy dzień pracy.',
                 distanceLabel: 'Dystans',
                 summaryHomeAndOffice: 'Użyj lokalizacji domu i biura',
-                optionHomeAndOfficeTitle: 'Oblicz według domu i biura',
-                optionHomeAndOfficeHelp: 'Użyj adresu domowego członka, jego modelu pracy oraz przypisanego biura, aby obliczyć wyłączenia z dojazdów.',
+                optionHomeAndOfficeTitle: 'Obliczaj według domu i biura',
+                optionHomeAndOfficeHelp: 'Użyj adresu domowego członka, jego modelu pracy i przypisania do biura, żeby obliczyć wyłączenia z dojazdów.',
                 workspaceAddressRequired: {
-                    title: 'Nie tak prędko…',
-                    promptStart: 'Nie możesz włączyć ustawienia „obliczaj według domu i biura”, dopóki najpierw nie dodasz lokalizacji biura w',
+                    title: 'Nie tak szybko…',
+                    promptStart: 'Nie możesz włączyć ustawienia obliczania według domu i biura, dopóki najpierw nie dodasz lokalizacji biura w',
                     linkText: 'Przegląd',
                     promptEnd: '.',
-                    cta: 'Rozumiem',
+                    cta: 'Jasne',
                 },
                 errors: {distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.', invalidAddress: 'Wpisz prawidłowy adres', distanceTooLarge: 'Odległość jest zbyt duża.'},
             },
