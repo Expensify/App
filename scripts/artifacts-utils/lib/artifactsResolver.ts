@@ -127,7 +127,6 @@ async function fetchWithToken(url: string, githubToken: string): Promise<string>
     let lastError: Error | undefined;
     for (let attempt = 0; attempt < FETCH_ATTEMPTS; attempt++) {
         try {
-            // eslint-disable-next-line no-await-in-loop -- attempts are sequential by design
             const response = await fetch(url, {headers: {Authorization: `Bearer ${githubToken}`}});
             if (response.ok) {
                 return await response.text();
@@ -143,7 +142,6 @@ async function fetchWithToken(url: string, githubToken: string): Promise<string>
             }
             lastError = error instanceof Error ? error : new Error(String(error));
         }
-        // eslint-disable-next-line no-await-in-loop -- a pause is the point of the retry
         await new Promise((resolve) => {
             setTimeout(resolve, RETRY_DELAY_MS * 2 ** attempt);
         });
