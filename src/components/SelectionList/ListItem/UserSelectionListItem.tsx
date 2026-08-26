@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -7,10 +7,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 
-import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -47,12 +47,12 @@ function UserSelectionListItem<TItem extends ListItem>({
 
         // If the emails are not in the same private domain, we just return the users email
         if (!areEmailsFromSamePrivateDomain(login, currentUserPersonalDetails.login ?? '')) {
-            return Str.removeSMSDomain(login);
+            return formatPhoneNumber(login);
         }
 
         // Otherwise, the emails are a part of the same private domain, so we can remove the domain and just show username
         return login.split('@').at(0);
-    }, [currentUserPersonalDetails.login, item.login]);
+    }, [currentUserPersonalDetails.login, item.login, formatPhoneNumber]);
 
     const userDisplayName = useMemo(() => {
         return getDisplayNameForParticipant({
@@ -86,12 +86,10 @@ function UserSelectionListItem<TItem extends ListItem>({
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.h13, styles.gap3]}>
                 {!!item.icons?.length && (
                     <View style={styles.mentionSuggestionsAvatarContainer}>
-                        <Avatar
+                        <UserAvatar
                             source={item.icons.at(0)?.source}
                             size={CONST.AVATAR_SIZE.X_SMALL}
-                            name={item.icons.at(0)?.name}
-                            avatarID={item.icons.at(0)?.id}
-                            type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
+                            accountID={getAccountIDFromAvatarID(item.icons.at(0)?.id)}
                             fallbackIcon={item.icons.at(0)?.fallbackIcon}
                         />
                     </View>
