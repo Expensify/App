@@ -1,5 +1,6 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import Composer from '@components/Composer';
+import type {ComposerRef} from '@components/Composer/types';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -18,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isSafari} from '@libs/Browser';
+import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys} from '@libs/ComposerUtils';
 import DateUtils from '@libs/DateUtils';
 import getButtonState from '@libs/getButtonState';
@@ -32,10 +34,12 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {NativeMethods, TextInputKeyPressEvent} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {useAnimatedRef} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 
 import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 
@@ -75,10 +79,16 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const [longPlaceholderHeight, setLongPlaceholderHeight] = useState<number | null>(null);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
+    const animatedRef = useAnimatedRef<NativeMethods>();
+
+    const setComposerRef = (element: ComposerRef) => {
+        animatedRef(element);
+    };
 
     const clearInput = () => {
         setValue('');
         setSelection({start: 0, end: 0});
+        scheduleOnUI(forceClearInput, animatedRef);
     };
 
     const sendAttachment = (attachments: FileObject | FileObject[]) => {
@@ -216,6 +226,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                 </View>
                 <View style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}>
                     <Composer
+                        ref={setComposerRef}
                         style={[styles.textInputCompose, styles.textInputCollapseCompose]}
                         value={value}
                         onChangeText={setValue}
