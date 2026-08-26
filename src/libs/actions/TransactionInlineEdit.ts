@@ -255,11 +255,16 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
 function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string) {
-    const iouParams = getIouParamsForTransaction(params);
+    // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
+    // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
+    // thread report for an edit we're about to discard, so read the transaction directly and validate first.
+    const transaction = params.transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
-    if (!isValidMerchant(newMerchant, iouParams.transaction, params.parentReport)) {
+    if (!isValidMerchant(newMerchant, transaction, params.parentReport)) {
         return;
     }
+
+    const iouParams = getIouParamsForTransaction(params);
 
     updateMoneyRequestMerchant({
         ...iouParams,
@@ -291,14 +296,18 @@ function editTransactionCategoryInline(params: TransactionInlineEditParams, newC
 
 /** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
 function editTransactionAmountInline(params: TransactionInlineEditParams, newAmount: number) {
-    const iouParams = getIouParamsForTransaction(params);
+    // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
+    // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
+    // thread report for an edit we're about to discard, so validate against params directly first.
     const iouType = isInvoiceReport(params.parentReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
-    const allowNegative = shouldEnableNegative(params.parentReport, iouParams.policy, iouType);
+    const allowNegative = shouldEnableNegative(params.parentReport, params.policy, iouType);
     const isP2P = isIOUReport(params.parentReport);
 
     if (!isValidMoneyRequestAmount(newAmount, iouType, allowNegative, isP2P)) {
         return;
     }
+
+    const iouParams = getIouParamsForTransaction(params);
 
     // Keep the existing currency — only the amount is changing from the search table
     const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
