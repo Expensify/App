@@ -50,28 +50,27 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const admins = bankAccountList?.[bankAccountID]?.accountData?.sharees;
     const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
     const adminEmails = admins?.filter((admin) => admin !== currentUserPersonalDetails?.email) ?? [];
-    const adminsList = usePersonalDetailsByLogins(adminEmails, (personalDetailsByLogin) => {
-        const adminsWithInfo = adminEmails.map((admin) => {
-            const personalDetails = personalDetailsByLogin[admin];
-            const formattedAdmin = formatMemberForList({
-                text: personalDetails?.displayName,
-                alternateText: personalDetails?.login,
-                keyForList: personalDetails?.login ?? '',
-                accountID: personalDetails?.accountID,
-                login: personalDetails?.login,
-                pendingAction: personalDetails?.pendingAction,
-                reportID: '',
-            });
-            return {...formattedAdmin, isInteractive: false};
+    const adminPersonalDetails = usePersonalDetailsByLogins(adminEmails);
+    const adminsWithInfo = adminEmails.map((admin) => {
+        const personalDetails = adminPersonalDetails[admin];
+        const formattedAdmin = formatMemberForList({
+            text: personalDetails?.displayName,
+            alternateText: personalDetails?.login,
+            keyForList: personalDetails?.login ?? '',
+            accountID: personalDetails?.accountID,
+            login: personalDetails?.login,
+            pendingAction: personalDetails?.pendingAction,
+            reportID: '',
         });
-
-        let adminsToDisplay = [...adminsWithInfo];
-        if (debouncedSearchTerm) {
-            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-            adminsToDisplay = tokenizedSearch(adminsWithInfo, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
-        }
-        return adminsToDisplay;
+        return {...formattedAdmin, isInteractive: false};
     });
+
+    let adminsList = adminsWithInfo;
+    if (debouncedSearchTerm) {
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
+        adminsList = tokenizedSearch(adminsWithInfo, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+    }
+
     const error = getLatestErrorMessage(bankAccountList?.[bankAccountID] ?? {});
     const isExpensifyCardError = error?.includes(CONST.EXPENSIFY_CARD.BANK);
     const isExpensifyCardSettlementAccount = bankAccountList?.[bankAccountID]?.isExpensifyCardSettlementAccount ?? false;

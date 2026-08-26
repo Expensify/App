@@ -60,26 +60,24 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
     const adminEmails = getEligibleBankAccountShareRecipientEmails(allPolicies, currentUserLogin, bankAccountID);
-    const admins = usePersonalDetailsByLogins(adminEmails, (personalDetailsByLogin) =>
-        adminEmails.flatMap((email) => {
-            const personalDetails = personalDetailsByLogin[email];
-            if (!personalDetails) {
-                return [];
-            }
-
-            return [
-                formatMemberForList({
-                    text: personalDetails.displayName,
-                    alternateText: personalDetails.login,
-                    keyForList: personalDetails.login ?? String(personalDetails.accountID),
-                    accountID: personalDetails.accountID,
-                    login: personalDetails.login,
-                    pendingAction: personalDetails.pendingAction,
-                    reportID: '',
-                }),
-            ];
-        }),
-    );
+    const adminPersonalDetails = usePersonalDetailsByLogins(adminEmails);
+    const admins = adminEmails.flatMap((email) => {
+        const personalDetails = adminPersonalDetails[email];
+        if (!personalDetails) {
+            return [];
+        }
+        return [
+            formatMemberForList({
+                text: personalDetails.displayName,
+                alternateText: personalDetails.login,
+                keyForList: personalDetails.login ?? String(personalDetails.accountID),
+                accountID: personalDetails.accountID,
+                login: personalDetails.login,
+                pendingAction: personalDetails.pendingAction,
+                reportID: '',
+            }),
+        ];
+    });
     const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
     const debouncedSearchValue = debouncedSearchTerm.trim().toLowerCase();
