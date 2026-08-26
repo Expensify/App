@@ -1,3 +1,5 @@
+import type {SourceBuild} from './lib/artifactsResolver';
+
 import parseCommandLineArguments from '../utils/parseCommandLineArguments';
 import resolveArtifacts from './lib/artifactsResolver';
 
@@ -16,8 +18,9 @@ const platform = args.platform;
 const packageName = args.package ?? '';
 
 if (platform !== 'ios' && platform !== 'android') {
-    process.stderr.write(`[PatchedArtifacts] Invalid or missing --platform "${platform ?? ''}" (expected "ios" or "android"); building from source.\n`);
-    process.stdout.write(JSON.stringify({buildFromSource: true, version: null, packageName, artifactId: ''}));
+    const reason = `Invalid or missing --platform "${platform ?? ''}" (expected "ios" or "android").`;
+    process.stderr.write(`[PatchedArtifacts] ${reason} Building from source.\n`);
+    process.stdout.write(JSON.stringify({buildFromSource: true, version: null, packageName, artifactId: '', reason} satisfies SourceBuild));
     process.exit(0);
 }
 
@@ -26,6 +29,7 @@ const resolution = platform === 'ios' ? resolveArtifacts({...options, platform: 
 
 resolution
     .then((result) => process.stdout.write(JSON.stringify(result)))
-    .catch(() => {
-        process.stdout.write(JSON.stringify({buildFromSource: true, version: null, packageName, artifactId: ''}));
+    .catch((error: unknown) => {
+        const reason = `The resolver rejected unexpectedly: ${error instanceof Error ? error.message : String(error)}`;
+        process.stdout.write(JSON.stringify({buildFromSource: true, version: null, packageName, artifactId: '', reason} satisfies SourceBuild));
     });

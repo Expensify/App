@@ -5,9 +5,17 @@ one published on npm. To avoid every developer compiling it locally, CI builds `
 patches applied and publishes it to our private GitHub Packages Maven repository.
 
 At build time a resolver hashes the local patches and looks for a published artifact tagged with the
-same hash. On a match the build downloads `react-native` instead of compiling it. If nothing matches —
-because you added or edited a patch locally, or because credentials are missing — the build logs a
-warning and compiles `react-native` from source, so a miss slows the build down but never fails it.
+same hash. On a match the build downloads `react-native` instead of compiling it.
+
+If nothing matches — because you added or edited a patch locally, or because credentials are missing —
+the build logs a warning and compiles `react-native` from source, so a miss slows the build down but
+never fails it.
+
+On iOS that warning is worth reading, because the two modes are different dependency graphs and
+`pod install` writes whichever one it resolved into `Podfile.lock`. A degraded install therefore
+produces a lockfile roughly 130KB different from the committed one. **The build is fine; the lockfile
+is not.** Don't commit it — regenerate once the cause is fixed. CI rejects a lockfile committed in the
+wrong mode.
 
 > [!NOTE]
 > These are not the remote builds described in the "Running the mobile application using Rock" sections
@@ -46,7 +54,8 @@ credentials come from the GitHub CLI:
    `read:packages` among the token scopes.
 
 Without a usable token the build still works, it just compiles `react-native` from source. The
-resolver says which part of the setup is missing, so check the build log if you expected a prebuilt.
+resolver says which part of the setup is missing, so check the build log if you expected a prebuilt —
+on iOS it prints a `[RNMode]` warning naming the cause.
 
 In CI there is no GitHub CLI: the credentials are taken from the `GITHUB_TOKEN` and `GITHUB_ACTOR`
 environment variables that the workflow provides.
@@ -80,6 +89,24 @@ To compile `react-native` from source in HybridApp, set `BUILD_RN_FROM_SOURCE` w
 ```bash
 BUILD_RN_FROM_SOURCE=1 npm run pod-install
 ```
+
+Set it when a source build is deliberate — for example while iterating on a patch that has no
+published artifact yet — and it also silences the `[RNMode]` warning. **Do not commit the
+`Podfile.lock` it produces:** it will be in source mode, and CI rejects that.
+
+## Environment overrides
+
+`RNMode` (`scripts/artifacts-utils/ios/rn_mode.rb`) clears `react-native`'s test-only environment
+overrides before resolving, because each of them can silently move a committed `Podfile.lock` and a
+stale `export` is indistinguishable from a deliberate one. Among them are `HERMES_ENGINE_TARBALL_PATH`,
+`REACT_NATIVE_OVERRIDE_HERMES_DIR`, `HERMES_COMMIT` and `RCT_BUILD_HERMES_FROM_SOURCE`, which are
+legitimate tools when debugging Hermes. The install logs which ones it ignored. To keep them:
+
+```bash
+EXPENSIFY_RN_ALLOW_ENV_OVERRIDES=1 npm run pod-install
+```
+
+The resulting `Podfile.lock` is not reproducible, so do not commit it.
 
 The flag is read during `pod install`, so switching it requires reinstalling the pods, not just
 rebuilding.

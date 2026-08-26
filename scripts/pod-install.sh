@@ -110,7 +110,9 @@ if [ -d "$CACHED_PODSPEC_DIR" ]; then
 fi
 
 cd ios || cleanupAndExit 1
-RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 bundle exec pod install
+# The source/prebuilt mode comes from ios/Podfile itself (RNMode.declare!), so every entry point
+# resolves it identically — including a bare `bundle exec pod install` that skips this script.
+bundle exec pod install
 
 # Go back to where we started
 cleanupAndExit 0

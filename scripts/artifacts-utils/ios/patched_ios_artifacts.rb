@@ -8,6 +8,10 @@ require 'fileutils'
 require 'json'
 require 'uri'
 
+# Same repo as this file, so the two can never be out of step. RNMode's assertions no-op on their
+# own when no Podfile declared a mode.
+require_relative 'rn_mode.rb'
+
 module PatchedIOSArtifacts
     # scripts/artifacts-utils/ios/ -> repo root is three levels up.
     NEW_DOT_ROOT = File.expand_path('../../..', __dir__)
@@ -25,6 +29,13 @@ module PatchedIOSArtifacts
     def self.log(message, level = :info)
         return unless defined?(Pod::UI)
         level == :error ? Pod::UI.warn("#{LOG_PREFIX} #{message}") : Pod::UI.puts("#{LOG_PREFIX} #{message}")
+    end
+
+    # Single funnel for every path that gives up on prebuilt artifacts, so RNMode can name the cause
+    # it raises on. Returns the source-build resolution the caller passes on.
+    def self.downgrade(reason)
+        RNMode.record_downgrade("#{LOG_PREFIX} #{reason}")
+        {'buildFromSource' => true, 'version' => nil}
     end
 
     def self.setup
@@ -48,6 +59,9 @@ module PatchedIOSArtifacts
         ReactNativeCoreUtils.class_variable_set(:@@patched_artifact_url_prefix, resolution['artifactUrlPrefix'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_github_token, resolution['githubToken'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_build_from_source, resolution['buildFromSource'])
+
+        # Raises here, while Podfile.lock is still untouched, unless a source build was asked for.
+        RNMode.check_rncore!(@using_prebuilt)
     end
 
     # True only when a matching prebuilt artifact resolved and prebuilds are enabled.
@@ -133,10 +147,12 @@ module PatchedIOSArtifacts
         @prefetched = prefetched
         resolution
     rescue => e
-        log("#{e.message} Building react-native from source.", :error)
         @prefetched = {}
-        {'buildFromSource' => true, 'version' => nil}
+        downgrade("Could not prefetch the artifacts for #{package}:#{version}: #{e.message}")
     end
+
+    # Retries transient failures only; --retry leaves a 4xx alone, so an absent artifact still fails fast.
+    RETRY_FLAGS = "--retry 3 --retry-delay 2 --retry-all-errors --connect-timeout 5 --max-time 300".freeze
 
     # curl drops the Authorization header on the cross-host redirect to the object store.
     def self.auth_header(github_token)
@@ -146,7 +162,7 @@ module PatchedIOSArtifacts
     # react-native's validate_tarball, plus the token its own curl cannot carry. As upstream does, a
     # checksum Maven does not serve skips validation rather than failing the fetch.
     def self.checksum_valid?(path, name, url, github_token)
-        expected = `curl -sL #{auth_header(github_token)} "#{url}.sha1"`.strip.downcase
+        expected = `curl -sL #{RETRY_FLAGS} #{auth_header(github_token)} "#{url}.sha1"`.strip.downcase
         unless $?.success? && expected.match?(/\A[a-f0-9]{40}\z/)
             log("SHA1 not available from Maven for #{name}. Skipping validation.")
             return true
@@ -171,7 +187,7 @@ module PatchedIOSArtifacts
         log("Cache miss: downloading #{name} from #{url}")
         tmp = "#{destination}.download"
         FileUtils.mkdir_p(File.dirname(destination))
-        downloaded = system(%(curl --fail --location --proto '=https' #{auth_header(github_token)} "#{url}" -o "#{tmp}"))
+        downloaded = system(%(curl --fail --location --proto '=https' #{RETRY_FLAGS} #{auth_header(github_token)} "#{url}" -o "#{tmp}"))
         log("Verifying checksum for #{name}...") if downloaded
         unless downloaded && checksum_valid?(tmp, name, url, github_token)
             FileUtils.rm_f(tmp)
@@ -189,10 +205,12 @@ module PatchedIOSArtifacts
         # stdout is pure JSON; the resolver logs to stderr.
         output = IO.popen(cmd, chdir: NEW_DOT_ROOT, &:read)
         raise "resolver exited #{$?.exitstatus}" unless $?.success?
-        JSON.parse(output)
+        resolution = JSON.parse(output)
+        # The resolver downgrades internally too, and reports why; keep that reason.
+        return resolution unless resolution['buildFromSource']
+        downgrade(resolution['reason'] || 'The resolver found no usable prebuilt artifact.')
     rescue => e
-        log("Resolver failed (#{e.message}); building from source.", :error)
-        {'buildFromSource' => true, 'version' => nil}
+        downgrade("The artifacts resolver failed: #{e.message}.")
     end
 end
 
@@ -252,7 +270,7 @@ class ReactNativeCoreUtils
             tmp = "#{dir}/reactnative-core.download"
             # curl drops the Authorization header on the cross-host redirect to the object store.
             header = @@patched_github_token ? %(-H "Authorization: Bearer #{@@patched_github_token}") : ''
-            ok = system(%(curl --fail --location --proto '=https' #{header} "#{tarball_url}" -o "#{tmp}" && mv "#{tmp}" "#{destination}"))
+            ok = system(%(curl --fail --location --proto '=https' #{PatchedIOSArtifacts::RETRY_FLAGS} #{header} "#{tarball_url}" -o "#{tmp}" && mv "#{tmp}" "#{destination}"))
             abort("#{PatchedIOSArtifacts::LOG_PREFIX} Failed to download #{tarball_url}") unless ok
         end
         destination

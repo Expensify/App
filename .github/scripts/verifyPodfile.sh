@@ -97,4 +97,8 @@ while read -r POD; do
 done <<< "$FORMATTED_PODS"
 
 success "Podfile.lock is up to date."
+
+# A mode flip leaves the Podfile untouched, so the checksum comparison above cannot see it.
+./.github/scripts/verifyPodfileMode.sh ios/Podfile.lock source
+
 cleanupAndExit 0

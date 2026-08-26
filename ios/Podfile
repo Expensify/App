@@ -16,6 +16,11 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
+# Standalone NewDot builds react-native from source. Declared in the Podfile so that every entry
+# point resolves the same mode, including a bare `bundle exec pod install`.
+require_relative '../scripts/artifacts-utils/ios/rn_mode.rb'
+RNMode.declare!(:source)
+
 MIN_IOS_VERSION = '16.4'
 platform :ios, MIN_IOS_VERSION
 prepare_react_native_project!

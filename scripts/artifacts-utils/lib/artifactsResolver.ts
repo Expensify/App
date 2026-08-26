@@ -38,6 +38,8 @@ type SourceBuild = {
     version: null;
     packageName: string;
     artifactId: string;
+    /** Human-readable cause of the fallback, surfaced by the iOS and Android consumers. Must not include credentials. */
+    reason: string;
 };
 
 /** A matching prebuilt artifact was found; carries the credentials the native download needs. */
@@ -62,6 +64,10 @@ const ARTIFACT_IDS = {
 const MAVEN_REPO_URL = `https://maven.pkg.github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
 
 const LOG_PREFIX = '[PatchedArtifacts]';
+
+/** A registry blip and an absent artifact are otherwise the same answer, and only one of them should downgrade the build. */
+const FETCH_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 1000;
 
 // stdout carries the JSON result that Gradle and CocoaPods parse, so every diagnostic goes to stderr
 // (warnings and errors already do). Set here rather than in the CLI entry point, so the invariant
@@ -118,11 +124,31 @@ function getArtifactUrlPrefix(packageName: string, artifactId: string, version: 
  * cross-origin hop, so the token reaches only the initial host, never the object store.
  */
 async function fetchWithToken(url: string, githubToken: string): Promise<string> {
-    const response = await fetch(url, {headers: {Authorization: `Bearer ${githubToken}`}});
-    if (!response.ok) {
-        throw new Error(`Request to ${url} failed with status ${response.status}`);
+    let lastError: Error | undefined;
+    for (let attempt = 0; attempt < FETCH_ATTEMPTS; attempt++) {
+        try {
+            // eslint-disable-next-line no-await-in-loop -- attempts are sequential by design
+            const response = await fetch(url, {headers: {Authorization: `Bearer ${githubToken}`}});
+            if (response.ok) {
+                return await response.text();
+            }
+            // A 4xx is an answer about the artifact, not about the network, so it is not retried.
+            if (response.status < 500) {
+                throw new Error(`Request to ${url} failed with status ${response.status}`);
+            }
+            lastError = new Error(`Request to ${url} failed with status ${response.status}`);
+        } catch (error) {
+            if (error instanceof Error && error.message.includes('failed with status')) {
+                throw error;
+            }
+            lastError = error instanceof Error ? error : new Error(String(error));
+        }
+        // eslint-disable-next-line no-await-in-loop -- a pause is the point of the retry
+        await new Promise((resolve) => {
+            setTimeout(resolve, RETRY_DELAY_MS * 2 ** attempt);
+        });
     }
-    return response.text();
+    throw new Error(`Could not reach ${url} after ${FETCH_ATTEMPTS} attempts: ${lastError?.message ?? 'unknown error'}`);
 }
 
 function getReactNativeVersion(newDotRoot: string): string {
@@ -192,7 +218,7 @@ function resolveArtifacts(options: ResolveOptions & {platform: 'android'}): Prom
 async function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult> {
     const {platform, packageName} = options;
     const artifactId = ARTIFACT_IDS[platform];
-    const sourceBuild: SourceBuild = {buildFromSource: true, version: null, packageName, artifactId};
+    const sourceBuild = (reason: string): SourceBuild => ({buildFromSource: true, version: null, packageName, artifactId, reason});
 
     try {
         // Reading credentials validates them, so an incomplete setup fails before we spend time on API calls.
@@ -204,8 +230,9 @@ async function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult>
 
         const version = await findMatchingArtifactsVersion(options, artifactId, credentials.githubToken);
         if (version == null) {
-            logWarn(`${LOG_PREFIX} No matching artifacts version found for ${packageName}. Building react-native from source.`);
-            return sourceBuild;
+            const reason = `No matching artifacts version found for ${packageName}.`;
+            logWarn(`${LOG_PREFIX} ${reason}`);
+            return sourceBuild(reason);
         }
 
         logInfo(`${LOG_PREFIX} Using patched react-native artifacts: ${packageName}:${version}`);
@@ -218,11 +245,12 @@ async function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult>
             ...credentials,
         };
     } catch (error) {
-        logError(`${LOG_PREFIX} ${error instanceof Error ? error.message : String(error)} Building react-native from source.`);
-        return sourceBuild;
+        const reason = error instanceof Error ? error.message : String(error);
+        logError(`${LOG_PREFIX} ${reason} Building react-native from source.`);
+        return sourceBuild(reason);
     }
 }
 
 export default resolveArtifacts;
 export {ARTIFACT_IDS};
-export type {AndroidResult, IosResult, Platform, ResolveOptions, ResolveResult};
+export type {AndroidResult, IosResult, Platform, ResolveOptions, ResolveResult, SourceBuild};

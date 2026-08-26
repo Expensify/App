@@ -95,7 +95,13 @@ describe('artifactsResolver', () => {
 
             const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true});
 
-            expect(result).toStrictEqual({buildFromSource: true, version: null, packageName: 'react-hybrid', artifactId: 'react-native-artifacts'});
+            expect(result).toStrictEqual({
+                buildFromSource: true,
+                version: null,
+                packageName: 'react-hybrid',
+                artifactId: 'react-native-artifacts',
+                reason: 'No GitHub CLI found. For setup instructions, refer to: https://example.com',
+            });
             expect(mockInitGithubClient).not.toHaveBeenCalled();
         });
 
@@ -143,6 +149,9 @@ describe('artifactsResolver', () => {
 
             expect(result.buildFromSource).toBe(true);
             expect(result.version).toBeNull();
+            if (result.buildFromSource) {
+                expect(result.reason).toContain('No matching artifacts version found');
+            }
         });
 
         it('falls back to source build when the packages API fails', async () => {
@@ -152,6 +161,10 @@ describe('artifactsResolver', () => {
             const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true});
 
             expect(result.buildFromSource).toBe(true);
+            if (result.buildFromSource) {
+                expect(result.reason).toBe('403 Forbidden');
+                expect(result.reason.length).toBeGreaterThan(0);
+            }
         });
 
         it('reads credentials from the environment in CI, without touching the gh CLI', async () => {

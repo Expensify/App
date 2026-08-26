@@ -6,6 +6,7 @@ on:
     branches-ignore: [staging, production]
     paths:
       - ios/**
+      - scripts/artifacts-utils/**
       - 'package.json'
       - 'package-lock.json'
 
