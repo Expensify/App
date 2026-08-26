@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -498,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         editor: 'Editor',
         restrictions: 'Restrições',
         tryAgain: 'Tentar novamente',
@@ -930,6 +930,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Apenas admins',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal para outra conta',
+        emailLabel: 'Endereço de email',
+        reasonLabel: 'Motivo de login no suporte',
+        reasonHint: 'Nenhum chamado recente encontrado para esta conta.',
+        login: 'Entrar',
+    },
     sidebarScreen: {
         buttonFind: 'Encontre algo...',
         buttonMySettings: 'Minhas configurações',
@@ -1121,6 +1128,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Crie um ou arraste um recibo aqui',
         },
         insightsSection: {chartUnavailable: 'Gráfico indisponível', notEnoughData: 'Ainda não temos dados suficientes para preencher este gráfico'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Bom dia, ${name}.` : 'Bom dia.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Boa tarde, ${name}.` : 'Boa tarde.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Boa noite, ${name}.` : 'Boa noite.'),
+            inputPlaceholder: 'Peça ao Concierge para analisar suas despesas ou obter suporte',
+            inputPlaceholderMobile: 'Pergunte qualquer coisa ao Concierge',
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -1512,8 +1526,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'cartão' : 'conta bancária';
             return isCurrentUser
-                ? `. O dinheiro está a caminho da sua ${creditBankAccount ? `conta bancária terminada em ${creditBankAccount}` : 'conta'} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`
-                : `. O dinheiro está a caminho da conta bancária de ${submitterLogin}${creditBankAccount ? ` terminada em ${creditBankAccount}` : ''} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`;
+                ? `. O dinheiro está a caminho da sua ${creditBankAccount ? `conta bancária terminada em ${creditBankAccount}` : 'conta'} (pago via ${paymentMethod}). Geralmente isso leva de 4 a 5 dias úteis.`
+                : `. O dinheiro está a caminho da conta bancária de ${submitterLogin}${creditBankAccount ? ` terminada em ${creditBankAccount}` : ''} (pago via ${paymentMethod}). Geralmente isso leva de 4 a 5 dias úteis.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` com depósito direto (ACH)${creditBankAccount ? ` para a conta bancária terminada em ${creditBankAccount}.` : '. '}${expectedDate ? `O reembolso está previsto para ser concluído até ${expectedDate}.` : 'Geralmente isso leva de 4 a 5 dias úteis.'}`,
@@ -1530,7 +1544,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'com base na atividade anterior',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `com base nas <a href="${rulesLink}">regras do workspace</a>` : 'com base na regra do workspace'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `para ${comment}` : 'despesa'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Relatório de fatura nº ${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Relatório de fatura nº ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} enviado${comment ? `para ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `moveu a despesa do espaço pessoal para ${workspaceName ?? `conversar com ${reportName}`}`,
         movedToPersonalSpace: 'moveu a despesa para o espaço pessoal',
@@ -1593,6 +1607,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Ativar carteira',
         hold: 'Reter',
         sendToSomeone: 'Enviar para alguém',
+        submitToEmployer: 'Enviar para meu empregador',
         unhold: 'Remover bloqueio',
         holdExpense: () => ({
             one: 'Reter despesa',
@@ -1845,7 +1860,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Selecione os detalhes que você quer manter:',
             noDifferences: 'Nenhuma diferença encontrada entre as transações',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'um' : 'a';
+                const article = startsWithVowel(field) ? 'um' : 'um';
                 return `Selecione ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Selecione participantes',
@@ -3110,7 +3125,13 @@ ${amount} para ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Fique no controle vendo apenas chats não lidos ou que precisam da sua atenção. Não se preocupe, você pode mudar isso a qualquer momento em <a href="${priorityModePageUrl}">configurações</a>.`,
     },
-    inboxTabs: {all: 'Todos', todo: 'Pendências', unread: 'Não lidas'},
+    inboxTabs: {
+        all: 'Todos',
+        todo: 'Pendências',
+        unread: 'Não lidas',
+        markAllAsRead: 'Marcar tudo como lido',
+        markAllAsReadConfirmationPrompt: 'Tem certeza de que deseja marcar todos os chats como lidos?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `em ${policyName}`,
         generatingPDF: 'Gerar PDF',
@@ -4530,6 +4551,9 @@ ${amount} para ${merchant} - ${date}`,
             workflows: 'Fluxos de trabalho',
             workspace: 'Espaço de trabalho',
             findWorkspace: 'Encontrar espaço de trabalho',
+            active: 'Ativo',
+            archived: 'Arquivado',
+            workspaceStatus: 'Status do espaço de trabalho',
             findRoom: 'Encontrar sala',
             edit: 'Editar espaço de trabalho',
             enabled: 'Ativado',
@@ -6205,6 +6229,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         title: 'Adicionar nomes de viagem às despesas',
                         subtitle: 'Adicione automaticamente os nomes das viagens às descrições das despesas para viagens reservadas no Expensify.',
                     },
+                    codingSync: {
+                        title: 'Sincronizar codificação com o Expensify Travel',
+                        subtitle: 'Envie as categorias, tags e campos de relatório deste workspace para o Expensify Travel para que os viajantes os respondam no momento da reserva.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -6279,6 +6307,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         spend: 'Controles de gastos e limites personalizados',
                     },
                     ctaTitle: 'Emitir novo cartão',
+                    existingFeedTitle: 'Gerencie seus Cartões Expensify',
+                    viewCards: 'Ver cartões',
                 },
             },
             companyCards: {
@@ -9916,6 +9946,19 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
                 return 'Não é possível associar o recibo automaticamente devido a um problema temporário no banco. Tente novamente mais tarde.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return 'Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada.';
+                    }
+                    return isMarkAsCash
+                        ? `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. Marque como dinheiro para ignorar ou <a href="${connectionLink}">reconecte</a> para corresponder o recibo.`
+                        : `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. <a href="${connectionLink}">Reconecte</a> para corresponder o recibo.`;
+                }
+                return isAdmin
+                    ? `A conexão bancária precisa ser reautenticada. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
+                    : 'A conexão bancária precisa ser reautenticada. Peça para um administrador reconectar para corresponder ao recibo.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Não foi possível associar automaticamente o recibo devido a uma conexão bancária com problema.';
@@ -9939,6 +9982,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Recibo pendente devido a uma conexão bancária interrompida. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões corporativos</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendente devido à conexão bancária com problemas. Peça a um administrador do workspace para resolver.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Recibo pendente porque a conexão bancária precisa ser reautenticada. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões corporativos</a>.</muted-text-label>`,
+        memberReauthConnectionError: 'Recibo pendente porque a conexão bancária precisa ser reautenticada. Peça a um administrador do workspace para resolver.',
         markAsCashToIgnore: 'Marcar como dinheiro para ignorar e solicitar pagamento.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
@@ -10130,6 +10176,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             title: 'Pagamento',
             subtitle: 'Adicione um cartão para pagar sua assinatura do Expensify.',
             addCardButton: 'Adicionar cartão de pagamento',
+            addPaymentCardTitle: 'Adicionar um cartão de pagamento',
+            addCard: 'Adicionar cartão',
             cardInfo: (name: string, expiration: string, currency: string) => `Nome: ${name}, Validade: ${expiration}, Moeda: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Sua próxima data de pagamento é ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Cartão com final ${cardNumber}`,

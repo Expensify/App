@@ -100,6 +100,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
+                shouldShowLoadingImmediatelyOnPress={false}
             >
                 <View style={styles.mb4}>
                     <InputWrapper

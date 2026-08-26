@@ -9,8 +9,9 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
+
 import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
 import type {ValueOf} from 'type-fest';
 
@@ -487,6 +488,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -910,6 +912,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Solo administradores',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal en otra cuenta',
+        emailLabel: 'Dirección de correo electrónico',
+        reasonLabel: 'Motivo de inicio de sesión en soporte',
+        reasonHint: 'No se han encontrado tickets recientes para esta cuenta.',
+        login: 'Inicia sesión',
+    },
     sidebarScreen: {
         buttonFind: 'Encuentre algo...',
         buttonMySettings: 'Mi configuración',
@@ -1119,6 +1128,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Crea uno o arrastra un recibo aquí',
         },
         insightsSection: {chartUnavailable: 'Gráfico no disponible', notEnoughData: 'Todavía no tenemos suficientes datos para completar este gráfico'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Buenos días, ${name}.` : 'Buenos días.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Buenas tardes, ${name}.` : 'Buenas tardes.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Buenas noches, ${name}.` : 'Buenas noches.'),
+            inputPlaceholder: 'Pídele a Concierge que analice tus gastos o que te ayude',
+            inputPlaceholderMobile: 'Pregunta a Concierge cualquier cosa',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1513,8 +1529,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'tarjeta' : 'cuenta bancaria';
             return isCurrentUser
-                ? `. El dinero está en camino a tu${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`
-                : `. El dinero está en camino a la cuenta bancaria de ${submitterLogin}${creditBankAccount ? ` terminada en ${creditBankAccount}` : ''} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`;
+                ? `. El dinero va en camino a tu ${creditBankAccount ? `cuenta bancaria terminada en ${creditBankAccount}` : 'cuenta'} (pagado a través de ${paymentMethod}). Normalmente tarda entre 4 y 5 días laborables.`
+                : `. El dinero va en camino a la ${creditBankAccount ? `cuenta bancaria terminada en ${creditBankAccount}` : 'cuenta'} de ${submitterLogin} (pagado mediante ${paymentMethod}). Normalmente tarda 4-5 días laborables.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` con depósito directo (ACH)${creditBankAccount ? ` a la cuenta bancaria terminada en ${creditBankAccount}. ` : '. '}${expectedDate ? `Se estima que el reembolso se completará para el ${expectedDate}.` : 'Esto generalmente toma de 4 a 5 días hábiles.'}`,
@@ -1534,7 +1550,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'basado en actividad pasada',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `basado en <a href="${rulesLink}">reglas del espacio de trabajo</a>` : 'basado en regla del espacio de trabajo'),
         threadExpenseReportName: (formattedAmount, comment) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
-        invoiceReportName: ({linkedReportID}) => `Informe de facturación #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Informe de factura n.º ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount, comment) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName, workspaceName) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
         movedToPersonalSpace: 'movió el gasto a su espacio personal',
@@ -1650,6 +1666,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Solo aprobar',
         hold: 'Retener',
         sendToSomeone: 'Enviar a alguien',
+        submitToEmployer: 'Enviar a mi empleador',
         unhold: 'Desbloquear',
         holdEducationalTitle: '¿Deberías retener este gasto?',
         whatIsHoldExplain: 'Retener es como presionar "pausa" en un gasto hasta que estés listo para enviarlo.',
@@ -1845,7 +1862,9 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Selecciona los detalles',
             pageTitle: 'Selecciona los detalles que deseas conservar:',
             noDifferences: 'No se encontraron diferencias entre las transacciones',
-            pleaseSelectError: ({field}) => `Por favor, selecciona un(a) ${field}`,
+            pleaseSelectError: ({field}: {field: string}) => {
+                return `Por favor, selecciona un(a) ${field}`;
+            },
             pleaseSelectAttendees: 'Por favor, selecciona asistentes',
             selectAllDetailsError: 'Selecciona todos los detalles antes de continuar.',
         },
@@ -3032,7 +3051,13 @@ ${amount} para ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Mantente al tanto de todo viendo solo los chats no leídos o los chats que necesitan tu atención. No te preocupes, puedes cambiarlo en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
     },
-    inboxTabs: {all: 'Todo', todo: 'Pendientes', unread: 'No leído'},
+    inboxTabs: {
+        all: 'Todo',
+        todo: 'Pendientes',
+        unread: 'No leído',
+        markAllAsRead: 'Marcar todo como leído',
+        markAllAsReadConfirmationPrompt: '¿Seguro que quieres marcar todos los chats como leídos?',
+    },
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',
         inWorkspace: (policyName) => `en ${policyName}`,
@@ -4489,6 +4514,9 @@ ${amount} para ${merchant} - ${date}`,
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             findWorkspace: 'Encontrar espacio de trabajo',
+            active: 'Activo',
+            archived: 'Archivado',
+            workspaceStatus: 'Estado del espacio de trabajo',
             findRoom: 'Encontrar sala',
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
@@ -6126,6 +6154,11 @@ ${amount} para ${merchant} - ${date}`,
                         title: 'Añadir nombres de viajes a los gastos',
                         subtitle: 'Añade automáticamente los nombres de viajes a las descripciones de los gastos reservados en Expensify.',
                     },
+                    codingSync: {
+                        title: 'Sincronizar codificación con Expensify Travel',
+                        subtitle:
+                            'Envía las categorías, etiquetas y campos de informe de este espacio de trabajo a Expensify Travel para que los viajeros los completen en el momento de la reserva.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -6200,6 +6233,8 @@ ${amount} para ${merchant} - ${date}`,
                         spend: 'Controles de gastos y límites personalizados',
                     },
                     ctaTitle: 'Emitir nueva tarjeta',
+                    existingFeedTitle: 'Gestiona tus Tarjetas Expensify',
+                    viewCards: 'Ver tarjetas',
                 },
             },
             companyCards: {
@@ -10198,6 +10233,19 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
                 return 'No se puede conciliar automáticamente el recibo debido a un problema temporal con el banco. Por favor, inténtalo de nuevo más tarde.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return 'No se puede emparejar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse.';
+                    }
+                    return isMarkAsCash
+                        ? `No se puede emparejar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">vuelve a conectarte</a> para asociar el recibo.`
+                        : `No se puede emparejar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. <a href="${connectionLink}">Vuelve a conectarte</a> para asociar el recibo.`;
+                }
+                return isAdmin
+                    ? `La conexión bancaria necesita volver a autenticarse. <a href="${companyCardPageURL}">Vuelve a conectarte para emparejar el recibo</a>`
+                    : 'La conexión bancaria necesita volver a autenticarse. Pide a un administrador que la vuelva a conectar para emparejar el recibo.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'No se puede conciliar automáticamente el recibo debido a una conexión bancaria interrumpida.';
@@ -10221,6 +10269,10 @@ ${reportName}`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}) =>
             `<muted-text-label>Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en <a href="${workspaceCompanyCardRoute}">Tarjetas de empresa</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}) =>
+            `<muted-text-label>Recibo pendiente porque tu conexión bancaria necesita volver a autenticarse. Por favor, resuélvelo en <a href="${workspaceCompanyCardRoute}">Tarjetas de empresa</a>.</muted-text-label>`,
+        memberReauthConnectionError:
+            'Recibo pendiente porque tu conexión bancaria necesita volver a autenticarse. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
@@ -10413,6 +10465,8 @@ ${reportName}`,
             title: 'Pago',
             subtitle: 'Añade una tarjeta para pagar tu suscripción a Expensify.',
             addCardButton: 'Añade tarjeta de pago',
+            addPaymentCardTitle: 'Añade una tarjeta de pago',
+            addCard: 'Añadir tarjeta',
             cardInfo: (name, expiration, currency) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             cardNextPayment: (nextPaymentDate) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: (cardNumber) => `Tarjeta terminada en ${cardNumber}`,

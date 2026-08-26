@@ -6,6 +6,7 @@ import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
+    getBrokenConnectionViolation,
     hasDuplicateTransactions,
     hasReceipt,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
@@ -127,10 +128,13 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
             const brokenConnectionViolations = transactionViolations.length
                 ? transactionViolations
                 : (visibleTransactions?.flatMap((t) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`] ?? []) ?? []);
-            const brokenConnectionError = brokenConnectionViolations.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
+            const brokenConnectionError = getBrokenConnectionViolation(brokenConnectionViolations);
             const cardID = brokenConnectionError?.data?.cardID;
             const card = cardID ? cardList?.[cardID] : undefined;
-            if (isPersonalCard(card) && brokenConnectionError) {
+
+            // Only suppress the status bar for a personal card the current user actually holds. A company card the
+            // viewer doesn't own resolves to `undefined` here, and must still surface the broken/re-auth status.
+            if (!!card && isPersonalCard(card) && brokenConnectionError) {
                 return undefined;
             }
             return CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION;
