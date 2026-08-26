@@ -42,21 +42,28 @@ Onyx.connectWithoutView({
     },
 });
 
-function measureAndStoreDatabaseSize(): Promise<unknown> {
-    return measureDatabaseSize()
-        .catch((): DatabaseSizeMeasurement => ({source: CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE}))
-        .then((measurement) => {
-            hasCompletedInitialMeasurement = true;
-            if (measurement.source === CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE) {
-                // Report unavailable when no size is known, but only persist successful measurements.
-                if (getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES] === undefined) {
-                    applyMeasurement(measurement);
-                }
-                return;
-            }
+async function measureAndStoreDatabaseSize(): Promise<void> {
+    let measurement: DatabaseSizeMeasurement;
+    try {
+        measurement = await measureDatabaseSize();
+    } catch {
+        measurement = {source: CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE};
+    }
+    hasCompletedInitialMeasurement = true;
+
+    if (measurement.source === CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE) {
+        // Report unavailable when no size is known, but only persist successful measurements.
+        if (getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES] === undefined) {
             applyMeasurement(measurement);
-            return setLastMeasuredDatabaseSize(measurement);
-        });
+        }
+        return;
+    }
+    applyMeasurement(measurement);
+    try {
+        await setLastMeasuredDatabaseSize(measurement);
+    } catch {
+        // Persisting is best-effort. Losing it only means the next launch starts without a size until it measures one.
+    }
 }
 
 const debouncedMeasureAndStoreDatabaseSize = debounce(measureAndStoreDatabaseSize, REMEASURE_DEBOUNCE_TIME_MS, {maxWait: REMEASURE_MAX_WAIT_MS});
