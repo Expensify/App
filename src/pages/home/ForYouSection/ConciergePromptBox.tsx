@@ -21,6 +21,7 @@ import {isSafari} from '@libs/Browser';
 import {canSkipTriggerHotkeys} from '@libs/ComposerUtils';
 import DateUtils from '@libs/DateUtils';
 import getButtonState from '@libs/getButtonState';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 
 import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDraftButton';
 
@@ -117,8 +118,10 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         if (!canSubmit) {
             return;
         }
-        askConcierge(value);
-        clearInput();
+        interceptAnonymousUser(() => {
+            askConcierge(value);
+            clearInput();
+        });
     };
 
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
@@ -163,7 +166,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                     onPress={(e) => {
                                                         e?.preventDefault();
                                                         actionButtonRef.current?.blur();
-                                                        setIsMenuVisible((prev) => !prev);
+                                                        interceptAnonymousUser(() => setIsMenuVisible((prev) => !prev));
                                                     }}
                                                     style={({hovered, pressed}) => [
                                                         styles.composerSizeButton,
