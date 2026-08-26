@@ -968,7 +968,9 @@
 "../../src/pages/TransactionMerge/MergeTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/MergeTransactionsListContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Travel/DynamicTravelUpgrade.tsx"	"no-restricted-imports"	1
-"../../src/pages/Travel/WorkspaceConfirmationForTravelPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/Travel/DynamicWorkspaceConfirmationForTravelPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/Travel/DynamicTravelUpgrade.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/pages/TripChatNameEditPage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/UnreportedExpenseListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ValidateLoginPage/index.web.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/domain/Groups/PreferredWorkspaceToggle.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1

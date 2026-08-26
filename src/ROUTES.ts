@@ -175,11 +175,15 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_CONFIRMATION_CURRENCY: {
         path: 'currency',
-        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT, SCREENS.TRAVEL.WORKSPACE_CONFIRMATION, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE],
+        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT, SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE],
     },
     WORKSPACE_CONFIRMATION_PLAN_TYPE: {
         path: 'plan-type',
-        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT, SCREENS.TRAVEL.WORKSPACE_CONFIRMATION, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE],
+        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT, SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE],
+    },
+    TRAVEL_WORKSPACE_CONFIRMATION: {
+        path: 'workspace-confirmation',
+        entryScreens: [SCREENS.TRAVEL.DYNAMIC_UPGRADE],
     },
     MIGRATED_USER_WELCOME: {
         path: 'migrated-user-welcome',
@@ -601,7 +605,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT,
             SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR,
             SCREENS.WORKSPACE_DUPLICATE.ROOT,
-            SCREENS.TRAVEL.WORKSPACE_CONFIRMATION,
+            SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION,
             SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
@@ -1413,6 +1417,12 @@ const DYNAMIC_ROUTES = {
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+    },
+    TRAVEL_VERIFY_ACCOUNT: {
+        path: 'travel-verify-account',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT, SCREENS.TRAVEL.ENABLE],
+        getRoute: (policyID?: string) => getUrlWithParams('travel-verify-account', {policyID}),
+        queryParams: ['policyID'],
     },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
@@ -3956,16 +3966,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
         },
-    },
-    TRAVEL_WORKSPACE_CONFIRMATION: {
-        route: 'travel/upgrade/workspace/confirmation',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
-    },
-    TRAVEL_VERIFY_ACCOUNT: {
-        route: `travel/${VERIFY_ACCOUNT}`,
-
-        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
     },
     TRAVEL_ENABLE: {
         route: 'travel/enable/:policyID/:subPage?/:action?',
