@@ -263,19 +263,15 @@ function TransactionGroupListItemImpl({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        handleCopyableTextRowPress(
-            () => {
-                const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
-                if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
-                    onSelectRow(item, transactionPreviewData, event);
-                }
-                if (!isExpenseReportType) {
-                    handleToggle();
-                }
-            },
-            true,
-            true,
-        );
+        handleCopyableTextRowPress(() => {
+            const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
+            if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
+                onSelectRow(item, transactionPreviewData, event);
+            }
+            if (!isExpenseReportType) {
+                handleToggle();
+            }
+        }, true);
     };
 
     const onLongPress = () => {

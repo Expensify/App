@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import {useEffect, useRef} from 'react';
+import {useRef} from 'react';
 
 /**
  * Helpers for detecting explicitly copyable text inside pressable rows, so row handlers can allow
@@ -8,8 +8,6 @@ import {useEffect, useRef} from 'react';
  */
 const COPYABLE_TEXT_SELECTOR = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
 const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
-// Keep the delay short while leaving enough time for the browser to report a second click.
-const COPYABLE_TEXT_SINGLE_PRESS_DELAY_MS = 300;
 
 function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
     if (typeof HTMLElement === 'undefined') {
@@ -149,23 +147,8 @@ function shouldSuppressCopyableTextPress(didMouseDownStartOnCopyableText: boolea
 function useCopyableTextRowPress() {
     const wasMouseDownOnCopyableTextRef = useRef(false);
     const shouldSuppressNextPressRef = useRef(false);
-    // Single-click row actions from copyable text are delayed so a following double-click can cancel them.
-    const pendingCopyableTextPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const clearPendingCopyableTextPress = () => {
-        if (!pendingCopyableTextPressRef.current) {
-            return;
-        }
-
-        clearTimeout(pendingCopyableTextPressRef.current);
-        pendingCopyableTextPressRef.current = null;
-    };
-
-    useEffect(() => clearPendingCopyableTextPress, []);
 
     const markMouseDownOnCopyableText = (target: EventTarget | null | undefined, shouldCheck = true, shouldSuppressNextPress = false): boolean => {
-        // A second click on text cancels any pending single-click row action before it can expand/collapse the group.
-        clearPendingCopyableTextPress();
         const isCopyableTarget = shouldCheck && isCopyableTextTarget(target);
         wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
         shouldSuppressNextPressRef.current = isCopyableTarget && shouldSuppressNextPress;
@@ -183,22 +166,12 @@ function useCopyableTextRowPress() {
         return shouldSuppressPress;
     };
 
-    const handleCopyableTextRowPress = (onPress: () => void, shouldCheck = true, shouldDelayCopyableTextPress = false) => {
-        // Delay only copyable-text single clicks so double-click text selection can cancel the row press; non-text clicks run immediately.
-        const shouldDelayPress = shouldCheck && shouldDelayCopyableTextPress && wasMouseDownOnCopyableTextRef.current && !shouldSuppressNextPressRef.current;
+    const handleCopyableTextRowPress = (onPress: () => void, shouldCheck = true) => {
         if (shouldSuppressCopyableTextRowPress(shouldCheck)) {
             return;
         }
 
-        if (!shouldDelayPress) {
-            onPress();
-            return;
-        }
-
-        pendingCopyableTextPressRef.current = setTimeout(() => {
-            pendingCopyableTextPressRef.current = null;
-            onPress();
-        }, COPYABLE_TEXT_SINGLE_PRESS_DELAY_MS);
+        onPress();
     };
 
     return {

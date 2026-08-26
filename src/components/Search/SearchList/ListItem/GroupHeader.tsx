@@ -342,18 +342,14 @@ function GroupHeader({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
     const handlePress = (event?: ModifiedMouseEvent) => {
-        handleCopyableTextRowPress(
-            () => {
-                if (isExpenseReportType) {
-                    onSelectRow(withOriginalKey(item), transactionPreviewData, event);
-                }
-                if (!isExpenseReportType) {
-                    onToggle();
-                }
-            },
-            true,
-            true,
-        );
+        handleCopyableTextRowPress(() => {
+            if (isExpenseReportType) {
+                onSelectRow(withOriginalKey(item), transactionPreviewData, event);
+            }
+            if (!isExpenseReportType) {
+                onToggle();
+            }
+        }, true);
     };
 
     const handleLongPress = () => {
