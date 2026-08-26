@@ -154,15 +154,12 @@ function IOURequestStepAmount({
     const isAmountNegative = typedIsNegative ?? baselineIsNegative;
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
 
-    const handleNegativeChange = useCallback(
-        (isNegative: boolean) => {
-            if (typedIsNegative === undefined) {
-                setInitialIsNegative(transactionAmount < 0);
-            }
-            setTypedIsNegative(isNegative);
-        },
-        [setInitialIsNegative, setTypedIsNegative, transactionAmount, typedIsNegative],
-    );
+    const handleNegativeChange = (isNegative: boolean) => {
+        if (typedIsNegative === undefined) {
+            setInitialIsNegative(transactionAmount < 0);
+        }
+        setTypedIsNegative(isNegative);
+    };
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
