@@ -406,6 +406,7 @@ describe('ReportNameUtils', () => {
 
     describe('computeReportName - Concierge threads', () => {
         const conciergeReportID = '777';
+        const parentReportActionID = '888';
         const question = 'How do I set up QuickBooks?';
 
         const computeConciergeThreadName = (threadReportName: string) => {
@@ -414,11 +415,11 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(91, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
                 reportName: threadReportName,
                 parentReportID: conciergeReportID,
-                parentReportActionID: '888',
+                parentReportActionID,
             };
             const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: '888',
+                reportActionID: parentReportActionID,
                 message: [{type: 'COMMENT', html: question, text: question}],
                 created: '',
                 lastModified: '',
@@ -435,7 +436,7 @@ describe('ReportNameUtils', () => {
                 transactions: undefined,
                 allReportNameValuePairs: undefined,
                 personalDetailsList: participantsPersonalDetails,
-                reportActions: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`]: {'888': parentAction}},
+                reportActions: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`]: {[parentReportActionID]: parentAction}},
                 currentUserAccountID,
                 currentUserLogin,
                 reportTransactions: buildTransactionsByReportID(undefined),
