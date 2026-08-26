@@ -10,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +19,6 @@ import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFilteredRecentAttendees, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
 import type {IOUType} from '@src/CONST';
@@ -60,6 +60,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const recentAttendeeLogins = getFilteredRecentAttendees(attendees, recentAttendees ?? [], currentUserEmail);
+    const attendeesPersonalDetails = usePersonalDetailsByLogins(attendees.map((attendee) => attendee.email));
 
     // Build the initial selection. Attendees that aren't in the personal details list (name-only or unknown emails) get a stable dummy
     // accountID derived from their login (generateAccountID is deterministic), so they can be tracked by accountID like everyone else.
@@ -67,7 +68,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         // Use || to fall back to displayName for name-only attendees (empty email)
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const login = attendee.email || attendee.displayName;
-        const personalDetail = getPersonalDetailByEmail(attendee.email);
+        const personalDetail = attendeesPersonalDetails[attendee.email ?? ''];
         const accountID = personalDetail?.accountID ?? generateAccountID(login);
         return {attendee, login, personalDetail, accountID};
     });
