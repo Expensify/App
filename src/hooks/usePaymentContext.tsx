@@ -1,10 +1,9 @@
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -38,12 +37,10 @@ type PaymentContextValue = {
 };
 
 type ReportPaymentContextValue = PaymentContextValue & {
-    nextStep: OnyxEntry<ReportNextStepDeprecated>;
     chatReportPolicy: OnyxEntry<Policy>;
 };
 
 type UseReportPaymentContextParams = {
-    reportID: string | undefined;
     chatReportPolicyID: string | undefined;
 };
 
@@ -107,14 +104,12 @@ function usePaymentContext(): PaymentContextValue {
     return context;
 }
 
-function useReportPaymentContext({reportID, chatReportPolicyID}: UseReportPaymentContextParams): ReportPaymentContextValue {
+function useReportPaymentContext({chatReportPolicyID}: UseReportPaymentContextParams): ReportPaymentContextValue {
     const paymentContext = usePaymentContext();
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(reportID)}`);
     const chatReportPolicy = usePolicy(chatReportPolicyID);
 
     return {
         ...paymentContext,
-        nextStep,
         chatReportPolicy,
     };
 }

@@ -60,7 +60,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -78,7 +77,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
@@ -145,10 +144,10 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
-                invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -169,11 +168,11 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         } else {
             startAnimation();
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
                 introSelected,
-                iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
@@ -197,7 +196,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                     shouldCalculateTotals,
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
-                    isOffline,
                     isLoading: !!currentSearchResults?.search?.isLoading,
                 });
             }

@@ -117,6 +117,15 @@ describe('libs/StringUtils.removeInvisibleCharacters', () => {
         expect(StringUtils.removeInvisibleCharacters('\u200D')).toBe('');
         expect(StringUtils.removeInvisibleCharacters('⁠')).toBe('');
     });
+    it('remove other blank-rendering characters (not in the C/Z categories)', () => {
+        // Hangul fillers (Lo) and Braille pattern blank (So) render as blank but are not stripped by \p{C}/\p{Z}.
+        // Like the existing ㅤ handling, these are only removed when the whole string is invisible.
+        expect(StringUtils.removeInvisibleCharacters('ᅟ')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('ᅠ')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('ﾠ')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('⠀')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('ㅤᅟᅠﾠ⠀')).toBe('');
+    });
     it('check multiline', () => {
         expect(StringUtils.removeInvisibleCharacters('test\ntest')).toBe('test\ntest');
         expect(StringUtils.removeInvisibleCharacters('test\n')).toBe('test');

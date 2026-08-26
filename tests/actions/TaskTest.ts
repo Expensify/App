@@ -1384,6 +1384,7 @@ describe('actions/Task', () => {
                 hasOutstandingChildTask: false,
                 delegateEmail: DELEGATE_EMAIL,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+                formatPhoneNumber,
             });
 
             const calls = mockWrite.mock.calls;
@@ -1414,6 +1415,7 @@ describe('actions/Task', () => {
                 hasOutstandingChildTask: false,
                 delegateEmail: undefined,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+                formatPhoneNumber,
             });
 
             const calls = mockWrite.mock.calls;
@@ -1549,6 +1551,39 @@ describe('actions/Task', () => {
 
             expect(result).toBe(`r/${parentReportID}`);
             expect(Navigation.goBack).toHaveBeenCalled();
+        });
+
+        it('should skip fallback navigation when task delete navigation was already handled', async () => {
+            const taskReportID = 'task_report_delete_skip_navigation';
+            const parentReportID = 'parent_report_delete_skip_navigation';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Test Task To Delete Without Fallback Navigation',
+                parentReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            const parentReport = {
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined, undefined, {shouldNavigateBack: false});
+
+            expect(result).toBeUndefined();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).toHaveBeenCalledWith('CancelTask', expect.objectContaining({taskReportID}), expect.any(Object));
         });
 
         it('should return conciergeReportID-based URL when no parentReportID and no recent report', async () => {

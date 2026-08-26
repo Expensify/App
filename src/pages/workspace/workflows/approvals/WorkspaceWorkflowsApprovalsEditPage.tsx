@@ -1,11 +1,11 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -37,6 +37,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ScrollView} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
@@ -165,8 +166,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         isLoadingApprovalWorkflow,
     ]);
 
-    const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
-
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -189,7 +188,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         title={translate('workflowsEditApprovalsPage.title')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {!!approvalWorkflow && (
+                    {!!approvalWorkflow && !!initialApprovalWorkflow && (
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
@@ -210,22 +209,27 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 policyID={route.params.policyID}
                                 ref={formRef}
                             />
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
-                                onSubmit={updateApprovalWorkflowCallback}
-                                onFixTheErrorsLinkPressed={() => {
-                                    formRef.current?.scrollTo({y: 0, animated: true});
-                                }}
-                                buttonText={translate('common.save')}
-                                containerStyles={submitButtonContainerStyles}
-                                enabledWhenOffline
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EDIT_SAVE}
-                                shouldShowLoadingImmediatelyOnPress={false}
-                                isLoading={isLoading}
-                            />
+                            <FixedFooter addBottomSafeAreaPadding>
+                                <FormAlertWithSubmitButton
+                                    isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
+                                    onSubmit={updateApprovalWorkflowCallback}
+                                    onFixTheErrorsLinkPressed={() => {
+                                        formRef.current?.scrollTo({y: 0, animated: true});
+                                    }}
+                                    buttonText={translate('common.save')}
+                                    enabledWhenOffline
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EDIT_SAVE}
+                                    shouldShowLoadingImmediatelyOnPress={false}
+                                    isLoading={isLoading}
+                                />
+                            </FixedFooter>
                         </>
                     )}
-                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsEditPage'}} />}
+                    {!initialApprovalWorkflow && (
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                        </View>
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

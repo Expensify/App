@@ -15,7 +15,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AttachmentPicker from './AttachmentPicker';
-import Button from './Button';
+import Button from './ButtonComposed';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
@@ -129,15 +129,15 @@ function UploadFile({
             >
                 {({openPicker}) => (
                     <Button
-                        medium
-                        text={buttonText}
                         accessibilityLabel={buttonText}
                         onPress={() => {
                             openPicker({
                                 onPicked: handleFileUpload,
                             });
                         }}
-                    />
+                    >
+                        <Button.Text>{buttonText}</Button.Text>
+                    </Button>
                 )}
             </AttachmentPicker>
             {uploadedFiles.map((file) => (

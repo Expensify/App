@@ -14,6 +14,9 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
+// Relative on purpose: module aliases are not resolved when this config is evaluated.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -46,8 +49,20 @@ function getOxcAndWorkletsLoaders(isDevServer: boolean) {
         {
             loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
             options: {
-                reactCompiler: {target: '19', panicThreshold: 'none', isDev: isDevServer},
-                target: 'node20',
+                reactCompiler: {
+                    target: '19',
+                    panicThreshold: 'none',
+                    // `sources` is a filename allowlist: the compiler only runs on files whose path
+                    // contains one of these strings. Every path contains the empty string, so this
+                    // replaces the default filter (which skips `node_modules`) and keeps the compiler
+                    // running over INCLUDED_NODE_MODULES the same way it does over app source.
+                    sources: [''],
+                    // The compiler treats `react-hooks/exhaustive-deps` and `react-hooks/rules-of-hooks`
+                    // suppressions as an opt-out by default. babel-plugin-react-compiler disables that
+                    // default whenever exhaustive-memo and hooks-usage validation are both on, which is
+                    // its own default, so an empty list keeps web and Metro/Jest compiling the same files.
+                    eslintSuppressionRules: [],
+                },
                 jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
             },
         },
@@ -330,6 +345,13 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
         ...shared,
         source: {
             ...shared.source,
+            define: {
+                ...shared.source?.define,
+                // Did `@sentry/webpack-plugin` stamp `applicationKey` into the chunks? Gates
+                // `thirdPartyErrorFilterIntegration` in `src/libs/telemetry/integrations/index.web.ts`,
+                // which can only classify frames when it did.
+                __SENTRY_APPLICATION_KEY_STAMPED__: !!sentryWebpackPlugin,
+            },
             entry: {main: './index.js'},
         },
         output: {
@@ -541,7 +563,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(sentryWebpackPlugin
                         ? ([
                               sentryWebpackPlugin({
-                                  authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
+                                  authToken: process.env.SENTRY_AUTH_TOKEN,
                                   org: 'expensify',
                                   project: 'app',
                                   release: {
@@ -553,6 +575,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                       assets: './dist/**/*.{js,map}',
                                       filesToDeleteAfterUpload: './dist/**/*.map',
                                   },
+                                  // Stamps every chunk so the SDK can tell our frames from injected ones at runtime.
+                                  // Reported to the app as `__SENTRY_APPLICATION_KEY_STAMPED__` (see `source.define`).
+                                  applicationKey: SENTRY_APPLICATION_KEY,
                                   debug: false,
                                   telemetry: false,
                               }),

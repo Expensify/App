@@ -77,3 +77,5 @@ function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerSt
 }
 
 export default WorkspaceAvatar;
+
+export type {WorkspaceAvatarProps};
