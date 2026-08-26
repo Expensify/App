@@ -37,13 +37,8 @@ import type {OptionData} from './ReportUtils';
 import {isAnonymousUser} from './actions/Session';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {formatList} from './Localize';
-import {
-    getLastActorDisplayName,
-    getLastActorDisplayNameFromLastVisibleActions,
-    getLastMessageTextForReport,
-    getPersonalDetailsForAccountIDs,
-    shouldShowLastActorDisplayName,
-} from './OptionsListUtils';
+import {getLastMessageTextForReport, getPersonalDetailsForAccountIDs} from './OptionsListUtils';
+import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from './OptionsListUtils/getChatPreviewParts';
 import Parser from './Parser';
 import {getPersonalDetailsByID} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';

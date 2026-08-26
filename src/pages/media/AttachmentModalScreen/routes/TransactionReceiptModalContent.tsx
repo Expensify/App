@@ -20,6 +20,7 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -44,7 +45,7 @@ import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScree
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -236,11 +237,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             receiptType,
             () =>
                 Navigation.goBack(
-                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                        CONST.IOU.ACTION.CREATE,
-                        iouType,
-                        transactionID,
-                        reportID,
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID),
+                        // The confirmation page is the explicit base so the scan step still goes back to it once the receipt is retaken.
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID),
                     ),
                 ),
@@ -576,12 +575,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             const getDestinationRoute = () => {
                                 return isOdometerImage
                                     ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport)
-                                    : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                          action ?? CONST.IOU.ACTION.EDIT,
-                                          iouType,
-                                          draftTransactionID ?? transaction?.transactionID,
-                                          report?.reportID,
-                                          Navigation.getActiveRoute(),
+                                    : // `getDestinationRoute` runs after the modal is dismissed, so the base is the screen underneath it.
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                              action ?? CONST.IOU.ACTION.EDIT,
+                                              iouType,
+                                              draftTransactionID ?? transaction?.transactionID,
+                                              report?.reportID,
+                                          ),
                                       );
                             };
 

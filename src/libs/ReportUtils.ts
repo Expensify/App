@@ -1361,8 +1361,7 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
  * For invoice chat threads, returns the parent invoice report.
  * For other cases, returns the provided report.
  */
-function getReportForHeader(report: OnyxEntry<Report>): OnyxEntry<Report> {
-    const parentReport = getParentReport(report);
+function getReportForHeader(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>): OnyxEntry<Report> {
     const isParentInvoiceAndIsChatThread = isChatThread(report) && isInvoiceReport(parentReport);
     return isParentInvoiceAndIsChatThread ? parentReport : report;
 }
@@ -2156,9 +2155,16 @@ function getOptimisticPolicyState(
                       ...tagListUpdate,
                       tags: {
                           ...((): PolicyTags => {
-                              const optimisticTags: PolicyTags = Object.fromEntries(Object.entries(tags).filter(([tagName]) => !(tagName in tagsUpdate) || !!tagsUpdate[tagName]));
+                              // Shallow-copy the existing tags instead of rebuilding the map through
+                              // Object.fromEntries(Object.entries(...).filter(...)). For very large tag lists
+                              // (tens of thousands of entries) that entries/filter/fromEntries round-trip is a
+                              // heavy synchronous cost that runs on every single-tag toggle; a spread skips the
+                              // intermediate arrays. Deletions (a falsy update) are still dropped to preserve the
+                              // previous filter's semantics.
+                              const optimisticTags: PolicyTags = {...tags};
                               for (const [tagName, tagUpdate] of Object.entries(tagsUpdate)) {
                                   if (!tagUpdate) {
+                                      delete optimisticTags[tagName];
                                       continue;
                                   }
                                   optimisticTags[tagName] = {
@@ -2344,10 +2350,40 @@ function pushTransactionViolationsOnyxData(
     // tax tracking, otherwise an unrelated toggle would flash a spurious "tax no longer valid" violation.
     const isTaxTrackingUpdate = policyUpdate.tax !== undefined;
 
+    // Fast path for a pure single-level tag enable/disable. Toggling one tag can only change the tag
+    // violations of transactions that currently hold that tag (plus any transaction whose tag was just
+    // auto-selected); every other transaction keeps its existing violations. Restricting the recompute to
+    // those transactions turns an O(reports × transactions × tags) pass — which froze the JS thread for a
+    // minute on very large tag lists — into O(affected transactions). If any guard below fails we leave
+    // `affectedTagNames` undefined and fall back to the full recompute to stay correct:
+    // - only a tag-list update (no policy/category change),
+    // - a single-level list (multi-level `transaction.tag` is colon-joined and can't be matched by name),
+    // - not dependent tags (a toggle there can affect tag *combinations*), and
+    // - the list keeps the same "has any enabled tag" state before/after — otherwise the list-wide
+    //   `missingTag` calculation for *tagless* transactions changes and they'd be skipped incorrectly.
+    let affectedTagNames: Set<string> | undefined;
+    const tagListNames = Object.keys(optimisticTagLists ?? {});
+    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && !isTagListsUpdateEmpty && !hasDependentTagsValue && tagListNames.length === 1) {
+        const tagListName = tagListNames.at(0) ?? '';
+        const originalTags = policyData.tags?.[tagListName]?.tags ?? {};
+        const updatedTags = optimisticTagLists?.[tagListName]?.tags ?? {};
+        const hadEnabledTagsBefore = Object.values(originalTags).some((tag) => !!tag.enabled);
+        const hasEnabledTagsAfter = Object.values(updatedTags).some((tag) => !!tag.enabled);
+        if (hadEnabledTagsBefore === hasEnabledTagsAfter) {
+            affectedTagNames = new Set(Object.keys(tagListsUpdate[tagListName]?.tags ?? {}));
+        }
+    }
+
     for (const {
         transactionsAndViolations: {transactions, violations},
     } of nonInvoiceReportItems) {
         for (const transaction of Object.values(transactions)) {
+            // Fast path: a single-tag toggle only affects transactions holding the toggled tag(s) or one
+            // whose tag was just auto-selected. Skip the recompute for every other transaction.
+            if (affectedTagNames && !transactionAutoSelections.has(transaction.transactionID) && !(transaction.tag && affectedTagNames.has(transaction.tag))) {
+                continue;
+            }
+
             const pendingUpdate = transactionAutoSelections.get(transaction.transactionID);
             const modifiedTransaction = pendingUpdate ? {...transaction, ...pendingUpdate} : transaction;
 
@@ -5502,7 +5538,7 @@ function canEditFieldOfMoneyRequest({
  * - It's an expense where conditions for modifications are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
-function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>): boolean {
+function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>, reportActions?: OnyxEntry<ReportActions>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
     // Only an attachment-only comment has nothing to edit while it uploads; text keeps it editable throughout.
@@ -5527,7 +5563,7 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     return !!(
         reportAction?.actorAccountID === deprecatedCurrentUserAccountID &&
         isCommentOrIOU &&
-        (!isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction, linkedTransaction)) &&
+        (!isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction, linkedTransaction, false, undefined, undefined, reportActions)) &&
         !isOptimisticAttachment &&
         !isDeletedAction(reportAction) &&
         !isCreatedTaskReportAction(reportAction) &&
@@ -5783,7 +5819,7 @@ function getTransactionReportName({
     }
 
     if (isSentMoneyReportAction(reportAction)) {
-        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, linkedTransaction);
+        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
     }
 
     const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
@@ -5798,7 +5834,7 @@ type GetReportPreviewMessageBaseParams = {
     iouReportAction?: OnyxInputOrEntry<ReportAction>;
     shouldConsiderScanningReceiptOrPendingRoute?: boolean;
     isPreviewMessageForParentChatReport?: boolean;
-    policy?: OnyxInputOrEntry<Policy>;
+    policy: OnyxInputOrEntry<Policy>;
     isForListPreview?: boolean;
     /** This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped from a report preview action. Otherwise, it will be the same as `iouReportAction`. */
     originalReportAction?: OnyxInputOrEntry<ReportAction>;
@@ -5922,9 +5958,7 @@ function getReportPreviewMessage(
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
-    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-
-    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type ?? reportPolicy?.type)) {
+    if (isReportApproved({report}) && isGroupPolicyByType(policy?.type)) {
         return translate('iou.managerApprovedAmount', payerName ?? '', formattedAmount);
     }
 
@@ -5980,7 +6014,7 @@ function getReportPreviewMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? policy?.achAccount?.accountNumber?.slice(-4) ?? '';
             const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
                 return crossBorderMessage;
@@ -6056,7 +6090,11 @@ function getReportPreviewMessage(
  * IMPORTANT: keep the English strings here in sync with the `iou.*` entries in `en.ts` and with the branching
  * in {@link getReportPreviewMessage}.
  */
-function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBaseParams, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']): string {
+function getReportPreviewReportActionMessage(
+    // TODO: Remove the `Omit` and make `policy` required once all callers pass it, issue https://github.com/Expensify/App/issues/66415
+    params: Omit<GetReportPreviewMessageBaseParams, 'policy'> & {policy?: OnyxInputOrEntry<Policy>},
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+): string {
     const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
@@ -7208,11 +7246,15 @@ function computeOptimisticReportNameWithMetadata(
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy) ?? {});
+    const submitterPersonalDetails = report.ownerAccountID ? (allPersonalDetails?.[report.ownerAccountID] ?? undefined) : undefined;
+    const managerPersonalDetails = report.managerID ? (allPersonalDetails?.[report.managerID] ?? undefined) : undefined;
     const formulaContext: FormulaContext = {
         report,
         policy,
         getCurrencyDecimals,
         allTransactions: reportTransactions,
+        submitterPersonalDetails,
+        managerPersonalDetails,
     };
 
     // Runtime require breaks the value-level circular; the `typeof` casts keep drift a compile error.
@@ -11234,8 +11276,8 @@ function getIOUReportActionDisplayMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    policyACHAccountNumber: string | undefined,
     transaction?: OnyxEntry<Transaction>,
-    report?: Report,
     bankAccountList?: OnyxEntry<BankAccountList>,
 ): string {
     if (!isMoneyRequestAction(reportAction)) {
@@ -11249,8 +11291,7 @@ function getIOUReportActionDisplayMessage(
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, reportPolicy);
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policyACHAccountNumber);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 
         switch (originalMessage.paymentType) {
@@ -13474,12 +13515,13 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
 function getChatListItemReportName(
     action: ReportAction & {reportName?: string},
     report: Report | undefined,
+    parentReport: OnyxEntry<Report>,
     conciergeReportID: string | undefined,
     linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
 ): string {
-    const reportForHeader = getReportForHeader(report);
+    const reportForHeader = getReportForHeader(report, parentReport);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
