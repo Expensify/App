@@ -1,21 +1,19 @@
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
-import type {State} from '@libs/Navigation/types';
+import Navigation from '@libs/Navigation/Navigation';
 
 import type {Route} from '@src/ROUTES';
 
-import {useStateForPath} from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/native';
+import {useState} from 'react';
 
 /**
- * Builds dynamic routes against the screen this component is mounted on rather than the active route, so a link
- * created during render still resolves once another screen is stacked over it.
- *
- * `useStateForPath` is used over `useRoutePath` because the latter throws outside a navigator screen; the base
- * falls back to the active route there.
+ * Builds dynamic routes against the route this screen was last focused on, so a link created during render still
+ * resolves once another screen is stacked over it. Focus is used rather than the route state because `useRoutePath`
+ * returns only the dynamic suffix on a screen that is itself a dynamic route.
  */
 function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) => Route {
-    const state = useStateForPath();
-    const basePath = state ? getPathFromState(state as State) : undefined;
+    const [basePath, setBasePath] = useState<string | undefined>();
+    useFocusEffect(() => setBasePath(Navigation.getActiveRoute()));
 
     return (dynamicRouteSuffixWithParams: string) => createDynamicRoute(dynamicRouteSuffixWithParams, basePath);
 }

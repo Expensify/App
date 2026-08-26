@@ -4721,11 +4721,7 @@ function getCardIssuedMessage({
     shouldRenderHTML?: boolean;
     shouldNavigateToCardDetails?: boolean;
     policyID?: string;
-    /**
-     * Required so the card-details link can never be built against the active route by accident. Components pass
-     * `useScreenBoundDynamicRoute()`; callers that only produce plain text pass `createDynamicRoute`, since they never
-     * reach the link.
-     */
+    /** Required so the card-details link is never built against the active route. Plain-text callers pass `createDynamicRoute`. */
     buildDynamicRoute: (dynamicRouteSuffixWithParams: string) => Route;
     expensifyCard?: Card;
     companyCard?: Card;
