@@ -90,17 +90,19 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
-import type {PolicyLookupFn} from './confirmation/ParticipantPolicyLookup';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -109,7 +111,6 @@ import DraftWorkspaceOpener from './confirmation/DraftWorkspaceOpener';
 import ExpenseDefaultsSetter from './confirmation/ExpenseDefaultsSetter';
 import getSubmitExpensePreMountDestinationRoute from './confirmation/getSubmitExpensePreMountDestinationRoute';
 import MoneyRequestInitializer from './confirmation/MoneyRequestInitializer';
-import ParticipantPolicyLookup from './confirmation/ParticipantPolicyLookup';
 import ReceiptFileValidator from './confirmation/ReceiptFileValidator';
 import SubmitExpenseOrchestrator from './confirmation/SubmitExpenseOrchestrator';
 import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
@@ -295,9 +296,6 @@ function IOURequestStepConfirmation({
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
-    // ParticipantPolicyLookup, mounted only while the picker is open, sets this. handleParticipantsAdded
-    // uses it to read the selected workspace's policy, so the confirmation doesn't subscribe to every policy.
-    const workspacePolicyLookupRef = useRef<PolicyLookupFn | undefined>(undefined);
 
     const participants = useMemo(
         () =>
@@ -382,7 +380,7 @@ function IOURequestStepConfirmation({
     }, [activeTransactionID]);
 
     const handleParticipantsAdded = useCallback(
-        (participantsList: Participant[]) => {
+        (participantsList: Participant[], selectedPolicy?: OnyxEntry<Policy>) => {
             if (!activeTransactionID) {
                 return;
             }
@@ -443,7 +441,7 @@ function IOURequestStepConfirmation({
                         setMoneyRequestCategory(activeTransactionID, '', undefined, getCurrencyDecimals);
                         setMoneyRequestTag(activeTransactionID, '');
                     } else {
-                        const workspacePolicy = workspacePolicyLookupRef.current?.(firstParticipant.policyID);
+                        const workspacePolicy = selectedPolicy;
                         if (isDistanceRequest) {
                             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
                             const isCurrentRateFromWorkspace = !!currentRateID && !!DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID];
@@ -1050,7 +1048,6 @@ function IOURequestStepConfirmation({
                                 />
                             )}
                         </SubmitExpenseOrchestrator>
-                        {isParticipantPickerVisible && <ParticipantPolicyLookup lookupRef={workspacePolicyLookupRef} />}
                         {isNewManualExpenseFlowEnabled && (
                             <ParticipantPicker
                                 participants={participants}
