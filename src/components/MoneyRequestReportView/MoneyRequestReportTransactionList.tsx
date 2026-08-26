@@ -72,6 +72,7 @@ import SCREENS from '@src/SCREENS';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 
@@ -583,7 +584,7 @@ function MoneyRequestReportTransactionList({
     // new visual order. The active-list checks in the effect still prevent unrelated carousels from being overwritten.
     const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
 
-    const [latestActiveTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    const [latestActiveTransactionIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
@@ -592,7 +593,7 @@ function MoneyRequestReportTransactionList({
         }
 
         const anchorTransactionID = (focusedRoute?.params as {anchorTransactionID?: string} | undefined)?.anchorTransactionID;
-        if (anchorTransactionID && latestActiveTransactionIDs?.includes(anchorTransactionID)) {
+        if (anchorTransactionID && latestActiveTransactionIDs.includes(anchorTransactionID)) {
             return;
         }
         // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
@@ -603,15 +604,15 @@ function MoneyRequestReportTransactionList({
             return;
         }
 
+        // This report can't drive a carousel on its own: the carousel needs at least two transactions to page
+        // between. Writing a 0/1-entry list would clobber a broader carousel the user drilled in from (e.g. the
+        // Spend page's full transaction list) and would also make the header render the empty transaction
+        // carousel instead of the report-level prev/next buttons.
         if (visualOrderTransactionIDs.length < 2) {
             return;
         }
 
-        if (
-            latestActiveTransactionIDs &&
-            latestActiveTransactionIDs.length >= visualOrderTransactionIDs.length &&
-            visualOrderTransactionIDs.every((id) => latestActiveTransactionIDs.includes(id))
-        ) {
+        if (latestActiveTransactionIDs.length >= visualOrderTransactionIDs.length && visualOrderTransactionIDs.every((id) => latestActiveTransactionIDs.includes(id))) {
             return;
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
@@ -676,6 +677,7 @@ function MoneyRequestReportTransactionList({
                 report,
                 transaction: sortedTransactions.find((t) => t.transactionID === activeTransactionID),
                 siblingTransactionIDs: visualOrderTransactionIDs,
+                shouldPreserveBroaderCarousel: true,
             });
         },
         [navigateToTransactionThread, reportActions, sortedTransactions, report, visualOrderTransactionIDs],

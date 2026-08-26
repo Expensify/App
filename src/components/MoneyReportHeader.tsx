@@ -13,21 +13,24 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {isDM} from '@libs/ReportUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
-import {ExportDownloadStatusProvider} from './MoneyReportHeaderActions/ExportDownloadStatusContext';
+import {ExportDownloadStatusProvider} from './MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import MoneyReportHeaderModals from './MoneyReportHeaderModals';
 import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
@@ -88,9 +91,19 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
 
+    const threadParentReportActionID = moneyRequestReport?.parentReportActionID;
+    const threadTransactionIDSelector = useCallback(
+        (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
+            const parentReportAction = threadParentReportActionID ? parentReportActions?.[threadParentReportActionID] : undefined;
+            return isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+        },
+        [threadParentReportActionID],
+    );
+    const [threadTransactionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.parentReportID)}`, {selector: threadTransactionIDSelector});
+
     const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
     const multiTxAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
-    const carouselAnchorTransactionID = singleTransactionID ?? multiTxAnchorTransactionID;
+    const carouselAnchorTransactionID = singleTransactionID ?? threadTransactionID ?? multiTxAnchorTransactionID;
     const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && !!activeTransactionIDs?.includes(carouselAnchorTransactionID);
 
     const styles = useThemeStyles();
@@ -99,13 +112,11 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const shouldShowHeaderButtonsInHeaderRow = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-
     const isReportInRHP = route.name !== SCREENS.REPORT;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
 
     const {statusBarType, shouldShowNextStep, hasStatusOrNextStep} = useMoneyReportHeaderMoreContentVisibility(reportIDProp);
-    const shouldRenderActionsInHeaderRow = shouldShowHeaderButtonsInHeaderRow && !hasStatusOrNextStep && !isReportInSearch && isDM(chatReport);
+    const shouldRenderActionsInHeaderRow = shouldShowHeaderButtonsInHeaderRow && !hasStatusOrNextStep;
     const shouldDisplaySearchRouter = !isReportInRHP || (isSmallScreenWidth && !isReportInSearch);
 
     const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
@@ -155,26 +166,28 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab
             >
-                {isReportInSearch &&
-                    (shouldShowTransactionNavigation && carouselAnchorTransactionID ? (
-                        <MoneyRequestReportTransactionsNavigation
-                            currentTransactionID={carouselAnchorTransactionID}
-                            shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
-                        />
-                    ) : (
-                        <MoneyRequestReportNavigation
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    {shouldRenderActionsInHeaderRow && (
+                        <MoneyReportHeaderActions
                             reportID={reportIDProp}
-                            shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
+                            primaryAction={primaryAction}
+                            isReportInSearch={isReportInSearch}
+                            backTo={backTo}
                         />
-                    ))}
-                {shouldRenderActionsInHeaderRow && (
-                    <MoneyReportHeaderActions
-                        reportID={reportIDProp}
-                        primaryAction={primaryAction}
-                        isReportInSearch={isReportInSearch}
-                        backTo={backTo}
-                    />
-                )}
+                    )}
+                    {isReportInSearch &&
+                        (shouldShowTransactionNavigation && carouselAnchorTransactionID ? (
+                            <MoneyRequestReportTransactionsNavigation
+                                currentTransactionID={carouselAnchorTransactionID}
+                                shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
+                            />
+                        ) : (
+                            <MoneyRequestReportNavigation
+                                reportID={reportIDProp}
+                                shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
+                            />
+                        ))}
+                </View>
             </HeaderWithBackButton>
             {!shouldShowHeaderButtonsInHeaderRow && (
                 <MoneyReportHeaderActions

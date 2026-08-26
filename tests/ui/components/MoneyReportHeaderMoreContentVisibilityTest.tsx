@@ -4,7 +4,7 @@ import useMoneyReportHeaderMoreContentVisibility from '@hooks/useMoneyReportHead
 import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
 import useOnyx from '@hooks/useOnyx';
 
-import {isDM} from '@libs/ReportUtils';
+import {isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +44,7 @@ jest.mock('@hooks/useOnyx', () => jest.fn());
 
 const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedStatusBar = jest.mocked(useMoneyReportHeaderStatusBar);
+const mockedIsInvoiceReport = jest.mocked(isInvoiceReport);
 
 let policyValue: Policy | undefined;
 
@@ -59,6 +60,7 @@ describe('useMoneyReportHeaderMoreContentVisibility', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         policyValue = undefined;
+        mockedIsInvoiceReport.mockReturnValue(false);
         mockedStatusBar.mockReturnValue({shouldShowStatusBar: false, statusBarType: undefined});
         mockedUseOnyx.mockImplementation((key) => {
             if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}`) {
@@ -103,28 +105,16 @@ describe('useMoneyReportHeaderMoreContentVisibility', () => {
     it('reports an empty more-content row for a personal workspace with no status bar', () => {
         mockPolicyType(CONST.POLICY.TYPE.PERSONAL);
         const {result} = renderHook(() => useMoneyReportHeaderMoreContentVisibility(TEST_REPORT_ID));
-        // This is the 1:1 DM case: nothing to show, so the actions move up into the header row
+        // This is the 1:1 DM IOU case: nothing to show, so the actions move up into the header row
         // instead of sitting alone on a blank line under the title.
         expect(result.current.hasStatusOrNextStep).toBe(false);
     });
-});
 
-/**
- * The header only relocates its actions for 1:1 DMs, which `isDM` identifies as a chat report with no chat type
- * that isn't a thread. Group chats, rooms, policy expense chats and self-DM all carry a chat type, so they keep
- * the existing placement even when their more-content row is empty.
- */
-describe('isDM scoping for the header actions', () => {
-    it('is true for a 1:1 DM chat report', () => {
-        expect(isDM({reportID: '2001', type: CONST.REPORT.TYPE.CHAT} as Report)).toBe(true);
-    });
-
-    it.each([
-        ['group chat', CONST.REPORT.CHAT_TYPE.GROUP],
-        ['self DM', CONST.REPORT.CHAT_TYPE.SELF_DM],
-        ['policy expense chat', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT],
-        ['policy room', CONST.REPORT.CHAT_TYPE.POLICY_ROOM],
-    ])('is false for a %s', (_label, chatType) => {
-        expect(isDM({reportID: '2001', type: CONST.REPORT.TYPE.CHAT, chatType} as Report)).toBe(false);
+    it('reports an empty more-content row for an invoice report, even on a paid workspace', () => {
+        mockPolicyType(CONST.POLICY.TYPE.TEAM);
+        mockedIsInvoiceReport.mockReturnValue(true);
+        const {result} = renderHook(() => useMoneyReportHeaderMoreContentVisibility(TEST_REPORT_ID));
+        expect(result.current.shouldShowNextStep).toBe(false);
+        expect(result.current.hasStatusOrNextStep).toBe(false);
     });
 });

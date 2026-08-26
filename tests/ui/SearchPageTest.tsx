@@ -6,7 +6,6 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useNetwork from '@hooks/useNetwork';
@@ -35,6 +34,8 @@ import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
@@ -84,6 +85,7 @@ type SearchTestRootParamList = {
 const RootStack = createRootStackNavigator<SearchTestRootParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 const mockUseNetwork = jest.mocked(useNetwork);
+const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockSearch = jest.mocked(search);
 
 const FAILED_QUERY = 'type:chat category:abcd';
@@ -152,7 +154,7 @@ const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJ
 
 describe('SearchPageNarrow', () => {
     beforeAll(() => {
-        (useResponsiveLayout as jest.Mock).mockReturnValue({shouldUseNarrowLayout: true, isSmallScreenWidth: true});
+        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: true, isSmallScreenWidth: true}));
 
         Onyx.init({
             keys: ONYXKEYS,
@@ -190,7 +192,8 @@ describe('SearchPageNarrow', () => {
         expect(searchInput).toBeTruthy();
     });
 
-    it('does not retry an already failed search snapshot', async () => {
+    it('retries an already failed search snapshot once on a fresh mount', async () => {
+        // Given a snapshot left errored by a request that failed in an earlier session
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
                 errors: {error: 'Something went wrong'},
@@ -206,14 +209,16 @@ describe('SearchPageNarrow', () => {
             });
         });
 
-        const renderedPage = renderPage();
+        // When the page mounts
+        renderPage();
 
         await act(async () => {
             jest.advanceTimersByTime(0);
         });
 
-        expect(mockSearch).not.toHaveBeenCalled();
-        expect(renderedPage.UNSAFE_queryByType(SearchRowSkeleton)).toBeNull();
+        // Then the query is requested again, because without that attempt the page renders its error view on every
+        // mount with nothing in flight
+        expect(mockSearch).toHaveBeenCalledTimes(1);
     });
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
@@ -247,16 +252,20 @@ describe('SearchPageNarrow', () => {
         expect(screen.queryByText('Try again')).toBeNull();
     });
 
-    it('keeps the retry button on a fresh mount when the persisted response is a retryable failure', async () => {
+    it('drops a persisted retryable failure on a fresh mount instead of showing the error view', async () => {
+        // Given a snapshot errored with a retryable response code
         await setFailedSnapshot(CONST.JSON_CODE.EXP_ERROR);
 
+        // When the page mounts
         renderPage();
 
         await act(async () => {
             jest.runAllTimers();
         });
 
-        expect(screen.getByText('Try again')).toBeTruthy();
+        // Then no error view is shown, because leaving the stored failure in place is what turned one failed
+        // request into a dead end only the Try again button could escape
+        expect(screen.queryByText('Try again')).toBeNull();
     });
 
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {

@@ -21,7 +21,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 
 type TaskHeaderActionButtonProps = {
     /** The report currently being looked at */
@@ -46,9 +46,8 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={!isTaskActionable}
-                text={translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={callFunctionIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                     if (isActiveTaskEditRoute(report.reportID)) {
@@ -62,7 +61,9 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                 })}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
-            />
+            >
+                <Button.Text>{translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}</Button.Text>
+            </Button>
         </View>
     );
 }

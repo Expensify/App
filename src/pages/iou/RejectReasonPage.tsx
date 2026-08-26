@@ -3,6 +3,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -34,6 +35,7 @@ type RejectReasonPageProps =
 
 function RejectReasonPage({route}: RejectReasonPageProps) {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchSelectionActions();
@@ -51,7 +53,17 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, currentUserAccountID, currentUserLogin ?? '', betas, delegateAccountID);
+        const urlToNavigateBack = rejectMoneyRequest(
+            transactionID,
+            reportID,
+            values.comment,
+            policy,
+            currentUserAccountID,
+            currentUserLogin ?? '',
+            betas,
+            delegateAccountID,
+            getCurrencyDecimals,
+        );
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {

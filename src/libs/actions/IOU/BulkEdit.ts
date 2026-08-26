@@ -502,6 +502,7 @@ function updateMultipleMoneyRequests({
             transaction,
             isTransactionOnHold,
             transactionPolicy,
+            getCurrencyDecimals,
             optimisticReportAction?.actorAccountID,
             transactionChanges,
             additionalTransactionsForFormula,

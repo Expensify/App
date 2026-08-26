@@ -76,6 +76,33 @@ function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<s
     return {ids: lastSetIDs, descriptors: lastSetDescriptors};
 }
 
+function shouldWriteActiveTransactionIDsForSearch(
+    activeIDs: string[] | undefined,
+    activeSnapshotHash: number | undefined,
+    searchSnapshotHash: number,
+    searchTransactionIDs: string[],
+): boolean {
+    if (searchTransactionIDs.length === 0) {
+        return false;
+    }
+    if (!activeIDs?.length) {
+        return searchTransactionIDs.length > 1;
+    }
+    if (activeSnapshotHash !== searchSnapshotHash) {
+        return false;
+    }
+    const isUpToDate = activeIDs.length === searchTransactionIDs.length && activeIDs.every((id, index) => id === searchTransactionIDs.at(index));
+    return !isUpToDate;
+}
+
+function shouldPreserveActiveTransactionIDs(candidateIDs: string[], anchorTransactionID: string): boolean {
+    const activeIDs = lastSetIDs;
+    if (!activeIDs?.includes(anchorTransactionID)) {
+        return false;
+    }
+    return activeIDs.length > candidateIDs.length && candidateIDs.every((id) => activeIDs.includes(id));
+}
+
 function clearActiveTransactionIDs() {
     lastSetIDs = null;
     lastSetSnapshotHash = null;
@@ -87,4 +114,4 @@ function clearActiveTransactionIDs() {
     ]);
 }
 
-export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs};
+export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs, shouldWriteActiveTransactionIDsForSearch, shouldPreserveActiveTransactionIDs};

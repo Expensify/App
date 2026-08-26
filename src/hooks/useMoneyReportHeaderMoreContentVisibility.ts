@@ -29,7 +29,7 @@ type MoneyReportHeaderMoreContentVisibility = {
  * would be stranded alone under the title, and belong in the header row instead.
  */
 function useMoneyReportHeaderMoreContentVisibility(reportID: string | undefined): MoneyReportHeaderMoreContentVisibility {
-    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID, moneyRequestReport?.chatReportID);
 

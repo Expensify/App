@@ -90,6 +90,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
+
         Navigation.navigate(
             createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport.reportID)),
         );

@@ -9,7 +9,8 @@
 
 
 
-
+#include <string>
+#include <unordered_map>
 
 namespace margelo::nitro::utils {
 
@@ -45,6 +46,18 @@ namespace margelo::nitro::utils {
     static const auto method = _javaPart->javaClassStatic()->getMethod<double()>("getAppStartTime");
     auto __result = method(_javaPart);
     return __result;
+  }
+  std::unordered_map<std::string, double> JHybridAppStartTimeModuleSpec::getAppStartupMarkers() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<jni::JMap<jni::JString, jni::JDouble>>()>("getAppStartupMarkers");
+    auto __result = method(_javaPart);
+    return [&]() {
+      std::unordered_map<std::string, double> __map;
+      __map.reserve(__result->size());
+      for (const auto& __entry : *__result) {
+        __map.emplace(__entry.first->toStdString(), __entry.second->value());
+      }
+      return __map;
+    }();
   }
 
   // Methods

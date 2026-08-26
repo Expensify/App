@@ -28,7 +28,7 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
@@ -54,6 +54,7 @@ import getAutocompleteInitialFocus from './getAutocompleteInitialFocus';
 import AvatarWithTextCell from './SearchList/ListItem/AvatarWithTextCell';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
+import SEARCH_ROUTER_OPTIONS_CONFIG from './SearchRouter/searchRouterOptionsConfig';
 
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
@@ -100,16 +101,6 @@ const defaultListOptions = {
 };
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
-
-// The list shows at most MAX_AMOUNT_OF_SUGGESTIONS recent reports, so building full option data for the
-// default 500-report list every time is unnecessary. Start from a smaller raw cap and only expand to the
-// full set if that batch filters down below the visible cap (see the loadAll effect below); typing a
-// query bypasses this cap entirely (isSearching drops the limit in createFilteredOptionList).
-// 100 leaves buffer for hidden/muted chats getting filtered out after the raw-recency slice.
-// The batch size stays at 500 (not smaller) because createFilteredOptionList rebuilds its whole
-// top-N slice from scratch each call, so a small batch would mean repeated rebuilds.
-const INITIAL_MAX_RECENT_REPORTS = 100;
-const RECENT_REPORTS_BATCH_SIZE = 500;
 
 // A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
 // row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
@@ -185,7 +176,7 @@ function SearchAutocompleteList({
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -222,13 +213,8 @@ function SearchAutocompleteList({
         loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
     } = useFilteredOptions({
-        enabled: true,
+        ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: !!autocompleteQueryValue.trim(),
-        // The empty-query state renders only recent searches and recent reports (no standalone contacts),
-        // so contacts can be deferred until the user types a query.
-        deferContactsUntilSearch: true,
-        maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
-        batchSize: RECENT_REPORTS_BATCH_SIZE,
     });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
@@ -256,6 +242,7 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
+            dateFnsLocale,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -296,6 +283,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        dateFnsLocale,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -396,6 +384,7 @@ function SearchAutocompleteList({
                           currentUserAccountID,
                           autoCompleteWithSpace: false,
                           translate,
+                          formatPhoneNumber,
                           feedKeysWithCards,
                           reportAttributes,
                           bankAccountList,
@@ -418,6 +407,7 @@ function SearchAutocompleteList({
         policies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
         bankAccountList,
@@ -515,14 +505,12 @@ function SearchAutocompleteList({
             const report = getReportOrDraftReport(option.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
             const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-            const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
             return {
                 ...option,
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-                alternateText: shouldParseAlternateText ? option.alternateText : getReportSubtitlePrefix(report) + formatReportLastMessageText(option.lastMessageText ?? ''),
                 wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });

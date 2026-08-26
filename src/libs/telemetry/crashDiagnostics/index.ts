@@ -437,7 +437,7 @@ function confirmDeadThenReport(storageKey: string, sessionID: string) {
         if (isSessionRecentlyAlive(sessionID) || Date.now() - record.lastHeartbeat <= STALE_HEARTBEAT_MS) {
             return;
         }
-        // Defense in depth: a session that was hidden when last seen is a backgrounded/suspended tab, not a
+        // Extra guard: a session that was hidden when last seen is a backgrounded/suspended tab, not a
         // foreground crash. heartbeat() already keeps such sessions marked clean, but guard here too in case an
         // older record (written before visibility-aware exit state) slipped through. Prefer the immediately
         // updated `lastVisibility` over the last sample, which can lag the real state by up to one heartbeat: a

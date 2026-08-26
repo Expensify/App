@@ -38,6 +38,7 @@ function renderSearchActionHeader(action: ReportAction, report: Report | undefin
                 <SearchResultsContext.Provider
                     value={{
                         currentSearchResults: undefined,
+                        currentSearchTransactionsByReportID: new Map(),
                         currentSearchViolations: CONST.EMPTY_OBJECT,
                         shouldUseLiveData: true,
                         sortedReportIDs: [],
