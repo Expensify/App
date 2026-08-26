@@ -2593,8 +2593,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 : `La connessione della tua carta ${cardName} non funziona. Accedi alla tua banca per sistemare la carta.`,
         conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
             connectionLink
-                ? `La connessione della tua carta ${cardName} è interrotta da 30 giorni. <a href="${connectionLink}">Accedi alla tua banca</a> per sistemarla o <a href="${connectionLink}">rimuovi la carta</a> se non è più in uso. Non perderai nessuna spesa inviata se la rimuovi.`
-                : `La connessione della tua carta ${cardName} è interrotta da 30 giorni. Accedi alla tua banca per sistemarla o rimuovi la carta se non è più in uso. Non perderai nessuna spesa inviata se la rimuovi.`,
+                ? `La connessione della tua ${cardName} è interrotta da 30 giorni. <a href="${connectionLink}">Accedi alla tua banca</a> per sistemarla oppure <a href="${connectionLink}">rimuovi la carta</a> se non la usi più. Non perderai le spese già inviate se la rimuovi.`
+                : `La connessione della tua ${cardName} è interrotta da 30 giorni. Accedi alla tua banca per sistemarla oppure rimuovi la carta se non la usi più. Non perderai nessuna spesa inviata se la rimuovi.`,
         addAdditionalCards: 'Aggiungi altre carte',
         upgradeDescription: 'Devi aggiungere altre carte? Crea uno spazio di lavoro per aggiungere carte personali o assegnare carte aziendali a tutto il team.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>Disponibile nel piano Collect, <strong>${formattedPrice}</strong> per membro al mese.</muted-text>`,
@@ -9482,7 +9482,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     workspaceCompanyCardRoute: string;
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
-                    `La connessione ${feedName} è interrotta da 30 giorni. <a href='${workspaceCompanyCardRoute}'>Accedi alla tua banca</a> per sistemarla o <a href='${workspaceCompanyCardSettingsRoute}'>rimuovi la connessione</a> se non è più in uso. Non perderai nessuna spesa inviata se la rimuovi.`,
+                    `La connessione ${feedName} è interrotta da 30 giorni. <a href='${workspaceCompanyCardRoute}'>Accedi alla tua banca</a> per risolvere il problema oppure <a href='${workspaceCompanyCardSettingsRoute}'>rimuovi la connessione</a> se non è più utilizzata. Non perderai nessuna spesa inviata se la rimuovi.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

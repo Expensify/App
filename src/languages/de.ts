@@ -2598,8 +2598,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 : `Die Verbindung Ihrer ${cardName}-Karte ist unterbrochen. Melden Sie sich bei Ihrer Bank an, um die Karte zu reparieren.`,
         conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
             connectionLink
-                ? `Die Verbindung Ihrer ${cardName}-Karte ist seit 30 Tagen unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrer Bank an</a>, um sie zu reparieren, oder <a href="${connectionLink}">entfernen Sie die Karte</a>, wenn sie nicht mehr verwendet wird. Sie verlieren keine eingereichten Ausgaben, wenn Sie sie entfernen.`
-                : `Die Verbindung Ihrer ${cardName}-Karte ist seit 30 Tagen unterbrochen. Melden Sie sich bei Ihrer Bank an, um sie zu reparieren, oder entfernen Sie die Karte, wenn sie nicht mehr verwendet wird. Sie verlieren keine eingereichten Ausgaben, wenn Sie sie entfernen.`,
+                ? `Ihre ${cardName}-Verbindung ist seit 30 Tagen unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrer Bank an</a>, um sie zu reparieren, oder <a href="${connectionLink}">entfernen Sie die Karte</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`
+                : `Ihre ${cardName}-Verbindung ist seit 30 Tagen unterbrochen. Melden Sie sich bei Ihrer Bank an, um sie zu beheben, oder entfernen Sie die Karte, wenn sie nicht mehr verwendet wird. Sie verlieren keine eingereichten Ausgaben, wenn Sie sie entfernen.`,
         fixCard: 'Karte reparieren',
         addAdditionalCards: 'Weitere Karten hinzufügen',
         upgradeDescription: 'Müssen Sie weitere Karten hinzufügen? Erstellen Sie einen Workspace, um weitere persönliche Karten hinzuzufügen oder Firmenkarten dem gesamten Team zuzuweisen.',
@@ -9512,7 +9512,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     workspaceCompanyCardRoute: string;
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
-                    `Die Verbindung für ${feedName} ist seit 30 Tagen unterbrochen. <a href='${workspaceCompanyCardRoute}'>Melden Sie sich bei Ihrer Bank an</a>, um sie zu reparieren, oder <a href='${workspaceCompanyCardSettingsRoute}'>entfernen Sie die Verbindung</a>, wenn sie nicht mehr verwendet wird. Sie verlieren keine eingereichten Ausgaben, wenn Sie sie entfernen.`,
+                    `Die ${feedName}-Verbindung besteht seit 30 Tagen nicht mehr. <a href='${workspaceCompanyCardRoute}'>Melden Sie sich bei Ihrer Bank an</a>, um sie zu beheben, oder <a href='${workspaceCompanyCardSettingsRoute}'>entfernen Sie die Verbindung</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

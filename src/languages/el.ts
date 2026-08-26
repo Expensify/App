@@ -2653,10 +2653,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί. <a href="${connectionLink}">Συνδεθείτε στην τράπεζά σας</a> για να διορθώσετε την κάρτα.`
                 : `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί. Συνδεθείτε στην τράπεζά σας για να διορθώσετε την κάρτα.`,
-        conciergeBrokenConnection30Days: (cardName, connectionLink) =>
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
             connectionLink
-                ? `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί για 30 ημέρες. <a href="${connectionLink}">Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href="${connectionLink}">αφαιρέστε την κάρτα</a> εάν δεν χρησιμοποιείται πλέον. Δεν θα χάσετε τυχόν υποβληθέντα έξοδα εάν την αφαιρέσετε.`
-                : `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί για 30 ημέρες. Συνδεθείτε στην τράπεζά σας για να τη διορθώσετε ή αφαιρέστε την κάρτα εάν δεν χρησιμοποιείται πλέον. Δεν θα χάσετε τυχόν υποβληθέντα έξοδα εάν την αφαιρέσετε.`,
+                ? `Η σύνδεση της ${cardName} έχει διακοπεί για 30 ημέρες. <a href="${connectionLink}">Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href="${connectionLink}">αφαιρέστε την κάρτα</a> αν δεν τη χρησιμοποιείτε πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την αφαιρέσετε.`
+                : `Η σύνδεση της ${cardName} σας έχει διακοπεί για 30 ημέρες. Συνδεθείτε στην τράπεζά σας για να τη διορθώσετε ή αφαιρέστε την κάρτα αν δεν τη χρησιμοποιείτε πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την αφαιρέσετε.`,
         addAdditionalCards: 'Προσθέστε επιπλέον κάρτες',
         upgradeDescription:
             'Χρειάζεστε να προσθέσετε περισσότερες κάρτες; Δημιουργήστε έναν χώρο εργασίας για να προσθέσετε επιπλέον προσωπικές κάρτες ή να αναθέσετε εταιρικές κάρτες σε όλη την ομάδα.',
@@ -9729,7 +9729,7 @@ ${reportName}`,
                     workspaceCompanyCardRoute: string;
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
-                    `Η σύνδεση ${feedName} έχει διακοπεί για 30 ημέρες. <a href='${workspaceCompanyCardRoute}'>Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href='${workspaceCompanyCardSettingsRoute}'>αφαιρέστε τη σύνδεση</a> εάν δεν χρησιμοποιείται πλέον. Δεν θα χάσετε τυχόν υποβληθέντα έξοδα εάν την αφαιρέσετε.`,
+                    `Η σύνδεση ${feedName} έχει διακοπεί εδώ και 30 ημέρες. <a href='${workspaceCompanyCardRoute}'>Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href='${workspaceCompanyCardSettingsRoute}'>καταργήστε τη σύνδεση</a> αν δεν χρησιμοποιείται πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την καταργήσετε.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `η σύνδεση Plaid με τον επαγγελματικό σας τραπεζικό λογαριασμό έχει διακοπεί. Παρακαλούμε <a href='${walletRoute}'>συνδέστε ξανά τον τραπεζικό σας λογαριασμό ${maskedAccountNumber}</a> ώστε να μπορείτε να συνεχίσετε να χρησιμοποιείτε τις Κάρτες Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

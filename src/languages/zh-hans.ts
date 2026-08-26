@@ -2505,8 +2505,8 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink ? `您的 ${cardName} 卡连接已中断。<a href="${connectionLink}">登录您的网上银行</a>以修复该卡。` : `您的 ${cardName} 卡连接已中断。登录您的网上银行以修复该卡。`,
         conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
             connectionLink
-                ? `您的 ${cardName} 卡连接已中断 30 天。请<a href="${connectionLink}">登录您的网上银行</a>修复该连接，如果不再使用，也可以<a href="${connectionLink}">移除该卡</a>。移除后，您不会丢失任何已提交的支出。`
-                : `您的 ${cardName} 卡连接已中断 30 天。请登录您的网上银行修复该连接，如果不再使用，也可以移除该卡。移除后，您不会丢失任何已提交的支出。`,
+                ? `您的 ${cardName} 连接已中断 30 天。请<a href="${connectionLink}">登录您的银行</a>以修复连接，或者如果该卡已不再使用，请<a href="${connectionLink}">移除该卡</a>。如果您移除它，已提交的报销不会丢失。`
+                : `您的 ${cardName} 连接已中断 30 天。请登录您的网上银行进行修复，或者如果该卡已不再使用，请将其移除。移除后，您已提交的报销不会丢失。`,
         addAdditionalCards: '添加其他卡片',
         upgradeDescription: '需要添加更多卡片吗？创建工作区以添加其他个人卡片或将公司卡片分配给整个团队。',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>此功能在 Collect 套餐中可用，每位成员每月费用为 <strong>${formattedPrice}</strong>。</muted-text>`,
@@ -9103,7 +9103,7 @@ ${reportName}`,
                     workspaceCompanyCardRoute: string;
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
-                    `${feedName} 连接已中断 30 天。请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>修复该连接，如果不再使用，也可以<a href='${workspaceCompanyCardSettingsRoute}'>将其移除</a>。移除后，您不会丢失任何已提交的支出。`,
+                    `${feedName} 连接已中断 30 天。请<a href='${workspaceCompanyCardRoute}'>登录您的银行</a>进行修复，或者如果不再使用，请<a href='${workspaceCompanyCardSettingsRoute}'>移除该连接</a>。移除后，您已提交的报销不会丢失。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
