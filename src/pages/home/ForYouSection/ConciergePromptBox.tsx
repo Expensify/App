@@ -88,7 +88,9 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         clearInput();
     };
     const {pickAttachments, PDFValidationComponent} = useConciergeAttachmentPicker(conciergeTargetReportID, sendAttachment);
-    const {debouncedCommentMaxLengthValidation, isExceedingMaxLength, exceededMaxLength} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID});
+    // The Home prompt sends directly through askConcierge/addComment and never interprets task syntax like the
+    // report composer does, so the hook's task-title branch (and its lower character limit) must be skipped here.
+    const {debouncedCommentMaxLengthValidation, isExceedingMaxLength, exceededMaxLength} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID, isEditing: true});
 
     const onChangeValue = (newValue: string) => {
         setValue(newValue);
