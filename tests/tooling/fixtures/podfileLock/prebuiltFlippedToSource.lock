@@ -6,21 +6,27 @@ PODS:
   - glog (0.3.5)
   - RCT-Folly (2024.11.18.00)
   - SocketRocket (0.7.1)
+  - hermes-engine (250829098.0.14):
+    - hermes-engine/Pre-built (= 250829098.0.14)
+  - hermes-engine/Pre-built (250829098.0.14)
   - RNSVG (15.14.0):
     - React-Core
   - Yoga (0.0.0)
 
 DEPENDENCIES:
-  - React-Core-prebuilt (from `../node_modules/react-native/React-Core-prebuilt.podspec`)
-  - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - RNSVG (from `../node_modules/react-native-svg`)
 
 EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-v250829098.0.14
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
 
 SPEC CHECKSUMS:
-  AFNetningok: 0000000000000000000000000000000000000000
+  AFNetworking: 0000000000000000000000000000000000000000
+  hermes-engine: 0000000000000000000000000000000000000000
 
 PODFILE CHECKSUM: 0000000000000000000000000000000000000000
 

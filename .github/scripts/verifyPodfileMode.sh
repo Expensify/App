@@ -93,16 +93,14 @@ for POD in "${FORBIDDEN[@]}"; do
   fi
 done
 
-# A hermes-engine fallback leaves every marker pod untouched — it only rewrites hermes-engine's own
-# EXTERNAL SOURCES entry from a pinned tag to a git commit. Both Podfile.lock files pin the prebuilt tarball,
-# so this applies in either mode, and it is the only committed evidence of the hermes probe's outcome.
-HERMES_SOURCE="$(awk '/^  hermes-engine:/{inBlock=1; next} /^  [A-Za-z]/{inBlock=0} inBlock' "$LOCKFILE")"
-readonly HERMES_SOURCE
-
-if grep -qE '^    :tag: hermes-v' <<< "$HERMES_SOURCE"; then
-  success "hermes-engine is pinned to a prebuilt tag"
+# hermes-engine resolves its own source through a separate probe with the same flaw, and it exists in
+# both graphs, so no marker pod covers it. The Pre-built subspec is declared only when
+# HermesEngineSourceType::isPrebuilt is true, which makes it the resolved-source signal. The :tag: in
+# EXTERNAL SOURCES is not: it is copied verbatim from the Podfile declaration and never moves.
+if podIsPresent 'hermes-engine/Pre-built'; then
+  success "hermes-engine resolved to a prebuilt binary"
 else
-  error "hermes-engine is not pinned to a prebuilt tag — it resolved to a source build"
+  error "hermes-engine did not resolve to a prebuilt binary — it was built from source"
   info "The hermes probe failed at install time. See the [RNMode] warning in the install output."
   FAILED=true
 fi

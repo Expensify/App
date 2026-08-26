@@ -145,9 +145,11 @@ async function fetchWithToken(url: string, githubToken: string): Promise<string>
             }
             lastError = error instanceof Error ? error : new Error(String(error));
         }
-        await new Promise((resolve) => {
-            setTimeout(resolve, RETRY_DELAY_MS * 2 ** attempt);
-        });
+        if (attempt < FETCH_ATTEMPTS - 1) {
+            await new Promise((resolve) => {
+                setTimeout(resolve, RETRY_DELAY_MS * 2 ** attempt);
+            });
+        }
     }
     throw new Error(`Could not reach ${url} after ${FETCH_ATTEMPTS} attempts: ${lastError?.message ?? 'unknown error'}`);
 }

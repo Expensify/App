@@ -7,6 +7,8 @@
 #
 # Require AFTER react_native_pods.rb and BEFORE use_react_native!.
 
+require 'shellwords'
+
 module RNMode
     MODES = %i[source prebuilt].freeze
     LOG_PREFIX = '[RNMode]'.freeze
@@ -70,8 +72,12 @@ module RNMode
     PROBE_TIMEOUT_SECONDS = 30
     PROBE_ATTEMPTS = 3
 
-    @mode = nil
-    @downgrade_reasons = []
+    # This body runs again if the file is loaded under two different paths, which `require` and
+    # `require_relative` produce for the same file when a path component is a symlink. Re-running it
+    # unconditionally would wipe a mode that has already been declared and silently disable every check.
+    @mode = nil unless defined?(@mode)
+    @downgrade_reasons = [] unless defined?(@downgrade_reasons)
+    @hooks_installed = false unless defined?(@hooks_installed)
 
     class << self
         attr_reader :mode
@@ -125,6 +131,8 @@ module RNMode
         # Podfile.lock files pin the prebuilt tarball, so this applies in either mode.
         def check_hermes!(source_type)
             return if @mode.nil?
+            # Same reasoning as verify_hook_targets!: a missing constant must not raise here.
+            return unless defined?(HermesEngineSourceType)
             return if HermesEngineSourceType.isPrebuilt(source_type)
             return if opted_out?
 
@@ -212,7 +220,7 @@ module RNMode
             @hooks_installed = true
 
             verify_hook_targets!
-            ReactNativeDependenciesUtils.singleton_class.prepend(DepsHooks)
+            ReactNativeDependenciesUtils.singleton_class.prepend(DepsHooks) if defined?(ReactNativeDependenciesUtils)
             # hermes-utils.rb defines its helpers at top level, so they are private instance methods
             # on Object. It is required by hermes-engine.podspec, which CocoaPods evaluates after the
             # Podfile, so `super` resolves by the time these run.
@@ -270,10 +278,15 @@ module RNMode
         # A prepend over a method react-native has renamed is simply never called — no error, and the
         # guard is silently gone. Warn rather than raise, so a bump PR sees it without being blocked.
         def verify_hook_targets!
-            missing = []
-            %i[artifact_exists setup_react_native_dependencies build_react_native_deps_from_source].each do |name|
-                missing << "ReactNativeDependenciesUtils.#{name}" unless ReactNativeDependenciesUtils.respond_to?(name)
+            unless defined?(ReactNativeDependenciesUtils)
+                log('react-native does not define ReactNativeDependenciesUtils, so the dependency checks are inactive. ' \
+                    'A react-native upgrade has most likely moved it.', :error)
+                return
             end
+
+            missing = %i[artifact_exists setup_react_native_dependencies build_react_native_deps_from_source]
+                      .reject { |name| ReactNativeDependenciesUtils.respond_to?(name) }
+                      .map { |name| "ReactNativeDependenciesUtils.#{name}" }
             # The hermes helpers cannot be checked here: hermes-utils.rb is required by
             # hermes-engine.podspec, which CocoaPods evaluates after the Podfile. HermesHooks still
             # prepends correctly against a later definition, but a rename there stays undetectable.
@@ -290,7 +303,7 @@ module RNMode
 
             detail = nil
             PROBE_ATTEMPTS.times do |attempt|
-                code = `curl -o /dev/null --silent -Iw '%{http_code}' -L --connect-timeout #{CONNECT_TIMEOUT_SECONDS} --max-time #{PROBE_TIMEOUT_SECONDS} "#{url}"`.strip
+                code = `curl -o /dev/null --silent -Iw '%{http_code}' -L --connect-timeout #{CONNECT_TIMEOUT_SECONDS} --max-time #{PROBE_TIMEOUT_SECONDS} #{Shellwords.escape(url)}`.strip
                 reachable = $?.success?
                 return [:present, nil] if reachable && code == '200'
                 # A 404 is a fact about the artifact, not the network: do not retry.
