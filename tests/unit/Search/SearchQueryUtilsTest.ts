@@ -3617,6 +3617,23 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('type:trip');
         });
 
+        it('should stop escaping after the unquoted filter value', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense foo bar', currentQueryJSON) : '';
+
+            expect(result).toContain('"type:expense" foo bar');
+            expect(result).not.toContain('"type:expense foo bar"');
+        });
+
+        it('should escape syntax with whitespace between the operator and value', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense from:me');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('group-by: reports', currentQueryJSON) : '';
+
+            expect(result).toContain('"group-by: reports"');
+        });
+
         it('should escape input that uses a comparison operator with a filter key', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 

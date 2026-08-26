@@ -180,7 +180,7 @@ function sanitizeSearchValue(str: string) {
 
 const syntaxKeyPattern = `-?(?:${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(?:-[^\\s:><=]+)+)`;
 const syntaxOperatorPattern = '\\*?:|[<>]=?|=';
-const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOperatorPattern})\\s*([^\\s].*?)?(?=$|\\s+${syntaxKeyPattern}\\s*(?:${syntaxOperatorPattern}))`, 'gi');
+const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOperatorPattern})\\s*([^\\s]+)`, 'gi');
 
 function quoteSyntaxSpans(segment: string) {
     return segment.replace(syntaxSpanRegex, (match: string, prefix: string) => {
