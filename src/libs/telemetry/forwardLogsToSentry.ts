@@ -42,10 +42,6 @@ type ForwardedLogPrefix = TupleToUnion<typeof FORWARDED_LOG_PREFIXES>;
  * receipt keys tied to the receipt logs instead of widening the global whitelist.
  */
 const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyArray<string | RegExp>>([
-    // statErrorCode is an opaque errno, so it is safe to send and tells a deleted receipt from an unreadable one.
-    // statError, source, fileName, and fileSizeBytes are left out on purpose because they carry paths and filenames.
-    // errorMessage is network text like "Failed to fetch (www.expensify.com)", which is the only clue to why an
-    // upload was abandoned.
     [
         '[Receipt]',
         ['receiptTraceId', 'transactionID', 'event', 'captureSource', 'statErrorCode', 'errorMessage', 'errorName', 'key', 'trigger', 'reason', 'platform', 'snapshotID', 'hasDurableFile'],

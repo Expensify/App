@@ -426,10 +426,6 @@ function process(): Promise<void> {
                         command: requestToProcess.command,
                         errorMessage: error.message,
                     });
-                    // The line above only says which command failed. Receipts need a line we can trace back. The
-                    // receipt check matters: RequestMoney and TrackExpense are the commands for every expense, with
-                    // or without a receipt, so the command name alone would report plain manual expenses as lost
-                    // receipts.
                     const receiptData = (requestToProcess.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
                     if (RECEIPT_BEARING_COMMANDS.has(requestToProcess.command) && receiptData.receipt) {
                         logReceiptGaveUp({
@@ -712,7 +708,6 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
             transactionID?: string;
             receipt?: {receiptTraceId?: string; receiptEnqueuedAt?: number};
         };
-        // Runs before the request is persisted, so the enqueue stamp it writes is saved along with the receipt.
         if (data.receipt) {
             logReceiptEnqueued({
                 receipt: data.receipt,

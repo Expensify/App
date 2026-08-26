@@ -261,7 +261,7 @@ type Receipt = {
     /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
     localSource?: string | null;
 
-    /** When the upload reached the write queue. Lets a queue snapshot report how long it has waited */
+    /** When the receipt upload reached the write queue */
     receiptEnqueuedAt?: number;
 
     /** Name of receipt file */

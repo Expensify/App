@@ -50,8 +50,6 @@ Onyx.connectWithoutView({
 });
 
 function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean, reason: ReceiptClearReason = 'unknown'): Promise<void> {
-    // Every sign-out path lands here and the clear below takes the persisted queue with it, so snapshot first. After
-    // this point an unfinished receipt upload leaves no trace.
     logReceiptQueueSnapshot('signOut', reason);
 
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
@@ -132,7 +130,6 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
  *
  * @param errorMessage Error message to be displayed on the sign in page
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
- * @param reason What led here, logged on the receipt queue snapshot so a forced sign-out reads as one
  */
 function redirectToSignIn(errorMessage?: string, isSAMLReauthentication?: boolean, reason: ReceiptClearReason = 'unknown'): Promise<void> {
     return clearStorageAndRedirect(errorMessage, isSAMLReauthentication, reason).then(() => {

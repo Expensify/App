@@ -2,7 +2,6 @@ import isFileUploadable from './isFileUploadable';
 import Log from './Log';
 import {RECEIPT_LOG_PREFIX} from './telemetry/ReceiptObservability';
 
-/** Pulls the trace id off an offending value so the alert joins the rest of the receipt logs. */
 function getReceiptTraceId(value: unknown): string | undefined {
     if (typeof value !== 'object' || value === null) {
         return undefined;
@@ -32,7 +31,6 @@ function validateFormDataParameter(command: string, key: string, value: unknown)
     };
 
     if (!isValid(value, true)) {
-        // Was a console.warn, so this whole class of Android failures never left the device.
         Log.alert(`${RECEIPT_LOG_PREFIX} An unsupported value was passed to command '${command}' (parameter: '${key}'). Only Blob and primitive types are allowed.`, {
             event: 'unsupportedParameter',
             command,

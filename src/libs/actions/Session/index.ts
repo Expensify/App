@@ -479,7 +479,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 // Preserve SESSION during clear to avoid a login page flash, then restore the stashed session.
                 // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
                 // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
-                // Another clear that skips clearStorageAndRedirect.
                 logReceiptQueueSnapshot('signOut', 'stashedSessionRestore');
                 clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_SUPPORTAL).then(() => {
                     Onyx.multiSet(onyxSetParams).then(() => {
