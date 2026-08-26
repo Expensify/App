@@ -13,16 +13,20 @@ import {isModalActiveSelector} from '@selectors/Modal';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import useOnyx from './useOnyx';
-import usePrevious from './usePrevious';
 
 /**
  * Watches an HR provider's sync progress and automatically opens the `HRSyncResultsModal`
- * when the sync transitions to the `JOB_DONE` stage with a result payload.
+ * when the sync reaches the `JOB_DONE` stage with a result payload.
  */
 function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, isFocused: boolean) {
     const modal = useModal();
-    const previousSyncProgress = usePrevious(connectionSyncProgress);
     const pendingSyncResultRef = useRef<Pick<PolicyConnectionSyncProgress, 'connectionName' | 'result'> | null>(null);
+
+    // The backend sends the `JOB_DONE` stage and the result in separate Onyx updates, and it does not guarantee
+    // their order. Therefore we cannot key the modal on the render that first shows `JOB_DONE`. We instead
+    // remember that this mount watched a sync run, and we show the result for that run one time. A mount that
+    // finds a finished sync already in Onyx never saw the run, therefore it shows no stale modal.
+    const didWatchSyncRunRef = useRef(false);
     const [isAnyModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
     const connectionName = connectionSyncProgress?.connectionName;
@@ -40,13 +44,20 @@ function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEnt
 
     useEffect(() => {
         const syncResult = connectionSyncProgress?.result;
+        const stageInProgress = connectionSyncProgress?.stageInProgress;
         const isHRConnectionName = CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES.some((hrConnectionName) => hrConnectionName === connectionName);
-        const isHRSyncDoneWithResult = isHRConnectionName && connectionSyncProgress?.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE && !!syncResult;
-        const didTransitionToJobDone = previousSyncProgress?.connectionName === connectionName && previousSyncProgress?.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
-        const didHRSyncComplete = isFocused && isHRSyncDoneWithResult && didTransitionToJobDone;
+        const isSyncRunning = isHRConnectionName && !!stageInProgress && stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+
+        if (isSyncRunning) {
+            didWatchSyncRunRef.current = true;
+        }
+
+        const isHRSyncDoneWithResult = isHRConnectionName && stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE && !!syncResult;
+        const didHRSyncComplete = isFocused && isHRSyncDoneWithResult && didWatchSyncRunRef.current;
 
         if (didHRSyncComplete && syncResult && connectionName) {
             pendingSyncResultRef.current = {connectionName, result: syncResult};
+            didWatchSyncRunRef.current = false;
         }
 
         const pendingSyncResult = pendingSyncResultRef.current;
@@ -62,16 +73,7 @@ function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEnt
             waitForUpcomingTransition: true,
         });
         return () => handle.cancel();
-    }, [
-        connectionName,
-        connectionSyncProgress?.result,
-        connectionSyncProgress?.stageInProgress,
-        connectionSyncProgress?.timestamp,
-        isAnyModalActive,
-        isFocused,
-        previousSyncProgress?.connectionName,
-        previousSyncProgress?.stageInProgress,
-    ]);
+    }, [connectionName, connectionSyncProgress?.result, connectionSyncProgress?.stageInProgress, connectionSyncProgress?.timestamp, isAnyModalActive, isFocused]);
 }
 
 export default useHRSyncResultsModal;
