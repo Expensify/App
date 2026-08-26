@@ -13,13 +13,17 @@ import {NumberComposerActionsContext, NumberComposerStateContext} from './contex
 /** The composed input displays only the magnitude; the minus sign is rendered separately. */
 const getMagnitude = (canonicalValue: string) => (canonicalValue.startsWith('-') ? canonicalValue.slice(1) : canonicalValue);
 
-/** Preserves the sign the input does not display when the edited magnitude is committed back to the canonical value. */
-const getSignedValue = (displayText: string, previousCanonicalValue: string) => {
+/**
+ * Preserves the sign the input does not display when the edited magnitude is committed back to the canonical value.
+ * Only when negative values are allowed: a sign installed by an updateNumber bypass while `allowNegative` is false
+ * must not survive user edits (legacy rejected any further edit of such a value).
+ */
+const getSignedValue = (displayText: string, previousCanonicalValue: string, allowNegative: boolean) => {
     if (displayText.startsWith('-')) {
         return displayText;
     }
 
-    if (previousCanonicalValue.startsWith('-')) {
+    if (allowNegative && previousCanonicalValue.startsWith('-')) {
         return `-${displayText}`;
     }
 
@@ -69,7 +73,7 @@ function NumberComposer({value = '', onInputChange, allowNegative = false, decim
         maxLength,
         onBlur,
         toDisplayText: getMagnitude,
-        toCanonicalValue: getSignedValue,
+        toCanonicalValue: (displayText, previousCanonicalValue) => getSignedValue(displayText, previousCanonicalValue, allowNegative),
     });
 
     useImperativeHandle(numberFormRef, () => ({
