@@ -1,11 +1,10 @@
 /**
- * Builds, parses and clears the flags that mark newly added transactions for the report table's highlight, keyed per write
- * so one write can be cleared without touching another for the same transaction.
+ * Builds, parses and clears the flags that mark newly added transactions for the report table's highlight. Each write
+ * gets its own key, so clearing one is a blind merge of `null` and a re-flag lands where a late sweep cannot reach it.
  */
 
 const FLAG_KEY_SEPARATOR = ':';
 
-/** Keying flags by instance means clearing one is a plain merge of `null`, and a re-flag lands under a key a late sweep can't reach. */
 function buildPendingNewTransactionFlagKey(transactionID: string, flaggedAt: number): string {
     return `${transactionID}${FLAG_KEY_SEPARATOR}${flaggedAt}`;
 }
@@ -23,7 +22,7 @@ function parsePendingNewTransactionFlagKey(flagKey: string): {transactionID: str
     return {transactionID: flagKey.slice(0, separatorIndex), flaggedAt};
 }
 
-/** Maps each flag key to `null`, the merge value that removes the entry outright. */
+/** `null` is the merge value that removes an entry outright rather than leaving a tombstone behind. */
 function buildClearedPendingNewTransactionFlags(flagKeys: string[]): Record<string, null> {
     const clearedFlags: Record<string, null> = {};
     for (const flagKey of flagKeys) {
@@ -32,7 +31,7 @@ function buildClearedPendingNewTransactionFlags(flagKeys: string[]): Record<stri
     return clearedFlags;
 }
 
-/** Builds the flag entry for one add, stamped at write time so each write is its own instance. */
+/** Stamped at write time, so each add carries its own instance. */
 function buildPendingNewTransactionFlag(transactionID: string): Record<string, true> {
     return {[buildPendingNewTransactionFlagKey(transactionID, Date.now())]: true};
 }

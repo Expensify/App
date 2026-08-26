@@ -6,18 +6,20 @@ import type {NavigationState} from '@react-navigation/native';
 type VisibleRHPKeys = {
     visibleWideRHPRouteKeys: string[];
     visibleSuperWideRHPRouteKeys: string[];
+    presentRouteKeys: string[];
 };
 
 const emptyRHPKeysState: VisibleRHPKeys = {
     visibleWideRHPRouteKeys: [],
     visibleSuperWideRHPRouteKeys: [],
+    presentRouteKeys: [],
 };
 
 /**
- * Extracts the keys of the screens that are currently displayed from the arrays of all Wide/Super Wide RHP keys.
- * Takes navigation state as an argument so the visible keys can be derived during render rather than synced by hand.
+ * A key missing from the navigation state may be a screen dismissing or one that was never shown, and only the first
+ * holds a width. Callers must record `presentRouteKeys` so `seenRouteKeys` can tell those apart.
  */
-function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: string[], allSuperWideRHPKeys: string[]): VisibleRHPKeys {
+function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: string[], allSuperWideRHPKeys: string[], seenRouteKeys: Set<string>): VisibleRHPKeys {
     // Nothing registered is the common case, and it needs no traversal of a tree whose keys nothing will be matched against.
     if (!state || (!allWideRHPKeys.length && !allSuperWideRHPKeys.length)) {
         return emptyRHPKeysState;
@@ -28,32 +30,27 @@ function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: s
     const lastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
     const lastRHPRoute = state.routes.find((route) => route.key === lastVisibleRHPRouteKey);
 
-    // An RHP whose own stack has not been populated yet says nothing about its screens, so none of them is treated as displayed or as dismissing.
-    if (lastRHPRoute && !lastRHPRoute.state?.routes) {
-        return emptyRHPKeysState;
-    }
-
     let visibleRHPKeys = new Set<string>();
-    if (lastRHPRoute) {
-        const superWideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allSuperWideRHPKeys.includes(route.key)) ?? -1;
-        const wideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allWideRHPKeys.includes(route.key)) ?? -1;
+    if (lastRHPRoute?.state?.routes) {
+        const superWideRHPIndex = lastRHPRoute.state.routes.findLastIndex((route) => route?.key && allSuperWideRHPKeys.includes(route.key));
+        const wideRHPIndex = lastRHPRoute.state.routes.findLastIndex((route) => route?.key && allWideRHPKeys.includes(route.key));
 
         if (superWideRHPIndex > -1) {
-            visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(superWideRHPIndex));
+            visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state.routes.slice(superWideRHPIndex));
         } else if (wideRHPIndex > -1) {
-            visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(wideRHPIndex));
+            visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state.routes.slice(wideRHPIndex));
         } else {
-            visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes);
+            visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state.routes);
         }
     }
 
-    // Only RHP screens register, so a registration the state no longer knows about is one animating out and holds its width until it unmounts.
     const keysInState = extractNavigationKeys(state.routes);
-    const isDisplayed = (key: string) => visibleRHPKeys.has(key) || !keysInState.has(key);
+    const isDisplayed = (key: string) => visibleRHPKeys.has(key) || (seenRouteKeys.has(key) && !keysInState.has(key));
 
     return {
         visibleWideRHPRouteKeys: allWideRHPKeys.filter(isDisplayed),
         visibleSuperWideRHPRouteKeys: allSuperWideRHPKeys.filter(isDisplayed),
+        presentRouteKeys: [...allWideRHPKeys, ...allSuperWideRHPKeys].filter((key) => keysInState.has(key)),
     };
 }
 

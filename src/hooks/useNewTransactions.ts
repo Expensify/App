@@ -3,11 +3,18 @@ import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransa
 import CONST from '@src/CONST';
 import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
+import arraysEqual from '@src/utils/arraysEqual';
 
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 const EMPTY_TRANSACTIONS: Transaction[] = [];
 const EMPTY_TRANSACTION_IDS: string[] = [];
+
+/**
+ * Flag instances a sweep has already been scheduled for, keyed `reportID:flagKey`. Shared, because every preview in a
+ * chat reads the same rail and would otherwise each schedule the same delete.
+ */
+const scheduledSweeps = new Set<string>();
 
 type DiffState = {
     /** Report the baseline belongs to, so a switch restarts the latch as a fresh mount would. */
@@ -36,16 +43,11 @@ function useNewTransactions(
     isReportVisible?: boolean,
 ) {
     const [hasSettledAfterInitialLoad, setHasSettledAfterInitialLoad] = useState(() => !!hasOnceLoadedReportActions);
-    const scheduledSweeps = useRef<Set<string>>(new Set());
     const [diffState, setDiffState] = useState<DiffState>(() => ({reportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS}));
     const trackedTransactionIDs = hasOnceLoadedReportActions && transactions ? transactions.map(({transactionID}) => transactionID) : undefined;
     const baselineSourceIDs = diffState.sourceIDs;
     const isReportSwitch = reportID !== diffState.reportID;
-    const hasSameTransactionIDs =
-        trackedTransactionIDs !== undefined &&
-        baselineSourceIDs !== undefined &&
-        trackedTransactionIDs.length === baselineSourceIDs.length &&
-        trackedTransactionIDs.every((transactionID, index) => transactionID === baselineSourceIDs.at(index));
+    const hasSameTransactionIDs = trackedTransactionIDs !== undefined && baselineSourceIDs !== undefined && arraysEqual(trackedTransactionIDs, baselineSourceIDs);
     if (isReportSwitch) {
         // The list in hand can still be the outgoing report's, so let the incoming report's own list set the baseline.
         setDiffState({reportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS});
@@ -64,11 +66,9 @@ function useNewTransactions(
                 addedIDs = trackedTransactionIDs.filter((transactionID) => !baselineSet.has(transactionID));
             }
         } else if (diffState.addedIDs.length && trackedTransactionIDs !== undefined) {
-            // A reorder or a removal says nothing about what is new, so latched adds that are still listed keep the window they were given.
-            const trackedIDs = new Set(trackedTransactionIDs);
-            const stillListed = diffState.addedIDs.filter((transactionID) => trackedIDs.has(transactionID));
-            // Same identity when nothing dropped, so the window is not restarted by a reorder.
-            addedIDs = stillListed.length === diffState.addedIDs.length ? diffState.addedIDs : stillListed;
+            // A reorder or a removal says nothing about what is new, and the read below filters these against the live
+            // list anyway, so the latch carries over untouched rather than restarting its window with a new identity.
+            addedIDs = diffState.addedIDs;
         }
         setDiffState({reportID, sourceIDs: trackedTransactionIDs, addedIDs});
     }
@@ -104,10 +104,10 @@ function useNewTransactions(
         const claimedKeys: string[] = [];
         for (const flagKey of [...consumedFlagKeys, ...pendingNewTransactions.expiredFlagKeys]) {
             const sweepKey = `${reportID}:${flagKey}`;
-            if (scheduledSweeps.current.has(sweepKey)) {
+            if (scheduledSweeps.has(sweepKey)) {
                 continue;
             }
-            scheduledSweeps.current.add(sweepKey);
+            scheduledSweeps.add(sweepKey);
             claimedKeys.push(flagKey);
         }
         if (!claimedKeys.length) {
@@ -117,7 +117,7 @@ function useNewTransactions(
         setTimeout(() => {
             // Released before deleting, so a merge that never lands stays claimable.
             for (const flagKey of claimedKeys) {
-                scheduledSweeps.current.delete(`${reportID}:${flagKey}`);
+                scheduledSweeps.delete(`${reportID}:${flagKey}`);
             }
             deletePendingNewTransactionIDs(reportID, claimedKeys);
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);

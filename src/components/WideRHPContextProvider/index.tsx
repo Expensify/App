@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import arraysEqual from '@src/utils/arraysEqual';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -57,13 +58,9 @@ const NO_VISIBLE_RHP_ROUTE_KEYS: string[] = [];
 let visibleRHPRouteKeys: {wide: string[]; superWide: string[]} = {wide: NO_VISIBLE_RHP_ROUTE_KEYS, superWide: NO_VISIBLE_RHP_ROUTE_KEYS};
 const visibleRHPRouteKeysListeners = new Set<() => void>();
 
-function haveSameRHPRouteKeys(current: string[], next: string[]) {
-    return current.length === next.length && current.every((routeKey, index) => routeKey === next.at(index));
-}
-
 function setVisibleRHPRouteKeysSnapshot(wide: string[], superWide: string[]) {
     // Compared by content, since the keys are re-derived into fresh arrays on every navigation event and every subscriber is a mounted screen.
-    if (haveSameRHPRouteKeys(visibleRHPRouteKeys.wide, wide) && haveSameRHPRouteKeys(visibleRHPRouteKeys.superWide, superWide)) {
+    if (arraysEqual(visibleRHPRouteKeys.wide, wide) && arraysEqual(visibleRHPRouteKeys.superWide, superWide)) {
         return;
     }
     visibleRHPRouteKeys = {wide, superWide};
@@ -77,7 +74,7 @@ function subscribeToVisibleRHPRouteKeys(listener: () => void): () => void {
     return () => visibleRHPRouteKeysListeners.delete(listener);
 }
 
-/** Snapshot read for useSyncExternalStore: the width class a route is currently displayed at, if any. */
+/** Returns a primitive, so `useSyncExternalStore` subscribers compare snapshots without tearing. */
 function getVisibleRHPRouteWidth(routeKey: string | undefined): Exclude<RHPWidth, 'narrow'> | undefined {
     if (!routeKey) {
         return undefined;
@@ -111,6 +108,9 @@ type RHPWidthRegistration = {
     key: string;
     width: RHPWidthHint;
 };
+
+/** Route keys the navigation state has shown at least once. */
+const seenRHPRouteKeys = new Set<string>();
 
 /** Re-registering the same width is a no-op, so a route keeps its place unless its width actually changes. */
 function registerRHPRouteWidth(registrations: RHPWidthRegistration[], routeKey: string, width: RHPWidth): RHPWidthRegistration[] {
@@ -164,7 +164,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     const allWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'wide').map((registration) => registration.key);
     const allSuperWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'super-wide').map((registration) => registration.key);
-    const {visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys} = getVisibleRHPKeys(rootNavigationState, allWideRHPRouteKeys, allSuperWideRHPRouteKeys);
+    const {visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys, presentRouteKeys} = getVisibleRHPKeys(rootNavigationState, allWideRHPRouteKeys, allSuperWideRHPRouteKeys, seenRHPRouteKeys);
 
     const isWideRHPFocused = !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
     const isSuperWideRHPFocused = !!focusedRoute?.key && allSuperWideRHPRouteKeys.includes(focusedRoute.key);
@@ -176,9 +176,21 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     // Layout effect so the animated width and per-route subscribers see the flip before paint, same as context consumers do.
     useLayoutEffect(() => {
+        // Recorded after the commit, so the derivation stays pure.
+        for (const key of presentRouteKeys) {
+            seenRHPRouteKeys.add(key);
+        }
+        // An unregistered key can never dismiss again, so dropping it bounds the set.
+        const registeredKeys = new Set([...allWideRHPRouteKeys, ...allSuperWideRHPRouteKeys]);
+        for (const key of seenRHPRouteKeys) {
+            if (registeredKeys.has(key)) {
+                continue;
+            }
+            seenRHPRouteKeys.delete(key);
+        }
         setExpandedRHPProgress(visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys);
         setVisibleRHPRouteKeysSnapshot(visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys);
-    }, [visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys]);
+    }, [visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys, presentRouteKeys, allWideRHPRouteKeys, allSuperWideRHPRouteKeys]);
 
     /**
      * Effect that empties the module-level snapshot on teardown, since it outlives the provider and would otherwise answer for the next session.

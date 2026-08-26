@@ -25,21 +25,27 @@ const rhpWithChildren = (childKeys: string[]): TestRoute => ({
     state: {routes: childKeys.map((key) => ({key, name: 'Screen'}))},
 });
 
+/** Most cases assume a screen the state has already shown, so `seen` defaults to every registered key. */
+function visibleKeys(state: NavigationState | undefined, wide: string[], superWide: string[], seen: string[] = [...wide, ...superWide]) {
+    const {visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys} = getVisibleRHPKeys(state, wide, superWide, new Set(seen));
+    return {visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys};
+}
+
 describe('getVisibleRHPKeys', () => {
     it('returns nothing once a fullscreen navigator covers the RHP, which is what makes clearing the keys by hand unnecessary', () => {
         const state = buildRootState([reportsSplit, rhpWithChildren(['wideKey']), searchFullscreen]);
 
-        expect(getVisibleRHPKeys(state, ['wideKey'], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
+        expect(visibleKeys(state, ['wideKey'], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
     });
 
     it('returns nothing when no RHP is open, and when navigation has not initialized', () => {
-        expect(getVisibleRHPKeys(buildRootState([reportsSplit]), [], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
-        expect(getVisibleRHPKeys(undefined, ['wideKey'], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
+        expect(visibleKeys(buildRootState([reportsSplit]), [], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
+        expect(visibleKeys(undefined, ['wideKey'], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
     });
 
     it('holds a dismissing RHP at its width, since the route leaves the state while the card is still animating out', () => {
         // The screens are still mounted, so their registrations survive and hold the width.
-        expect(getVisibleRHPKeys(buildRootState([reportsSplit]), ['wideKey'], ['superWideKey'])).toEqual({
+        expect(visibleKeys(buildRootState([reportsSplit]), ['wideKey'], ['superWideKey'])).toEqual({
             visibleWideRHPRouteKeys: ['wideKey'],
             visibleSuperWideRHPRouteKeys: ['superWideKey'],
         });
@@ -49,46 +55,65 @@ describe('getVisibleRHPKeys', () => {
         // Popping one screen off the RHP takes it out of the stack a frame before it unmounts, same as dismissing the whole RHP.
         const state = buildRootState([reportsSplit, rhpWithChildren(['remaining'])]);
 
-        expect(getVisibleRHPKeys(state, ['dismissingWideKey'], [])).toEqual({visibleWideRHPRouteKeys: ['dismissingWideKey'], visibleSuperWideRHPRouteKeys: []});
+        expect(visibleKeys(state, ['dismissingWideKey'], [])).toEqual({visibleWideRHPRouteKeys: ['dismissingWideKey'], visibleSuperWideRHPRouteKeys: []});
     });
 
     it('does not hold a registered screen the RHP is simply not displaying', () => {
         // 'wideKey' is still in the stack under the super-wide screen, so it is on screen or not on its own merits, never held.
         const state = buildRootState([reportsSplit, rhpWithChildren(['wideKey', 'superWideKey'])]);
 
-        expect(getVisibleRHPKeys(state, ['wideKey'], ['superWideKey'])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: ['superWideKey']});
+        expect(visibleKeys(state, ['wideKey'], ['superWideKey'])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: ['superWideKey']});
     });
 
     it('displays a registered screen while the RHP is on top', () => {
         const state = buildRootState([reportsSplit, rhpWithChildren(['a', 'wideKey', 'c'])]);
 
-        expect(getVisibleRHPKeys(state, ['wideKey'], [])).toEqual({visibleWideRHPRouteKeys: ['wideKey'], visibleSuperWideRHPRouteKeys: []});
+        expect(visibleKeys(state, ['wideKey'], [])).toEqual({visibleWideRHPRouteKeys: ['wideKey'], visibleSuperWideRHPRouteKeys: []});
     });
 
     it('stops displaying a width once a screen stacked above it registers a wider one', () => {
         // The super-wide screen sits above the wide one, so only it is displayed.
         const state = buildRootState([reportsSplit, rhpWithChildren(['wideKey', 'superWideKey'])]);
 
-        expect(getVisibleRHPKeys(state, ['wideKey'], ['superWideKey'])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: ['superWideKey']});
+        expect(visibleKeys(state, ['wideKey'], ['superWideKey'])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: ['superWideKey']});
     });
 
     it('keeps both displayed when the super-wide screen is stacked below the wide one, since the slice starts at the super-wide screen', () => {
         const state = buildRootState([reportsSplit, rhpWithChildren(['superWideKey', 'wideKey'])]);
 
-        expect(getVisibleRHPKeys(state, ['wideKey'], ['superWideKey'])).toEqual({visibleWideRHPRouteKeys: ['wideKey'], visibleSuperWideRHPRouteKeys: ['superWideKey']});
+        expect(visibleKeys(state, ['wideKey'], ['superWideKey'])).toEqual({visibleWideRHPRouteKeys: ['wideKey'], visibleSuperWideRHPRouteKeys: ['superWideKey']});
     });
 
     it('returns the keys in registration order rather than stack order', () => {
         const state = buildRootState([reportsSplit, rhpWithChildren(['superWideKey', 'firstWide', 'secondWide'])]);
 
-        expect(getVisibleRHPKeys(state, ['secondWide', 'firstWide'], ['superWideKey']).visibleWideRHPRouteKeys).toEqual(['secondWide', 'firstWide']);
+        expect(visibleKeys(state, ['secondWide', 'firstWide'], ['superWideKey']).visibleWideRHPRouteKeys).toEqual(['secondWide', 'firstWide']);
     });
 
     it('holds a dismissing RHP at its width even while an older RHP sits covered below a fullscreen navigator', () => {
         // The top RHP has left the state but is still animating out, while the covered one below is still in the state.
         const state = buildRootState([reportsSplit, rhpWithChildren(['coveredKey']), searchFullscreen]);
 
-        expect(getVisibleRHPKeys(state, ['dismissingKey'], [])).toEqual({visibleWideRHPRouteKeys: ['dismissingKey'], visibleSuperWideRHPRouteKeys: []});
-        expect(getVisibleRHPKeys(state, ['coveredKey'], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
+        expect(visibleKeys(state, ['dismissingKey'], [])).toEqual({visibleWideRHPRouteKeys: ['dismissingKey'], visibleSuperWideRHPRouteKeys: []});
+        expect(visibleKeys(state, ['coveredKey'], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
+    });
+
+    it('does not hold a screen the navigation state has never shown, which is a screen awaiting its stack rather than one dismissing', () => {
+        // A newly pushed RHP registers its width before its own stack is populated, so its key is absent for a commit.
+        const state = buildRootState([reportsSplit, {key: 'rhp-new', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]);
+
+        expect(visibleKeys(state, ['unseenKey'], [], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
+    });
+
+    it('still holds a dismissing screen while another RHP is pushed whose stack has not been populated', () => {
+        const state = buildRootState([reportsSplit, {key: 'rhp-new', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]);
+
+        expect(visibleKeys(state, ['dismissingKey'], [], ['dismissingKey'])).toEqual({visibleWideRHPRouteKeys: ['dismissingKey'], visibleSuperWideRHPRouteKeys: []});
+    });
+
+    it('reports the registered keys the state currently holds, which is what the caller records as seen', () => {
+        const state = buildRootState([reportsSplit, rhpWithChildren(['wideKey'])]);
+
+        expect(getVisibleRHPKeys(state, ['wideKey', 'goneKey'], [], new Set()).presentRouteKeys).toEqual(['wideKey']);
     });
 });

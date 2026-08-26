@@ -49,6 +49,9 @@ function useRHPWidth(width: RHPWidth) {
             if (reportID && floor) {
                 unmarkReportRHPWidth(reportID, floor);
             }
+        } else if (reportID) {
+            // A hint marked while this screen already shows that report describes a navigation that never happened, so it can only mislead a later mount.
+            unmarkReportRHPWidth(reportID);
         }
         // Released once the caller's own width reaches it, so a screen whose data later says narrower can still shrink.
         if (consumedHintRef.current.floor && getWidthOrder(width) >= getWidthOrder(consumedHintRef.current.floor)) {

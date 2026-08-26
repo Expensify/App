@@ -46,4 +46,27 @@ describe('pendingNewTransactionIDsSelector', () => {
         expect(pendingNewTransactionIDsSelector(undefined)).toBeUndefined();
         expect(pendingNewTransactionIDsSelector({pendingNewTransactionIDs: {[clearedKey]: null}})).toBeUndefined();
     });
+
+    it('returns the same object while the classification is unchanged, so an unrelated metadata write does not re-render subscribers', () => {
+        const flagKey = `tx:${Date.now()}`;
+        const flags = {[flagKey]: true} as const;
+
+        // The nested flags object survives a merge that touches other fields, so the selector sees the same input.
+        const first = pendingNewTransactionIDsSelector({pendingNewTransactionIDs: flags});
+        const second = pendingNewTransactionIDsSelector({pendingNewTransactionIDs: flags, isOptimisticReport: true});
+
+        expect(second).toBe(first);
+    });
+
+    it('returns a new object once the classification changes, so an expiring flag still reaches subscribers', () => {
+        const freshKey = `tx:${Date.now()}`;
+        const flags = {[freshKey]: true} as const;
+        const first = pendingNewTransactionIDsSelector({pendingNewTransactionIDs: flags});
+
+        const staleFlags = {[`tx:${Date.now() - CONST.PENDING_TRANSACTION_FRESHNESS_WINDOW - 1}`]: true} as const;
+        const second = pendingNewTransactionIDsSelector({pendingNewTransactionIDs: staleFlags});
+
+        expect(second).not.toBe(first);
+        expect(second?.expiredFlagKeys.length).toBe(1);
+    });
 });

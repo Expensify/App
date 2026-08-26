@@ -783,6 +783,35 @@ describe('useNewTransactions with a covered report', () => {
         }
     });
 
+    it('leaves the window running when one of the added transactions is removed, rather than restarting it for the survivors', () => {
+        jest.useFakeTimers();
+        try {
+            const txG = {transactionID: 'G', amount: 100, created: '2023-10-10', currency: 'USD', reportID: 'report1', merchant: ''};
+            const txH = {transactionID: 'H', amount: 100, created: '2023-10-11', currency: 'USD', reportID: 'report1', merchant: ''};
+            const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, undefined, 'report1', true), {
+                initialProps: {transactions: transactionsAlreadyInReport},
+            });
+
+            rerender({transactions: [...transactionsAlreadyInReport, txG, txH]});
+            expect(result.current).toEqual([txG, txH]);
+
+            // One of the two is deleted most of the way through the window the pair was given.
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY - 100);
+            });
+            rerender({transactions: [...transactionsAlreadyInReport, txH]});
+            expect(result.current).toEqual([txH]);
+
+            // The survivor keeps the remainder of that window rather than being handed a fresh one.
+            act(() => {
+                jest.advanceTimersByTime(100);
+            });
+            expect(result.current).toEqual([]);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     it('gives a second diff-detected add its own window rather than the window already running', () => {
         jest.useFakeTimers();
         try {
@@ -887,6 +916,25 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
 
     beforeEach(() => {
         jest.mocked(deletePendingNewTransactionIDs).mockClear();
+    });
+
+    it('schedules one sweep for a flag two consumers of the same report both see', () => {
+        jest.useFakeTimers();
+        try {
+            const transactions = [baseTx, railTx];
+            const pendingNewTransactions = rail(['railTx']);
+            // Every preview in a chat reads the same rail, so both would otherwise claim and delete the same flag.
+            renderHook(() => useNewTransactions(true, transactions, pendingNewTransactions, 'report1', true));
+            renderHook(() => useNewTransactions(true, transactions, pendingNewTransactions, 'report1', true));
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it('completes the scheduled rail deletion even if the consumer unmounts first', () => {

@@ -5,7 +5,8 @@ import type {RHPWidth, RHPWidthHint} from '@components/WideRHPContextProvider/ty
 const mockSetRHPWidth = jest.fn<void, [{key: string}, RHPWidth]>();
 const mockRemoveRHPRouteKey = jest.fn();
 const mockUnmarkReportRHPWidth = jest.fn();
-const mockGetReportRHPWidthHint = jest.fn<RHPWidthHint | undefined, [string]>();
+// Re-assignable, because the provider hands out a new getter whenever the hint map changes and that is what re-runs the effect.
+let mockGetReportRHPWidthHint = jest.fn<RHPWidthHint | undefined, [string]>();
 
 jest.mock('@components/WideRHPContextProvider', () => ({
     __esModule: true,
@@ -38,7 +39,7 @@ describe('useRHPWidth', () => {
     beforeEach(() => {
         mockSetRHPWidth.mockClear();
         mockUnmarkReportRHPWidth.mockClear();
-        mockGetReportRHPWidthHint.mockReset();
+        mockGetReportRHPWidthHint = jest.fn<RHPWidthHint | undefined, [string]>();
         mockRoute = {key: 'route-1', name: 'Screen', params: {reportID: 'report1'}};
     });
 
@@ -111,5 +112,18 @@ describe('useRHPWidth', () => {
 
         expect(lastRegisteredWidth()).toBe('wide');
         expect(mockUnmarkReportRHPWidth).toHaveBeenLastCalledWith('report2', 'wide');
+    });
+
+    it('clears a hint marked for the report it is already showing, which no navigation will ever consume', () => {
+        mockGetReportRHPWidthHint.mockReturnValue(undefined);
+        const {setWidth} = renderHarness('wide');
+        expect(lastRegisteredWidth()).toBe('wide');
+
+        // Clicking a Search row for the report already on screen marks a hint, which hands the effect a new getter.
+        mockGetReportRHPWidthHint = jest.fn<RHPWidthHint | undefined, [string]>().mockReturnValue('super-wide');
+        setWidth('wide');
+
+        expect(lastRegisteredWidth()).toBe('wide');
+        expect(mockUnmarkReportRHPWidth).toHaveBeenLastCalledWith('report1');
     });
 });

@@ -34,7 +34,7 @@ type WideRHPActionsContextType = {
     // Register the route at the given width. 'narrow' drops its registration.
     setRHPWidth: (route: NavigationRoute, width: RHPWidth) => void;
 
-    // Drop the route's registration (used on screen unmount).
+    // Called on screen unmount, which is what bounds how long a dismissing screen holds its width.
     removeRHPRouteKey: (route: NavigationRoute) => void;
 
     // Set an optimistic width hint for a reportID before navigation. The latest mark wins.

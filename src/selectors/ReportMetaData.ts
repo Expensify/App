@@ -3,6 +3,7 @@ import {getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
+import arraysEqual from '@src/utils/arraysEqual';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -40,6 +41,21 @@ type PendingNewTransactions = {
     /** Flag instances swept without highlighting, being stale, unreadable, or superseded by a newer instance. */
     expiredFlagKeys: string[];
 };
+
+/**
+ * `useOnyx` drops an update when the selector's result shallow-compares equal, so a selector that allocates on every
+ * run keeps every subscriber re-rendering. Classification still runs each time, since freshness depends on the clock;
+ * only the identity is reused, and it changes as soon as the classification does.
+ */
+const lastPendingNewTransactions = new WeakMap<Record<string, true | null>, PendingNewTransactions>();
+
+function samePendingNewTransactions(a: PendingNewTransactions, b: PendingNewTransactions): boolean {
+    const activeIDs = Object.keys(a.activeFlagKeys);
+    if (activeIDs.length !== Object.keys(b.activeFlagKeys).length || !arraysEqual(a.expiredFlagKeys, b.expiredFlagKeys)) {
+        return false;
+    }
+    return activeIDs.every((transactionID) => a.activeFlagKeys[transactionID] === b.activeFlagKeys[transactionID]);
+}
 
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>): PendingNewTransactions | undefined => {
     const pendingNewTransactionIDs = reportMetadata?.pendingNewTransactionIDs;
@@ -81,7 +97,13 @@ const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetada
     if (!Object.keys(activeFlagKeys).length && !expiredFlagKeys.length) {
         return undefined;
     }
-    return {activeFlagKeys, expiredFlagKeys};
+    const classified: PendingNewTransactions = {activeFlagKeys, expiredFlagKeys};
+    const previous = lastPendingNewTransactions.get(pendingNewTransactionIDs);
+    if (previous && samePendingNewTransactions(previous, classified)) {
+        return previous;
+    }
+    lastPendingNewTransactions.set(pendingNewTransactionIDs, classified);
+    return classified;
 };
 
 const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;

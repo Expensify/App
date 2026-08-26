@@ -10,7 +10,7 @@ import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {buildClearedPendingNewTransactionFlags, buildPendingNewTransactionFlag} from '@libs/PendingNewTransactionFlags';
+import {buildClearedPendingNewTransactionFlags, buildPendingNewTransactionFlagKey} from '@libs/PendingNewTransactionFlags';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
@@ -702,17 +702,17 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             : (iou.report?.transactionCount ?? 0);
     const addMakesReportMultiTransaction = isMoneyRequestReport(iou.report) && !isTransactionAlreadyOnReport && transactionCountAfterAdd >= 2;
     if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && !shouldSkipReportHighlightRail && addMakesReportMultiTransaction) {
-        // Built once so the rollback clears the same instance the optimistic write created.
-        const pendingNewTransactionFlag = buildPendingNewTransactionFlag(transaction.transactionID);
+        // One key for both writes, so the rollback can only ever clear the instance this write created.
+        const pendingNewTransactionFlagKey = buildPendingNewTransactionFlagKey(transaction.transactionID, Date.now());
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: pendingNewTransactionFlag},
+            value: {pendingNewTransactionIDs: {[pendingNewTransactionFlagKey]: true}},
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: buildClearedPendingNewTransactionFlags(Object.keys(pendingNewTransactionFlag))},
+            value: {pendingNewTransactionIDs: buildClearedPendingNewTransactionFlags([pendingNewTransactionFlagKey])},
         });
     }
 
