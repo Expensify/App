@@ -3069,7 +3069,8 @@ function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
 }
 
 function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: string) => number): Policy[] {
-    return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    // copy first: callers pass memoized selector output, sorting it in place makes the next deepEqual report a change
+    return [...policies].sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
 /**

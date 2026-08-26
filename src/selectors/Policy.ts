@@ -1,5 +1,6 @@
-import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
+import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
+import {getConnectedHRProvider} from '@libs/HRUtils';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -7,6 +8,7 @@ import {
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
     getPolicyRole,
+    hasPolicyWithXeroConnection,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
     isPendingDeletePolicy,
@@ -20,8 +22,9 @@ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField} from '@src/types/onyx';
-import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
+import type {Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -147,7 +150,78 @@ const createWorkspaceListPoliciesSelector =
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
-const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
+type BrokenPolicyConnection = {
+    /** The policy ID associated with this connection */
+    policyID: string;
+
+    /** The policy name associated with this connection */
+    policyName: string;
+
+    /** The connection name that has an error */
+    connectionName: PolicyConnectionName;
+
+    /** Human-readable integration name (e.g. "QuickBooks Online", "Gusto", "BambooHR"). */
+    integrationName: string;
+};
+
+/** Only what the Time sensitive widgets read, so the section never deep-compares whole policies */
+type TimeSensitiveAdminPolicy = Pick<Policy, 'id' | 'name' | 'achAccount' | 'policyAccountID'>;
+
+type TimeSensitiveAdminPolicies = {
+    policies: TimeSensitiveAdminPolicy[];
+    brokenConnections: BrokenPolicyConnection[];
+};
+
+// derive the broken-connection verdict here: the sync-progress check needs the policy's `connections`
+const createTimeSensitiveAdminPoliciesSelector =
+    (currentUserLogin: string | undefined, connectionSyncProgress: OnyxCollection<PolicyConnectionSyncProgress>) =>
+    (policies: OnyxCollection<Policy>): TimeSensitiveAdminPolicies => {
+        const result: TimeSensitiveAdminPolicies = {policies: [], brokenConnections: []};
+
+        for (const policy of getActiveAdminWorkspaces(policies, currentUserLogin)) {
+            result.policies.push({
+                id: policy.id,
+                name: policy.name,
+                achAccount: policy.achAccount,
+                policyAccountID: policy.policyAccountID,
+            });
+
+            const policyConnections = policy.connections;
+            if (!policyConnections) {
+                continue;
+            }
+
+            // Check if there's a sync in progress for this policy using the proper check that handles JOB_DONE and timeout
+            const syncProgress = connectionSyncProgress?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
+            const isSyncInProgress = isConnectionInProgress(syncProgress, policy);
+
+            for (const [connectionName] of ObjectUtils.typedEntries(policyConnections)) {
+                if (!hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
+                    continue;
+                }
+                const integrationName =
+                    connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR
+                        ? (getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])
+                        : CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+                result.brokenConnections.push({
+                    policyID: policy.id,
+                    policyName: policy.name,
+                    connectionName,
+                    integrationName,
+                });
+            }
+        }
+
+        return result;
+    };
+
+// boolean out, so subscribers don't deep-compare a policy array on every policy_ write
+const createHasAdminPolicyWithXeroConnectionSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
+
+const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
 
 /**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
@@ -418,7 +492,7 @@ const createAdminPoliciesSelector =
         }, {});
     };
 
-export type {PolicySelector};
+export type {PolicySelector, TimeSensitiveAdminPolicy};
 export {
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
@@ -428,6 +502,8 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    createHasAdminPolicyWithXeroConnectionSelector,
+    createTimeSensitiveAdminPoliciesSelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
