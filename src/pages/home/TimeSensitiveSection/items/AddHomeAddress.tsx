@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
@@ -27,7 +28,7 @@ function AddHomeAddress() {
             // Match the destination used by the "Address" row in the profile so this entry point
             // lands on the same private-personal-details screen with the address field focused.
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1))}
-            buttonProps={{success: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

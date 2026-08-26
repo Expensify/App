@@ -42,6 +42,7 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {enGB} from 'date-fns/locale/en-GB';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
@@ -260,6 +261,30 @@ function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: Dat
 }
 
 /**
+ * Format date to a long date format with weekday but without the year
+ *
+ * @returns Sunday, July 9
+ */
+function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR, {locale: dateFnsLocale});
+}
+
+/**
+ * Get the time-of-day greeting key based on the hour of the given (already timezone-adjusted) date.
+ * Ranges: morning 4am to 12pm, afternoon 12pm to 5pm, evening 5pm to 4am.
+ */
+function getTimeOfDayGreetingKey(date: Date): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
+    const hour = date.getHours();
+    if (hour >= 4 && hour < 12) {
+        return 'goodMorning';
+    }
+    if (hour >= 12 && hour < 17) {
+        return 'goodAfternoon';
+    }
+    return 'goodEvening';
+}
+
+/**
  * Format date to a weekday format
  *
  * @returns Sunday
@@ -463,8 +488,8 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
         return '';
     }
     const date = new Date(dateTimeString);
-    // get12HourTimeObjectFromDate parses this back into TimePicker state, whose period is compared against the English
-    // CONST.TIME_PERIOD, so the marker has to stay English. That leaves StatusClearAfterPage showing an English AM/PM.
+    // get12HourTimeObjectFromDate parses this back with the same default locale, so the format and the parse stay
+    // in step in every language.
     // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- see above
     return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a');
 }
@@ -581,7 +606,8 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
         }
     } else if (updatedTime.includes(':')) {
         // it's in "hh:mm a" format
-        const tempTime = parse(updatedTime, 'hh:mm a', new Date());
+        // The picker always submits English AM/PM markers, which the app's active date-fns locale may not parse.
+        const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enGB});
         if (isValid(tempTime)) {
             parsedTime = tempTime;
         }
@@ -639,8 +665,7 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
         minute: format(parsedTime, 'mm'),
         seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
         milliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
-        // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- this is TimePicker state compared against the English CONST.TIME_PERIOD, not text shown to the user.
-        period: format(parsedTime, 'a').toUpperCase(),
+        period: parsedTime.getHours() >= 12 ? CONST.TIME_PERIOD.PM : CONST.TIME_PERIOD.AM,
     };
 }
 
@@ -1181,6 +1206,8 @@ const DateUtils = {
     isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
+    formatToLongDateWithWeekdayWithoutYear,
+    getTimeOfDayGreetingKey,
     formatToLocalTime,
     formatToReadableString,
     getZoneAbbreviation,

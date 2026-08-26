@@ -18,7 +18,7 @@ function CardSectionDataEmpty() {
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardExclamation']);
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+        <View style={[styles.mt8, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
             <Icon
                 src={icons.CreditCardExclamation}
                 additionalStyles={styles.subscriptionCardIcon}

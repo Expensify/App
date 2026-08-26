@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 
@@ -51,12 +51,13 @@ function SearchSaveButton() {
 
     return (
         <Button
-            small
-            icon={expensifyIcons.Bookmark}
-            text={translate('common.save')}
+            size={CONST.BUTTON_SIZE.SMALL}
             onPress={openSaveSearchPage}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
-        />
+        >
+            <Button.Icon src={expensifyIcons.Bookmark} />
+            <Button.Text>{translate('common.save')}</Button.Text>
+        </Button>
     );
 }
 

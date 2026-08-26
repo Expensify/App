@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -268,11 +268,12 @@ function DateFilterBase({
                 <>
                     {!selectedDateModifier && (
                         <Button
-                            text={translate('common.reset')}
                             onPress={reset}
                             style={[styles.mh4, styles.mt4]}
-                            large
-                        />
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.Text>{translate('common.reset')}</Button.Text>
+                        </Button>
                     )}
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.save')}

@@ -11,16 +11,21 @@ import {
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
+    willReportBecomeOneTransactionReportAfterMerge,
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {isFromCreditCardImport} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
@@ -1552,6 +1557,186 @@ describe('MergeTransactionUtils', () => {
 
             // Then amount should still be a conflict field (not auto-resolved by transactionType: 'card')
             expect(conflictFields).toContain('amount');
+        });
+    });
+
+    describe('willReportBecomeOneTransactionReportAfterMerge', () => {
+        const REPORT_ID = 'R1';
+        const buildTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction => ({
+            ...createRandomTransaction(0),
+            transactionID,
+            reportID,
+            ...overrides,
+        });
+        const toCollection = (transactions: Transaction[]) =>
+            Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction])) as OnyxCollection<Transaction>;
+        const toSearchData = (transactions: Transaction[]): SearchResults['data'] => {
+            const data: SearchResults['data'] = {};
+            for (const transaction of transactions) {
+                data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+            }
+            return data;
+        };
+
+        it('returns true when the report already holds a single expense and the source lives elsewhere', () => {
+            // Given a report that only contains the target, and a source in another report
+            const target = buildTransaction('target', REPORT_ID);
+
+            // When we check if the report becomes a one-transaction report after the merge
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target]), undefined, [], false);
+
+            // Then it should be true because only the target is left
+            expect(result).toBe(true);
+        });
+
+        it('returns true when merging the only two expenses in a report', () => {
+            // Given a report with exactly the target and the source
+            const target = buildTransaction('target', REPORT_ID);
+            const source = buildTransaction('source', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), undefined, [], false);
+
+            // Then it should be true because only the target remains
+            expect(result).toBe(true);
+        });
+
+        it('returns false when the report still has other expenses after the merge', () => {
+            // Given a report with the target, the source, and another expense
+            const target = buildTransaction('target', REPORT_ID);
+            const source = buildTransaction('source', REPORT_ID);
+            const other = buildTransaction('other', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source, other]), undefined, [], false);
+
+            // Then it should be false because the target and the other expense remain
+            expect(result).toBe(false);
+        });
+
+        it('counts expenses from the Search snapshot when they are missing from Onyx', () => {
+            // Given a report whose expenses are only in the Search snapshot, not the Onyx collection
+            const target = buildTransaction('target', REPORT_ID);
+            const source = buildTransaction('source', REPORT_ID);
+            const other = buildTransaction('other', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, {}, toSearchData([target, source, other]), [], false);
+
+            // Then it should be false because the snapshot still shows the target and the other expense
+            expect(result).toBe(false);
+        });
+
+        it('dedupes expenses that appear in both Onyx and the Search snapshot', () => {
+            // Given the same target and source in both sources
+            const target = buildTransaction('target', REPORT_ID);
+            const source = buildTransaction('source', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), toSearchData([target, source]), [], false);
+
+            // Then it should be true because the duplicated target is only counted once
+            expect(result).toBe(true);
+        });
+
+        it('ignores siblings pending deletion while online', () => {
+            // Given a report with the target and a sibling that is pending deletion, while online
+            const target = buildTransaction('target', REPORT_ID);
+            const deletingSibling = buildTransaction('deleting', REPORT_ID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When we check after the merge
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingSibling]), undefined, [], false);
+
+            // Then it should be true because the deleting sibling is hidden online and doesn't count
+            expect(result).toBe(true);
+        });
+
+        it('keeps siblings pending deletion while offline', () => {
+            // Given the same report with a sibling pending deletion, but now offline
+            const target = buildTransaction('target', REPORT_ID);
+            const deletingSibling = buildTransaction('deleting', REPORT_ID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When we check after the merge while offline
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingSibling]), undefined, [], true);
+
+            // Then it should be false because the Search report still shows the deleting sibling while offline
+            expect(result).toBe(false);
+        });
+
+        it('lets the optimistic Onyx copy override a stale Search snapshot row', () => {
+            // Given a sibling pending deletion in Onyx that still appears (without the pending state) in the stale snapshot
+            const target = buildTransaction('target', REPORT_ID);
+            const deletingInOnyx = buildTransaction('deleting', REPORT_ID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            const deletingInSnapshot = buildTransaction('deleting', REPORT_ID);
+
+            // When we check while online
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingInOnyx]), toSearchData([target, deletingInSnapshot]), [], false);
+
+            // Then it should be true because the Onyx copy wins and the deleting sibling is excluded
+            expect(result).toBe(true);
+        });
+
+        it('excludes a superseded pending card authorization from the count', () => {
+            // Given a posted Expensify Card expense, its stale pending auth from the same chain, and the merge source
+            const target = buildTransaction('posted', REPORT_ID, {bank: CONST.EXPENSIFY_CARD.BANK, parentTransactionID: 'authRoot', status: CONST.TRANSACTION.STATUS.POSTED});
+            const supersededPendingAuth = buildTransaction('authPending', REPORT_ID, {
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                parentTransactionID: 'authRoot',
+                status: CONST.TRANSACTION.STATUS.PENDING,
+            });
+            const source = buildTransaction('source', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, supersededPendingAuth, source]), undefined, [], false);
+
+            // Then it should be true because the superseded pending auth is hidden, leaving only the posted expense
+            expect(result).toBe(true);
+        });
+
+        it('excludes an expense whose IOU action was deleted but left its transaction row behind', () => {
+            // Given a report with the target and a sibling whose IOU action was deleted while its transaction row lingers in Onyx
+            const target = buildTransaction('target', REPORT_ID);
+            const deletedRow = buildTransaction('deletedRow', REPORT_ID);
+            const buildIOUAction = (index: number, transactionID: string, isDeleted: boolean): ReportAction => ({
+                ...createRandomReportAction(index),
+                reportActionID: `action_${transactionID}`,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                // An empty message marks the action as a deleted comment; a populated one keeps it live.
+                message: isDeleted ? [] : [{type: 'COMMENT', html: 'expense', text: 'expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID},
+            });
+            // The target keeps a live action; the sibling's action is a deleted comment (empty message).
+            const reportActions = [buildIOUAction(0, 'target', false), buildIOUAction(1, 'deletedRow', true)];
+
+            // When we check after the merge, counting exactly what the Search report renders
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletedRow]), undefined, reportActions, false);
+
+            // Then it should be true because the deleted expense's lingering row is not counted
+            expect(result).toBe(true);
+        });
+
+        it('returns false for the unreported and split sentinel reports', () => {
+            // Given a single expense in each sentinel report
+            const unreported = buildTransaction('unreported', CONST.REPORT.UNREPORTED_REPORT_ID);
+            const split = buildTransaction('split', CONST.REPORT.SPLIT_REPORT_ID);
+
+            // When we check each sentinel report
+            const unreportedResult = willReportBecomeOneTransactionReportAfterMerge(CONST.REPORT.UNREPORTED_REPORT_ID, 'source', toCollection([unreported]), undefined, [], false);
+            const splitResult = willReportBecomeOneTransactionReportAfterMerge(CONST.REPORT.SPLIT_REPORT_ID, 'source', toCollection([split]), undefined, [], false);
+
+            // Then both should be false because those reportIDs are shared across expenses
+            expect(unreportedResult).toBe(false);
+            expect(splitResult).toBe(false);
+        });
+
+        it('returns false when the reportID is undefined', () => {
+            // Given no reportID
+            // When we check whether the report collapses to a single expense
+            const result = willReportBecomeOneTransactionReportAfterMerge(undefined, 'source', {}, undefined, [], false);
+
+            // Then it should be false
+            expect(result).toBe(false);
         });
     });
 });

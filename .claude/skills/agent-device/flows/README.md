@@ -5,7 +5,6 @@
 - `macros/` - reusable helpers for common setup/navigation actions that stop in a navigable state for further interactive work.
 - `macros/<platform>/` - platform-specific overrides of a `macros/` flow, for flows whose selectors differ per platform. See [Platform scoping](#platform-scoping).
 - `tests/` - critical-scenario scripts for QA/perf verification that assert explicit outcomes (for example Sentry spans) and then stop.
-- `lib/` - bash drive libraries for flows that need conditional steering the linear `.ad` format cannot express (snapshot classification, state-dependent branching). Each file documents its own contract; the caller always owns the session lifecycle (`open`/`close`/`record`). Source them from an orchestrator or run them standalone against an already-open session (for example `lib/sign-in-drive.sh --platform web --session <name> --email <email>`).
 
 Composable `.ad` snippets - bounded units of work. A flow may span one or multiple screens as long as it represents a coherent, reusable action with clear start (`@pre`) and completion (`@post`) checkpoints. Each flow advertises machine-matchable metadata (`@pre`, `@post`, `@tag`, `@param`) via `# @`-prefixed comment headers, while flow type is derived from location (`flows/macros/` or `flows/tests/`).
 
@@ -18,7 +17,7 @@ A caller driving platform `P` resolves a macro by name:
 1. `macros/<P>/<name>.ad` when that file exists.
 2. `macros/<name>.ad` otherwise.
 
-Split flows today: `sign-in.ad`, `send-message.ad`, `complete-onboarding.ad`. All three fill text inputs, whose accessibility shape differs between web and native. The unscoped copy of a split flow stays in `macros/` as the fallback for platforms that have no folder yet; it is not the contract for any platform that does have one. Everything else stays shared - split a flow only after confirming the divergence per platform with `agent-device is visible "<selector>"`.
+Split flows today: `sign-in.ad`, `send-message.ad`, `complete-onboarding.ad`. All three fill text inputs, whose accessibility shape differs between web and native. The unscoped copy of a split flow stays in `macros/` as the fallback for platforms that have no folder yet; it is not the contract for any platform that does have one. (Exception: `sign-in.ad` is fully platform-scoped - `web` and `android` only - and has no unscoped fallback; a new platform such as iOS must add its own `macros/<platform>/sign-in.ad`.) Everything else stays shared - split a flow only after confirming the divergence per platform with `agent-device is visible "<selector>"`.
 
 ## Agent decision loop (interactive)
 

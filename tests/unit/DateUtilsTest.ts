@@ -724,4 +724,49 @@ describe('DateUtils', () => {
             expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 31 * 1000, windowMs)).toBe(0);
         });
     });
+
+    describe('getTimeOfDayGreetingKey', () => {
+        const atHour = (hour: number, minute = 0) => set(new Date(), {hours: hour, minutes: minute, seconds: 0, milliseconds: 0});
+
+        it('should return goodMorning from 4am up to noon', () => {
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(4))).toBe('goodMorning');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(8, 30))).toBe('goodMorning');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(11, 59))).toBe('goodMorning');
+        });
+
+        it('should return goodAfternoon from noon up to 5pm', () => {
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(12))).toBe('goodAfternoon');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(14, 15))).toBe('goodAfternoon');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(16, 59))).toBe('goodAfternoon');
+        });
+
+        it('should return goodEvening from 5pm up to 4am', () => {
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(17))).toBe('goodEvening');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(21))).toBe('goodEvening');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(0))).toBe('goodEvening');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(3, 59))).toBe('goodEvening');
+        });
+    });
+
+    describe('time picker helpers with a non-English date-fns locale', () => {
+        beforeEach(() => IntlStore.load(CONST.LOCALES.DE));
+
+        it('combineDateAndTime parses the picker-submitted English AM/PM value', () => {
+            expect(DateUtils.combineDateAndTime('02:00 PM', '2026-08-04')).toBe('2026-08-04 14:00:00');
+            expect(DateUtils.combineDateAndTime('08:00 AM', '2026-08-04 00:00:00')).toBe('2026-08-04 08:00:00');
+        });
+
+        it('get12HourTimeObjectFromDate returns the AM/PM period for a localized time string', () => {
+            const localizedNoon = DateUtils.extractTime12Hour('2026-08-04 12:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(localizedNoon).period).toBe(CONST.TIME_PERIOD.PM);
+            const localizedMorning = DateUtils.extractTime12Hour('2026-08-04 08:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(localizedMorning)).toEqual({hour: '08', minute: '00', seconds: '00', milliseconds: '000', period: CONST.TIME_PERIOD.AM});
+        });
+
+        it('per diem start/end range built from picker values validates', () => {
+            const newStart = DateUtils.combineDateAndTime('08:00 AM', '2026-08-04');
+            const newEnd = DateUtils.combineDateAndTime('02:00 PM', '2026-08-04');
+            expect(DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd})).toBe(true);
+        });
+    });
 });
