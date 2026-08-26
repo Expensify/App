@@ -95,7 +95,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 translate,
                 currentUserAccountID,
                 reportAttributesDerived,
-                sortedActions: undefined,
             }),
         [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived, dateFnsLocale],
     );

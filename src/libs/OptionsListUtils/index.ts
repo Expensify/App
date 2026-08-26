@@ -1449,7 +1449,6 @@ type GetReportDisplayOptionParams = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
-    sortedActions: Record<string, ReportAction[]> | undefined;
 };
 
 /**
@@ -1468,7 +1467,6 @@ function getReportDisplayOption({
     reportAttributesDerived,
     policyTags,
     visibleReportActionsData = {},
-    sortedActions,
 }: GetReportDisplayOptionParams): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
@@ -1487,7 +1485,6 @@ function getReportDisplayOption({
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
-        sortedActions,
         currentUserAccountID,
     });
 

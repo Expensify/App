@@ -7934,7 +7934,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             // Then it should return an option with isSelfDM and alternateText set
@@ -7965,7 +7964,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             // Then it should return an option with invoice room text and alternateText
@@ -7998,7 +7996,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             // Then it should return an option with unknownUserDetails data
@@ -8030,7 +8027,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             // Then it should return an option with workspace name
@@ -8070,7 +8066,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             // Then it should use the custom personalDetails parameter
@@ -8098,7 +8093,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             // Then it should not throw and return a valid option
@@ -8121,7 +8115,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             // Then it should return a valid option (createOption handles undefined)
@@ -8736,7 +8729,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8770,7 +8762,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8801,7 +8792,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8836,7 +8826,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8871,7 +8860,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             expect(option).toBeDefined();
@@ -10493,7 +10481,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
 
             // Then the option should be created successfully using the reports collection
@@ -11304,7 +11291,6 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                sortedActions: undefined,
             });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
