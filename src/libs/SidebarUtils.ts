@@ -169,6 +169,7 @@ import {
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getIcons,
+    getIconsForParticipants,
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPendingDeleteMemberAccountIDs,
@@ -1437,19 +1438,23 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    const reportIcons = getIcons(
-        report,
-        formatPhoneNumber,
-        translate,
-        personalDetails,
-        personalDetail?.avatar,
-        personalDetail?.login,
-        personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        policy,
-        invoiceReceiverPolicy,
-        isReportArchived,
-        getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
-    );
+    // A Concierge thread is a conversation with Concierge, so the LHN shows Concierge rather than whoever asked.
+    const reportIcons =
+        isChatThread(report) && report.parentReportID === conciergeReportID
+            ? getIconsForParticipants([CONST.ACCOUNT_ID.CONCIERGE], personalDetails)
+            : getIcons(
+                  report,
+                  formatPhoneNumber,
+                  translate,
+                  personalDetails,
+                  personalDetail?.avatar,
+                  personalDetail?.login,
+                  personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                  policy,
+                  invoiceReceiverPolicy,
+                  isReportArchived,
+                  getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
+              );
 
     // IOU icon trimming (single vs diagonal) is handled at the component level
     // using useReportPreviewSenderID which has access to transaction attendee data.
