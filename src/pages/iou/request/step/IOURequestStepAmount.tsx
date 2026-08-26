@@ -230,6 +230,7 @@ function IOURequestStepAmount({
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
                   localize: {translate, dateFnsLocale},
+                  sortedActions: undefined,
               });
     });
     const participant = participants.at(0);

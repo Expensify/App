@@ -16,7 +16,6 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
-import useRelevantSortedActions from '@hooks/useRelevantSortedActions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -71,7 +70,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {showErrorAlert} from './ShareRootPage';
@@ -225,8 +224,6 @@ function SubmitDetailsPage({
     useShareFileSizeValidation(currentReceiptSource, setErrorTitle, setErrorMessage, !errorTitle);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
-    const participantReportIDs = useMemo(() => selectedParticipants.map((participant) => participant.reportID).filter(Boolean), [selectedParticipants]);
-    const sortedActions = useRelevantSortedActions(participantReportIDs);
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
@@ -241,7 +238,7 @@ function SubmitDetailsPage({
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
                   localize: {translate, dateFnsLocale},
-                  sortedActions,
+                  sortedActions: undefined,
               });
     });
 

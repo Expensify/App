@@ -1369,8 +1369,7 @@ type GetReportOptionParams = {
     currentUserAccountID: number;
     localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined};
     policyTags?: OnyxCollection<PolicyTagLists>;
-    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
-    sortedActions?: Record<string, ReportAction[]>;
+    sortedActions: Record<string, ReportAction[]> | undefined;
 };
 
 /**

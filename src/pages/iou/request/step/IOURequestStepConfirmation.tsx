@@ -32,7 +32,6 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
-import useRelevantSortedActions from '@hooks/useRelevantSortedActions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
@@ -183,8 +182,6 @@ function IOURequestStepConfirmation({
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
-    const participantReportIDs = useMemo(() => transaction?.participants?.map((participant) => participant.reportID).filter(Boolean) ?? [], [transaction?.participants]);
-    const sortedActions = useRelevantSortedActions(participantReportIDs);
 
     const selectedWorkspacePolicyID = getSelectedWorkspacePolicyID(initialTransaction, action);
     // A workspace with submissions (delayed submission) disabled has no autoReporting, so the new flow seeds the
@@ -340,7 +337,7 @@ function IOURequestStepConfirmation({
                           reportDraft: participantReportDraft,
                           currentUserAccountID: currentUserPersonalDetails.accountID,
                           localize: {translate, dateFnsLocale},
-                          sortedActions,
+                          sortedActions: undefined,
                       });
             }) ?? [],
         [
@@ -355,7 +352,6 @@ function IOURequestStepConfirmation({
             conciergeReportID,
             reportDrafts,
             translate,
-            sortedActions,
             currentUserPersonalDetails.accountID,
         ],
     );

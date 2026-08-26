@@ -8231,8 +8231,6 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getReportOption', () => {
-        const mockSortedActions: Record<string, ReportAction[]> = {};
-
         beforeEach(async () => {
             await act(async () => {
                 await Onyx.clear();
@@ -8272,6 +8270,7 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy,
@@ -8281,7 +8280,6 @@ describe('OptionsListUtils', () => {
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
-                sortedActions: mockSortedActions,
             });
 
             expect(option.text).toBe('Test Workspace');
@@ -8314,6 +8312,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant: {reportID},
                 privateIsArchived: undefined,
                 policy: undefined,
@@ -8323,7 +8322,6 @@ describe('OptionsListUtils', () => {
                 reportDraft: undefined,
                 currentUserAccountID: ownerAccountID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
-                sortedActions: mockSortedActions,
             });
 
             expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
@@ -8380,6 +8378,7 @@ describe('OptionsListUtils', () => {
 
             // Pass the real personalDetails so the submits-to subtitle resolves to a name
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy,
@@ -8389,7 +8388,6 @@ describe('OptionsListUtils', () => {
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
-                sortedActions: mockSortedActions,
             });
 
             expect(option.text).toBe('Test Workspace with Submit');
@@ -8414,6 +8412,7 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8423,7 +8422,6 @@ describe('OptionsListUtils', () => {
                 reportDraft: report,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
-                sortedActions: mockSortedActions,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -8466,6 +8464,7 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8475,7 +8474,6 @@ describe('OptionsListUtils', () => {
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
-                sortedActions: mockSortedActions,
             });
 
             // The option.isSelfDM is set by createOption based on the report type
@@ -8512,6 +8510,7 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8521,7 +8520,6 @@ describe('OptionsListUtils', () => {
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
-                sortedActions: mockSortedActions,
             });
 
             expect(option.isInvoiceRoom).toBe(true);
@@ -8565,6 +8563,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: !!reportNameValuePair?.private_isArchived,
                 policy: POLICY,
@@ -8574,7 +8573,6 @@ describe('OptionsListUtils', () => {
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
-                sortedActions: mockSortedActions,
             });
 
             expect(option.text).toBe(POLICY.name);
@@ -8619,6 +8617,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: !!reportNameValuePair?.private_isArchived,
                 policy: POLICY,
@@ -8628,7 +8627,6 @@ describe('OptionsListUtils', () => {
                 reportDraft: draftReport,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
-                sortedActions: mockSortedActions,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -8649,6 +8647,7 @@ describe('OptionsListUtils', () => {
 
             // Pass reportDraft = undefined → not a draft, should NOT be disabled
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8675,6 +8674,7 @@ describe('OptionsListUtils', () => {
 
             // Pass reportDraft explicitly → should be disabled regardless of Onyx state
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8705,6 +8705,7 @@ describe('OptionsListUtils', () => {
 
             // Callers are responsible for passing reportDraft explicitly — undefined means not disabled
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8906,6 +8907,7 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -8937,6 +8939,7 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: undefined,
@@ -8969,6 +8972,7 @@ describe('OptionsListUtils', () => {
 
             // Test that the function works with reportAttributesDerived parameter (optional)
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9015,6 +9019,7 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9088,6 +9093,7 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy,
@@ -9123,6 +9129,7 @@ describe('OptionsListUtils', () => {
 
             // Pass empty personalDetails
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9155,6 +9162,7 @@ describe('OptionsListUtils', () => {
 
             // Pass undefined personalDetails
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9215,6 +9223,7 @@ describe('OptionsListUtils', () => {
             };
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9247,6 +9256,7 @@ describe('OptionsListUtils', () => {
             const participant = {reportID};
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9276,6 +9286,7 @@ describe('OptionsListUtils', () => {
             const participant = {reportID};
 
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9323,6 +9334,7 @@ describe('OptionsListUtils', () => {
             // Passing conciergeReportID matching the reportID identifies this as the Concierge chat,
             // which affects getMovedTransactionMessage to use CONST.CONCIERGE_DISPLAY_NAME ('Concierge')
             const option = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9353,6 +9365,7 @@ describe('OptionsListUtils', () => {
             const participant = {reportID};
 
             const optionWithConcierge = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
@@ -9364,6 +9377,7 @@ describe('OptionsListUtils', () => {
                 localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
             const optionWithoutConcierge = getReportOption({
+                sortedActions: undefined,
                 participant,
                 privateIsArchived: undefined,
                 policy: POLICY,
