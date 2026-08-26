@@ -1851,6 +1851,7 @@ export default OriginalMessage;
 export type {
     DecisionName,
     OriginalMessageIOU,
+    OriginalMessageReportPreview,
     ChronosOOOEvent,
     PaymentMethodType,
     OriginalMessageSource,

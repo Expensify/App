@@ -1,8 +1,8 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Avatar from '@components/Avatar';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useSuggestedAgents from '@hooks/useSuggestedAgents';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -42,16 +43,19 @@ type AgentTemplateCardProps = {
 
 function AgentTemplateCard({template, avatarID, onAdd}: AgentTemplateCardProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const avatar = AGENT_AVATARS.getLocal(avatarID);
+    const avatarSize = StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT);
 
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.p5, styles.mb3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                <Avatar
-                    source={AGENT_AVATARS.getLocal(avatarID)}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.DEFAULT}
-                    name={template.name}
+                <Icon
+                    src={avatar}
+                    width={avatarSize}
+                    height={avatarSize}
+                    additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)}
                 />
                 <View style={[styles.flex1, styles.gapHalf]}>
                     <Text style={[styles.textStrong]}>{template.name}</Text>

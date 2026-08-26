@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Badge from '@components/Badge';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
@@ -194,13 +194,11 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
 
                     <View style={[styles.gap2, styles.alignItemsEnd]}>
                         {!!item.assignee.accountID && (
-                            <Avatar
-                                imageStyles={[styles.alignSelfCenter]}
+                            <UserAvatar
+                                imageStyles={styles.alignSelfCenter}
                                 size={CONST.AVATAR_SIZE.XXX_SMALL}
                                 source={item.assignee.avatar}
-                                name={item.formattedAssignee}
-                                type={CONST.ICON_TYPE_AVATAR}
-                                avatarID={item.assignee.accountID}
+                                accountID={item.assignee.accountID}
                             />
                         )}
 

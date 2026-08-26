@@ -339,6 +339,136 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(failureData.some((u) => u.key === TARGET_CATEGORIES_KEY)).toBe(false);
             });
 
+            it('merges category rule fields onto same-named target categories when rules is selected without categories', () => {
+                const sourceCategories: PolicyCategories = {
+                    Food: {name: 'Food', enabled: true, maxExpenseAmount: 5000, expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE, areCommentsRequired: true, commentHint: 'Why?'},
+                    // Disabled on the target, so the copy enables it - otherwise the Rules page would hide the rules just copied.
+                    Travel: {name: 'Travel', enabled: true, areAttendeesRequired: true},
+                    // Has no rule fields, so it must not touch the target category.
+                    Office: {name: 'Office', enabled: true},
+                    // Only exists on the source, so there is nothing to apply it to.
+                    Software: {name: 'Software', enabled: true, maxExpenseAmount: 1000},
+                };
+                const targetCategories: PolicyCategories = {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    Food: {name: 'Food', enabled: true, maxExpenseAmount: 100, 'GL Code': 'GL-1'},
+                    Travel: {name: 'Travel', enabled: false},
+                    Office: {name: 'Office', enabled: true},
+                };
+
+                const allPolicyCategories: OnyxCollection<PolicyCategories> = {
+                    [SOURCE_CATEGORIES_KEY]: sourceCategories,
+                    [TARGET_CATEGORIES_KEY]: targetCategories,
+                };
+
+                const {optimisticData, failureData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['rules'], allPolicyCategories, {});
+
+                const optimisticMerge = optimisticData.find((u) => u.key === TARGET_CATEGORIES_KEY && u.onyxMethod === Onyx.METHOD.MERGE);
+                expect(optimisticMerge?.value).toEqual({
+                    // The target's own GL Code survives; only the rule fields come from the source.
+                    Food: {
+                        name: 'Food',
+                        enabled: true,
+                        maxExpenseAmount: 5000,
+                        expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
+                        areCommentsRequired: true,
+                        commentHint: 'Why?',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'GL Code': 'GL-1',
+                    },
+                    Travel: {name: 'Travel', enabled: true, areAttendeesRequired: true},
+                });
+
+                const failureSet = failureData.find((u) => u.key === TARGET_CATEGORIES_KEY && u.onyxMethod === Onyx.METHOD.SET);
+                expect(failureSet?.value).toEqual(targetCategories);
+            });
+
+            it('does not emit a category rules merge when categories is selected too, since the SET already carries them', () => {
+                const sourceCategories: PolicyCategories = {Food: {name: 'Food', enabled: true, maxExpenseAmount: 5000}};
+                const targetCategories: PolicyCategories = {Food: {name: 'Food', enabled: true}};
+
+                const allPolicyCategories: OnyxCollection<PolicyCategories> = {
+                    [SOURCE_CATEGORIES_KEY]: sourceCategories,
+                    [TARGET_CATEGORIES_KEY]: targetCategories,
+                };
+
+                const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['rules', 'categories'], allPolicyCategories, {});
+
+                expect(optimisticData.some((u) => u.key === TARGET_CATEGORIES_KEY && u.onyxMethod === Onyx.METHOD.MERGE)).toBe(false);
+                expect(optimisticData.find((u) => u.key === TARGET_CATEGORIES_KEY && u.onyxMethod === Onyx.METHOD.SET)?.value).toEqual(sourceCategories);
+            });
+
+            it('does not emit a category rules merge when no source category defines a rule field', () => {
+                const allPolicyCategories: OnyxCollection<PolicyCategories> = {
+                    [SOURCE_CATEGORIES_KEY]: {Food: {name: 'Food', enabled: true}},
+                    [TARGET_CATEGORIES_KEY]: {Food: {name: 'Food', enabled: true}},
+                };
+
+                const {optimisticData, failureData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['rules'], allPolicyCategories, {});
+
+                expect(optimisticData.some((u) => u.key === TARGET_CATEGORIES_KEY)).toBe(false);
+                expect(failureData.some((u) => u.key === TARGET_CATEGORIES_KEY)).toBe(false);
+            });
+
+            it('does not emit a category rules merge when the source only carries expenseLimitType without a flag amount', () => {
+                const allPolicyCategories: OnyxCollection<PolicyCategories> = {
+                    [SOURCE_CATEGORIES_KEY]: {Food: {name: 'Food', enabled: true, expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE}},
+                    // Disabled, so a spurious patch would also wrongly force-enable it.
+                    [TARGET_CATEGORIES_KEY]: {Food: {name: 'Food', enabled: false}},
+                };
+
+                const {optimisticData, failureData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['rules'], allPolicyCategories, {});
+
+                expect(optimisticData.some((u) => u.key === TARGET_CATEGORIES_KEY)).toBe(false);
+                expect(failureData.some((u) => u.key === TARGET_CATEGORIES_KEY)).toBe(false);
+            });
+
+            it('does not emit a category rules merge when the source flag amount is the disabled sentinel', () => {
+                const allPolicyCategories: OnyxCollection<PolicyCategories> = {
+                    [SOURCE_CATEGORIES_KEY]: {
+                        Food: {name: 'Food', enabled: true, maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE, expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE},
+                    },
+                    [TARGET_CATEGORIES_KEY]: {Food: {name: 'Food', enabled: false}},
+                };
+
+                const {optimisticData, failureData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['rules'], allPolicyCategories, {});
+
+                expect(optimisticData.some((u) => u.key === TARGET_CATEGORIES_KEY)).toBe(false);
+                expect(failureData.some((u) => u.key === TARGET_CATEGORIES_KEY)).toBe(false);
+            });
+
+            it('copies a category whose only rule is a description hint, enabling the target so the hint is reachable', () => {
+                const allPolicyCategories: OnyxCollection<PolicyCategories> = {
+                    [SOURCE_CATEGORIES_KEY]: {Food: {name: 'Food', enabled: true, commentHint: 'Add the attendee list'}},
+                    [TARGET_CATEGORIES_KEY]: {Food: {name: 'Food', enabled: false}},
+                };
+
+                const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['rules'], allPolicyCategories, {});
+
+                const optimisticMerge = optimisticData.find((u) => u.key === TARGET_CATEGORIES_KEY && u.onyxMethod === Onyx.METHOD.MERGE);
+                expect(optimisticMerge?.value).toEqual({Food: {name: 'Food', enabled: true, commentHint: 'Add the attendee list'}});
+            });
+
+            it('skips rule fields the source has pending delete', () => {
+                const allPolicyCategories: OnyxCollection<PolicyCategories> = {
+                    [SOURCE_CATEGORIES_KEY]: {
+                        Food: {
+                            name: 'Food',
+                            enabled: true,
+                            maxExpenseAmount: 5000,
+                            areAttendeesRequired: true,
+                            pendingFields: {areAttendeesRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        },
+                    },
+                    [TARGET_CATEGORIES_KEY]: {Food: {name: 'Food', enabled: true}},
+                };
+
+                const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['rules'], allPolicyCategories, {});
+
+                const optimisticMerge = optimisticData.find((u) => u.key === TARGET_CATEGORIES_KEY && u.onyxMethod === Onyx.METHOD.MERGE);
+                expect(optimisticMerge?.value).toEqual({Food: {name: 'Food', enabled: true, maxExpenseAmount: 5000}});
+            });
+
             it('falls back to empty object when source has no categories', () => {
                 const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['categories'], {}, {});
 

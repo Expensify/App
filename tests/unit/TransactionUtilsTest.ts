@@ -1303,6 +1303,14 @@ describe('TransactionUtils', () => {
             expect(showBrokenConnectionViolation).toBe(true);
         });
 
+        it('should return true when a re-auth broken connection violation exists and the user is the policy member', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
         it('should return true when a broken connection violation exists for any of the provided transactions and the user is the policy member', () => {
             const policy = createMock<Policy>({
                 role: CONST.POLICY.ROLE.USER,
@@ -1367,6 +1375,24 @@ describe('TransactionUtils', () => {
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
+        });
+    });
+
+    describe('hasPendingRTERViolation', () => {
+        it('should not treat a re-auth broken connection violation as pending', () => {
+            const transactionViolations = [
+                {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}},
+            ];
+
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(false);
+        });
+
+        it('should treat a seven-day-hold RTER violation as pending', () => {
+            const transactionViolations = [
+                {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD}},
+            ];
+
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(true);
         });
     });
 

@@ -10,12 +10,11 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
 import type {ValueOf} from 'type-fest';
 
@@ -1272,7 +1271,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'Δεν προστέθηκαν κανόνες εμπόρων, καθώς υπάρχουν ήδη όλοι.' : 'Δεν έχουν προστεθεί κανόνες εμπόρου.';
             }
-
             return {
                 one: 'Προστέθηκε 1 κανόνας εμπόρου.',
                 other: `Έχουν προστεθεί ${count} κανόνες εμπόρων.`,
@@ -1604,7 +1602,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'βάσει προηγούμενης δραστηριότητας',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `βάσει των <a href="${rulesLink}">κανόνων του χώρου εργασίας</a>` : 'βάσει κανόνα χώρου εργασίας'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `για ${comment}` : 'δαπάνη'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Αναφορά τιμολογίου #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Αναφορά τιμολογίου #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `στάλθηκαν ${formattedAmount}${comment ? `για ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName, workspaceName) => `μετακινήθηκε η δαπάνη από τον προσωπικό χώρο στο ${workspaceName ?? `συνομιλήστε με τον/την ${reportName}`}`,
         movedToPersonalSpace: 'μετακινήθηκε η δαπάνη στον προσωπικό χώρο',
@@ -1923,7 +1921,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Επιλέξτε τις λεπτομέρειες που θέλετε να διατηρήσετε:',
             noDifferences: 'Δεν βρέθηκαν διαφορές μεταξύ των συναλλαγών',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'ένα' : 'α';
+                const article = startsWithVowel(field) ? 'ένα' : 'α';
                 return `Παρακαλούμε επιλέξτε ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Παρακαλώ επιλέξτε συμμετέχοντες',
@@ -6474,6 +6472,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         spend: 'Έλεγχοι δαπανών και προσαρμοσμένα όρια',
                     },
                     ctaTitle: 'Έκδοση νέας κάρτας',
+                    existingFeedTitle: 'Διαχειριστείτε τις Κάρτες Expensify',
+                    viewCards: 'Προβολή καρτών',
                 },
             },
             companyCards: {
@@ -10228,6 +10228,19 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης, επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση.';
+                    }
+                    return isMarkAsCash
+                        ? `Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης, επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Σημειώστε την ως μετρητά για να την αγνοήσετε ή <a href="${connectionLink}">επανασυνδεθείτε</a> για να αντιστοιχίσετε την απόδειξη.`
+                        : `Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης, επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. <a href="${connectionLink}">Επανασυνδεθείτε</a> για να αντιστοιχίσετε την απόδειξη.`;
+                }
+                return isAdmin
+                    ? `Η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. <a href="${companyCardPageURL}">Επανασυνδέστε για να αντιστοιχίσετε την απόδειξη</a>`
+                    : 'Η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Ζητήστε από ένα διαχειριστή να την επανασυνδέσει για να γίνει αντιστοίχιση της απόδειξης.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';
@@ -10250,6 +10263,10 @@ ${reportName}`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Η απόδειξη εκκρεμεί λόγω κατεστραμμένης σύνδεσης τράπεζας. Παρακαλώ επιλύστε το στις <a href="${workspaceCompanyCardRoute}">εταιρικές κάρτες</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Η απόδειξη εκκρεμεί λόγω προβλήματος στη σύνδεση με την τράπεζα. Παρακαλείστε να ζητήσετε από έναν διαχειριστή χώρου εργασίας να το επιλύσει.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Η απόδειξη εκκρεμεί επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Παρακαλώ επιλύστε το στις <a href="${workspaceCompanyCardRoute}">εταιρικές κάρτες</a>.</muted-text-label>`,
+        memberReauthConnectionError:
+            'Η απόδειξη εκκρεμεί επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Παρακαλείστε να ζητήσετε από έναν διαχειριστή χώρου εργασίας να το επιλύσει.',
         markAsCashToIgnore: 'Σημειώστε ως μετρητά για να την αγνοήσετε και να ζητήσετε πληρωμή.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {

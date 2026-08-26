@@ -563,7 +563,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(sentryWebpackPlugin
                         ? ([
                               sentryWebpackPlugin({
-                                  authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
+                                  authToken: process.env.SENTRY_AUTH_TOKEN,
                                   org: 'expensify',
                                   project: 'app',
                                   release: {

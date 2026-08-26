@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
@@ -135,10 +135,9 @@ export default function WorkspaceTagsTableRow({
                             {!!item.approverDisplayName && (
                                 <>
                                     {!!item.approverAccountID && (
-                                        <Avatar
-                                            name={item.approverDisplayName}
+                                        <UserAvatar
                                             source={item.approverAvatar}
-                                            type={CONST.ICON_TYPE_AVATAR}
+                                            accountID={item.approverAccountID}
                                             size={CONST.AVATAR_SIZE.XXX_SMALL}
                                         />
                                     )}
@@ -170,6 +169,7 @@ export default function WorkspaceTagsTableRow({
                                 isOn={switchValue}
                                 showLockIcon={item.isLocked}
                                 disabled={isSwitchControlDisabled}
+                                pending={item.pending}
                                 accessibilityLabel={`${switchAccessibilityLabel}: ${item.name}`}
                                 onToggle={handleSwitchToggle}
                             />

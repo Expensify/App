@@ -3,9 +3,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getStyledTextArray from '@libs/GetStyledTextArray';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
@@ -13,7 +14,8 @@ import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from './AutoCompleteSuggestions/types';
 
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
-import Avatar from './Avatar';
+import UserAvatar from './Avatar/UserAvatar';
+import Icon from './Icon';
 import Text from './Text';
 
 type Mention = {
@@ -37,7 +39,7 @@ type Mention = {
     handle?: string;
 
     /** Array of icons of the mention. If present, we use the first element of this array. For room suggestions, the icons are not used */
-    icons?: Icon[];
+    icons?: IconType[];
 };
 
 type MentionSuggestionsProps = {
@@ -87,23 +89,32 @@ function MentionSuggestions({
      */
     const renderSuggestionMenuItem = useCallback(
         (item: Mention) => {
+            // The @here suggestion carries a static SVG (Megaphone), not a user's avatar.
             const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
+            const firstIcon = item.icons?.at(0);
             const styledDisplayName = getStyledTextArray(item.text, prefix);
             const styledHandle = item.text === item.alternateText ? undefined : getStyledTextArray(item.alternateText, prefix);
 
             return (
                 <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-                    {!!item.icons && !!item.icons.length && (
+                    {!!firstIcon && (
                         <View style={styles.mentionSuggestionsAvatarContainer}>
-                            <Avatar
-                                source={item.icons.at(0)?.source}
-                                size={isIcon ? CONST.AVATAR_SIZE.XXX_SMALL : CONST.AVATAR_SIZE.X_SMALL}
-                                name={item.icons.at(0)?.name}
-                                avatarID={item.icons.at(0)?.id}
-                                type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
-                                fill={isIcon ? theme.success : undefined}
-                                fallbackIcon={item.icons.at(0)?.fallbackIcon}
-                            />
+                            {isIcon ? (
+                                <Icon
+                                    src={typeof firstIcon.source === 'string' ? undefined : firstIcon.source}
+                                    width={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXX_SMALL)}
+                                    height={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXX_SMALL)}
+                                    fill={theme.success}
+                                    additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)}
+                                />
+                            ) : (
+                                <UserAvatar
+                                    source={firstIcon.source}
+                                    size={CONST.AVATAR_SIZE.X_SMALL}
+                                    accountID={getAccountIDFromAvatarID(firstIcon.id)}
+                                    fallbackIcon={firstIcon.fallbackIcon}
+                                />
+                            )}
                         </View>
                     )}
                     <Text

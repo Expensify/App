@@ -1,8 +1,9 @@
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarPageFooter from '@components/AvatarPageFooter';
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,6 +14,7 @@ import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
@@ -60,7 +62,9 @@ type EditAgentAvatarContentProps = {
 function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPresetID}: EditAgentAvatarContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
+    const presetAvatarSize = StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.X_LARGE);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
 
@@ -158,13 +162,12 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
-                    <Avatar
+                    <UserAvatar
                         containerStyles={styles.alignSelfCenter}
                         imageStyles={styles.alignSelfCenter}
                         source={previewSource}
-                        avatarID={accountID}
+                        accountID={accountID}
                         size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                        type={CONST.ICON_TYPE_AVATAR}
                     />
                     <AttachmentPicker
                         type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
@@ -203,12 +206,14 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                                     }}
                                     style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
                                 >
-                                    <Avatar
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        source={local}
-                                        size={CONST.AVATAR_SIZE.X_LARGE}
-                                        containerStyles={styles.avatarSelectorContainer}
-                                    />
+                                    <View style={styles.avatarSelectorContainer}>
+                                        <Icon
+                                            src={local}
+                                            width={presetAvatarSize}
+                                            height={presetAvatarSize}
+                                            additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_LARGE, CONST.ICON_TYPE_AVATAR)}
+                                        />
+                                    </View>
                                 </PressableWithFeedback>
                             );
                         })}

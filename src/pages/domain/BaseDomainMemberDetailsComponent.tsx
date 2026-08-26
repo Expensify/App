@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -72,11 +72,10 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
-                                <Avatar
+                                <UserAvatar
                                     containerStyles={[styles.mb4, styles.noOutline]}
                                     source={personalDetails?.avatar}
-                                    avatarID={accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
+                                    accountID={accountID}
                                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={personalDetails?.fallbackIcon}
                                 />

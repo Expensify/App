@@ -13,7 +13,7 @@ concurrency:
 jobs:
   proposal-police-workflow:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    if: '!contains(fromJSON(''["OSBotify", "imgbot[bot]", "melvin-bot[bot]", "codecov[bot]"]''), github.actor)'
+    if: '!contains(fromJSON(''["OSBotify", "imgbot[bot]", "melvin-bot[bot]", "codecov[bot]"]''), github.actor) && !contains(github.event.issue.assignees.*.login, github.event.comment.user.login)'
     steps:
       # Expensify employees commenting on Help Wanted issues are giving direction, not bidding for the job,
       # so none of these checks should ever apply to them. author_association is not enough: it only reports

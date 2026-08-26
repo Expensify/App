@@ -12,7 +12,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import Avatar from './Avatar';
+import UserAvatar from './Avatar/UserAvatar';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
@@ -42,12 +42,10 @@ function UserPill({avatar, displayName, accountID, email, style}: UserPillProps)
             }}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.userPill, shouldUseNarrowLayout && styles.mw100, style]}>
-                <Avatar
+                <UserAvatar
                     source={avatar}
                     size={CONST.AVATAR_SIZE.XXX_SMALL}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    avatarID={accountID}
-                    name={displayName}
+                    accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
                 />
                 <Text
                     style={styles.userPillText}

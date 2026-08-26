@@ -77,6 +77,7 @@ import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
+import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
 import type ExpensifyCardStatement from './ExpensifyCardStatement';
@@ -250,6 +251,7 @@ export type {
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
+    ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
     Fund,
     FundID,

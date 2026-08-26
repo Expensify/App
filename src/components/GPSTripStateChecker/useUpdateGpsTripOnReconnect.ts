@@ -1,4 +1,5 @@
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 
 import {updateGpsPoints, updateTrimmedEndPoint} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, getGpsPoints} from '@libs/GPSDraftDetailsUtils';
@@ -6,9 +7,17 @@ import {addressFromGpsPoint, getGpsPoints} from '@libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {useEffect, useRef} from 'react';
 
 function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    // Mirror the latest gpsDraftDetails into a ref so the async onReconnect handler can read the newest value
+    // after awaiting reverse geocoding, instead of the stale value captured when the callback started.
+    const latestGpsDraftDetailsRef = useRef(gpsDraftDetails);
+    useEffect(() => {
+        latestGpsDraftDetailsRef.current = gpsDraftDetails;
+    }, [gpsDraftDetails]);
+
     // The trimmed end point is chosen in the Edit Stop screen. When trimmed while offline, its address is stored as
     // stringified coordinates, so on reconnect we fetch the human readable address to replace it.
     const updateTrimmedEndPointAddress = async (trimmedEndPoint: TrimmedGPSPoint | undefined) => {
@@ -57,9 +66,8 @@ function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
 
         const waypointAddresses = (await Promise.all(waypointUpdates)).filter((waypoints) => !!waypoints.point.address);
 
-        // To avoid race conditions, we need to get the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
-        const gpsDraftDetailsPromiseResult = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined);
-        const latestGpsDraftDetails = gpsDraftDetailsPromiseResult;
+        // To avoid race conditions, we need the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
+        const latestGpsDraftDetails = latestGpsDraftDetailsRef.current;
 
         const latestGpsPoints = getGpsPoints(latestGpsDraftDetails) ?? gpsPoints;
         const newGpsPoints = [...latestGpsPoints];

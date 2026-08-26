@@ -20,7 +20,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getActivePoliciesWithExpenseChatAndTimeEnabled, isControlPolicy, isPerDiemEnabled, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
@@ -31,7 +31,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {iouRequestPolicyCollectionSelector} from '@src/selectors/Policy';
+import {createIOURequestStartPoliciesSelector} from '@src/selectors/Policy';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -79,12 +79,11 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: iouRequestPolicyCollectionSelector,
-    });
-
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [iouRequestStartPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
+    });
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -107,22 +106,14 @@ function IOURequestStartPage({
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
-    const policiesWithPerDiemEnabled = useMemo(
-        () => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserPersonalDetails.login),
-        [allPolicies, currentUserPersonalDetails.login],
-    );
-    const policiesWithTimeEnabled = useMemo(
-        () => getActivePoliciesWithExpenseChatAndTimeEnabled(allPolicies, currentUserPersonalDetails.login),
-        [allPolicies, currentUserPersonalDetails.login],
-    );
-    const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
-    const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
-    const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && isPerDiemEnabled(policy);
+    const doesPerDiemPolicyExist = !!iouRequestStartPolicies?.hasPerDiemPolicy;
+    const moreThanOnePerDiemExist = !!iouRequestStartPolicies?.hasMultiplePerDiemPolicies;
+    const hasCurrentPolicyPerDiemEnabled = isPerDiemEligiblePolicy(policy);
     const hasCurrentPolicyTimeTrackingEnabled = policy ? isTimeTrackingEnabled(policy) : false;
     const shouldShowPerDiemOption = shouldShowPerDiemTabOption(iouType, isFromGlobalCreate, hasCurrentPolicyPerDiemEnabled, doesPerDiemPolicyExist);
     const shouldShowTimeOption =
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
-        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
+        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!iouRequestStartPolicies?.hasTimePolicy));
 
     // Mirrors the tabs rendered below so a stale persisted selectedTab that isn't valid for this iouType is rejected.
     const availableTabs = useMemo<Set<SelectedTabRequest>>(() => {
@@ -278,7 +269,7 @@ function IOURequestStartPage({
             iouType={iouType}
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
-            allPolicies={iouType === CONST.IOU.TYPE.INVOICE ? allPolicies : undefined}
+            canSendInvoice={iouRequestStartPolicies?.canSendInvoiceFromAnyWorkspace}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={isNewManualExpenseFlowEnabled}
@@ -349,7 +340,7 @@ function IOURequestStartPage({
                                                     <DynamicIOURequestStepDestination
                                                         openedFromStartPage
                                                         ref={perDiemInputRef}
-                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabled.at(0)?.id}
+                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : iouRequestStartPolicies?.firstPerDiemPolicyID}
                                                         route={route}
                                                         navigation={navigation}
                                                     />
@@ -362,7 +353,7 @@ function IOURequestStartPage({
                                     <TopTab.Screen name={CONST.TAB_REQUEST.TIME}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
-                                                {isFromGlobalCreate && policiesWithTimeEnabled.length > 1 ? (
+                                                {isFromGlobalCreate && iouRequestStartPolicies?.hasMultipleTimePolicies ? (
                                                     <IOURequestStepTimeWorkspace
                                                         route={route}
                                                         navigation={navigation}
@@ -371,7 +362,7 @@ function IOURequestStartPage({
                                                     <IOURequestStepHours
                                                         route={route}
                                                         navigation={navigation}
-                                                        explicitPolicyID={isFromGlobalCreate ? policiesWithTimeEnabled.at(0)?.id : undefined}
+                                                        explicitPolicyID={isFromGlobalCreate ? iouRequestStartPolicies?.firstTimePolicyID : undefined}
                                                     />
                                                 )}
                                             </TabScreenWithFocusTrapWrapper>

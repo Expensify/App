@@ -3421,6 +3421,15 @@ const brokenCardConnection530Violation: TransactionViolation = {
     },
 };
 
+const brokenCardConnectionReauthViolation: TransactionViolation = {
+    name: CONST.VIOLATIONS.RTER,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    data: {
+        isAdmin: true,
+        rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH,
+    },
+};
+
 describe('getViolationTranslation', () => {
     it('should return the correct message for broken card connection violation', () => {
         const testPolicyID = 'test-policy-123';
@@ -3440,6 +3449,23 @@ describe('getViolationTranslation', () => {
         );
         expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnection530ViolationExpected,
+        );
+    });
+
+    it('should return the correct message for a re-auth broken card connection violation', () => {
+        const testPolicyID = 'test-policy-123';
+        const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
+        const brokenCardConnectionReauthViolationExpected = translateLocal(
+            'violations.rter',
+            false,
+            true,
+            false,
+            undefined,
+            CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH,
+            companyCardPageURL,
+        );
+        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionReauthViolation, translate: translateLocal, convertToDisplayString})).toBe(
+            brokenCardConnectionReauthViolationExpected,
         );
     });
 
