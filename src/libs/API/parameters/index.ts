@@ -34,6 +34,7 @@ export type {default as SyncPolicyToMergeParams} from './SyncPolicyToMergeParams
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
 export type {default as SyncPolicyToFinancialForceParams} from './SyncPolicyToFinancialForceParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
+export type {default as SelectIntuitEnterpriseSuiteEntityParams} from './SelectIntuitEnterpriseSuiteEntityParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
 export type {default as SyncPolicyToRilletParams} from './SyncPolicyToRilletParams';
@@ -137,6 +138,7 @@ export type {default as SetContactMethodAsDefaultParams} from './SetContactMetho
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';
 export type {default as SignInWithShortLivedAuthTokenParams} from './SignInWithShortLivedAuthTokenParams';
 export type {default as SignInWithSupportAuthTokenParams} from './SignInWithSupportAuthTokenParams';
+export type {default as GetSupportalReasonParams} from './GetSupportalReasonParams';
 export type {default as UnlinkLoginParams} from './UnlinkLoginParams';
 export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTimezoneParams';
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
