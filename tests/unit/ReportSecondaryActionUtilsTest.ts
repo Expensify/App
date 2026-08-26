@@ -331,7 +331,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -392,7 +391,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -446,7 +444,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -501,7 +498,6 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -564,7 +560,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            isProduction: false,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
