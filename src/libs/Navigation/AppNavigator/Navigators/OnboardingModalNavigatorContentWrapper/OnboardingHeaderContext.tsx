@@ -1,5 +1,7 @@
 import CaretBackHeader from '@components/CaretBackHeader';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import {useFocusEffect} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 
@@ -7,11 +9,11 @@ type OnboardingHeaderConfig = {
     /** Whether the sticky onboarding header should render the back caret for the focused screen */
     shouldShowBackButton: boolean;
 
-    /** Handler invoked when the back caret is pressed. Falls back to Navigation.goBack when omitted (handled by the screen). */
+    /** Handler invoked when the back caret is pressed. Falls back to Navigation.goBack when omitted. */
     onBackButtonPress?: () => void;
 };
 
-type SetOnboardingHeaderConfig = (config: OnboardingHeaderConfig) => void;
+type SetOnboardingHeaderConfig = React.Dispatch<React.SetStateAction<OnboardingHeaderConfig>>;
 
 // The first onboarding screen never shows a back button, so seed the default hidden to avoid a caret flash before the focused screen registers.
 const defaultConfig: OnboardingHeaderConfig = {shouldShowBackButton: false};
@@ -56,10 +58,25 @@ function useOnboardingHeaderConfig({shouldShowBackButton, onBackButtonPress}: On
 
     useFocusEffect(
         useCallback(() => {
-            setConfig({
+            const registeredConfig: OnboardingHeaderConfig = {
                 shouldShowBackButton,
-                onBackButtonPress: () => onBackButtonPressRef.current?.(),
-            });
+                onBackButtonPress: () => {
+                    const handler = onBackButtonPressRef.current;
+
+                    if (handler) {
+                        handler();
+                        return;
+                    }
+
+                    Navigation.goBack();
+                },
+            };
+
+            setConfig(registeredConfig);
+
+            return () => {
+                setConfig((currentConfig) => (currentConfig === registeredConfig ? defaultConfig : currentConfig));
+            };
         }, [shouldShowBackButton, setConfig]),
     );
 }

@@ -43,7 +43,7 @@ function CaretBackHeader({onBackButtonPress, shouldShowBackButton = true, label}
                     onPress={onBackButtonPress}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.back')}
+                    accessibilityLabel={label ?? translate('common.back')}
                     sentryLabel="CaretBackHeader-Back"
                 >
                     <Icon

@@ -6732,6 +6732,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
                 height: shouldUseNarrowLayout ? 732 : '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
+                backgroundColor: theme.componentBG,
             }) satisfies ViewStyle,
 
         createMenuPositionSidebar: (windowHeight: number) =>

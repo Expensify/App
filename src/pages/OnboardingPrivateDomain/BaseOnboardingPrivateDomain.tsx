@@ -119,7 +119,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep]);
 
     useOnboardingHeaderConfig({
-        shouldShowBackButton: true,
+        shouldShowBackButton: !shouldBlockPublicDomain,
         onBackButtonPress: handleBackButtonPress,
     });
 
