@@ -2288,7 +2288,7 @@ describe('ReportActionsUtils', () => {
             });
         });
 
-        describe('admin card details link (useDynamicRoute base)', () => {
+        describe('admin card details link (useScreenBoundDynamicRoute base)', () => {
             const activeExpensifyCardForAdmin = {...activeExpensifyCard, cardID: 789} as Card;
             const REPORT_ID = '1234';
             const buildDynamicRoute = (suffix: string) => createDynamicRoute(suffix, ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
