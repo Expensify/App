@@ -36,6 +36,9 @@ type UseSelectionProps<DataType extends TableData> = {
 
     /** Whether the selection mode should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
     shouldEnableSelectionInNarrowPaneModal?: boolean;
+
+    /** Whether selected row keys should remain selected while the search query changes. */
+    shouldPreserveSelectionOnSearch?: boolean;
 };
 
 type SelectionMethods = {
@@ -68,6 +71,7 @@ export default function useSelection<DataType extends TableData>({
     activeSearchString,
     onRowSelectionChange,
     shouldEnableSelectionInNarrowPaneModal,
+    shouldPreserveSelectionOnSearch = false,
 }: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     // When a table opts into selection inside a narrow pane modal (RHP), the selection-mode auto-sync keys off the real
     // screen size (isSmallScreenWidth) so it behaves correctly there (shouldUseNarrowLayout is always true in an RHP).
@@ -134,8 +138,17 @@ export default function useSelection<DataType extends TableData>({
         clearSelection();
     }, [isSelectionModeEnabled, selectedKeys.length, clearSelection, wasSelectionModeEnabled]);
 
-    // When the table filters or the search string change, clear the current selection
-    useEffect(() => clearSelection(), [currentFilters, activeSearchString, clearSelection]);
+    // Filters change which rows are actionable, so preserve the existing clear-on-filter behavior.
+    useEffect(() => clearSelection(), [currentFilters, clearSelection]);
+
+    // Search only changes row visibility. Callers can preserve selected keys so they return when the query is cleared.
+    useEffect(() => {
+        if (shouldPreserveSelectionOnSearch) {
+            return;
+        }
+
+        clearSelection();
+    }, [activeSearchString, clearSelection, shouldPreserveSelectionOnSearch]);
 
     // When the table unmounts, clear the selection. Should only run on unmount
     // eslint-disable-next-line react-hooks/exhaustive-deps

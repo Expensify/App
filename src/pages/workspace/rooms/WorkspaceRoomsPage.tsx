@@ -55,6 +55,8 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatRoomsSelector(policyID, reportNameValuePairs)});
@@ -87,7 +89,15 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
                 // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
                 // shouldMarkAsRead is false because the user only views the room details, not the conversation itself.
-                openReport({reportID: report.reportID, introSelected, betas, shouldMarkAsRead: false, hasReportActions: !!hasReportActions?.[report.reportID], currentUserAccountID});
+                openReport({
+                    reportID: report.reportID,
+                    introSelected,
+                    conciergeChat,
+                    betas,
+                    shouldMarkAsRead: false,
+                    hasReportActions: !!hasReportActions?.[report.reportID],
+                    currentUserAccountID,
+                });
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
                 return;
             }
@@ -98,6 +108,20 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     useFocusEffect(() => {
         openPolicyRoomsPage(policyID);
     });
+
+    const roomsTableHeader =
+        shouldUseNarrowLayout && !isArchived ? (
+            <View style={[styles.ph5, styles.pb3]}>
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+                    style={styles.w100}
+                >
+                    <Button.Icon src={headerIcons.Plus} />
+                    <Button.Text>{translate('common.create')}</Button.Text>
+                </Button>
+            </View>
+        ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
@@ -126,23 +150,11 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     )}
                 </HeaderWithBackButton>
 
-                {shouldUseNarrowLayout && !isArchived && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            style={styles.w100}
-                        >
-                            <Button.Icon src={headerIcons.Plus} />
-                            <Button.Text>{translate('common.create')}</Button.Text>
-                        </Button>
-                    </View>
-                )}
-
                 <WorkspaceRoomsTable
                     rooms={rooms}
                     policyID={policyID}
                     highlightedReportID={highlightedReportID}
+                    headerComponent={roomsTableHeader}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
