@@ -5,6 +5,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {Str} from 'expensify-common';
 import {useEffect} from 'react';
 
+import useNetwork from './useNetwork';
 import usePersonalDetailByLogin from './usePersonalDetailByLogin';
 
 /**
@@ -18,13 +19,16 @@ function useVacationDelegatePersonalDetails(delegate: string | undefined): Perso
     const login = delegate?.toLowerCase();
     const personalDetails = usePersonalDetailByLogin(login);
     const hasPersonalDetails = !!personalDetails;
+    const {isOffline} = useNetwork();
 
+    // `searchUserInServer` is a no-op while offline, hence the `isOffline` dependency: without it a hook that
+    // mounts offline would never look the delegate up again once the connection comes back.
     useEffect(() => {
-        if (!login || hasPersonalDetails) {
+        if (!login || hasPersonalDetails || isOffline) {
             return;
         }
         searchUserInServer(Str.removeSMSDomain(login));
-    }, [login, hasPersonalDetails]);
+    }, [login, hasPersonalDetails, isOffline]);
 
     return personalDetails;
 }

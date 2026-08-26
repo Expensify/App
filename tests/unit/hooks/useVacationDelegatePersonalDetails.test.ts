@@ -4,6 +4,7 @@
  */
 import {renderHook} from '@testing-library/react-native';
 
+import useNetwork from '@hooks/useNetwork';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
@@ -13,11 +14,14 @@ import type {PersonalDetails} from '@src/types/onyx';
 
 jest.mock('@hooks/usePersonalDetailByLogin', () => jest.fn(() => undefined));
 
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+
 jest.mock('@libs/actions/Report', () => ({
     searchUserInServer: jest.fn(),
 }));
 
 const mockUsePersonalDetailByLogin = jest.mocked(usePersonalDetailByLogin);
+const mockUseNetwork = jest.mocked(useNetwork);
 const mockSearchUserInServer = jest.mocked(searchUserInServer);
 
 const EMAIL_DELEGATE = 'jane@example.com';
@@ -28,6 +32,7 @@ describe('useVacationDelegatePersonalDetails', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUsePersonalDetailByLogin.mockReturnValue(undefined);
+        mockUseNetwork.mockReturnValue({isOffline: false});
     });
 
     it('returns the personal details of the delegate without hitting the server when they are already known', () => {
@@ -67,6 +72,20 @@ describe('useVacationDelegatePersonalDetails', () => {
         renderHook(() => useVacationDelegatePersonalDetails(PHONE_DELEGATE_WITH_SMS_DOMAIN));
 
         expect(mockSearchUserInServer).toHaveBeenCalledWith(PHONE_DELEGATE_RAW);
+    });
+
+    it('retries the lookup once the connection comes back, since the fetch is a no-op while offline', () => {
+        mockUseNetwork.mockReturnValue({isOffline: true});
+
+        const {rerender} = renderHook(() => useVacationDelegatePersonalDetails(EMAIL_DELEGATE));
+
+        expect(mockSearchUserInServer).not.toHaveBeenCalled();
+
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        rerender({});
+
+        expect(mockSearchUserInServer).toHaveBeenCalledTimes(1);
+        expect(mockSearchUserInServer).toHaveBeenCalledWith(EMAIL_DELEGATE);
     });
 
     it('does not fetch anything when there is no delegate', () => {

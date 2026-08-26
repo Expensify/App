@@ -3,11 +3,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
+import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
+
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
-import {Str} from 'expensify-common';
 import React from 'react';
 
 import MenuItem from './MenuItem';
@@ -45,7 +46,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(vacationDelegate?.delegate);
 
     const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
-    const delegateDisplayName = Str.removeSMSDomain(vacationDelegatePersonalDetails?.displayName ?? rawDelegateLogin);
+    const delegateDisplayName = getVacationDelegateDisplayName(rawDelegateLogin, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber);
     const delegateDescription = formatPhoneNumber(rawDelegateLogin);
 
     return hasVacationDelegate ? (

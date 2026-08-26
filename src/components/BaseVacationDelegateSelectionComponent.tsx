@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
 import {searchUserInServer} from '@libs/actions/Report';
+import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
 import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 
 import CONST from '@src/CONST';
@@ -100,7 +101,7 @@ function BaseVacationDelegateSelectionComponent({
     const pinnedDelegateOption = pinnedVacationDelegate
         ? {
               ...(pinnedDelegatePersonalDetails ?? {}),
-              text: pinnedDelegatePersonalDetails?.displayName ?? formatPhoneNumber(pinnedDelegateLogin),
+              text: getVacationDelegateDisplayName(pinnedDelegateLogin, pinnedDelegatePersonalDetails?.displayName, formatPhoneNumber),
               alternateText: formatPhoneNumber(pinnedDelegateLogin),
               login: pinnedDelegateLogin,
               keyForList: `vacationDelegate-${pinnedDelegateLogin}`,
@@ -178,7 +179,7 @@ function BaseVacationDelegateSelectionComponent({
         ...section,
         data: (section.data ?? []).map((option) => ({
             ...option,
-            text: option.text ?? '',
+            text: getVacationDelegateDisplayName(option.login ?? '', option.text, formatPhoneNumber),
             alternateText: option.alternateText ?? undefined,
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,

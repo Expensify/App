@@ -13,14 +13,21 @@ import type {PersonalDetails} from '@src/types/onyx';
 
 import React from 'react';
 
-// The component reads `formatPhoneNumber` from `useLocalize`. The real one depends on the Onyx
-// country code (not initialized here), so provide a deterministic stub that mirrors the behavior the
-// fix relies on: strip the SMS domain so a phone login is no longer rendered as `<phone>@expensify.sms`,
-// and return non-phone strings (e.g. emails) untouched.
+// The component reads `formatPhoneNumber` from `useLocalize`. The real one depends on the Onyx country code
+// (not initialized here), so provide a deterministic stub that mirrors the behavior the fix relies on: strip
+// the SMS domain, render a phone number in the viewer's local format, and leave non-phone strings (e.g.
+// emails) untouched. The local format has to differ from the raw E.164 login, otherwise a title that skipped
+// formatting would be indistinguishable from one that went through it.
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
-        formatPhoneNumber: (value: string) => (value ? value.replace('@expensify.sms', '') : ''),
+        formatPhoneNumber: (value: string) => {
+            if (!value) {
+                return '';
+            }
+            const withoutSMSDomain = value.replace('@expensify.sms', '');
+            return withoutSMSDomain === '+919789942470' ? '97899 42470' : withoutSMSDomain;
+        },
     })),
 );
 
@@ -73,6 +80,7 @@ const mockUseVacationDelegatePersonalDetails = jest.mocked(useVacationDelegatePe
 const EMAIL_DELEGATE = 'jane@example.com';
 const PHONE_DELEGATE_WITH_SMS_DOMAIN = '+919789942470@expensify.sms';
 const PHONE_DELEGATE_RAW = '+919789942470';
+const PHONE_DELEGATE_LOCALIZED = '97899 42470';
 
 function lastMenuItemProps() {
     return capturedMenuItemProps.at(-1) ?? {};
@@ -109,7 +117,9 @@ describe('VacationDelegateMenuItem', () => {
             expect(JSON.stringify(props)).not.toContain('@expensify.sms');
         });
 
-        it('renders the formatted phone number for an existing phone-number account (no `@expensify.sms`)', () => {
+        // The backend defaults `displayName` to the login, so the title has to be formatted rather than
+        // shown as the raw E.164 login it is.
+        it('renders the localized phone number for a phone-number account that has no name of its own', () => {
             const personalDetails: PersonalDetails = {
                 accountID: 43,
                 login: PHONE_DELEGATE_WITH_SMS_DOMAIN,
@@ -126,10 +136,78 @@ describe('VacationDelegateMenuItem', () => {
             );
 
             const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_RAW);
-            expect(props.description).toBe(PHONE_DELEGATE_RAW);
+            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
+            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
+            expect(props.description).toBe(PHONE_DELEGATE_LOCALIZED);
             expect(props.avatarID).toBe(43);
             expect(JSON.stringify(props)).not.toContain('@expensify.sms');
+        });
+
+        // Bug #89578 — the reported case: the backend hands back the login as the display name with the SMS domain
+        // already stripped, which used to reach the title as a raw E.164 number complete with its country code.
+        it('localizes a display name that is the login without its SMS domain', () => {
+            const personalDetails: PersonalDetails = {
+                accountID: 43,
+                login: PHONE_DELEGATE_WITH_SMS_DOMAIN,
+                displayName: PHONE_DELEGATE_RAW,
+            };
+            mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
+
+            render(
+                <VacationDelegateMenuItem
+                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
+                    onCloseError={jest.fn()}
+                    onPress={jest.fn()}
+                />,
+            );
+
+            const props = lastMenuItemProps();
+            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
+            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
+        });
+
+        it('keeps the name a phone-number account did set, and localizes the number below it', () => {
+            const personalDetails: PersonalDetails = {
+                accountID: 44,
+                login: PHONE_DELEGATE_WITH_SMS_DOMAIN,
+                displayName: 'Jane Doe',
+            };
+            mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
+
+            render(
+                <VacationDelegateMenuItem
+                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
+                    onCloseError={jest.fn()}
+                    onPress={jest.fn()}
+                />,
+            );
+
+            const props = lastMenuItemProps();
+            expect(props.title).toBe('Jane Doe');
+            expect(props.description).toBe(PHONE_DELEGATE_LOCALIZED);
+        });
+
+        // A local contact is stored without the country code. Personal details come back as E.164, which used
+        // to become the title so the status page showed `+91…` above a localized number.
+        it('localizes an E.164 display name when the login is still the national form', () => {
+            const personalDetails: PersonalDetails = {
+                accountID: 45,
+                login: '9789942470@expensify.sms',
+                displayName: PHONE_DELEGATE_RAW,
+            };
+            mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
+
+            render(
+                <VacationDelegateMenuItem
+                    vacationDelegate={{delegate: '9789942470@expensify.sms'}}
+                    onCloseError={jest.fn()}
+                    onPress={jest.fn()}
+                />,
+            );
+
+            const props = lastMenuItemProps();
+            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
+            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
         });
     });
 
@@ -152,7 +230,7 @@ describe('VacationDelegateMenuItem', () => {
         });
 
         // Bug #89578 — the exact scenario reported.
-        it('renders the formatted phone number (no `@expensify.sms`) when no personal details exist', () => {
+        it('renders the localized phone number when no personal details exist', () => {
             mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
 
             render(
@@ -164,8 +242,9 @@ describe('VacationDelegateMenuItem', () => {
             );
 
             const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_RAW);
-            expect(props.description).toBe(PHONE_DELEGATE_RAW);
+            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
+            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
+            expect(props.description).toBe(PHONE_DELEGATE_LOCALIZED);
             expect(JSON.stringify(props)).not.toContain('@expensify.sms');
         });
     });
