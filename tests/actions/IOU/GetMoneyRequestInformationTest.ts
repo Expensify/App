@@ -330,6 +330,23 @@ describe('getMoneyRequestInformation', () => {
             );
         });
 
+        it('flags the transaction when the cache holds only part of a report whose one cached transaction is pending deletion', async () => {
+            const moneyRequestReportID = 'iou-report-rail-5';
+            await setReportTransaction('partially-cached-tx-1', moneyRequestReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 10);
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            expect(result.onyxData.optimisticData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
+            );
+        });
+
         it('does not flag when the only existing transaction is pending deletion, even though the transaction count still includes it', async () => {
             const moneyRequestReportID = 'iou-report-rail-4';
             await setReportTransaction('deleted-tx-1', moneyRequestReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);

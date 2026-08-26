@@ -98,7 +98,15 @@ export default function useAnimatedHighlightStyle({
     }, [borderRadius, height, backgroundColor, highlightColor, theme.appBG, theme.border]);
 
     React.useEffect(() => {
+        // Called from the JS thread, so it sets its value there and leaves the one thread hop to the worklet boundary below.
+        const revealRow = () => {
+            nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
+        };
         if (shouldHighlight !== prevShouldHighlightRef.current) {
+            if (!shouldHighlight && playPhaseRef.current === 'armed') {
+                // A row that mounted highlighted starts at zero opacity and only the entry reveals it, so dropping the play still owes the reveal.
+                revealRow();
+            }
             // The highlight turning off retracts the reason to play, so an outstanding play is dropped whatever stage it reached.
             playPhaseRef.current = shouldHighlight ? 'armed' : 'idle';
         }
@@ -106,10 +114,6 @@ export default function useAnimatedHighlightStyle({
         if (playPhaseRef.current === 'idle' || !didScreenTransitionEnd) {
             return;
         }
-        // Both are called from the JS thread, so they set their value there and leave the one thread hop to the worklet boundary below.
-        const revealRow = () => {
-            nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
-        };
         const playPulse = () => {
             repeatableProgress.set(
                 withSequence(

@@ -16,6 +16,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -59,6 +60,7 @@ import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportU
 import {getOlderActions, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
@@ -122,8 +124,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    // The table is visible whenever it's wide, or — on narrow — only when focused (the RHP has closed).
-    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const isRHPTopmost = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    // A wide pane keeps the table visible beneath an RHP beside it, but another tab covers it outright, and narrow waits for the RHP to close.
+    const isReportVisible = shouldUseNarrowLayout ? isFocused : isFocused || isRHPTopmost;
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportIDFromRoute = route?.params?.reportID;
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);

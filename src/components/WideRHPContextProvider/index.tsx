@@ -185,7 +185,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     useLayoutEffect(() => {
         setExpandedRHPProgress(visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys);
         setVisibleRHPRouteKeysSnapshot(visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys);
-    }, [visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys, presentRouteKeys, allWideRHPRouteKeys, allSuperWideRHPRouteKeys]);
+    }, [visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys]);
 
     /**
      * Effect that empties the module-level snapshot on teardown, since it outlives the provider and would otherwise answer for the next session.

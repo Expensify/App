@@ -167,7 +167,7 @@ describe('useAnimatedHighlightStyle', () => {
         expect(pulsePlays()).toBe(1);
     });
 
-    it('drops a play armed during the screen transition when the highlight is cleared before the transition ends', () => {
+    it('reveals but does not play a row whose highlight was cleared before the screen transition ended', () => {
         jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: false, shouldUseNarrowLayoutOnWideRHP: true});
         const {setShouldHighlight} = renderHarness(true);
         expect(entryPlays()).toBe(0);
@@ -176,8 +176,8 @@ describe('useAnimatedHighlightStyle', () => {
         jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: true});
         setShouldHighlight(false);
         expect(entryPlays()).toBe(0);
-        expect(revealPlays()).toBe(0);
         expect(pulsePlays()).toBe(0);
+        expect(revealPlays()).toBe(1);
     });
 
     it('does not replay while the highlight stays on, but plays again after it turns off and back on', () => {

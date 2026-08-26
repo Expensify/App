@@ -124,6 +124,18 @@ describe('useRHPWidth', () => {
         setWidth('wide');
 
         expect(lastRegisteredWidth()).toBe('wide');
-        expect(mockUnmarkReportRHPWidth).toHaveBeenLastCalledWith('report1');
+        expect(mockUnmarkReportRHPWidth).toHaveBeenLastCalledWith('report1', 'super-wide');
+    });
+
+    it('leaves the hint map alone when the effect re-runs and no hint stands for the report it shows', () => {
+        mockGetReportRHPWidthHint.mockReturnValue(undefined);
+        const {setWidth} = renderHarness('wide');
+        mockUnmarkReportRHPWidth.mockClear();
+
+        // Marking another report hands every mounted screen a new getter, which says nothing about this one.
+        mockGetReportRHPWidthHint = jest.fn<RHPWidthHint | undefined, [string]>().mockImplementation((reportID: string) => (reportID === 'report2' ? 'wide' : undefined));
+        setWidth('wide');
+
+        expect(mockUnmarkReportRHPWidth).not.toHaveBeenCalled();
     });
 });
