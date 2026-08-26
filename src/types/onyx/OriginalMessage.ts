@@ -1647,8 +1647,17 @@ type OriginalMessageTakeControl = {
  * Model of Reassign Approver action original message (system-generated when approval workflow changes)
  */
 type OriginalMessageReassignApprover = {
-    /** Account ID of the new approver assigned by the system */
+    /** Account ID of the new approver */
     newApproverID: number;
+
+    /** Account ID of the approver the new one replaced */
+    previousApproverID?: number;
+
+    /** Why the approver was reassigned */
+    reasoning?: string;
+
+    /** Account ID of whoever changed the workflow that triggered the reassignment */
+    actorAccountID?: number;
 };
 
 /**
