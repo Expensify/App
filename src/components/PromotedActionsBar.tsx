@@ -24,7 +24,7 @@ import {View} from 'react-native';
 
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 
 type PromotedAction = {
     key: string;
@@ -144,12 +144,13 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                     style={[styles.flex1, styles.mw50]}
                     key={key}
                 >
-                    <Button
-                        onPress={onSelected}
-                        iconFill={theme.icon}
-                        text={translate(translationKey)}
-                        icon={typeof icon === 'string' ? icons[icon] : icon}
-                    />
+                    <Button onPress={onSelected}>
+                        <Button.Icon
+                            src={typeof icon === 'string' ? icons[icon] : icon}
+                            fill={theme.icon}
+                        />
+                        <Button.Text>{translate(translationKey)}</Button.Text>
+                    </Button>
                 </View>
             ))}
         </View>

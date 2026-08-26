@@ -94,6 +94,53 @@ describe('WorkspaceListPage', () => {
         expect(newWorkspaceButton).not.toBeOnTheScreen();
     });
 
+    it('should not show new workspace button when the restrict creation policy in the group domain is enabled and the restricting group is under the sharedNVP key', async () => {
+        const TEST_DOMAIN = 'domain.com';
+        const TEST_SECURITY_GROUP_ID = '123456';
+        const TEST_OWNER_ACCOUNT_ID = 42;
+        const TEST_POLICY_ID = 'A1B2C3D4E5F6A7B8';
+        const TEST_EMAIL = 'test@domain.com';
+        const TEST_ACCOUNT_ID = 1;
+
+        // Given an object membership, which carries the owner account ID
+        await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {
+            [TEST_DOMAIN]: {securityGroupID: TEST_SECURITY_GROUP_ID, ownerAccountID: TEST_OWNER_ACCOUNT_ID},
+        });
+
+        // Given the group forbids workspace creation, stored under the sharedNVP key
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${TEST_SECURITY_GROUP_ID}_${TEST_OWNER_ACCOUNT_ID}`, {
+            enableRestrictedPolicyCreation: true,
+        });
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
+            id: TEST_POLICY_ID,
+            name: 'Test Policy',
+            role: 'admin',
+        });
+
+        await Onyx.set(`${ONYXKEYS.SESSION}`, {
+            email: TEST_EMAIL,
+            accountID: TEST_ACCOUNT_ID,
+        });
+
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [TEST_ACCOUNT_ID]: {
+                login: TEST_EMAIL,
+                accountID: TEST_ACCOUNT_ID,
+                displayName: TEST_EMAIL,
+            },
+        });
+
+        // When the workspaces list is opened
+        renderPage();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the new workspace button is not rendered
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
+        expect(newWorkspaceButton).not.toBeOnTheScreen();
+    });
+
     it('should show new workspace button when the restrict creation policy in the group domain is disabled', async () => {
         const TEST_DOMAIN = 'domain.com';
         const TEST_SECURITY_GROUP_ID = 'test-id';
