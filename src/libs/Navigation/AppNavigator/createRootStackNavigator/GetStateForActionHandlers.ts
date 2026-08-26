@@ -1,10 +1,11 @@
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {NavigationPartialRoute} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -189,33 +190,75 @@ function getRehydratedTabNavigatorStateAfterPush(rehydratedState: StackNavigatio
 }
 
 /**
+ * Returns the focused route index, falling back to the first route for partial states.
+ */
+function getFocusedRouteIndex(navState: NavigationState | PartialState<NavigationState> | undefined): number | undefined {
+    if (!navState?.routes?.length) {
+        return undefined;
+    }
+
+    // Partial states from linking should include `index`; fall back to the first route.
+    return typeof navState.index === 'number' && navState.routes[navState.index] !== undefined ? navState.index : 0;
+}
+
+function isNavigationPartialRoute(route: unknown): route is NavigationPartialRoute {
+    return typeof route === 'object' && route !== null && 'name' in route && typeof route.name === 'string';
+}
+
+function isNavigationStateWithRoutes(state: unknown): state is PartialState<NavigationState> {
+    return typeof state === 'object' && state !== null && 'routes' in state && Array.isArray(state.routes);
+}
+
+function hasReportParams(params: unknown): params is ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] {
+    return typeof params === 'object' && params !== null && 'reportID' in params && typeof params.reportID === 'string';
+}
+
+/**
  * Returns the focused child route from a navigator `state` (respects `index`).
  * Using `routes.at(-1)` is wrong for TabNavigator: tab order follows TAB_SCREENS, not selection.
  */
 function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialState<NavigationState> | undefined): NavigationPartialRoute | undefined {
-    if (!navState?.routes?.length) {
-        return undefined;
-    }
-    const idx =
-        typeof navState.index === 'number' && navState.routes[navState.index] !== undefined
-            ? navState.index
-            : // Partial states from linking should include `index`; fall back to first route.
-              0;
-    return navState.routes[idx] as NavigationPartialRoute;
+    const focusedRouteIndex = getFocusedRouteIndex(navState);
+    const focusedRoute = focusedRouteIndex === undefined ? undefined : navState?.routes[focusedRouteIndex];
+    return isNavigationPartialRoute(focusedRoute) ? focusedRoute : undefined;
 }
 
-function getTargetTabRoute(existingTabRoute: TabRouteForReplacement | undefined, focusedTargetTab: NavigationPartialRoute): TabRouteForReplacement {
+function getKeylessRoute<R extends {key?: string}>(route: R): Omit<R, 'key'> {
+    const {key, ...routeWithoutKey} = route;
+    return routeWithoutKey;
+}
+
+function areSameReportRoutes(firstRoute: NavigationPartialRoute | undefined, secondRoute: NavigationPartialRoute | undefined): boolean {
+    if (firstRoute?.name !== SCREENS.REPORT || secondRoute?.name !== SCREENS.REPORT) {
+        return false;
+    }
+
+    const firstReportID = hasReportParams(firstRoute.params) ? firstRoute.params.reportID : undefined;
+    const secondReportID = hasReportParams(secondRoute.params) ? secondRoute.params.reportID : undefined;
+
+    return typeof firstReportID === 'string' && firstReportID === secondReportID;
+}
+
+function getTargetTabRoute(
+    existingTabRoute: TabRouteForReplacement | undefined,
+    focusedTargetTab: NavigationPartialRoute,
+    shouldPreserveFocusedReportsStack = false,
+): TabRouteForReplacement {
     // Prepend a back-target route beneath the incoming screen when the incoming state starts with a
     // different screen, so back navigation lands somewhere sensible: the existing sidebar/root route
     // (e.g. Inbox) for most tabs, or WORKSPACES_LIST for the workspace navigator. When the existing tab
     // doesn't have nested routes (e.g. cold-start through a deep link that opens straight into a modal),
     // fall back to the split navigator's default sidebar route so there is still something to pop back to.
     let mergedNestedState = focusedTargetTab.state;
-    const existingNestedRoutes = (existingTabRoute?.state as PartialState<NavigationState> | undefined)?.routes;
+    const existingNestedState = isNavigationStateWithRoutes(existingTabRoute?.state) ? existingTabRoute.state : undefined;
+    const existingNestedRoutes = existingNestedState?.routes;
     const newNestedRoutes = focusedTargetTab.state?.routes;
     const existingFirstRoute = existingNestedRoutes?.at(0);
     const newFirstRoute = newNestedRoutes?.at(0);
+    const focusedExistingRoute = getFocusedRouteFromNavigatorState(existingNestedState);
+    const focusedExistingRouteIndex = getFocusedRouteIndex(existingNestedState);
     const defaultSidebarRouteName = getSidebarRouteName(existingTabRoute?.name ?? focusedTargetTab.name);
+
     // The route prepended beneath the incoming screen so back navigation has a target. For most tabs this is
     // the sidebar/root route; for WORKSPACE_NAVIGATOR it is WORKSPACES_LIST (a list screen, not a sidebar).
     let backTargetRoute: NavigationPartialRoute | undefined;
@@ -231,7 +274,31 @@ function getTargetTabRoute(existingTabRoute: TabRouteForReplacement | undefined,
     } else {
         backTargetRoute = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
     }
-    if (backTargetRoute && newFirstRoute && backTargetRoute.name !== newFirstRoute.name) {
+
+    const shouldPreserveReportsStack =
+        shouldPreserveFocusedReportsStack &&
+        existingTabRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR &&
+        focusedTargetTab.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR &&
+        focusedExistingRoute?.name === SCREENS.REPORT &&
+        newFirstRoute?.name === SCREENS.REPORT &&
+        focusedExistingRouteIndex !== undefined &&
+        existingNestedRoutes !== undefined &&
+        newNestedRoutes !== undefined;
+
+    if (shouldPreserveReportsStack) {
+        // Keep only history through the focused report. Anything above it is forward history.
+        // The old focused report becomes non-top, so it must be keyless to avoid the
+        // react-native-screens top-to-non-top flash (#90985).
+        const routesThroughFocusedRoute = existingNestedRoutes.slice(0, focusedExistingRouteIndex + 1).map((route, index) => {
+            return index === focusedExistingRouteIndex ? getKeylessRoute(route) : route;
+        });
+
+        // Preserve and dedupe independently. If the incoming report is already focused,
+        // replace that last route with the incoming one instead of dropping the full stack.
+        const routesBeforeIncoming = areSameReportRoutes(routesThroughFocusedRoute.at(-1), newFirstRoute) ? routesThroughFocusedRoute.slice(0, -1) : routesThroughFocusedRoute;
+        const mergedRoutes = [...routesBeforeIncoming, ...newNestedRoutes];
+        mergedNestedState = {...focusedTargetTab.state, routes: mergedRoutes, index: mergedRoutes.length - 1};
+    } else if (backTargetRoute && newFirstRoute && backTargetRoute.name !== newFirstRoute.name) {
         const prependedRoutes = [backTargetRoute, ...(newNestedRoutes ?? [])];
         mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
     }
@@ -260,11 +327,17 @@ function getTabStateWithExistingFocusedTarget(existingTabState: NavigationState,
         return undefined;
     }
 
+    const platform = getPlatform();
+    const isNativePlatform = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+    // Browser history does not receive an entry for the preserved nested report, so applying
+    // this on web would make browser Back skip that report while React Navigation keeps it.
+    const shouldPreserveFocusedReportsStack = isNativePlatform && targetTabIndex === existingTabState.index;
+
     const updatedTabRoutes = existingTabState.routes.map((route, index) => {
         if (index !== targetTabIndex) {
             return route;
         }
-        return getTargetTabRoute(route, focusedTargetTab);
+        return getTargetTabRoute(route, focusedTargetTab, shouldPreserveFocusedReportsStack);
     });
     return {...existingTabState, routes: updatedTabRoutes, index: targetTabIndex};
 }
@@ -380,9 +453,7 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
     }
 
     const patchedRoutes = [...tabState.routes];
-    const routeWithoutKey = {...focusedRoute};
-    delete (routeWithoutKey as Partial<Pick<typeof routeWithoutKey, 'key'>>).key;
-    patchedRoutes[tabState.index] = routeWithoutKey as TabRouteForReplacement;
+    patchedRoutes[tabState.index] = getKeylessRoute(focusedRoute) as TabRouteForReplacement;
 
     return toStaleTabState(existingTabState, {
         routes: patchedRoutes,
