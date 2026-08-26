@@ -19,7 +19,7 @@ const emptyRHPKeysState: VisibleRHPKeys = {
  * A key missing from the navigation state may be a screen dismissing or one that was never shown, and only the first
  * holds a width. Callers must record `presentRouteKeys` so `seenRouteKeys` can tell those apart.
  */
-function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: string[], allSuperWideRHPKeys: string[], seenRouteKeys: Set<string>): VisibleRHPKeys {
+function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: string[], allSuperWideRHPKeys: string[], seenRouteKeys: ReadonlySet<string>): VisibleRHPKeys {
     // Nothing registered is the common case, and it needs no traversal of a tree whose keys nothing will be matched against.
     if (!state || (!allWideRHPKeys.length && !allSuperWideRHPKeys.length)) {
         return emptyRHPKeysState;

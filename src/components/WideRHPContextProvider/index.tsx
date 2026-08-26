@@ -109,9 +109,6 @@ type RHPWidthRegistration = {
     width: RHPWidthHint;
 };
 
-/** Route keys the navigation state has shown at least once. */
-const seenRHPRouteKeys = new Set<string>();
-
 /** Re-registering the same width is a no-op, so a route keeps its place unless its width actually changes. */
 function registerRHPRouteWidth(registrations: RHPWidthRegistration[], routeKey: string, width: RHPWidth): RHPWidthRegistration[] {
     const existing = registrations.find((registration) => registration.key === routeKey);
@@ -146,6 +143,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     // A reportID maps to at most one hint, making "wide vs super-wide" structurally mutually exclusive.
     const [reportRHPWidthHints, setReportRHPWidthHints] = useState<Map<string, RHPWidthHint>>(() => new Map());
 
+    // State, not a module Set: the derivation reads this during render, so its identity has to change when it does.
+    const [seenRHPRouteKeys, setSeenRHPRouteKeys] = useState<ReadonlySet<string>>(() => new Set());
+
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: expenseReportSelector,
     });
@@ -166,6 +166,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const allSuperWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'super-wide').map((registration) => registration.key);
     const {visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys, presentRouteKeys} = getVisibleRHPKeys(rootNavigationState, allWideRHPRouteKeys, allSuperWideRHPRouteKeys, seenRHPRouteKeys);
 
+    // Adjusted during render so the derivation is not a commit behind, and pruned of unregistered keys, which can no longer dismiss.
+    const registeredRouteKeys = new Set([...allWideRHPRouteKeys, ...allSuperWideRHPRouteKeys]);
+    const nextSeenRHPRouteKeys = new Set([...seenRHPRouteKeys, ...presentRouteKeys].filter((routeKey) => registeredRouteKeys.has(routeKey)));
+    if (nextSeenRHPRouteKeys.size !== seenRHPRouteKeys.size || [...nextSeenRHPRouteKeys].some((routeKey) => !seenRHPRouteKeys.has(routeKey))) {
+        setSeenRHPRouteKeys(nextSeenRHPRouteKeys);
+    }
+
     const isWideRHPFocused = !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
     const isSuperWideRHPFocused = !!focusedRoute?.key && allSuperWideRHPRouteKeys.includes(focusedRoute.key);
 
@@ -176,18 +183,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     // Layout effect so the animated width and per-route subscribers see the flip before paint, same as context consumers do.
     useLayoutEffect(() => {
-        // Recorded after the commit, so the derivation stays pure.
-        for (const key of presentRouteKeys) {
-            seenRHPRouteKeys.add(key);
-        }
-        // An unregistered key can never dismiss again, so dropping it bounds the set.
-        const registeredKeys = new Set([...allWideRHPRouteKeys, ...allSuperWideRHPRouteKeys]);
-        for (const key of seenRHPRouteKeys) {
-            if (registeredKeys.has(key)) {
-                continue;
-            }
-            seenRHPRouteKeys.delete(key);
-        }
         setExpandedRHPProgress(visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys);
         setVisibleRHPRouteKeysSnapshot(visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys);
     }, [visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys, presentRouteKeys, allWideRHPRouteKeys, allSuperWideRHPRouteKeys]);
