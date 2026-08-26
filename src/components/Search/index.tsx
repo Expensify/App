@@ -1145,9 +1145,18 @@ function Search({
         );
     }
 
+    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
+    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
+    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+    let searchTablePaddingRightStyle;
+    if (!isTask) {
+        searchTablePaddingRightStyle = isTransactionListView && validGroupBy ? styles.pr9 : styles.pr8;
+    }
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
         // Match the rows' trailing arrow spacing so the header columns line up with them.
-        <View style={[!isTask && styles.pr8, styles.flex1]}>
+        <View style={[searchTablePaddingRightStyle, styles.flex1]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={columnsToShow}
@@ -1181,11 +1190,6 @@ function Search({
                 isLoadMore
             />
         ) : undefined;
-
-    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
-    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
-    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
-    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const commonViewProps: CommonSearchViewProps = {
         ref: searchListRef,
