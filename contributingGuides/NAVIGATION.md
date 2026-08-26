@@ -274,14 +274,14 @@ const handleBackOut = () => {
 };
 ```
 
-See `IOURequestStepConfirmation.tsx` for the real reference implementation (submit-expense confirmation dismissing to the created report).
+See `IOURequestStepConfirmation.tsx` for a reference implementation.
 
 -   `reveal(afterTransition?)`: dismisses the RHP over the pre-inserted destination if the hook owns one, otherwise falls back to `revealRouteBeforeDismissingModal` (see above).
 -   `cleanupPreMount()`: removes the owned pre-insert, if any. Call it unconditionally on every back-out path (header back, hardware back) that closes the RHP without calling `reveal()` - it's a no-op when this instance never actually pre-inserted anything.
 -   `shouldPreservePreInsertedRouteOnUnmount`: pass when the component unmounts before `reveal()` runs but the pre-insert should survive (e.g. the caller dismisses separately after a submit).
 
 > [!NOTE]
-> Only one component may own a pre-inserted route at a time (a single-pre-inserter invariant enforced by a module-level flag in `Navigation.ts`). `reveal()` logs a warning if it runs while a *different* flow's pre-insert flag is still set - that's a sign the previous owner didn't clean up.
+> Only one component may own a pre-inserted route at a time. `reveal()` logs a warning if it runs while a *different* flow's pre-insert flag is still set - that's a sign the previous owner didn't clean up.
 
 > [!NOTE]
 > When the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP instead (`[origin, RHP] -> [origin, destination, RHP]`). Which one happens is determined by the destination route, not by anything the caller configures.
@@ -293,16 +293,15 @@ See `IOURequestStepConfirmation.tsx` for the real reference implementation (subm
 
 Pre-inserting is not a lightweight placeholder swap - it's a real second screen mounted in the stack, with its own Onyx connections, effects, and any API calls it fires on mount, running concurrently with the RHP that's still open. That mount happens whether or not the user ever reveals it: if they back out, `cleanupPreMount()` removes the *route*, but any data fetch the destination's mount already triggered already ran. For a screen with meaningful data-fetching behind it, that's wasted work on every back-out, not a free perf win.
 
-This is why the hook's own preconditions matter and aren't just checkboxes: the destination has to be knowable at mount time (otherwise there's nothing correct to pre-insert), and the user needs genuine dwell time on the RHP before dismissing (otherwise the pre-insert's own scheduling - it waits for the RHP's open transition, then schedules at idle priority - never gets a chance to finish, and you paid the mount cost for nothing).
+This is why the hook's own precondition matters and isn't just a checkbox: the destination has to be known at mount time, otherwise there's nothing correct to pre-insert. Dwell time is not a precondition - the pre-insert waits for the RHP's open transition and then schedules at idle priority, and if the user dismisses before that fires, the unmount cleanup cancels it and nothing was mounted.
 
-The hook's interaction with native navigation gestures has also turned out to be genuinely subtle, not incidental complexity: native swipe-back can pop the RHP at the native layer before any JS cleanup runs, briefly flashing the pre-inserted destination. This is a known limitation without a deterministic fix yet.
+Native swipe-back can pop the RHP at the native layer before any JS cleanup runs, briefly flashing the pre-inserted destination. This is a known limitation without a deterministic fix yet.
 
-**Concrete cases where the gap/flash cost is worth paying instead of reaching for this hook:**
+**Examples when NOT to use `usePreMountDestination`:**
 
-- **The destination is heavy and rarely reached from this dismiss path.** If most users dismiss via header-back rather than actually submitting, pre-inserting on every RHP open pays the concurrent-mount cost far more often than it pays off. Profile the actual dismiss-to-reveal ratio before assuming pre-insert wins.
-- **The RHP is a fast, single-step flow with no real dwell time.** A near-instant confirm-and-dismiss never gives idle scheduling a window to land the pre-insert before the user dismisses - you get the mount cost without the perf win, and (per `usePreMountDestinationTest.ts`'s scheduling tests) you're relying on timing that's inherently racy for that case.
+- **The destination is heavy and rarely reached from the dismiss path.** If most users dismiss rather than actually submitting, pre-inserting on every RHP open pays the concurrent-mount cost far more often than it pays off. Search logs to profile the production dismiss-to-reveal ratio before assuming pre-insert wins.
 - **The flow already has a working, simpler dismiss helper** (e.g. `dismissModalWithReport`, or a flow-specific strategy in `submitDismissStrategies.ts`). Don't replace something that already handles the gap/flash tradeoff correctly just to use the "standard" hook - `usePreMountDestination` is one tool for this class of problem, not the only one.
-- **You're tempted to use `shouldPreservePreInsertedRouteOnUnmount` as a default escape hatch.** During review of the hook's introduction, a reviewer pushed back hard on this exact option: "I'm confused why we would ever want to this ... it seems like this flag being set would defeat the purpose of the hook." It exists for a narrow case - a *different* caller finishes the dismiss after this component unmounts - not as a way to sidestep cleanup ordering you haven't worked through.
+- **You're tempted to use `shouldPreservePreInsertedRouteOnUnmount` as a default escape hatch.** It exists for one narrow case: a *different* caller finishes the dismiss after this component unmounts. Anywhere else it leaves a pre-inserted route with no owner left to clean it up, so the next flow's `reveal()` runs into an already-set pre-insert flag.
 
 ### Summary
 
@@ -311,7 +310,7 @@ The hook's interaction with native navigation gestures has also turned out to be
 -   If you want to go back to the screen regardless of its parameter values, pass `{compareParams: false}` to `Navigation.goBack`.
 -   If you want to close the entire modal window, regardless of how many pages you have opened, use `Navigation.dismissModal` to do that.
 -   If you want to open a report from RHP to prevent navigation back to this modal window, use `Navigation.dismissModalWithReport`.
--   If dismissing an RHP reveals a different fullscreen destination, use `usePreMountDestination` to mount it ahead of time instead of orchestrating pre-insert/reveal by hand - but only when the destination is known at mount time and the user has real dwell time on the RHP; it's a real concurrent mount, not a free perf win, so profile before reaching for it on a heavy or rarely-reached destination.
+-   If dismissing an RHP reveals a different fullscreen destination, use `usePreMountDestination` to mount it ahead of time - but only when the destination is known at mount time; it's a real concurrent mount, not a free perf win, so profile before reaching for it on a heavy or rarely-reached destination.
 
 ## Adding new screens
 

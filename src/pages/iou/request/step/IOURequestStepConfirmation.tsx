@@ -642,6 +642,7 @@ function IOURequestStepConfirmation({
     // pick. Resolve the P2P participant separately: existing chats win; only a genuinely new chat reuses
     // the optimistic reportID useParticipantSubmission committed.
     const firstParticipant = participants.at(0);
+
     // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
     const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat;
     const reusableP2PReportID = isP2PDestination ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
