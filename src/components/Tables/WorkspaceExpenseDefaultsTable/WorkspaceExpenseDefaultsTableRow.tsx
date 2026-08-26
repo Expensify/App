@@ -76,7 +76,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
 
     const prevItem = rowIndex > 0 ? processedData.at(rowIndex - 1) : undefined;
     const isMerchantType = item.section === CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES;
-    // A single section stays a flat list — the headers only earn their place once there is more than one group to tell apart.
+    // A single section stays a flat list. The headers only earn their place once there is more than one group to tell apart.
     const hasMultipleSections = new Set(processedData.map((rule) => rule.section)).size > 1;
     const showSectionHeader = hasMultipleSections && (rowIndex === 0 || prevItem?.section !== item.section);
 

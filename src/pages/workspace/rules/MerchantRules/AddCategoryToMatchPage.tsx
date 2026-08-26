@@ -89,7 +89,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
             }
 
             // Keep the current selections available so they stay visible and removable, but don't offer a category that
-            // already has a tax default — saving over it would silently replace the existing rule.
+            // already has a tax default, since saving over it would silently replace the existing rule.
             if (selectedCategories.includes(category.name)) {
                 return true;
             }

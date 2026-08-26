@@ -1,3 +1,6 @@
+/**
+ * Helpers for reading, shaping and identifying the category tax default rules stored in `policy.rules.expenseRules`.
+ */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
 

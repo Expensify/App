@@ -67,7 +67,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
     const compareItems: CompareItemsCallback<ExpenseDefaultTableItem, ExpenseDefaultsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
-        // Sections stay grouped and in a fixed order whatever the column sort is — sorting only reorders rows inside a section.
+        // Sections stay grouped and in a fixed order whatever the column sort is. Sorting only reorders rows inside a section.
         if (a.section !== b.section) {
             return SECTION_ORDER.indexOf(a.section) - SECTION_ORDER.indexOf(b.section);
         }

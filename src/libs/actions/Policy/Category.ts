@@ -1942,9 +1942,9 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
  * Sets the same default tax rate on several categories at once.
  *
  * The command is per-category, so this issues one write each. They can't be threaded one-into-the-next: `expenseRules` is
- * an array, so every write carries the whole thing, and all the optimistic writes land together the moment the loop runs
- * — the last would simply overwrite the rest. So every write shares one optimistic array holding all the categories, and
- * only the success and failure arrays differ, each clearing the pending state for its own category and leaving the
+ * an array, so every write carries the whole thing, and all the optimistic writes land together the moment the loop runs,
+ * and the last would simply overwrite the rest. So every write shares one optimistic array holding all the categories,
+ * and only the success and failure arrays differ, each clearing the pending state for its own category and leaving the
  * others as they are.
  */
 function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string) {
@@ -2022,7 +2022,7 @@ function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string
                     value: {
                         rules: {
                             // Keep the row carrying the error rather than dropping it, so the failure is visible and can
-                            // be dismissed. An update restores the stored rate; an add has none to fall back to and
+                            // be dismissed. An update restores the stored rate. An add has none to fall back to and
                             // keeps its ADD pending action so dismissing the error removes the row.
                             expenseRules: pendingExpenseRules.map((rule) => {
                                 if (!matchesCategoryTaxRule(rule, categoryName)) {
@@ -2112,7 +2112,7 @@ function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string
 
 /**
  * Removes the tax defaults for several categories at once. Shares one optimistic array across the writes for the same
- * reason `setPolicyCategoryTaxes` does — so the whole selection is marked for deletion together and, offline, every row
+ * reason `setPolicyCategoryTaxes` does, so the whole selection is marked for deletion together and, offline, every row
  * stays on screen greyed until the writes can be sent.
  */
 function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[]) {
@@ -2186,7 +2186,7 @@ function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: str
 
 /**
  * Dismisses the error on a category's tax default. A rule whose add never landed is dropped outright, since there is no
- * stored rule left to show — matching how a failed coding rule is cleared.
+ * stored rule left to show. This matches how a failed coding rule is cleared.
  */
 function clearPolicyCategoryTaxErrors(policy: OnyxEntry<Policy>, categoryName: string) {
     if (!policy?.id) {
