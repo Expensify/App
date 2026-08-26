@@ -35,9 +35,6 @@ module RNMode
         DISABLE_CODEGEN
         RCT_IGNORE_PODS_DEPRECATION
         EXPO_USE_PRECOMPILED_MODULES
-        EXPO_PRECOMPILED_MODULES_PATH
-        EXPO_PRECOMPILED_MODULES_BASE_URL
-        EXPO_PRECOMPILED_FLAVOR
         PROJECT_ROOT
         HERMES_OVERRIDE_HERMESC_PATH
         INSTALL_YOGA_FROM_LOCATION
@@ -59,7 +56,6 @@ module RNMode
     # 'static' is what that detection derives from `:linkage => :static` anyway.
     PINNED_ENV_VARS = {
         'USE_FRAMEWORKS' => 'static',
-        'RCT_NEW_ARCH_ENABLED' => '1',
         'RCT_HERMES_V1_ENABLED' => '1',
     }.freeze
 
@@ -131,7 +127,7 @@ module RNMode
         # Podfile.lock files pin the prebuilt tarball, so this applies in either mode.
         def check_hermes!(source_type)
             return if @mode.nil?
-            # Same reasoning as verify_hook_targets!: a missing constant must not raise here.
+            # A constant react-native has removed must not raise from a check whose job is to report.
             return unless defined?(HermesEngineSourceType)
             return if HermesEngineSourceType.isPrebuilt(source_type)
             return if opted_out?
@@ -222,7 +218,8 @@ module RNMode
             return if @hooks_installed
             @hooks_installed = true
 
-            verify_hook_targets!
+            # A rename upstream makes the prepend a no-op rather than an error, which
+            # tests/tooling/rnMode.test.ts catches on the react-native bump PR.
             ReactNativeDependenciesUtils.singleton_class.prepend(DepsHooks) if defined?(ReactNativeDependenciesUtils)
             # hermes-utils.rb defines its helpers at top level, so they are private instance methods
             # on Object. It is required by hermes-engine.podspec, which CocoaPods evaluates after the
@@ -277,27 +274,6 @@ module RNMode
 
     class << self
         private
-
-        # A prepend over a method react-native has renamed is simply never called — no error, and the
-        # guard is silently gone. Warn rather than raise, so a bump PR sees it without being blocked.
-        def verify_hook_targets!
-            unless defined?(ReactNativeDependenciesUtils)
-                log('react-native does not define ReactNativeDependenciesUtils, so the dependency checks are inactive. ' \
-                    'A react-native upgrade has most likely moved it.', :error)
-                return
-            end
-
-            missing = %i[artifact_exists setup_react_native_dependencies build_react_native_deps_from_source]
-                      .reject { |name| ReactNativeDependenciesUtils.respond_to?(name) }
-                      .map { |name| "ReactNativeDependenciesUtils.#{name}" }
-            # The hermes helpers cannot be checked here: hermes-utils.rb is required by
-            # hermes-engine.podspec, which CocoaPods evaluates after the Podfile. HermesHooks still
-            # prepends correctly against a later definition, but a rename there stays undetectable.
-            return if missing.empty?
-
-            log("react-native does not define #{missing.join(', ')}, so those checks are inactive. " \
-                'A react-native upgrade has most likely moved them.', :error)
-        end
 
         # Returns [:present | :absent | :unreachable, detail].
         def probe(url)

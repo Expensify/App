@@ -18,6 +18,12 @@ is not.** Don't commit it, regenerate once the cause is fixed. Each repository's
 lockfile in the wrong mode: App checks `ios/Podfile.lock`, Mobile-Expensify checks
 `iOS/Podfile.lock`. Neither checks the other's, so a submodule pointer bump is not covered.
 
+To check both yourself before pushing:
+
+```bash
+npm run verify-podfile-mode
+```
+
 > [!NOTE]
 > These are not the remote builds described in the "Running the mobile application using Rock" sections
 > of the [iOS](SETUP_IOS.md) and [Android](SETUP_ANDROID.md) setup guides. Rock downloads a complete
