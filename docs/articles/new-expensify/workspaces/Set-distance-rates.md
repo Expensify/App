@@ -1,7 +1,8 @@
 ---
 title: Set Distance Rates
 description: Set and manage distance rates for distance reimbursement in your Expensify workspace.
-keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates]
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands]
+internalScope: Audience is Workspace Admins. Covers configuring and auto-updating Distance rates, does not cover creating distance expenses.
 ---
 
 # Set Distance Rates
@@ -14,7 +15,7 @@ Distance rates determine how much members are reimbursed for distance-based trav
 
 Workspace Admins can configure Distance rates for a workspace.
 
-Automatic updates are available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
+Automatic updates are available for Collect workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
 
 ---
 
@@ -38,7 +39,7 @@ Once enabled, **Distance Rates** will appear in the left menu.
 4. (Optional) Set a **Start date** and **End date** to define the period the rate applies to. Leave these blank if the rate has no time limit.
 5. Click **Save**.
 
-When a rate has a **Start date** or **End date**, Expensify uses it to apply the correct rate based on the expense date. See [How Expensify selects a rate when multiple rates exist](#how-expensify-selects-a-rate-when-multiple-rates-exist) below.
+When a rate has a **Start date** or **End date**, Expensify uses it to apply the correct rate based on the expense date. See [How Expensify selects a rate when multiple rates exist](#How-Expensify-selects-a-Distance-rate-based-on-the-expense-date) below.
 
 ---
 
