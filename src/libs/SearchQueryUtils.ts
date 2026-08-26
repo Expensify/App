@@ -196,7 +196,7 @@ function quoteSyntaxSpans(segment: string) {
 function escapeKeyword(keywords: string) {
     return (
         keywords
-            .match(/"([^"]*)"|([^"]+)/g)
+            .match(/"(?:\\.|[^"\\])*"|(?:\\.|[^"\\])+/g)
             ?.map((q) => {
                 if (q.startsWith('"')) {
                     return q;
