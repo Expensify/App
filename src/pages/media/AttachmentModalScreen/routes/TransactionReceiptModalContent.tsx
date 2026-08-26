@@ -75,6 +75,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const policy = usePolicy(report?.policyID);
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
@@ -189,7 +191,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
+        openReport({reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

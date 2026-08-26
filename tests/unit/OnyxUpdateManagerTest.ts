@@ -7,8 +7,10 @@ import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
 import * as OnyxUpdateManager from '@userActions/OnyxUpdateManager';
 import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
+import type * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
 
 import CONST from '@src/CONST';
+import {flushQueue} from '@src/libs/actions/QueuedOnyxUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 
@@ -41,6 +43,7 @@ jest.mock('@libs/ActiveClientManager', () => ({
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
 const OnyxUpdates = jest.requireMock<OnyxUpdatesMock<never>>('@userActions/OnyxUpdates');
+const ActualOnyxUpdates = jest.requireActual<typeof OnyxUpdatesImport>('@userActions/OnyxUpdates');
 const App = jest.requireMock<AppActionsMock>('@userActions/App');
 const ApplyUpdates = jest.requireMock<ApplyUpdatesMock>('@userActions/OnyxUpdateManager/utils/applyUpdates');
 const OnyxUpdateManagerUtils = jest.requireMock<OnyxUpdateManagerUtilsMock>('@userActions/OnyxUpdateManager/utils');
@@ -568,20 +571,41 @@ describe('OnyxUpdateManager', () => {
         expect(App.reconnectApp).not.toHaveBeenCalled();
     });
 
-    it('should not escalate or back off when the fetch response reports progress', async () => {
-        // Progress is read from the response itself: its lastUpdateID is past the ID the fetch was fired
-        // from, so this is not a stall even though nothing was applied yet.
+    it('should escalate when the fetch response is ahead of the client but the client did not move', async () => {
         App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, lastUpdateID: 2, onyxData: []};
 
         OnyxUpdateManager.handleMissingOnyxUpdates(update3);
         await OnyxUpdateManager.queryPromise;
-        expect(App.reconnectApp).not.toHaveBeenCalled();
-        const fetchCalls = App.getMissingOnyxUpdates.mock.calls.length;
 
-        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        expect(lastUpdateIDAppliedToClient).toBe(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledWith(1);
+    });
+
+    it('should escalate when a WRITE staged for the deferred flush sits above the fetch origin', async () => {
+        // Given a WRITE staged for the deferred flush, which raises the pending marker above the persisted watermark
+        await ActualOnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 1,
+            lastUpdateID: 500,
+            request: {command: 'AddComment', data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {jsonCode: 200, onyxData: []},
+        });
+        await waitForBatchedUpdates();
+        expect(ActualOnyxUpdates.getEffectiveLastUpdateID()).toBe(500);
+        expect(ActualOnyxUpdates.getPersistedLastUpdateID()).toBe(1);
+
+        // When a fetch fired from the persisted watermark (the push notification path) answers without applying anything
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3, 1);
         await OnyxUpdateManager.queryPromise;
-        expect(App.getMissingOnyxUpdates.mock.calls.length).toBeGreaterThan(fetchCalls);
-        expect(App.reconnectApp).not.toHaveBeenCalled();
+
+        // Then the staged WRITE does not count as progress, because it never served the requested range
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledWith(1);
+
+        await flushQueue();
+        await waitForBatchedUpdates();
     });
 
     it('should not escalate when the client advances through another path while the fetch is in flight', async () => {
