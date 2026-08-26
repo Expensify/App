@@ -201,7 +201,7 @@ function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, decimals
 
 type CompletePerDiemCustomUnit = TransactionCustomUnit & Required<Pick<TransactionCustomUnit, 'customUnitID' | 'customUnitRateID' | 'attributes'>>;
 
-/** Shared so the UI can gate cleanup/nav on the same check the actions bail on; the type-predicate form narrows `customUnit` for the builders. */
+/** Shared so the UI can gate cleanup/nav on the same check the actions bail on. The type-predicate form narrows `customUnit` for the builders. */
 function hasCompletePerDiemCustomUnit(customUnit: TransactionCustomUnit | undefined): customUnit is CompletePerDiemCustomUnit {
     return (
         !!customUnit &&
