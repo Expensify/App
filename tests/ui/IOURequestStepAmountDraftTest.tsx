@@ -291,6 +291,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
             ...createRandomTransaction(1),
             transactionID: TRANSACTION_ID,
             reportID: REPORT_ID,
+            amount: 0,
             iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
         };
 
