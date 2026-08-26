@@ -83,14 +83,15 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         setSelection({start: 0, end: 0});
     };
 
+    // The Home prompt sends directly through askConcierge/addComment and never interprets task syntax like the
+    // report composer does, so the hook's task-title branch (and its lower character limit) must be skipped here.
+    const {debouncedCommentMaxLengthValidation, isExceedingMaxLength, exceededMaxLength} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID, isEditing: true});
+
     const sendAttachment = (attachments: FileObject | FileObject[]) => {
         askConciergeWithAttachment(attachments, value);
         clearInput();
     };
     const {pickAttachments, PDFValidationComponent} = useConciergeAttachmentPicker(conciergeTargetReportID, sendAttachment);
-    // The Home prompt sends directly through askConcierge/addComment and never interprets task syntax like the
-    // report composer does, so the hook's task-title branch (and its lower character limit) must be skipped here.
-    const {debouncedCommentMaxLengthValidation, isExceedingMaxLength, exceededMaxLength} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID, isEditing: true});
 
     const onChangeValue = (newValue: string) => {
         setValue(newValue);
@@ -168,6 +169,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             >
                                 {({openPicker}) => {
                                     const triggerAttachmentPicker = () => openPicker({onPicked: pickAttachments});
+                                    const canOpenAttachmentPicker = shouldShowAskConcierge && !isExceedingMaxLength;
                                     return (
                                         <>
                                             <PopoverAnchorTooltip text={translate('reportActionCompose.addAttachment')}>
@@ -176,7 +178,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                     accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                                     role={CONST.ROLE.BUTTON}
                                                     sentryLabel="ConciergePromptBox-AddAttachment"
-                                                    disabled={!shouldShowAskConcierge}
+                                                    disabled={!canOpenAttachmentPicker}
                                                     onPress={(e) => {
                                                         e?.preventDefault();
                                                         actionButtonRef.current?.blur();
@@ -184,13 +186,13 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                     }}
                                                     style={({hovered, pressed}) => [
                                                         styles.composerSizeButton,
-                                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && shouldShowAskConcierge, pressed && shouldShowAskConcierge)),
+                                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && canOpenAttachmentPicker, pressed && canOpenAttachmentPicker)),
                                                     ]}
                                                 >
                                                     {({hovered, pressed}) => (
                                                         <Icon
                                                             src={icons.Plus}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered && shouldShowAskConcierge, pressed && shouldShowAskConcierge))}
+                                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered && canOpenAttachmentPicker, pressed && canOpenAttachmentPicker))}
                                                         />
                                                     )}
                                                 </PressableWithoutFeedback>
