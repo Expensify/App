@@ -1,13 +1,13 @@
 ---
 title: View the Violations by submitter report
-description: Learn how Workspace Admins and Auditors can use the Violations by submitter report to see which members submitted the most expenses with policy violations.
-keywords: [New Expensify, Violations by submitter, policy violations, compliance, submitted violations, has:submitted-violation, violation, Workspace Admin, Auditor, Rules, insight, virtual CFO, spend insights]
+description: Learn how Workspace Admins and Auditors can use the Violations by submitter report to see which members submitted the most expenses with rule violations.
+keywords: [New Expensify, Violations by submitter, policy violations, compliance, submitted violations, has:submitted-violation, violation, Workspace Admin, Auditor, Rules, insight, virtual CFO, spend insights, broken rule, rule violation, out of compliance]
 internalScope: Audience is Workspace Admins and Auditors on Control workspaces with Rules enabled. Covers using the Violations by submitter suggested search to see who submitted the most expenses with violations. Does not cover configuring Rules, approver-stage violations, or building custom reports.
 ---
 
 # View the Violations by submitter report
 
-The Violations by submitter report shows which members submitted the most expenses with violations last month. Use it to identify repeated violations, spot compliance patterns, and decide where policy guidance or follow-up may be needed.
+The Violations by submitter report shows which members submitted the most expenses with violations last month. Use it to identify repeated violations, spot compliance patterns, and decide where guidance or follow-up may be needed.
 
 The report is a pre-built suggested search and is available only for Control workspaces with Rules enabled.
 
@@ -21,6 +21,7 @@ Workspace Admins and Auditors can use the Violations by submitter report on web 
 
  - The workspace is on the Control plan.
  - Rules are enabled for the workspace.
+ - The workspace has two or more members.
 
 ---
 
@@ -48,7 +49,7 @@ Each row represents a member and shows:
  - **Expenses** – the number of expenses with violations the member submitted
  - **Total** – the total amount of those expenses
 
-Select a row to view the member’s individual expenses. The **Violation**s column shows the violations associated with each expense, such as a missing receipt or an amount over a workspace limit. If an expense has multiple violations, they are separated by commas.
+Select a row to view the member’s individual expenses. The **Violations** column shows the violations associated with each expense, such as a missing receipt or an amount over a workspace limit. If an expense has multiple violations, they are separated by commas.
 
 ---
 
