@@ -1,5 +1,6 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import Composer from '@components/Composer';
+import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -23,6 +24,7 @@ import DateUtils from '@libs/DateUtils';
 import getButtonState from '@libs/getButtonState';
 
 import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDraftButton';
+import useDebouncedCommentMaxLengthValidation from '@pages/inbox/report/ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 
 import variables from '@styles/variables';
 
@@ -86,6 +88,11 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         clearInput();
     };
     const {pickAttachments, PDFValidationComponent} = useConciergeAttachmentPicker(conciergeTargetReportID, sendAttachment);
+    const {debouncedCommentMaxLengthValidation, isExceedingMaxLength, exceededMaxLength} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID});
+
+    useEffect(() => {
+        debouncedCommentMaxLengthValidation(value);
+    }, [value, debouncedCommentMaxLengthValidation]);
 
     // Anchor the "+" popover above the button.
     useEffect(() => {
@@ -111,10 +118,10 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     // Default to the short copy until measured, so it never flashes a wrapped long placeholder that then collapses.
     const longPlaceholderFitsOneLine = longPlaceholderHeight !== null && longPlaceholderHeight <= SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT;
     const placeholder = shouldUseNarrowLayout || !longPlaceholderFitsOneLine ? shortPlaceholder : longPlaceholder;
-    const canSubmit = shouldShowAskConcierge && value.trim().length > 0;
+    const canSubmit = shouldShowAskConcierge && value.trim().length > 0 && !isExceedingMaxLength;
 
     const submit = () => {
-        if (!canSubmit) {
+        if (!canSubmit || debouncedCommentMaxLengthValidation.flush() === false) {
             return;
         }
         askConcierge(value);
@@ -140,7 +147,14 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                 <Text style={styles.textLabelSupporting}>{dateLabel}</Text>
                 <Text style={styles.textHeadlineH1}>{greeting}</Text>
             </View>
-            <View style={[isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor, styles.flexRow, styles.chatItemComposeBox]}>
+            <View
+                style={[
+                    isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                    styles.flexRow,
+                    styles.chatItemComposeBox,
+                    isExceedingMaxLength && styles.borderColorDanger,
+                ]}
+            >
                 <View style={styles.composerButtonColumn}>
                     <View style={styles.composerButtonStack}>
                         <View style={[styles.flexGrow0, styles.flexShrink0]}>
@@ -258,6 +272,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                     />
                 </View>
             </View>
+            {isExceedingMaxLength && !!exceededMaxLength && <ExceededCommentLength maxCommentLength={exceededMaxLength} />}
             {PDFValidationComponent}
         </View>
     );
