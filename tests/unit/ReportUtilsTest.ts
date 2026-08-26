@@ -17720,6 +17720,8 @@ describe('ReportUtils', () => {
 
         describe('settled report paid with a business bank account', () => {
             const settledPolicyID = '445';
+            const reimburserEmail = 'reimburser@example.com';
+            const reimburserAccountID = 445001;
             const settledPolicy: Policy = {
                 ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
                 id: settledPolicyID,
@@ -17729,7 +17731,7 @@ describe('ReportUtils', () => {
                     routingNumber: '011401533',
                     addressName: 'Settled Workspace',
                     bankName: 'Test Bank',
-                    reimburser: 'reimburser@example.com',
+                    reimburser: reimburserEmail,
                 },
             };
             const settledReport: Report = {
@@ -17746,15 +17748,23 @@ describe('ReportUtils', () => {
                 amount: 10000,
                 currency: CONST.CURRENCY.USD,
             };
+            // The workspace account is only a valid fallback for a payment made by the designated payer, so the
+            // action has to come from the reimburser for these previews to name it.
             const payReportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
+                ...LHNTestUtils.getFakeReportAction(reimburserEmail),
+                actorAccountID: reimburserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: payOriginalMessage,
             };
 
             beforeEach(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${settledPolicyID}`, settledPolicy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+            });
+
+            afterEach(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
             });
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
