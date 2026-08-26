@@ -97,7 +97,6 @@ import Onyx from 'react-native-onyx';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
-import type EnvironmentType from './Environment/getEnvironment/types';
 import type {FormulaContext, compute as computeFormula, computeWithMetadata as computeFormulaWithMetadata} from './Formula';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -126,9 +125,9 @@ import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayStringEnLocale} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
-import getEnvironment from './Environment/getEnvironment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
+import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
@@ -1029,10 +1028,6 @@ let deprecatedIsAnonymousUser = false;
 
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
-let environment: EnvironmentType;
-getEnvironment().then((env) => {
-    environment = env;
-});
 
 /**
  * Fallback title field used when a policy has an empty fieldList (matches OldDot behavior).
@@ -3243,43 +3238,50 @@ function getAddExpenseDropdownOptions({
     lastDistanceExpenseType,
     currentUserAccountID,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
+    const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
+
     return [
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            text: translate('iou.createExpense'),
-            icon: icons.Plus,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-            onSelected: () => {
-                if (!iouReportID) {
-                    return;
-                }
-                if (
-                    policy &&
-                    policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                    shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
-                ) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
-            },
-        },
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
-            text: translate('iou.trackDistance'),
-            icon: icons.Location,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-            onSelected: () => {
-                if (!iouReportID) {
-                    return;
-                }
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
-            },
-        },
+        // Teachers Unite only supports expenses via split expense
+        ...(isReportTeachersUnite
+            ? []
+            : [
+                  {
+                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+                      text: translate('iou.createExpense'),
+                      icon: icons.Plus,
+                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+                      onSelected: () => {
+                          if (!iouReportID) {
+                              return;
+                          }
+                          if (
+                              policy &&
+                              policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                              shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
+                          ) {
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
+                      },
+                  },
+                  {
+                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+                      text: translate('iou.trackDistance'),
+                      icon: icons.Location,
+                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+                      onSelected: () => {
+                          if (!iouReportID) {
+                              return;
+                          }
+                          if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
+                      },
+                  },
+              ]),
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
             text: translate('iou.addExistingExpense'),
@@ -10613,6 +10615,10 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
     return participant?.role === CONST.REPORT.ROLE.ADMIN;
 }
 
+function isTeachersUniteReport(report: OnyxEntry<Report>): boolean {
+    return isTeachersUnitePolicyID(report?.policyID);
+}
+
 /**
  * Helper method to define what expense options we want to show for particular method.
  * There are 4 expense options: Submit, Split, Pay and Track expense:
@@ -10648,8 +10654,7 @@ function getMoneyRequestOptions(
     isRestrictedToPreferredPolicy = false,
     currentUserAccountID?: number,
 ): IOUType[] {
-    const teacherUnitePolicyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-    const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
+    const isTeachersUniteReportValue = isTeachersUniteReport(report);
 
     // In any thread, task report or trip room, we do not allow any new expenses
     if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isReportArchived || isTripRoom(report)) {
@@ -10681,23 +10686,17 @@ function getMoneyRequestOptions(
     }
 
     if (canRequestMoney(report, policy, otherParticipants, currentUserAccountID)) {
-        // For Teachers Unite policy, don't show Create Expense option
-        if (!isTeachersUniteReport) {
+        if (!isTeachersUniteReportValue) {
             options = [...options, CONST.IOU.TYPE.SUBMIT];
             if (!filterDeprecatedTypes) {
                 options = [...options, CONST.IOU.TYPE.REQUEST];
             }
-        }
 
-        // If the user can request money from the workspace report, they can also track expenses
-        if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
-            options = [...options, CONST.IOU.TYPE.TRACK];
+            // If the user can request money from the workspace report, they can also track expenses
+            if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
+                options = [...options, CONST.IOU.TYPE.TRACK];
+            }
         }
-    }
-
-    // For expense reports on Teachers Unite workspace, disable "Create report" option
-    if (isExpenseReport(report) && report?.policyID === teacherUnitePolicyID) {
-        options = options.filter((option) => option !== CONST.IOU.TYPE.SUBMIT);
     }
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
@@ -10709,7 +10708,7 @@ function getMoneyRequestOptions(
         (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && otherParticipants.length > 0) ||
         (isGroupChat(report) && otherParticipants.length > 0) ||
-        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && isTeachersUniteReport)
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && isTeachersUniteReportValue)
     ) {
         options = [...options, CONST.IOU.TYPE.SPLIT];
     }
@@ -13375,7 +13374,7 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
  * Determines whether the report can be moved to the workspace.
  */
 function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, newPolicy: OnyxEntry<Policy>, report?: Report): boolean {
-    if (!submitterEmail || !newPolicy || !isGroupPolicyPolicyUtils(newPolicy)) {
+    if (!submitterEmail || !newPolicy || !isGroupPolicyPolicyUtils(newPolicy) || isTeachersUnitePolicyID(newPolicy.id)) {
         return false;
     }
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
@@ -14398,6 +14397,7 @@ export {
     getRouteFromLink,
     canDeleteCardTransactionByLiabilityType,
     getAddExpenseDropdownOptions,
+    isTeachersUniteReport,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,

@@ -1,5 +1,5 @@
 import type {ChartDataPoint} from '@components/Charts/types';
-import {getFontLineMetrics, measureTextWidth} from '@components/Charts/utils';
+import {getFontLineMetrics, getXAxisLabel, measureTextWidth} from '@components/Charts/utils';
 import {ELLIPSIS, MIN_TRUNCATED_CHARS} from '@components/Charts/VictoryTheme';
 
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
@@ -15,22 +15,23 @@ function useChartLabelMeasurements(data: ChartDataPoint[], fontManager: SkTypefa
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
     const lineHeight = Math.abs(ascent) + Math.abs(descent);
     const ellipsisWidth = measureTextWidth(ELLIPSIS, fontManager, fontSize);
-    const labelWidths = data.map((point) => measureTextWidth(point.label, fontManager, fontSize));
+    const labels = data.map(getXAxisLabel);
+    const labelWidths = labels.map((label) => measureTextWidth(label, fontManager, fontSize));
     const maxLabelWidth = Math.max(...labelWidths);
     const firstLabelWidth = labelWidths.at(0) ?? 0;
     const lastLabelWidth = labelWidths.at(-1) ?? 0;
 
     const minTruncatedWidth = Math.max(
-        ...data.map((point, index) => {
-            if (point.label.length <= MIN_TRUNCATED_CHARS) {
+        ...labels.map((label, index) => {
+            if (label.length <= MIN_TRUNCATED_CHARS) {
                 return labelWidths.at(index) ?? 0;
             }
-            return measureTextWidth(point.label.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontManager, fontSize);
+            return measureTextWidth(label.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontManager, fontSize);
         }),
     );
 
-    const firstLabel = data.at(0)?.label ?? '';
-    const lastLabel = data.at(-1)?.label ?? '';
+    const firstLabel = labels.at(0) ?? '';
+    const lastLabel = labels.at(-1) ?? '';
     const firstMinTrunc = firstLabel.length <= MIN_TRUNCATED_CHARS ? firstLabelWidth : measureTextWidth(firstLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontManager, fontSize);
     const lastMinTrunc = lastLabel.length <= MIN_TRUNCATED_CHARS ? lastLabelWidth : measureTextWidth(lastLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontManager, fontSize);
 
