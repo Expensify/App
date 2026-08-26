@@ -76,7 +76,6 @@ function DefaultFooter({
             isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
             isPolicyExpenseChat={isPolicyExpenseChat}
             isDistanceRequest={expenseMode.isDistance}
-            isPerDiemRequest={expenseMode.isPerDiem}
             isTimeRequest={expenseMode.isTime}
             isTypeInvoice={expenseMode.isInvoice}
             isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
@@ -90,11 +89,6 @@ function DefaultFooter({
                 <View>
                     <InvoiceSenderSection selectedParticipants={selectedParticipants} />
                     <DistanceMapSection />
-                    <PerDiemSection
-                        policy={policy}
-                        shouldDisplayFieldError={errorState.shouldDisplayFieldError}
-                        formError={errorState.formError}
-                    />
                 </View>
 
                 <ReceiptSection

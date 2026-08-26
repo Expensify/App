@@ -1,8 +1,11 @@
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import type {MoneyRequestConfirmationListFooterProps} from './types';
 
 import DefaultFooter from './variants/DefaultFooter';
+import PerDiemFooter from './variants/PerDiemFooter';
 
 /**
  * Selects the footer variant for the expense type being confirmed. Until
@@ -10,6 +13,10 @@ import DefaultFooter from './variants/DefaultFooter';
  * footer component rendered before the split.
  */
 function MoneyRequestConfirmationListFooter(props: MoneyRequestConfirmationListFooterProps) {
+    if (props.expenseMode.isPerDiem && props.action !== CONST.IOU.ACTION.SUBMIT) {
+        return <PerDiemFooter {...props} />;
+    }
+
     return <DefaultFooter {...props} />;
 }
 
