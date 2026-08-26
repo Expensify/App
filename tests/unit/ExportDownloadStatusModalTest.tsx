@@ -138,9 +138,12 @@ describe('ExportDownloadStatusModal', () => {
     });
 
     it('auto-downloads CSV on ready state transition with csvexport secureType', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
-
+        // Mount while preparing, then transition to ready so the modal auto-downloads only after it watched the transition.
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing'});
         renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
         await waitForBatchedUpdatesWithAct();
 
         const expectedURLPart = `secure?secureType=csvexport&filename=${encodeURIComponent(CSV_FILE_NAME)}&downloadName=${encodeURIComponent(CSV_FILE_NAME)}`;
@@ -160,9 +163,12 @@ describe('ExportDownloadStatusModal', () => {
     });
 
     it('auto-downloads PDF on ready state transition with pdfreport secureType', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: PDF_FILE_NAME});
-
+        // Mount while preparing, then transition to ready so the modal auto-downloads only after it watched the transition.
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing'});
         renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: PDF_FILE_NAME});
         await waitForBatchedUpdatesWithAct();
 
         const expectedURLPart = `secure?secureType=pdfreport&filename=${encodeURIComponent(PDF_FILE_NAME)}&downloadName=${encodeURIComponent(PDF_FILE_NAME)}`;

@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
 
-import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
+import {clearExportDownload, sendExportFileFromConcierge, wasExportInitiatedLocally} from '@userActions/Export';
 import type * as Modal from '@userActions/Modal';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +22,7 @@ jest.mock('@components/RenderHTML', () => {
 jest.mock('@userActions/Export', () => ({
     sendExportFileFromConcierge: jest.fn(),
     clearExportDownload: jest.fn(),
+    wasExportInitiatedLocally: jest.fn(() => false),
 }));
 jest.mock('@userActions/Modal', () => ({
     ...jest.requireActual<typeof Modal>('@userActions/Modal'),
@@ -58,6 +59,7 @@ jest.mock('@libs/ActiveClientManager', () => ({
 
 const mockClearExportDownload = jest.mocked(clearExportDownload);
 const mockSendFromConcierge = jest.mocked(sendExportFileFromConcierge);
+const mockWasExportInitiatedLocally = jest.mocked(wasExportInitiatedLocally);
 
 const EXPORT_ID = 'test-export-123';
 const EXPORT_KEY = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}` as const;
@@ -70,6 +72,7 @@ describe('ExportDownloadStatusManager', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockWasExportInitiatedLocally.mockReturnValue(false);
         await Onyx.clear();
     });
 
@@ -130,5 +133,58 @@ describe('ExportDownloadStatusManager', () => {
         fireEvent.press(screen.getByText('exportDownload.downloadFile'));
 
         expect(mockClearExportDownload).toHaveBeenCalledWith(EXPORT_ID, expect.objectContaining({state: 'ready'}));
+    });
+
+    it('closing after hand-off to Concierge drops the modal without clearing the record', async () => {
+        await Onyx.set(EXPORT_KEY, {state: 'preparing'});
+        render(<ExportDownloadStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Hand-off to Concierge
+        await Onyx.merge(EXPORT_KEY, {shouldSendFromConcierge: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Trigger onClose and assert the record is preserved.
+        fireEvent.press(screen.getByText('exportDownload.dismiss'));
+        expect(mockClearExportDownload).not.toHaveBeenCalled();
+    });
+
+    it('resets and resurfaces a new export after the tracked record is removed', async () => {
+        await Onyx.set(EXPORT_KEY, {state: 'preparing'});
+        render(<ExportDownloadStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        await Onyx.set(EXPORT_KEY, null);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('exportDownload.readyTitle')).toBeNull();
+
+        const SECOND_KEY = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}second-export` as const;
+        mockWasExportInitiatedLocally.mockImplementation((id) => id === 'second-export');
+        await Onyx.set(SECOND_KEY, {state: 'preparing'});
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('exportDownload.preparingTitle')).toBeTruthy();
+    });
+
+    it('does not surface an export that appears after load when this tab did not start it', async () => {
+        // Tab loads with no export in Onyx, so nothing is in the at-load snapshot.
+        render(<ExportDownloadStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Another tab starts an export. It lands in this tab's Onyx, but this tab did not initiate it.
+        await Onyx.set(EXPORT_KEY, {state: 'preparing'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText('exportDownload.preparingTitle')).toBeNull();
+    });
+
+    it('surfaces an export this tab started even though it appears after load', async () => {
+        render(<ExportDownloadStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        mockWasExportInitiatedLocally.mockImplementation((id) => id === EXPORT_ID);
+        await Onyx.set(EXPORT_KEY, {state: 'preparing'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.preparingTitle')).toBeTruthy();
     });
 });
