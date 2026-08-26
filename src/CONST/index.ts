@@ -1,5 +1,3 @@
-import type {SearchFilterKey} from '@components/Search/types';
-
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {
@@ -13,13 +11,7 @@ import {
     MENU_ANIMATION_DURATION as ANIMATION_TIMING_MENU_ANIMATION_DURATION,
 } from '@libs/Animation/animationTiming';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
-import addTrailingForwardSlash from '@libs/UrlUtils';
 
-import variables from '@styles/variables';
-
-import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import type {PolicyTagLists} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
 import type {ValueOf} from 'type-fest';
@@ -27,11 +19,21 @@ import type {ValueOf} from 'type-fest';
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
-import Config from 'react-native-config';
-import * as KeyCommand from 'react-native-key-command';
 
 import CI from './CI';
 import {LOCALES} from './LOCALES';
+// Isolate runtime-specific dependencies so Bun can import CONST through the platformless fallback.
+import CONST_RUNTIME from './runtime';
+
+type DefaultPolicyTagLists = Record<
+    string,
+    {
+        name: string;
+        orderWeight: number;
+        required: boolean;
+        tags: Record<string, never>;
+    }
+>;
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -48,7 +50,7 @@ const DEFAULT_MISSING_ID = -1;
 const DEFAULT_COUNTRY_CODE = 1;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
-const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
+const ACTIVE_EXPENSIFY_URL = CONST_RUNTIME.NEW_EXPENSIFY_URL;
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
@@ -64,17 +66,19 @@ const MIN_DATE = dateSubtract(new Date(), {years: 20});
 const EXPENSIFY_POLICY_DOMAIN = 'expensify-policy';
 const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
-const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
-const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
-const keyModifierShift = KeyCommand?.constants?.keyModifierShift ?? 'keyModifierShift';
-const keyModifierShiftControl = KeyCommand?.constants?.keyModifierShiftControl ?? 'keyModifierShiftControl';
-const keyModifierShiftCommand = KeyCommand?.constants?.keyModifierShiftCommand ?? 'keyModifierShiftCommand';
-const keyInputEscape = KeyCommand?.constants?.keyInputEscape ?? 'keyInputEscape';
-const keyInputEnter = KeyCommand?.constants?.keyInputEnter ?? 'keyInputEnter';
-const keyInputUpArrow = KeyCommand?.constants?.keyInputUpArrow ?? 'keyInputUpArrow';
-const keyInputDownArrow = KeyCommand?.constants?.keyInputDownArrow ?? 'keyInputDownArrow';
-const keyInputLeftArrow = KeyCommand?.constants?.keyInputLeftArrow ?? 'keyInputLeftArrow';
-const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInputRightArrow';
+const {
+    keyModifierControl,
+    keyModifierCommand,
+    keyModifierShift,
+    keyModifierShiftControl,
+    keyModifierShiftCommand,
+    keyInputEscape,
+    keyInputEnter,
+    keyInputUpArrow,
+    keyInputDownArrow,
+    keyInputLeftArrow,
+    keyInputRightArrow,
+} = CONST_RUNTIME.KEY_COMMANDS;
 const keyInputSpace = ' ';
 
 // describes if a shortcut key can cause navigation
@@ -270,7 +274,7 @@ const CONST = {
         TEXTAREA: 'TEXTAREA',
     },
     POPOVER_ACCOUNT_SWITCHER_POSITION: {
-        horizontal: 12 + variables.navigationTabBarSize,
+        horizontal: 12 + CONST_RUNTIME.STYLE_VARIABLES.navigationTabBarSize,
         vertical: 72,
     },
     POPOVER_DROPDOWN_WIDTH: 334,
@@ -510,6 +514,7 @@ const CONST = {
 
     EXPORT_LABELS: {
         NETSUITE: 'NetSuite',
+        INTUIT_ENTERPRISE_SUITE: 'Intuit Enterprise Suite',
         QBO: 'QuickBooks Online',
         QBD: 'QuickBooks Desktop',
         XERO: 'Xero',
@@ -620,6 +625,7 @@ const CONST = {
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
+        LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR: 'eeee, MMMM d',
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
@@ -633,6 +639,12 @@ const CONST = {
         US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
         CA: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
         AU: 'https://powerforms.docusign.net/2ff347bb-172a-4138-b1cd-4001a7c319b5?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+    },
+    // This allows us to know if we are on an older version of the app that does not support
+    // a new marketing window. Do not remove keys from this list, only add new ones
+    MARKETING_WINDOW_UPDATE_KEYS: {
+        PRODUCT_UPDATE_JULY_2026: 'productUpdateJuly2026',
+        PRODUCT_UPDATE_AUGUST_2026: 'productUpdateAugust2026',
     },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -1006,7 +1018,6 @@ const CONST = {
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
-        RILLET: 'rillet',
         DUALENTRY: 'dualEntry',
         INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
@@ -1015,7 +1026,9 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
+        ARCHIVE_POLICIES: 'archivePolicies',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1422,6 +1435,8 @@ const CONST = {
         PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
+        SUPPORTAL_LOGIN_NEWDOT: (supportEmail: string, reason: string) =>
+            `_support/supportLoginNewDot?supportEmail=${encodeURIComponent(supportEmail)}&comment=${encodeURIComponent(reason)}`,
         AGENT_ZERO_TRACER: (agentZeroRequestID: string, shouldLoadFromLocalLogs: boolean) =>
             `_devportal/tools/tracer/?agentZeroRequestID=${encodeURIComponent(agentZeroRequestID)}${shouldLoadFromLocalLogs ? '&mode=locallogs' : ''}`,
     },
@@ -1561,6 +1576,8 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
+            SEND_TO_SOMEONE: 'sendToSomeone',
+            SEND_TO_EMPLOYER: 'sendToEmployer',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',
@@ -2996,6 +3013,7 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         ACCOUNTING_METHOD: 'accountingMethod',
         TRAVEL_BILLING_VENDOR: 'travelInvoicingVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
@@ -3606,6 +3624,7 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
         CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
+        EXPENSIFY_CARD_ACCOUNT_ID: 'expensifyCardAccountID',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         DEFAULT_VENDORID: 'defaultVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
@@ -3643,6 +3662,12 @@ const CONST = {
     DUALENTRY_TAX_TYPE: {
         VAT: 'VAT',
         GST: 'GST',
+    },
+
+    DUALENTRY_ACCOUNT_TYPE: {
+        EXPENSE: 'expense',
+        CREDIT_CARD: 'credit_card',
+        BANK: 'bank',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -3703,27 +3728,7 @@ const CONST = {
         },
     },
 
-    ACCOUNT_ID: {
-        ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
-        ACCOUNTS_PAYABLE: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTS_PAYABLE ?? 10903701),
-        ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
-        BILLS: Number(Config?.EXPENSIFY_ACCOUNT_ID_BILLS ?? 1371),
-        CHRONOS: Number(Config?.EXPENSIFY_ACCOUNT_ID_CHRONOS ?? 10027416),
-        CONCIERGE: Number(Config?.EXPENSIFY_ACCOUNT_ID_CONCIERGE ?? 8392101),
-        CONTRIBUTORS: Number(Config?.EXPENSIFY_ACCOUNT_ID_CONTRIBUTORS ?? 9675014),
-        FIRST_RESPONDER: Number(Config?.EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER ?? 9375152),
-        HELP: Number(Config?.EXPENSIFY_ACCOUNT_ID_HELP ?? -1),
-        INTEGRATION_TESTING_CREDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS ?? -1),
-        NOTIFICATIONS: Number(Config?.EXPENSIFY_ACCOUNT_ID_NOTIFICATIONS ?? 11665625),
-        PAYROLL: Number(Config?.EXPENSIFY_ACCOUNT_ID_PAYROLL ?? 9679724),
-        QA: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA ?? 3126513),
-        QA_TRAVIS: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_TRAVIS ?? 8595733),
-        RECEIPTS: Number(Config?.EXPENSIFY_ACCOUNT_ID_RECEIPTS ?? -1),
-        REWARDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_REWARDS ?? 11023767), // rewards@expensify.com
-        STUDENT_AMBASSADOR: Number(Config?.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? 10476956),
-        SVFG: Number(Config?.EXPENSIFY_ACCOUNT_ID_SVFG ?? 2012843),
-        QA_GUIDE: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_GUIDE ?? 14365522),
-    },
+    ACCOUNT_ID: CONST_RUNTIME.EXPENSIFY_ACCOUNT_IDS,
 
     ENVIRONMENT: {
         DEV: 'development',
@@ -4029,7 +4034,7 @@ const CONST = {
             REPLACE_RECEIPT: 'replaceReceipt',
         },
         COMPACT_RECEIPT: {
-            MAX_WIDTH: variables.receiptPreviewMaxWidth,
+            MAX_WIDTH: CONST_RUNTIME.STYLE_VARIABLES.receiptPreviewMaxWidth,
             DEFAULT_ASPECT_RATIO: 16 / 9,
             MAX_HEIGHT_PIXEL_ADJUSTMENT: 5,
         },
@@ -4112,6 +4117,10 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
+        },
+        WORKSPACE_STATUS: {
+            ACTIVE: 'active',
+            ARCHIVED: 'archived',
         },
         THREE_DOT_MENU_ACTION: {
             LEAVE: 'leave',
@@ -4391,6 +4400,7 @@ const CONST = {
             ACCOUNTING_INTEGRATION_ALIASES: {
                 INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
             },
+            INTUIT_ENTERPRISE_SUITE_SCOPE: 'app-foundations.custom-dimensions.read',
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -4576,7 +4586,7 @@ const CONST = {
                 required: false,
                 tags: {},
             },
-        } as PolicyTagLists,
+        } as DefaultPolicyTagLists,
         DEFAULT_TAG_NAME: 'Tag',
         REQUIRE_RECEIPTS_OVER_OPTIONS: {
             DEFAULT: 'default',
@@ -4590,6 +4600,7 @@ const CONST = {
     },
 
     HELP_DOC_LINKS: {
+        'Intuit Enterprise Suite': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Desktop': '',
         quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
@@ -4615,6 +4626,20 @@ const CONST = {
         // Rate amounts are stored as `Number(value) * 100` cents, which can introduce tiny floating-point errors. Meaningful
         // amounts differ by at least 0.01 cents, so this tolerance safely absorbs the float noise when matching government rates.
         GOVERNMENT_RATE_MATCH_TOLERANCE: 0.001,
+        // Currencies we can auto-update government mileage rates for, mapped to the publishing country
+        GOVERNMENT_RATE_CURRENCY_TO_COUNTRY: {
+            USD: 'US',
+            CAD: 'CA',
+            GBP: 'GB',
+            AUD: 'AU',
+        },
+        // Unit each country publishes its rates in
+        GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
+            US: 'mi',
+            GB: 'mi',
+            CA: 'km',
+            AU: 'km',
+        },
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
@@ -5435,7 +5460,7 @@ const CONST = {
 
         // This constant sets a margin equal to the rotate button's height (medium-sized Button (40px)), which is the tallest element in the controls row.
         // It ensures the controls row isn't cropped if the browser height is reduced too much.
-        CONTAINER_VERTICAL_MARGIN: variables.componentSizeNormal,
+        CONTAINER_VERTICAL_MARGIN: CONST_RUNTIME.STYLE_VARIABLES.componentSizeNormal,
     },
     MICROSECONDS_PER_MS: 1000,
     MILLISECONDS_PER_SECOND: 1000,
@@ -6591,6 +6616,7 @@ const CONST = {
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
         BROKEN_CARD_CONNECTION_530: 'brokenCardConnection530',
+        BROKEN_CARD_CONNECTION_REAUTH: 'brokenCardConnectionReauth',
         SEVEN_DAY_HOLD: 'sevenDayHold',
     },
     REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
@@ -7678,15 +7704,7 @@ const CONST = {
             LAST_12_MONTHS: 'last-12-months',
             LAST_STATEMENT: 'last-statement',
         },
-        SNAPSHOT_ONYX_KEYS: [
-            ONYXKEYS.COLLECTION.REPORT,
-            ONYXKEYS.COLLECTION.POLICY,
-            ONYXKEYS.COLLECTION.TRANSACTION,
-            ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-            ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            ONYXKEYS.PERSONAL_DETAILS_LIST,
-            ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        ],
+        SNAPSHOT_ONYX_KEYS: CONST_RUNTIME.SEARCH_SNAPSHOT_ONYX_KEYS,
         SEARCH_KEYS: {
             EXPENSES: 'expenses',
             REPORTS: 'reports',
@@ -7770,17 +7788,7 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [
-        SCREENS.NOT_FOUND,
-        SCREENS.SAML_SIGN_IN,
-        SCREENS.VALIDATE_LOGIN,
-        SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
-        SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT,
-        SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT,
-        SCREENS.MONEY_REQUEST.STEP_SCAN,
-        SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
-        ...Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION),
-    ] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: CONST_RUNTIME.EXCLUDE_FROM_LAST_VISITED_PATH,
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
@@ -7984,6 +7992,15 @@ const CONST = {
                 title: 'workspace.upgrade.publicReceiptVisibility.title' as const,
                 description: 'workspace.upgrade.publicReceiptVisibility.description' as const,
                 icon: 'ReportReceipt',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
+            governmentDistanceRates: {
+                id: 'governmentDistanceRates' as const,
+                alias: 'auto-update-government-rates',
+                name: 'Auto-update government rates',
+                title: 'workspace.upgrade.governmentDistanceRates.title' as const,
+                description: 'workspace.upgrade.governmentDistanceRates.description' as const,
+                icon: 'CarIce',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             perDiem: {
@@ -8523,6 +8540,14 @@ const CONST = {
             SINGLE_SELECT: 'singleSelect',
             MULTI_SELECT: 'multiSelect',
         },
+
+        DYNAMIC_COLUMNS: {
+            /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
+            MEASURED_CANDIDATES_PER_COLUMN: 5,
+
+            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+        },
     },
 
     SENTRY_LABEL: {
@@ -8554,6 +8579,7 @@ const CONST = {
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
             FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
             FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
+            SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
         },
         FAB_MENU: {
             CREATE_EXPENSE: 'FABMenu-CreateExpense',
@@ -9463,26 +9489,6 @@ const CONST = {
 
         // Cutoff for the "For You" new-vs-old segment: users whose free trial started on/after this date have the empty section hidden.
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
-        ANNOUNCEMENTS: [
-            {
-                title: 'The Expensify Card: Proactive spend controls',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260817277076/en/The-Expensify-Visa-Commercial-Card-Brings-New-Proactive-Spend-Controls-to-14-Countries',
-                publishedDate: '2026-08-17',
-            },
-            {
-                title: 'Scoped admin roles, plus HR & AI updates',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
-                publishedDate: '2026-07-28',
-            },
-            {
-                title: 'The Expensify Card: Now in the UK & EU',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
-                publishedDate: '2026-07-20',
-            },
-        ],
     },
 
     SECTION_LIST_ITEM_TYPE: {
@@ -9538,6 +9544,8 @@ const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id,
 ]);
 
+type SearchFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
@@ -9572,6 +9580,9 @@ const COUNTRIES_US_BANK_FLOW: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CO
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
+/** A country whose government mileage rates Expensify can auto-update */
+type GovernmentRateCountry = ValueOf<typeof CONST.CUSTOM_UNITS.GOVERNMENT_RATE_CURRENCY_TO_COUNTRY>;
+
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -9593,6 +9604,7 @@ type EnablePaymentsSubPageType =
 
 export type {
     Country,
+    GovernmentRateCountry,
     IOUAction,
     IOUType,
     IOURequestType,

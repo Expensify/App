@@ -685,3 +685,57 @@ describe('useSearchSelector phone contact de-duplication', () => {
         expect(getPersonalDetailsPassedToGetValidOptions().map((option) => option.login)).toEqual(['alice@expensify.com', 'carol@gmail.com']);
     });
 });
+
+describe('useSearchSelector search term normalization', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockFilteredPersonalDetails.current = [];
+        mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    afterAll(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+    });
+
+    it.each([
+        ['a leading space', ' newuser@gmail.com'],
+        ['a trailing space', 'newuser@gmail.com '],
+        ['spaces on both sides', '  newuser@gmail.com  '],
+    ])('ignores %s when deriving the term the invite option is built from', async (_case, typedValue) => {
+        jest.useFakeTimers();
+
+        const {result} = renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                includeUserToInvite: true,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            result.current.setSearchTerm(typedValue);
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(400);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // searchString is what getUserToInviteOption runs Str.isValidEmail against, so a boundary space here means no invite row.
+        expect(mockGetValidOptions.mock.calls.at(-1)?.[7]?.searchString).toBe('newuser@gmail.com');
+    });
+});

@@ -78,5 +78,3 @@ function Avatar({
 }
 
 export default Avatar;
-
-export type {AvatarProps};

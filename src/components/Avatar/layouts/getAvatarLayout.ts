@@ -38,6 +38,8 @@ type AvatarLayoutResult = {
 };
 
 /** Resolves the avatar layout primitive and primary/secondary icons from pre-computed icons and a requested layout type. */
+function getAvatarLayout(params: GetAvatarLayoutParams & {icons: [Icon, ...Icon[]]}): AvatarLayoutResult & {primaryIcon: Icon};
+function getAvatarLayout(params: GetAvatarLayoutParams): AvatarLayoutResult;
 function getAvatarLayout({icons, avatarType, shouldStackHorizontally = false, hasCardFeed = false, shouldRequireSecondaryIconName = false}: GetAvatarLayoutParams): AvatarLayoutResult {
     const primaryIcon = icons.at(0);
     const secondaryIcon = icons.at(1);
