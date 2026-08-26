@@ -540,7 +540,7 @@ describe('ReportActionCompose Integration Tests', () => {
                 expect(createTaskFromMarkdown).toHaveBeenCalledWith(
                     expect.objectContaining({
                         text: '[] @mat Buy milk',
-                        parentReport: expect.objectContaining({reportID: REPORT_ID}),
+                        parentReport: expect.objectContaining({reportID: defaultReport.reportID}),
                     }),
                 );
             });
