@@ -153,11 +153,22 @@ const defaultListOptions = {
 };
 
 /**
+ * How many option lists the caches below hold. Consumers of this hook mount one selector at a time, except the Search
+ * filters popover, which keeps the contents of its people filters alive next to each other - three entries cover the
+ * lists it renders side by side. Entries rotate below that number as well, because what a consumer searches for is part
+ * of the key, so typing in one selector replaces the entries of the others.
+ *
+ * Fewer entries cost more than the memory they save: the result of `buildSelectedOptions` is an argument of
+ * `getValidOptions` and is compared by identity, so an eviction in the first cache produces a new list and makes the
+ * second one miss as well.
+ */
+const MAX_CACHED_OPTION_LISTS = 3;
+
+/**
  * Filtering the whole option list is a pure derivation of its inputs, so remounting consumers reuse the previous result.
- * The cache is sized to the number of mounted filter contents so lists rendered next to each other don't evict each other.
  */
 const memoizedGetValidOptions = memoize(getValidOptions, {
-    maxSize: CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS,
+    maxSize: MAX_CACHED_OPTION_LISTS,
     equality: equivalentArgsComparator,
     monitoringName: 'usePersonalDetailSearchSelector.getValidOptions',
 });
@@ -170,17 +181,20 @@ const buildSelectedOptions = (options: OptionData[], selectedAccountIDs: Set<str
     }));
 
 const memoizedBuildSelectedOptions = memoize(buildSelectedOptions, {
-    maxSize: CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS,
+    maxSize: MAX_CACHED_OPTION_LISTS,
     equality: equivalentArgsComparator,
     monitoringName: 'usePersonalDetailSearchSelector.buildSelectedOptions',
 });
 
-// Both caches hold option lists built for the signed-in account, so release them on sign-out
-// rather than holding them until later calls evict the entries.
-registerSessionCleanupCallback(() => {
+/** Releases the cached lists. The next consumer derives them again, so callers pay that price for the memory back. */
+function clearPersonalDetailSearchSelectorCaches() {
     memoizedGetValidOptions.cache.clear();
     memoizedBuildSelectedOptions.cache.clear();
-});
+}
+
+// Both caches hold option lists built for the signed-in account. Search releases them once it is done with them (see
+// `useReleaseOptionListCaches`), and sign-out covers whatever is still held at that point.
+registerSessionCleanupCallback(clearPersonalDetailSearchSelectorCaches);
 
 /**
  * Base hook that provides search functionality with selection logic for option lists.
@@ -380,4 +394,5 @@ function usePersonalDetailSearchSelectorBase({
 }
 
 export default usePersonalDetailSearchSelectorBase;
+export {clearPersonalDetailSearchSelectorCaches};
 export type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn};

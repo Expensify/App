@@ -116,9 +116,14 @@ const memoizedCreateOptionList = memoize(createOptionList, {
     monitoringName: 'usePersonalDetailOptions.createOptionList',
 });
 
-// The cached options describe the signed-in account's contacts, so release them on sign-out
-// rather than holding them until the next call evicts the entry.
-registerSessionCleanupCallback(() => memoizedCreateOptionList.cache.clear());
+/** Releases the cached options. The next consumer builds them again, so callers pay that price for the memory back. */
+function clearPersonalDetailOptionsCache() {
+    memoizedCreateOptionList.cache.clear();
+}
+
+// The cached options describe the signed-in account's contacts. Search releases them once it is done with them (see
+// `useReleaseOptionListCaches`), and sign-out covers whatever is still held at that point.
+registerSessionCleanupCallback(clearPersonalDetailOptionsCache);
 
 /**
  * Hook that provides options list for personal details.
@@ -177,3 +182,4 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
 }
 
 export default usePersonalDetailOptions;
+export {clearPersonalDetailOptionsCache};

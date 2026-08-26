@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
@@ -13,10 +13,12 @@ import CONST from '@src/CONST';
 import type ReactNative from 'react-native';
 
 import * as NativeNavigation from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {Activity, useState} from 'react';
 
 // Captures scrollToIndex calls so tests can assert on scroll behaviour
 const mockScrollToIndex = jest.fn();
+const mockScrollToOffset = jest.fn();
+const mockGetAbsoluteLastScrollOffset = jest.fn<number, []>(() => 0);
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {
@@ -24,7 +26,7 @@ jest.mock('@shopify/flash-list', () => {
     const RN = jest.requireActual<typeof ReactNative>('react-native');
 
     const FlashList = ReactLocal.forwardRef<
-        {scrollToIndex: (params: {index: number}) => void},
+        {scrollToIndex: (params: {index: number}) => void; scrollToOffset: (params: {offset: number; animated: boolean}) => void; getAbsoluteLastScrollOffset: () => number},
         Omit<React.ComponentProps<typeof RN.ScrollView>, 'children'> & {
             data?: unknown[];
             renderItem?: (info: {item: unknown; index: number; target: string}) => React.ReactNode;
@@ -56,7 +58,11 @@ jest.mock('@shopify/flash-list', () => {
             },
             ref,
         ) => {
-            ReactLocal.useImperativeHandle(ref, () => ({scrollToIndex: mockScrollToIndex}));
+            ReactLocal.useImperativeHandle(ref, () => ({
+                scrollToIndex: mockScrollToIndex,
+                scrollToOffset: mockScrollToOffset,
+                getAbsoluteLastScrollOffset: mockGetAbsoluteLastScrollOffset,
+            }));
 
             return ReactLocal.createElement(
                 RN.ScrollView,
@@ -130,6 +136,8 @@ describe('BaseSelectionList', () => {
     beforeEach(() => {
         onSelectRowMock.mockClear();
         mockScrollToIndex.mockClear();
+        mockScrollToOffset.mockClear();
+        mockGetAbsoluteLastScrollOffset.mockReturnValue(0);
         mockIsFocusRestoreInProgress.mockReturnValue(false);
     });
 
@@ -156,6 +164,32 @@ describe('BaseSelectionList', () => {
             </OnyxListItemProvider>
         );
     }
+
+    function ActivitySelectionListRenderer({mode}: {mode: 'visible' | 'hidden'}) {
+        return (
+            <Activity mode={mode}>
+                <SelectionListRenderer data={mockItems} />
+            </Activity>
+        );
+    }
+
+    it('scrolls back to the offset it reports when it is revealed from a hidden Activity', async () => {
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
+        mockGetAbsoluteLastScrollOffset.mockReturnValue(1200);
+
+        const {rerender} = render(<ActivitySelectionListRenderer mode="visible" />);
+
+        // A list that was just mounted starts where it starts, so nothing scrolls it.
+        expect(mockScrollToOffset).not.toHaveBeenCalled();
+
+        // Hiding the list unmounts its effects and drops its layout, and revealing it runs them again.
+        rerender(<ActivitySelectionListRenderer mode="hidden" />);
+        rerender(<ActivitySelectionListRenderer mode="visible" />);
+
+        await waitFor(() => {
+            expect(mockScrollToOffset).toHaveBeenCalledWith({offset: 1200, animated: false});
+        });
+    });
 
     it('should not trigger item press if screen is not focused', () => {
         jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(false);

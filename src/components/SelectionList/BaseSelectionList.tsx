@@ -332,6 +332,28 @@ function BaseSelectionListImpl({
 
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // A hidden `<Activity>` subtree keeps its state but unmounts its effects, so this runs again when the list is
+    // revealed without it being mounted anew. The list has no layout while it is hidden and its container loses the
+    // scroll position, which leaves the rendered window describing the offset from before - the visible area is blank
+    // until something scrolls the list. Scrolling back to the offset the list still reports puts the two in sync again.
+    const hasMountedRef = useRef(false);
+    useEffect(() => {
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            return;
+        }
+
+        const animationFrameID = requestAnimationFrame(() => {
+            const listOffset = listRef.current?.getAbsoluteLastScrollOffset();
+            if (listOffset === undefined) {
+                return;
+            }
+            listRef.current?.scrollToOffset({offset: listOffset, animated: false});
+        });
+
+        return () => cancelAnimationFrame(animationFrameID);
+    }, []);
+
     useEffect(() => {
         return () => {
             if (keyboardListenerRef.current) {

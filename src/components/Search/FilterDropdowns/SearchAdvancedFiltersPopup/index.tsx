@@ -10,7 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {getFilterNegatableValue} from '@libs/SearchUIUtils';
+import {getFilterNegatableValue, hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -53,10 +53,34 @@ const filterComponents = {
     ReportField: ReportFieldFilterContentPopupWrapper,
 } as const;
 
+type MountedFilterContentProps = {
+    /** The filter whose content this is. */
+    filterKey: SearchFilter['key'];
+
+    /** The filter values the content reads. */
+    values: Partial<SearchAdvancedFiltersForm> | undefined;
+
+    /** Called with the values a change in the content produces. */
+    onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
+};
+
 // React Compiler caches the whole `mountedFilters.map()` result in a single slot, so changing the shown filter rebuilds
-// every element of it - there is no per-element cache it could bail out on. Comparing props here is what keeps the
-// kept-mounted contents, whose own props are unchanged, from re-rendering along with the one being shown.
-const MemoizedFilterContent = React.memo(SearchAdvancedFiltersContent);
+// every element of it. Each content sits in its own component, so the rebuilt element lands on this component's cache
+// and one whose props are unchanged returns the element it returned before, which ends the render there.
+function MountedFilterContent({filterKey, values, onChange}: MountedFilterContentProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={styles.flex1}>
+            <SearchAdvancedFiltersContent
+                values={values}
+                baseFilterKey={filterKey}
+                components={filterComponents}
+                onChange={onChange}
+            />
+        </View>
+    );
+}
 
 function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
@@ -64,7 +88,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const {windowHeight} = useWindowDimensions();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initialFilter = CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE;
-    // The list highlights `hoveredFilter` immediately; the content pane follows `activeFilter`.
+    // The list highlights `hoveredFilter` immediately. The content pane follows `activeFilter`.
     const [hoveredFilter, setHoveredFilter] = useState<SearchFilter['key']>(initialFilter);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
         activeFilter: initialFilter,
@@ -95,8 +119,9 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 }
             }
             // A kept content keeps the values it was last given and decides its selection pinning on mount, so one whose
-            // values went stale while it was hidden is remounted instead of revealed.
-            if (currentState.mountedFilters.includes(filterKey) && currentState.formAtLastRest[filterKey] !== searchAdvancedFiltersForm) {
+            // values went stale while it was hidden is remounted instead of revealed. Only the values that content reads
+            // count as stale - a change to a filter it doesn't read leaves its own state, like a typed search term, alone.
+            if (currentState.mountedFilters.includes(filterKey) && hasFilterContentValuesChanged(filterKey, currentState.formAtLastRest[filterKey], searchAdvancedFiltersForm)) {
                 nextContentVersions[filterKey] = (currentState.contentVersions[filterKey] ?? 0) + 1;
             }
 
@@ -158,14 +183,11 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                             key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
                             mode={filterKey === activeFilter ? 'visible' : 'hidden'}
                         >
-                            <View style={styles.flex1}>
-                                <MemoizedFilterContent
-                                    values={filterKey === activeFilter ? searchAdvancedFiltersForm : formAtLastRest[filterKey]}
-                                    baseFilterKey={filterKey}
-                                    components={filterComponents}
-                                    onChange={updateFilterQueryParams}
-                                />
-                            </View>
+                            <MountedFilterContent
+                                filterKey={filterKey}
+                                values={filterKey === activeFilter ? searchAdvancedFiltersForm : formAtLastRest[filterKey]}
+                                onChange={updateFilterQueryParams}
+                            />
                         </Activity>
                     ))}
                 </View>

@@ -151,13 +151,40 @@ describe('SearchAdvancedFiltersPopup', () => {
 
         hoverAndRest(FILTER_KEYS.FROM);
 
-        // The form changes (e.g. a value was picked) and the cursor moves on to another filter.
+        // The form changes in a way this content reads (the search type decides its options) and the cursor moves on.
         mockFiltersForm = {type: CONST.SEARCH.DATA_TYPES.EXPENSE};
         hoverAndRest(FILTER_KEYS.TO);
 
         // Returning to the filter now gets a fresh content instance instead of the one from before the change.
         hoverAndRest(FILTER_KEYS.FROM);
         expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.FROM)).toHaveLength(2);
+    });
+
+    it('remounts a kept content when its own value changed while it was away', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        hoverAndRest(FILTER_KEYS.FROM);
+
+        // Someone was picked in this very filter, so its content has to decide its selection pinning again.
+        mockFiltersForm = {from: ['1']};
+        hoverAndRest(FILTER_KEYS.TO);
+
+        hoverAndRest(FILTER_KEYS.FROM);
+        expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.FROM)).toHaveLength(2);
+    });
+
+    it('keeps a kept content when only the value of a filter it does not read changed', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        hoverAndRest(FILTER_KEYS.FROM);
+
+        // Someone was picked in another filter, which the content of this one neither reads nor renders.
+        mockFiltersForm = {to: ['1']};
+        hoverAndRest(FILTER_KEYS.TO);
+
+        // The content is revealed as it was left, so state it holds itself - a typed search term - survives.
+        hoverAndRest(FILTER_KEYS.FROM);
+        expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.FROM)).toHaveLength(1);
     });
 
     it('shows the content of a row focused with the keyboard without waiting for the hover intent delay', () => {
