@@ -26,6 +26,7 @@ function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChar
     const layoutKind = layout.kind;
     const fixedWidth = layout.kind === 'fixed' ? layout.width : undefined;
     const fixedHeight = layout.kind === 'fixed' ? layout.height : undefined;
+    const scaledDesignWidth = layout.kind === 'scaled' ? layout.designWidth : undefined;
     const scaledDesignHeight = layout.kind === 'scaled' ? layout.designHeight : undefined;
     const scaledScale = layout.kind === 'scaled' ? layout.scale : undefined;
     const isPolar = type === CHART_TYPE.POLAR;
@@ -35,9 +36,12 @@ function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChar
 
     if (layoutKind === 'fixed' && fixedWidth !== undefined && fixedHeight !== undefined) {
         containerStyle = [...containerStyleBase, {width: fixedWidth, height: fixedHeight, borderRadius: 0, overflow: 'hidden'}];
-    } else if (layoutKind === 'scaled' && scaledDesignHeight !== undefined && scaledScale !== undefined) {
+    } else if (layoutKind === 'scaled' && scaledDesignWidth !== undefined && scaledDesignHeight !== undefined && scaledScale !== undefined) {
         const effectiveHeight = isPolar ? scaledDesignHeight * POLAR_CONTAINER_HEIGHT_RATIO : scaledDesignHeight;
-        containerStyle = [...containerStyleBase, {borderRadius: isPolar ? borderRadius : 0, height: effectiveHeight * scaledScale, overflow: 'hidden'}];
+        containerStyle = [
+            ...containerStyleBase,
+            {borderRadius: isPolar ? borderRadius : 0, width: scaledDesignWidth * scaledScale, height: effectiveHeight * scaledScale, overflow: 'hidden'},
+        ];
     }
 
     const contentStyle: ViewStyle[] = [];

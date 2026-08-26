@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Hoverable from '@components/Hoverable';
@@ -329,11 +329,12 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                         <Text style={[styles.mutedNormalTextLabel, styles.label, styles.flexShrink1]}>{translate('walletPage.addVirtualCardPersonalDetails.subtitle')}</Text>
                     </View>
                     <Button
-                        small
-                        success
-                        text={translate('walletPage.addVirtualCardPersonalDetails.cta')}
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID))))}
-                    />
+                    >
+                        <Button.Text>{translate('walletPage.addVirtualCardPersonalDetails.cta')}</Button.Text>
+                    </Button>
                 </View>
             )}
             {isChaseAccountConnectedViaPlaid && (

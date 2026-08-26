@@ -859,11 +859,12 @@ describe('TagsOptionsListUtils', () => {
                     },
                     orderWeight: 0,
                 },
-            } as unknown as PolicyTagLists;
+            } satisfies Record<string, Omit<NonNullable<PolicyTagLists[string]>, 'required'>>;
 
             const result = getTagVisibility({
                 shouldShowTags: true,
                 policy: policyWithRequiresTag,
+                // @ts-expect-error -- backend sync can omit `required`; this scenario verifies the policy fallback.
                 policyTags: policyTagsWithoutRequired,
                 transaction: mockTransaction,
             });
@@ -882,11 +883,12 @@ describe('TagsOptionsListUtils', () => {
                     },
                     orderWeight: 0,
                 },
-            } as unknown as PolicyTagLists;
+            } satisfies Record<string, Omit<NonNullable<PolicyTagLists[string]>, 'required'>>;
 
             const result = getTagVisibility({
                 shouldShowTags: true,
                 policy: policyWithoutRequiresTag,
+                // @ts-expect-error -- backend sync can omit `required`; this scenario verifies the policy fallback.
                 policyTags: policyTagsWithoutRequired,
                 transaction: mockTransaction,
             });

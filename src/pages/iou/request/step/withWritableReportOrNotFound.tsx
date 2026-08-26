@@ -34,39 +34,40 @@ type WithWritableReportOrNotFoundOnyxProps = {
 
 type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
-    | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
-    | typeof SCREENS.MONEY_REQUEST.STEP_DATE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE
     | typeof SCREENS.MONEY_REQUEST.CREATE
     | typeof SCREENS.MONEY_REQUEST.START
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG
-    | typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS
-    | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES
-    | typeof SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT
-    | typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT
-    | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_EDIT_REPORT
     | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
@@ -95,6 +96,8 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
 
@@ -107,7 +110,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
         if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID});
+        openReport({reportID: route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

@@ -231,7 +231,7 @@ const tests = [
                     },
                 },
                 right: {
-                    operator: 'eq',
+                    operator: 'contains',
                     left: 'merchant',
                     right: 'marriott',
                 },
@@ -261,7 +261,7 @@ const tests = [
                     },
                 },
                 right: {
-                    operator: 'eq',
+                    operator: 'contains',
                     left: 'merchant',
                     right: "McDonald's",
                 },
@@ -596,7 +596,7 @@ const tests = [
                             },
                         },
                         right: {
-                            operator: 'eq',
+                            operator: 'contains',
                             left: 'merchant',
                             right: 'Expensify, Inc.',
                         },
@@ -1297,6 +1297,20 @@ const keywordTests = [
             sortOrder: 'desc',
             view: 'table',
             filters: {
+                operator: 'contains',
+                left: 'merchant',
+                right: 'tax',
+            },
+        },
+    },
+    {
+        query: 'merchant=tax',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
                 operator: 'eq',
                 left: 'merchant',
                 right: 'tax',
@@ -1527,7 +1541,7 @@ const limitTests = [
             view: 'table',
             limit: '50',
             filters: {
-                operator: 'eq',
+                operator: 'contains',
                 left: 'merchant',
                 right: 'Amazon',
             },

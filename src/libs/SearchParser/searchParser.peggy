@@ -223,7 +223,7 @@ defaultFilter
     }
 
 freeTextFilter
-  = _ value:(quotedString / [^ \t\r\n\xA0]+) _ {
+  = _ value:(quotedString / (escapedChar / [^ \t\r\n\xA0])+) _ {
       //handle no-breaking space
       let word;
       if (Array.isArray(value)) {
@@ -235,11 +235,16 @@ freeTextFilter
     }
 
 standardFilter
-  = _ neg:"-"? field:filterKey _ op:filterOperator _ values:identifier {
+  = _ neg:"-"? field:filterKey _ op:searchFilterOperator _ values:identifier {
       expectingNestedQuote = false; nameOperator = false;
 
       const key = field;
-      let operator = op;
+      let operator = op.value;
+
+      // Positive `merchant:` filters predate explicit match types, so they must retain contains semantics.
+      if (!neg && key === "merchant" && op.token === ":") {
+        operator = "contains";
+      }
 
       // The "contains" operator is only supported for the merchant field
       if (operator === "contains" && (neg || key !== "merchant")) {
@@ -255,6 +260,9 @@ standardFilter
 
       return buildFilter(operator, key, values);
     }
+
+searchFilterOperator
+  = value:filterOperator { return {value, token: text()}; }
 
 reportFieldDynamic
   = ("report-field"i / "reportfield"i) "-" rest:$((!([ \t\r\n\xA0,:=<>!]) .)*) {

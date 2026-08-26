@@ -156,6 +156,11 @@ type UseSearchSelectorReturn = {
 
 const emptyOptionList: OptionList = {reports: [], personalDetails: []};
 
+const CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG: ReadonlySet<SearchSelectorContext> = new Set([
+    CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+    CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES,
+]);
+
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
         (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
@@ -212,6 +217,12 @@ function useSearchSelectorBase({
 
     // Searching bypasses the recent-reports pre-filter so a typed query can still match reports outside the top 500 most recently active ones.
     const isSearchingOptions = !!debouncedSearchTerm.trim();
+
+    // Keep option-list contact building aligned with downstream includeP2P filtering.
+    const appliesGetValidOptionsConfig = CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG.has(searchContext);
+    const includeP2P = !appliesGetValidOptionsConfig || (getValidOptionsConfig.includeP2P ?? true);
+    const appliedGetValidOptionsConfig = appliesGetValidOptionsConfig ? getValidOptionsConfig : CONST.EMPTY_OBJECT;
+
     const {
         options: filteredOptions,
         isLoading: isLoadingOptions,
@@ -220,6 +231,7 @@ function useSearchSelectorBase({
     } = useFilteredOptions({
         enabled: shouldInitialize,
         isSearching: isSearchingOptions,
+        includeP2P,
         batchSize: maxResultsPerPage,
     });
     const areOptionsInitialized = !isLoadingOptions;
@@ -229,7 +241,6 @@ function useSearchSelectorBase({
         if (!contactOptions?.length || !areOptionsInitialized) {
             return defaultOptions;
         }
-
         // Imported contacts get a generated accountID, so one sharing a login with a real Onyx user would show a duplicate
         // row and be treated as a new invite. Track already-represented logins and drop contacts whose login is present.
         const existingLogins = new Set<string>();
@@ -261,7 +272,8 @@ function useSearchSelectorBase({
 
         return {
             ...defaultOptions,
-            personalDetails: defaultOptions.personalDetails.concat(dedupedContactOptions),
+            // Imported contacts are already hydrated.
+            personalDetails: defaultOptions.personalDetails.concat(dedupedContactOptions.map((contact) => ({...contact, isHydrated: true as const}))),
         };
     })();
 
@@ -328,7 +340,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
-                        ...getValidOptionsConfig,
+                        ...appliedGetValidOptionsConfig,
                     },
                     translate,
                 );
@@ -365,6 +377,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
+                        ...appliedGetValidOptionsConfig,
                     },
                     translate,
                 );
@@ -399,7 +412,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
-                        ...getValidOptionsConfig,
+                        ...appliedGetValidOptionsConfig,
                     },
                     translate,
                 );
