@@ -177,6 +177,8 @@ function MoneyRequestAmountForm({
     }, [onNegativeChange]);
 
     const initializeIsNegative = useCallback((currentAmount: number, shouldResetUserSign = false) => {
+        // A tab switch is the only place we deliberately discard a user's manual sign flip. A plain `amount` update
+        // (e.g. an async transaction load) must preserve it, so it leaves hasUserChangedSignRef untouched.
         if (shouldResetUserSign) {
             hasUserChangedSignRef.current = false;
         }
