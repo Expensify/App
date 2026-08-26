@@ -1617,7 +1617,7 @@ function getExpensifyCardProgramCurrency(programKey: CardProgramKey | undefined,
 }
 
 /**
- * Narrows a stored program value (e.g. the `lastSelectedExpensifyCardProgram` Onyx string) to a selectable program key.
+ * Narrows an arbitrary program value (e.g. the `feedCountry` route param) to a user-selectable program key.
  * Only US and GB are user-selectable; anything else (including undefined) returns undefined for the caller to handle.
  */
 function getSelectableCardProgramKey(programKey: string | undefined): CardProgramKey | undefined {
