@@ -7,6 +7,7 @@ import useSidePanelReportID from '@hooks/useSidePanelReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import {addAttachmentWithComment, addComment} from '@userActions/Report';
+import {createTaskFromMarkdown} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,7 +26,9 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const {openConciergeAnywhere, isInSidePanel} = useOpenConciergeAnywhere();
     const targetReportID = !forceConcierge && isInSidePanel && sidePanelReportID ? sidePanelReportID : conciergeReportID;
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetReportID)}`);
-    const {timezone, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {timezone, accountID: currentUserAccountID} = currentUserPersonalDetails;
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const delegateAccountID = useDelegateAccountID();
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
@@ -35,6 +38,12 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             return;
         }
         openConciergeAnywhere({forceConcierge});
+
+        // The `[] task` shorthand has to be handled here too, otherwise it would be sent to Concierge as a plain
+        // message instead of creating a task, unlike the same text typed into the report composer.
+        if (createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction})) {
+            return;
+        }
         addComment({
             report: targetReport,
             notifyReportID: targetReportID,
