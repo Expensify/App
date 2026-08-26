@@ -11,8 +11,7 @@ import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {MerchantMatchType} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {MerchantMatchType, SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
