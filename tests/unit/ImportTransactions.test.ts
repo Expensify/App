@@ -936,6 +936,17 @@ describe('ImportTransactions', () => {
             expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.CARD_LIST})]));
         });
 
+        it('uses the hard defaults when importing a new card that has no saved layout', async () => {
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardName).toBe('Imported Card');
+            expect(params.currency).toBe(CONST.CURRENCY.USD);
+            expect(params.reimbursable).toBe(true);
+            expect(JSON.parse(String(params.columnMappings))).toEqual(expect.objectContaining({flipAmountSign: false}));
+            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: 550}), expect.objectContaining({amount: 2500})]);
+        });
+
         it('sends the existing card settings instead of the defaults when re-uploading to a card', async () => {
             const existingCardID = 987654321;
             const existingCardSettings = {cardDisplayName: 'Aussie Card', currency: 'AUD', isReimbursable: false, flipAmountSign: true};

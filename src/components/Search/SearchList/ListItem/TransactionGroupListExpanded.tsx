@@ -87,6 +87,8 @@ function TransactionGroupListExpandedImpl({
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
@@ -202,6 +204,7 @@ function TransactionGroupListExpandedImpl({
             if (!transactionItem?.reportAction?.childReportID) {
                 if (isModifiedMousePress(event)) {
                     const targetReportID = createAndOpenSearchTransactionThread({
+                        conciergeChat,
                         getCurrencyDecimals,
                         item: transactionItem,
                         introSelected,
@@ -221,6 +224,7 @@ function TransactionGroupListExpandedImpl({
                     return;
                 }
                 createAndOpenSearchTransactionThread({
+                    conciergeChat,
                     getCurrencyDecimals,
                     item: transactionItem,
                     introSelected,
@@ -256,12 +260,12 @@ function TransactionGroupListExpandedImpl({
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
         if (isModifiedMousePress(event)) {
-            setActiveTransactionIDs(siblingTransactionIDs);
+            setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash);
             navigateToTransactionThread();
             return;
         }
 
-        setActiveTransactionIDs(siblingTransactionIDs).then(navigateToTransactionThread);
+        setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash).then(navigateToTransactionThread);
     };
 
     const onShowMoreButtonPress = () => {
