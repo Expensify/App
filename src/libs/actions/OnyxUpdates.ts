@@ -57,12 +57,16 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
     // The backend routes these through the response instead of Pusher, so applying them mid-drain replays the UI. See https://github.com/Expensify/App/issues/12775.
     const serverUpdateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
 
+    // Applied now so a force kill cannot strand it, restaged so the deferred server payload cannot land on top of it.
+    const isServerDataDeferred = serverUpdateHandler === queueOnyxUpdates && !!response.onyxData;
+    const applyClientData = (updates: Array<OnyxUpdate<TKey>>): Promise<unknown> => Onyx.update(updates).then(() => (isServerDataDeferred ? queueOnyxUpdates(updates) : undefined));
+
     const onyxDataUpdatePromise = response.onyxData ? serverUpdateHandler(response.onyxData) : Promise.resolve();
 
     return onyxDataUpdatePromise
         .then(() => {
             if (response.jsonCode === 200 && request.successData) {
-                return Onyx.update(request.successData);
+                return applyClientData(request.successData);
             }
             if (response.jsonCode !== 200 && request.failureData) {
                 // 460 jsonCode in Expensify world means "admin required".
@@ -81,13 +85,13 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
                     requestData: request.data,
                 });
 
-                return Onyx.update(request.failureData);
+                return applyClientData(request.failureData);
             }
             return Promise.resolve();
         })
         .then(() => {
             if (request.finallyData) {
-                return Onyx.update(request.finallyData);
+                return applyClientData(request.finallyData);
             }
             return Promise.resolve();
         })

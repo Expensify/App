@@ -660,7 +660,7 @@ describe('SequentialQueue - QueueFlushedData', () => {
     });
 });
 
-describe('SequentialQueue - a write applies its own client-side data before the request leaves disk', () => {
+describe('SequentialQueue - a write applies its own client-side data before the request leaves disk and after the server payload', () => {
     const REPORT_ID = '1';
     const REPORT_ACTIONS_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
     const SERVER_ACTION_ID = '8888';
@@ -797,6 +797,28 @@ describe('SequentialQueue - a write applies its own client-side data before the 
         for (const id of ids) {
             expect(liveReportActions?.[id]?.pendingAction).toBeUndefined();
         }
+    });
+
+    it('lets successData decide the final state of a key the server payload also touches', async () => {
+        // Given a write whose successData removes a key that the server also updates in its response
+        await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction('4001'));
+        await waitForBatchedUpdates();
+        mockFetch.mockAPICommand('DeleteAppReport', () => ({
+            onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[SERVER_ACTION_ID]: {reportActionID: SERVER_ACTION_ID}}}],
+        }));
+
+        // When the response lands and the deferred server payload is flushed
+        SequentialQueue.push({
+            command: 'DeleteAppReport',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, reportID: REPORT_ID},
+            successData: [{onyxMethod: Onyx.METHOD.SET, key: REPORT_ACTIONS_KEY, value: null}],
+        });
+        await SequentialQueue.waitForIdle();
+        await flushQueue();
+        await waitForBatchedUpdates();
+
+        // Then the removal stands, so the server payload does not re-create the key it deleted
+        expect(liveReportActions).toBeUndefined();
     });
 });
 
