@@ -74,4 +74,4 @@ function partitionTravelBillingFeedsForSelector(entries: TravelBillingFeedEntry[
     return {primary, other};
 }
 
-export {getAdminTravelBillingFeedEntries, hasConfiguredTravelBillingFeed, partitionTravelBillingFeedsForSelector, type TravelBillingFeedEntry};
+export {getAdminTravelBillingFeedEntries, partitionTravelBillingFeedsForSelector, type TravelBillingFeedEntry};
