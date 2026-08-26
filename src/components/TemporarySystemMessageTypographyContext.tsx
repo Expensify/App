@@ -2,7 +2,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import React, {createContext, useContext} from 'react';
 
-type TemporarySystemMessageTypography = 'label' | 'body';
+type TemporarySystemMessageTypography = 'micro' | 'body';
 
 const TemporarySystemMessageTypographyContext = createContext<TemporarySystemMessageTypography | undefined>(undefined);
 

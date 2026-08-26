@@ -25,7 +25,7 @@ function ReportActionItemBasicMessage({message, children}: ReportActionItemBasic
     const messageContainsCustomEmojiWithText = useMemo(() => containsCustomEmoji(message) && !containsOnlyCustomEmoji(message), [message]);
     const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
     const temporaryTypography = useTemporarySystemMessageTypography();
-    const temporaryTypographyStyle = temporaryTypography === 'label' ? styles.mutedTextLabel : undefined;
+    const temporaryTypographyStyle = temporaryTypography === 'micro' ? styles.textMicroSupporting : undefined;
 
     return (
         <View>

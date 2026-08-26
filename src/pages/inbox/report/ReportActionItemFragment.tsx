@@ -112,7 +112,7 @@ function ReportActionItemFragment({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const temporaryTypography = useTemporarySystemMessageTypography();
-    const temporaryTypographyStyle = temporaryTypography === 'label' ? styles.mutedTextLabel : undefined;
+    const temporaryTypographyStyle = temporaryTypography === 'micro' ? styles.textMicroSupporting : undefined;
 
     switch (fragment?.type) {
         case 'COMMENT': {

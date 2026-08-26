@@ -19,7 +19,7 @@ import {StyleSheet} from 'react-native';
 
 const mockBodyStyle = {fontSize: 15, lineHeight: 20};
 const mockMutedColorStyle = {color: 'muted'};
-const mockMutedLabelStyle = {color: 'muted', fontSize: 13, lineHeight: 16};
+const mockMicroStyle = {color: 'muted', fontSize: 11, lineHeight: 14};
 const mockPaddingTopZeroStyle = {paddingTop: 0};
 
 jest.mock('@components/ReportActionAvatars/useReportActionAvatars', () => ({
@@ -56,7 +56,7 @@ jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         chatItemMessage: mockBodyStyle,
         colorMuted: mockMutedColorStyle,
-        mutedTextLabel: mockMutedLabelStyle,
+        textMicroSupporting: mockMicroStyle,
         pt0: mockPaddingTopZeroStyle,
     })),
 );
@@ -90,7 +90,7 @@ describe('ReportActionItemSystem', () => {
         return directChild;
     };
 
-    it('renders a Label timestamp before a Body actor and action in the clarified two-line layout', () => {
+    it('renders a Micro timestamp before a Body actor and action in the clarified two-line layout', () => {
         const action: ReportAction = {
             reportActionID: '1',
             actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -115,7 +115,7 @@ describe('ReportActionItemSystem', () => {
         expect(screen.getByText('2026-07-30 00:00:00.000')).toBeOnTheScreen();
         expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({
             created: '2026-07-30 00:00:00.000',
-            textStyle: [mockMutedLabelStyle, mockPaddingTopZeroStyle],
+            textStyle: [mockMicroStyle, mockPaddingTopZeroStyle],
         });
         expect(jest.mocked(useReportActionAvatars)).toHaveBeenLastCalledWith(expect.objectContaining({shouldUseRealActor: true}));
 
@@ -145,7 +145,7 @@ describe('ReportActionItemSystem', () => {
         expect(twoLineContainer.children.indexOf(timestampLine)).toBeLessThan(twoLineContainer.children.indexOf(actionLine));
     });
 
-    it('defaults to two lines, then renders Label actor, action, and timestamp inline after selecting one line', () => {
+    it('defaults to two lines, then renders Micro actor, action, and timestamp inline after selecting one line', () => {
         const action: ReportAction = {
             reportActionID: '1',
             actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -168,7 +168,7 @@ describe('ReportActionItemSystem', () => {
         );
 
         expect(screen.getByText('Temporary design comparison')).toBeOnTheScreen();
-        expect(screen.getByText('One line: Label actor, action, and timestamp inline. Two lines: Label timestamp above Body actor and action.')).toBeOnTheScreen();
+        expect(screen.getByText('One line: Micro actor, action, and timestamp inline. Two lines: Micro timestamp above Body actor and action.')).toBeOnTheScreen();
         expect(screen.getByRole('radio', {name: 'Two lines'}).props.accessibilityState).toMatchObject({checked: true});
 
         fireEvent.press(screen.getByRole('radio', {name: 'One line'}));
@@ -177,15 +177,15 @@ describe('ReportActionItemSystem', () => {
         expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({
             created: '2026-07-30 00:00:00.000',
             isLowercase: true,
-            textStyle: [mockMutedLabelStyle, mockPaddingTopZeroStyle],
+            textStyle: [mockMicroStyle, mockPaddingTopZeroStyle],
         });
 
         const actor = screen.getByText('Todd Clyde ');
         const content = screen.getByText('submitted');
         const timestamp = screen.getByText('2026-07-30 00:00:00.000');
-        expect(StyleSheet.flatten(actor.props.style)).toMatchObject(mockMutedLabelStyle);
-        expect(StyleSheet.flatten(content.props.style)).toMatchObject(mockMutedLabelStyle);
-        expect(StyleSheet.flatten(timestamp.props.style)).toMatchObject({...mockMutedLabelStyle, ...mockPaddingTopZeroStyle});
+        expect(StyleSheet.flatten(actor.props.style)).toMatchObject(mockMicroStyle);
+        expect(StyleSheet.flatten(content.props.style)).toMatchObject(mockMicroStyle);
+        expect(StyleSheet.flatten(timestamp.props.style)).toMatchObject({...mockMicroStyle, ...mockPaddingTopZeroStyle});
         const actorAncestors = getAncestors(actor);
         const contentAncestors = getAncestors(content);
         const timestampAncestors = getAncestors(timestamp);

@@ -39,7 +39,7 @@ function MemberChangeContent({action}: MemberChangeContentProps) {
     return (
         <View style={[styles.chatItemMessage]}>
             <TextCommentFragment
-                style={temporaryTypography === 'label' ? styles.mutedTextLabel : undefined}
+                style={temporaryTypography === 'micro' ? styles.textMicroSupporting : undefined}
                 fragment={fragment}
                 source=""
                 displayAsGroup={false}

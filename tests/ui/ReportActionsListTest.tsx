@@ -465,7 +465,7 @@ describe('ReportActionsList (body)', () => {
             renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
 
             expect(screen.getByText('Temporary design comparison')).toBeOnTheScreen();
-            expect(screen.getByText('One line: Label actor, action, and timestamp inline. Two lines: Label timestamp above Body actor and action.')).toBeOnTheScreen();
+            expect(screen.getByText('One line: Micro actor, action, and timestamp inline. Two lines: Micro timestamp above Body actor and action.')).toBeOnTheScreen();
             expect(screen.getByRole('radio', {name: 'Two lines'}).props.accessibilityState).toMatchObject({checked: true});
             fireEvent.press(screen.getByRole('radio', {name: 'One line'}));
             expect(screen.getByRole('radio', {name: 'One line'}).props.accessibilityState).toMatchObject({checked: true});

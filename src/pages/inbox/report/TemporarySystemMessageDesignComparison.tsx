@@ -26,7 +26,7 @@ function TemporarySystemMessageDesignComparison({children}: ChildrenProps) {
             <View style={styles.flex1}>
                 <View style={[styles.ph5, styles.pv2, styles.gap2, styles.borderBottom]}>
                     <Text style={styles.textMicroBold}>Temporary design comparison</Text>
-                    <Text style={[styles.textMicro, styles.colorMuted]}>One line: Label actor, action, and timestamp inline. Two lines: Label timestamp above Body actor and action.</Text>
+                    <Text style={[styles.textMicro, styles.colorMuted]}>One line: Micro actor, action, and timestamp inline. Two lines: Micro timestamp above Body actor and action.</Text>
                     <View
                         style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap3]}
                         role={CONST.ROLE.RADIOGROUP}

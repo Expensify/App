@@ -35,7 +35,7 @@ function ReportActionItemSystemContent({children, action, report, iouReport, sho
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
     const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? iouReport?.ownerAccountID ?? action.childOwnerAccountID) : undefined;
     const hasVacationDelegate = !!getVacationer(action) || !!getManagerOnVacation(action);
-    const actionTextStyle = layout === 'oneLine' ? styles.mutedTextLabel : [styles.chatItemMessage, styles.colorMuted];
+    const actionTextStyle = layout === 'oneLine' ? styles.textMicroSupporting : [styles.chatItemMessage, styles.colorMuted];
     const fallbackActorName = action.person
         ?.map((fragment) => fragment.text)
         .filter(Boolean)
@@ -75,14 +75,14 @@ function ReportActionItemSystemContent({children, action, report, iouReport, sho
 
     if (layout === 'oneLine') {
         return (
-            <TemporarySystemMessageTypographyProvider value="label">
+            <TemporarySystemMessageTypographyProvider value="micro">
                 <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
                     {actionContent}
                     <View style={[styles.flexShrink1, styles.mr1]}>{children}</View>
                     <ReportActionItemDate
                         created={action.created ?? ''}
                         isLowercase
-                        textStyle={[styles.mutedTextLabel, styles.pt0]}
+                        textStyle={[styles.textMicroSupporting, styles.pt0]}
                     />
                 </View>
             </TemporarySystemMessageTypographyProvider>
@@ -94,7 +94,7 @@ function ReportActionItemSystemContent({children, action, report, iouReport, sho
             <View style={styles.flexShrink1}>
                 <ReportActionItemDate
                     created={action.created ?? ''}
-                    textStyle={[styles.mutedTextLabel, styles.pt0]}
+                    textStyle={[styles.textMicroSupporting, styles.pt0]}
                 />
                 <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
                     {actionContent}

@@ -55,7 +55,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
         const typographyAlignedHTML =
-            temporarySystemMessageTypography === 'label' ? htmlParam.replaceAll('<muted-text>', '<muted-text-label>').replaceAll('</muted-text>', '</muted-text-label>') : htmlParam;
+            temporarySystemMessageTypography === 'micro' ? htmlParam.replaceAll('<muted-text>', '<muted-text-micro>').replaceAll('</muted-text>', '</muted-text-micro>') : htmlParam;
         return (
             Parser.replace(typographyAlignedHTML, {shouldEscapeText: false, filterRules: ['emoji']})
                 // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
