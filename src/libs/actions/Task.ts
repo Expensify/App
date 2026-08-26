@@ -96,9 +96,13 @@ type CreateTaskAndNavigateParams = {
 type CreateTaskFromMarkdownParams = {
     /** The already trimmed text the user is sending */
     text: string;
+    /** The parent report to which the task belongs */
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    /** The current user's personal details */
     currentUserPersonalDetails: CurrentUserPersonalDetails;
+    /** The quick action associated with the task */
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    /** The ancestors of the task */
     ancestors?: ReportUtils.Ancestor[];
 };
 

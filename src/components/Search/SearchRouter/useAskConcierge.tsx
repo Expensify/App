@@ -39,8 +39,6 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         }
         openConciergeAnywhere({forceConcierge});
 
-        // The `[] task` shorthand has to be handled here too, otherwise it would be sent to Concierge as a plain
-        // message instead of creating a task, unlike the same text typed into the report composer.
         if (createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction})) {
             return;
         }
