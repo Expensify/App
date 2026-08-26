@@ -1665,7 +1665,6 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
-    setNewOptimisticAssignee,
     getNavigationUrlOnTaskDelete,
     canActionTask,
     getFinishOnboardingTaskOnyxData,
