@@ -201,7 +201,7 @@ function getExpenseDefaultsTableData({
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
-    const categoryTaxRules = getCategoryTaxRulesTableData({policy, translate, onNavigate});
+    const categoryTaxRules = getCategoryTaxRulesTableData({policy, translate, isOffline, onNavigate});
     const merchantRules = getMerchantCodingRulesTableData({policy, policyID, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
