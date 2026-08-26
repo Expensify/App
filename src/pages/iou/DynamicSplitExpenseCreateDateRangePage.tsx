@@ -45,7 +45,7 @@ function DynamicSplitExpenseCreateDateRangePage({route}: DynamicSplitExpenseCrea
     const {translate} = useLocalize();
     const {currentSearchResults} = useSearchResultsContext();
 
-    const {splitReportID: reportID, transactionID} = route.params;
+    const {splitReportID: reportID, originalTransactionID: transactionID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path);
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
