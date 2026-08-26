@@ -1361,12 +1361,6 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>, isOffline: b
         return true;
     }
 
-    // The DEW routed action is synthesized client-side on top of its parent SUBMITTED/FORWARDED action
-    // and is never persisted, so it carries no unread state of its own for the marker to anchor on.
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED) {
-        return true;
-    }
-
     return !isOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
