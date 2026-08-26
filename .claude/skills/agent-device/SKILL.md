@@ -123,4 +123,4 @@ Read these files directly for device automation guidance (bootstrap, exploration
 
 This skill owns interactive automation only: reusable setup and navigation macros under [`flows/macros/`](flows/README.md), with platform overrides under `flows/macros/<platform>/`. Propose and run macros through the [Agent decision loop](flows/README.md). `flows/README.md` is also the reference for the `.ad` metadata spec, selector rules, and recording workflow, so read it before authoring any `.ad` file in this repository.
 
-Sentry span measurement lives in the [`measure-telemetry-span`](../measure-telemetry-span/SKILL.md) skill, which owns its own `flows/` and the replay deadline wrapper. Do not add measurement flows here.
+Measurement flows live in the [`measure-telemetry-span`](../measure-telemetry-span/SKILL.md) skill, which owns its own `flows/` and runner. Do not add measurement flows here.
