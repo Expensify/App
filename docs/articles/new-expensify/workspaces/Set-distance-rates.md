@@ -1,12 +1,20 @@
 ---
 title: Set Distance Rates
-description: Set and manage distance rates for mileage reimbursement in your Expensify workspace.
+description: Set and manage distance rates for distance reimbursement in your Expensify workspace.
 keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates]
 ---
 
 # Set Distance Rates
 
-Distance rates allow your workspace to reimburse mileage-based travel. Admins can create and manage one or more rates that members can select when submitting distance expenses.
+Distance rates determine how much members are reimbursed for distance-based travel. Workspace Admins can create multiple rates, control when each rate applies, configure taxes, and automatically update rates when supported government reimbursement rates change.
+
+---
+
+## Who can use Distance rates
+
+Workspace Admins can configure Distance rates for a workspace.
+
+Automatic updates are available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
 
 ---
 
@@ -14,7 +22,7 @@ Distance rates allow your workspace to reimburse mileage-based travel. Admins ca
 
 To activate Distance rates for a workspace:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
 2. Click **More Features**.
 3. Toggle **Distance rates** to enable the setting. 
 
@@ -24,7 +32,7 @@ Once enabled, **Distance Rates** will appear in the left menu.
 
 ## How to add Distance rates
 
-1. Go to **Workspaces > [Workspace Name] > Distance Rates**.
+1. Go to **Workspaces > [workspace Name] > Distance Rates**.
 2. Click **Add Rate** in the top-right corner.
 3. Enter the rate value (e.g., $0.585 per mile or km).
 4. (Optional) Set a **Start date** and **End date** to define the period the rate applies to. Leave these blank if the rate has no time limit.
@@ -34,9 +42,9 @@ When a rate has a **Start date** or **End date**, Expensify uses it to apply the
 
 ---
 
-## How to edit Distance rate settings
+## How to change a Distance rate, effective dates, or tax settings
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
 2. Click **Distance rates**.
 3. Click on the rate you want to edit. 
 4. Update any of the available settings:
@@ -48,7 +56,7 @@ When a rate has a **Start date** or **End date**, Expensify uses it to apply the
    - Tax reclaimable amount
 5. Click **Save**.
 
-**Note:** If **Taxes** is enabled on the Workspace, each Distance rate can be associated with a tax rate and a tax reclaimable amount. The selected tax rate is automatically applied when the Distance rate is used on an expense. To track **Taxes** on a Workspace, [learn how to track Taxes](/articles/new-expensify/workspaces/Track-Taxes).
+**Note:** If **Taxes** is enabled on the Workspace, each Distance rate can be associated with a tax rate and a tax reclaimable amount. The selected tax rate is automatically applied when the Distance rate is used on an expense. To enable tax tracking on a Workspace, [learn how to track Taxes](/articles/new-expensify/workspaces/Track-Taxes).
 
 ---
 
@@ -59,7 +67,7 @@ To prevent members from using a Distance rate, you can either disable it or dele
 - Disabled rates remain in the Workspace but cannot be selected on new Distance expenses.
 - Deleted rates are permanently removed.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
 2. Click **Distance rates**.
 3. Select each rate you want to disable or delete.
 4. Click **Selected**
@@ -67,28 +75,41 @@ To prevent members from using a Distance rate, you can either disable it or dele
 
 ---
 
-## How to enable Auto-update government rate
+## How to automatically update Distance rates when government rates change
 
-Control workspaces can have Expensify keep the government mileage rate current automatically. When enabled, Expensify adds a new effective-dated rate whenever the government publishes an updated rate, so you don't have to update it manually each year.
+Expensify can automatically update Distance rates in your Workspace when the standard government reimbursement rate changes, such as the IRS standard mileage rate in the United States or equivalent rates in supported countries.
 
-Auto-update is available for workspaces using USD, CAD, GBP, AUD, or NZD. It is turned on by default for new workspaces and turned off by default for existing workspaces.
+When **Auto-update government rate** is enabled, Expensify adds a new effective-dated Distance rate when a supported government publishes a new rate. This means admins don't need to manually update the standard rate each time it changes.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
-2. Click **Distance rates**.
-3. Turn on **Auto-update government rate**.
+Automatic updates are available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
+
+To enable automatic updates:
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
+2. Select **Distance rates**.
+3. Select **Settings**.
+4. Enable **Auto-update government rate**.
 
 ---
 
-## What happens when a government rate updates
+## What happens when Expensify automatically updates a Distance rate
 
-When Auto-update government rate is enabled and a new government rate is published:
+When Auto-update government rate is enabled and a new supported government rate takes effect:
 
 - Expensify adds a new rate with a **Start date** matching the date the new rate takes effect.
-- Previous rates are preserved so historical expenses keep the rate that applied on their expense date.
-- If the previous government rate had no **End date**, Expensify sets its **End date** to the day before the new rate starts.
-- Admins are notified of the change in the workspace **#admins** room and in **Home > Announcements**.
+- Previous rates remain available so historical expenses can retain the rate that applied on their expense date.
+- If the previous government rate does not have an End date, Expensify sets its End date to the day before the new rate takes effect.
+- Workspace Admins are notified of the update in the workspace **#admins** room and in **Home > Announcements**.
 
-You keep full control of your rates — you can edit or disable any auto-added rate at any time.
+Workspace Admins can still edit or disable an automatically added rate.
+
+## How Expensify selects a Distance rate based on the expense date
+
+When a workspace has more than one Distance rate, Expensify uses effective dates to determine which rate applies to an expense. This allows a workspace to keep multiple rates active, such as a previous year's rate and a new rate.
+
+ - When a member creates or edits a Distance expense, Expensify selects the rate whose **Start date** and **End date** include the expense date.
+ - If a member manually selects a rate that isn't valid for the expense date, the expense shows a violation indicating that the rate doesn't match the selected date. 
+ - Setting effective dates is optional. Rates without a **Start date** or **End date** continue to apply without an effective-date restriction.
 
 ---
 
@@ -124,16 +145,4 @@ Yes. When **Distance Rates** is enabled, the Workspace must always have at least
 
 ## Why isn't Auto-update government rate turned on for my workspace?
 
-Auto-update government rate is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces using USD, CAD, GBP, AUD, or NZD.
-
----
-
-## How Expensify Selects a Rate When Multiple Rates Exist
-
-When a Workspace has more than one distance rate, Expensify automatically applies the rate that matches the expense date. This lets you keep multiple rates active at once — for example, last year's mileage rate and this year's updated rate.
-
-- When a member creates or edits a Distance expense, Expensify selects the rate whose **Start date** and **End date** range includes the expense date.
-- If a member manually selects a rate that isn't valid for the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission.
-
-**Note:** Setting effective dates is optional. If your rates don't have **Start date** or **End date** values, Expensify continues to apply rates as before.
-
+Auto-update government rate is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
