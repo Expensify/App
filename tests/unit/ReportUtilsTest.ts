@@ -4789,8 +4789,9 @@ describe('ReportUtils', () => {
                     [CONST.BETAS.ALL],
                 );
 
-                // Should not include SUBMIT (Create Expense)
+                // Should not include SUBMIT (Create Expense) or TRACK (Track distance) — members can only split
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(false);
 
                 // Should include SPLIT (Split Expense)
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
@@ -12500,6 +12501,110 @@ describe('ReportUtils', () => {
                     },
                 ]),
             });
+        });
+
+        it('skips recomputing violations for transactions that do not hold the toggled tag (single-tag disable fast path)', () => {
+            // Given a single-level tag list with three enabled tags, and an update that disables just the first one
+            const fakePolicyTagListName = 'Tag List';
+            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 3);
+            const tagNames = Object.keys(fakePolicyTagsLists[fakePolicyTagListName]?.tags ?? {});
+            const tagToDisable = tagNames.at(0) ?? '';
+            const otherEnabledTag = tagNames.at(1) ?? '';
+            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+                [fakePolicyTagListName]: {
+                    tags: {
+                        [tagToDisable]: {enabled: false, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            };
+
+            const fakePolicyID = '0';
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresTag: true, areTagsEnabled: true, hasMultipleTagLists: false};
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID};
+
+            // One transaction holds the tag being disabled; another holds a different tag that stays enabled
+            const disabledTagTransaction: Transaction = {...mockTransaction, transactionID: '1', reportID: openIOUReport.reportID, category: '', tag: tagToDisable};
+            const otherTagTransaction: Transaction = {...mockTransaction, transactionID: '2', reportID: openIOUReport.reportID, category: '', tag: otherEnabledTag};
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: {},
+                tags: fakePolicyTagsLists,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [disabledTagTransaction.transactionID]: disabledTagTransaction,
+                            [otherTagTransaction.transactionID]: otherTagTransaction,
+                        },
+                        violations: {},
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, fakePolicyTagListsUpdate);
+
+            // The transaction holding the disabled tag is flagged tagOutOfPolicy...
+            expect(onyxData.optimisticData).toContainEqual(
+                expect.objectContaining({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${disabledTagTransaction.transactionID}`,
+                    value: expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY})]),
+                }),
+            );
+            // ...while the transaction whose tag stays enabled is skipped entirely (no redundant recompute/write).
+            expect(onyxData.optimisticData).not.toContainEqual(expect.objectContaining({key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${otherTagTransaction.transactionID}`}));
+        });
+
+        it('still recomputes tagless transactions when disabling the last enabled tag clears missingTag (fast path falls back)', () => {
+            // Given a single-level tag list with exactly one enabled tag, and an update disabling that sole tag,
+            // so the list goes from "has enabled tags" to "none".
+            const fakePolicyTagListName = 'Tag List';
+            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 1);
+            const onlyTag = Object.keys(fakePolicyTagsLists[fakePolicyTagListName]?.tags ?? {}).at(0) ?? '';
+            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+                [fakePolicyTagListName]: {
+                    tags: {
+                        [onlyTag]: {enabled: false, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            };
+
+            const fakePolicyID = '0';
+            const fakePolicy = {...createRandomPolicy(0), id: fakePolicyID, requiresTag: true, areTagsEnabled: true, hasMultipleTagLists: false};
+            const openIOUReport: Report = {...mockIOUReport, policyID: fakePolicyID};
+
+            // A tagless transaction that currently carries a missingTag violation
+            const taglessTransaction: Transaction = {...mockTransaction, transactionID: '1', reportID: openIOUReport.reportID, category: '', tag: ''};
+            const existingViolations = [{name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION}];
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: {},
+                tags: fakePolicyTagsLists,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {[taglessTransaction.transactionID]: taglessTransaction},
+                        violations: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${taglessTransaction.transactionID}`]: existingViolations,
+                        },
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, fakePolicyTagListsUpdate);
+
+            // Disabling the last enabled tag means tags can no longer be required, so the tagless transaction's
+            // missingTag violation must be cleared — which only happens if the fast path fell back to the full recompute.
+            expect(onyxData.optimisticData).toContainEqual(
+                expect.objectContaining({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${taglessTransaction.transactionID}`,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    value: expect.not.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.MISSING_TAG})]),
+                }),
+            );
         });
     });
 
@@ -20806,6 +20911,26 @@ describe('ReportUtils', () => {
             // Trigger ADD_EXISTING_EXPENSE onSelected
             result.at(2)?.onSelected?.();
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
+        });
+
+        it('should hide CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE for a Teachers Unite report', () => {
+            const mockPolicy = createRandomPolicy(0);
+            mockPolicy.id = CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: mockPolicy,
+                userBillingGracePeriodEnds: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
+            });
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE);
         });
     });
     describe('GBR: draft report with delayed submission off then on (issue #69891)', () => {

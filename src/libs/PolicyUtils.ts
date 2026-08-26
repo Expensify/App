@@ -58,6 +58,7 @@ import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './HRUtils';
+import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
@@ -141,7 +142,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => isPerDiemEnabled(policy) && isControlPolicy(policy));
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isPerDiemEligiblePolicy);
 }
 
 function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
@@ -357,6 +358,11 @@ function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined
  */
 function isPerDiemEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.arePerDiemRatesEnabled ?? !!getPerDiemCustomUnit(policy)?.enabled;
+}
+
+// Per Diem is Control-only, so both checks travel together - keep one definition or counts and pickers drift
+function isPerDiemEligiblePolicy(policy: OnyxEntry<Policy>): boolean {
+    return isControlPolicy(policy) && isPerDiemEnabled(policy);
 }
 
 /**
@@ -2877,7 +2883,12 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
         return CONST.EMPTY_ARRAY;
     }
     return Object.values(policies).filter(
-        (policy): policy is Policy => !!policy && !policy.isJoinRequestPending && (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) && shouldShowPolicy(policy, false, currentUserLogin),
+        (policy): policy is Policy =>
+            !!policy &&
+            !policy.isJoinRequestPending &&
+            (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
+            shouldShowPolicy(policy, false, currentUserLogin) &&
+            !isTeachersUnitePolicyID(policy.id),
     );
 }
 
@@ -3135,7 +3146,8 @@ function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
 }
 
 function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: string) => number): Policy[] {
-    return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    // copy first: callers pass memoized selector output, sorting it in place makes the next deepEqual report a change
+    return [...policies].sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
 /**
@@ -3378,6 +3390,7 @@ export {
     hasDynamicExternalWorkflow,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
+    isPerDiemEligiblePolicy,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     hasAcceptedTravelTerms,
