@@ -36,9 +36,11 @@ function parseCSVDate(input: string): string | null {
     const trimmedInput = input.trim();
 
     // Try native Date parsing first (handles ISO and some other formats)
-    let date = new Date(trimmedInput);
-    if (isValid(date) && !Number.isNaN(date.getTime())) {
-        return format(date, CONST.DATE.FNS_FORMAT_STRING);
+    if (!ISO_DATE_ONLY_REGEX.test(trimmedInput)) {
+        const date = new Date(trimmedInput);
+        if (isValid(date) && !Number.isNaN(date.getTime())) {
+            return format(date, CONST.DATE.FNS_FORMAT_STRING);
+        }
     }
 
     // Try parsing with common date formats using date-fns
@@ -52,9 +54,11 @@ function parseCSVDate(input: string): string | null {
     // If the date didn't parse, try taking just the first 10 characters
     if (trimmedInput.length > 10) {
         const shortInput = trimmedInput.substring(0, 10);
-        date = new Date(shortInput);
-        if (isValid(date) && !Number.isNaN(date.getTime())) {
-            return format(date, CONST.DATE.FNS_FORMAT_STRING);
+        if (!ISO_DATE_ONLY_REGEX.test(shortInput)) {
+            const date = new Date(shortInput);
+            if (isValid(date) && !Number.isNaN(date.getTime())) {
+                return format(date, CONST.DATE.FNS_FORMAT_STRING);
+            }
         }
 
         // Also try format parsing on the shortened input
