@@ -274,12 +274,9 @@ module RNMode
             %i[artifact_exists setup_react_native_dependencies build_react_native_deps_from_source].each do |name|
                 missing << "ReactNativeDependenciesUtils.#{name}" unless ReactNativeDependenciesUtils.respond_to?(name)
             end
-            %i[hermes_source_type hermes_artifact_exists].each do |name|
-                # hermes-utils.rb loads with the podspec, after the Podfile, so absence here is only
-                # conclusive for methods react-native defines at require time.
-                next if Object.private_method_defined?(name) || Object.method_defined?(name)
-                missing << name.to_s
-            end
+            # The hermes helpers cannot be checked here: hermes-utils.rb is required by
+            # hermes-engine.podspec, which CocoaPods evaluates after the Podfile. HermesHooks still
+            # prepends correctly against a later definition, but a rename there stays undetectable.
             return if missing.empty?
 
             log("react-native no longer defines #{missing.join(', ')}, so those checks are inactive. " \
