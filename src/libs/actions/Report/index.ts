@@ -512,24 +512,6 @@ Onyx.connect({
     },
 });
 
-// RAM-only set of reportIDs the user has navigated away from this session. It is populated when the report
-// screen blurs/unmounts (see `flagReportNavigatedAway`) and consumed by `openReport` to clear a manual unread
-// marker on the *return* trip only. A blur is the one signal that uniquely identifies "navigated away and back
-// to the chat": it does not fire on the multiple `openReport` calls of a single visit, and — being RAM-only —
-// it is empty after a page refresh, so the marker survives a refresh and is only cleared by a real navigation.
-const reportsNavigatedAwayFrom = new Set<string>();
-
-/**
- * Records that the user has navigated away from the given report. Called from the report screen when it blurs
- * or unmounts. The next `openReport` for this report will clear its manual unread marker and drop it from the set.
- */
-function flagReportNavigatedAway(reportID: string | undefined) {
-    if (!reportID) {
-        return;
-    }
-    reportsNavigatedAwayFrom.add(reportID);
-}
-
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -1560,26 +1542,16 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
-    // Whether the user navigated away from this report and is now coming back to it. The flag is set only when
-    // the report screen blurs/unmounts (see `flagReportNavigatedAway`), so it is true on a genuine return trip
-    // but false on the first open, on the repeated openReport calls of a single visit, and after a page refresh
-    // (the set is RAM-only). We consume it here to clear a manual unread marker only on that return trip.
-    const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
-    reportsNavigatedAwayFrom.delete(reportID);
     const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> =
         (hasReportActions ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
 
-    // An explicit mark-as-unread keeps its "New" marker anchored while the user stays in the report
-    // (readNewestAction no longer clears it, and the repeated openReport calls of a single visit don't
-    // either), so the user sees the marker they created. It is reconciled away only when the user navigates
-    // away and comes back — `didNavigateBackToReport` is true only on that return trip. A page refresh leaves
-    // the RAM-only set empty, so the marker survives a refresh. This is a purely client-side decision, so it
-    // lives in optimisticData: it must apply immediately and offline, and must not be dropped if openReport
-    // never succeeds (the flag is already consumed above). We deliberately do NOT restore it in failureData —
-    // resurrecting a marker the user has already moved past would be wrong.
-    if (didNavigateBackToReport) {
-        optimisticReport.manuallyMarkedUnreadReportActionID = null;
-    }
+    // Clear any manual unread marker whenever the report is (re)opened. An explicit mark-as-unread keeps its
+    // "New" marker anchored while the user stays in the report (readNewestAction no longer clears it), and the
+    // marker is reconciled away the next time openReport runs — e.g. navigating away and back, or a refresh.
+    // This is a purely client-side decision, so it lives in optimisticData: it applies immediately and offline.
+    // We deliberately do NOT restore it in failureData — resurrecting a marker the user has already moved past
+    // would be wrong.
+    optimisticReport.manuallyMarkedUnreadReportActionID = null;
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -8400,7 +8372,6 @@ export {
     leaveRoom,
     markAsManuallyExported,
     markCommentAsUnread,
-    flagReportNavigatedAway,
     navigateToAndOpenChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
