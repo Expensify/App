@@ -174,6 +174,16 @@ function getSearchOnyxUpdate({
         ...(transactionThreadReportID && {transactionThreadReportID}),
         ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
         ...transaction,
+        // Onyx.merge cannot clear a key by spreading `undefined`, so a stale snapshot `modifiedMerchant` would
+        // survive when the freshly built transaction has none. This happens for a self-DM split submitted to a
+        // workspace: the split snapshot inherited the original expense's `(none)`/`Expense` placeholder
+        // `modifiedMerchant` at creation time, and the submit only updates `merchant`. Because `isMerchantMissing`
+        // reads `modifiedMerchant` before `merchant`, that stale placeholder shows a false "Missing Merchant"
+        // error. Align `modifiedMerchant` with the transaction's own merchant when it isn't a genuine edit so the
+        // snapshot can't disagree with the merchant it represents (same approach the distance split already uses).
+        // A real edited `modifiedMerchant` is truthy and is preserved.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty modifiedMerchant is not a genuine edit, so fall back to merchant just like `undefined`.
+        modifiedMerchant: transaction.modifiedMerchant || transaction.merchant,
     };
     if (policy) {
         baseSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;

@@ -591,5 +591,80 @@ describe('actions/IOU', () => {
             // false and the page renders "Nothing to show" even though the transaction data was merged in.
             expect(cannedUpdate?.value).toHaveProperty('search.hash', cannedExpensesHash);
         });
+
+        it('aligns modifiedMerchant with the merchant so a stale placeholder cannot survive the Onyx.merge', () => {
+            // Repro of #99500: a self-DM split submitted to a workspace inherits a stale `(none)` placeholder
+            // `modifiedMerchant` in its snapshot at split-creation time. Because `isMerchantMissing` reads
+            // `modifiedMerchant` before `merchant`, spreading the fresh transaction (which has no modifiedMerchant)
+            // via Onyx.merge would keep the stale placeholder and show a false "Missing Merchant" error. The
+            // snapshot write must overwrite modifiedMerchant with the transaction's merchant so the stale value is
+            // replaced by the merchant the user actually entered.
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = {
+                ...createRandomTransaction(1),
+                reimbursable: true,
+                merchant: 'Coffee Shop',
+                modifiedMerchant: undefined,
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`;
+            const update = result?.optimisticData?.find((u) => u.key === snapshotKey);
+            expect(update).toBeDefined();
+
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+            expect(update?.value).toHaveProperty(['data', transactionKey, 'merchant'], 'Coffee Shop');
+            expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], 'Coffee Shop');
+        });
+
+        it('preserves a genuinely edited modifiedMerchant in the snapshot', () => {
+            // The alignment must only overwrite an absent modifiedMerchant. A real edited merchant (or a distance
+            // rate string) is truthy and must be preserved so the Search view keeps showing it.
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = {
+                ...createRandomTransaction(1),
+                reimbursable: true,
+                merchant: 'Coffee Shop',
+                modifiedMerchant: 'Edited Merchant',
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`;
+            const update = result?.optimisticData?.find((u) => u.key === snapshotKey);
+            expect(update).toBeDefined();
+
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+            expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], 'Edited Merchant');
+        });
     });
 });
