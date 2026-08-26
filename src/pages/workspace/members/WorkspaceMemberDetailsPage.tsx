@@ -35,6 +35,7 @@ import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPl
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -45,6 +46,7 @@ import {
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
@@ -132,6 +134,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
+    const memberAvatarSource = details.avatar ?? (memberLogin ? getDefaultAvatarURL({accountID, accountEmail: addSMSDomainIfPhoneNumber(memberLogin)}) : undefined);
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
@@ -336,7 +339,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                 <UserAvatar
                                     containerStyles={[styles.mb4, styles.noOutline]}
-                                    source={details.avatar}
+                                    source={memberAvatarSource}
                                     accountID={accountID}
                                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={fallbackIcon}
