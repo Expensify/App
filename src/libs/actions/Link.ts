@@ -623,9 +623,15 @@ function openReportFromDeepLink(
                                 return;
                             }
 
+                            // Skip the deferred re-navigate if the deeplinked route is still the active route.
+                            const deeplinkRoute = route as Route;
+                            if (deeplinkRoute && Navigation.isActiveRoute(deeplinkRoute)) {
+                                return;
+                            }
+
                             // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                             const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                            Navigation.navigate(route as Route, {forceReplace, waitForTransition: true});
+                            Navigation.navigate(deeplinkRoute, {forceReplace, waitForTransition: true});
                         };
                         // If we log with deeplink with reportID and data for this report is not available yet,
                         // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
