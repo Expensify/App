@@ -9,7 +9,12 @@ import type UseBlurOnKeyboardHide from './type';
  */
 const useBlurOnKeyboardHide: UseBlurOnKeyboardHide = (ref) => {
     useEffect(() => {
-        const subscription = KeyboardEvents.addListener('keyboardDidHide', () => {
+        const subscription = KeyboardEvents.addListener('keyboardDidHide', (event) => {
+            // keyboardDidHide can fire mid-gesture with the keyboard still partly on screen. Only the zero-height
+            // event means it is actually gone, so blurring on the earlier ones would break a cancelled swipe.
+            if (event.height !== 0) {
+                return;
+            }
             ref.current?.blur();
         });
         return () => subscription.remove();
