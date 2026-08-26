@@ -3137,6 +3137,18 @@ describe('PolicyUtils', () => {
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
         });
+
+        it('does not sort the input array in place', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+            ];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+
+            expect(result).not.toBe(policies);
+            expect(policies.map((policy) => policy.name)).toEqual(['Charlie', 'Alpha']);
+        });
     });
 
     describe('hasDependentTags', () => {
