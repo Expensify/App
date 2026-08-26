@@ -28,7 +28,7 @@ import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
-import {getCategoryTaxRuleTaxID} from '@libs/CategoryTaxRulesUtils';
+import {getCategoryTaxRuleTaxID, hasIncompatibleCategoryRuleDefaults} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -301,6 +301,37 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
 
     const showCategoryOnlyTaxExplainer = () => showExplainer('workspace.rules.merchantRules.onlyTaxForCategoryRulesTitle', 'workspace.rules.merchantRules.onlyTaxForCategoryRulesPrompt');
 
+    /**
+     * A category rule can only set a tax, so anything else already in the draft would be dropped. Ask before opening the
+     * picker rather than after choosing, so the admin knows the cost before they commit to a category.
+     */
+    const openCategoryConditionPicker = () => {
+        const navigateToPicker = () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID));
+
+        if (!hasIncompatibleCategoryRuleDefaults(form)) {
+            navigateToPicker();
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('workspace.rules.merchantRules.clearIncompatibleDefaultsTitle'),
+            prompt: translate('workspace.rules.merchantRules.clearIncompatibleDefaultsPrompt'),
+            confirmText: translate('workspace.rules.merchantRules.clearFields'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            // Replace the draft rather than merging, so the incompatible defaults are gone. Tax is the one default a
+            // category rule keeps, alongside any categories already chosen.
+            setDraftMerchantRule({
+                ...(hasCategoryCondition ? {categoriesToMatch} : {}),
+                ...(form?.tax ? {tax: form.tax} : {}),
+            });
+            navigateToPicker();
+        });
+    };
+
     const showCategoryRulesApplyGoingForwardExplainer = () =>
         showExplainer('workspace.rules.merchantRules.categoryRulesApplyGoingForwardTitle', 'workspace.rules.merchantRules.categoryRulesApplyGoingForwardPrompt');
 
@@ -501,7 +532,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                           description: translate('common.category'),
                           title: categoriesToMatchDisplayName,
                           isLocked: isCategoryConditionLocked,
-                          onPress: isCategoryConditionLocked ? showCategoryConditionExplainer : () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID)),
+                          onPress: isCategoryConditionLocked ? showCategoryConditionExplainer : openCategoryConditionPicker,
                           icon: getItemIcon(icons.Folder),
                       }
                     : undefined,

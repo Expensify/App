@@ -1833,19 +1833,18 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
-/**
- * Sets a category's default tax rate. Returns the rules array as it stands after this write.
- *
- * `baseExpenseRules` lets a caller saving several categories in a row thread the accumulated array through each call.
- * Without it every call would read the same stale `policy` prop and, because Onyx replaces arrays wholesale on merge,
- * each write would clobber the one before it.
- */
-function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string, baseExpenseRules?: ExpenseRule[]): ExpenseRule[] | undefined {
+/** Whether an expense rule is the tax default for this category. */
+function matchesCategoryTaxRule(rule: ExpenseRule, categoryName: string): boolean {
+    return rule.applyWhen.some((when) => when.value === categoryName);
+}
+
+/** Sets a category's default tax rate. Use `setPolicyCategoryTaxes` for more than one at a time. */
+function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string) {
     if (!policy?.id) {
         return;
     }
     const policyID = policy.id;
-    const expenseRules = baseExpenseRules ?? policy?.rules?.expenseRules ?? [];
+    const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
     const isEditing = !!existingCategoryExpenseRule;
@@ -1937,45 +1936,134 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
-
-    return updatedExpenseRules;
 }
 
 /**
- * Sets the same default tax rate on several categories at once. The command is per-category, so this issues one write
- * each, threading the accumulated rules array through so the writes build on each other instead of overwriting.
+ * Sets the same default tax rate on several categories at once.
  *
- * A partial failure is imperfect: an earlier write's failureData was built before the later categories were added, so
- * rolling it back can drop them from the array until the next fetch. Acceptable for an admin action that either
- * succeeds or fails as a whole in practice.
+ * The command is per-category, so this issues one write each. They can't be threaded one-into-the-next: `expenseRules` is
+ * an array, so every write carries the whole thing, and all the optimistic writes land together the moment the loop runs
+ * — the last would simply overwrite the rest. So every write shares one optimistic array holding all the categories, and
+ * only the success and failure arrays differ, each clearing the pending state for its own category and leaving the
+ * others as they are.
  */
 function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string) {
-    let workingExpenseRules = policy?.rules?.expenseRules ?? [];
+    if (!policy?.id || categoryNames.length === 0) {
+        Log.warn('Invalid params for setPolicyCategoryTaxes');
+        return;
+    }
+    const policyID = policy.id;
+    const expenseRules = policy.rules?.expenseRules ?? [];
+
+    // The array every write starts from: each category added or updated, all of them pending.
+    const pendingExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
+    const previousTaxIDs = new Map<string, string | undefined>();
 
     for (const categoryName of categoryNames) {
-        workingExpenseRules = setPolicyCategoryTax(policy, categoryName, taxID, workingExpenseRules) ?? workingExpenseRules;
+        const existingRule = pendingExpenseRules.find((rule) => matchesCategoryTaxRule(rule, categoryName));
+        previousTaxIDs.set(categoryName, existingRule?.tax?.field_id_TAX?.externalID);
+
+        if (existingRule) {
+            existingRule.tax.field_id_TAX.externalID = taxID;
+            existingRule.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+            existingRule.errors = null;
+        } else {
+            pendingExpenseRules.push({
+                tax: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    field_id_TAX: {externalID: taxID},
+                },
+                applyWhen: [
+                    {
+                        condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                        field: CONST.POLICY.FIELDS.CATEGORY,
+                        value: categoryName,
+                    },
+                ],
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+        }
+    }
+
+    const settled = new Set<string>();
+
+    for (const categoryName of categoryNames) {
+        settled.add(categoryName);
+        const settledSoFar = new Set(settled);
+        const previousTaxID = previousTaxIDs.get(categoryName);
+
+        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {rules: {expenseRules: pendingExpenseRules}},
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {
+                        rules: {
+                            // Clear the pending state for everything settled so far. Categories still in flight keep
+                            // theirs, so an early success can't make a later one look finished.
+                            expenseRules: pendingExpenseRules.map((rule) =>
+                                categoryNames.some((name) => settledSoFar.has(name) && matchesCategoryTaxRule(rule, name)) ? {...rule, pendingAction: null, errors: null} : rule,
+                            ),
+                        },
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {
+                        rules: {
+                            // Keep the row carrying the error rather than dropping it, so the failure is visible and can
+                            // be dismissed. An update restores the stored rate; an add has none to fall back to and
+                            // keeps its ADD pending action so dismissing the error removes the row.
+                            expenseRules: pendingExpenseRules.map((rule) => {
+                                if (!matchesCategoryTaxRule(rule, categoryName)) {
+                                    return rule;
+                                }
+                                const errors = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
+                                if (!previousTaxID) {
+                                    return {...rule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors};
+                                }
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                return {...rule, tax: {field_id_TAX: {...rule.tax.field_id_TAX, externalID: previousTaxID}}, pendingAction: null, errors};
+                            }),
+                        },
+                    },
+                },
+            ],
+        };
+
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID}, onyxData);
     }
 }
 
 /**
  * Removes a category's tax default. There is no dedicated delete command: writing the workspace's own default tax rate
  * is what clears the override, since `getCategoryDefaultTaxRate` falls back to that same rate when no rule exists. The
- * rule is dropped from the array optimistically so the row disappears rather than lingering as a no-op.
+ * rule is only marked pending here, not dropped, so the row survives until the write lands.
  *
- * Returns the rules array as it stands after this write, so a caller deleting several in a row can thread it through.
+ * Use `deletePolicyCategoryTaxes` for more than one at a time.
  */
-function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, baseExpenseRules?: ExpenseRule[]): ExpenseRule[] | undefined {
+function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     if (!policy?.id || !defaultExternalID || !categoryName) {
         Log.warn('Invalid params for deletePolicyCategoryTax');
         return;
     }
     const policyID = policy.id;
-    const expenseRules = baseExpenseRules ?? policy.rules?.expenseRules ?? [];
-    const matchesCategory = (rule: ExpenseRule) => rule.applyWhen.some((when) => when.value === categoryName);
+    const expenseRules = policy.rules?.expenseRules ?? [];
+    const matchesCategory = (rule: ExpenseRule) => matchesCategoryTaxRule(rule, categoryName);
 
     if (!expenseRules.some(matchesCategory)) {
-        return expenseRules;
+        return;
     }
 
     const pendingExpenseRules = expenseRules.map((rule) => (matchesCategory(rule) ? {...rule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null} : rule));
@@ -2020,16 +2108,79 @@ function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
-
-    return deletedExpenseRules;
 }
 
-/** Removes the tax defaults for several categories at once, threading the array through as `setPolicyCategoryTaxes` does. */
+/**
+ * Removes the tax defaults for several categories at once. Shares one optimistic array across the writes for the same
+ * reason `setPolicyCategoryTaxes` does — so the whole selection is marked for deletion together and, offline, every row
+ * stays on screen greyed until the writes can be sent.
+ */
 function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[]) {
-    let workingExpenseRules = policy?.rules?.expenseRules ?? [];
+    const defaultExternalID = policy?.taxRates?.defaultExternalID;
+    if (!policy?.id || !defaultExternalID || categoryNames.length === 0) {
+        Log.warn('Invalid params for deletePolicyCategoryTaxes');
+        return;
+    }
+    const policyID = policy.id;
+    const expenseRules = policy.rules?.expenseRules ?? [];
+    const targets = categoryNames.filter((categoryName) => expenseRules.some((rule) => matchesCategoryTaxRule(rule, categoryName)));
 
-    for (const categoryName of categoryNames) {
-        workingExpenseRules = deletePolicyCategoryTax(policy, categoryName, workingExpenseRules) ?? workingExpenseRules;
+    if (targets.length === 0) {
+        return;
+    }
+
+    /**
+     * The whole array for one stage: rules for `removed` categories are gone, every other target stays marked for
+     * deletion, and `erroredCategory` is put back carrying the error.
+     */
+    const buildStage = (removed: Set<string>, erroredCategory?: string): ExpenseRule[] =>
+        expenseRules
+            .filter((rule) => !targets.some((categoryName) => removed.has(categoryName) && matchesCategoryTaxRule(rule, categoryName)))
+            .map((rule) => {
+                const target = targets.find((categoryName) => matchesCategoryTaxRule(rule, categoryName));
+                if (!target) {
+                    return rule;
+                }
+                if (target === erroredCategory) {
+                    return {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
+                }
+                return {...rule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null};
+            });
+
+    // Nothing is removed optimistically: every target is only marked, so the rows survive until their writes land.
+    const markedExpenseRules = buildStage(new Set());
+    const removed = new Set<string>();
+
+    for (const categoryName of targets) {
+        const removedBefore = new Set(removed);
+        removed.add(categoryName);
+        const removedSoFar = new Set(removed);
+
+        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {rules: {expenseRules: markedExpenseRules}},
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {rules: {expenseRules: buildStage(removedSoFar)}},
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {rules: {expenseRules: buildStage(removedBefore, categoryName)}},
+                },
+            ],
+        };
+
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID: defaultExternalID}, onyxData);
     }
 }
 
