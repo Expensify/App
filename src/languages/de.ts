@@ -9357,6 +9357,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         exportedTo: 'Exportiert nach',
         exportAll: {
             selectAllMatchingItems: 'Alle passenden Einträge auswählen',
+            allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
             selectAllOnThisPage: 'Alle auf dieser Seite auswählen',
         },
         errors: {
