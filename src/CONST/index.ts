@@ -4559,6 +4559,7 @@ const CONST = {
                 DUALENTRY_SYNC_TITLE: 'dualEntrySyncTitle',
                 DUALENTRY_SYNC_CONNECTION: 'dualEntrySyncConnection',
                 DUALENTRY_SYNC_IMPORT_DATA: 'dualEntrySyncImportData',
+                DUALENTRY_SYNC_PAYMENTS: 'dualEntrySyncPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },

@@ -7295,6 +7295,8 @@ const translations = {
                             return 'Initializing connection to DualEntry';
                         case 'dualEntrySyncImportData':
                             return 'Loading data';
+                        case 'dualEntrySyncPayments':
+                            return 'Syncing vendor payments';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
