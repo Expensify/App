@@ -735,25 +735,49 @@ function getUpdatedTransaction({
                 (selectedRouteKey ? transactionChanges.routes?.[selectedRouteKey]?.distance : undefined) ??
                 transactionChanges.routes?.route0?.distance ??
                 getDistanceInMeters(transaction, unit);
-            const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+            // Sync customUnit.quantity + routeDistanceMeters to the recalculated route BEFORE computing the
+            // commuter exclusion below. Without the quantity sync the prior manually-edited value would linger
+            // and drive getDistanceInMeters (which prefers quantity over routes). getTransactionCommuterExclusionData
+            // also reads routeDistanceMeters off the transaction and re-emits it, so it must be set first — the
+            // whole customUnit is then replaced by that function's return value.
+            if (unit) {
+                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)));
+                lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', distanceInMeters);
+            }
+
+            const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
+                ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                      transaction: updatedTransaction,
+                      policy,
+                      storedCustomUnit: transaction?.comment?.customUnit,
+                      personalPolicyOutputCurrency,
+                  })
+                : undefined;
+
+            if (commuterExclusionTransactionData) {
+                lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            }
+
+            const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             // Use the rate's resolved currency (which may come from personalPolicyOutputCurrency for a P2P expense),
             // not transaction.currency, so the merchant symbol/rate and the recalculated amount stay in the same currency.
             const updatedCurrency = mileageRate.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
-            const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency, getCurrencySymbol);
+            const updatedMerchant = getRecalculatedDistanceMerchant(
+                transaction,
+                distanceInMeters,
+                unit,
+                rate,
+                updatedCurrency,
+                getCurrencySymbol,
+                DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
+            );
 
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
             if (getCurrency(updatedTransaction) !== updatedCurrency) {
                 updatedTransaction.modifiedCurrency = updatedCurrency;
-            }
-
-            // Sync `customUnit.quantity` to the new route distance. Without this the prior manual
-            // quantity (set when the user edited distance manually before changing waypoints) would
-            // linger and drive `getDistanceInMeters`, since that helper prefers quantity over routes.
-            if (unit) {
-                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)));
             }
         }
     }
@@ -836,6 +860,7 @@ function getUpdatedTransaction({
                 ? DistanceRequestUtils.getTransactionCommuterExclusionData({
                       transaction: updatedTransaction,
                       policy,
+                      storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
                   })
                 : undefined;
@@ -941,6 +966,7 @@ function getUpdatedTransaction({
             ? DistanceRequestUtils.getTransactionCommuterExclusionData({
                   transaction: updatedTransaction,
                   policy,
+                  storedCustomUnit: transaction?.comment?.customUnit,
                   personalPolicyOutputCurrency,
               })
             : undefined;
@@ -1297,15 +1323,6 @@ function hasPendingDistanceReceiptRegeneration(transaction: OnyxInputOrEntry<Tra
     }
     const hasPendingRegenerationField = Object.entries(pendingFields).some(([field, pendingAction]) => !!pendingAction && DISTANCE_RECEIPT_REGENERATION_FIELDS.has(field));
     return hasPendingRegenerationField;
-}
-
-/**
- * Whether the route of a distance expense failed. The stored receipt then describes a different trip, or the
- * server never built one. This covers the route only, because `transaction.errors` also carries failures that
- * say nothing about the receipt, such as a failed payment or an invalid rate.
- */
-function hasDistanceRouteErrors(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
 }
 
 /**
@@ -1891,10 +1908,7 @@ function hasTransactionBeenRejected(transactionViolations: OnyxEntry<Transaction
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
     return !!transactionViolations?.some(
         (transactionViolation: TransactionViolation) =>
-            transactionViolation.name === CONST.VIOLATIONS.RTER &&
-            transactionViolation.data?.pendingPattern &&
-            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION &&
-            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+            transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern && !isBrokenConnectionViolation(transactionViolation),
     );
 }
 
@@ -1942,8 +1956,20 @@ function hasBrokenConnectionViolation(
 function isBrokenConnectionViolation(violation: TransactionViolation) {
     return (
         violation.name === CONST.VIOLATIONS.RTER &&
-        (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530)
+        (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH)
     );
+}
+
+/**
+ * Finds the broken-connection violation that drives the money-request header status and its personal-card
+ * suppression. It intentionally excludes the `brokenCardConnection530` subtype (scraper being fixed on
+ * Expensify's side): 530 keeps its own dedicated `brokenConnection530Error` header regardless of card type,
+ * so it must never be swallowed by the personal-card suppression.
+ */
+function getBrokenConnectionViolation(transactionViolations: TransactionViolation[] | undefined): TransactionViolation | undefined {
+    return transactionViolations?.find((violation) => isBrokenConnectionViolation(violation) && violation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
 }
 
 function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
@@ -3497,7 +3523,6 @@ export {
     isFetchingWaypointsFromServer,
     hasLocallyKnownDistance,
     hasPendingDistanceReceiptRegeneration,
-    hasDistanceRouteErrors,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
     isDuplicate,
@@ -3514,6 +3539,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
+    getBrokenConnectionViolation,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
