@@ -197,7 +197,6 @@ function getPersonalDetailForAccountID(accountID: number, personalDetails: OnyxI
         return undefined;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const personalDetail: PersonalDetails = personalDetails[accountID] ?? ({} as PersonalDetails);
 
     if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
