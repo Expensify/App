@@ -27,7 +27,7 @@ import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperW
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationOptions, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import createRightModalNavigator from '@navigation/AppNavigator/createRightModalNavigator';
@@ -205,6 +205,17 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             width: shouldUseNarrowLayout ? '100%' : animatedWidth,
         } as const;
     }, [animatedWidth, shouldUseNarrowLayout]);
+
+    const searchSaveScreenOptions = useMemo<PlatformStackNavigationOptions>(
+        () => ({
+            web: {
+                cardStyle: isSmallScreenWidth
+                    ? {...styles.navigationScreenCardStyle, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)'}
+                    : styles.navigationScreenCardStyle,
+            },
+        }),
+        [isSmallScreenWidth, styles.navigationScreenCardStyle],
+    );
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
 
@@ -465,6 +476,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
                                 getComponent={loadSearchSavePage}
+                                options={searchSaveScreenOptions}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
