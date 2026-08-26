@@ -398,7 +398,6 @@ type CleanUpMoneyRequestParams = {
     reportID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
-    /** iouReport's transactions, for the non-reimbursable ("spent" vs "owes") wording in the report preview */
     iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatIOUReportArchived: boolean | undefined;
