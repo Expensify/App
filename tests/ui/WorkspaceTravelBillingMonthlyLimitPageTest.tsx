@@ -31,7 +31,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const POLICY_ID = 'testPolicy123';
 const FUND_ID = 999888; // Must match the literal returned by the useDefaultFundID mock below.
 const CURRENT_LIMIT_CENTS = 10000; // $100.00 current monthly limit.
-const REDUCED_LIMIT_CENTS = 5000; // $50.00 — a lower value that triggers the "Reduce limit" confirmation.
+const REDUCED_LIMIT_CENTS = 5000; // $50.00, a lower value that triggers the "Reduce limit" confirmation.
 
 // jest.mock() factories are hoisted, so they can only reference literal values (not the constants above).
 jest.mock('@hooks/useDefaultFundID', () => ({
