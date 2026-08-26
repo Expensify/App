@@ -2,7 +2,8 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -68,6 +69,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         .sort((a, b) => localeCompare(a?.created ?? '', b?.created ?? ''))
         .at(0);
     const hasAdminPolicies = !!firstAdminPolicy;
+    const preferredWorkspaceName = preferredPolicyName ?? firstAdminPolicy?.name;
 
     useEffect(() => {
         return () => {
@@ -202,15 +204,21 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         wrapperStyle={[styles.ph5, styles.mv3]}
                         shouldPlaceSubtitleBelowSwitch
                     />
-                    {hasAdminPolicies && (
-                        <MenuItemWithTopDescription
-                            description={translate('domain.groups.preferredWorkspace')}
-                            title={preferredPolicyName ?? firstAdminPolicy?.name}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
-                            disabled={!preferredWorkspace}
-                        />
-                    )}
+                    {hasAdminPolicies &&
+                        (preferredWorkspaceName ? (
+                            <MenuItemField
+                                description={translate('domain.groups.preferredWorkspace')}
+                                title={preferredWorkspaceName}
+                                onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
+                                isDisabled={!preferredWorkspace}
+                            />
+                        ) : (
+                            <MenuItemEmptyField
+                                description={translate('domain.groups.preferredWorkspace')}
+                                onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
+                                isDisabled={!preferredWorkspace}
+                            />
+                        ))}
                     <ToggleSettingOptionRow
                         title={translate('domain.groups.expensifyCardPreferredWorkspace')}
                         subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}

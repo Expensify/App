@@ -1,6 +1,8 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -331,65 +333,130 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         </View>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
-                        <MenuItemWithTopDescription
-                            title={decodedCategoryName}
-                            description={translate('common.name')}
-                            onPress={navigateToEditCategory}
-                            interactive={canWriteCategories}
-                            shouldShowRightIcon={canWriteCategories}
-                        />
+                        {decodedCategoryName ? (
+                            <MenuItemField
+                                description={translate('common.name')}
+                                title={decodedCategoryName}
+                                onPress={canWriteCategories ? navigateToEditCategory : undefined}
+                            />
+                        ) : (
+                            <MenuItemEmptyField
+                                description={translate('common.name')}
+                                onPress={canWriteCategories ? navigateToEditCategory : undefined}
+                            />
+                        )}
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
-                        <MenuItemWithTopDescription
-                            title={policyCategory['GL Code']}
-                            description={translate('workspace.categories.glCode')}
-                            onPress={() => {
-                                if (!isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                            policyID,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                            isQuickSettingsFlow
-                                                ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
-                                        ),
-                                    );
-                                    return;
+                        {policyCategory['GL Code'] ? (
+                            <MenuItemField
+                                description={translate('workspace.categories.glCode')}
+                                title={policyCategory['GL Code']}
+                                onPress={
+                                    canWriteCategories
+                                        ? () => {
+                                              if (!isControlPolicy(policy)) {
+                                                  Navigation.navigate(
+                                                      ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                                          policyID,
+                                                          CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                                          isQuickSettingsFlow
+                                                              ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                              : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
+                                                      ),
+                                                  );
+                                                  return;
+                                              }
+                                              Navigation.navigate(
+                                                  isQuickSettingsFlow
+                                                      ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                      : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
+                                              );
+                                          }
+                                        : undefined
                                 }
-                                Navigation.navigate(
-                                    isQuickSettingsFlow
-                                        ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
-                                );
-                            }}
-                            interactive={canWriteCategories}
-                            shouldShowRightIcon={canWriteCategories}
-                        />
+                            />
+                        ) : (
+                            <MenuItemEmptyField
+                                description={translate('workspace.categories.glCode')}
+                                onPress={
+                                    canWriteCategories
+                                        ? () => {
+                                              if (!isControlPolicy(policy)) {
+                                                  Navigation.navigate(
+                                                      ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                                          policyID,
+                                                          CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                                          isQuickSettingsFlow
+                                                              ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                              : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
+                                                      ),
+                                                  );
+                                                  return;
+                                              }
+                                              Navigation.navigate(
+                                                  isQuickSettingsFlow
+                                                      ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                      : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
+                                              );
+                                          }
+                                        : undefined
+                                }
+                            />
+                        )}
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
-                        <MenuItemWithTopDescription
-                            title={policyCategory['Payroll Code']}
-                            description={translate('workspace.categories.payrollCode')}
-                            onPress={() => {
-                                if (!isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                            policyID,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
-                                        ),
-                                    );
-                                    return;
+                        {policyCategory['Payroll Code'] ? (
+                            <MenuItemField
+                                description={translate('workspace.categories.payrollCode')}
+                                title={policyCategory['Payroll Code']}
+                                onPress={
+                                    canWriteCategories
+                                        ? () => {
+                                              if (!isControlPolicy(policy)) {
+                                                  Navigation.navigate(
+                                                      ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                                          policyID,
+                                                          CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                                          createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
+                                                      ),
+                                                  );
+                                                  return;
+                                              }
+                                              Navigation.navigate(
+                                                  isQuickSettingsFlow
+                                                      ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                      : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
+                                              );
+                                          }
+                                        : undefined
                                 }
-                                Navigation.navigate(
-                                    isQuickSettingsFlow
-                                        ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
-                                );
-                            }}
-                            interactive={canWriteCategories}
-                            shouldShowRightIcon={canWriteCategories}
-                        />
+                            />
+                        ) : (
+                            <MenuItemEmptyField
+                                description={translate('workspace.categories.payrollCode')}
+                                onPress={
+                                    canWriteCategories
+                                        ? () => {
+                                              if (!isControlPolicy(policy)) {
+                                                  Navigation.navigate(
+                                                      ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                                          policyID,
+                                                          CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                                          createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
+                                                      ),
+                                                  );
+                                                  return;
+                                              }
+                                              Navigation.navigate(
+                                                  isQuickSettingsFlow
+                                                      ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                      : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
+                                              );
+                                          }
+                                        : undefined
+                                }
+                            />
+                        )}
                     </OfflineWithFeedback>
                     {categoryRulesEnabled && isRulesRevampEnabled && (
                         <>
@@ -421,17 +488,31 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 }
                                 shouldParseHelperText
                             />
-                            {!!policy?.tax?.trackingEnabled && (
-                                <MenuItemWithTopDescription
-                                    title={defaultTaxRateText}
-                                    description={translate('workspace.rules.categoryRules.defaultTaxRate')}
-                                    onPress={() => {
-                                        navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path);
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
-                            )}
+                            {!!policy?.tax?.trackingEnabled &&
+                                (defaultTaxRateText ? (
+                                    <MenuItemField
+                                        description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                        title={defaultTaxRateText}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path);
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                ) : (
+                                    <MenuItemEmptyField
+                                        description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path);
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                ))}
                         </>
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (
@@ -478,65 +559,139 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 }
                                 shouldParseHelperText
                             />
-                            {!!policy?.tax?.trackingEnabled && (
-                                <MenuItemWithTopDescription
-                                    title={defaultTaxRateText}
-                                    description={translate('workspace.rules.categoryRules.defaultTaxRate')}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
-                            )}
+                            {!!policy?.tax?.trackingEnabled &&
+                                (defaultTaxRateText ? (
+                                    <MenuItemField
+                                        description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                        title={defaultTaxRateText}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                ) : (
+                                    <MenuItemEmptyField
+                                        description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                ))}
                             {/*
                              * Legacy category rule entry points. When removing the RULES_REVAMP beta,
                              * delete this entire non-revamp block (and related useMemo values) instead
                              * of keeping these Category settings routes.
                              */}
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
-                                <MenuItemWithTopDescription
-                                    title={flagAmountsOverText}
-                                    description={translate('workspace.rules.categoryRules.flagAmountsOver')}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
+                                {flagAmountsOverText ? (
+                                    <MenuItemField
+                                        description={translate('workspace.rules.categoryRules.flagAmountsOver')}
+                                        title={flagAmountsOverText}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                ) : (
+                                    <MenuItemEmptyField
+                                        description={translate('workspace.rules.categoryRules.flagAmountsOver')}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                )}
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
-                                <MenuItemWithTopDescription
-                                    title={requireReceiptsOverText}
-                                    description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
+                                {requireReceiptsOverText ? (
+                                    <MenuItemField
+                                        description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
+                                        title={requireReceiptsOverText}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                ) : (
+                                    <MenuItemEmptyField
+                                        description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                )}
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
-                                <MenuItemWithTopDescription
-                                    title={requireItemizedReceiptsOverText}
-                                    description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
+                                {requireItemizedReceiptsOverText ? (
+                                    <MenuItemField
+                                        description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
+                                        title={requireItemizedReceiptsOverText}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                ) : (
+                                    <MenuItemEmptyField
+                                        description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                )}
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={requireFieldsPendingAction}>
-                                <MenuItemWithTopDescription
-                                    title={requiredFieldsTitle}
-                                    description={translate('workspace.rules.categoryRules.requireFields')}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
+                                {requiredFieldsTitle ? (
+                                    <MenuItemField
+                                        description={translate('workspace.rules.categoryRules.requireFields')}
+                                        title={requiredFieldsTitle}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                ) : (
+                                    <MenuItemEmptyField
+                                        description={translate('workspace.rules.categoryRules.requireFields')}
+                                        onPress={
+                                            canWriteCategories
+                                                ? () => {
+                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                )}
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
                                 <MenuItemWithTopDescription

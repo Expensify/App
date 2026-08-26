@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
@@ -151,12 +151,10 @@ function ReportFieldsValueSettingsPage({
                             />
                         </View>
                     </View>
-                    <MenuItemWithTopDescription
-                        title={currentValueName ?? oldValueName}
+                    <MenuItemField
                         description={translate('common.value')}
-                        shouldShowRightIcon={canWriteReportFields && !reportFieldID}
-                        interactive={canWriteReportFields && !reportFieldID}
-                        onPress={navigateToEditValue}
+                        title={currentValueName ?? oldValueName}
+                        onPress={canWriteReportFields && !reportFieldID ? navigateToEditValue : undefined}
                     />
                     {canWriteReportFields && !hasAccountingConnections && (
                         <MenuItemAction

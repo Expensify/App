@@ -1,4 +1,5 @@
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -43,10 +44,9 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
-            <MenuItemWithTopDescription
-                title={translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}`)}
+            <MenuItemField
                 description={translate('workspace.accounting.exportAs')}
-                interactive={false}
+                title={translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}`)}
             />
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}

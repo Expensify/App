@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -75,12 +76,18 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         onClose={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'nameErrors')}
                         errorRowStyles={[styles.mh5]}
                     >
-                        <MenuItemWithTopDescription
-                            description={translate('common.name')}
-                            title={group?.name}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID))}
-                        />
+                        {group?.name ? (
+                            <MenuItemField
+                                description={translate('common.name')}
+                                title={group.name}
+                                onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID))}
+                            />
+                        ) : (
+                            <MenuItemEmptyField
+                                description={translate('common.name')}
+                                onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID))}
+                            />
+                        )}
                     </OfflineWithFeedback>
                     <DefaultGroupToggle
                         domainAccountID={domainAccountID}

@@ -1,5 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -279,13 +281,18 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
-                                <MenuItemWithTopDescription
-                                    title={taxRate}
-                                    description={translate('workspace.taxes.taxRate')}
-                                    shouldShowRightIcon={canWriteDistanceRates}
-                                    onPress={editTaxRateValue}
-                                    interactive={canWriteDistanceRates}
-                                />
+                                {taxRate ? (
+                                    <MenuItemField
+                                        description={translate('workspace.taxes.taxRate')}
+                                        title={taxRate}
+                                        onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                    />
+                                ) : (
+                                    <MenuItemEmptyField
+                                        description={translate('workspace.taxes.taxRate')}
+                                        onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                    />
+                                )}
                             </View>
                         </OfflineWithFeedback>
                     )}

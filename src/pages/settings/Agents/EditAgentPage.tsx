@@ -2,6 +2,8 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -128,12 +130,18 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     errorRowStyles={[styles.mh5, styles.mb2]}
                     onClose={() => clearAgentNameUpdateError(accountID)}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('editAgentPage.agentName')}
-                        title={personalDetails?.displayName ?? ''}
-                        shouldShowRightIcon
-                        onPress={handleEditNamePress}
-                    />
+                    {personalDetails?.displayName ? (
+                        <MenuItemField
+                            description={translate('editAgentPage.agentName')}
+                            title={personalDetails.displayName}
+                            onPress={handleEditNamePress}
+                        />
+                    ) : (
+                        <MenuItemEmptyField
+                            description={translate('editAgentPage.agentName')}
+                            onPress={handleEditNamePress}
+                        />
+                    )}
                 </OfflineWithFeedback>
                 <OfflineWithFeedback
                     errors={agent?.promptErrors}

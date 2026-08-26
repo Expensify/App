@@ -1,3 +1,4 @@
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
@@ -65,10 +66,9 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
             />
 
             {!!reservation.roomClass && (
-                <MenuItemWithTopDescription
+                <MenuItemField
                     description={translate('travel.hotelDetails.roomType')}
                     title={reservation.roomClass.trim()}
-                    interactive={false}
                 />
             )}
             {!!cancellationText && (

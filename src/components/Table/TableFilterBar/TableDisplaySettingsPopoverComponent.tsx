@@ -1,4 +1,5 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
@@ -69,8 +70,7 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
                 hasHeader
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                <MenuItemField
                     description={translate('search.display.sortOrder')}
                     title={translate(`search.filters.sortOrder.${pendingSorting.order}`)}
                     onPress={onSortOrderPress}
@@ -185,13 +185,20 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
 
     return (
         <ScrollView contentContainerStyle={[styles.pv4]}>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                description={translate('search.display.sortBy')}
-                title={sortByTitle}
-                onPress={openSortBy}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
-            />
+            {sortByTitle ? (
+                <MenuItemField
+                    description={translate('search.display.sortBy')}
+                    title={sortByTitle}
+                    onPress={openSortBy}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
+                />
+            ) : (
+                <MenuItemEmptyField
+                    description={translate('search.display.sortBy')}
+                    onPress={openSortBy}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
+                />
+            )}
         </ScrollView>
     );
 }

@@ -4,6 +4,8 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
@@ -291,15 +293,21 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     onTabPress={handleSpendRuleOptionSelection}
                                 />
 
-                                {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
-                                    <MenuItemWithTopDescription
-                                        shouldShowRightIcon
-                                        title={existingSpendRuleTitle}
-                                        description={translate('workspace.card.chooseRule')}
-                                        onPress={handleChooseSpendRule}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
-                                    />
-                                )}
+                                {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING &&
+                                    (existingSpendRuleTitle ? (
+                                        <MenuItemField
+                                            description={translate('workspace.card.chooseRule')}
+                                            title={existingSpendRuleTitle}
+                                            onPress={handleChooseSpendRule}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
+                                        />
+                                    ) : (
+                                        <MenuItemEmptyField
+                                            description={translate('workspace.card.chooseRule')}
+                                            onPress={handleChooseSpendRule}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
+                                        />
+                                    ))}
 
                                 {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && (
                                     <View>

@@ -3,6 +3,7 @@ import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -138,10 +139,9 @@ function ScheduleCallConfirmationPage() {
                             Navigation.goBack(ROUTES.SCHEDULE_CALL_BOOK.getRoute(route?.params?.reportID));
                         }}
                     />
-                    <MenuItemWithTopDescription
-                        title={translate('scheduledCall.confirmation.minutes')}
+                    <MenuItemField
                         description={translate('scheduledCall.confirmation.meetingLength')}
-                        interactive={false}
+                        title={translate('scheduledCall.confirmation.minutes')}
                     />
                 </ScrollView>
                 <FixedFooter>

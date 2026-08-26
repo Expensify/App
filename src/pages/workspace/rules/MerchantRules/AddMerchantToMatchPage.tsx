@@ -2,7 +2,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
@@ -115,10 +115,9 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                         containerStyles={[styles.ph5]}
                     />
                 </View>
-                <MenuItemWithTopDescription
+                <MenuItemField
                     description={translate('workspace.rules.merchantRules.matchType')}
                     title={getMatchTypeLabel()}
-                    shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined))}
                 />
             </FormProvider>

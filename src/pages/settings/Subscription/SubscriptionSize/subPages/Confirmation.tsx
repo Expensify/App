@@ -1,6 +1,7 @@
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -32,16 +33,18 @@ function Confirmation({onNext}: ConfirmationProps) {
     return (
         <View style={[styles.flexGrow1]}>
             <Text style={[styles.ph5, styles.pb3]}>{translate('subscription.subscriptionSize.confirmDetails')}</Text>
-            <MenuItemWithTopDescription
-                interactive={false}
+            <MenuItemField
                 description={translate('subscription.subscriptionSize.subscriptionSize')}
                 title={translate('subscription.subscriptionSize.activeMembers', subscriptionSize)}
             />
-            <MenuItemWithTopDescription
-                interactive={false}
-                description={translate('subscription.subscriptionSize.subscriptionRenews')}
-                title={subscriptionRenewalDate}
-            />
+            {subscriptionRenewalDate ? (
+                <MenuItemField
+                    description={translate('subscription.subscriptionSize.subscriptionRenews')}
+                    title={subscriptionRenewalDate}
+                />
+            ) : (
+                <MenuItemEmptyField description={translate('subscription.subscriptionSize.subscriptionRenews')} />
+            )}
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}

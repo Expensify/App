@@ -2,8 +2,8 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -133,12 +133,11 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                 <View style={styles.w100}>
                     {isCurrentUserAdmin && (
                         <OfflineWithFeedback pendingAction={member?.pendingFields?.role ?? null}>
-                            <MenuItemWithTopDescription
-                                disabled={isSelectedMemberCurrentUser}
-                                title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                            <MenuItemField
                                 description={translate('common.role')}
-                                shouldShowRightIcon
+                                title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
                                 onPress={openRoleSelectionModal}
+                                isDisabled={isSelectedMemberCurrentUser}
                             />
                         </OfflineWithFeedback>
                     )}

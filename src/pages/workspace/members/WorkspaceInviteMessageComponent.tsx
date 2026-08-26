@@ -4,6 +4,8 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -250,6 +252,14 @@ function WorkspaceInviteMessageComponent({
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = usePersonalDetailByLogin(invitingMemberEmail);
     const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
+    const invitingMemberTitle = invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail;
+    const approverName = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: approverDetails,
+        defaultValue: workspaceInviteApproverDraft,
+        shouldFallbackToHidden: false,
+        translate,
+        formatPhoneNumber,
+    });
 
     useEffect(() => {
         return () => {
@@ -306,13 +316,15 @@ function WorkspaceInviteMessageComponent({
                     </View>
                     <View style={styles.mb3}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                            {isInviteNewMemberStep && (
-                                <MenuItemWithTopDescription
-                                    title={invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail}
-                                    description={translate('common.member')}
-                                    interactive={false}
-                                />
-                            )}
+                            {isInviteNewMemberStep &&
+                                (invitingMemberTitle ? (
+                                    <MenuItemField
+                                        description={translate('common.member')}
+                                        title={invitingMemberTitle}
+                                    />
+                                ) : (
+                                    <MenuItemEmptyField description={translate('common.member')} />
+                                ))}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
                                     title={memberNames}
@@ -324,32 +336,33 @@ function WorkspaceInviteMessageComponent({
                                     }}
                                 />
                             )}
-                            <MenuItemWithTopDescription
-                                title={translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}
+                            <MenuItemField
                                 description={translate('common.role')}
-                                shouldShowRightIcon={canChangeInviteRole}
-                                interactive={canChangeInviteRole}
-                                onPress={() => {
-                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute())) {
-                                        return;
-                                    }
-                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path));
-                                }}
+                                title={translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}
+                                onPress={
+                                    canChangeInviteRole
+                                        ? () => {
+                                              if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute())) {
+                                                  return;
+                                              }
+                                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path));
+                                          }
+                                        : undefined
+                                }
                             />
-                            {!!shouldShowApproverRow && (
-                                <MenuItemWithTopDescription
-                                    title={temporaryGetDisplayNameOrDefault({
-                                        passedPersonalDetails: approverDetails,
-                                        defaultValue: workspaceInviteApproverDraft,
-                                        shouldFallbackToHidden: false,
-                                        translate,
-                                        formatPhoneNumber,
-                                    })}
-                                    description={translate('workflowsPage.approver')}
-                                    shouldShowRightIcon
-                                    onPress={navigateToApproverPage}
-                                />
-                            )}
+                            {!!shouldShowApproverRow &&
+                                (approverName ? (
+                                    <MenuItemField
+                                        description={translate('workflowsPage.approver')}
+                                        title={approverName}
+                                        onPress={navigateToApproverPage}
+                                    />
+                                ) : (
+                                    <MenuItemEmptyField
+                                        description={translate('workflowsPage.approver')}
+                                        onPress={navigateToApproverPage}
+                                    />
+                                ))}
                         </View>
                         <View style={[styles.mb3]}>
                             <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>

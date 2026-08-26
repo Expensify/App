@@ -3,7 +3,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import {MENU_ITEM_TITLE_VARIANT} from '@components/MenuItem/leaves/text/MenuItemTitle';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -183,18 +185,36 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
             <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
-            {summaryItems.map(({id, description, title, shouldShowRightIcon, interactive, disabled, onPress}) => (
-                <MenuItemWithTopDescription
-                    key={id}
-                    pressableTestID={id}
-                    description={description}
-                    title={title}
-                    shouldShowRightIcon={shouldShowRightIcon}
-                    onPress={onPress}
-                    interactive={interactive}
-                    disabled={disabled}
-                />
-            ))}
+            {summaryItems.map(({id, description, title, shouldShowRightIcon, interactive, disabled, onPress}) =>
+                title ? (
+                    <MenuItem.Root
+                        key={id}
+                        onPress={interactive === false ? undefined : onPress}
+                        isDisabled={disabled}
+                        testID={id}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Description>{description}</MenuItem.Description>
+                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>{title}</MenuItem.Title>
+                            </MenuItem.Content>
+                            {shouldShowRightIcon && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                ) : (
+                    <MenuItemEmptyField
+                        key={id}
+                        description={description}
+                        onPress={interactive === false ? undefined : onPress}
+                        isDisabled={disabled}
+                        testID={id}
+                    />
+                ),
+            )}
             <FormProvider
                 formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
                 validate={validate}

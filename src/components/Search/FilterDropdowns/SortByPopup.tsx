@@ -1,4 +1,5 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -109,12 +110,18 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
                 hasHeader
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    description={translate('search.display.sortOrder')}
-                    title={sortOrder ? translate(`search.filters.sortOrder.${sortOrder}`) : undefined}
-                    onPress={onSortOrderPress}
-                />
+                {sortOrder ? (
+                    <MenuItemField
+                        description={translate('search.display.sortOrder')}
+                        title={translate(`search.filters.sortOrder.${sortOrder}`)}
+                        onPress={onSortOrderPress}
+                    />
+                ) : (
+                    <MenuItemEmptyField
+                        description={translate('search.display.sortOrder')}
+                        onPress={onSortOrderPress}
+                    />
+                )}
                 <View style={styles.dividerLine} />
                 <SelectionList
                     data={options}
