@@ -6,11 +6,13 @@ import {
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
+    getPolicyRole,
     hasPolicyWithXeroConnection,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isArchivedPolicy,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
@@ -22,6 +24,7 @@ import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import escapeRegExp from 'lodash/escapeRegExp';
 
@@ -75,6 +78,9 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
     /** Whether the policy is optimistically pending deletion */
     isPendingDelete: boolean;
 
+    /** Whether the policy has been archived */
+    isArchived: boolean;
+
     /** Whether the current user has a pending request to join the policy */
     isJoinRequestPending: boolean;
 
@@ -93,14 +99,15 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
  * employeeList, customUnits, connections, etc.).
  */
 const createWorkspaceListPoliciesSelector =
-    (currentUserLogin: string | undefined) =>
+    (currentUserLogin: string | undefined, showArchived = false) =>
     (policies: OnyxCollection<Policy>): WorkspaceListPolicy[] => {
         const result: WorkspaceListPolicy[] = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin)) {
+            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin, showArchived)) {
                 continue;
             }
 
+            const isArchived = isArchivedPolicy(policy);
             const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
             let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
             if (isJoinRequestPending) {
@@ -124,12 +131,13 @@ const createWorkspaceListPoliciesSelector =
                 id: policy.id,
                 name: policy.name,
                 type: policy.type,
-                role: policy.role,
+                role: getPolicyRole(policy, currentUserLogin) as ValueOf<typeof CONST.POLICY.ROLE>,
                 ownerAccountID: policy.ownerAccountID,
                 avatarURL: policy.avatarURL,
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 isPendingDelete: isPendingDeletePolicy(policy),
+                isArchived,
                 isJoinRequestPending,
                 nonMemberDetails,
             });
@@ -268,8 +276,11 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
 
 type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
-const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
-    (policy && {
+const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => {
+    if (!policy) {
+        return undefined;
+    }
+    return {
         type: policy.type,
         role: policy.role,
         id: policy.id,
@@ -278,7 +289,8 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
         avatarURL: policy.avatarURL,
         name: policy.name,
         areInvoicesEnabled: policy.areInvoicesEnabled,
-    }) as PolicySelector;
+    };
+};
 
 // deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
 const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {

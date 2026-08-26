@@ -1,26 +1,17 @@
-import WidgetContainer from '@components/WidgetContainer';
-
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
-
-import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useFocusEffect} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {createTimeSensitiveAdminPoliciesSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddBankAccount from './hooks/useTimeSensitiveAddBankAccount';
@@ -48,19 +39,13 @@ type BrokenPersonalCardConnection = {
     cardID: string;
 };
 
-function TimeSensitiveSection() {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+/**
+ * Builds the prioritized list of time-sensitive action rows for the Home page. Returns an empty array when the user
+ * has no time-sensitive content, so the caller can decide whether to render the "Time sensitive" group at all.
+ */
+function useTimeSensitiveItems(): React.ReactNode[] {
     const {login} = useCurrentUserPersonalDetails();
     const isAnonymous = useIsAnonymousUser();
-    const [isExpanded, setIsExpanded] = useState(false);
-
-    useFocusEffect(
-        useCallback(() => {
-            return () => setIsExpanded(false);
-        }, []),
-    );
 
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
@@ -90,7 +75,7 @@ function TimeSensitiveSection() {
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
-    const {shouldShowEnterSignerInfo, pendingSignerInfo} = useTimeSensitiveSignerInfo();
+    const {pendingSignerInfo} = useTimeSensitiveSignerInfo();
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -107,33 +92,8 @@ function TimeSensitiveSection() {
         }
     }
 
-    const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
-    const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
-    const hasBrokenPolicyConnections = brokenPolicyConnections.length > 0;
     const isCurrentLoginValidated = isCurrentUserValidated(loginList, sessionEmail ?? login);
     const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
-
-    // This guard must exactly match the conditions used to render each widget below.
-    // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
-    // must be reflected here to avoid showing an empty "Time sensitive" section.
-    const hasAnyTimeSensitiveContent =
-        lockedBankAccounts.length > 0 ||
-        shouldShowEnterSignerInfo ||
-        shouldShowValidateAccount ||
-        shouldShowFixFailedBilling ||
-        shouldShowReviewCardFraud ||
-        shouldShowAddPaymentCard ||
-        shouldShowAddBankAccount ||
-        hasBrokenCompanyCards ||
-        hasBrokenPersonalCards ||
-        hasBrokenPolicyConnections ||
-        shouldShowAddShippingAddress ||
-        shouldShowActivateCard ||
-        shouldShowAddVirtualCardPersonalDetails;
-
-    if (!hasAnyTimeSensitiveContent) {
-        return null;
-    }
 
     // Priority order:
     // 1. Validate account
@@ -276,23 +236,7 @@ function TimeSensitiveSection() {
         }
     }
 
-    const hiddenCount = Math.max(0, items.length - CONST.HOME.SECTION_VISIBLE_LIMIT);
-    const visibleItems = isExpanded ? items : items.slice(0, CONST.HOME.SECTION_VISIBLE_LIMIT);
-
-    return (
-        <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
-            <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-                {visibleItems}
-                {hiddenCount > 0 && (
-                    <HomeSectionExpandToggle
-                        isExpanded={isExpanded}
-                        onPress={() => setIsExpanded((prev) => !prev)}
-                        collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
-                    />
-                )}
-            </View>
-        </WidgetContainer>
-    );
+    return items;
 }
 
-export default TimeSensitiveSection;
+export default useTimeSensitiveItems;
