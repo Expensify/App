@@ -2751,6 +2751,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadius,
         },
 
+        tableBorder: {
+            borderWidth: 1,
+            borderColor: 'transparent',
+        },
+
         tableRowHeightCompact: {
             minHeight: variables.tableRowHeightCompact,
         },

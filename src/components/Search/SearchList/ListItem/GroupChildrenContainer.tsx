@@ -59,6 +59,7 @@ function GroupChildrenContainer({
                 {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
                 animatedHighlightStyle,
                 isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+                styles.tableBorder,
             ]}
         >
             <Animated.View style={animatedStyle}>
