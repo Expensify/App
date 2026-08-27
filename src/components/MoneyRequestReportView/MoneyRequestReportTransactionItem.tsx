@@ -170,6 +170,7 @@ function MoneyRequestReportTransactionItemBody({
 
     // Keep this ref local so React Compiler can prove the after-render event mutations are safe.
     const wasEditingOnMouseDownRef = useRef(false);
+    const wasPressInOnCopyableTextRef = useRef(false);
     const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
     useEffect(() => {
@@ -211,6 +212,7 @@ function MoneyRequestReportTransactionItemBody({
 
     const handlePressIn: React.ComponentProps<typeof PressableWithFeedback>['onPressIn'] = (event) => {
         wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
+        wasPressInOnCopyableTextRef.current = false;
         // Selection only needs to be blocked for touch interactions; desktop mouse selection is handled by onMouseDown.
         if (!canUseTouchScreen()) {
             return;
@@ -218,6 +220,7 @@ function MoneyRequestReportTransactionItemBody({
 
         // Let copyable values use native long-press/drag selection instead of applying the global selection blocker.
         const isCopyableTarget = markMouseDownOnCopyableText(getPressEventTarget(event?.target));
+        wasPressInOnCopyableTextRef.current = isCopyableTarget;
         if (isCopyableTarget) {
             return;
         }
@@ -227,7 +230,16 @@ function MoneyRequestReportTransactionItemBody({
     };
 
     const handlePressableLongPress = () => {
+        // Let touch-web long presses on copyable values complete native text selection without opening row actions.
+        if (wasPressInOnCopyableTextRef.current) {
+            return;
+        }
         handleLongPress(transaction.transactionID);
+    };
+
+    const handlePressOut = () => {
+        wasPressInOnCopyableTextRef.current = false;
+        ControlSelection.unblock();
     };
 
     return (
@@ -250,7 +262,7 @@ function MoneyRequestReportTransactionItemBody({
                 onMouseDown={handleMouseDown}
                 onHoverIn={handleHoverIn}
                 onPressIn={handlePressIn}
-                onPressOut={() => ControlSelection.unblock()}
+                onPressOut={handlePressOut}
                 onLongPress={handlePressableLongPress}
                 disabled={isTransactionPendingDelete(transaction)}
                 wrapperStyle={[animatedHighlightStyle, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
