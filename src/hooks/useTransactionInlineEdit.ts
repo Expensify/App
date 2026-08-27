@@ -28,7 +28,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * than being duplicated across every surface that renders a transaction.
  */
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useMemo, useRef} from 'react';
+import {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
@@ -150,8 +150,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     // Scoped transaction/violation collections (the edited transaction plus any duplicates) are read here and
     // passed into the pure edit actions, which need them to resolve duplicate-transaction violations. This mirrors
     // the non-inline edit flow (see DynamicIOURequestStepDate) and avoids subscribing to the full collections.
-    const transactionIDs = useMemo(() => [transactionID], [transactionID]);
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations([transactionID]);
 
     const {hasSelectedTransactions} = useSearchSelectionContext();
 
