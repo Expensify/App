@@ -40,14 +40,15 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
 
         if (!sizing) {
             // A column styled `flex: 1` alongside a width has a zero flex basis, which discards that width: it starts
-            // from nothing and only ever gets a share of the leftover space. That was harmless while every column was
-            // equally shrinkable, but the measured columns now hold a minimum, so a column with no floor of its own
-            // absorbs all of the shortfall and truncates its value. Its declared width becomes both the size it grows
-            // from and the size it will not shrink past, since that width is what the column was sized to fit: the
-            // amount column, for one, is already widened separately when its values are long, and an amount that has
-            // been cut short reads as a different number rather than as a truncation.
+            // from nothing, shares the leftover space with every other flexible column, and so ends up neither the width
+            // it declared nor the width its content needs. Its declared width is what it was sized to fit, so it is
+            // pinned to exactly that: it is not squeezed below it, which would truncate values that read as different
+            // ones rather than as truncations (an amount, above all), and it does not grow past it either, since the
+            // spare room belongs to the columns holding free text. That is the same reasoning as the existing
+            // `shouldRemoveTotalColumnFlex`, which drops the total column's flex whenever another column can take the
+            // space instead.
             if (isSizingColumns && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
-                return {...columnStyles, flex: undefined, flexGrow: columnStyles.flex, flexShrink: 1, flexBasis: columnStyles.width, minWidth: columnStyles.width};
+                return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: columnStyles.width, minWidth: columnStyles.width};
             }
 
             return columnStyles;
@@ -58,7 +59,7 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         // without this having to know what the fixed columns, gaps, and padding around it spend. The `flex` shorthand is
         // cleared because the base style sets it on exactly these columns, and leaving both it and the individual properties here
         // would make which one wins depend on the order they are emitted in.
-        return {...columnStyles, flex: undefined, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, width: undefined};
+        return {...columnStyles, flex: undefined, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, maxWidth: sizing.maxWidth, width: undefined};
     };
 }
 

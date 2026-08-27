@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 
 import {useMemo} from 'react';
 
-const {MIN_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
+const {MIN_FREE_TEXT_COLUMN_WIDTH, MAX_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
 /** How a dynamically sized column shares the table's free space. */
 type SearchColumnSizing = {
@@ -28,6 +28,12 @@ type SearchColumnSizing = {
 
     /** Width the column is never squeezed below, so its header stays readable however narrow the table gets. */
     minWidth: number;
+
+    /**
+     * Width the column never grows past. Without it a table with room to spare would stretch these columns well beyond
+     * anything they hold, since they are the only ones left that can take the slack.
+     */
+    maxWidth: number;
 };
 
 /**
@@ -121,7 +127,12 @@ function useSearchColumnWidths({columns, data, isEnabled}: UseSearchColumnWidths
 
             // A column has to fit its header as well as its cells, so the header is part of what its content needs. A
             // column whose rows are all empty is then sized by its header alone rather than collapsing to nothing.
-            const contentWidth = Math.max(Math.ceil(widestContentWidth + extraWidth), headerLabelWidth);
+            //
+            // The width its content asks for is capped, because a column is sized by its single widest value: one
+            // unusually long merchant name across a hundred rows would otherwise set the column's width for all of them
+            // and take the room the other columns need. Past the cap the column truncates, which costs the tail of one
+            // outlying value rather than the width of every other column.
+            const contentWidth = Math.min(Math.max(Math.ceil(widestContentWidth + extraWidth), headerLabelWidth), Math.max(MAX_FREE_TEXT_COLUMN_WIDTH + extraWidth, headerLabelWidth));
 
             contentWidths.push({column, contentWidth, headerLabelWidth});
         }
@@ -145,6 +156,7 @@ function useSearchColumnWidths({columns, data, isEnabled}: UseSearchColumnWidths
                 // header: a truncated heading leaves the column unidentifiable. Once these minimums no longer fit, the
                 // table scrolls rather than squeezing further, which is what `getSearchTableMinWidth` below drives.
                 minWidth: Math.max(Math.min(contentWidth, MIN_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), headerLabelWidth),
+                maxWidth: contentWidth,
             };
         }
 

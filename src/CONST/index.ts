@@ -8565,6 +8565,9 @@ const CONST = {
 
             /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
             MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+
+            /** How wide a free-text column may be sized for its content, so one unusually long value can't claim the row. */
+            MAX_FREE_TEXT_COLUMN_WIDTH: 220,
         },
     },
 

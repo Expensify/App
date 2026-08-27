@@ -8,8 +8,11 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import type {MeasurableFont} from './measureTextWidth/types';
 
-import {getCleanedTagName} from './PolicyUtils';
-import {getDescription, getMerchantName, getTag} from './TransactionUtils';
+import {getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
+import getBase62ReportID from './getBase62ReportID';
+import {getReportName} from './ReportNameUtils';
+import {getDecodedTagName} from './TagUtils';
+import {getDescription, getMerchantName, getTagForDisplay} from './TransactionUtils';
 
 /** A run of text rendered in a Search table cell, described well enough to measure how wide it renders. */
 type SearchColumnContent = {
@@ -39,6 +42,13 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.FROM,
     CONST.SEARCH.TABLE_COLUMNS.TO,
+    CONST.SEARCH.TABLE_COLUMNS.TITLE,
+    CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+    CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+    CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+    CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+    CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
 ]);
 
 /**
@@ -51,6 +61,13 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'common.tag',
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'common.from',
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'common.to',
+    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'common.title',
+    [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: 'common.longReportID',
+    [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'common.reportID',
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'common.withdrawalID',
+    [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID]: 'workspace.common.customField1',
+    [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID]: 'workspace.common.customField2',
+    [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: 'common.internationalReimbursementIDs',
 };
 
 /**
@@ -79,13 +96,27 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: Transac
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return [{text: getDescription(item)}];
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
-            return [{text: item.category}];
+            return [{text: isCategoryMissing(item.category) ? '' : getDecodedLeafCategoryName(item.category ?? '')}];
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
-            return [{text: getCleanedTagName(getTag(item))}];
+            return [{text: getDecodedTagName(getTagForDisplay(item))}];
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
             return [{text: item.formattedFrom ?? item.from?.displayName}];
         case CONST.SEARCH.TABLE_COLUMNS.TO:
             return [{text: item.formattedTo ?? item.to?.displayName}];
+        case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            return [{text: getReportName(item.report) ?? item.report?.reportName}];
+        case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+            return [{text: item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID}];
+        case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+            return [{text: item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))}];
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            return [{text: item.withdrawalID}];
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+            return [{text: item.report?.submitterUserID}];
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+            return [{text: item.report?.submitterPayrollID}];
+        case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
+            return [{text: item.report?.orderDealNumbers}];
         default:
             return [];
     }
