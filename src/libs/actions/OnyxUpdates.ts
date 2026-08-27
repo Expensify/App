@@ -14,7 +14,7 @@ import type {Merge} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {getCurrentFlushPromise, queueOnyxUpdates} from './QueuedOnyxUpdates';
+import {getCurrentFlushPromise, isEmpty as isDeferredQueueEmpty, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -57,9 +57,11 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
     // The backend routes these through the response instead of Pusher, so applying them mid-drain replays the UI. See https://github.com/Expensify/App/issues/12775.
     const serverUpdateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
 
-    // Applied now so a force kill cannot strand it, restaged so the deferred server payload cannot land on top of it.
-    const isServerDataDeferred = serverUpdateHandler === queueOnyxUpdates && !!response.onyxData;
-    const applyClientData = (updates: Array<OnyxUpdate<TKey>>): Promise<unknown> => Onyx.update(updates).then(() => (isServerDataDeferred ? queueOnyxUpdates(updates) : undefined));
+    // Applied now so a force kill cannot strand it, restaged so deferred server payloads cannot land on top of it.
+    // The buffer is shared by every request in a drain, so an earlier request's payload can outlive this response.
+    const isWrite = serverUpdateHandler === queueOnyxUpdates;
+    const applyClientData = (updates: Array<OnyxUpdate<TKey>>): Promise<unknown> =>
+        Onyx.update(updates).then(() => (isWrite && !isDeferredQueueEmpty() ? queueOnyxUpdates(updates) : undefined));
 
     const onyxDataUpdatePromise = response.onyxData ? serverUpdateHandler(response.onyxData) : Promise.resolve();
 

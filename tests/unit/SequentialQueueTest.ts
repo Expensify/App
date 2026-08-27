@@ -660,7 +660,7 @@ describe('SequentialQueue - QueueFlushedData', () => {
     });
 });
 
-describe('SequentialQueue - a write applies its own client-side data before the request leaves disk and after the server payload', () => {
+describe('SequentialQueue - a sent message stops being pending even if the app dies before the queue drains', () => {
     const REPORT_ID = '1';
     const REPORT_ACTIONS_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
     const SERVER_ACTION_ID = '8888';
@@ -693,14 +693,16 @@ describe('SequentialQueue - a write applies its own client-side data before the 
         finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[reportActionID]: {isLoading: false}}}],
     });
 
-    function snapshotsAtRemoval() {
-        const snapshots: Array<ReportActions | undefined> = [];
+    // A force kill cannot be expressed in Jest, so we read what a relaunch would find at the one moment that
+    // matters: the request is gone from disk, and whatever is not on disk with it is lost for good.
+    function stateWhenTheAppCouldBeKilled() {
+        const states: Array<ReportActions | undefined> = [];
         const removeFromQueue = PersistedRequestsModule.endRequestAndRemoveFromQueue;
         jest.spyOn(PersistedRequestsModule, 'endRequestAndRemoveFromQueue').mockImplementation((requestToRemove) => {
-            snapshots.push(liveReportActions);
+            states.push(liveReportActions);
             return removeFromQueue(requestToRemove);
         });
-        return snapshots;
+        return states;
     }
 
     beforeAll(() => {
@@ -720,7 +722,7 @@ describe('SequentialQueue - a write applies its own client-side data before the 
         jest.restoreAllMocks();
     });
 
-    it('commits successData before removal while the server payload stays deferred', async () => {
+    it('does not show a sent message as pending after the app is killed', async () => {
         // Given an optimistic comment on disk, and a server that echoes a different action back in onyxData
         const optimisticID = '9999';
         await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(optimisticID));
@@ -728,86 +730,80 @@ describe('SequentialQueue - a write applies its own client-side data before the 
         mockFetch.mockAPICommand('AddComment', () => ({
             onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[SERVER_ACTION_ID]: {reportActionID: SERVER_ACTION_ID}}}],
         }));
-        const snapshots = snapshotsAtRemoval();
+        const states = stateWhenTheAppCouldBeKilled();
 
-        // When the request is sent and the server answers 200
+        // When the message is sent and the server answers 200
         SequentialQueue.push(addCommentRequest(optimisticID));
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
 
-        // Then the client's own clear was already on disk at the instant the request left it
-        expect(snapshots).toHaveLength(1);
-        expect(snapshots.at(0)?.[optimisticID]?.pendingAction).toBeUndefined();
-        expect(snapshots.at(0)?.[optimisticID]?.isOptimisticAction).toBeUndefined();
-        expect(snapshots.at(0)?.[optimisticID]?.isLoading).toBe(false);
-
-        // And the server's payload was still deferred at that instant, arriving only once the queue drains
-        expect(snapshots.at(0)?.[SERVER_ACTION_ID]).toBeUndefined();
-        await flushQueue();
-        await waitForBatchedUpdates();
-        expect(liveReportActions?.[SERVER_ACTION_ID]?.reportActionID).toBe(SERVER_ACTION_ID);
+        // Then a relaunch finds the message sent, not greyed out and not loading
+        expect(states).toHaveLength(1);
+        expect(states.at(0)?.[optimisticID]?.pendingAction).toBeUndefined();
+        expect(states.at(0)?.[optimisticID]?.isOptimisticAction).toBeUndefined();
+        expect(states.at(0)?.[optimisticID]?.isLoading).toBe(false);
     });
 
-    it('commits failureData before removal when the server rejects the request', async () => {
+    it('still offers the retry after the app is killed on a message the server rejected', async () => {
         // Given an optimistic comment on disk, and a server that answers with a non-200
         const optimisticID = '7777';
         await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(optimisticID));
         await waitForBatchedUpdates();
         mockFetch.mockAPICommand('AddComment', () => ({jsonCode: CONST.JSON_CODE.BAD_REQUEST}));
-        const snapshots = snapshotsAtRemoval();
+        const states = stateWhenTheAppCouldBeKilled();
 
-        // When the request is sent
+        // When the message is sent and the server rejects it
         SequentialQueue.push(addCommentRequest(optimisticID));
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
 
-        // Then the error was already on disk at the instant the request left it, so the retry affordance survives a kill
-        expect(snapshots).toHaveLength(1);
-        expect(snapshots.at(0)?.[optimisticID]?.pendingAction).toBeUndefined();
-        expect(snapshots.at(0)?.[optimisticID]?.errors).toEqual({[ERROR_TIMESTAMP]: 'could not send'});
-        expect(snapshots.at(0)?.[optimisticID]?.isLoading).toBe(false);
+        // Then a relaunch finds the error, so the user can still retry or dismiss the message
+        expect(states).toHaveLength(1);
+        expect(states.at(0)?.[optimisticID]?.pendingAction).toBeUndefined();
+        expect(states.at(0)?.[optimisticID]?.errors).toEqual({[ERROR_TIMESTAMP]: 'could not send'});
+        expect(states.at(0)?.[optimisticID]?.isLoading).toBe(false);
     });
 
-    it('clears each queued write as its own response lands, not all at once when the queue empties', async () => {
-        // Given three optimistic comments on disk and their three requests queued behind a paused network
+    it('clears the greyed-out state on each message as its own response lands, not all at once when the queue empties', async () => {
+        // Given three optimistic comments on disk and their three messages queued to send
         const ids = ['1001', '1002', '1003'];
         for (const id of ids) {
             await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(id));
         }
         await waitForBatchedUpdates();
-        const snapshots = snapshotsAtRemoval();
+        const states = stateWhenTheAppCouldBeKilled();
 
-        // When the queue drains them in order
+        // When the queue sends them in order
         for (const id of ids) {
             SequentialQueue.push(addCommentRequest(id));
         }
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
 
-        // Then each response cleared only its own comment, leaving the ones still in flight greyed out
-        expect(snapshots).toHaveLength(3);
-        for (const [index, atRemoval] of snapshots.entries()) {
-            expect(atRemoval?.[ids[index]]?.pendingAction).toBeUndefined();
+        // Then each response cleared only its own message, and the ones still in flight stayed greyed out
+        expect(states).toHaveLength(3);
+        for (const [index, state] of states.entries()) {
+            expect(state?.[ids[index]]?.pendingAction).toBeUndefined();
             for (const pendingID of ids.slice(index + 1)) {
-                expect(atRemoval?.[pendingID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                expect(state?.[pendingID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             }
         }
 
-        // And every comment ends up cleared
+        // And all three end up with the greyed-out state cleared
         for (const id of ids) {
             expect(liveReportActions?.[id]?.pendingAction).toBeUndefined();
         }
     });
 
-    it('lets successData decide the final state of a key the server payload also touches', async () => {
-        // Given a write whose successData removes a key that the server also updates in its response
+    it('keeps a deleted report deleted once its own response has been handled', async () => {
+        // Given a delete whose response also carries server data for the report it removed
         await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction('4001'));
         await waitForBatchedUpdates();
         mockFetch.mockAPICommand('DeleteAppReport', () => ({
             onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[SERVER_ACTION_ID]: {reportActionID: SERVER_ACTION_ID}}}],
         }));
 
-        // When the response lands and the deferred server payload is flushed
+        // When the user deletes the report and everything settles
         SequentialQueue.push({
             command: 'DeleteAppReport',
             data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, reportID: REPORT_ID},
@@ -817,7 +813,31 @@ describe('SequentialQueue - a write applies its own client-side data before the 
         await flushQueue();
         await waitForBatchedUpdates();
 
-        // Then the removal stands, so the server payload does not re-create the key it deleted
+        // Then the report stays gone instead of coming back as a partial ghost
+        expect(liveReportActions).toBeUndefined();
+    });
+
+    it('keeps a deleted report deleted when an earlier send in the same batch is still settling', async () => {
+        // Given a message and a delete sent together, where only the message's response carries server data
+        await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction('5001'));
+        await waitForBatchedUpdates();
+        mockFetch.mockAPICommand('AddComment', () => ({
+            onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[SERVER_ACTION_ID]: {reportActionID: SERVER_ACTION_ID}}}],
+        }));
+        mockFetch.mockAPICommand('DeleteAppReport', () => ({}));
+
+        // When both are sent back to back and everything settles
+        SequentialQueue.push(addCommentRequest('5001'));
+        SequentialQueue.push({
+            command: 'DeleteAppReport',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, reportID: REPORT_ID},
+            successData: [{onyxMethod: Onyx.METHOD.SET, key: REPORT_ACTIONS_KEY, value: null}],
+        });
+        await SequentialQueue.waitForIdle();
+        await flushQueue();
+        await waitForBatchedUpdates();
+
+        // Then the report the user deleted is still gone, and the earlier message did not bring it back
         expect(liveReportActions).toBeUndefined();
     });
 });
