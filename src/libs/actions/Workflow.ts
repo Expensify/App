@@ -379,6 +379,36 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
     }
 }
 
+/**
+ * Promote an edited workflow's first approver to the policy's default approver.
+ *
+ * The default workflow has no rules of its own: it is the workflow whose first approver matches
+ * `policy.approver`, so leaving the policy untouched would make the edited chain read as a brand new
+ * workflow while a default workflow is synthesized around the previous approver. No-op unless the
+ * workflow is the default one and its first approver actually changed.
+ */
+function updatePolicyDefaultApprover(approvalWorkflow: ApprovalWorkflow, policy: Policy) {
+    if (!approvalWorkflow.isDefault) {
+        return;
+    }
+
+    const previousDefaultApprover = getDefaultApprover(policy);
+    const newDefaultApprover = approvalWorkflow.approvers.at(0)?.email;
+    if (!newDefaultApprover || newDefaultApprover === previousDefaultApprover) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {approver: newDefaultApprover}}];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {approver: previousDefaultApprover}}];
+
+    // Routing lives in the rules, which `setApprovalWorkflowRules` already wrote, so `employees` is empty here:
+    // UpdateWorkspaceApproval accepts a default approver change on its own.
+    const parameters: UpdateWorkspaceApprovalParams = {policyID: policy.id, employees: '[]', defaultApprover: newDefaultApprover};
+    write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData});
+}
+
 type UpdateApprovalWorkflowRulesParams = {
     approvalWorkflow: ApprovalWorkflow;
     initialApprovalWorkflow: ApprovalWorkflow;
@@ -413,6 +443,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff};
 
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules});
+    updatePolicyDefaultApprover(approvalWorkflow, policy);
 }
 
 /**

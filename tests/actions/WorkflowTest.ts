@@ -1149,6 +1149,134 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
         });
+
+        it('promotes the new first approver to the policy default approver when the default workflow is edited', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                rules: {},
+            };
+
+            // Seed the default [employee1] → [owner] workflow as rules in the collection.
+            await createForwardApproveRules(policyID, [employee1Email], ownerEmail);
+
+            const initialApprovalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: true,
+                action: 'update',
+                originalApprovers: [],
+            };
+            const approvalWorkflow = {
+                ...initialApprovalWorkflow,
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approver).toBe(employee2Email);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('promotes the new first approver even when the default workflow has no members of its own', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                rules: {},
+            };
+
+            // Only employee1 → employee3 is covered by rules, so the default workflow around the owner has no members.
+            await createForwardApproveRules(policyID, [employee1Email], employee3Email);
+
+            const initialApprovalWorkflow = {
+                members: [],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: true,
+                action: 'update',
+                originalApprovers: [],
+            };
+            const approvalWorkflow = {
+                ...initialApprovalWorkflow,
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approver).toBe(employee2Email);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('leaves the policy default approver alone when a non-default workflow is edited', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                rules: {},
+            };
+
+            await createForwardApproveRules(policyID, [employee1Email], employee3Email);
+
+            const initialApprovalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: employee3Email, displayName: employee3Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'update',
+                originalApprovers: [],
+            };
+            const approvalWorkflow = {
+                ...initialApprovalWorkflow,
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approver).toBe(ownerEmail);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('removeApprovalWorkflowRules', () => {
