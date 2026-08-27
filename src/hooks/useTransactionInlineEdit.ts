@@ -178,6 +178,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         return {
             hash,
             transactionID,
+            transaction,
             parentReport: effectiveParentReport,
             parentReportAction,
             transactionThreadReport,
