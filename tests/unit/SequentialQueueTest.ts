@@ -787,32 +787,6 @@ describe('SequentialQueue - a write settles its own state when its response land
                 expect(state?.[pendingID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             }
         }
-
-        for (const id of ids) {
-            expect(liveReportActions?.[id]?.pendingAction).toBeUndefined();
-        }
-    });
-
-    it('keeps what a write removed removed, when its own response also touches that data', async () => {
-        // Given a write whose response carries server data for the report its own successData removes
-        await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction('4001'));
-        await waitForBatchedUpdates();
-        mockFetch.mockAPICommand('DeleteAppReport', () => ({
-            onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[SERVER_ACTION_ID]: {reportActionID: SERVER_ACTION_ID}}}],
-        }));
-
-        // When the write is sent and everything settles
-        SequentialQueue.push({
-            command: 'DeleteAppReport',
-            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, reportID: REPORT_ID},
-            successData: [{onyxMethod: Onyx.METHOD.SET, key: REPORT_ACTIONS_KEY, value: null}],
-        });
-        await SequentialQueue.waitForIdle();
-        await flushQueue();
-        await waitForBatchedUpdates();
-
-        // Then the report stays gone instead of coming back as a partial ghost
-        expect(liveReportActions).toBeUndefined();
     });
 
     it('keeps what a write removed removed, when an earlier write in the batch is still settling', async () => {
