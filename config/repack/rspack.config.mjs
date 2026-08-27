@@ -70,6 +70,7 @@ export default Repack.defineRspackConfig((env) => {
                 path.resolve(projectRoot, 'config/babel/reactCompilerConfig.js'),
                 path.resolve(projectRoot, 'config/repack/rspack.config.mjs'),
                 path.resolve(projectRoot, 'config/repack/cjs-inline-requires-loader.mjs'),
+                path.resolve(projectRoot, 'config/repack/hermesParserShim.mjs'),
                 path.resolve(projectRoot, 'config/repack/expoVirtualEnv.ts'),
                 path.resolve(projectRoot, 'config/rsbuild/loaders/fullstory-annotation-loader.mjs'),
                 path.resolve(projectRoot, 'config/rsbuild/loaders/oxc-react-compiler-loader.mjs'),
@@ -141,6 +142,9 @@ export default Repack.defineRspackConfig((env) => {
                             // SWC's equivalent of Metro's `inlineRequires` — required to tolerate the
                             // app's import cycles (without it the app crashes on boot).
                             lazyImports: true,
+                            // Re.Pack parses every non-TS file with hermes-parser; this restores Metro's
+                            // pragma gate so only Flow files pay for it. See the shim for details.
+                            hermesParserPath: path.resolve(__dirname, './hermesParserShim.mjs'),
                         },
                     },
                 },
