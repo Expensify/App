@@ -1,3 +1,5 @@
+// Storybook has its own entry point and never loads src/setup, so it registers the API middlewares itself.
+import '@libs/Middleware/register';
 import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';

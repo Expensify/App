@@ -1,3 +1,5 @@
+// Side effect import: registers the API middlewares in order. src/setup is the composition root for both the app (index.js) and the tests (tests/utils/TestHelper.ts), so this covers every entry point that can process a request.
+import '@libs/Middleware/register';
 import intlPolyfill from '@libs/IntlPolyfill';
 
 import {setDeviceID} from '@userActions/Device';
