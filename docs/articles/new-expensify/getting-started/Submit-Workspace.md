@@ -17,7 +17,6 @@ Premium features are not included in a Submit workspace. To use approvals, payme
 - Anyone on your company's email domain can join your Submit workspace and is added as an **Editor**.
 - An **Editor** can configure the workspace (such as adding categories and tags) but cannot see other members' expenses or reports, and cannot change member roles.
 
-
 ---
 
 ## How to create a Submit workspace
@@ -53,7 +52,6 @@ Editors can't:
 - View other members' expenses or reports.
 - Change member roles.
 
-
 ---
 
 ## How to join an existing Submit workspace
@@ -68,6 +66,7 @@ If someone on your email domain already owns a Submit workspace, you can join it
 When you join, you're added as an **Editor**. You can collaborate on the workspace configuration, but you can't see or take action on other members' expenses or reports.
 
 If you weren't automatically added to the workspace when you created your account, ask a current Editor of the Submit workspace to invite you to join. Learn how to [invite members to a workspace](/articles/new-expensify/workspaces/Managing-Workspace-Members#invite-members-to-a-workspace).
+
 ---
 
 ## How to submit an expense to an approver
