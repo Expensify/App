@@ -3412,7 +3412,6 @@ function buildOptimisticDuplicatePolicy(
     sourcePolicy: Policy,
     policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string; customUnitRateID: string},
 ) {
-    const {isPolicyExpenseChatEnabled: _deprecatedExpenseChatFlag, ...sourcePolicyWithoutDeprecatedExpenseChatFlag} = sourcePolicy;
     const {
         policyName: duplicatedPolicyName = '',
         targetPolicyID: duplicatedPolicyID,
@@ -3462,7 +3461,7 @@ function buildOptimisticDuplicatePolicy(
     };
 
     return {
-        ...sourcePolicyWithoutDeprecatedExpenseChatFlag,
+        ...sourcePolicy,
         areCategoriesEnabled: true,
         areTagsEnabled: isTagsFeatureSelected,
         areDistanceRatesEnabled: isDistanceRatesFeatureSelected,
