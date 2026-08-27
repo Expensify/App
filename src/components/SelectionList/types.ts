@@ -316,6 +316,18 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
      * hardware Enter would be dead.
      */
     isFooterConfirmEnterKeyEnabled?: boolean;
+
+    /**
+     * For a custom `footerContent` confirm control: whether that footer confirm button is currently rendered and
+     * enabled. The list uses this to decide whether to surrender its Enter shortcut to the footer. When omitted the
+     * list infers it from the currently rendered rows (a selected row is visible). Callers that maintain their
+     * selection outside the rendered sections — e.g. `NewChatPage`, whose Next button is driven by a persistent
+     * `selectedOptions` array while the selected rows get filtered out of the visible list during search — MUST pass
+     * their authoritative state here. Otherwise, after clearing the search input, the visible rows briefly hold no
+     * selected row (the debounced sections still show the old filtered results) and the list would wrongly keep row
+     * Enter, toggling the focused row instead of letting the still-enabled footer confirm.
+     */
+    isFooterConfirmEnabled?: boolean;
 };
 
 type SelectionListHandle<TItem extends ListItem> = {

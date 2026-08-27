@@ -216,8 +216,16 @@ function BaseSelectionListWithSectionsImpl({
     // unconditional `<Button.KeyboardShortcut />` (e.g. NewChatPage's `createGroup`) are Enter-capable everywhere and
     // need not pass it (defaults to enabled). The built-in `showButton` path always uses `ButtonKeyboardShortcut`, so it
     // is Enter-capable on every platform.
+    //
+    // "Enabled" is normally inferred from the currently rendered rows (a selected row is visible), but that source is
+    // wrong for owners whose selection persists outside the rendered sections — e.g. NewChatPage, whose Next button is
+    // driven by a persistent `selectedOptions` array while its selected rows get filtered out of the visible list.
+    // Such owners pass `isFooterConfirmEnabled` with their authoritative state, which takes precedence over the
+    // visible-row heuristic; without it, clearing the search input during the debounce window (visible rows still show
+    // the old filtered results with no selected row) would wrongly hand Enter back to the list.
     const hasSelectedItems = selectedItems.length > 0;
-    const isCustomFooterConfirmEnabled = hasSelectedItems && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
+    const isFooterConfirmEnabled = confirmButtonOptions?.isFooterConfirmEnabled ?? hasSelectedItems;
+    const isCustomFooterConfirmEnabled = isFooterConfirmEnabled && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
     const hasEnabledEnterConfirm =
         (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
 

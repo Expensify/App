@@ -420,6 +420,10 @@ function NewChatPage({ref}: NewChatPageProps) {
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
                     onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
+                    // The footer's Next button is driven by the persistent `selectedOptions`, but selected rows get
+                    // filtered out of the visible list during search, so the list can't infer the confirm's enabled
+                    // state from the rendered rows. Pass the authoritative selection state directly.
+                    isFooterConfirmEnabled: selectedOptions.length > 0,
                 }}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
