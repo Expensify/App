@@ -2298,6 +2298,15 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
+    OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Integration provider slug identifying which HR/ATS system is linked */
+        integration: Integration;
+
+        /** Approval mode controlling how reports are routed for approval */
+        approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+    }>;
+
 /** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
 type MergeHRGroup = {
     /** Group ID */
@@ -2317,14 +2326,8 @@ type MergeHRConnectionData = {
 };
 
 /** Merge HR connection config */
-type MergeHRConnectionConfig = HRConnectionConfigBase &
+type MergeHRConnectionConfig = MergeConnectionConfigBase<MergeHRProviderSlug> &
     OnyxCommon.OnyxValueWithOfflineFeedback<{
-        /** Integration provider slug identifying which HR system is linked */
-        integration: MergeHRProviderSlug;
-
-        /** Approval mode controlling how reports are routed for approval */
-        approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
-
         /**
          * Groups the admin chose to import employees from.
          * - `string[]` with one or more IDs — setup complete, sync only those groups.
@@ -2384,15 +2387,9 @@ type MergeATSFilters = {
 };
 
 /** Merge ATS (recruiting) connection config */
-type MergeATSConnectionConfig = HRConnectionConfigBase &
+type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> &
     OnyxCommon.OnyxValueWithOfflineFeedback<
         {
-            /** Integration provider slug identifying which ATS is linked */
-            integration: MergeATSProviderSlug;
-
-            /** Approval mode controlling how candidate reports are routed for approval */
-            approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
-
             /**
              * Candidate filters the admin chose to narrow the import by.
              * - An object with at least one dimension set — setup complete, import only matching candidates.
