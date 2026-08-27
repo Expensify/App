@@ -53,9 +53,7 @@ function checkFileExistsWithReason(path: string | undefined): Promise<FileCheckR
  */
 function checkFileExists(path: string | undefined): Promise<boolean> {
     return checkFileExistsWithReason(path).then(({exists, error}) => {
-        // Callers of this boolean form discard the reason, so report it here. The upload path uses
-        // checkFileExistsWithReason and puts the same errno on its own dropped line, so logging inside the shared
-        // helper instead would count every failed receipt stat twice.
+        // Logged here rather than in the shared helper, so the upload path does not report the same errno twice.
         if (error) {
             logReceiptStatFailed(error.code);
         }

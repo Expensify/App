@@ -90,7 +90,6 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.ACCOUNT);
     }
 
-    // SAML accounts must keep CREDENTIALS/ACCOUNT through the clear so SignInPage can re-initiate the IdP handshake.
     const shouldPreserveCredentialsForSAML = signOutReason === CONST.SIGN_OUT_REASON.SAML_REQUIRED;
 
     // Mark the account as loading and set the login in credentials to trigger the `SAML_SIGN_IN` transition
@@ -135,8 +134,7 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
  *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
- * @param signOutReason Which path tore down the session. Reported on the receipt queue snapshot, and the SAML path
- *                      additionally preserves the credentials needed to re-initiate the IdP handshake.
+ * @param signOutReason Which path tore down the session
  * @param errorMessage Error message to be displayed on the sign in page
  */
 function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string): Promise<void> {
