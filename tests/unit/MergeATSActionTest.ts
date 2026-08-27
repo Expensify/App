@@ -21,11 +21,11 @@ const policyID = 'policyID';
 const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
 const error = {[mockErrorTimestamp]: 'common.genericErrorMessage'};
 
-beforeEach(() => {
-    jest.clearAllMocks();
-});
-
 describe('MergeATSActions', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     describe('updateMergeATSFilters', () => {
         it('writes the new filters with optimistic, success, and failure data', () => {
             // Given a policy with candidate filters already set
