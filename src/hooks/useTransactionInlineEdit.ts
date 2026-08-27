@@ -123,7 +123,10 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         isPerDiemRequest: isPerDiemRequest(transaction),
     });
 
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    // Use original Onyx here because the useOnyx wrapper can read the partial Search snapshot, where an existing
+    // transaction thread report may be missing. Reading live Onyx lets us reuse an existing child thread instead of
+    // creating a duplicate one (this restores the pre-refactor `allReports` fallback that recovered the live report).
+    const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reportPolicyID)}`);
