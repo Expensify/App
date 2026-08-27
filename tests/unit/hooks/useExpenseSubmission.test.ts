@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, renderHook} from '@testing-library/react-native';
 
+import Log from '@libs/Log';
+
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 
 import CONST from '@src/CONST';
@@ -571,6 +573,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         it('does not submit, remove the draft, or navigate when the custom unit is incomplete (the action would no-op)', async () => {
             // The UI gates on the same check the action guards on, so a submit that would bail never runs and the draft survives.
             mockHasCompletePerDiemCustomUnit.mockReturnValue(false);
+            const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
             const perDiemTransaction = buildPerDiemTransaction();
 
             const {result} = renderHook(() =>
@@ -594,6 +597,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockSubmitPerDiemExpenseForSelfDMAction).not.toHaveBeenCalled();
             expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
             expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+            expect(logAlertSpy).toHaveBeenCalledTimes(1);
         });
     });
 

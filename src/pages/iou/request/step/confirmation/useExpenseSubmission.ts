@@ -632,6 +632,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 } else {
                     cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
                 }
+            } else {
+                Log.alert('[useExpenseSubmission] Skipped per diem self-DM submit: missing policy or incomplete custom unit');
             }
         } else {
             const isExpenseReport = isMoneyRequestReportReportUtils(report);
