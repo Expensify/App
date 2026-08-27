@@ -73,6 +73,6 @@ A single reimbursement payment covers one expense report. Expanding the payment 
 
 Those columns apply only to cross-border reimbursements, where the debited and reimbursed amounts are in different currencies. If your selected results contain only domestic reimbursements, the columns don't appear at all. In a mixed list, domestic rows leave both cells blank because the amount is shown in the **Total** column instead.
 
-## Why don't I see Reimbursements in the Withdrawal type folter? 
+## Why don't I see Reimbursements in the Withdrawal type filter? 
 
 The Reimbursements option only appears when your workspace has Payments enabled with a verified business bank account. If you don’t see it, confirm that the Payments is enabled and a verified business bank account is connected. 
