@@ -1,4 +1,5 @@
 import {
+    getDistanceExpenseTypeForPolicy,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
@@ -8,6 +9,7 @@ import {
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
+import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
 
@@ -182,6 +184,41 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should return false without a policy', () => {
             expect(isMapOrGPSRequired(undefined)).toBe(false);
+        });
+    });
+
+    describe('getDistanceExpenseTypeForPolicy', () => {
+        const buildPolicy = (policy: Partial<Policy>): Policy => ({...createRandomPolicy(0), ...policy});
+
+        it('should keep the remembered type when the workspace does not require GPS or map entry', () => {
+            const policy = buildPolicy({requireMapOrGPS: false});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+        });
+
+        it('should fall back to map when the workspace starts requiring GPS or map entry', () => {
+            const policy = buildPolicy({requireMapOrGPS: true});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        });
+
+        it('should fall back to map when commuter exclusions require it', () => {
+            const policy = buildPolicy({commuterExclusions: {method: 'fixedDistance', fixedDistance: 10, fixedDistanceUnit: 'mi'}});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        });
+
+        it('should leave map and GPS types untouched', () => {
+            const policy = buildPolicy({requireMapOrGPS: true});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_GPS)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
+        });
+
+        it('should pass through an unset preference', () => {
+            expect(getDistanceExpenseTypeForPolicy(buildPolicy({requireMapOrGPS: true}), undefined)).toBeUndefined();
         });
     });
 });

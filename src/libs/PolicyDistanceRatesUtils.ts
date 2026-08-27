@@ -2,7 +2,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {GovernmentRateCountry} from '@src/CONST';
+import type {GovernmentRateCountry, IOURequestType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -254,6 +254,22 @@ function isMapOrGPSRequired(policy: Policy | null | undefined): boolean {
     return !!policy.requireMapOrGPS || isCommuterExclusionEnabled(policy);
 }
 
+/**
+ * The distance type an entry point should open the flow on. `lastDistanceExpenseType` only records what the member
+ * picked last time, so it goes stale the moment the workspace starts requiring GPS or map entry. Falling back to map
+ * matches what the start page renders anyway, since it hides the manual and odometer tabs, and it keeps a stale
+ * preference from blocking a flow the member is still allowed to start.
+ */
+function getDistanceExpenseTypeForPolicy(policy: Policy | null | undefined, lastDistanceExpenseType: IOURequestType | undefined): IOURequestType | undefined {
+    const isManualOrOdometer = lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+
+    if (!isManualOrOdometer || !isMapOrGPSRequired(policy)) {
+        return lastDistanceExpenseType;
+    }
+
+    return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+}
+
 export {
     validateRateValue,
     validateTaxClaimableValue,
@@ -266,5 +282,6 @@ export {
     getGovernmentRateCountryPhraseTranslationKey,
     isCommuterExclusionEnabled,
     isMapOrGPSRequired,
+    getDistanceExpenseTypeForPolicy,
     isGovernmentRateUnmodified,
 };
