@@ -40,11 +40,11 @@ describe('TextFilterPopup', () => {
     it('shows and submits the Merchant match type', () => {
         const {closeOverlay, updateFilterForm} = renderMerchantPopup();
 
-        expect(screen.getByText('workspace.rules.merchantRules.matchType')).toBeOnTheScreen();
-        expect(screen.getByText('workspace.rules.merchantRules.matchTypeContains')).toBeOnTheScreen();
-        expect(screen.getByText('workspace.rules.merchantRules.matchTypeExact')).toBeOnTheScreen();
+        expect(screen.getByText('search.filters.merchant.matchType')).toBeOnTheScreen();
+        expect(screen.getByText('search.filters.merchant.contains')).toBeOnTheScreen();
+        expect(screen.getByText('search.filters.merchant.exactMatch')).toBeOnTheScreen();
 
-        fireEvent.press(screen.getByText('workspace.rules.merchantRules.matchTypeExact'));
+        fireEvent.press(screen.getByText('search.filters.merchant.exactMatch'));
         fireEvent.press(screen.getByText('common.apply'));
 
         expect(updateFilterForm).toHaveBeenCalledWith({
@@ -60,9 +60,9 @@ describe('TextFilterPopup', () => {
 
         fireEvent.press(screen.getByText('search.filters.filterType.is.negative'));
 
-        expect(screen.queryByText('workspace.rules.merchantRules.matchType')).not.toBeOnTheScreen();
-        expect(screen.queryByText('workspace.rules.merchantRules.matchTypeContains')).not.toBeOnTheScreen();
-        expect(screen.queryByText('workspace.rules.merchantRules.matchTypeExact')).not.toBeOnTheScreen();
+        expect(screen.queryByText('search.filters.merchant.matchType')).not.toBeOnTheScreen();
+        expect(screen.queryByText('search.filters.merchant.contains')).not.toBeOnTheScreen();
+        expect(screen.queryByText('search.filters.merchant.exactMatch')).not.toBeOnTheScreen();
 
         fireEvent.press(screen.getByText('common.apply'));
 

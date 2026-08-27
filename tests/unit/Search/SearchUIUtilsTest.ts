@@ -12414,7 +12414,7 @@ describe('SearchUIUtils', () => {
                 localeCompare,
             );
 
-            expect(result).toBe(`${translateLocal('workspace.rules.merchantRules.matchTypeExact')} "I"`);
+            expect(result).toBe(`${translateLocal('search.filters.merchant.exactMatch')} "I"`);
         });
 
         test('includes the contains match type in a Merchant filter label', () => {
@@ -12429,7 +12429,7 @@ describe('SearchUIUtils', () => {
                 localeCompare,
             );
 
-            expect(result).toBe(`${translateLocal('workspace.rules.merchantRules.matchTypeContains')} "I"`);
+            expect(result).toBe(`${translateLocal('search.filters.merchant.contains')} "I"`);
         });
     });
 

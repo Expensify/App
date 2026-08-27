@@ -36,13 +36,13 @@ describe('TextInputFilterContent', () => {
         const {onChange} = renderMerchantFilter();
         const merchantInput = screen.getByLabelText('common.merchant');
 
-        expect(screen.getByText('workspace.rules.merchantRules.matchType')).toBeOnTheScreen();
-        expect(screen.getByText('workspace.rules.merchantRules.matchTypeContains')).toBeOnTheScreen();
-        expect(screen.getByText('workspace.rules.merchantRules.matchTypeExact')).toBeOnTheScreen();
+        expect(screen.getByText('search.filters.merchant.matchType')).toBeOnTheScreen();
+        expect(screen.getByText('search.filters.merchant.contains')).toBeOnTheScreen();
+        expect(screen.getByText('search.filters.merchant.exactMatch')).toBeOnTheScreen();
 
         // When the user edits the input and changes the match type.
         fireEvent.changeText(merchantInput, 'Ibis');
-        fireEvent.press(screen.getByText('workspace.rules.merchantRules.matchTypeExact'));
+        fireEvent.press(screen.getByText('search.filters.merchant.exactMatch'));
 
         // Then the input stays mounted with its current value.
         expect(screen.getByLabelText('common.merchant')).toBe(merchantInput);
@@ -66,17 +66,17 @@ describe('TextInputFilterContent', () => {
         const {onChange} = renderMerchantFilter();
         const merchantInput = screen.getByLabelText('common.merchant');
 
-        expect(screen.getByText('workspace.rules.merchantRules.matchType')).toBeOnTheScreen();
-        expect(screen.getByText('workspace.rules.merchantRules.matchTypeContains')).toBeOnTheScreen();
-        expect(screen.getByText('workspace.rules.merchantRules.matchTypeExact')).toBeOnTheScreen();
+        expect(screen.getByText('search.filters.merchant.matchType')).toBeOnTheScreen();
+        expect(screen.getByText('search.filters.merchant.contains')).toBeOnTheScreen();
+        expect(screen.getByText('search.filters.merchant.exactMatch')).toBeOnTheScreen();
 
         // When the user negates the filter because negated Merchant searches only support exact matching.
         fireEvent.press(screen.getByText('search.filters.filterType.is.negative'));
 
         // Then match options disappear so the UI matches the submitted query.
-        expect(screen.queryByText('workspace.rules.merchantRules.matchType')).not.toBeOnTheScreen();
-        expect(screen.queryByText('workspace.rules.merchantRules.matchTypeContains')).not.toBeOnTheScreen();
-        expect(screen.queryByText('workspace.rules.merchantRules.matchTypeExact')).not.toBeOnTheScreen();
+        expect(screen.queryByText('search.filters.merchant.matchType')).not.toBeOnTheScreen();
+        expect(screen.queryByText('search.filters.merchant.contains')).not.toBeOnTheScreen();
+        expect(screen.queryByText('search.filters.merchant.exactMatch')).not.toBeOnTheScreen();
         expect(screen.getByLabelText('common.merchant')).toBe(merchantInput);
 
         // When the user confirms the negated filter after match options disappear.
