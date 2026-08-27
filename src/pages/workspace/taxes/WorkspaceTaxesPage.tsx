@@ -20,7 +20,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -64,8 +63,7 @@ function WorkspaceTaxesPage({
     },
 }: WorkspaceTaxesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.taxes');
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
@@ -326,28 +324,6 @@ function WorkspaceTaxesPage({
         );
     };
 
-    const getHeaderButtons = () => {
-        if (!canWriteTaxes) {
-            return null;
-        }
-
-        return (
-            <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldUseOptionIcon
-                    customText={translate('common.more')}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={shouldDisplayButtonsInSeparateLine || hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
-                />
-            </View>
-        );
-    };
-
-    const headerButtons = getHeaderButtons();
-
     const addTaxButton =
         canWriteTaxes && !hasAccountingConnections ? (
             <Button
@@ -398,6 +374,9 @@ function WorkspaceTaxesPage({
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
+                    shouldShowThreeDotsButton={!selectionModeHeader && canWriteTaxes}
+                    threeDotsMenuItems={secondaryActions}
+                    threeDotsMenuIconStyles={styles.mr3}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -406,10 +385,7 @@ function WorkspaceTaxesPage({
                         }
                         Navigation.goBack();
                     }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                />
                 {(!hasVisibleTaxes || isLoading) && headerContent}
                 {isLoading && (
                     <ActivityIndicator
