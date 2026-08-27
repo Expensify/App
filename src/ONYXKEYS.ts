@@ -733,6 +733,9 @@ const ONYXKEYS = {
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
 
+    /** Draft message typed into the Concierge prompt box on the home page */
+    CONCIERGE_PROMPT_DRAFT: 'conciergePromptDraft',
+
     /** The user's Self DM reportID */
     SELF_DM_REPORT_ID: 'selfDMReportID',
 
@@ -889,6 +892,7 @@ const ONYXKEYS = {
         POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
         POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeHRInitialSyncModalShown_',
+        RULE: 'rules_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         WORKSPACE_INVITE_ROLE_DRAFT: 'workspaceInviteRoleDraft_',
@@ -1476,6 +1480,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD]: OnyxTypes.ExportDownload;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.RULE]: OnyxTypes.Rule;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagLists;
@@ -1792,6 +1797,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.CONCIERGE_PROMPT_DRAFT]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
