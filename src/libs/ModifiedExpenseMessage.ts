@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -153,7 +153,13 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     return translate('iou.updatedTheDistanceMerchant', translatedChangedField, newMerchant, oldMerchant, newAmount, oldAmount);
 }
 
-function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string, policy: OnyxEntry<Policy>) {
+function getForExpenseMovedFromSelfDM(
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    destinationReport: OnyxEntry<Report>,
+    currentUserLogin: string,
+    policy: OnyxEntry<Policy>,
+) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -164,7 +170,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // - A 1:1 DM
     const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
-        ? getPolicyExpenseChatName({report: rootParentReport, translate})
+        ? getPolicyExpenseChatName({report: rootParentReport, translate, formatPhoneNumber})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true, policy});
     // If we can't determine either the report name or policy name, return the default message
@@ -185,6 +191,7 @@ function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<t
 
 function getMovedFromOrToReportMessage(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserLogin: string,
@@ -192,7 +199,7 @@ function getMovedFromOrToReportMessage(
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string | undefined {
     if (movedToReport) {
-        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin, policy);
+        return getForExpenseMovedFromSelfDM(translate, formatPhoneNumber, movedToReport, currentUserLogin, policy);
     }
 
     if (movedFromReport) {
@@ -269,6 +276,7 @@ function getRulesModifiedMessage(
  */
 function getForReportAction({
     translate,
+    formatPhoneNumber,
     convertToDisplayString,
     reportAction,
     policy,
@@ -280,6 +288,7 @@ function getForReportAction({
     reportAttributes,
 }: {
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     reportAction: OnyxEntry<ReportAction>;
     policy: OnyxEntry<Policy>;
@@ -297,7 +306,7 @@ function getForReportAction({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, policy, reportAttributes);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, formatPhoneNumber, movedFromReport, movedToReport, currentUserLogin, policy, reportAttributes);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
