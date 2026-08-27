@@ -86,8 +86,12 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const animatedRef = useAnimatedRef<NativeMethods>();
 
+    // The native Composer only forwards its underlying input to a callback ref, so an object ref would never be populated.
+    const composerRef = useRef<ComposerRef | null>(null);
+
     const setComposerRef = (element: ComposerRef) => {
         animatedRef(element);
+        composerRef.current = element;
     };
 
     const clearInput = () => {
@@ -100,8 +104,10 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     };
 
     const sendAttachment = (attachments: FileObject | FileObject[]) => {
-        askConciergeWithAttachment(attachments, value);
-        clearInput();
+        interceptAnonymousUser(() => {
+            askConciergeWithAttachment(attachments, value);
+            clearInput();
+        });
     };
     const {pickAttachments, PDFValidationComponent} = useConciergeAttachmentPicker(conciergeTargetReportID, sendAttachment);
 
@@ -259,6 +265,18 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
                             onKeyPress={handleKeyPress}
+                            onPasteFile={(files) => {
+                                // Concierge isn't reachable yet, so there is nowhere to send the paste. Mirrors the disabled "+" button.
+                                if (!shouldShowAskConcierge) {
+                                    return;
+                                }
+
+                                interceptAnonymousUser(() => {
+                                    // Blur before the attachment preview modal takes over, so the keyboard doesn't stay up over it.
+                                    composerRef.current?.blur();
+                                    pickAttachments(files);
+                                });
+                            }}
                             maxLines={MAX_INPUT_LINES}
                             multiline
                             textAlignVertical="top"
