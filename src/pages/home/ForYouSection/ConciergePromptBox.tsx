@@ -75,6 +75,8 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const {calculatePopoverPosition} = usePopoverPosition();
     const [value, setValue] = useState('');
 
+    const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID});
+
     // Composer is a controlled input: the caret position must be tracked and fed back in (with
     // shouldCalculateCaretPosition), otherwise every value update re-renders it with the caret at the start.
     const [selection, setSelection] = useState({start: 0, end: 0});
@@ -84,30 +86,30 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const animatedRef = useAnimatedRef<NativeMethods>();
 
+    // The native Composer only forwards its underlying input to a callback ref, so an object ref would never be populated.
+    const composerRef = useRef<ComposerRef | null>(null);
+
     const setComposerRef = (element: ComposerRef) => {
         animatedRef(element);
+        composerRef.current = element;
     };
 
     const clearInput = () => {
         setValue('');
         setSelection({start: 0, end: 0});
+
+        debouncedCommentMaxLengthValidation('');
+        debouncedCommentMaxLengthValidation.flush();
         scheduleOnUI(forceClearInput, animatedRef);
     };
 
-    // The Home prompt sends directly through askConcierge/addComment and never interprets task syntax like the
-    // report composer does, so the hook's task-title branch (and its lower character limit) must be skipped here.
-    const {debouncedCommentMaxLengthValidation, isExceedingMaxLength, exceededMaxLength} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID, isEditing: true});
-
     const sendAttachment = (attachments: FileObject | FileObject[]) => {
-        askConciergeWithAttachment(attachments, value);
-        clearInput();
+        interceptAnonymousUser(() => {
+            askConciergeWithAttachment(attachments, value);
+            clearInput();
+        });
     };
     const {pickAttachments, PDFValidationComponent} = useConciergeAttachmentPicker(conciergeTargetReportID, sendAttachment);
-
-    const onChangeValue = (newValue: string) => {
-        setValue(newValue);
-        debouncedCommentMaxLengthValidation(newValue);
-    };
 
     // Anchor the "+" popover above the button.
     useEffect(() => {
@@ -134,6 +136,8 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const longPlaceholderFitsOneLine = longPlaceholderHeight !== null && longPlaceholderHeight <= SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT;
     const placeholder = shouldUseNarrowLayout || !longPlaceholderFitsOneLine ? shortPlaceholder : longPlaceholder;
     const canSubmit = shouldShowAskConcierge && value.trim().length > 0 && !isExceedingMaxLength;
+
+    const canAddAttachment = shouldShowAskConcierge && !isExceedingMaxLength;
 
     const submit = () => {
         if (!canSubmit || debouncedCommentMaxLengthValidation.flush() === false) {
@@ -164,134 +168,157 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                 <Text style={styles.textLabelSupporting}>{dateLabel}</Text>
                 <Text style={styles.textHeadlineH1}>{greeting}</Text>
             </View>
-            <View
-                style={[
-                    isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-                    styles.flexRow,
-                    styles.chatItemComposeBox,
-                    isExceedingMaxLength && styles.borderColorDanger,
-                ]}
-            >
-                <View style={styles.composerButtonColumn}>
-                    <View style={styles.composerButtonStack}>
-                        <View style={[styles.flexGrow0, styles.flexShrink0]}>
-                            <AttachmentPicker
-                                allowMultiple
-                                fileLimit={CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT}
-                                shouldValidateImage={false}
-                            >
-                                {({openPicker}) => {
-                                    const triggerAttachmentPicker = () => openPicker({onPicked: pickAttachments});
-                                    const canOpenAttachmentPicker = shouldShowAskConcierge && !isExceedingMaxLength;
-                                    return (
-                                        <>
-                                            <PopoverAnchorTooltip text={translate('reportActionCompose.addAttachment')}>
-                                                <PressableWithoutFeedback
-                                                    ref={actionButtonRef}
-                                                    accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
-                                                    role={CONST.ROLE.BUTTON}
-                                                    sentryLabel="ConciergePromptBox-AddAttachment"
-                                                    disabled={!canOpenAttachmentPicker}
-                                                    onPress={(e) => {
-                                                        e?.preventDefault();
-                                                        actionButtonRef.current?.blur();
-                                                        interceptAnonymousUser(() => setIsMenuVisible((prev) => !prev));
-                                                    }}
-                                                    style={({hovered, pressed}) => [
-                                                        styles.composerSizeButton,
-                                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && canOpenAttachmentPicker, pressed && canOpenAttachmentPicker)),
-                                                    ]}
-                                                >
-                                                    {({hovered, pressed}) => (
-                                                        <Icon
-                                                            src={icons.Plus}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered && canOpenAttachmentPicker, pressed && canOpenAttachmentPicker))}
-                                                        />
-                                                    )}
-                                                </PressableWithoutFeedback>
-                                            </PopoverAnchorTooltip>
-                                            <PopoverMenu
-                                                isVisible={isMenuVisible}
-                                                onClose={() => setIsMenuVisible(false)}
-                                                onItemSelected={() => {
-                                                    setIsMenuVisible(false);
+            <View style={styles.pRelative}>
+                <View
+                    style={[
+                        isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        styles.flexRow,
+                        styles.chatItemComposeBox,
+                        isExceedingMaxLength && styles.borderColorDanger,
+                    ]}
+                >
+                    <View style={styles.composerButtonColumn}>
+                        <View style={styles.composerButtonStack}>
+                            <View style={[styles.flexGrow0, styles.flexShrink0]}>
+                                <AttachmentPicker
+                                    allowMultiple
+                                    fileLimit={CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT}
+                                    shouldValidateImage={false}
+                                >
+                                    {({openPicker}) => {
+                                        const triggerAttachmentPicker = () => openPicker({onPicked: pickAttachments});
+                                        return (
+                                            <>
+                                                <PopoverAnchorTooltip text={translate('reportActionCompose.addAttachment')}>
+                                                    <PressableWithoutFeedback
+                                                        ref={actionButtonRef}
+                                                        accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
+                                                        role={CONST.ROLE.BUTTON}
+                                                        sentryLabel="ConciergePromptBox-AddAttachment"
+                                                        disabled={!canAddAttachment}
+                                                        onPress={(e) => {
+                                                            e?.preventDefault();
+                                                            actionButtonRef.current?.blur();
+                                                            interceptAnonymousUser(() => setIsMenuVisible((prev) => !prev));
+                                                        }}
+                                                        style={({hovered, pressed}) => [
+                                                            styles.composerSizeButton,
+                                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment)),
+                                                        ]}
+                                                    >
+                                                        {({hovered, pressed}) => (
+                                                            <Icon
+                                                                src={icons.Plus}
+                                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment))}
+                                                            />
+                                                        )}
+                                                    </PressableWithoutFeedback>
+                                                </PopoverAnchorTooltip>
+                                                <PopoverMenu
+                                                    isVisible={isMenuVisible}
+                                                    onClose={() => setIsMenuVisible(false)}
+                                                    onItemSelected={() => {
+                                                        setIsMenuVisible(false);
 
-                                                    // On Safari the file picker must be opened from within the user-initiated
-                                                    // event handler, so it can't wait for the popover to finish closing.
-                                                    if (isSafari()) {
-                                                        triggerAttachmentPicker();
-                                                        return;
-                                                    }
-                                                    close(triggerAttachmentPicker);
-                                                }}
-                                                anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}}
-                                                anchorAlignment={{
-                                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                                }}
-                                                menuItems={[
-                                                    {
-                                                        icon: icons.Paperclip,
-                                                        text: translate('reportActionCompose.addAttachment'),
-                                                        shouldCallAfterModalHide: shouldUseNarrowLayout,
-                                                    },
-                                                ]}
-                                                anchorRef={actionButtonRef}
-                                            />
-                                        </>
-                                    );
-                                }}
-                            </AttachmentPicker>
+                                                        // On Safari the file picker must be opened from within the user-initiated
+                                                        // event handler, so it can't wait for the popover to finish closing.
+                                                        if (isSafari()) {
+                                                            triggerAttachmentPicker();
+                                                            return;
+                                                        }
+                                                        close(triggerAttachmentPicker);
+                                                    }}
+                                                    anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}}
+                                                    anchorAlignment={{
+                                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                                    }}
+                                                    menuItems={[
+                                                        {
+                                                            icon: icons.Paperclip,
+                                                            text: translate('reportActionCompose.addAttachment'),
+                                                            shouldCallAfterModalHide: shouldUseNarrowLayout,
+                                                        },
+                                                    ]}
+                                                    anchorRef={actionButtonRef}
+                                                />
+                                            </>
+                                        );
+                                    }}
+                                </AttachmentPicker>
+                            </View>
+                            <View style={styles.conciergePromptBoxButtonSpacer} />
                         </View>
-                        <View style={styles.conciergePromptBoxButtonSpacer} />
                     </View>
-                </View>
-                <View style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}>
-                    <Composer
-                        ref={setComposerRef}
-                        style={[styles.textInputCompose, styles.textInputCollapseCompose]}
-                        value={value}
-                        onChangeText={onChangeValue}
-                        selection={selection}
-                        onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
-                        shouldCalculateCaretPosition
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        onKeyPress={handleKeyPress}
-                        maxLines={MAX_INPUT_LINES}
-                        multiline
-                        textAlignVertical="top"
-                        placeholder={placeholder}
-                        placeholderTextColor={theme.placeholderText}
-                        accessibilityLabel={placeholder}
-                    />
-                    {/* Hidden probe stretched to the input's width. Its height reveals whether the long placeholder wraps past one line. */}
-                    <View
-                        pointerEvents="none"
-                        style={styles.conciergePromptBoxPlaceholderProbe}
-                        onLayout={(event) => setLongPlaceholderHeight(event.nativeEvent.layout.height)}
-                    >
-                        <Text
-                            accessible={false}
-                            style={styles.textInputCompose}
+                    <View style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}>
+                        <Composer
+                            ref={setComposerRef}
+                            style={[styles.textInputCompose, styles.textInputCollapseCompose]}
+                            value={value}
+                            onChangeText={(text) => {
+                                setValue(text);
+                                debouncedCommentMaxLengthValidation(text);
+                            }}
+                            selection={selection}
+                            onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
+                            shouldCalculateCaretPosition
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                            onKeyPress={handleKeyPress}
+                            onPasteFile={(files) => {
+                                // Concierge isn't reachable yet, so there is nowhere to send the paste. Mirrors the disabled "+" button.
+                                if (!shouldShowAskConcierge) {
+                                    return;
+                                }
+
+                                interceptAnonymousUser(() => {
+                                    // Blur before the attachment preview modal takes over, so the keyboard doesn't stay up over it.
+                                    composerRef.current?.blur();
+                                    pickAttachments(files);
+                                });
+                            }}
+                            maxLines={MAX_INPUT_LINES}
+                            multiline
+                            textAlignVertical="top"
+                            placeholder={placeholder}
+                            placeholderTextColor={theme.placeholderText}
+                            accessibilityLabel={placeholder}
+                        />
+                        {/* Hidden probe stretched to the input's width. Its height reveals whether the long placeholder wraps past one line. */}
+                        <View
+                            pointerEvents="none"
+                            style={styles.conciergePromptBoxPlaceholderProbe}
+                            onLayout={(event) => setLongPlaceholderHeight(event.nativeEvent.layout.height)}
                         >
-                            {longPlaceholder}
-                        </Text>
+                            <Text
+                                accessible={false}
+                                style={styles.textInputCompose}
+                            >
+                                {longPlaceholder}
+                            </Text>
+                        </View>
+                    </View>
+                    {/* Mirror ComposerSendButton: the justifyContentEnd wrapper stretches to the row height and anchors the send button to the bottom. */}
+                    <View style={styles.justifyContentEnd}>
+                        <SubmitDraftButton
+                            accessibilityLabel={translate('common.send')}
+                            sentryLabel="ConciergePromptBox-Send"
+                            isDisabled={!canSubmit}
+                            icon={icons.Send}
+                            label={translate('common.send')}
+                            onPress={submit}
+                        />
                     </View>
                 </View>
-                {/* Mirror ComposerSendButton: the justifyContentEnd wrapper stretches to the row height and anchors the send button to the bottom. */}
-                <View style={styles.justifyContentEnd}>
-                    <SubmitDraftButton
-                        accessibilityLabel={translate('common.send')}
-                        sentryLabel="ConciergePromptBox-Send"
-                        isDisabled={!canSubmit}
-                        icon={icons.Send}
-                        label={translate('common.send')}
-                        onPress={submit}
-                    />
-                </View>
+                {!!exceededMaxLength && (
+                    <View style={styles.conciergePromptBoxExceededLength}>
+                        <ExceededCommentLength
+                            maxCommentLength={exceededMaxLength}
+                            isTaskTitle={isTaskTitle}
+                        />
+                    </View>
+                )}
             </View>
-            {isExceedingMaxLength && !!exceededMaxLength && <ExceededCommentLength maxCommentLength={exceededMaxLength} />}
             {PDFValidationComponent}
         </View>
     );
