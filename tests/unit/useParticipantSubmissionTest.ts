@@ -8,8 +8,14 @@ import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-imports -- findSelfDMReportID is not a billing/paid-only helper; the rule only warns because the namespace also exposes isPaidGroupPolicy*, which this test never uses.
 import * as ReportUtils from '@libs/ReportUtils';
 
+import {setCustomUnitRateID} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import createRandomTransaction from '../utils/collections/transaction';
 
@@ -35,6 +41,11 @@ jest.mock('@src/utils/keyboard', () => ({
     },
 }));
 
+// `mock`-prefixed so the jest.mock factories below may close over them; each test sets the workspace policy and
+// the draft transaction it needs before calling addParticipant.
+let mockPolicies: OnyxCollection<Policy> = {};
+let mockDraftTransactions: Transaction[] = [];
+
 // Stub out the hook's data dependencies so the test can render it in isolation and focus purely on the backTo logic.
 // Every Onyx read is stubbed to undefined here; goToNextStep's backTo path does not depend on Onyx data, but a future
 // dependency added to that path would need a matching stub rather than silently reading undefined.
@@ -42,12 +53,16 @@ jest.mock('@hooks/useCommuterExclusionGuard', () => ({__esModule: true, default:
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({getCurrencyDecimals: () => 2})}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: () => ({accountID: 1, email: 'test@example.com', localCurrencyCode: 'USD'})}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
-jest.mock('@hooks/useMappedPolicies', () => ({__esModule: true, default: () => [{}]}));
+jest.mock('@hooks/useMappedPolicies', () => ({__esModule: true, default: () => [mockPolicies]}));
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]}));
-jest.mock('@hooks/useOptimisticDraftTransactions', () => ({__esModule: true, default: () => [[]]}));
+jest.mock('@hooks/useOptimisticDraftTransactions', () => ({__esModule: true, default: () => [mockDraftTransactions]}));
 jest.mock('@hooks/usePersonalPolicy', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/usePolicyForMovingExpenses', () => ({__esModule: true, default: () => ({policyForMovingExpenses: undefined})}));
 jest.mock('@hooks/useTransactionsByID', () => ({__esModule: true, default: () => [[]]}));
+jest.mock('@userActions/IOU/MoneyRequest', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/MoneyRequest'),
+    setCustomUnitRateID: jest.fn(),
+}));
 
 const mockGoBack = jest.mocked(Navigation.goBack);
 // Keep the real ReportUtils and spy only on findSelfDMReportID: goToNextStep anchors the reconstructed SUBMIT backTo on the
@@ -181,5 +196,110 @@ describe('useParticipantSubmission goToNextStep backTo', () => {
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
         expect(mockGoBack).toHaveBeenCalledWith(expect.not.stringContaining('backTo='), {compareParams: false});
+    });
+});
+
+// A distance expense tracked in the self DM is created with the rate of the workspace it was tracked against, so
+// submitting it to a *different* workspace leaves the draft holding a rate ID that workspace doesn't own. The
+// confirmation step then can't resolve a rate: it shows "Pending..." with the picker disabled and back-calculates the
+// amount as |amount| / quantity, which is Infinity while the route is still being generated and quantity is 0.
+
+const WORKSPACE_RATE_ID = 'RATE_DESTINATION';
+const OTHER_WORKSPACE_RATE_ID = 'RATE_SOURCE';
+const DESTINATION_POLICY_ID = 'WS_DESTINATION';
+
+const DESTINATION_CHAT: Participant = {reportID: 'R3', policyID: DESTINATION_POLICY_ID, isPolicyExpenseChat: true};
+
+function buildDestinationPolicy(): Policy {
+    return {
+        id: DESTINATION_POLICY_ID,
+        customUnits: {
+            distance: {
+                customUnitID: 'distance',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                rates: {
+                    [WORKSPACE_RATE_ID]: {
+                        customUnitRateID: WORKSPACE_RATE_ID,
+                        name: 'Default Rate',
+                        rate: 70,
+                        currency: CONST.CURRENCY.USD,
+                        enabled: true,
+                    },
+                },
+            },
+        },
+    } as unknown as Policy;
+}
+
+function buildTrackedDistanceDraft(customUnitRateID: string | undefined): Transaction {
+    return {
+        ...createRandomTransaction(2),
+        transactionID: 'T1',
+        amount: 210917,
+        currency: CONST.CURRENCY.USD,
+        created: '2026-08-14',
+        // quantity is 0 while the map route is still being generated - the window the reported race lands in.
+        comment: {customUnit: {customUnitRateID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 0}},
+    } as unknown as Transaction;
+}
+
+describe('useParticipantSubmission addParticipant distance rate', () => {
+    beforeEach(() => {
+        jest.mocked(setCustomUnitRateID).mockClear();
+        mockPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`]: buildDestinationPolicy()};
+    });
+
+    afterEach(() => {
+        mockPolicies = {};
+        mockDraftTransactions = [];
+    });
+
+    it("selects the destination workspace's rate when the tracked expense carries another workspace's rate", () => {
+        mockDraftTransactions = [buildTrackedDistanceDraft(OTHER_WORKSPACE_RATE_ID)];
+        const {result} = renderSubmission();
+
+        act(() => {
+            result.current.addParticipant([DESTINATION_CHAT]);
+        });
+
+        expect(setCustomUnitRateID).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_RATE_ID);
+    });
+
+    // The draft is a snapshot of the tracked expense taken when the move started. Submitting before the created
+    // expense is fully written leaves it with no rate ID at all, which resolves nowhere on the destination.
+    it("selects the destination workspace's rate when the tracked expense draft has no rate ID yet", () => {
+        mockDraftTransactions = [buildTrackedDistanceDraft(undefined)];
+        const {result} = renderSubmission();
+
+        act(() => {
+            result.current.addParticipant([DESTINATION_CHAT]);
+        });
+
+        expect(setCustomUnitRateID).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_RATE_ID);
+    });
+
+    it('keeps the p2p rate so the confirmation step can ask the user to pick a workspace rate', () => {
+        mockDraftTransactions = [buildTrackedDistanceDraft(CONST.CUSTOM_UNITS.FAKE_P2P_ID)];
+        const {result} = renderSubmission();
+
+        act(() => {
+            result.current.addParticipant([DESTINATION_CHAT]);
+        });
+
+        expect(setCustomUnitRateID).not.toHaveBeenCalled();
+    });
+
+    it('leaves a rate the destination workspace already owns alone', () => {
+        mockDraftTransactions = [buildTrackedDistanceDraft(WORKSPACE_RATE_ID)];
+        const {result} = renderSubmission();
+
+        act(() => {
+            result.current.addParticipant([DESTINATION_CHAT]);
+        });
+
+        expect(setCustomUnitRateID).not.toHaveBeenCalled();
     });
 });
