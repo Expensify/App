@@ -356,7 +356,7 @@
     "openai": "^7.0.0",
     "oxc-transform-react": "0.145.0",
     "oxfmt": "^0.55.0",
-    "oxlint": "^1.79.0",
+    "oxlint": "^1.80.0",
     "oxlint-tsgolint": "^7.0.2001",
     "patch-package": "^8.1.0-canary.1",
     "peggy": "^4.0.3",
