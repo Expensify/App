@@ -6796,7 +6796,6 @@ const CONST = {
     RESERVATION_TYPE: {
         CAR: 'car',
         HOTEL: 'hotel',
-        HOTEL_BLOCK: 'hotelBlock',
         FLIGHT: 'flight',
         TRAIN: 'train',
     },
@@ -6805,6 +6804,15 @@ const CONST = {
         ORIGINATION: {
             CARD: 'card',
             MANUAL: 'manual',
+        },
+        // The travel-booking classifier's output. A superset of RESERVATION_TYPE — HOTEL_BLOCK has no counterpart in
+        // an actual Spotnana reservation, since a hotel block is by definition never booked through Expensify Travel.
+        TRAVEL_TYPE: {
+            CAR: 'car',
+            HOTEL: 'hotel',
+            HOTEL_BLOCK: 'hotelBlock',
+            FLIGHT: 'flight',
+            TRAIN: 'train',
         },
     },
 
