@@ -220,7 +220,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                             showLockIcon={!canWriteDistanceRates}
                                         />
                                     </View>
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.distanceRates.autoUpdateGovernmentRateDescription')}</Text>
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                                        {translate('workspace.distanceRates.autoUpdateGovernmentRateDescription', translate(countryPhraseTranslationKey))}
+                                    </Text>
                                 </View>
                             </OfflineWithFeedback>
                         )}
