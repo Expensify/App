@@ -56,6 +56,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CONSISTENCY-15](rules/consistency-15-comment-why.md) — Comments explain why the code exists, not what it does
 - [CONSISTENCY-16](rules/consistency-16-plain-comment-style.md) — Write comments as plain, natural sentences
 - [CONSISTENCY-17](rules/consistency-17-no-ai-jargon.md) — No AI-generated jargon in code or comments
+- [CONSISTENCY-18](rules/consistency-18-plural-form.md) — Pluralize with PluralForm, not ternaries on a count
 
 ### Clean React Patterns
 - [CLEAN-REACT-PATTERNS-0](rules/clean-react-0-compiler.md) — React Compiler compliance
