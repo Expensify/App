@@ -42,8 +42,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
         FIRST: translate('travel.flightDetails.cabinClasses.first'),
     };
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), dateFnsLocale);
-    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), dateFnsLocale);
+    const startDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.start.date));
+    const endDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.end.date));
 
     const prevFlightEndDate = prevReservation?.end.date;
     const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), new Date(reservation.start.date));
