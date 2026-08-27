@@ -15,8 +15,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import {useMemo} from 'react';
-
 const {MIN_FREE_TEXT_COLUMN_WIDTH, MAX_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
 /** How a dynamically sized column shares the table's free space. */
@@ -77,77 +75,75 @@ function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: U
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    return useMemo(() => {
-        const noColumnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
+    const noColumnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
 
-        // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
-        if (!isEnabled || !canMeasureText()) {
-            return noColumnSizing;
-        }
+    // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
+    if (!isEnabled || !canMeasureText()) {
+        return noColumnSizing;
+    }
 
-        const dynamicColumns = columns.filter((column) => DYNAMICALLY_SIZED_SEARCH_COLUMNS.has(column));
+    const dynamicColumns = columns.filter((column) => DYNAMICALLY_SIZED_SEARCH_COLUMNS.has(column));
 
-        // With one dynamic column there is nothing to divide: it already takes whatever the fixed columns leave over.
-        if (dynamicColumns.length < 2) {
-            return noColumnSizing;
-        }
+    // With one dynamic column there is nothing to divide: it already takes whatever the fixed columns leave over.
+    if (dynamicColumns.length < 2) {
+        return noColumnSizing;
+    }
 
-        const contentWidths: Array<{column: SearchColumnType; contentWidth: number; headerLabelWidth: number}> = [];
+    const contentWidths: Array<{column: SearchColumnType; contentWidth: number; headerLabelWidth: number}> = [];
 
-        for (const column of dynamicColumns) {
-            const measurer = createWidestTextMeasurer();
+    for (const column of dynamicColumns) {
+        const measurer = createWidestTextMeasurer();
 
-            for (const item of data) {
-                if (!isTransactionListItemType(item)) {
-                    continue;
-                }
-
-                for (const content of getSearchColumnContentToMeasure(column, item, translate, measurementContext)) {
-                    measurer.add(content.text, content.font);
-                }
+        for (const item of data) {
+            if (!isTransactionListItemType(item)) {
+                continue;
             }
 
-            const widestContentWidth = measurer.getWidestWidth();
-            const headerLabelWidth = measureHeaderLabelWidth(column, translate, variables.iconSizeExtraSmall + styles.gap1.gap);
-
-            if (widestContentWidth === null || headerLabelWidth === null) {
-                return noColumnSizing;
+            for (const content of getSearchColumnContentToMeasure(column, item, translate, measurementContext)) {
+                measurer.add(content.text, content.font);
             }
-
-            const extraWidth = getSearchColumnExtraWidth(column);
-
-            // The header counts as content, so a column of empty cells is sized by its heading instead of collapsing.
-            // The result is capped because a column is sized by its single widest value: one long merchant name would
-            // otherwise set the width for every row. Past the cap that one value truncates, which is cheaper than
-            // taking the room every other column needs.
-            const contentWidth = Math.min(Math.max(Math.ceil(widestContentWidth + extraWidth), headerLabelWidth), Math.max(MAX_FREE_TEXT_COLUMN_WIDTH + extraWidth, headerLabelWidth));
-
-            contentWidths.push({column, contentWidth, headerLabelWidth});
         }
 
-        // Normalized to average 1, so each dynamic column still grows by one unit overall, exactly as `flex: 1` did.
-        // Other flexible columns grow by 1, so raw pixel weights here would be hundreds of units against their 1 and
-        // would collapse them. Normalizing only changes how these columns split their own share.
-        const averageContentWidth = contentWidths.reduce((total, {contentWidth}) => total + contentWidth, 0) / contentWidths.length;
+        const widestContentWidth = measurer.getWidestWidth();
+        const headerLabelWidth = measureHeaderLabelWidth(column, translate, variables.iconSizeExtraSmall + styles.gap1.gap);
 
-        if (averageContentWidth <= 0) {
+        if (widestContentWidth === null || headerLabelWidth === null) {
             return noColumnSizing;
         }
 
-        const columnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
+        const extraWidth = getSearchColumnExtraWidth(column);
 
-        for (const {column, contentWidth, headerLabelWidth} of contentWidths) {
-            columnSizing[column] = {
-                flexWeight: contentWidth / averageContentWidth,
-                // Squeezed no further than a readable width, its own content if that is narrower, and never below the
-                // header, which would leave the column unidentifiable. Once these no longer fit, the table scrolls.
-                minWidth: Math.max(Math.min(contentWidth, MIN_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), headerLabelWidth),
-                maxWidth: contentWidth,
-            };
-        }
+        // The header counts as content, so a column of empty cells is sized by its heading instead of collapsing.
+        // The result is capped because a column is sized by its single widest value: one long merchant name would
+        // otherwise set the width for every row. Past the cap that one value truncates, which is cheaper than
+        // taking the room every other column needs.
+        const contentWidth = Math.min(Math.max(Math.ceil(widestContentWidth + extraWidth), headerLabelWidth), Math.max(MAX_FREE_TEXT_COLUMN_WIDTH + extraWidth, headerLabelWidth));
 
-        return columnSizing;
-    }, [columns, data, isEnabled, translate, measurementContext, styles.gap1.gap]);
+        contentWidths.push({column, contentWidth, headerLabelWidth});
+    }
+
+    // Normalized to average 1, so each dynamic column still grows by one unit overall, exactly as `flex: 1` did.
+    // Other flexible columns grow by 1, so raw pixel weights here would be hundreds of units against their 1 and
+    // would collapse them. Normalizing only changes how these columns split their own share.
+    const averageContentWidth = contentWidths.reduce((total, {contentWidth}) => total + contentWidth, 0) / contentWidths.length;
+
+    if (averageContentWidth <= 0) {
+        return noColumnSizing;
+    }
+
+    const columnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
+
+    for (const {column, contentWidth, headerLabelWidth} of contentWidths) {
+        columnSizing[column] = {
+            flexWeight: contentWidth / averageContentWidth,
+            // Squeezed no further than a readable width, its own content if that is narrower, and never below the
+            // header, which would leave the column unidentifiable. Once these no longer fit, the table scrolls.
+            minWidth: Math.max(Math.min(contentWidth, MIN_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), headerLabelWidth),
+            maxWidth: contentWidth,
+        };
+    }
+
+    return columnSizing;
 }
 
 export default useSearchColumnWidths;
