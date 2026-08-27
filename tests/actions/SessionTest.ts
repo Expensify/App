@@ -1125,7 +1125,7 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {...gpsTrip, accountID});
             await waitForBatchedUpdates();
 
-            await SignInRedirect.default(undefined, true);
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.SAML_REQUIRED);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS);
@@ -1138,7 +1138,7 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, gpsTrip);
             await waitForBatchedUpdates();
 
-            await SignInRedirect.default();
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
             await waitForBatchedUpdates();
 
             expect(await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS)).toBeUndefined();
