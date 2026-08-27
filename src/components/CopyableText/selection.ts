@@ -8,6 +8,8 @@ import {useRef} from 'react';
  */
 const COPYABLE_TEXT_SELECTOR = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
 const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
+const COPYABLE_ROW_SELECTOR = `[data-${CONST.COPYABLE_ROW_ELEMENT}=true]`;
+const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
 
 function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
     if (typeof HTMLElement === 'undefined') {
@@ -181,4 +183,12 @@ function useCopyableTextRowPress() {
     };
 }
 
-export {COPYABLE_TEXT_DATA_SET, COPYABLE_TEXT_SELECTOR, isMouseDownOnCopyableText, shouldSuppressCopyableTextPressOnMouseDown, useCopyableTextRowPress};
+export {
+    COPYABLE_ROW_DATA_SET,
+    COPYABLE_ROW_SELECTOR,
+    COPYABLE_TEXT_DATA_SET,
+    COPYABLE_TEXT_SELECTOR,
+    isMouseDownOnCopyableText,
+    shouldSuppressCopyableTextPressOnMouseDown,
+    useCopyableTextRowPress,
+};

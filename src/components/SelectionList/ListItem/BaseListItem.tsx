@@ -1,5 +1,5 @@
 import {getButtonRole} from '@components/Button/utils';
-import {useCopyableTextRowPress} from '@components/CopyableText/selection';
+import {COPYABLE_ROW_DATA_SET, useCopyableTextRowPress} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -167,7 +167,10 @@ function BaseListItem<TItem extends ListItem>({
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
                 hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || isRowSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
+                dataSet={{
+                    ...(shouldAllowTextSelection ? COPYABLE_ROW_DATA_SET : {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}),
+                    [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus,
+                }}
                 onMouseDown={(e) => {
                     const target = e?.target;
                     const isCopyableTarget = markMouseDownOnCopyableText(target);

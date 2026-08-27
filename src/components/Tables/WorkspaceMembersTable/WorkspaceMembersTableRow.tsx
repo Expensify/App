@@ -1,5 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
+import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -53,6 +53,8 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
     return (
         <Table.Row
             interactive
+            shouldAllowTextSelection
+            dataSet={COPYABLE_ROW_DATA_SET}
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}

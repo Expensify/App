@@ -71,6 +71,7 @@ export default function TableRow({
     focusable,
     fullDisabled,
     tabIndex,
+    shouldAllowTextSelection = false,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
@@ -130,6 +131,7 @@ export default function TableRow({
     const tableRowPressableStyles = [
         styles.mh5,
         styles.highlightBG,
+        !shouldAllowTextSelection && styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
@@ -210,7 +212,7 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (shouldSuppressCopyableTextRowPress()) {
+        if (shouldSuppressCopyableTextRowPress(shouldAllowTextSelection)) {
             return;
         }
 
@@ -253,7 +255,7 @@ export default function TableRow({
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
-                shouldAllowTextSelection
+                shouldAllowTextSelection={shouldAllowTextSelection}
                 disabled={isDisabled}
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
@@ -261,7 +263,7 @@ export default function TableRow({
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     const target = e?.target;
-                    const isCopyableTarget = markMouseDownOnCopyableText(target);
+                    const isCopyableTarget = markMouseDownOnCopyableText(target, shouldAllowTextSelection);
 
                     if (isCopyableTarget) {
                         return;

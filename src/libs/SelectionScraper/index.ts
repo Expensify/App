@@ -1,4 +1,4 @@
-import {COPYABLE_TEXT_SELECTOR} from '@components/CopyableText/selection';
+import {COPYABLE_ROW_SELECTOR, COPYABLE_TEXT_SELECTOR} from '@components/CopyableText/selection';
 
 import CONST from '@src/CONST';
 
@@ -15,42 +15,9 @@ const markdownElements = new Set(['h1', 'strong', 'em', 'del', 'blockquote', 'q'
 const tagAttribute = 'data-testid';
 const hiddenElementAttribute = `data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}`;
 const hiddenElementSelector = `[${hiddenElementAttribute}=true]`;
-// These rows need line-based copy output when a browser selection crosses grouped search rows.
-const copyableRowSelector = [`[${tagAttribute}=transaction-group-header-row][${hiddenElementAttribute}=true]`, `[${tagAttribute}=transaction-item-row][${hiddenElementAttribute}=true]`].join(
-    ', ',
-);
 
 function getCopyableElementText(element: globalThis.Element): string {
     return element.textContent?.trim().replaceAll(/[\t\n\r ]+/g, ' ') ?? '';
-}
-
-function isTopLevelCopyableElementForHiddenElement(copyableElement: globalThis.Element, hiddenElement: globalThis.Element): boolean {
-    if (!copyableElement.matches(COPYABLE_TEXT_SELECTOR) || copyableElement.closest(hiddenElementSelector) !== hiddenElement) {
-        return false;
-    }
-
-    // DisplayNames can mark both the wrapper and child names copyable, so only keep the top-most copyable node.
-    const copyableAncestor = copyableElement.parentElement?.closest(COPYABLE_TEXT_SELECTOR);
-    return !copyableAncestor || copyableAncestor.closest(hiddenElementSelector) !== hiddenElement;
-}
-
-function getCopyableTextForHiddenElement(element: globalThis.Element): string {
-    return [element, ...Array.from(element.querySelectorAll(COPYABLE_TEXT_SELECTOR))]
-        .filter((copyableElement) => isTopLevelCopyableElementForHiddenElement(copyableElement, element))
-        .map(getCopyableElementText)
-        .filter((text) => !!text)
-        .join(' ');
-}
-
-function getDirectHiddenChildren(element: globalThis.Element): globalThis.Element[] {
-    return Array.from(element.querySelectorAll(hiddenElementSelector)).filter((hiddenElement) => hiddenElement.parentElement?.closest(hiddenElementSelector) === element);
-}
-
-function getCopyableSelectionLines(element: globalThis.Element): string[] {
-    const currentLine = getCopyableTextForHiddenElement(element);
-    // Expanded grouped rows contain hidden child rows; keep each child as its own copied line.
-    const nestedLines = getDirectHiddenChildren(element).flatMap(getCopyableSelectionLines);
-    return currentLine ? [currentLine, ...nestedLines] : nestedLines;
 }
 
 function replaceElementContentWithLines(element: globalThis.Element, lines: string[]) {
@@ -64,19 +31,6 @@ function replaceElementContentWithLines(element: globalThis.Element, lines: stri
         }
         element.appendChild(document.createTextNode(line));
     }
-}
-
-// Hidden row wrappers can contain avatars, icons, and violation text; keep only values explicitly marked copyable.
-function keepOnlyCopyableSelectionContent(element: globalThis.Element): boolean {
-    const copyableLines = getCopyableSelectionLines(element);
-    if (copyableLines.length === 0) {
-        return false;
-    }
-
-    // Rebuild copied row text with spaces between cells and line breaks between rows.
-    replaceElementContentWithLines(element, copyableLines);
-    element.removeAttribute(hiddenElementAttribute);
-    return true;
 }
 
 function getElementFromNode(node: globalThis.Node): globalThis.Element | null {
@@ -94,18 +48,18 @@ function getSelectedRowsForRange(range: Range): globalThis.Element[] {
     }
 
     // Use the live selection range so partially selected first/last grouped rows are still included.
-    return [rootElement.closest(copyableRowSelector), ...Array.from(rootElement.querySelectorAll(copyableRowSelector))].filter(
+    return [rootElement.closest(COPYABLE_ROW_SELECTOR), ...Array.from(rootElement.querySelectorAll(COPYABLE_ROW_SELECTOR))].filter(
         (row): row is globalThis.Element => !!row && range.intersectsNode(row),
     );
 }
 
 function isTopLevelCopyableElementForRow(copyableElement: globalThis.Element, row: globalThis.Element): boolean {
-    if (!copyableElement.matches(COPYABLE_TEXT_SELECTOR) || copyableElement.closest(copyableRowSelector) !== row) {
+    if (!copyableElement.matches(COPYABLE_TEXT_SELECTOR) || copyableElement.closest(COPYABLE_ROW_SELECTOR) !== row) {
         return false;
     }
 
     const copyableAncestor = copyableElement.parentElement?.closest(COPYABLE_TEXT_SELECTOR);
-    return !copyableAncestor || copyableAncestor.closest(copyableRowSelector) !== row;
+    return !copyableAncestor || copyableAncestor.closest(COPYABLE_ROW_SELECTOR) !== row;
 }
 
 function getCopyableElementsForSelectedRow(row: globalThis.Element, range: Range): globalThis.Element[] {
@@ -114,7 +68,7 @@ function getCopyableElementsForSelectedRow(row: globalThis.Element, range: Range
     );
 }
 
-function getHTMLOfSelectedTransactionRows(selection: Selection): string {
+function getHTMLOfSelectedCopyableRows(selection: Selection): string {
     const selectedRows: globalThis.Element[] = [];
     const selectedCopyableElementsByRow = new Map<globalThis.Element, Set<globalThis.Element>>();
 
@@ -182,10 +136,10 @@ const getHTMLOfSelection = (): string => {
         return window.getSelection()?.toString() ?? '';
     }
 
-    const selectedTransactionRowsHTML = getHTMLOfSelectedTransactionRows(selection);
-    if (selectedTransactionRowsHTML) {
-        // Grouped transaction rows need normalized row text before the generic selection cleanup strips hidden wrappers.
-        return selectedTransactionRowsHTML;
+    const selectedCopyableRowsHTML = getHTMLOfSelectedCopyableRows(selection);
+    if (selectedCopyableRowsHTML) {
+        // Explicitly marked rows need normalized row text before generic selection cleanup.
+        return selectedCopyableRowsHTML;
     }
 
     const div = document.createElement('div');
@@ -252,14 +206,6 @@ const getHTMLOfSelection = (): string => {
 
     if (hiddenElements && hiddenElements.length > 0) {
         for (const element of hiddenElements) {
-            if (!div.contains(element)) {
-                continue;
-            }
-
-            // Keep only explicitly copyable values when their parent row is hidden from the selection scraper.
-            if (keepOnlyCopyableSelectionContent(element)) {
-                continue;
-            }
             element.remove();
         }
     }

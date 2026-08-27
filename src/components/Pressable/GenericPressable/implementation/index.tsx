@@ -58,7 +58,6 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             // and shorten interaction selectors. See patches/sentry-core/ before removing or renaming it.
             dataSet={{
                 tag: 'pressable',
-                ...(shouldRenderAsNonNativeButton && {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}),
                 ...(props.noDragArea && {dragArea: false}),
                 ...(sentryLabel && {sentryLabel}),
                 ...props.dataSet,
