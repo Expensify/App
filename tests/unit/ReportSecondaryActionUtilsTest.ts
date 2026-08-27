@@ -4824,7 +4824,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
-    it('does not include the SPLIT option if the policy is not expense chat enabled', async () => {
+    it('does not include the SPLIT option for a personal policy', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             policyID: POLICY_ID,
@@ -4845,14 +4845,15 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         const policy = createMock<Policy>({
             id: POLICY_ID,
-            type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: false,
+            type: CONST.POLICY.TYPE.PERSONAL,
+            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
             },
             role: CONST.POLICY.ROLE.ADMIN,
         });
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isGroupPolicy).mockReturnValueOnce(false);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
