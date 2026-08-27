@@ -5,6 +5,7 @@ import Button from '@components/ButtonComposed';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -407,8 +408,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
     }
 
+    // On mobile the overflow menu moves into the top bar next to the Concierge icon (built-in header three-dots below),
+    // so the inline cog only renders on wide layouts.
     const settingsCog =
-        secondaryActions.length > 0 ? (
+        !shouldUseNarrowLayout && secondaryActions.length > 0 ? (
             <ThreeDotsMenu
                 threeDotsMenuRef={dropdownMenuRef}
                 menuItems={secondaryActions}
@@ -418,25 +421,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         ) : null;
 
     const showInviteButton = !readOnly && isPolicyAdmin;
-    const headerButtons =
-        showInviteButton || !!settingsCog ? (
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                {showInviteButton && (
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
-                        onPress={handleInvitePress}
-                        size={CONST.BUTTON_SIZE.MEDIUM}
-                        innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                        style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                    >
-                        <Button.Icon src={expensifyIcons.UserPlus} />
-                        <Button.Text>{translate('common.invite')}</Button.Text>
-                    </Button>
-                )}
-                {settingsCog}
-            </View>
-        ) : null;
+    const headerButtons = settingsCog ? <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>{settingsCog}</View> : null;
 
     const modals = (
         <>
@@ -493,11 +478,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
+            shouldShowThreeDotsButton={shouldUseNarrowLayout && secondaryActions.length > 0}
+            threeDotsMenuItems={secondaryActions}
             headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             modals={modals}
         >
             <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
                 <Section
                     isCentralPane
                     title=""
@@ -662,6 +649,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 />
                             </View>
                         </OfflineWithFeedback>
+                    )}
+                    {showInviteButton && (
+                        <MenuItem
+                            title={translate('workspace.invite.members')}
+                            icon={expensifyIcons.UserPlus}
+                            onPress={handleInvitePress}
+                            shouldShowRightIcon
+                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
+                        />
                     )}
                 </Section>
                 {shouldShowExpensePolicySection ? (

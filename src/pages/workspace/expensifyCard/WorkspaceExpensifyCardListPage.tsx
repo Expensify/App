@@ -303,23 +303,26 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         pageHeaderContent = <View style={styles.ph5}>{getHeaderButtons()}</View>;
     } else if (shouldShowSelector) {
         pageHeaderContent = (
-            <View
-                style={[
-                    styles.w100,
-                    styles.ph5,
-                    styles.pb3,
-                    styles.gap3,
-                    (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
-                ]}
-            >
+            <View style={[styles.w100, styles.ph5, styles.pb3, styles.gap3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                 <FeedSelector
-                    wrapperStyle={isInLandscapeMode ? styles.flex1 : undefined}
+                    wrapperStyle={shouldChangeLayout || isInLandscapeMode ? styles.flex1 : undefined}
                     onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
                     CardFeedIcon={cardFeedIcon}
                     feedName={translate('workspace.common.expensifyCard')}
                     supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList)}
                 />
-                {isBankAccountVerified && (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons()}
+                {isBankAccountVerified &&
+                    (shouldChangeLayout
+                        ? canWriteExpensifyCard && (
+                              <Button
+                                  onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
+                                  accessibilityLabel={translate('common.settings')}
+                                  sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
+                              >
+                                  <Button.Icon src={icons.Gear} />
+                              </Button>
+                          )
+                        : (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons())}
             </View>
         );
     }
