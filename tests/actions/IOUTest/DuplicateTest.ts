@@ -3650,7 +3650,6 @@ describe('actions/Duplicate', () => {
 
             const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports}));
 
-            // The loop must have yielded after the first report, so the rest of the selection is still unprocessed here.
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
 

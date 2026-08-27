@@ -1423,8 +1423,7 @@ async function bulkDuplicateReports({
         }
 
         if (hasDuplicatedReport) {
-            // Duplicate one report per tick. Every expense fires its own API.write, which applies optimistic data
-            // synchronously, so building the whole selection in one pass blocks the thread until the last expense is created.
+            // Let the previous report's optimistic writes apply before blocking the thread again.
             // eslint-disable-next-line no-await-in-loop
             await new Promise<void>((resolve) => {
                 setTimeout(resolve, 0);
