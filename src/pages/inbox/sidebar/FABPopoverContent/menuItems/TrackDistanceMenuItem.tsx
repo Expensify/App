@@ -2,10 +2,12 @@ import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {startDistanceRequest} from '@libs/actions/IOU/MoneyRequest';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 
@@ -28,11 +30,19 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const policy = usePolicy(report?.policyID);
+
+    // The remembered type goes stale as soon as the workspace starts requiring map or GPS. Opening on Map is what the
+    // start page would show anyway, since it hides the manual and odometer tabs, so fall back instead of blocking.
+    const isStaleForRequirement =
+        isMapOrGPSRequired(policy) && (lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+    const distanceExpenseType = isStaleForRequirement ? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP : lastDistanceExpenseType;
+
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID,
         isDistanceRequest: true,
-        isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
-        isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+        isManualDistanceRequest: distanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+        isOdometerDistanceRequest: distanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
     });
 
     return (
@@ -47,7 +57,7 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
                         return;
                     }
                     // Start the flow to start tracking a distance request
-                    startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, lastDistanceExpenseType, undefined, undefined, true);
+                    startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, distanceExpenseType, undefined, undefined, true);
                 })
             }
             shouldCallAfterModalHide={shouldUseNarrowLayout}
