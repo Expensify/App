@@ -7231,6 +7231,15 @@ const plainStyles = (theme: ThemeColors) =>
             minHeight: COMPOSER_SIZE_BUTTON_SIZE,
         },
 
+        // Overlays the exceeded-length message just below the compose box so showing it never grows the box's
+        // footprint and pushes the content underneath down.
+        conciergePromptBoxExceededLength: {
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+        },
+
         // Hidden probe that measures whether the long placeholder wraps. The paddingRight renders it a few px
         // narrower than the composer so it wraps first, avoiding a flash at borderline widths.
         conciergePromptBoxPlaceholderProbe: {
