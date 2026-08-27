@@ -21,7 +21,8 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} fr
 
 import Onyx from 'react-native-onyx';
 
-const OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_IN_DAYS = 30;
+const OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_MS = OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_IN_DAYS * 24 * 60 * 60 * 1000;
 
 // Called from both createAgent() and openAgentsPage() (the two points that have this data on hand) instead of a
 // boot-time sweep, to avoid adding a new Onyx.connectWithoutView subscription.
