@@ -1293,9 +1293,9 @@ function getReportOrDraftReport(
 }
 
 /**
- * This function is being migrated to remove `deprecatedReportsTransactions`.
- * If you need to use this function, you must explicitly pass the `allReportsTransactions` parameter
- * instead of relying on the default value. In React components, prefer using the `useReportTransactions` hook.
+ * @deprecated This function is being migrated and will be removed later.
+ * Always explicitly pass the `allReportsTransactions` parameter instead of relying on the default value.
+ * In React components, prefer using the `useReportTransactions` hook.
  */
 function getReportTransactions(reportID: string | undefined, allReportsTransactions: Record<string, Transaction[]> = deprecatedReportsTransactions): Transaction[] {
     if (!reportID) {

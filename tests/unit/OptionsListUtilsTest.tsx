@@ -75,7 +75,6 @@ import {
     getMovedActionMessage,
     getMovedTransactionMessage,
     getReportPreviewReportActionMessage,
-    getReportTransactions,
     isCanceledTaskReport,
     isExpensifyOnlyParticipantInReport,
 } from '@libs/ReportUtils';
@@ -7722,7 +7721,7 @@ describe('OptionsListUtils', () => {
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
-            const transactions = getReportTransactions(report.reportID);
+            const transactions = [scannedTransaction];
             const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
             expect(result).toBe(
                 translateLocal('iou.receiptScanning', {
