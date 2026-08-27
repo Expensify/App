@@ -132,14 +132,6 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         saveConciergePromptDraft(null);
     };
 
-    // The native input stays expanded when the value is emptied programmatically, the same way it does after sending.
-    useEffect(() => {
-        if (draft) {
-            return;
-        }
-        scheduleOnUI(forceClearInput, animatedRef);
-    }, [draft, animatedRef]);
-
     const sendAttachment = (attachments: FileObject | FileObject[]) => {
         interceptAnonymousUser(() => {
             askConciergeWithAttachment(attachments, value);
