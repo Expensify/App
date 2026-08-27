@@ -14,7 +14,7 @@ import type {Merge} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {getCurrentFlushPromise, isEmpty as isDeferredQueueEmpty, queueOnyxUpdates} from './QueuedOnyxUpdates';
+import {getCurrentFlushPromise, hasCurrentAccount, isEmpty as isDeferredQueueEmpty, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -59,7 +59,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
     const serverUpdateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = isWrite ? queueOnyxUpdates : Onyx.update;
 
     const applyClientData = (updates: Array<OnyxUpdate<TKey>>): Promise<unknown> =>
-        Onyx.update(updates).then(() => (isWrite && !isDeferredQueueEmpty() ? queueOnyxUpdates(updates) : undefined));
+        isWrite && !hasCurrentAccount() ? queueOnyxUpdates(updates) : Onyx.update(updates).then(() => (isWrite && !isDeferredQueueEmpty() ? queueOnyxUpdates(updates) : undefined));
 
     const onyxDataUpdatePromise = response.onyxData ? serverUpdateHandler(response.onyxData) : Promise.resolve();
 

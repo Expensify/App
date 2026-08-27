@@ -27,6 +27,10 @@ Onyx.connectWithoutView({
     },
 });
 
+function hasCurrentAccount() {
+    return !!currentAccountID || CONFIG.IS_TEST_ENV;
+}
+
 /**
  * @param updates Onyx updates to queue for later
  */
@@ -64,7 +68,7 @@ function flushQueue(): Promise<void> {
     resolveFlushPromise = undefined;
     rejectFlushPromise = undefined;
 
-    if (!currentAccountID && !CONFIG.IS_TEST_ENV) {
+    if (!hasCurrentAccount()) {
         const preservedKeys = new Set<OnyxKey>([
             ONYXKEYS.NVP_TRY_NEW_DOT,
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
@@ -102,4 +106,4 @@ function isEmpty() {
     return queuedOnyxUpdates.length === 0;
 }
 
-export {queueOnyxUpdates, flushQueue, getCurrentFlushPromise, isEmpty};
+export {queueOnyxUpdates, flushQueue, getCurrentFlushPromise, hasCurrentAccount, isEmpty};

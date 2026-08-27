@@ -6,6 +6,7 @@ import * as PersistedRequestsModule from '@userActions/PersistedRequests';
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
 import {flushQueue} from '@userActions/QueuedOnyxUpdates';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
@@ -811,6 +812,28 @@ describe('SequentialQueue - a write settles its own state when its response land
 
         // Then the removal stands, and the earlier write's payload did not bring the data back
         expect(liveReportActions).toBeUndefined();
+    });
+
+    it('writes nothing to a store the user has already signed out of', async () => {
+        // Given an optimistic comment on disk, a server that answers 200, and no session left to write for
+        const optimisticID = '6001';
+        await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(optimisticID));
+        await waitForBatchedUpdates();
+        mockFetch.mockAPICommand('AddComment', () => ({
+            onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[SERVER_ACTION_ID]: {reportActionID: SERVER_ACTION_ID}}}],
+        }));
+        // Jest sets NODE_ENV=test, which disarms the account gate for the whole suite.
+        jest.replaceProperty(CONFIG, 'IS_TEST_ENV', false);
+
+        // When the response lands after the sign-out cleared the session
+        SequentialQueue.push(addCommentRequest(optimisticID));
+        await SequentialQueue.waitForIdle();
+        await flushQueue();
+        await waitForBatchedUpdates();
+
+        // Then none of the previous account's data reaches storage
+        expect(liveReportActions?.[optimisticID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        expect(liveReportActions?.[SERVER_ACTION_ID]).toBeUndefined();
     });
 });
 
