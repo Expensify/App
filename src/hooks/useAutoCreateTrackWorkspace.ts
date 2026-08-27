@@ -174,6 +174,7 @@ function useAutoCreateTrackWorkspace() {
             mergedAccountConciergeReportID,
             conciergeChat,
             selfDMReport,
+            delegateAccountID,
         ],
     );
 

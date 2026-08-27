@@ -1388,8 +1388,11 @@ describe('ReportUtils', () => {
 
             const commentActions = (result?.optimisticData ?? [])
                 .filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
-                .flatMap((update) => Object.values((update.value ?? {}) as Record<string, ReportAction>))
-                .filter((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+                .flatMap((update): unknown[] => Object.values(update.value ?? {}))
+                .filter(
+                    (reportAction): reportAction is ReportAction =>
+                        typeof reportAction === 'object' && reportAction !== null && 'actionName' in reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                );
 
             expect(commentActions.length).toBeGreaterThan(0);
             for (const commentAction of commentActions) {

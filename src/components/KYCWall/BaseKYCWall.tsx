@@ -302,6 +302,7 @@ function KYCWall({
             conciergeChat,
             localCurrency,
             getCurrencyDecimals,
+            delegateAccountID,
         ],
     );
 

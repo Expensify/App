@@ -848,19 +848,44 @@ function savePolicyDraftByNewWorkspace({
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
  */
-function setUpPoliciesAndNavigate(
-    session: OnyxEntry<OnyxTypes.Session>,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    currency: string,
-    activePolicy: OnyxEntry<OnyxTypes.Policy>,
-    isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    hasActiveAdminPolicies: boolean,
-    lastWorkspaceNumber: number | undefined,
-    translate: LocalizedTranslate,
-    conciergeChat: OnyxEntry<OnyxTypes.Report>,
-    delegateAccountID: number | undefined,
-) {
+type SetUpPoliciesAndNavigateParams = {
+    /** The current session */
+    session: OnyxEntry<OnyxTypes.Session>;
+    /** The onboarding intro the user selected */
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    /** Currency to use for a workspace created from the exitTo route */
+    currency: string;
+    /** The user's active policy */
+    activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    /** Whether the user has already viewed the self-guided tour */
+    isSelfTourViewed: boolean | undefined;
+    /** The betas the user has access to */
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    /** Whether the user is an admin on any active policy */
+    hasActiveAdminPolicies: boolean;
+    /** Number used to generate the default workspace name */
+    lastWorkspaceNumber: number | undefined;
+    /** Localized translate function */
+    translate: LocalizedTranslate;
+    /** The Concierge DM */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    /** AccountID of the delegate acting on behalf of the current user */
+    delegateAccountID: number | undefined;
+};
+
+function setUpPoliciesAndNavigate({
+    session,
+    introSelected,
+    currency,
+    activePolicy,
+    isSelfTourViewed,
+    betas,
+    hasActiveAdminPolicies,
+    lastWorkspaceNumber,
+    translate,
+    conciergeChat,
+    delegateAccountID,
+}: SetUpPoliciesAndNavigateParams) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         return;
