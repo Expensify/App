@@ -9,10 +9,11 @@ import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {useFocusEffect} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {createTimeSensitiveAdminPoliciesSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
-import React, {useEffect} from 'react';
+import React from 'react';
 
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddBankAccount from './hooks/useTimeSensitiveAddBankAccount';
@@ -66,10 +67,10 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     } = useTimeSensitiveCards();
 
     // Whether a digital wallet addition is still waiting on the cardholder is only knowable by asking the card provider,
-    // so refresh it whenever this section renders rather than on every app open
-    useEffect(() => {
+    // so refresh whenever Home is focused rather than only on first mount
+    useFocusEffect(() => {
         getExpensifyCardPendingWalletApproval();
-    }, []);
+    });
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
 
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);

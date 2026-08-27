@@ -5,6 +5,7 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 
+import {getWalletProviderNameKey} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -14,6 +15,7 @@ import type {Card} from '@src/types/onyx';
 import React from 'react';
 
 type ConfirmDigitalWalletAdditionProps = {
+    /** The Expensify Card whose digital wallet addition is awaiting the cardholder's confirmation */
     card: Card;
 };
 
@@ -21,14 +23,7 @@ function ConfirmDigitalWalletAddition({card}: ConfirmDigitalWalletAdditionProps)
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    // The card provider reports Google Wallet as ANDROID_PAY, and doesn't always tell us which wallet asked
-    const walletProvider = card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider;
-    let walletName = translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.digitalWallet');
-    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
-        walletName = translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.appleWallet');
-    } else if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
-        walletName = translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.googleWallet');
-    }
+    const walletName = translate(`homePage.timeSensitiveSection.confirmDigitalWalletAddition.${getWalletProviderNameKey(card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider)}`);
 
     return (
         <BaseWidgetItem

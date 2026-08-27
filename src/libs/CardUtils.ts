@@ -1689,6 +1689,19 @@ function isCardPendingDigitalWalletApproval(card?: Card) {
     return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
 }
 
+/**
+ * The card provider reports Google Wallet as ANDROID_PAY, and doesn't always tell us which wallet asked.
+ */
+function getWalletProviderNameKey(walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>): 'appleWallet' | 'googleWallet' | 'digitalWallet' {
+    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
+        return 'appleWallet';
+    }
+    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
+        return 'googleWallet';
+    }
+    return 'digitalWallet';
+}
+
 function isCardWithCustomZeroLimit(card: Card): boolean {
     return !!card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0;
 }
@@ -2241,6 +2254,7 @@ export {
     isCardPendingIssue,
     isCardPendingActivate,
     isCardPendingDigitalWalletApproval,
+    getWalletProviderNameKey,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,

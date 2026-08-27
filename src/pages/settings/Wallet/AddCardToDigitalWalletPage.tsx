@@ -15,13 +15,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {approveDigitalWalletCardAddition, clearCardListErrors} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import {isCardPendingDigitalWalletApproval} from '@libs/CardUtils';
+import {getWalletProviderNameKey, isCardPendingDigitalWalletApproval} from '@libs/CardUtils';
 import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +29,11 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type AddCardToDigitalWalletPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET>;
+
+type SubmittedWalletRequest = {
+    answer: 'approve' | 'deny';
+    walletName: string;
+};
 
 function AddCardToDigitalWalletPage({
     route: {
@@ -48,34 +51,29 @@ function AddCardToDigitalWalletPage({
     const latestErrorMessage = getLatestErrorMessage(card);
 
     const [isVerifying, setIsVerifying] = useState(false);
-    const [submittedAnswer, setSubmittedAnswer] = useState<'approve' | 'deny'>();
+    const [submittedRequest, setSubmittedRequest] = useState<SubmittedWalletRequest>();
 
     const pendingApproval = card?.nameValuePairs?.pendingDigitalWalletApproval;
 
     // The digits the cardholder confirmed over the phone, falling back to the card's own last four
     const lastFourDigits = pendingApproval?.cardLastFourDigits ?? card?.lastFourPAN ?? '';
 
-    // The card provider reports Google Wallet as ANDROID_PAY, and doesn't always tell us which wallet asked
-    const walletProvider = pendingApproval?.walletProvider;
-    let walletName = translate('addCardToDigitalWallet.digitalWallet');
-    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
-        walletName = translate('addCardToDigitalWallet.appleWallet');
-    } else if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
-        walletName = translate('addCardToDigitalWallet.googleWallet');
-    }
+    const currentWalletName = translate(`addCardToDigitalWallet.${getWalletProviderNameKey(pendingApproval?.walletProvider)}`);
+    const walletName = submittedRequest?.walletName ?? currentWalletName;
 
     // The backend clears the pending approval once it resolves the request, so that's when we know the answer landed
     const hasPendingApproval = isCardPendingDigitalWalletApproval(card);
+    const submittedAnswer = submittedRequest?.answer;
     const isResolvingRequest = !!submittedAnswer && !!card?.isLoading;
     const isRequestResolved = !!submittedAnswer && !hasPendingApproval && !card?.isLoading;
 
     const denyRequest = () => {
-        setSubmittedAnswer('deny');
+        setSubmittedRequest({answer: 'deny', walletName: currentWalletName});
         approveDigitalWalletCardAddition(Number(cardID), false);
     };
 
     const confirmRequest = (validateCode: string) => {
-        setSubmittedAnswer('approve');
+        setSubmittedRequest({answer: 'approve', walletName: currentWalletName});
         approveDigitalWalletCardAddition(Number(cardID), true, validateCode);
     };
 
@@ -144,7 +142,7 @@ function AddCardToDigitalWalletPage({
             )}
             <FixedFooter style={[styles.flexRow, styles.gap2]}>
                 {isResolvingRequest ? (
-                    <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
+                    <View style={[styles.w100, styles.justifyContentCenter, styles.componentHeightLarge]}>
                         <LoadingIndicator iconSize={28} />
                     </View>
                 ) : (
