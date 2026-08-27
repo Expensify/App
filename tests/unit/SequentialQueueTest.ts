@@ -660,7 +660,7 @@ describe('SequentialQueue - QueueFlushedData', () => {
     });
 });
 
-describe('SequentialQueue - a sent message stops being pending even if the app dies before the queue drains', () => {
+describe('SequentialQueue - a write settles its own state when its response lands, not when the queue drains', () => {
     const REPORT_ID = '1';
     const REPORT_ACTIONS_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
     const SERVER_ACTION_ID = '8888';
@@ -721,7 +721,7 @@ describe('SequentialQueue - a sent message stops being pending even if the app d
         jest.restoreAllMocks();
     });
 
-    it('does not show a sent message as pending after the app is killed', async () => {
+    it('leaves no write pending once its response has landed, even if the app dies next', async () => {
         // Given an optimistic comment on disk, and a server that echoes a different action back in onyxData
         const optimisticID = '9999';
         await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(optimisticID));
@@ -731,19 +731,19 @@ describe('SequentialQueue - a sent message stops being pending even if the app d
         }));
         const states = stateWhenTheAppCouldBeKilled();
 
-        // When the message is sent and the server answers 200
+        // When the write is sent and the server answers 200
         SequentialQueue.push(addCommentRequest(optimisticID));
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
 
-        // Then a relaunch finds the message sent, not greyed out and not loading
+        // Then a relaunch finds it settled, neither pending nor loading
         expect(states).toHaveLength(1);
         expect(states.at(0)?.[optimisticID]?.pendingAction).toBeUndefined();
         expect(states.at(0)?.[optimisticID]?.isOptimisticAction).toBeUndefined();
         expect(states.at(0)?.[optimisticID]?.isLoading).toBe(false);
     });
 
-    it('still offers the retry after the app is killed on a message the server rejected', async () => {
+    it('keeps the error on a write the server rejected, even if the app dies next', async () => {
         // Given an optimistic comment on disk, and a server that answers with a non-200
         const optimisticID = '7777';
         await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(optimisticID));
@@ -751,20 +751,20 @@ describe('SequentialQueue - a sent message stops being pending even if the app d
         mockFetch.mockAPICommand('AddComment', () => ({jsonCode: CONST.JSON_CODE.BAD_REQUEST}));
         const states = stateWhenTheAppCouldBeKilled();
 
-        // When the message is sent and the server rejects it
+        // When the write is sent and the server rejects it
         SequentialQueue.push(addCommentRequest(optimisticID));
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
 
-        // Then a relaunch finds the error, so the user can still retry or dismiss the message
+        // Then a relaunch finds the error, so the user can still retry or dismiss it
         expect(states).toHaveLength(1);
         expect(states.at(0)?.[optimisticID]?.pendingAction).toBeUndefined();
         expect(states.at(0)?.[optimisticID]?.errors).toEqual({[ERROR_TIMESTAMP]: 'could not send'});
         expect(states.at(0)?.[optimisticID]?.isLoading).toBe(false);
     });
 
-    it('clears the greyed-out state on each message as its own response lands, not all at once when the queue empties', async () => {
-        // Given three optimistic comments on disk and their three messages queued to send
+    it('settles each queued write as its own response lands, not all at once when the queue empties', async () => {
+        // Given three optimistic comments on disk and their three writes queued to send
         const ids = ['1001', '1002', '1003'];
         for (const id of ids) {
             await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction(id));
@@ -772,14 +772,14 @@ describe('SequentialQueue - a sent message stops being pending even if the app d
         await waitForBatchedUpdates();
         const states = stateWhenTheAppCouldBeKilled();
 
-        // When the queue sends them in order
+        // When the queue sends the writes in order
         for (const id of ids) {
             SequentialQueue.push(addCommentRequest(id));
         }
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
 
-        // Then each response cleared only its own message, and the ones still in flight stayed greyed out
+        // Then each response settled only its own write, and the ones still in flight stayed pending
         expect(states).toHaveLength(3);
         for (const [index, state] of states.entries()) {
             expect(state?.[ids[index]]?.pendingAction).toBeUndefined();
@@ -793,15 +793,15 @@ describe('SequentialQueue - a sent message stops being pending even if the app d
         }
     });
 
-    it('keeps a deleted report deleted once its own response has been handled', async () => {
-        // Given a delete whose response also carries server data for the report it removed
+    it('keeps what a write removed removed, when its own response also touches that data', async () => {
+        // Given a write whose response carries server data for the report its own successData removes
         await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction('4001'));
         await waitForBatchedUpdates();
         mockFetch.mockAPICommand('DeleteAppReport', () => ({
             onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[SERVER_ACTION_ID]: {reportActionID: SERVER_ACTION_ID}}}],
         }));
 
-        // When the user deletes the report and everything settles
+        // When the write is sent and everything settles
         SequentialQueue.push({
             command: 'DeleteAppReport',
             data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, reportID: REPORT_ID},
@@ -815,8 +815,8 @@ describe('SequentialQueue - a sent message stops being pending even if the app d
         expect(liveReportActions).toBeUndefined();
     });
 
-    it('keeps a deleted report deleted when an earlier send in the same batch is still settling', async () => {
-        // Given a message and a delete sent together, where only the message's response carries server data
+    it('keeps what a write removed removed, when an earlier write in the batch is still settling', async () => {
+        // Given two writes sent together, where only the earlier one's response carries server data
         await Onyx.merge(REPORT_ACTIONS_KEY, optimisticAction('5001'));
         await waitForBatchedUpdates();
         mockFetch.mockAPICommand('AddComment', () => ({
@@ -835,7 +835,7 @@ describe('SequentialQueue - a sent message stops being pending even if the app d
         await flushQueue();
         await waitForBatchedUpdates();
 
-        // Then the report the user deleted is still gone, and the earlier message did not bring it back
+        // Then the removal stands, and the earlier write's payload did not bring the data back
         expect(liveReportActions).toBeUndefined();
     });
 });
