@@ -4824,8 +4824,9 @@ describe('ReportUtils', () => {
                     [CONST.BETAS.ALL],
                 );
 
-                // Should not include SUBMIT (Create Expense)
+                // Should not include SUBMIT (Create Expense) or TRACK (Track distance) — members can only split
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(false);
 
                 // Should include SPLIT (Split Expense)
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
@@ -20945,6 +20946,26 @@ describe('ReportUtils', () => {
             // Trigger ADD_EXISTING_EXPENSE onSelected
             result.at(2)?.onSelected?.();
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
+        });
+
+        it('should hide CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE for a Teachers Unite report', () => {
+            const mockPolicy = createRandomPolicy(0);
+            mockPolicy.id = CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: mockPolicy,
+                userBillingGracePeriodEnds: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
+            });
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE);
         });
     });
     describe('GBR: draft report with delayed submission off then on (issue #69891)', () => {

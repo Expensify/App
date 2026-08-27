@@ -27,7 +27,7 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestRe
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: () => ({accountID: 1})}));
-jest.mock('@hooks/useLazyAsset', () => ({__esModule: true, useMemoizedLazyExpensifyIcons: () => ({})}));
+jest.mock('@hooks/useLazyAsset', () => ({__esModule: true, useMemoizedLazyExpensifyIcons: () => ({}), useMemoizedLazyIllustrations: () => ({})}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: jest.fn(() => [undefined])}));
 
