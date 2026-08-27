@@ -1,8 +1,12 @@
 import {renderHook} from '@testing-library/react-native';
 
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -16,7 +20,9 @@ type MockConfirmModalOptions = {
     titleContainerStyles?: unknown;
 };
 
-const mockShowConfirmModal = jest.fn<void, [MockConfirmModalOptions]>();
+type MockConfirmModalResult = {action: ValueOf<typeof ModalActions>};
+
+const mockShowConfirmModal = jest.fn<Promise<MockConfirmModalResult>, [MockConfirmModalOptions]>();
 
 jest.mock('@hooks/useConfirmModal', () => () => ({
     showConfirmModal: mockShowConfirmModal,
@@ -37,7 +43,7 @@ describe('useCommuterExclusionGuard', () => {
 
     beforeEach(async () => {
         mockShowConfirmModal.mockClear();
-        mockShowConfirmModal.mockResolvedValue({action: 'cancel'});
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
