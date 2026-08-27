@@ -67,7 +67,6 @@ import {
     getRenamedAction,
     getRenamedCardFeedMessage,
     getReportAction,
-    getReportActionActorAccountID,
     getReportActionMessageText,
     getRequireCompanyCardsEnabledMessage,
     getRequiresCategoryMessage,
@@ -235,6 +234,7 @@ import type {
     SectionForSearchTerm,
 } from './types';
 
+import {getChatPreviewParts} from './getChatPreviewParts';
 import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from './searchMatchUtils';
 
 /**
@@ -426,53 +426,6 @@ function uniqFast(items: string[]): string[] {
     return result;
 }
 
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number, translate: LocalizedTranslate) {
-    if (!lastActorDetails) {
-        return '';
-    }
-
-    if (lastActorDetails.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        return CONST.CONCIERGE_DISPLAY_NAME;
-    }
-
-    return lastActorDetails.accountID !== currentUserAccountID
-        ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.firstName || temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils})
-        : translate('common.you');
-}
-
-function shouldShowLastActorDisplayName(
-    report: OnyxEntry<Report>,
-    lastActorDetails: Partial<PersonalDetails> | null,
-    lastAction: OnyxEntry<ReportAction>,
-    currentUserAccountIDParam: number,
-    translate: LocalizedTranslate,
-) {
-    // Use lastAction directly instead of getLastVisibleReportAction to avoid using stale cache data
-    const lastReportAction = lastAction;
-
-    // Use report.lastActionType as fallback when report actions aren't loaded yet (e.g., on cold start)
-    const lastActionName = lastReportAction?.actionName ?? report?.lastActionType;
-
-    if (
-        !lastActionName ||
-        !lastActorDetails ||
-        reportUtilsIsSelfDM(report) ||
-        (isDM(report) && lastActorDetails.accountID !== currentUserAccountIDParam) ||
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.IOU
-    ) {
-        return false;
-    }
-
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
-
-    if (!lastActorDisplayName) {
-        return false;
-    }
-
-    return true;
-}
-
 type GetAlternateTextConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
     isReportArchived: boolean | undefined;
@@ -520,8 +473,11 @@ function getAlternateText(
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const translateFn = translate ?? translateLocal;
+    // Keep Plain comments as they're typed (example: `<b>test</b>` stays `<b>test</b>`).
+    // Parser.htmlToText would strip it to `test`. Ref: https://github.com/Expensify/App/issues/82036
+    const isLastActionAddComment = report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const formattedLastMessageText =
-        formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) ||
+        formatReportLastMessageText(isLastActionAddComment ? (option.lastMessageText ?? '') : Parser.htmlToText(option.lastMessageText ?? '')) ||
         getLastMessageTextForReport({
             translate: translateFn,
             dateFnsLocale,
@@ -539,7 +495,23 @@ function getAlternateText(
             currentUserAccountID,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
-    const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
+
+    const {actorPrefix, customAlternateText} =
+        showChatPreviewLine && formattedLastMessageText
+            ? getChatPreviewParts({
+                  report,
+                  personalDetails,
+                  isReportArchived,
+                  translate: translateFn,
+                  visibleReportActionsData,
+                  currentUserAccountID,
+                  sortedActions,
+                  reportAttributesDerived,
+                  // eslint-disable-next-line @typescript-eslint/no-deprecated
+                  oneTransactionThreadReportID: report?.reportID ? deprecatedCachedOneTransactionThreadReportIDs[report.reportID] : undefined,
+              })
+            : {actorPrefix: '', customAlternateText: undefined};
+    const formattedLastMessageTextWithPrefix = reportPrefix + actorPrefix + (customAlternateText ?? formattedLastMessageText);
 
     if (isExpenseThread || option.isMoneyRequestReport) {
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('iou.expense');
@@ -624,40 +596,6 @@ function getExpenseReportPreviewText(
     const comment = Parser.htmlToText(description || originalMessage?.comment || '').trim();
 
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
-}
-
-function getLastActorDisplayNameFromLastVisibleActions(
-    report: OnyxEntry<Report>,
-    lastActorDetails: Partial<PersonalDetails> | null,
-    currentUserAccountIDParam: number,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: boolean | undefined,
-    translate: LocalizedTranslate,
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
-    lastAction?: OnyxEntry<ReportAction>,
-): string {
-    const reportID = report?.reportID;
-    const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
-    const lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
-
-    if (lastReportAction) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
-        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-
-        if (!actorDetails && lastReportAction.person?.at(0)?.text) {
-            actorDetails = {
-                displayName: lastReportAction.person?.at(0)?.text,
-                accountID: lastActorAccountID,
-            };
-        }
-
-        if (actorDetails) {
-            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam, translate);
-        }
-    }
-
-    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
 }
 
 /**
@@ -772,7 +710,7 @@ function getLastMessageTextForReport({
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
-            policy: null,
+            policy,
             isForListPreview: true,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
@@ -797,7 +735,10 @@ function getLastMessageTextForReport({
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
                 isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
-                policy: null,
+                // `policy` is the containing report's policy. A group-policy expense report renders its preview in the
+                // policy expense chat, which is handled by the branch above, so every report that reaches here shares
+                // its policy with `report` (DM/group personal reports have none; invoice rooms share the room's policy).
+                policy,
                 isForListPreview: true,
                 originalReportAction: lastReportAction,
             });
@@ -1106,7 +1047,7 @@ function getLastMessageTextForReport({
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
-                                policy: null,
+                                policy,
                                 isForListPreview: true,
                             }),
                         ),
@@ -2656,7 +2597,7 @@ function prepareReportOptionsForDisplay(
     options: Array<SearchOption<Report>>,
     policiesCollection: OnyxCollection<Policy>,
     isOffline: boolean,
-    config: GetValidReportsConfig & {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined},
+    config: GetValidReportsConfig & {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; currentUserAccountID?: number},
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -2678,6 +2619,7 @@ function prepareReportOptionsForDisplay(
         shouldUnreadBeBold = false,
         personalDetails,
         translate,
+        currentUserAccountID,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2696,6 +2638,8 @@ function prepareReportOptionsForDisplay(
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
+        const lastActorDetails = personalDetails?.[report.lastActorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? null;
+
         const alternateText = getAlternateText(
             option,
             {showChatPreviewLine, forcePolicyNamePreview},
@@ -2704,13 +2648,14 @@ function prepareReportOptionsForDisplay(
                 isReportArchived: !!option.private_isArchived,
                 personalDetails,
                 policy,
-                lastActorDetails: null,
+                lastActorDetails,
                 visibleReportActionsData,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 sortedActions,
                 isTrackIntentUser,
+                currentUserAccountID,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);
@@ -2960,6 +2905,7 @@ function getValidOptions(
                     shouldShowGBR,
                     personalDetails,
                     translate,
+                    currentUserAccountID,
                 },
                 conciergeReportID,
                 sortedActions,
@@ -2987,6 +2933,7 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
                 translate,
+                currentUserAccountID,
             },
             conciergeReportID,
             sortedActions,
@@ -3010,6 +2957,7 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
                 translate,
+                currentUserAccountID,
             },
             conciergeReportID,
             sortedActions,
@@ -3778,8 +3726,6 @@ export {
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getLastActorDisplayName,
-    getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getNoneOption,
     getParticipantsOption,
@@ -3803,7 +3749,6 @@ export {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    shouldShowLastActorDisplayName,
     shouldUseBoldText,
     sortAlphabetically,
     personalDetailsComparator,
