@@ -16,6 +16,7 @@ import {
     isPolicyIDInLinkedExpensifyCardPolicyList,
 } from './CardUtils';
 import {getDescriptionForPolicyDomainCard, isPolicyAdmin} from './PolicyUtils';
+import {getIsTravelBillingPayByInvoice, hasTravelBillingSettlementAccount} from './TravelBillingUtils';
 
 type ExpensifyCardFeedEntry = {
     settingsKey: string;
@@ -26,7 +27,7 @@ type ExpensifyCardFeedEntry = {
 /** Which program blocks of the card settings NVP count as a configured feed. Regular card feeds use US/GB; Travel Billing uses TRAVEL_US. */
 type ExpensifyCardFeedProgram = 'US' | 'CURRENT' | 'GB' | 'TRAVEL_US';
 
-/** A feed qualifies only when its settings NVP has one of the given program blocks with a configured settlement bank account. */
+/** A feed qualifies when a program block has a settlement method: a bank account for cards, or a bank account or pay-by-invoice for travel. */
 function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefined, programs: ExpensifyCardFeedProgram[]): boolean {
     if (!settings) {
         return false;
@@ -34,7 +35,16 @@ function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefi
 
     for (const programKey of programs) {
         const nested = settings[programKey];
-        if (nested && typeof nested === 'object' && !Array.isArray(nested) && nested.paymentBankAccountID != null) {
+        if (!nested || typeof nested !== 'object' || Array.isArray(nested)) {
+            continue;
+        }
+        if (programKey === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
+            if (hasTravelBillingSettlementAccount(nested) || getIsTravelBillingPayByInvoice(nested)) {
+                return true;
+            }
+            continue;
+        }
+        if (nested.paymentBankAccountID != null) {
             return true;
         }
     }
