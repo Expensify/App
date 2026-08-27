@@ -24,9 +24,6 @@ type SearchColumnSizing = {
 
     /** Width the column is never squeezed below, so its header stays readable however narrow the table gets. */
     minWidth: number;
-
-    /** Width the column never grows past, so spare space doesn't stretch it beyond anything it holds. */
-    maxWidth: number;
 };
 
 /**
@@ -115,8 +112,8 @@ function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: U
 
         // The header counts as content, so a column of empty cells is sized by its heading instead of collapsing.
         // The result is capped because a column is sized by its single widest value: one long merchant name would
-        // otherwise set the width for every row. Past the cap that one value truncates, which is cheaper than
-        // taking the room every other column needs.
+        // otherwise claim a share of the row proportional to itself and squeeze every other column. The cap bounds that
+        // share only, so a table with room to spare still hands the surplus out rather than leaving it unused.
         const contentWidth = Math.min(Math.max(Math.ceil(widestContentWidth + extraWidth), headerLabelWidth), Math.max(MAX_FREE_TEXT_COLUMN_WIDTH + extraWidth, headerLabelWidth));
 
         contentWidths.push({column, contentWidth, headerLabelWidth});
@@ -139,7 +136,6 @@ function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: U
             // Squeezed no further than a readable width, its own content if that is narrower, and never below the
             // header, which would leave the column unidentifiable. Once these no longer fit, the table scrolls.
             minWidth: Math.max(Math.min(contentWidth, MIN_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), headerLabelWidth),
-            maxWidth: contentWidth,
         };
     }
 

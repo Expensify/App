@@ -54,7 +54,7 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         // proportion to what the content needs is what makes the columns add up to the row without this knowing what
         // the fixed columns, gaps, and padding spend. `flex` is cleared because the base style sets it on exactly these
         // columns, and leaving both it and the properties below would make which one wins depend on emission order.
-        return {...columnStyles, flex: undefined, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, maxWidth: sizing.maxWidth, width: undefined};
+        return {...columnStyles, flex: undefined, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, width: undefined};
     };
 }
 
