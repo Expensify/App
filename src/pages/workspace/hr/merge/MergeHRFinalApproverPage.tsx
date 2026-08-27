@@ -1,6 +1,6 @@
 import useLocalize from '@hooks/useLocalize';
 
-import {updateMergeHRFinalApprover} from '@libs/actions/connections/merge/HR';
+import {updateMergeFinalApprover} from '@libs/actions/connections/merge';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import {isMergeConnected} from '@libs/merge/MergeUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,7 +29,7 @@ function MergeHRFinalApproverPage({
         getCurrentFinalApprover: (policy) => policy?.connections?.merge_hris?.config?.finalApprover ?? null,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
         getHeaderTitle: (providerName) => translate('workspace.hr.providerFinalApprover', providerName),
-        handleSave: ({policyID: id, email, currentFinalApprover}) => updateMergeHRFinalApprover(id, email, currentFinalApprover),
+        handleSave: ({policyID: id, email, currentFinalApprover}) => updateMergeFinalApprover(id, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR, email, currentFinalApprover),
     };
 
     return (

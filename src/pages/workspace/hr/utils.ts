@@ -2,8 +2,8 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
-import getMergeSetupLink from '@libs/actions/connections/merge';
-import type {HRConnectionErrorFieldName} from '@libs/actions/connections/merge/HR';
+import {getMergeSetupLink} from '@libs/actions/connections/merge';
+import type {MergeConnectionErrorFieldName} from '@libs/actions/connections/merge';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {formatList} from '@libs/Localize';
 import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
@@ -28,7 +28,7 @@ type HRCardConfig = MergeHRConnectionConfig | GustoConnectionConfig | ZenefitsCo
 /** A single editable configuration row (approval mode, final approver, groups) shown on a connected HR card. */
 type HRConfigRow = {
     /** Onyx field this row maps to. */
-    field: HRConnectionErrorFieldName;
+    field: MergeConnectionErrorFieldName;
 
     /** Translated label shown as the row's top description. */
     description: string;

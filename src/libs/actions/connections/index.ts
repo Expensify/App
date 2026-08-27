@@ -16,7 +16,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import {syncMergeHR} from './merge/HR';
+import {syncMerge} from './merge';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -184,8 +184,8 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
     }
     const policyID = policy.id;
 
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        syncMergeHR(policy);
+    if (isMergeConnectionName(connectionName)) {
+        syncMerge(policy, connectionName);
         return;
     }
 

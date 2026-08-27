@@ -17,7 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
-import {clearHRConnectionErrorField} from '@libs/actions/connections/merge/HR';
+import {clearMergeConnectionErrorField} from '@libs/actions/connections/merge';
 import {showMergeManualSyncLimitModalIfReached} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -211,7 +211,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                                 key={row.field}
                                 pendingAction={row.pendingAction}
                                 errors={row.errors}
-                                onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, row.field)}
+                                onClose={() => clearMergeConnectionErrorField(policy?.id, card.connectionName, row.field)}
                             >
                                 <MenuItemWithTopDescription
                                     description={row.description}

@@ -1,6 +1,6 @@
 import useLocalize from '@hooks/useLocalize';
 
-import {updateMergeHRApprovalMode} from '@libs/actions/connections/merge/HR';
+import {updateMergeApprovalMode} from '@libs/actions/connections/merge';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import {isMergeConnected} from '@libs/merge/MergeUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -32,7 +32,7 @@ function MergeHRApprovalModePage({
         getCurrentApprovalMode: (policy) => policy?.connections?.merge_hris?.config?.approvalMode ?? null,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
         getHeaderTitle: (providerName) => translate('workspace.hr.providerApprovalMode', providerName),
-        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateMergeHRApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
+        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateMergeApprovalMode(policyID, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR, draftApprovalMode, currentApprovalMode),
     };
 
     return (
