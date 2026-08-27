@@ -137,7 +137,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         clearNewAgentTemplate();
         clearNewAgentAvatarDraft();
 
-        void optimisticPersonalDetailPromise.then(() => {
+        optimisticPersonalDetailPromise.then(() => {
             // Not useResponsiveLayout: this page itself lives inside the RHP modal stack, so
             // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
             // regardless of window size. getIsNarrowLayout() reflects the actual window width.
