@@ -1,11 +1,8 @@
 /**
  * Shows the outcome of a finished HR provider sync (employees added, removed and skipped).
  *
- * This used to be `HRSyncResultsModal`, a right-docked modal opened through the global modal
- * context. It is now a dynamic navigation screen so the results live in the navigation stack:
- * `useHRSyncResultsPage` navigates here when a sync reaches `JOB_DONE`, from either the workspace HR
- * page or the members list. The sync payload is read back out of Onyx from the policy's connection
- * sync progress, so only the workspace's `policyID` travels through the route.
+ * The sync payload is read from Onyx (the policy's connection sync progress), so only the workspace's
+ * `policyID` needs to travel through the route.
  */
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
@@ -74,10 +71,8 @@ function DynamicHRSyncResultsPage({route}: DynamicHRSyncResultsPageProps) {
     );
 
     return (
-        // As a dynamic route this screen is deep-linkable, so it has to carry the same workspace/HR
-        // access checks the old modal inherited from its entry pages (WorkspaceHRPage). Without this
-        // a user who cannot open the workspace's HR settings could still reach this URL and read the
-        // skipped-employee list straight out of Onyx.
+        // Deep-linkable, so it must gate on workspace HR access — otherwise a user without it could
+        // open this URL and read the skipped-employee list straight from Onyx.
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -147,7 +142,5 @@ function DynamicHRSyncResultsPage({route}: DynamicHRSyncResultsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-DynamicHRSyncResultsPage.displayName = 'DynamicHRSyncResultsPage';
 
 export default DynamicHRSyncResultsPage;
