@@ -68,6 +68,7 @@ import {
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
 } from '@libs/ReportActionsUtils';
 import {
     canCreateTaskInReport,
@@ -6806,6 +6807,38 @@ describe('OptionsListUtils', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getUpdatedAutoHarvestingMessage(translateLocal, action));
+        });
+        it('UPDATE_CUSTOM_UNIT_RATE action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 0.7,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action));
         });
         it('UPDATE_REQUIRES_TAG action', async () => {
             const report: Report = createRandomReport(0, undefined);
