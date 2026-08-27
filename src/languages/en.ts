@@ -7307,6 +7307,10 @@ const translations = {
                             return 'Loading data';
                         case 'dualEntrySyncPayments':
                             return 'Syncing vendor payments';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Syncing card settlements';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Syncing travel settlements';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
