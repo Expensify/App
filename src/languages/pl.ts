@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -503,6 +502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Poprzedni rok',
         nextYear: 'W przyszłym roku',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} z ${total}`,
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
         tryAgain: 'Spróbuj ponownie',
@@ -938,6 +938,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Tylko administratorzy',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal na inne konto',
+        emailLabel: 'Adres e-mail',
+        reasonLabel: 'Powód logowania do pomocy',
+        reasonHint: 'Nie znaleziono ostatnich zgłoszeń dla tego konta.',
+        login: 'Zaloguj się',
+    },
     sidebarScreen: {
         buttonFind: 'Znajdź coś...',
         buttonMySettings: 'Moje ustawienia',
@@ -1137,6 +1144,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Utwórz jeden lub przeciągnij tu paragon',
         },
         insightsSection: {chartUnavailable: 'Wykres niedostępny', notEnoughData: 'Nie mamy jeszcze wystarczającej ilości danych, żeby wypełnić ten wykres'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Dzień dobry, ${name}.` : 'Dzień dobry.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Dzień dobry, ${name}.` : 'Dzień dobry.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Dobry wieczór, ${name}.` : 'Dobry wieczór.'),
+            inputPlaceholder: 'Poproś Concierge o przeanalizowanie swoich wydatków lub uzyskaj pomoc',
+            inputPlaceholderMobile: 'Zapytaj Concierge o cokolwiek',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -1542,8 +1556,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'karta' : 'konto bankowe';
             return isCurrentUser
-                ? `. Pieniądze są w drodze na twoje ${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'} (zapłacono przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`
-                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''} (zapłacono przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`;
+                ? `. Pieniądze są w drodze na twoje ${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'} (zapłacono przez ${paymentMethod}). To zazwyczaj zajmuje 4–5 dni roboczych.`
+                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''} (zapłacono przez ${paymentMethod}). To zazwyczaj zajmuje 4–5 dni roboczych.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` z wpłatą bezpośrednią (ACH)${creditBankAccount ? ` na konto bankowe kończące się na ${creditBankAccount}.` : '. '}${expectedDate ? `Zwrot kosztów powinien zostać zrealizowany do ${expectedDate}.` : 'To zazwyczaj zajmuje 4–5 dni roboczych.'}`,
@@ -1560,7 +1574,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'na podstawie dotychczasowej aktywności',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `na podstawie <a href="${rulesLink}">zasad przestrzeni roboczej</a>` : 'na podstawie reguły przestrzeni roboczej'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `dla ${comment}` : 'wydatek'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Raport faktury nr ${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Raport faktury nr ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `Wysłano ${formattedAmount}${comment ? `za ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `przeniesiono wydatek z przestrzeni osobistej do ${workspaceName ?? `czat z ${reportName}`}`,
         movedToPersonalSpace: 'przeniesiono wydatek do przestrzeni prywatnej',
@@ -1622,6 +1636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Włącz portfel',
         hold: 'Wstrzymaj',
         sendToSomeone: 'Wyślij do kogoś',
+        submitToEmployer: 'Prześlij do mojego pracodawcy',
         unhold: 'Usuń blokadę',
         holdExpense: () => ({
             one: 'Wstrzymaj wydatek',
@@ -1882,7 +1897,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Wybierz szczegóły, które chcesz zachować:',
             noDifferences: 'Nie znaleziono różnic między transakcjami',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'włączony' : 'a';
+                const article = startsWithVowel(field) ? 'jeden' : 'a';
                 return `Wybierz ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Wybierz uczestników',
@@ -3145,7 +3160,13 @@ ${amount} dla ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
-    inboxTabs: {all: 'Wszystko', todo: 'Zadania do wykonania', unread: 'Nieprzeczytane'},
+    inboxTabs: {
+        all: 'Wszystko',
+        todo: 'Zadania do wykonania',
+        unread: 'Nieprzeczytane',
+        markAllAsRead: 'Oznacz wszystkie jako przeczytane',
+        markAllAsReadConfirmationPrompt: 'Czy na pewno chcesz oznaczyć wszystkie czaty jako przeczytane?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
         generatingPDF: 'Wygeneruj PDF',
@@ -4563,6 +4584,9 @@ ${amount} dla ${merchant} - ${date}`,
             workflows: 'Przepływy pracy',
             workspace: 'Przestrzeń robocza',
             findWorkspace: 'Znajdź przestrzeń roboczą',
+            active: 'Aktywna',
+            archived: 'Zarchiwizowana',
+            workspaceStatus: 'Status przestrzeni roboczej',
             findRoom: 'Znajdź pokój',
             edit: 'Edytuj przestrzeń roboczą',
             enabled: 'Włączone',
@@ -4891,6 +4915,9 @@ ${amount} dla ${merchant} - ${date}`,
         },
         qbo: {
             connectedTo: 'Połączono z',
+            entity: 'Jednostka',
+            entitySelectDescription: 'Wybierz jednostkę do zsynchronizowania z tym miejscem pracy.',
+            connectNewEntity: 'Połącz nowy podmiot',
             importDescription: (integrationName = 'QuickBooks Online') => `Wybierz, które konfiguracje kodowania zaimportować z ${integrationName} do Expensify.`,
             classes: 'Zajęcia',
             locations: 'Lokalizacje',
@@ -5878,10 +5905,16 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             addNewCard: {
                 other: 'Inne',
                 fileImport: 'Importuj transakcje z pliku',
-                createFileFeedHelpText: `<muted-text>Postępuj zgodnie z <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">tym przewodnikiem pomocy</a>, aby zaimportować wydatki z kart firmowych!</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: 'Na następnej stronie prześlesz plik CSV z transakcjami karty. ',
+                    templateLink: 'Pobierz nasz szablon',
+                    instructionMiddle: ' lub sprawdź nasz ',
+                    helpGuideLink: 'przewodnik pomocy',
+                    instructionEnd: ' przed przesłaniem.',
+                },
                 companyCardLayoutName: 'Nazwa układu karty firmowej',
                 cardLayoutNameRequired: 'Nazwa układu karty firmowej jest wymagana',
-                useAdvancedFields: 'Użyj pól zaawansowanych (niezalecane)',
+                downloadTemplate: 'Pobierz nasz szablon',
                 cardProviders: {
                     gl1025: 'Karty korporacyjne American Express',
                     cdf: 'Firmowe karty Mastercard',
@@ -5969,9 +6002,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     currency: 'Waluta',
                     ignore: 'Ignoruj',
                     originalTransactionDate: 'Data pierwotnej transakcji',
-                    originalAmount: 'Kwota pierwotna',
-                    originalCurrency: 'Pierwotna waluta',
-                    comment: 'Komentarz',
+                    originalAmount: 'Kwota zakupu',
+                    originalCurrency: 'Waluta zakupu',
+                    comment: 'Opis',
                     category: 'Kategoria',
                     tag: 'Tag',
                 },
@@ -6058,6 +6091,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             currentBalanceDescription: 'Bieżące saldo to suma wszystkich zaksięgowanych transakcji Kartą Expensify, które miały miejsce od ostatniej daty rozliczenia.',
             balanceWillBeSettledOn: (settlementDate: string) => `Saldo zostanie rozliczone w dniu ${settlementDate}`,
             settleBalance: 'Ureguluj saldo',
+            settleBalanceConfirmationTitle: 'Uregulować saldo?',
+            settleBalanceConfirmationPrompt:
+                'Spowoduje to uregulowanie bieżącego salda w następnym dniu roboczym. Po pomyślnym zakończeniu kwota zostanie ponownie dodana do pozostałego limitu.',
             cardLimit: 'Limit karty',
             remaining: 'Pozostało',
             remainingLimit: 'Pozostały limit',
@@ -6222,6 +6258,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
                 settings: {
                     autoAddTripName: {title: 'Dodaj nazwy podróży do wydatków', subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków za podróże zarezerwowane w Expensify.'},
+                    codingSync: {
+                        title: 'Synchronizuj kodowanie z Expensify Travel',
+                        subtitle: 'Przekaż kategorie, tagi i pola raportu tego workspace’u do Expensify Travel, żeby podróżujący odpowiadali na nie podczas rezerwacji.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -6296,6 +6336,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         spend: 'Kontrola wydatków i niestandardowe limity',
                     },
                     ctaTitle: 'Wydaj nową kartę',
+                    existingFeedTitle: 'Zarządzaj swoimi Kartami Expensify',
+                    viewCards: 'Zobacz karty',
                 },
             },
             companyCards: {
@@ -7301,6 +7343,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             yourWorkspace: `Twoje miejsce pracy jest ustawione na nieobsługiwaną walutę. Zobacz <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">listę obsługiwanych walut</a>.`,
             chooseAnExisting: 'Wybierz istniejące konto bankowe do opłacania wydatków lub dodaj nowe.',
             changeBankAccount: 'Zmień konto bankowe',
+            updateCurrencyForExpensifyCard: 'Karta Expensify jest dostępna do wydania w USD. Zmień tę przestrzeń roboczą na USD lub użyj innej przestrzeni roboczej.',
+            updateCurrencyForExpensifyCardTitle: 'Zdobądź Kartę Expensify',
+            euUkUpdateCurrencyForExpensifyCard: 'Karta Expensify jest dostępna do wydania w USD, GBP i EUR. Zmień walutę tego workspace’a na obsługiwaną albo użyj innego workspace’a.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Przenieś właściciela',
@@ -9935,6 +9980,19 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return 'Nie można automatycznie dopasować paragonu, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia.';
+                    }
+                    return isMarkAsCash
+                        ? `Nie można automatycznie dopasować paragonu, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia. Oznacz jako gotówkę, aby zignorować, lub <a href="${connectionLink}">połącz ponownie</a>, aby dopasować paragon.`
+                        : `Nie można automatycznie dopasować paragonu, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia. <a href="${connectionLink}">Połącz ponownie</a>, aby dopasować paragon.`;
+                }
+                return isAdmin
+                    ? `Połączenie z bankiem wymaga ponownego uwierzytelnienia. <a href="${companyCardPageURL}">Połącz ponownie, aby dopasować paragon</a>`
+                    : 'Połączenie z bankiem wymaga ponownego uwierzytelnienia. Poproś administratora o ponowne połączenie, aby dopasować paragon.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem.';
@@ -9957,6 +10015,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Oczekuje na rachunek z powodu przerwanego połączenia z bankiem. Rozwiąż problem w sekcji <a href="${workspaceCompanyCardRoute}">Karty firmowe</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Poproś administratora przestrzeni roboczej o rozwiązanie problemu.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Paragon oczekuje, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia. Rozwiąż problem w sekcji <a href="${workspaceCompanyCardRoute}">Karty firmowe</a>.</muted-text-label>`,
+        memberReauthConnectionError: 'Paragon oczekuje, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia. Poproś administratora przestrzeni roboczej o rozwiązanie problemu.',
         markAsCashToIgnore: 'Oznacz jako gotówkę, aby zignorować i poprosić o płatność.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
@@ -10155,6 +10216,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             title: 'Płatność',
             subtitle: 'Dodaj kartę, aby opłacić swoją subskrypcję Expensify.',
             addCardButton: 'Dodaj kartę płatniczą',
+            addPaymentCardTitle: 'Dodaj kartę płatniczą',
+            addCard: 'Dodaj kartę',
             cardInfo: (name: string, expiration: string, currency: string) => `Nazwa: ${name}, Data ważności: ${expiration}, Waluta: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Data Twojej następnej płatności to ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Karta kończąca się na ${cardNumber}`,
