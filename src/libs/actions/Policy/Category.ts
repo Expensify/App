@@ -1832,9 +1832,10 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
-/** Whether an expense rule is the tax default for this category. */
+/** Whether an expense rule is the tax default for this category. `applyWhen` is typed as required but comes from the
+ * backend, and Classic writes this same array, so a rule without one must not take the whole list down. */
 function matchesCategoryTaxRule(rule: ExpenseRule, categoryName: string): boolean {
-    return rule.applyWhen.some((when) => when.value === categoryName);
+    return !!rule.applyWhen?.some((when) => when.value === categoryName);
 }
 
 /** Builds the expense rule that carries a category's default tax rate. */
@@ -1869,7 +1870,7 @@ function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: M
             return rule;
         }
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        return {...rule, tax: {field_id_TAX: {...rule.tax.field_id_TAX, externalID: taxID}}};
+        return {...rule, tax: {field_id_TAX: {...rule.tax?.field_id_TAX, externalID: taxID}}};
     });
 
     const added = [...taxRatesByCategory.entries()].flatMap(([categoryName, taxID]) =>
