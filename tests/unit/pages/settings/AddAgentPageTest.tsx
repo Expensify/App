@@ -338,7 +338,7 @@ describe('AddAgentPage', () => {
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
             resolveOptimisticPersonalDetail?.();
             await Promise.resolve();
-            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID, undefined, undefined, ROUTES.SETTINGS_AGENTS));
         });
 
         it('forwards policyID from route params to createAgent', async () => {
@@ -349,7 +349,7 @@ describe('AddAgentPage', () => {
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, 'POL_42');
             resolveOptimisticPersonalDetail?.();
             await Promise.resolve();
-            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID, undefined, undefined, ROUTES.SETTINGS_AGENTS));
         });
 
         it('opens the DM in the RHP on wide layouts instead of the fullscreen report', async () => {

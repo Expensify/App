@@ -1,6 +1,7 @@
 import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {getConnectedHRProvider} from '@libs/HRUtils';
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -356,7 +357,7 @@ const createFilteredPoliciesInfoSelector =
         let filteredPoliciesCount = 0;
         let firstPolicyID: string | undefined;
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, false, email)) {
+            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
