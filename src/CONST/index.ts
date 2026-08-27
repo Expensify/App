@@ -496,7 +496,6 @@ const CONST = {
 
     PARSED_POLICY_RULE: {
         STATE: {
-            PARSING: 'parsing',
             RULE: 'rule',
             UNSUPPORTED: 'unsupported',
             MULTIPLE_RULES: 'multipleRules',

@@ -105,10 +105,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
     };
 
     const applyParsedRule = (rule: ParsedPolicyRule) => {
-        if (rule.state === CONST.PARSED_POLICY_RULE.STATE.PARSING) {
-            return;
-        }
-
         setParseID(undefined);
         clearParsedPolicyRule();
 

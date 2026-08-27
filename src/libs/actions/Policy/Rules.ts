@@ -435,11 +435,6 @@ function parsePolicyRule(policyID: string, prompt: string): string {
             key: ONYXKEYS.IS_LOADING_PARSED_POLICY_RULE,
             value: true,
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_PARSED_POLICY_RULE,
-            value: {parseID, state: CONST.PARSED_POLICY_RULE.STATE.PARSING},
-        },
     ];
 
     const failureData: AnyOnyxUpdate[] = [
