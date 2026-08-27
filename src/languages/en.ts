@@ -4646,9 +4646,9 @@ const translations = {
                 'Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard: 'Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelBlockManual:
-                'Looks like this hotel expense is part of a group or block booking. Next time, set up a Travel Event in Expensify to manage group hotel bookings and payments in one place — <a href="https://help.expensify.com/travel/hubs/event-management/">learn more</a> 🏨',
+                'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
             hotelBlockCard:
-                'Looks like this hotel expense is part of a group or block booking. Next time, set up a Travel Event in Expensify to manage group hotel bookings and payments in one place — <a href="https://help.expensify.com/travel/hubs/event-management/">learn more</a> 🏨',
+                'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
             carManual:
                 'Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard: 'Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
