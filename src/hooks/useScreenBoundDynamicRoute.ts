@@ -7,9 +7,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import {useState} from 'react';
 
 /**
- * Builds dynamic routes against the route this screen was last focused on, so a link created during render still
- * resolves once another screen is stacked over it. Focus is used rather than the route state because `useRoutePath`
- * returns only the dynamic suffix on a screen that is itself a dynamic route.
+ * Builds dynamic routes with `basePath` bound to the mounted route of the component using `useFocusEffect`,
+ * so a link created during render remains tied to that screen's route even after another screen is stacked over it.
  */
 function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) => Route {
     const [basePath, setBasePath] = useState<string | undefined>();
