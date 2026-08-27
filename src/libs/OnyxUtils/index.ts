@@ -10,8 +10,9 @@ function isSnapshotCompatibleKey(key: OnyxKey): boolean {
 }
 
 /**
- * Reads an Onyx key once. Throws for the Search snapshot keys, which `src/hooks/useOnyx.ts` redirects
- * to `snapshot_<hash>` in a way `Onyx.get` cannot see.
+ * Throws for the Search snapshot keys, which `src/hooks/useOnyx.ts` redirects to `snapshot_<hash>` in a
+ * way `Onyx.get` cannot see. The throw is synchronous despite the `Promise` return type, because a
+ * restricted key is a programming error rather than a data condition.
  */
 function get<TKey extends OnyxKey>(key: TKey): Promise<OnyxValue<TKey>> {
     if (isSnapshotCompatibleKey(key)) {

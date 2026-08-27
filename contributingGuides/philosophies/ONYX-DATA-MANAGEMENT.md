@@ -91,7 +91,7 @@ function ReportTitle({reportID}: Props) {
 ```
 
 ### - A function that reads with `Onyx.get()` MUST NOT be passed where render can call it
-Passing the function as a prop moves the decision into the receiving component, and neither file shows the defect alone: the read is correct where it is written and the call site is in another file. A prop named for an event (`onPress`, `onSelectRow`) that the child only attaches to an event is fine. A prop the child invokes in its own body, in its JSX, or in a `useMemo` is a render read. Check the receiver before passing a reader down, and check it again when a new receiver appears.
+Passing the function as a prop moves the decision into the receiving component: the read is correct where it is written, and the call that breaks it is in another file. A prop named for an event (`onPress`, `onSelectRow`) that the child only attaches to an event is fine. A prop the child invokes in its own body, in its JSX, or in a `useMemo` is a render read. Check the receiver before passing a reader down, and check it again when a new receiver appears.
 
 ```typescript
 // BAD ❌ src/pages/ReportScreen.tsx passes a reader down
@@ -106,7 +106,7 @@ function ReportRow({getTotal}: Props) {
 ### - Every caller of a function that reads with `Onyx.get()` MUST also be off the render path
 A read written correctly in a library function becomes a render-time read the moment a component or hook calls that function, and neither file shows the problem on its own. Adding the call is enough to break it, so a diff containing no Onyx code at all can be the diff that introduces the defect. Either take the value as a parameter, or keep every caller off the render path and check that again whenever a caller is added.
 
-A widely called function usually cannot host the read at all, and the count of callers that would benefit says nothing about it: one render call site anywhere in `src/` decides it. Sweep every call site before moving a read down into a shared function.
+A widely called function usually cannot host the read at all. One render call site anywhere in `src/` settles it, however many callers would benefit, so sweep every call site before moving a read down into a shared function.
 
 ```typescript
 // src/libs/ReportUtils.ts, correct in isolation
@@ -144,7 +144,7 @@ const derived = Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);   // still the old
 ### - `Onyx.get()` MUST NOT run at module scope
 A module body runs at import time and cannot `await`, so the value can only reach a module variable through `.then()`, where it is a one-shot snapshot that never updates when the key changes. Move the read into the function that needs it, so it runs at event time and reads the current value. When a module genuinely has to track a key, subscribe with `Onyx.connectWithoutView()` rather than caching one read.
 
-Hydration is not the reason. `Onyx.get()` resolves only after `Onyx.init()` has hydrated the cache, so a read cannot beat the cache into existence, and a boot-path read is no longer a hazard on that count.
+Hydration is not the reason. `Onyx.get()` resolves only after `Onyx.init()` has hydrated the cache, so a boot-path read is no longer a hazard on that count.
 
 ```typescript
 // BAD ❌ a snapshot taken at import time, stale from the next write onwards
@@ -185,10 +185,17 @@ const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 const named = {...report, reportName: report?.reportName ?? CONST.REPORT.DEFAULT_NAME};
 ```
 
-### - A subscription that Search redirects to a snapshot MUST stay on `useOnyx`
-`@hooks/useOnyx` is not the library hook. Inside a `SearchScopeProvider` subtree it rewrites the key: for the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` it subscribes to `snapshot_<hash>` and extracts the requested key out of that blob. `Onyx.get()` always reads the global key.
+### - The Search snapshot keys MUST stay on `useOnyx`
+`@hooks/useOnyx` is not the library hook. Inside a `SearchScopeProvider` subtree it rewrites the key: for the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` it subscribes to `snapshot_<hash>` and extracts the requested key out of that blob. `Onyx.get()` always reads the global key, so a conversion on one of them would silently swap snapshot data for live data.
 
-Before converting one of those keys, establish which subtree the read renders in. Grep for `SearchScopeProvider` to find the current mounts and walk upwards from the reading component. A component behind `<SearchScopeProvider isOnSearch={false}>` was already reading the global collection and converts like any other, but check which side of that boundary the read is on: a provider in the JSX return governs the children, not the hooks above it in the same body. Everything else reachable from a default-scoped provider keeps its subscription. 
+Nothing here is left to judgment. `@libs/OnyxUtils.get` throws on these keys, and `no-unsafe-onyx-read` rejects a call whose key statically resolves to one of them, so a conversion fails at lint time and again at runtime. There is no provider tree to walk: the keys are simply off limits, whichever subtree the read sits in.
+
+```typescript
+// BAD ❌ throws, and lint rejects it first
+const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+```
+
+The list is `report_`, `policy_`, `transactions_`, `transactionViolations_`, `reportActions_`, `personalDetailsList` and `reportNameValuePairs_`. `tests/unit/libs/OnyxUtilsTest.ts` fails if the lint deny-list and `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` drift apart. If the snapshot redesign ever makes these keys pointer-based, the ban can be lifted in one place.
 
 ### - A subscription that exists to trigger work MUST NOT be replaced with `Onyx.get()`
 Ask what each subscription is for. A **source** supplies a value the code reads. A **trigger** schedules work when the key changes, and the value it carries is incidental. Converting a trigger makes the dependency stable and the effect stops re-running. No position check catches it, because nothing renders the value and nothing reads it during render. What does catch the two plainest shapes is the diff itself: a `useOnyx` deleted while a read of the same key appears inside an effect body, and a `useOnyx` deleted along with the variable's name in a dependency array. Anything longer than one hop stays manual. The chain hides easily: a value feeding a `useCallback` that feeds another `useCallback` that reaches an effect's dependency array is still a trigger, and a wrapper such as `useDebounce(useCallback(fn, deps))` swallows a link.

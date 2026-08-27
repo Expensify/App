@@ -68,7 +68,7 @@ const meta = {
             'Do not read Onyx after writing it in the same tick. Onyx.get() samples the cache when it is called and the Promise only defers delivery, so awaiting the read cannot wait for a pending write. Which writes land before returning is version-dependent and a set inside update() is deferred either way, so no write is exempt here.\n\n' +
             'Do all of the reads before the first write, or await the write before reading. Reads of keys the tick has not written are always current.',
         noDirectOnyxGet:
-            'Do not read Onyx straight from the library. {{readSurface}} is this repo\'s read surface and refuses the Search snapshot keys, which src/hooks/useOnyx.ts redirects to snapshot_<hash> in a way the library cannot see. Reading around it returns live data where the component would have seen the snapshot.\n\n' +
+            "Do not read Onyx straight from the library. {{readSurface}} is this repo's read surface and refuses the Search snapshot keys, which src/hooks/useOnyx.ts redirects to snapshot_<hash> in a way the library cannot see. Reading around it returns live data where the component would have seen the snapshot.\n\n" +
             'Import the wrapper from {{readSurface}} and call its get() instead.',
         noForbiddenKeyRead:
             'Do not read {{key}} with Onyx.get(). src/hooks/useOnyx.ts redirects this key to snapshot_<hash> inside a SearchScopeProvider, and a one-shot read cannot see that redirect, so it returns live data where the component would have seen the snapshot.\n\n' +
@@ -78,8 +78,6 @@ const meta = {
             'Spread it first, or build the change into a new object.',
     },
 };
-
-// --- AST helpers ---------------------------------------------------------------------------------
 
 function isFunctionNode(node) {
     return node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression';
@@ -93,7 +91,6 @@ function isComponentName(functionName) {
     return /^[A-Z]/.test(functionName);
 }
 
-/** The name a function is known by: its own identifier, or the binding it is assigned to. */
 function getFunctionName(functionNode, parent) {
     if (functionNode.id?.type === 'Identifier') {
         return functionNode.id.name;
@@ -129,7 +126,6 @@ function returnsJSX(functionNode) {
     return body.body.some((statement) => statement.type === 'ReturnStatement' && (statement.argument?.type === 'JSXElement' || statement.argument?.type === 'JSXFragment'));
 }
 
-/** The static name a key node stands for, covering both `a.b` and `a['b']`. */
 function getStaticName(keyNode, computed) {
     if (!computed && keyNode.type === 'Identifier') {
         return keyNode.name;
@@ -183,8 +179,6 @@ function getVariableByName(scope, variableName) {
     return null;
 }
 
-// --- Position: render, module scope, or event time ------------------------------------------------
-
 /**
  * `SYNCHRONOUS` means the boundary is transparent, an IIFE or an array callback, so a walk outwards
  * continues through it.
@@ -218,10 +212,6 @@ function classifyFunctionBoundary(functionNode, parent) {
 }
 
 /**
- * Where a read runs. Walking outwards, the first boundary that decides the timing wins: a deferring
- * boundary (an event handler, useCallback, useEffect, a nested helper) means event time, a component or
- * hook body or a useMemo callback means render, and no boundary at all means import time.
- *
  * A JSX expression sets a flag rather than deciding on the spot, so a read written straight into JSX at
  * module scope is reported as the module-scope read it is. Inside any boundary the flag still wins.
  */
@@ -258,9 +248,6 @@ function classifyPosition(ancestors) {
     return MODULE_SCOPE;
 }
 
-// --- Order: a read after an un-awaited write in the same body -------------------------------------
-
-/** Whether a boundary runs in its caller's own tick, so it moves nothing out of the surrounding body. */
 function isTransparentBoundary(functionNode, parent) {
     return classifyFunctionBoundary(functionNode, parent) === SYNCHRONOUS;
 }
@@ -274,7 +261,6 @@ function getAwaitingBody(ancestors) {
     return ancestors.findLast(isFunctionNode) ?? null;
 }
 
-/** The body a node runs in, which is the innermost enclosing function once transparent boundaries are seen through. */
 function getEnclosingBody(ancestors) {
     for (let index = ancestors.length - 1; index >= 0; index--) {
         const ancestor = ancestors[index];
@@ -287,10 +273,7 @@ function getEnclosingBody(ancestors) {
     return null;
 }
 
-/**
- * Whether the call settles before the surrounding statement finishes. Only a syntactic `await` counts,
- * reached through expressions such as `Promise.all([...])`.
- */
+/** Only a syntactic `await` counts, reached through expressions such as `Promise.all([...])`. */
 function isAwaited(ancestors) {
     for (let index = ancestors.length - 1; index >= 0; index--) {
         const ancestor = ancestors[index];
@@ -308,10 +291,9 @@ function isAwaited(ancestors) {
 }
 
 /**
- * Whether the body suspends between the write and the read. The rule polices reads that run in the
- * write's own tick, and an `await` ends that tick: the body stops there and the read resumes in a later
- * one, after the queued write has had its turn. `await waitForBatchedUpdates()` in tests is this shape,
- * and so is awaiting the write's promise indirectly, through a handle taken earlier in the body.
+ * An `await` ends the write's tick: the read resumes in a later one, after the queued write has had its
+ * turn. `await waitForBatchedUpdates()` in tests is this shape, and so is awaiting the write's promise
+ * indirectly, through a handle taken earlier in the body.
  */
 function isSeparatedByAwait(awaits, write, read) {
     return awaits.some((awaitNode) => awaitNode.range.at(0) >= write.node.range.at(1) && awaitNode.range.at(1) <= read.node.range.at(0));
@@ -384,7 +366,6 @@ function isProvablyDifferentKey(writeCall, readCall) {
     return writeSegments.length === readSegments.length && writeSegments.slice(0, -1).join('.') === readSegments.slice(0, -1).join('.');
 }
 
-/** The identifier a member chain starts from, so `a.b.c` traces back to `a`. */
 function getRootIdentifier(node) {
     let current = node;
 
@@ -424,7 +405,6 @@ function isCacheOwnedInit(node, isReadCall) {
     return false;
 }
 
-/** Statements that leave the enclosing function, so nothing after them in that body runs. */
 const EXITING_STATEMENTS = new Set(['ReturnStatement', 'ThrowStatement']);
 
 function endsByExiting(block) {
@@ -448,7 +428,6 @@ function exitsBeforeRead(write, read) {
     return write.ancestors.some((ancestor) => ancestor.type === 'BlockStatement' && !readAncestors.has(ancestor) && endsByExiting(ancestor));
 }
 
-/** The two nodes' ancestor chains diverge here: the shared parent, and the child of it each one sits under. */
 function findDivergence(write, read) {
     // The calls themselves are the last link, since they can be a branch: `cond ? write() : read()`.
     const writeChain = [...write.ancestors, write.node];
@@ -468,7 +447,6 @@ function findDivergence(write, read) {
     return null;
 }
 
-/** Whether only one of the two calls can run, so the write cannot have happened by the time the read does. */
 function areMutuallyExclusive(write, read) {
     const divergence = findDivergence(write, read);
 
@@ -488,9 +466,7 @@ function areMutuallyExclusive(write, read) {
 }
 
 /**
- * Flags the three ways an Onyx read goes wrong: during render, at module scope, and after an un-awaited
- * write in the same body. Hydration is absent on purpose, since `Onyx.get` resolves only after
- * `Onyx.init`.
+ * Hydration is not one of the axes: `Onyx.get` resolves only after `Onyx.init`.
  *
  * One read gets one message, position first.
  *
@@ -528,7 +504,6 @@ function create(context) {
         return isOnyxMember(node.callee, scope, READ_METHODS) || (!!calleeVariable && readAliases.has(calleeVariable));
     }
 
-    /** Reports when `node` writes through a binding that holds a value the cache owns. */
     function reportIfCacheOwned(node, target, scope) {
         const root = getRootIdentifier(target);
         const variable = root ? getVariableByName(scope, root.name) : null;

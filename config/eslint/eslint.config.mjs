@@ -668,10 +668,8 @@ const config = defineConfig([
             // This helps disable the `prefer-alias` rule for tests
             '@dword-design/import-alias/prefer-alias': ['off'],
 
-            // Tests read Onyx directly to assert stored state: no SearchScopeProvider exists to redirect
-            // them, and some have to assert on the very keys the wrapper refuses. The position and
-            // ordering checks still apply.
-            // Passing options explicitly: a bare severity would inherit the ones set above.
+            // Tests assert on the very keys the wrapper refuses, and no SearchScopeProvider exists to
+            // redirect them. Options are passed explicitly because a bare severity inherits the ones above.
             'rulesdir/no-unsafe-onyx-read': ['error', {}],
 
             'testing-library/await-async-queries': 'error',

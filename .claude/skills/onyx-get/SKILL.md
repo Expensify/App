@@ -9,9 +9,9 @@ description: Onyx.get() reads an Onyx key once, asynchronously, and never subscr
 
 In EApp every read goes through `@libs/OnyxUtils.get`, which throws for the Search snapshot keys.
 
-`npm run lint-changed` runs `no-unsafe-onyx-read`, which checks three things: not during render, not at module scope, and not after an un-awaited write in the same body. A clean run is not a verdict on the rest.
+`npm run lint-changed` runs `no-unsafe-onyx-read`, which checks three things: not during render, not at module scope, and not after an un-awaited write in the same body. It does not check anything below.
 
-Two properties the rules rest on. The read samples the cache when it is called and the Promise only defers delivery, so `await` cannot wait for a write queued before it. And the result is the cached object itself rather than a copy, so mutating a single-key result corrupts the cache with no subscriber notified.
+The rules rest on two properties of the read. It samples the cache when it is called and the Promise only defers delivery, so `await` cannot wait for a write queued before it. Its result is the cached object itself rather than a copy, so mutating a single-key result corrupts the cache with no subscriber notified.
 
 `Onyx.get` resolves only after `Onyx.init`.
 

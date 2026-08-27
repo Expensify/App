@@ -46,7 +46,6 @@ const DIRECT_ERRORS = [{messageId: 'noDirectOnyxGet'}];
 const FORBIDDEN_KEY_ERRORS = [{messageId: 'noForbiddenKeyRead'}];
 const MUTATION_ERRORS = [{messageId: 'noMutatedOnyxRead'}];
 
-/** Mirrors what `config/eslint/eslint.config.mjs` passes the rule. */
 const OPTIONS = [
     {
         readSurface: '@libs/OnyxUtils',
@@ -80,7 +79,6 @@ const OPTIONS = [
 describe('no-unsafe-onyx-read', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
         valid: [
-            // The sanctioned position: inside a function, so it runs when something calls it.
             `${WRAPPER_IMPORT} function buildPayload(reportID) { return OnyxUtils.get(reportID); }`,
             {code: `${WRAPPER_IMPORT} export async function submit() { return OnyxUtils.get(ONYXKEYS.SESSION); }`, options: OPTIONS},
             {code: `${WRAPPER_IMPORT} export async function submit() { return OnyxUtils.get(ONYXKEYS.COLLECTION.REPORT_DRAFT); }`, options: OPTIONS},
@@ -92,13 +90,11 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} const handlers = {onPress: () => Onyx.get(key)};`,
             `${ONYX_IMPORT} class Store { read() { return Onyx.get(key); } }`,
 
-            // Event handlers, however they are written.
             `${ONYX_IMPORT} function Row() { const onPress = () => Onyx.get(key); return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} function Row() { return <View onPress={() => Onyx.get(key)} />; }`,
             `${ONYX_IMPORT} function Row() { function onPress() { return Onyx.get(key); } return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} function Row() { const onPress = async () => { await save(); return Onyx.get(key); }; return <View onPress={onPress} />; }`,
 
-            // Hook callbacks that do not run during render.
             `${ONYX_IMPORT} function Row() { const onPress = useCallback(() => Onyx.get(key), []); return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} function Row() { useEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
             `${ONYX_IMPORT} function Row() { useLayoutEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
@@ -115,7 +111,6 @@ describe('no-unsafe-onyx-read', () => {
             'const initialValue = window.Onyx.get(key);',
             'function Row() { return <View onLoad={window.Onyx.get(key)} />; }',
 
-            // A write on its own is not this rule's business, wherever it sits.
             `${ONYX_IMPORT} Onyx.merge(key, value);`,
             `${ONYX_IMPORT} Onyx.init({keys: ONYXKEYS});`,
             `${ONYX_IMPORT} function Row() { Onyx.merge(key, value); return <View />; }`,
@@ -132,11 +127,9 @@ describe('no-unsafe-onyx-read', () => {
             // An aliased read is still deferred when it sits in a handler.
             `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; function Row() { const onPress = () => get(key); return <View onPress={onPress} />; }`,
 
-            // The sanctioned order: read first, then write.
             `${ONYX_IMPORT} function submit() { const draft = Onyx.get(key); Onyx.merge(key, {...draft, sent: true}); }`,
             `${ONYX_IMPORT} function submit() { const a = Onyx.get(keyA); const b = Onyx.get(keyB); Onyx.update([{onyxMethod: 'merge', key: keyA, value: b}]); }`,
 
-            // Awaited, so the write has landed by the time the read runs.
             `${ONYX_IMPORT} async function submit() { await Onyx.merge(key, value); return Onyx.get(key); }`,
             `${ONYX_IMPORT} async function submit() { await Promise.all([Onyx.merge(keyA, value), Onyx.merge(keyB, value)]); return Onyx.get(keyA); }`,
             `${ONYX_IMPORT} const submit = async () => { await Onyx.update(operations); return Onyx.get(key); };`,
@@ -149,7 +142,6 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} async function submit() { Onyx.update(operations); await waitForBatchedUpdates(); return Onyx.get(key); }`,
             `${ONYX_IMPORT} async function submit() { const promises = [Onyx.merge(keyA, value), Onyx.merge(keyB, value)]; await Promise.all(promises); return Onyx.get(keyA); }`,
 
-            // Different bodies, so nothing here says the read runs in the write's tick.
             `${ONYX_IMPORT} function write() { Onyx.merge(key, value); } function read() { return Onyx.get(key); }`,
             `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); setTimeout(() => Onyx.get(key), 0); }`,
             `${ONYX_IMPORT} function submit() { Onyx.merge(key, value).then(() => Onyx.get(key)); }`,
@@ -175,9 +167,6 @@ describe('no-unsafe-onyx-read', () => {
             'const Onyx = {merge: () => {}, get: () => undefined}; function submit() { Onyx.merge(key, value); return Onyx.get(key); }',
         ],
         invalid: [
-            // ---------------------------------------------------------------------------------------
-            // Mutating the read result, which is the cached object itself
-            // ---------------------------------------------------------------------------------------
 
             {code: `${WRAPPER_IMPORT} async function f(key) { const report = await OnyxUtils.get(key); report.name = 'x'; return report; }`, errors: MUTATION_ERRORS},
             {code: `${WRAPPER_IMPORT} async function f(key) { const report = await OnyxUtils.get(key); report.name ??= 'x'; return report; }`, errors: MUTATION_ERRORS},
@@ -186,12 +175,7 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${WRAPPER_IMPORT} async function f(key) { const report = await OnyxUtils.get(key); Object.assign(report, {name: 'x'}); return report; }`, errors: MUTATION_ERRORS},
             {code: `${WRAPPER_IMPORT} async function f(key) { const report = await OnyxUtils.get(key); report.items.push(1); return report; }`, errors: MUTATION_ERRORS},
 
-            // A nested value off the read is still the cache's own object.
             {code: `${WRAPPER_IMPORT} async function f(key) { const actions = (await OnyxUtils.get(key))?.actions; actions.latest = 1; return actions; }`, errors: MUTATION_ERRORS},
-
-            // ---------------------------------------------------------------------------------------
-            // The EApp wrapper is the read surface the migration uses, so every check applies to it too
-            // ---------------------------------------------------------------------------------------
 
             {code: `${WRAPPER_IMPORT} function Row() { const value = OnyxUtils.get(key); return <View value={value} />; }`, errors: RENDER_ERRORS},
 
@@ -213,16 +197,11 @@ describe('no-unsafe-onyx-read', () => {
                 errors: READ_AFTER_WRITE_ERRORS,
             },
 
-            // ---------------------------------------------------------------------------------------
-            // Render position
-            // ---------------------------------------------------------------------------------------
-
             // The two shapes that reach a read from render now that a component cannot await one.
             {code: `${ONYX_IMPORT} function Row() { const value = use(Onyx.get(key)); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { Onyx.get(key).then(setValue); return <View />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function useReportName() { return use(Onyx.get(key)); }`, errors: RENDER_ERRORS},
 
-            // The plain case, in a component and in a hook.
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx.get(key); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} const Row = () => { const value = Onyx.get(key); return <View value={value} />; };`, errors: RENDER_ERRORS},
             {code: `${ONYX_UTILS_IMPORT} function useThing() { return OnyxUtils.get(key); }`, errors: RENDER_ERRORS},
@@ -234,7 +213,6 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} const Row = memo(function () { const value = Onyx.get(key); return <View value={value} />; });`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} const Row = forwardRef((props, ref) => { const value = Onyx.get(key); return <View ref={ref} value={value} />; });`, errors: RENDER_ERRORS},
 
-            // Inside JSX, which is evaluated as the element is built.
             {code: `${ONYX_IMPORT} function Row() { return <Text>{Onyx.get(key)}</Text>; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { return <View style={Onyx.get(key)} />; }`, errors: RENDER_ERRORS},
 
@@ -246,18 +224,15 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function Row() { const values = ids.map((id) => Onyx.get(id)); return <View values={values} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const values = ids.filter((id) => Onyx.get(id)).map((id) => id); return <View values={values} />; }`, errors: RENDER_ERRORS},
 
-            // Every synchronous read API, and both member access forms.
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx['get'](key); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const values = Onyx.multiGet(keys); return <View values={values} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const values = Onyx.tupleGet(keys); return <View values={values} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const allKeys = Onyx.getAllKeys(); return <View allKeys={allKeys} />; }`, errors: RENDER_ERRORS},
 
-            // Aliased reads, destructured and assigned.
             {code: `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; function Row() { const value = get(key); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_UTILS_IMPORT} const {get: readOnyx} = OnyxUtils; function Row() { const value = readOnyx(key); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_UTILS_IMPORT} const readOnyx = OnyxUtils.get; function Row() { const value = readOnyx(key); return <View value={value} />; }`, errors: RENDER_ERRORS},
 
-            // Two reads in one render body report twice.
             {
                 code: `${ONYX_IMPORT} function Row() { const a = Onyx.get(keyA); const b = Onyx.get(keyB); return <View a={a} b={b} />; }`,
                 errors: [{messageId: 'noOnyxGetInRender'}, {messageId: 'noOnyxGetInRender'}],
@@ -267,11 +242,6 @@ describe('no-unsafe-onyx-read', () => {
             // boundary alone says otherwise: the name is lowercase and the return argument is an identifier.
             {code: `${ONYX_IMPORT} function row() { const el = <View a={Onyx.get(key)} />; return el; }`, errors: RENDER_ERRORS},
 
-            // ---------------------------------------------------------------------------------------
-            // Module scope
-            // ---------------------------------------------------------------------------------------
-
-            // The plain case: a value captured at import time.
             {code: `${ONYX_IMPORT} const initialValue = Onyx.get(key);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_UTILS_IMPORT} const initialValue = OnyxUtils.get(key);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_IMPORT} export const session = Onyx.get(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
@@ -283,18 +253,15 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} const values = keys.map((key) => Onyx.get(key));`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_IMPORT} const present = keys.filter((key) => Onyx.get(key)).map((key) => key);`, errors: MODULE_SCOPE_ERRORS},
 
-            // Every synchronous read API, and both member access forms.
             {code: `${ONYX_IMPORT} const initialValue = Onyx['get'](key);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_IMPORT} const values = Onyx.multiGet(keys);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_IMPORT} const values = Onyx.tupleGet(keys);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_IMPORT} const allKeys = Onyx.getAllKeys();`, errors: MODULE_SCOPE_ERRORS},
 
-            // Aliased reads, destructured and assigned.
             {code: `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; const initialValue = get(key);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_UTILS_IMPORT} const {get: readOnyx} = OnyxUtils; const initialValue = readOnyx(key);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_UTILS_IMPORT} const readOnyx = OnyxUtils.get; const initialValue = readOnyx(key);`, errors: MODULE_SCOPE_ERRORS},
 
-            // Two reads at module scope report twice.
             {
                 code: `${ONYX_IMPORT} const a = Onyx.get(keyA); const b = Onyx.get(keyB);`,
                 errors: [{messageId: 'noOnyxReadAtModuleScope'}, {messageId: 'noOnyxReadAtModuleScope'}],
@@ -307,10 +274,6 @@ describe('no-unsafe-onyx-read', () => {
             // Module scope outranks the order check too: the read never had a live cache to be stale against.
             {code: `${ONYX_IMPORT} Onyx.merge(key, value); const restored = Onyx.get(key);`, errors: MODULE_SCOPE_ERRORS},
 
-            // ---------------------------------------------------------------------------------------
-            // Read after an un-awaited write
-            // ---------------------------------------------------------------------------------------
-
             // Every write API, since relying on which ones are visible synchronously is the fragile part.
             {code: `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} function submit() { Onyx.update(operations); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
@@ -321,7 +284,6 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function submit() { Onyx.clear(); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} function submit() { Onyx['merge'](key, value); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
 
-            // Every read API.
             {code: `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); return Onyx.multiGet(keys); }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); return Onyx.tupleGet(keys); }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); return Onyx.getAllKeys(); }`, errors: READ_AFTER_WRITE_ERRORS},
@@ -373,7 +335,6 @@ describe('no-unsafe-onyx-read', () => {
                 errors: READ_AFTER_WRITE_ERRORS,
             },
 
-            // Aliased read, and aliased write.
             {code: `${ONYX_IMPORT} const {get} = Onyx; function submit() { Onyx.merge(key, value); return get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} const {merge} = Onyx; function submit() { merge(key, value); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
 
@@ -381,7 +342,6 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function submit() { Onyx.merge(key, value), use(Onyx.get(key)); }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} function submit() { try { Onyx.merge(key, value); } catch (error) { use(Onyx.get(key)); } }`, errors: READ_AFTER_WRITE_ERRORS},
 
-            // Two reads after one write report twice.
             {
                 code: `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); return [Onyx.get(keyA), Onyx.get(keyB)]; }`,
                 errors: [{messageId: 'noOnyxReadAfterWrite'}, {messageId: 'noOnyxReadAfterWrite'}],

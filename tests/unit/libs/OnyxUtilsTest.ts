@@ -1,5 +1,3 @@
-import fs from 'fs/promises';
-
 import OnyxUtils from '@libs/OnyxUtils';
 
 import CONST from '@src/CONST';
@@ -7,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxKey} from 'react-native-onyx';
 
+import fs from 'fs/promises';
 import Onyx from 'react-native-onyx';
 
 jest.mock('react-native-onyx', () => ({
@@ -34,8 +33,7 @@ describe('OnyxUtils', () => {
 
         const resolve = (path: string) => path.split('.').reduce<unknown>((value, part) => (value as Record<string, unknown>)?.[part], ONYXKEYS);
 
-        // The rule matches on the written key path, so the list is dotted paths rather than values.
-        // Resolving them against ONYXKEYS is what proves the two lists describe the same keys.
+        // The rule matches on the written key path, so the two lists only line up once resolved.
         expect(configured.map(resolve)).toEqual([...CONST.SEARCH.SNAPSHOT_ONYX_KEYS]);
     });
 
