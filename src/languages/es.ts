@@ -8169,7 +8169,7 @@ ${reportName}`,
                             ? `Las reglas de ${area} aún no son compatibles: estamos trabajando en ello. Prueba con otra regla por ahora.`
                             : 'Esa regla aún no es compatible: estamos trabajando en ello. Prueba con otra regla por ahora.',
                     unintelligible: 'Prueba a formular tu regla así: si los gastos superan los $100, exige un recibo.',
-                    multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear la compra de tarjetas regalo.',
+                    multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear compras en comercios minoristas en todas las tarjetas.',
                 },
             },
             expenseDefaultsTable: {

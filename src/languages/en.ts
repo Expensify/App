@@ -8164,7 +8164,7 @@ const translations = {
                             ? `${area} rules aren't supported yet — we're working on it. Please try a different rule for now.`
                             : "That rule isn't supported yet — we're working on it. Please try a different rule for now.",
                     unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
-                    multipleRules: 'One rule at a time, please — try describing a single rule, like: block gift card purchases.',
+                    multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
                 },
             },
             expenseDefaultsTable: {

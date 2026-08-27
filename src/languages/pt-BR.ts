@@ -8160,7 +8160,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                             ? `Regras de ${area} ainda não têm suporte — estamos trabalhando nisso. Tente uma regra diferente por enquanto.`
                             : 'Essa regra ainda não tem suporte — estamos trabalhando nisso. Tente uma regra diferente por enquanto.',
                     unintelligible: 'Tente formular sua regra assim: se a despesa for maior que $100, exija um recibo.',
-                    multipleRules: 'Uma regra por vez, por favor — tente descrever uma única regra, como: bloquear a compra de cartões-presente.',
+                    multipleRules: 'Uma regra por vez, por favor — tente descrever uma única regra, como: bloquear compras no varejo em todos os cartões.',
                 },
             },
             expenseDefaultsTable: {

@@ -8181,7 +8181,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                             ? `Reguły „${area}” nie są jeszcze obsługiwane — pracujemy nad tym. Na razie spróbuj innej reguły.`
                             : 'Ta reguła nie jest jeszcze obsługiwana — pracujemy nad tym. Na razie spróbuj innej reguły.',
                     unintelligible: 'Spróbuj sformułować regułę tak: jeśli wydatek przekracza 100 $, wymagaj paragonu.',
-                    multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakup kart podarunkowych.',
+                    multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakupy detaliczne na wszystkich kartach.',
                 },
             },
             expenseDefaultsTable: {
