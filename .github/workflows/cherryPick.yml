@@ -252,7 +252,16 @@ jobs:
             fi
 
             # Push E/App changes
-            git push origin ${{ inputs.TARGET }}
+            if ! git push origin ${{ inputs.TARGET }}; then
+              echo "E/App target branch advanced during the push; reconciling once before retrying."
+              git fetch origin ${{ inputs.TARGET }} --no-recurse-submodules --no-tags
+              if ! git rebase origin/${{ inputs.TARGET }}; then
+                echo "::error::❌ Failed to rebase E/App changes onto the updated ${{ inputs.TARGET }} branch."
+                git rebase --abort || true
+                exit 1
+              fi
+              git push origin ${{ inputs.TARGET }}
+            fi
           fi
 
       - name: Warn that previous deploy was superseded

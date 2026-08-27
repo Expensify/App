@@ -1337,3 +1337,22 @@ describe('shouldShowPerDiemTabOption', () => {
         expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.TRACK, false, false, false)).toBe(false);
     });
 });
+
+describe('isLookingAroundSearchRoutingActive', () => {
+    // This is the single source of truth for the LOOKING_AROUND "route the self-DM create to Spend > Expenses" gate,
+    // shared by the confirmation step and every skip-confirmation flow. The critical property is that it is FALSE while
+    // offline (Search can't load its server snapshot offline, so those users fall back to the self-DM landing), which is
+    // the routing flag the PR must keep in sync across all create paths.
+    it('routes to Search when a LOOKING_AROUND user is online', () => {
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(true, false)).toBe(true);
+    });
+
+    it('is suppressed while offline for a LOOKING_AROUND user (falls back to the self-DM landing)', () => {
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(true, true)).toBe(false);
+    });
+
+    it('is inactive for a non-LOOKING_AROUND user, online or offline', () => {
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(false, false)).toBe(false);
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(false, true)).toBe(false);
+    });
+});

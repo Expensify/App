@@ -1,5 +1,5 @@
 context platform=web
-# @desc   Send a chat message from inside an already-open chat. Reusable helper for setting up state in other flows. Does not navigate or open a chat - assumes the composer is visible. For the flow that measures the ManualSendMessage Sentry span, see measure-telemetry-span/flows/send-message.ad.
+# @desc   Send a chat message from inside an already-open chat. Reusable helper for setting up state in other flows. Does not navigate or open a chat - assumes the composer is visible. For the flow that measures the ManualSendMessageVisible Sentry span, see measure-telemetry-span/flows/send-message.ad.
 # @pre    role="textbox" label="Write something..."
 # @post   role="textbox" label="Write something..."
 # @param  MESSAGE Message text to send in the currently open chat.

@@ -54,7 +54,7 @@ function FreeTrialSection() {
         return null;
     }
 
-    const title = translate('homePage.freeTrialSection.title', {days: daysLeft});
+    const title = translate('homePage.freeTrialSection.title', {count: daysLeft});
 
     let bodyText: string;
     let ctaText: string;
