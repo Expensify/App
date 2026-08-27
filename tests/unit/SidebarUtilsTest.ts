@@ -2904,6 +2904,137 @@ describe('SidebarUtils', () => {
             expect(employeePaysResult?.alternateText).toBe('updated the currency conversion fee setting to "Employee pays"');
         });
 
+        it('returns the correct alternate text for UPDATE_OVER_LIMIT_FORWARDS_TO action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const member = {email: 'member@example.com', name: 'Member', accountID: 100};
+            const approver = {email: 'approver@example.com', name: 'Approver', accountID: 200};
+            const setAction: ReportAction = {
+                ...createRandomReportAction(6),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 10000, currency: 'USD'},
+            };
+            const setReportActions: ReportActions = {[setAction.reportActionID]: setAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, setReportActions);
+            });
+
+            const setResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: setAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(setResult?.alternateText).toBe('changed the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+
+            const removedAction: ReportAction = {
+                ...createRandomReportAction(7),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                originalMessage: {member, previousOverLimitForwardsTo: approver, previousLimit: 10000, currency: 'USD'},
+            };
+            const removedReportActions: ReportActions = {[removedAction.reportActionID]: removedAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, removedReportActions);
+            });
+
+            const removedResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: removedAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(removedResult?.alternateText).toBe(
+                'changed the approval workflow for member@example.com to stop forwarding reports over the $100.00 limit (previously forwarded to approver@example.com)',
+            );
+        });
+
+        it('returns the correct alternate text for UPDATE_APPROVAL_LIMIT action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const action: ReportAction = {
+                ...createRandomReportAction(8),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    limit: 20000,
+                    previousLimit: 10000,
+                    currency: 'USD',
+                },
+            };
+            const reportActions: ReportActions = {[action.reportActionID]: action};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: action,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(result?.alternateText).toBe('changed the approval workflow for member@example.com to forward reports over $200.00 (previously $100.00)');
+        });
+
         it('returns the correct alternate text for UPDATE_AUTO_HARVESTING action', async () => {
             const report: Report = {
                 ...createRandomReport(4, 'policyAdmins'),

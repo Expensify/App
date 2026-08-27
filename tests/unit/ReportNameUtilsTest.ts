@@ -919,6 +919,77 @@ describe('ReportNameUtils', () => {
             expect(employeePaysName).toBe('updated the currency conversion fee setting to "Employee pays"');
         });
 
+        test('UPDATE_OVER_LIMIT_FORWARDS_TO parent action', () => {
+            const thread: Report = createWorkspaceThread(153);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const member = {email: 'member@example.com', name: 'Member', accountID: 100};
+            const approver = {email: 'approver@example.com', name: 'Approver', accountID: 200};
+            const setParentAction: ReportAction = {
+                ...createRandomReportAction(153),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: actionId,
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 10000, currency: 'USD'},
+            };
+
+            const setName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: setParentAction}},
+                currentUserAccountID,
+            );
+            expect(setName).toBe('changed the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+
+            const removedParentAction: ReportAction = {
+                ...setParentAction,
+                originalMessage: {member, previousOverLimitForwardsTo: approver, previousLimit: 10000, currency: 'USD'},
+            };
+            const removedName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: removedParentAction}},
+                currentUserAccountID,
+            );
+            expect(removedName).toBe('changed the approval workflow for member@example.com to stop forwarding reports over the $100.00 limit (previously forwarded to approver@example.com)');
+        });
+
+        test('UPDATE_APPROVAL_LIMIT parent action', () => {
+            const thread: Report = createWorkspaceThread(154);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const parentAction: ReportAction = {
+                ...createRandomReportAction(154),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                reportActionID: actionId,
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    limit: 20000,
+                    previousLimit: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction}},
+                currentUserAccountID,
+            );
+            expect(name).toBe('changed the approval workflow for member@example.com to forward reports over $200.00 (previously $100.00)');
+        });
+
         test('UPDATE_AUTO_HARVESTING parent action', () => {
             const thread: Report = createWorkspaceThread(151);
             const enabledParentAction: ReportAction = {
