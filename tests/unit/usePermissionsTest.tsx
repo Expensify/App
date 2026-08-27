@@ -1,5 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
+import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import Permissions from '@libs/Permissions';
@@ -17,7 +18,12 @@ type ChildrenProps = {
     children: React.ReactNode;
 };
 function Wrapper({children}: ChildrenProps) {
-    return <OnyxListItemProvider>{children}</OnyxListItemProvider>;
+    // The environment context defaults to production, where overrides are ignored
+    return (
+        <EnvironmentProvider>
+            <OnyxListItemProvider>{children}</OnyxListItemProvider>
+        </EnvironmentProvider>
+    );
 }
 
 describe('usePermissions', () => {
