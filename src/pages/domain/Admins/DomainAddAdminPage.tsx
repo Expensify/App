@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -180,6 +181,9 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     textInputOptions={textInputOptions}
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
+                        // The footer's FormAlertWithSubmitButton force-disables pressOnEnter on Android Native, so it can't
+                        // receive Enter there — keep row Enter with the list instead of handing it to a footer that ignores it.
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
