@@ -3231,11 +3231,19 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         },
     ];
 
+    // Do NOT reassert `manuallyMarkedUnreadReportActionID` in successData. `openReport` clears it optimistically
+    // when the user navigates away and comes back (or refreshes); if this request is still queued at that point
+    // (e.g. the mark happened offline), reasserting the id when it completes on reconnect would resurrect a
+    // marker the user has already moved past. The optimistic value set above persists on its own — the server
+    // response is a MERGE that never carries this client-only field — so there is nothing to reassert here.
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: reportValue,
+            value: {
+                lastReadTime,
+                ...(lastActorAccountID && {lastActorAccountID}),
+            },
         },
     ];
 
