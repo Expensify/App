@@ -4656,7 +4656,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
 
-    it('includes the SPLIT option if the current user belongs to the workspace', async () => {
+    it('includes the SPLIT option for a group policy even when the legacy flag is disabled', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             policyID: POLICY_ID,
