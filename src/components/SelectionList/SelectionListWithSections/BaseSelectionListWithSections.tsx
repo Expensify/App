@@ -20,6 +20,8 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
 
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
@@ -208,8 +210,16 @@ function BaseSelectionListWithSectionsImpl({
     // selectors, ...) — AND the owner has not explicitly disabled it (`isDisabled === true`). Owners that can compute
     // their footer button's disabled state (e.g. ParticipantSearchResults' split-bill error) pass it through
     // `confirmButtonOptions.isDisabled` so a disabled footer button surrenders Enter back to the list.
+    //
+    // Custom footers are additionally gated to non-Android-Native platforms: these invite footers are built on
+    // `FormAlertWithSubmitButton`, whose `pressOnEnter` is force-disabled on Android Native (Samsung keyboard workaround,
+    // see FormAlertWithSubmitButton.tsx), so the footer never listens for Enter there. Surrendering the list's Enter to a
+    // footer that can't receive it would leave a hardware Enter dead (neither the row nor the confirm reacts), so on
+    // Android Native we keep row Enter active. The built-in `showButton` path uses `ButtonKeyboardShortcut`, which is NOT
+    // platform-gated, so it stays Enter-capable everywhere.
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const hasSelectedItems = selectedItems.length > 0;
-    const isCustomFooterConfirmEnabled = hasSelectedItems && confirmButtonOptions?.isDisabled !== true;
+    const isCustomFooterConfirmEnabled = !isAndroidNative && hasSelectedItems && confirmButtonOptions?.isDisabled !== true;
     const hasEnabledEnterConfirm =
         (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
 
