@@ -232,7 +232,7 @@ function getPayMoneyRequestParams({
             successData: policySuccessData,
             params,
         } = buildPolicyData({
-            policyOwnerEmail: currentUserEmailParam,
+            policyOwner: {email: currentUserEmailParam, accountID: currentUserAccountIDParam},
             policyName: defaultWorkspaceName,
             makeMeAdmin: true,
             policyID: payerPolicyID,

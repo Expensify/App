@@ -429,13 +429,13 @@ const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>
 // cspell:disable-next-line
 const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
 
-function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
+function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string, userDisplayName: string | undefined): number | undefined {
     const emailParts = email.split('@');
     if (emailParts.length !== 2) {
         return undefined;
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, userDisplayName);
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
 

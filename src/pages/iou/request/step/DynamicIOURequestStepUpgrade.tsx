@@ -305,8 +305,8 @@ function DynamicIOURequestStepUpgrade({
         const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
         const upgradeCurrency = (isSplitExpense ? personalPolicy?.outputCurrency : undefined) ?? currentUserPersonalDetails?.localCurrencyCode ?? '';
         const policyData = Policy.createWorkspace({
-            policyOwnerEmail: undefined,
-            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            policyOwner: undefined,
+            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails?.displayName),
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: upgradeCurrency,
@@ -338,7 +338,7 @@ function DynamicIOURequestStepUpgrade({
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
-            policyOwnerEmail: params.owner,
+            policyOwner: params.owner,
             makeMeAdmin: params.makeMeAdmin,
             policyName: params.name,
             policyID: params.policyID,
