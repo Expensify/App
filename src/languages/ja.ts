@@ -7605,6 +7605,7 @@ ${reportName}`,
             goToSubscription: 'サブスクリプションに移動',
         },
         rules: {
+            findRule: 'ルールを検索',
             individualExpenseRules: {
                 title: '経費',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

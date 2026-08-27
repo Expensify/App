@@ -9,8 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspacePerDiemTable from '@components/Tables/WorkspacePerDiemTable';
 import type {PerDiemTableRowData} from '@components/Tables/WorkspacePerDiemTable';
-import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -37,8 +35,6 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-
-import variables from '@styles/variables';
 
 import {close} from '@userActions/Modal';
 import {deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
@@ -108,7 +104,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.perDiem');
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'Gear', 'Table', 'Download', 'Trashcan']);
 
     const [customUnit, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
@@ -311,24 +307,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return null;
     };
 
-    const getHeaderCog = () => {
-        if (secondaryActions.length === 0) {
-            return null;
-        }
-
-        return (
-            <ThreeDotsMenu
-                icon={expensifyIcons.Gear}
-                iconWidth={variables.iconSizeSmall}
-                iconHeight={variables.iconSizeSmall}
-                iconStyles={styles.tableHeaderCogButton}
-                menuItems={secondaryActions}
-                shouldSelfPosition
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.MORE_DROPDOWN}
-            />
-        );
-    };
-
     const isLoading = !isOffline && customUnit === undefined;
 
     useEffect(() => {
@@ -346,22 +324,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const headerButtons = getHeaderButtons();
-
-    const perDiemHeaderTitle = selectionModeHeader ? (
-        translate('common.selectMultiple')
-    ) : (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={translate('common.perDiem')}
-            >
-                {translate('common.perDiem')}
-            </Text>
-            {getHeaderCog()}
-        </View>
-    );
 
     const subtitleContent = (
         <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -406,8 +368,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             >
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    title={perDiemHeaderTitle}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('common.perDiem')}
                     shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldShowThreeDotsButton={secondaryActions.length > 0}
+                    threeDotsMenuItems={secondaryActions}
+                    threeDotsMenuIconStyles={styles.mr3}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {

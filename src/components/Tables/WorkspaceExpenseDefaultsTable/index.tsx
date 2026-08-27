@@ -25,9 +25,12 @@ type WorkspaceExpenseDefaultsTableProps = {
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** Action button (e.g. create) rendered in the table filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent}: WorkspaceExpenseDefaultsTableProps) {
+function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, headerButton}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -101,7 +104,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
         />
     );
 
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.rules.expenseDefaultsTable.findRule')}>{headerButton}</Table.FilterBar>;
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (

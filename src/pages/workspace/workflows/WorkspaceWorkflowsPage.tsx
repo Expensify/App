@@ -1,7 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -29,8 +27,6 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
-import variables from '@styles/variables';
-
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
@@ -55,7 +51,7 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download', 'Gear']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download', 'Gear', 'DownArrow']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
@@ -173,34 +169,6 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
-    // Show the cog menu whenever the user can manage workflows. When editing is blocked it renders download-only
-    // (the Import action is filtered out of approvalSecondaryActions above).
-    const headerCog = canWriteApprovals ? (
-        <ThreeDotsMenu
-            icon={expensifyIcons.Gear}
-            iconWidth={variables.iconSizeSmall}
-            iconHeight={variables.iconSizeSmall}
-            iconStyles={styles.tableHeaderCogButton}
-            menuItems={approvalSecondaryActions}
-            shouldSelfPosition
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
-        />
-    ) : null;
-
-    const workflowsHeaderTitle = (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={translate('workspace.common.workflows')}
-            >
-                {translate('workspace.common.workflows')}
-            </Text>
-            {headerCog}
-        </View>
-    );
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -208,7 +176,9 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS}
         >
             <WorkspacePageWithSections
-                headerText={workflowsHeaderTitle}
+                headerText={translate('workspace.common.workflows')}
+                shouldShowThreeDotsButton={canWriteApprovals}
+                threeDotsMenuItems={approvalSecondaryActions}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isGroupPolicy || !canReadWorkflows}

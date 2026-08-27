@@ -10,7 +10,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import type {DomainMemberRowData} from '@components/Tables/DomainMembersTable';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
@@ -40,7 +39,6 @@ import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
 import colors from '@styles/theme/colors';
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,7 +56,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer', 'DownArrow']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => {
@@ -260,28 +258,19 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         );
     };
 
-    const getHeaderButtons = () => (
-        <ThreeDotsMenu
-            icon={icons.Gear}
-            iconWidth={variables.iconSizeSmall}
-            iconHeight={variables.iconSizeSmall}
-            iconStyles={styles.tableHeaderCogButton}
-            menuItems={[
-                {
-                    text: translate('domain.common.settings'),
-                    icon: icons.Gear,
-                    onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
-                    brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                },
-                {
-                    text: translate('spreadsheet.downloadCSV'),
-                    icon: icons.Download,
-                    onSelected: onDownloadCSV,
-                },
-            ]}
-            shouldSelfPosition
-        />
-    );
+    const headerThreeDotsMenuItems = [
+        {
+            text: translate('domain.common.settings'),
+            icon: icons.Gear,
+            onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
+            brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
+        {
+            text: translate('spreadsheet.downloadCSV'),
+            icon: icons.Download,
+            onSelected: onDownloadCSV,
+        },
+    ];
 
     const addMemberButton = (
         <Button
@@ -349,7 +338,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 domainAccountID={domainAccountID}
                 members={members}
                 headerTitle={translate('domain.members.title')}
-                headerContent={getHeaderButtons()}
+                shouldShowThreeDotsButton={headerThreeDotsMenuItems.length > 0}
+                threeDotsMenuItems={headerThreeDotsMenuItems}
                 selectionButton={getSelectionButton()}
                 selectedMembers={selectedMembers}
                 setSelectedMembers={setSelectedMembers}

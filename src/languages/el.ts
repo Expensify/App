@@ -7993,6 +7993,7 @@ ${reportName}`,
             goToSubscription: 'Μετάβαση στη συνδρομή',
         },
         rules: {
+            findRule: 'Εύρεση κανόνα',
             tabs: {
                 general: 'Γενικά',
                 cardRestrictions: 'Περιορισμοί κάρτας',

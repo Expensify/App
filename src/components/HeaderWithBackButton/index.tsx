@@ -78,6 +78,7 @@ function HeaderWithBackButton({
     threeDotsMenuItems = [],
     threeDotsMenuIcon,
     threeDotsMenuIconFill,
+    threeDotsMenuIconStyles,
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlayDots = false,
@@ -152,7 +153,7 @@ function HeaderWithBackButton({
                 <Tooltip text={threeDotsMenuItems.at(0)?.text}>
                     <PressableWithoutFeedback
                         onPress={threeDotsMenuItems.at(0)?.onSelected}
-                        style={[styles.touchableButtonImage]}
+                        style={[styles.touchableButtonImage, threeDotsMenuIconStyles]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
                         sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
@@ -168,6 +169,7 @@ function HeaderWithBackButton({
                     shouldSelfPosition
                     icon={threeDotsMenuIcon}
                     iconFill={threeDotsMenuIconFill}
+                    iconStyles={threeDotsMenuIconStyles}
                     disabled={shouldDisableThreeDotsButton}
                     menuItems={threeDotsMenuItems}
                     onIconPress={onThreeDotsButtonPress}
@@ -187,6 +189,7 @@ function HeaderWithBackButton({
         theme.icon,
         threeDotsMenuIcon,
         threeDotsMenuIconFill,
+        threeDotsMenuIconStyles,
         shouldDisableThreeDotsButton,
         onThreeDotsButtonPress,
         shouldOverlayDots,

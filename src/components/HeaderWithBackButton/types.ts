@@ -111,6 +111,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** The fill color to pass into the icon. */
     threeDotsMenuIconFill?: string;
 
+    /** Additional styles for the three-dots overflow button */
+    threeDotsMenuIconStyles?: StyleProp<ViewStyle>;
+
     /** Whether we should show a close button */
     shouldShowCloseButton?: boolean;
 

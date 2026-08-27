@@ -253,6 +253,7 @@ function WorkspacePageWithSections({
                     icon={icon ?? undefined}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsMenuIconStyles={styles.mr3}
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                     shouldDisplayHelpButton
                 >

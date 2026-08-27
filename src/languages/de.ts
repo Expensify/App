@@ -7740,6 +7740,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             goToSubscription: 'Zu Abo wechseln',
         },
         rules: {
+            findRule: 'Regel finden',
             individualExpenseRules: {
                 title: 'Ausgaben',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

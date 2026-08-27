@@ -7762,6 +7762,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             goToSubscription: 'Accéder à l’abonnement',
         },
         rules: {
+            findRule: 'Rechercher une règle',
             individualExpenseRules: {
                 title: 'Dépenses',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

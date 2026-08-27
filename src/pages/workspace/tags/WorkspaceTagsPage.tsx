@@ -12,7 +12,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -66,8 +65,6 @@ import {
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
-import variables from '@styles/variables';
-
 import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
@@ -118,7 +115,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
@@ -735,40 +732,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const getHeaderButtons = () => {
-        if (secondaryActions.length === 0) {
-            return null;
-        }
-        return (
-            <ThreeDotsMenu
-                icon={expensifyIcons.Gear}
-                iconWidth={variables.iconSizeSmall}
-                iconHeight={variables.iconSizeSmall}
-                iconStyles={styles.tableHeaderCogButton}
-                menuItems={secondaryActions}
-                shouldSelfPosition
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
-            />
-        );
-    };
-
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-
-    const tagsHeaderTitle = selectionModeHeader ? (
-        translate('common.selectMultiple')
-    ) : (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={translate('workspace.common.tags')}
-            >
-                {translate('workspace.common.tags')}
-            </Text>
-            {getHeaderButtons()}
-        </View>
-    );
 
     const getHeaderSubtitle = () => {
         if (!hasSyncError && isConnectionVerified && currentConnectionName) {
@@ -873,8 +837,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 >
                     <HeaderWithBackButton
                         shouldUseHeadlineHeader={!selectionModeHeader}
-                        title={tagsHeaderTitle}
+                        title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.tags')}
                         shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldShowThreeDotsButton={secondaryActions.length > 0}
+                        threeDotsMenuItems={secondaryActions}
+                        threeDotsMenuIconStyles={styles.mr3}
                         shouldDisplayHelpButton
                         onBackButtonPress={() => {
                             if (isMobileSelectionModeEnabled) {

@@ -7705,6 +7705,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             goToSubscription: 'Vai all’abbonamento',
         },
         rules: {
+            findRule: 'Trova regola',
             individualExpenseRules: {
                 title: 'Spese',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

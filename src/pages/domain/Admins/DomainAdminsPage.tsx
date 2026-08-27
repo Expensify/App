@@ -3,8 +3,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
 import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
-import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
@@ -25,8 +23,6 @@ import type {DomainSplitNavigatorParamList} from '@navigation/types';
 
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
-import variables from '@styles/variables';
-
 import {clearAdminError} from '@userActions/Domain';
 
 import CONST from '@src/CONST';
@@ -37,7 +33,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
-import {View} from 'react-native';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
 
@@ -46,9 +41,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.domainAdmins');
     const {translate, formatPhoneNumber} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
+    const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator', 'DownArrow']);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
@@ -118,38 +113,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         </Button>
     ) : undefined;
 
-    const settingsCog = isAdmin ? (
-        <ThreeDotsMenu
-            icon={icons.Gear}
-            iconWidth={variables.iconSizeSmall}
-            iconHeight={variables.iconSizeSmall}
-            iconStyles={styles.tableHeaderCogButton}
-            menuItems={[
-                {
-                    text: translate('domain.common.settings'),
-                    icon: icons.Gear,
-                    onSelected: () => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID)),
-                    brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                },
-            ]}
-            shouldSelfPosition
-        />
-    ) : null;
-
-    const adminsHeaderTitle = (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={translate('domain.admins.title')}
-            >
-                {translate('domain.admins.title')}
-            </Text>
-            {settingsCog}
-        </View>
-    );
-
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
@@ -159,10 +122,20 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 testID="DomainAdminsPage"
             >
                 <HeaderWithBackButton
-                    title={adminsHeaderTitle}
+                    title={translate('domain.admins.title')}
                     onBackButtonPress={Navigation.goBack}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
+                    shouldShowThreeDotsButton={isAdmin}
+                    threeDotsMenuIconStyles={styles.mr3}
+                    threeDotsMenuItems={[
+                        {
+                            text: translate('domain.common.settings'),
+                            icon: icons.Gear,
+                            onSelected: () => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID)),
+                            brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                        },
+                    ]}
                     shouldDisplayHelpButton
                 />
                 <DomainAdminsTable

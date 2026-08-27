@@ -12,7 +12,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -45,8 +44,6 @@ import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
-
-import variables from '@styles/variables';
 
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
@@ -96,7 +93,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'DownArrow', 'Gear', 'Plus', 'Table', 'Trashcan']);
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -559,23 +556,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         );
     };
 
-    const getHeaderButtons = () => {
-        if (secondaryActions.length === 0) {
-            return null;
-        }
-        return (
-            <ThreeDotsMenu
-                icon={icons.Gear}
-                iconWidth={variables.iconSizeSmall}
-                iconHeight={variables.iconSizeSmall}
-                iconStyles={styles.tableHeaderCogButton}
-                menuItems={secondaryActions}
-                shouldSelfPosition
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
-            />
-        );
-    };
-
     const shouldShowAddCategory = canWriteCategories && !policyHasAccountingConnections && hasVisibleCategories;
     const addCategoryButton = shouldShowAddCategory ? (
         <Button
@@ -592,22 +572,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isLoading = !isOffline && policyCategories === undefined;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-
-    const categoriesHeaderTitle = selectionModeHeader ? (
-        translate('common.selectMultiple')
-    ) : (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={translate('workspace.common.categories')}
-            >
-                {translate('workspace.common.categories')}
-            </Text>
-            {getHeaderButtons()}
-        </View>
-    );
 
     const headerContent = (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -681,8 +645,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             >
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    title={categoriesHeaderTitle}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
                     shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldShowThreeDotsButton={secondaryActions.length > 0}
+                    threeDotsMenuItems={secondaryActions}
+                    threeDotsMenuIconStyles={styles.mr3}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {

@@ -7687,6 +7687,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             goToSubscription: 'Ir para Assinatura',
         },
         rules: {
+            findRule: 'Encontrar regra',
             individualExpenseRules: {
                 title: 'Despesas',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

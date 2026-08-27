@@ -7711,6 +7711,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             goToSubscription: 'Przejdź do subskrypcji',
         },
         rules: {
+            findRule: 'Znajdź regułę',
             individualExpenseRules: {
                 title: 'Wydatki',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

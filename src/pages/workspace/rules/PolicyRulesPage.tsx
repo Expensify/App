@@ -1,8 +1,6 @@
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
-import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,8 +20,6 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +51,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'DownArrow']);
     const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -82,32 +78,6 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
         getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
     ];
 
-    const headerCog = (
-        <ThreeDotsMenu
-            icon={icons.Gear}
-            iconWidth={variables.iconSizeSmall}
-            iconHeight={variables.iconSizeSmall}
-            iconStyles={styles.tableHeaderCogButton}
-            menuItems={moreOptions}
-            shouldSelfPosition
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.IMPORT_MERCHANT_RULES}
-        />
-    );
-
-    const rulesHeaderTitle = (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={translate('workspace.common.rules')}
-            >
-                {translate('workspace.common.rules')}
-            </Text>
-            {headerCog}
-        </View>
-    );
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -118,7 +88,9 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
                 shouldUseScrollView
-                headerText={rulesHeaderTitle}
+                headerText={translate('workspace.common.rules')}
+                shouldShowThreeDotsButton={moreOptions.length > 0}
+                threeDotsMenuItems={moreOptions}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}

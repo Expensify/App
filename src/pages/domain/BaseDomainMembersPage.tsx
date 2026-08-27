@@ -1,9 +1,9 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -11,10 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
 
-import CONST from '@src/CONST';
-
 import React from 'react';
-import {View} from 'react-native';
 
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
@@ -28,8 +25,11 @@ type BaseDomainMembersPageProps = {
     /** The title of the header */
     headerTitle: string;
 
-    /** Content to display in the header (e.g., Add/Settings buttons) */
-    headerContent?: React.ReactNode;
+    /** Whether the header three-dots overflow button should be shown */
+    shouldShowThreeDotsButton?: boolean;
+
+    /** Menu items for the header three-dots overflow menu */
+    threeDotsMenuItems?: PopoverMenuItem[];
 
     /** Stores list of selected members */
     selectedMembers?: string[];
@@ -66,7 +66,8 @@ function BaseDomainMembersPage({
     domainAccountID,
     members,
     headerTitle,
-    headerContent,
+    shouldShowThreeDotsButton,
+    threeDotsMenuItems,
     selectedMembers = [],
     setSelectedMembers,
     useSelectionModeHeader,
@@ -79,24 +80,8 @@ function BaseDomainMembersPage({
     selectionButton,
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const headerTitleContent = useSelectionModeHeader ? (
-        translate('common.selectMultiple')
-    ) : (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={headerTitle}
-            >
-                {headerTitle}
-            </Text>
-            {headerContent}
-        </View>
-    );
+    const styles = useThemeStyles();
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -107,11 +92,14 @@ function BaseDomainMembersPage({
                 testID="BaseDomainMembersPage"
             >
                 <HeaderWithBackButton
-                    title={headerTitleContent}
+                    title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
                     onBackButtonPress={onBackButtonPress ?? Navigation.goBack}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
                     shouldDisplayHelpButton
+                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                    threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsMenuIconStyles={styles.mr3}
                 />
                 <DomainMembersTable
                     domainAccountID={domainAccountID}

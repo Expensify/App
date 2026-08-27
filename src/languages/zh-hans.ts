@@ -7422,6 +7422,7 @@ ${reportName}`,
             goToSubscription: '前往订阅',
         },
         rules: {
+            findRule: '查找规则',
             individualExpenseRules: {
                 title: '报销费用',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

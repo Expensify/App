@@ -7684,6 +7684,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             goToSubscription: 'Ga naar abonnement',
         },
         rules: {
+            findRule: 'Regel zoeken',
             individualExpenseRules: {
                 title: 'Declaraties',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

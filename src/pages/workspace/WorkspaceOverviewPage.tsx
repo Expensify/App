@@ -91,7 +91,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'Gear', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'Gear', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus', 'DownArrow']);
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -411,44 +411,30 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         secondaryActions.length > 0 ? (
             <ThreeDotsMenu
                 threeDotsMenuRef={dropdownMenuRef}
-                icon={expensifyIcons.Gear}
-                iconWidth={variables.iconSizeSmall}
-                iconHeight={variables.iconSizeSmall}
-                iconStyles={styles.tableHeaderCogButton}
                 menuItems={secondaryActions}
                 shouldSelfPosition
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
             />
         ) : null;
 
-    const overviewHeaderTitle = (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={translate('workspace.common.profile')}
-            >
-                {translate('workspace.common.profile')}
-            </Text>
-            {settingsCog}
-        </View>
-    );
-
+    const showInviteButton = !readOnly && isPolicyAdmin;
     const headerButtons =
-        !readOnly && isPolicyAdmin ? (
-            <View style={[styles.flexRow, styles.gap2]}>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
-                    onPress={handleInvitePress}
-                    size={CONST.BUTTON_SIZE.MEDIUM}
-                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                >
-                    <Button.Icon src={expensifyIcons.UserPlus} />
-                    <Button.Text>{translate('common.invite')}</Button.Text>
-                </Button>
+        showInviteButton || !!settingsCog ? (
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                {showInviteButton && (
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
+                        onPress={handleInvitePress}
+                        size={CONST.BUTTON_SIZE.MEDIUM}
+                        innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
+                        style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    >
+                        <Button.Icon src={expensifyIcons.UserPlus} />
+                        <Button.Text>{translate('common.invite')}</Button.Text>
+                    </Button>
+                )}
+                {settingsCog}
             </View>
         ) : null;
 
@@ -496,7 +482,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     );
     return (
         <WorkspacePageWithSections
-            headerText={overviewHeaderTitle}
+            headerText={translate('workspace.common.profile')}
             route={route}
             // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
             shouldShowLoading={policy === undefined}

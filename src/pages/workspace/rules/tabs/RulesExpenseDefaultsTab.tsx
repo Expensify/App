@@ -15,9 +15,10 @@ type RulesExpenseDefaultsTabProps = {
     selectedKeys: string[];
     onSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+    headerButton?: React.ReactNode;
 };
 
-function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, headerComponent}: RulesExpenseDefaultsTabProps) {
+function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, headerComponent, headerButton}: RulesExpenseDefaultsTabProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
@@ -37,6 +38,7 @@ function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelec
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
             headerComponent={headerComponent}
+            headerButton={headerButton}
         />
     );
 }

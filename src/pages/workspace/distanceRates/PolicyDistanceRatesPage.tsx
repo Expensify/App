@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceDistanceRatesTable from '@components/Tables/WorkspaceDistanceRatesTable';
 import type {DistanceRateTableItemData} from '@components/Tables/WorkspaceDistanceRatesTable/WorkspaceDistanceRatesTableRow';
 import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -42,8 +41,6 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import variables from '@styles/variables';
-
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,7 +61,7 @@ function PolicyDistanceRatesPage({
         params: {policyID},
     },
 }: PolicyDistanceRatesPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'DownArrow', 'Gear', 'Plus', 'Trashcan']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -422,34 +419,7 @@ function PolicyDistanceRatesPage({
         return undefined;
     };
 
-    const headerCog = canWriteDistanceRates ? (
-        <ThreeDotsMenu
-            icon={icons.Gear}
-            iconWidth={variables.iconSizeSmall}
-            iconHeight={variables.iconSizeSmall}
-            iconStyles={styles.tableHeaderCogButton}
-            menuItems={secondaryActions}
-            shouldSelfPosition
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
-        />
-    ) : null;
-
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-    const distanceRatesHeaderTitle = selectionModeHeader ? (
-        translate('common.selectMultiple')
-    ) : (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={translate('workspace.common.distanceRates')}
-            >
-                {translate('workspace.common.distanceRates')}
-            </Text>
-            {headerCog}
-        </View>
-    );
     const distanceRatesTableHeader =
         ratesData.length > 0 ? (
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -485,8 +455,11 @@ function PolicyDistanceRatesPage({
             >
                 <HeaderWithBackButton
                     shouldUseHeadlineHeader={!selectionModeHeader}
-                    title={distanceRatesHeaderTitle}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.distanceRates')}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldShowThreeDotsButton={canWriteDistanceRates}
+                    threeDotsMenuItems={secondaryActions}
+                    threeDotsMenuIconStyles={styles.mr3}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {

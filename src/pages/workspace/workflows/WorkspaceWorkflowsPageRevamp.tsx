@@ -3,8 +3,6 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
-import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -31,8 +29,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRulesSection';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-
-import variables from '@styles/variables';
 
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 
@@ -68,7 +64,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download', 'Send', 'ThumbsUp', 'MoneyBag', 'Wrench', 'Gear']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download', 'Send', 'ThumbsUp', 'MoneyBag', 'Wrench', 'Gear', 'DownArrow']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -256,34 +252,6 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
-    // Show the settings cog whenever the user can manage workflows. When editing is blocked it renders download-only
-    // (the Import action is filtered out of approvalSecondaryActions above).
-    const headerCog = canWriteApprovals ? (
-        <ThreeDotsMenu
-            icon={expensifyIcons.Gear}
-            iconWidth={variables.iconSizeSmall}
-            iconHeight={variables.iconSizeSmall}
-            iconStyles={styles.tableHeaderCogButton}
-            menuItems={approvalSecondaryActions}
-            shouldSelfPosition
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
-        />
-    ) : null;
-
-    const workflowsHeaderTitle = (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text
-                numberOfLines={1}
-                style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, styles.textHeadlineH2]}
-                accessibilityRole={CONST.ROLE.HEADER}
-                accessibilityLabel={translate('workspace.common.workflows')}
-            >
-                {translate('workspace.common.workflows')}
-            </Text>
-            {headerCog}
-        </View>
-    );
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -291,7 +259,9 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS}
         >
             <WorkspacePageWithSections
-                headerText={workflowsHeaderTitle}
+                headerText={translate('workspace.common.workflows')}
+                shouldShowThreeDotsButton={canWriteApprovals}
+                threeDotsMenuItems={approvalSecondaryActions}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isGroupPolicy || !canReadWorkflows}

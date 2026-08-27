@@ -120,7 +120,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     styles.ph5,
                     styles.gap5,
                     styles.pb2,
-                    !shouldShowNarrowLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
+                    !shouldShowNarrowLayout && [styles.flexColumn, styles.pb2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
                 ]}
             >
                 {isLoading ? (

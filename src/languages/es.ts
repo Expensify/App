@@ -7720,6 +7720,7 @@ ${reportName}`,
             goToSubscription: 'Ir a Suscripción',
         },
         rules: {
+            findRule: 'Buscar regla',
             individualExpenseRules: {
                 title: 'Gastos',
                 subtitle: (categoriesPageLink, tagsPageLink) =>

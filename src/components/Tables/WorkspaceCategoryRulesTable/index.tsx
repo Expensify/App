@@ -30,6 +30,9 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** Action button (e.g. create) rendered in the table filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
     emptyStateContent?: React.ReactElement;
     tableTitle: string;
     findRuleLabel: string;
@@ -51,6 +54,7 @@ function WorkspaceCategoryRulesTableImpl({
     selectedKeys,
     onRowSelectionChange,
     headerComponent,
+    headerButton,
     tableTitle,
     findRuleLabel,
     typeColumnLabel,
@@ -103,7 +107,7 @@ function WorkspaceCategoryRulesTableImpl({
 
     const renderItem = ({item, index}: ListRenderItemInfo<CategoryRulesTableItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
 
-    const searchBarComponent = <Table.FilterBar label={findRuleLabel} />;
+    const searchBarComponent = <Table.FilterBar label={findRuleLabel}>{headerButton}</Table.FilterBar>;
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (

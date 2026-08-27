@@ -30,9 +30,10 @@ type RulesCardRestrictionsTabProps = {
     selectedKeys: string[];
     onSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+    headerButton?: React.ReactNode;
 };
 
-function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, headerComponent}: RulesCardRestrictionsTabProps) {
+function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, headerComponent, headerButton}: RulesCardRestrictionsTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -129,6 +130,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
             headerComponent={headerComponent}
+            headerButton={headerButton}
             emptyState={cardRulesEmptyState}
         />
     );

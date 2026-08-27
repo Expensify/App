@@ -7907,6 +7907,7 @@ const translations = {
             goToSubscription: 'Go to Subscription',
         },
         rules: {
+            findRule: 'Find rule',
             tabs: {
                 general: 'General',
                 cardRestrictions: 'Card restrictions',
