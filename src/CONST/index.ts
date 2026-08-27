@@ -615,6 +615,8 @@ const CONST = {
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
         LOCAL_TIME_FORMAT: 'h:mm a',
+        LOCAL_TIME_FORMAT_WITHOUT_PERIOD: 'h:mm',
+        TIME_FORMAT_WITHOUT_PERIOD: 'hh:mm',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
         WEEKDAY_TIME_FORMAT: 'eeee',
@@ -1022,6 +1024,7 @@ const CONST = {
         INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
@@ -1678,6 +1681,7 @@ const CONST = {
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED: 'DIRECTORINFORMATIONREQUIRED',
+                HOME_ADDRESS_REQUIRED: 'HOMEADDRESSREQUIRED',
                 REJECTED: 'REJECTED',
                 REJECTED_TO_SUBMITTER: 'REJECTEDTOSUBMITTER',
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
@@ -2255,7 +2259,6 @@ const CONST = {
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
         SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
-        SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
@@ -4372,7 +4375,7 @@ const CONST = {
         },
         COMMUTER_EXCLUSION_METHOD: {
             FIXED_DISTANCE: 'fixedDistance',
-            // R2 will add HOME_AND_OFFICE: 'homeAndOffice'
+            HOME_AND_OFFICE: 'homeAndOffice',
         },
         // Upper bound for the commuter exclusion fixed distance. Matches the length of the longest road in the world
         COMMUTER_EXCLUSION_MAX_DISTANCE: 19000,
@@ -8148,6 +8151,22 @@ const CONST = {
             CREATE: 'create',
             UPDATE: 'update',
             REMOVE: 'remove',
+        },
+    },
+
+    RULES: {
+        SCOPE: {
+            POLICY: 'policy',
+        },
+        APPROVAL_WORKFLOW: {
+            TRIGGER: {
+                REPORT_SUBMIT: 'ReportSubmit',
+                REPORT_APPROVE: 'ReportApprove',
+            },
+            ACTION: {
+                FORWARD_TO: 'ForwardTo',
+                APPROVE_REPORT: 'ApproveReport',
+            },
         },
     },
 
