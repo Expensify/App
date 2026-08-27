@@ -109,7 +109,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
 
-    const [isSmartLimitEnabled = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_APPROVALS_LOCKED_BY_EXPENSIFY_CARD}${policyID}`);
+    const isSmartLimitEnabled = policy?.areApprovalsLockedByExpensifyCard ?? false;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
