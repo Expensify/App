@@ -9876,7 +9876,7 @@ describe('createDistanceRequest', () => {
         const existingTransactionID = 'existing-txn-forked';
         const chatReportID = 'chat-forked';
         // No policy is seeded, so canAddTransaction is false and the builder adds the expense to a report of its own.
-        const unaddableReport: Report = {
+        const reportClosedToNewExpenses: Report = {
             reportID: '789',
             type: CONST.REPORT.TYPE.EXPENSE,
             chatReportID,
@@ -9893,12 +9893,12 @@ describe('createDistanceRequest', () => {
             type: CONST.REPORT.TYPE.CHAT,
             iouReportID: '789',
         });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}789`, unaddableReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}789`, reportClosedToNewExpenses);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {transactionID: existingTransactionID, reportID: '789'});
         await waitForBatchedUpdates();
 
         createDistanceRequest({
-            ...getDefaultDistanceRequestParams(unaddableReport, {amount: 1}, recentWaypoints),
+            ...getDefaultDistanceRequestParams(reportClosedToNewExpenses, {amount: 1}, recentWaypoints),
             participants: [],
         });
         await waitForBatchedUpdates();

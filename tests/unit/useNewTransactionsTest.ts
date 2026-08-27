@@ -1319,13 +1319,13 @@ describe('useNewTransactions across report switches', () => {
     it('highlights a transaction again when it is removed and later re-added while the consumer stays mounted', () => {
         jest.useFakeTimers();
         try {
-            const [baseTransaction, readdedTransaction] = reportATransactions;
+            const [baseTransaction, reAddedTransaction] = reportATransactions;
             const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, undefined, 'reportA', true), {
                 initialProps: {transactions: [baseTransaction]},
             });
 
-            rerender({transactions: [baseTransaction, readdedTransaction]});
-            expect(result.current).toEqual([readdedTransaction]);
+            rerender({transactions: [baseTransaction, reAddedTransaction]});
+            expect(result.current).toEqual([reAddedTransaction]);
 
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
@@ -1333,8 +1333,8 @@ describe('useNewTransactions across report switches', () => {
             expect(result.current).toEqual([]);
 
             rerender({transactions: [baseTransaction]});
-            rerender({transactions: [baseTransaction, readdedTransaction]});
-            expect(result.current).toEqual([readdedTransaction]);
+            rerender({transactions: [baseTransaction, reAddedTransaction]});
+            expect(result.current).toEqual([reAddedTransaction]);
         } finally {
             jest.useRealTimers();
         }
