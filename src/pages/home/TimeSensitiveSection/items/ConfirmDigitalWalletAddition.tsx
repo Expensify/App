@@ -39,7 +39,7 @@ function ConfirmDigitalWalletAddition({card}: ConfirmDigitalWalletAdditionProps)
             subtitle={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.getRoute(String(card.cardID)))}
-            buttonProps={{success: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }
