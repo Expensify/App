@@ -391,6 +391,9 @@ type OpenReportActionParams = {
 
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
+
+    /** This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411 */
+    conciergeChat?: OnyxEntry<Report>;
 };
 
 type PregeneratedResponseParams = {
@@ -1588,6 +1591,7 @@ function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
     // TODO: undefined will be removed once all openReport callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID: number | undefined,
+    conciergeChat: OnyxEntry<Report>,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -1624,6 +1628,7 @@ function getGuidedSetupDataForOpenReport(
         introSelected,
         engagementChoice: choice,
         onboardingMessage,
+        conciergeChat,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         isSelfTourViewed,
         wasInvited: isPendingInviteOnboarding && isOnboardingCompleted,
@@ -1677,6 +1682,7 @@ function openReport(params: OpenReportActionParams) {
         hasCompletedGuidedSetupFlow,
         hasReportActions,
         shouldMarkAsRead = true,
+        conciergeChat,
     } = params;
     if (!reportID) {
         return;
@@ -1910,7 +1916,7 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, conciergeChat, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2315,7 +2321,8 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow);
+    // Deferred: thread the real conciergeChat when the createGroupChat cascade is migrated (https://github.com/Expensify/App/issues/66411)
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, undefined, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2408,6 +2415,9 @@ type CreateTransactionThreadReportParams = {
     /** Whether the user has completed the guided setup flow */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
+
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<Report>;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2423,6 +2433,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         personalDetails,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
+        conciergeChat,
     } = params;
 
     // Determine if we need selfDM report (for track expenses or unreported transactions)
@@ -2471,6 +2482,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     openReport({
         reportID: optimisticTransactionThreadReportID,
         introSelected,
+        conciergeChat,
         participants,
         personalDetails,
         newReportObject: optimisticTransactionThread,
@@ -2589,7 +2601,20 @@ function navigateToAndOpenReport({
         return;
     }
 
+    // The create path above (createAndOpenNewOptimisticChat) enqueues an onboarding OpenReport carrying guidedSetupData
+    // whenever guided setup is still pending. When the DM already exists we take an existing-chat path instead, which would
+    // otherwise skip that OpenReport — breaking callers that rely on it being enqueued (e.g. the Concierge limit-increase
+    // reply must be stamped after the onboarding welcome message + tasks). So when onboarding is pending, enqueue the same
+    // onboarding OpenReport here too, so the create-path branch's assumption holds regardless of whether the DM already
+    // exists. getGuidedSetupDataForOpenReport de-dupes, so this won't duplicate onboarding. See https://github.com/Expensify/App/issues/99396.
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlow ?? false;
+    const isRegularOnboardingPending = !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted;
+    const isOnboardingPending = isRegularOnboardingPending || isSupportedPendingInviteOnboarding(introSelected);
+
     if (!shouldRevalidateExistingChat) {
+        if (isOnboardingPending) {
+            openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID});
+        }
         navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
         return;
     }
@@ -2614,8 +2639,9 @@ function navigateToAndOpenReport({
         },
     });
 
-    // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas, hasReportActions, currentUserAccountID});
+    // Re-open existing chats to re-validate server-side access and refresh stale local state. Pass hasCompletedGuidedSetupFlow
+    // so a pending onboarding OpenReport is enqueued here too (see the create-path assumption note above).
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID});
     navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
@@ -4242,13 +4268,15 @@ function navigateToConciergeChat(
     reportActionID?: string,
     // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
     personalDetails?: OnyxEntry<PersonalDetailsList>,
-) {
+): Promise<void> {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
+    // A resolved promise is returned on every branch so callers can sequence work (e.g. another API.write) to run only
+    // after the concierge chat has been created/opened and its onboarding OpenReport enqueued. See https://github.com/Expensify/App/issues/99396.
     if (!conciergeReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
-        onServerDataReady().then(() => {
+        return onServerDataReady().then(() => {
             // If we don't have a chat with Concierge then create it
             if (!checkIfCurrentPageActive()) {
                 return;
@@ -4266,16 +4294,18 @@ function navigateToConciergeChat(
                 linkToOptions,
             });
         });
-    } else if (shouldDismissModal) {
+    }
+    if (shouldDismissModal) {
         const reportParams = {reportID: conciergeReportID, reportActionID};
         if (linkToOptions?.afterTransition) {
             Navigation.dismissModalWithReport(reportParams, undefined, {afterTransition: linkToOptions.afterTransition});
         } else {
             Navigation.dismissModalWithReport(reportParams);
         }
-    } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
+        return Promise.resolve();
     }
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
+    return Promise.resolve();
 }
 
 type BuildNewReportOptimisticDataParams = {
