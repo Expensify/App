@@ -44,7 +44,7 @@ After choosing a template, **Basic Export** and **Export current view** download
 5. Tap **Selected**, then choose **Export**.
 6. Choose a default or custom export template as described above.
 
-After choosing a template, **Basic Export** and **Export current view** download immediately when exporting selected reports or using **Select all on this page**. If **Select all** is used to export all matching reports, or if **All Data** or a **custom export template** is selected, a status window appears while the file is prepared. When it's ready, the file downloads automatically. If it doesn't, tap **Download file**. You can also tap **Send me the file when it's ready** to have Concierge send the file through chat and by email instead.
+**Basic Export** and **Current view** download immediately when exporting individual selected reports or when using **Select all on this page**. If you choose one of the **All Data** exports, a custom export template, or when using **Select all** to match every report, then a status window appears while the file is being prepared. When it's ready, the file downloads automatically. If it doesn't, tap **Download file**. You can also tap **Send me the file when it's ready** to have Concierge send the file through chat and by email instead.
 
 **Note:** Report-level templates only appear when full reports are selected.
 
