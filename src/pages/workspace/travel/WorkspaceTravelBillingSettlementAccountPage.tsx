@@ -7,10 +7,10 @@ import SettlementAccountSelector, {BankAccountListItemLeftElement} from '@compon
 import type {BankAccountListItem} from '@components/SettlementAccountSelector';
 import Text from '@components/Text';
 
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {configureTravelBillingForPolicy, setTravelBillingSettlementAccount} from '@libs/actions/TravelBilling';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
@@ -37,10 +37,10 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const defaultFundID = useDefaultFundID(policyID);
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
@@ -89,12 +89,12 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
         }
 
         if (!isTravelBillingEnabled) {
-            configureTravelBillingForPolicy(policyID, workspaceAccountID, value);
+            configureTravelBillingForPolicy(policyID, defaultFundID, value);
             return;
         }
 
         const previousPaymentBankAccountID = travelSettings?.previousPaymentBankAccountID ?? travelSettings?.paymentBankAccountID;
-        setTravelBillingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
+        setTravelBillingSettlementAccount(policyID, defaultFundID, value, previousPaymentBankAccountID);
         Navigation.goBack();
     };
 

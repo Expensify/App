@@ -15,7 +15,7 @@ import {View} from 'react-native';
 
 import type DotLottieAnimation from './LottieAnimations/types';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import MenuItem from './MenuItem';
 import Section from './Section';
 
@@ -136,17 +136,18 @@ function FeatureList({
                 </View>
                 {!!ctaText && (
                     <Button
-                        text={ctaText}
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
                         innerStyles={buttonInnerStyles}
                         hoverStyles={buttonHoverStyles}
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         isDisabled={isButtonDisabled}
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.FEATURE_LIST.CTA_BUTTON}
-                    />
+                    >
+                        <Button.Text>{ctaText}</Button.Text>
+                    </Button>
                 )}
                 {!!footer && footer}
             </View>

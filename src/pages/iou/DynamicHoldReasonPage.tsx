@@ -41,9 +41,9 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.path);
 
-    const {transactionID, reportID} = route.params;
+    const {transactionID, holdReportID} = route.params;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${holdReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const {isOffline} = useNetwork();
@@ -53,6 +53,7 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
         selector: policyTypeSelector,
     });
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
@@ -72,11 +73,22 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
         // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
         // as we do not allow requestee to edit fields like description and amount.
         // But, we still want the requestee to be able to put the request on hold
-        if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction, transaction) && isWorkspaceRequest) {
+        if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction, transaction, false, undefined, undefined, parentReportActions) && isWorkspaceRequest) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, ancestors);
+        putOnHold(
+            transactionID,
+            values.comment,
+            holdReportID,
+            isOffline,
+            currentUserLogin ?? '',
+            currentUserAccountID,
+            transactionViolations,
+            isTrackIntentUser,
+            delegateAccountID,
+            ancestors,
+        );
         Navigation.goBack(backPath);
     };
 
@@ -90,7 +102,7 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
             // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
             // as we do not allow requestee to edit fields like description and amount.
             // But, we still want the requestee to be able to put the request on hold
-            if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction, transaction) && isWorkspaceRequest) {
+            if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction, transaction, false, undefined, undefined, parentReportActions) && isWorkspaceRequest) {
                 const formErrors = {};
                 addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
                 setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
@@ -98,7 +110,7 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
 
             return errors;
         },
-        [parentReportAction, isWorkspaceRequest, translate, transaction],
+        [parentReportAction, parentReportActions, isWorkspaceRequest, translate, transaction],
     );
 
     useEffect(() => {
