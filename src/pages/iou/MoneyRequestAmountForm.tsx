@@ -59,8 +59,8 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
 
-    /** Fired when the visible amount sign changes */
-    onNegativeChange?: (isNegative: boolean) => void;
+    /** Fired when the visible amount sign differs from its initial value */
+    onSignDirtyChange?: (isSignDirty: boolean) => void;
 
     /** The current tab we have navigated to in the expense modal. String that corresponds to the expense type. */
     selectedTab?: SelectedTabRequest;
@@ -110,7 +110,7 @@ function MoneyRequestAmountForm({
     onCurrencyButtonPress,
     onSubmitButtonPress,
     onAmountChange,
-    onNegativeChange,
+    onSignDirtyChange,
     selectedTab = CONST.TAB_REQUEST.MANUAL,
     shouldKeepUserInput = false,
     chatReportID,
@@ -130,6 +130,7 @@ function MoneyRequestAmountForm({
 
     const [isNegative, setIsNegative] = useState(false);
     const hasUserChangedSignRef = useRef(false);
+    const initialIsNegativeRef = useRef(false);
 
     useImperativeHandle(amountFormRef, () => ({
         getNumber: () => {
@@ -164,17 +165,17 @@ function MoneyRequestAmountForm({
         const nextIsNegative = !isNegative;
         hasUserChangedSignRef.current = true;
         setIsNegative(nextIsNegative);
-        onNegativeChange?.(nextIsNegative);
+        onSignDirtyChange?.(nextIsNegative !== initialIsNegativeRef.current);
         // The sign flip bypasses the input's change handler, so report the newly signed value like a keystroke would
         const currentNumber = moneyRequestAmountInputRef.current?.getNumber() ?? '';
         onAmountChange?.(currentNumber && nextIsNegative ? `-${currentNumber}` : currentNumber);
-    }, [isNegative, onAmountChange, onNegativeChange]);
+    }, [isNegative, onAmountChange, onSignDirtyChange]);
 
     const clearNegative = useCallback(() => {
         hasUserChangedSignRef.current = true;
         setIsNegative(false);
-        onNegativeChange?.(false);
-    }, [onNegativeChange]);
+        onSignDirtyChange?.(initialIsNegativeRef.current);
+    }, [onSignDirtyChange]);
 
     const initializeIsNegative = useCallback((currentAmount: number, shouldResetUserSign = false) => {
         // A tab switch is the only place we deliberately discard a user's manual sign flip. A plain `amount` update
@@ -187,7 +188,9 @@ function MoneyRequestAmountForm({
             return;
         }
 
-        setIsNegative(currentAmount < 0);
+        const nextIsNegative = currentAmount < 0;
+        initialIsNegativeRef.current = nextIsNegative;
+        setIsNegative(nextIsNegative);
     }, []);
 
     useEffect(() => {

@@ -137,29 +137,15 @@ function IOURequestStepAmount({
     const isAmountCreateEntry = !backTo && !isEditing;
     // `undefined` until the form reports a change, so the baseline below stands in and a prefilled amount starts clean.
     const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
-    const [typedIsNegative, setTypedIsNegative] = useState<boolean | undefined>(undefined);
-    const [initialIsNegative, setInitialIsNegative] = useState(() => transactionAmount < 0);
+    const [isSignDirty, setIsSignDirty] = useState(false);
     const [prevRequestType, setPrevRequestType] = useState(iouRequestType);
     if (prevRequestType !== iouRequestType) {
-        const currentSign = transactionAmount < 0;
         setPrevRequestType(iouRequestType);
         setTypedAmount(undefined);
-        setTypedIsNegative(undefined);
-        setInitialIsNegative(currentSign);
+        setIsSignDirty(false);
     }
 
-    // Before the user changes the sign, use the latest transaction value. Once they do, keep the original sign as
-    // the baseline so asynchronous transaction updates cannot reset the dirty state.
-    const baselineIsNegative = typedIsNegative === undefined ? transactionAmount < 0 : initialIsNegative;
-    const isAmountNegative = typedIsNegative ?? baselineIsNegative;
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
-
-    const handleNegativeChange = (isNegative: boolean) => {
-        if (typedIsNegative === undefined) {
-            setInitialIsNegative(transactionAmount < 0);
-        }
-        setTypedIsNegative(isNegative);
-    };
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
@@ -169,7 +155,7 @@ function IOURequestStepAmount({
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
                 originalCurrency,
-                hasSignChanged: isAmountNegative !== baselineIsNegative,
+                hasSignChanged: isSignDirty,
             }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -353,7 +339,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
                 onAmountChange={setTypedAmount}
-                onNegativeChange={handleNegativeChange}
+                onSignDirtyChange={setIsSignDirty}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
