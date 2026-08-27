@@ -1,11 +1,13 @@
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -68,6 +70,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const theme = useTheme();
     const {translate} = useLocalize();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.p4});
+    const {showConfirmModal} = useConfirmModal();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -125,7 +128,17 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const settlementDate = isSettleDateTextDisplayed ? format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     const handleSettleBalanceButtonClick = () => {
-        queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
+        showConfirmModal({
+            title: translate('workspace.expensifyCard.settleBalanceConfirmationTitle'),
+            prompt: translate('workspace.expensifyCard.settleBalanceConfirmationPrompt'),
+            confirmText: translate('workspace.expensifyCard.settleBalance'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
+        });
     };
 
     const handleViewTransactionsPress = () => {
