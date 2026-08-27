@@ -102,6 +102,8 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         setLastSyncedDraft(draft);
         setValue(draft ?? '');
         setSelection({start: draft?.length ?? 0, end: draft?.length ?? 0});
+        debouncedCommentMaxLengthValidation(draft ?? '');
+        debouncedCommentMaxLengthValidation.flush();
     }
 
     const [isFocused, setIsFocused] = useState(false);
@@ -129,6 +131,14 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         setLastSyncedDraft(undefined);
         saveConciergePromptDraft(null);
     };
+
+    // The native input stays expanded when the value is emptied programmatically, the same way it does after sending.
+    useEffect(() => {
+        if (draft) {
+            return;
+        }
+        scheduleOnUI(forceClearInput, animatedRef);
+    }, [draft, animatedRef]);
 
     const sendAttachment = (attachments: FileObject | FileObject[]) => {
         interceptAnonymousUser(() => {
@@ -285,7 +295,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             onChangeText={(text) => {
                                 setValue(text);
                                 debouncedCommentMaxLengthValidation(text);
-                                debouncedSaveDraft(nextValue);
+                                debouncedSaveDraft(text);
                             }}
                             selection={selection}
                             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
