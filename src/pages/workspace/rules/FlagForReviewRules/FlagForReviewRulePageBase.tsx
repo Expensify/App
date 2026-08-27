@@ -257,8 +257,6 @@ function FlagForReviewRulePageBase({
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.flagForReviewRule.thenDoTheFollowing')}</Text>
-                    {/* Warning is the only flag type today, so the row states it rather than offering a choice. Block
-                        is planned, and this is where it will become selectable. */}
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.flagForReviewRule.flagType')}
                         title={translate('workspace.rules.flagForReviewRule.flagTypeWarning')}
