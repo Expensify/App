@@ -55,7 +55,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             title={keyTitle}
             icon={item.icon}
             iconType={item.iconType}
-            disabled={isExecuting}
+            disabled={isExecuting && !isFocused}
             onPress={onPress}
             iconStyles={item.iconStyles}
             badgeText={item.badgeText}
@@ -76,6 +76,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             iconRight={item.iconRight}
             shouldShowRightIcon={item.shouldShowRightIcon}
             shouldIconUseAutoWidthStyle
+            shouldGreyOutWhenDisabled={false}
         />
     );
 }

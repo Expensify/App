@@ -8662,7 +8662,7 @@ describe('initSplitExpenseItemData', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {getCurrencyDecimals: () => 2});
 
         expect(splitExpense.transactionID).toBe('123');
         expect(splitExpense.amount).toBe(100);
@@ -8716,6 +8716,7 @@ describe('initSplitExpenseItemData', () => {
             created: '2024-01-01',
             merchant: 'Custom Merchant',
             customUnit,
+            getCurrencyDecimals: () => 2,
         });
 
         expect(splitExpense.transactionID).toBe('999');
@@ -8762,7 +8763,7 @@ describe('initSplitExpenseItemData', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {getCurrencyDecimals: () => 2});
 
         expect(splitExpense.waypoints).toEqual(transaction.comment?.waypoints);
         expect(splitExpense.odometerStart).toBe(1000);
