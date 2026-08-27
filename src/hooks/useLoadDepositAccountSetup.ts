@@ -46,7 +46,7 @@ function useLoadDepositAccountSetup(): boolean {
         if (isReadingFlagFromOnyx) {
             return;
         }
-        openDepositAccountSetupEvent();
+        loadDepositAccountSetup();
     }, [isReadingFlagFromOnyx]);
 
     return isLoadingDepositAccountSetup ?? true;
