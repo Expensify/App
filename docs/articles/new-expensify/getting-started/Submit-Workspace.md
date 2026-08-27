@@ -119,6 +119,19 @@ Marking a report as paid lets you track which of your submitted reports are stil
 
 ---
 
+## How to upgrade a Submit workspace
+
+If you have a free Submit workspace, you can upgrade it to a paid Collect or Control plan to unlock premium features such as approvals, payments, company cards, and accounting integrations. 
+
+Workspace Editors and anyone who approves a report on a Submit workspace can upgrade the workspace:
+
+ - Workspace Editors can switch the **Plan type** in the workspace **Overview** tab.
+ - Anyone who approves a report can upgrade the workspace by clicking Approve on a report submitted to them. 
+
+You can’t downgrade a Collect or Control workspace back to a Submit workspace after upgrading.
+
+---
+
 ## What happens when my approver clicks Approve?
 
 If your approver clicks **Approve**, they're prompted to upgrade the workspace to a paid plan before they can complete the approval.
@@ -152,4 +165,5 @@ Editors can configure the workspace, but can't see other members' submitted repo
 ## Do I have to pay to submit expenses?
 
 No. Submitting expenses and marking reports as paid are free. Payment is only required when someone upgrades the workspace to a paid plan, such as when an approver approves a report.
+
 
