@@ -33,7 +33,7 @@ type SearchSnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
 type SearchResponse = Response<SearchSnapshotKey>;
 type SearchLoadingState = Pick<SearchResultsInfo, 'isLoading'> &
     Partial<{
-        [TKey in 'offset' | 'count' | 'total' | 'currency']: SearchResultsInfo[TKey] | null;
+        [TKey in 'offset' | 'count' | 'reportCount' | 'total' | 'currency']: SearchResultsInfo[TKey] | null;
     }>;
 
 function isSearchLoadingState(value: unknown): value is SearchLoadingState {
@@ -42,6 +42,7 @@ function isSearchLoadingState(value: unknown): value is SearchLoadingState {
         typeof value.isLoading === 'boolean' &&
         (value.offset === null || value.offset === undefined || typeof value.offset === 'number') &&
         (value.count === null || value.count === undefined || typeof value.count === 'number') &&
+        (value.reportCount === null || value.reportCount === undefined || typeof value.reportCount === 'number') &&
         (value.total === null || value.total === undefined || typeof value.total === 'number') &&
         (value.currency === null || value.currency === undefined || typeof value.currency === 'string')
     );
@@ -96,6 +97,7 @@ describe('search loading totals handling', () => {
             isLoading: true,
             offset: 0,
             count: null,
+            reportCount: null,
             total: null,
             currency: null,
         });
@@ -119,6 +121,7 @@ describe('search loading totals handling', () => {
             offset: 0,
         });
         expect(loadingSearchData?.count).toBeUndefined();
+        expect(loadingSearchData?.reportCount).toBeUndefined();
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
     });
@@ -140,6 +143,7 @@ describe('search loading totals handling', () => {
             offset: 20,
         });
         expect(loadingSearchData?.count).toBeUndefined();
+        expect(loadingSearchData?.reportCount).toBeUndefined();
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
     });
