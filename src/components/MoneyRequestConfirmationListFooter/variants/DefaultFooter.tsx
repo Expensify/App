@@ -1,5 +1,4 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import TransactionDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields';
 import DistanceMapSection from '@components/MoneyRequestConfirmationListFooter/sections/DistanceMapSection';
@@ -8,10 +7,7 @@ import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/secti
 import type {MoneyRequestConfirmationListFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -24,23 +20,11 @@ const noopSetShowMoreFields = () => {};
  * this stays as the dispatcher's fallback until the last one lands, then it is deleted.
  */
 function DefaultFooter({
-    action,
-    iouType,
-    transactionID,
-    reportID,
     receiptStitchError,
-    reportActionID,
     isScanRequest,
-    policyID,
     policy,
     policyTags,
     selectedParticipants,
-    isReadOnly,
-    didConfirm,
-    isEditingSplitBill = false,
-    isPolicyExpenseChat,
-    expenseMode,
-    distanceFlags,
     distanceData,
     amountDisplay,
     requiredFlags,
@@ -49,85 +33,56 @@ function DefaultFooter({
     toggleHandlers,
     receiptOptions,
     compactControls,
-    scrollFocusedInputIntoView,
-    onSubmitForm,
-    onTaxAmountEmptyChange,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     const showMoreFields = compactControls?.showMoreFields ?? false;
     const setShowMoreFields = compactControls?.setShowMoreFields ?? noopSetShowMoreFields;
     const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
 
     return (
-        <ConfirmationFieldsProvider
-            transactionID={transactionID}
-            reportID={reportID}
-            reportActionID={reportActionID}
-            action={action}
-            iouType={iouType}
-            policyID={policyID}
-            isReadOnly={isReadOnly}
-            didConfirm={didConfirm}
-            isEditingSplitBill={isEditingSplitBill}
-            isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-            isPolicyExpenseChat={isPolicyExpenseChat}
-            isDistanceRequest={expenseMode.isDistance}
-            isPerDiemRequest={expenseMode.isPerDiem}
-            isTimeRequest={expenseMode.isTime}
-            isTypeInvoice={expenseMode.isInvoice}
-            isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
-            isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
-            isGPSDistanceRequest={distanceFlags.isGPSDistanceRequest}
-            scrollFocusedInputIntoView={scrollFocusedInputIntoView}
-            onSubmitForm={onSubmitForm}
-            onTaxAmountEmptyChange={onTaxAmountEmptyChange}
-        >
-            <View style={isCompactMode ? styles.flex1 : undefined}>
-                <View>
-                    <InvoiceSenderSection selectedParticipants={selectedParticipants} />
-                    <DistanceMapSection />
-                </View>
-
-                <ReceiptSection
-                    policy={policy}
-                    showMoreFields={showMoreFields}
-                    {...receiptOptions}
-                />
-
-                {!!receiptStitchError && (
-                    <View style={styles.mh5}>
-                        <FormHelpMessage message={receiptStitchError} />
-                    </View>
-                )}
-
-                <ConfirmationFieldList
-                    policy={policy}
-                    policyTags={policyTags}
-                    selectedParticipants={selectedParticipants}
-                    amountDisplay={amountDisplay}
-                    requiredFlags={requiredFlags}
-                    visibilityFlags={visibilityFlags}
-                    errorState={errorState}
-                    toggleHandlers={toggleHandlers ?? {}}
-                    compactState={{isCompactMode, setShowMoreFields}}
-                    renderTransactionDetailsFields={(props) => (
-                        <TransactionDetailsFields
-                            {...props}
-                            policy={policy}
-                            amountDisplay={amountDisplay}
-                            distanceData={distanceData}
-                            requiredFlags={requiredFlags}
-                            errorState={errorState}
-                            isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
-                        />
-                    )}
-                />
+        <View style={isCompactMode ? styles.flex1 : undefined}>
+            <View>
+                <InvoiceSenderSection selectedParticipants={selectedParticipants} />
+                <DistanceMapSection />
             </View>
-        </ConfirmationFieldsProvider>
+
+            <ReceiptSection
+                policy={policy}
+                showMoreFields={showMoreFields}
+                {...receiptOptions}
+            />
+
+            {!!receiptStitchError && (
+                <View style={styles.mh5}>
+                    <FormHelpMessage message={receiptStitchError} />
+                </View>
+            )}
+
+            <ConfirmationFieldList
+                policy={policy}
+                policyTags={policyTags}
+                selectedParticipants={selectedParticipants}
+                amountDisplay={amountDisplay}
+                requiredFlags={requiredFlags}
+                visibilityFlags={visibilityFlags}
+                errorState={errorState}
+                toggleHandlers={toggleHandlers ?? {}}
+                compactState={{isCompactMode, setShowMoreFields}}
+                renderTransactionDetailsFields={(props) => (
+                    <TransactionDetailsFields
+                        {...props}
+                        policy={policy}
+                        amountDisplay={amountDisplay}
+                        distanceData={distanceData}
+                        requiredFlags={requiredFlags}
+                        errorState={errorState}
+                        isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
+                    />
+                )}
+            />
+        </View>
     );
 }
 

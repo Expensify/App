@@ -27,21 +27,6 @@ type DistanceData = {
     customUnit?: TransactionCustomUnit;
 };
 
-/** Distance-mode discriminators (manual / odometer / GPS) */
-type DistanceFlags = {
-    isManualDistanceRequest: boolean;
-    isOdometerDistanceRequest: boolean;
-    isGPSDistanceRequest: boolean;
-};
-
-/** What kind of expense the surface is confirming. Drives field gating across groups. */
-type ExpenseMode = {
-    isDistance: boolean;
-    isTime: boolean;
-    isInvoice: boolean;
-    isPerDiem: boolean;
-};
-
 /** Per-field "required" flags driven by policy/workflow */
 type RequiredFlags = {
     isCategoryRequired: boolean;
@@ -115,17 +100,4 @@ type ReceiptOptions = {
     onPDFPassword?: () => void;
 };
 
-export type {
-    AmountDisplay,
-    CompactControls,
-    CompactState,
-    DetailsFieldsProps,
-    DistanceData,
-    DistanceFlags,
-    ErrorState,
-    ExpenseMode,
-    ReceiptOptions,
-    RequiredFlags,
-    ToggleHandlers,
-    VisibilityFlags,
-};
+export type {AmountDisplay, CompactControls, CompactState, DetailsFieldsProps, DistanceData, ErrorState, ReceiptOptions, RequiredFlags, ToggleHandlers, VisibilityFlags};

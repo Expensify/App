@@ -1,3 +1,5 @@
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -13,11 +15,13 @@ import TimeFooter from './variants/TimeFooter';
  * which renders exactly what the single footer component rendered before the split.
  */
 function MoneyRequestConfirmationListFooter(props: MoneyRequestConfirmationListFooterProps) {
-    if (props.expenseMode.isPerDiem && props.action !== CONST.IOU.ACTION.SUBMIT) {
+    const {action, isPerDiemRequest, isTimeRequest} = useConfirmationFields();
+
+    if (isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT) {
         return <PerDiemFooter {...props} />;
     }
 
-    if (props.expenseMode.isTime && props.action === CONST.IOU.ACTION.CREATE) {
+    if (isTimeRequest && action === CONST.IOU.ACTION.CREATE) {
         return <TimeFooter {...props} />;
     }
 
