@@ -12,9 +12,8 @@ import useOnyx from './useOnyx';
  * always-in-sync source), so an agent screen opened on the optimistic accountID (even after a reload) shows the
  * real agent instead of "Hmm... it's not here".
  *
- * Also backfills a missing `createdAt` for entries this device notices without one — a mapping entry can arrive
- * via sync from another device/tab that resolved it first, so this device never got the chance to stamp it
- * itself. Without a timestamp an entry is invisible to createAgent()'s pruning and never expires.
+ * Without a stamped `createdAt`, an entry is invisible to createAgent()'s pruning and never expires — this can
+ * happen when the mapping arrives via sync from another device/tab that resolved it first.
  *
  * @returns `[resolvedAccountID, isMappingLoaded]` - a not-found screen should wait for `isMappingLoaded` to avoid a
  *          brief not-found flash while the mapping loads. No-op (returns the input) when there's no mapping entry.
