@@ -23,12 +23,11 @@ function AddTaxPage({route}: AddTaxPageProps) {
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    // A category tax default is deleted by writing the workspace default tax rate, so offering that rate here would
-    // silently remove the rule instead of saving one. Hide it, unless a rule already points at it and we'd otherwise
-    // have nothing to show as selected.
+    // Writing the workspace default rate is how a category tax default is deleted, so offering it here would remove the
+    // rule instead of saving one.
     const isCategoryRule = !!categoryName || !!form?.categoriesToMatch?.length;
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
-    const shouldHideTax = (taxKey: string) => isCategoryRule && taxKey === defaultExternalID && form?.tax !== taxKey;
+    const shouldHideTax = (taxKey: string) => isCategoryRule && taxKey === defaultExternalID;
 
     const taxes = policy?.taxRates?.taxes ?? {};
     const taxItems = Object.entries(taxes)
@@ -40,8 +39,7 @@ function AddTaxPage({route}: AddTaxPageProps) {
 
     const selectedTaxItem = form?.tax ? taxItems.find(({value}) => value === form.tax) : undefined;
 
-    // A category tax default carries no ruleID, so it has to route back by category or the picker would return to the
-    // create page and drop the edit context.
+    // A category tax default carries no ruleID, so it routes back by category instead.
     const getBackToRoute = () => {
         if (categoryName) {
             return ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName);

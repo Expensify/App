@@ -99,11 +99,11 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
 };
 
 /** A category rule matches on categories and can only set a tax, so both halves are required and nothing else counts. */
-const getCategoryRuleErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
+const getCategoryRuleErrorMessage = (translate: LocalizedTranslate, taxID: string | undefined, form?: MerchantRuleForm) => {
     if (!form?.categoriesToMatch?.length) {
         return translate('workspace.rules.merchantRules.confirmErrorCategory');
     }
-    if (!form?.tax) {
+    if (!taxID) {
         return translate('workspace.rules.merchantRules.confirmErrorCategoryTax');
     }
     return '';
@@ -276,6 +276,9 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     // Removing a category tax default means writing the workspace's own default rate back, so without one there is
     // nothing to write and no way to delete. Hide the affordance rather than leaving a button that does nothing.
     const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
+    // Writing the workspace default rate deletes the rule, so a draft tax equal to it means "no rule". A merchant draft
+    // can carry that rate in before a category condition is added, so ignore it rather than let a save delete.
+    const categoryTaxID = isCategoryRule && form?.tax === policy?.taxRates?.defaultExternalID ? undefined : form?.tax;
     const isMerchantConditionLocked = hasCategoryCondition;
     // A category rule sets a tax rate, so with taxes off there is nothing for it to configure.
     const isCategoryConditionLocked = isEditingCategoryTaxRule || hasMerchantCondition || !areTaxesEnabled;
@@ -346,10 +349,11 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     const categoriesToMatchDisplayName = hasCategoryCondition ? categoriesToMatch.map(getDecodedCategoryName).join(', ') : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     const taxDisplayName = () => {
-        if (!form?.tax || !policy?.taxRates?.taxes) {
+        const taxRateID = isCategoryRule ? categoryTaxID : form?.tax;
+        if (!taxRateID || !policy?.taxRates?.taxes) {
             return undefined;
         }
-        const tax = policy.taxRates.taxes[form.tax];
+        const tax = policy.taxRates.taxes[taxRateID];
         return tax ? `${tax.name} (${tax.value})` : undefined;
     };
 
@@ -394,7 +398,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         });
     };
 
-    const errorMessage = isCategoryRule ? getCategoryRuleErrorMessage(translate, form) : getErrorMessage(translate, isRulesRevampEnabled, form);
+    const errorMessage = isCategoryRule ? getCategoryRuleErrorMessage(translate, categoryTaxID, form) : getErrorMessage(translate, isRulesRevampEnabled, form);
 
     const goBackToExpenseDefaults = () => {
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
@@ -412,12 +416,11 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         // Category rules are stored as `policy.rules.expenseRules`, the same objects Expensify Classic reads, so that a
         // default tax rate set here is the one Classic already understands.
         if (isCategoryRule) {
-            const taxID = form.tax;
-            if (!hasCategoryCondition || !taxID) {
+            if (!hasCategoryCondition || !categoryTaxID) {
                 return;
             }
             // The command is per-category, so a bulk selection saves one rule for each category picked.
-            setPolicyCategoryTaxes(policy, categoriesToMatch, taxID);
+            setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID);
             if (isEditingCategoryTaxRule) {
                 Navigation.goBack();
             } else {
