@@ -676,6 +676,17 @@ function mergeTransactionRequest({
                         [sourceIouAction.reportActionID]: null,
                     },
                 });
+
+                // Keep it deleted on success too. The successData above clears pendingAction and errors on the same
+                // action, and Onyx strips nested nulls, so on a key we just removed that would leave an empty entry
+                // behind unless the response happens to send the action back first.
+                sourceTransactionSuccessData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                    value: {
+                        [sourceIouAction.reportActionID]: null,
+                    },
+                });
             }
         }
     }
