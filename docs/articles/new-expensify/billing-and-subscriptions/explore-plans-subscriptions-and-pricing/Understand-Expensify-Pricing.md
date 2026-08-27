@@ -169,4 +169,4 @@ Expensify offers localized pricing for USD, GBP, EUR, AUD, and NZD billing.
 
 ## Is there a free Expensify plan?
 
-Yes. Expensify offers a free Submit workspace for individual employees who want to code their expenses and submit them to an approver. It doesn't include premium features like approvals, payments, company cards, or accounting integrations. To learn more, see [Use a Free Submit Workspace](/articles/new-expensify/getting-started/Submit-Workspace).
+Yes. Expensify offers a free Submit workspace for individual employees who want to code expenses and submit them to an approver when their company hasn’t adopted Expensify. It doesn't include premium features like approvals, payments, company cards, or accounting integrations. To learn more, see [Use a Free Submit Workspace](/articles/new-expensify/getting-started/Submit-Workspace).
