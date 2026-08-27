@@ -33,6 +33,7 @@
  *
  * See README.md in this directory for full documentation.
  */
+import composeTableListHeader from './composeTableListHeader';
 import TableComponent from './Table';
 import TableBody from './TableBody';
 import TableContext from './TableContext';
@@ -40,6 +41,8 @@ import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 import TableFilterBar from './TableFilterBar';
 import TableHeader from './TableHeader';
+import TableListHeader from './TableListHeader';
+import TableLoadingState from './TableLoadingState';
 import TableRow from './TableRow';
 
 /**
@@ -48,8 +51,13 @@ import TableRow from './TableRow';
  * Sub-components:
  * - `Table.Context` - The React context (for advanced usage)
  * - `Table.Header` - Sortable column headers
+ * - `Table.ListHeader` - Content that scrolls with the table rows
  * - `Table.Body` - Data rows using FlashList
  * - `Table.FilterBar` - Search input & filter bar
+ * - `Table.Row` - A single row in the table
+ * - `Table.EmptyState` - Renders when the table has no rows
+ * - `Table.NoResultsState` - Renders when the table has rows, but the user has filtered all of them out
+ * - `Table.LoadingState` - Renders a loading indicator when the table is loading its data
  */
 const Table = Object.assign(TableComponent, {
     /** The React context for accessing table state directly. */
@@ -57,6 +65,9 @@ const Table = Object.assign(TableComponent, {
 
     /** Renders sortable column headers. */
     Header: TableHeader,
+
+    /** Content that scrolls with the table rows. */
+    ListHeader: TableListHeader,
 
     /** Renders data rows using FlashList. */
     Body: TableBody,
@@ -72,7 +83,11 @@ const Table = Object.assign(TableComponent, {
 
     /** Renders when the table has rows, but the user has filtered all of them out */
     NoResultsState: TableNoResultsState,
+
+    /** Renders a loading indicator when the table is loading its data */
+    LoadingState: TableLoadingState,
 });
 
 export default Table;
+export {composeTableListHeader};
 export type * from './types';

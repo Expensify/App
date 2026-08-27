@@ -41,6 +41,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE
     | typeof SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD
@@ -64,7 +65,10 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL
     | typeof SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL
     | typeof SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER
-    | typeof SCREENS.WORKSPACE.TIME_TRACKING;
+    | typeof SCREENS.WORKSPACE.TIME_TRACKING
+    | typeof SCREENS.WORKSPACE.VENDORS
+    | typeof SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR
+    | typeof SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST;
 
 type PolicyRoute = PlatformStackRouteProp<NavigatorsParamList, PolicyRouteName>;
 
@@ -88,31 +92,44 @@ const policyDefaultProps: WithPolicyOnyxProps = {
     isLoadingPolicy: false,
 };
 
+type WithPolicyImplProps<TProps extends WithPolicyProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & Omit<TProps, keyof WithPolicyOnyxProps>;
+
+function WithPolicyImpl<TProps extends WithPolicyProps>({WrappedComponent, ...props}: WithPolicyImplProps<TProps>) {
+    const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+    const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
+
+    useEffect(() => {
+        if (!policyID) {
+            return;
+        }
+        updateLastAccessedWorkspace(policyID);
+    }, [policyID]);
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            policy={policy}
+            policyDraft={policyDraft}
+            isLoadingPolicy={isLoadingPolicy}
+        />
+    );
+}
+
 /*
  * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
 export default function <TProps extends WithPolicyProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>) {
-        const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
-        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
-
-        const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
-
-        useEffect(() => {
-            if (!policyID) {
-                return;
-            }
-            updateLastAccessedWorkspace(policyID);
-        }, [policyID]);
-
         return (
-            <WrappedComponent
-                {...(props as TProps)}
-                policy={policy}
-                policyDraft={policyDraft}
-                isLoadingPolicy={isLoadingPolicy}
+            <WithPolicyImpl
+                WrappedComponent={WrappedComponent}
+                {...props}
             />
         );
     }

@@ -70,8 +70,8 @@ function useSplitParticipants({
     currentUserAccountID,
 }: UseSplitParticipantsParams) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
 
     const transactionID = transaction?.transactionID;
     const onSplitShareChange = (accountID: number, value: number) => {
@@ -86,7 +86,7 @@ function useSplitParticipants({
             return [];
         }
 
-        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate);
+        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate, formatPhoneNumber);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;
@@ -94,7 +94,7 @@ function useSplitParticipants({
                 if (iouAmount > 0) {
                     amount =
                         transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
-                        calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
+                        calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer, false, getCurrencyDecimals);
                 }
                 return {
                     ...participantOption,
@@ -160,7 +160,7 @@ function useSplitParticipants({
                         // Dismiss the keyboard so that MoneyRequestAmountInput's useEffect syncs the new amount.
                         // Without this, the effect skips the update while the input is focused (see formatAmountOnBlur guard).
                         Keyboard.dismiss();
-                        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
+                        resetSplitShares(transaction, undefined, undefined, currentUserAccountID, getCurrencyDecimals);
                     }}
                     accessibilityLabel={CONST.ROLE.BUTTON}
                     role={CONST.ROLE.BUTTON}

@@ -1,3 +1,4 @@
+import Table from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspaceRequireFieldsTable from '@components/Tables/WorkspaceRequireFieldsTable';
 
@@ -27,9 +28,10 @@ type RulesRequireFieldsTabProps = {
     selectedKeys: string[];
     onSelectionChange: (selectedRowKeys: string[]) => void;
     showReadOnlyModal: () => void;
+    headerComponent?: React.ReactElement;
 };
 
-function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal}: RulesRequireFieldsTabProps) {
+function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal, headerComponent}: RulesRequireFieldsTabProps) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -79,12 +81,17 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
         ],
     };
 
+    if (arePolicyCategoriesLoading) {
+        return <Table.LoadingState />;
+    }
+
     return (
         <WorkspaceRequireFieldsTable
             rulesData={requireFieldsTableData}
             selectionEnabled={canWriteRules}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
+            headerComponent={headerComponent}
             emptyState={requireFieldsEmptyState}
         />
     );

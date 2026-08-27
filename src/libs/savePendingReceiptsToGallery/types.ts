@@ -17,6 +17,9 @@ type SaveReceiptsResult = {
 
     /** Number of receipts that failed to write */
     failedCount: number;
+
+    /** True when the batch could not save because the OS denied gallery/photo-library access, so the caller can surface a permission prompt. */
+    permissionDenied: boolean;
 };
 
 export type {PendingReceipt, SaveReceiptsResult};

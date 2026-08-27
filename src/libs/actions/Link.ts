@@ -42,7 +42,7 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserEmail = '';
-let currentUserAccountID = -1;
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -459,6 +459,7 @@ function openReportFromDeepLink(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    callerAccountID: number,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -470,8 +471,17 @@ function openReportFromDeepLink(
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
         });
 
-        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas});
+        openReport({
+            reportID,
+            introSelected,
+            // Unauthenticated public-room path: there is no signed-in user, so no Concierge chat exists to thread.
+            conciergeChat: undefined,
+            parentReportActionID: '0',
+            isFromDeepLink: true,
+            betas,
+            hasReportActions: false,
+            currentUserAccountID: callerAccountID,
+        });
 
         // Show the sign-in page if the app is offline
         if (getIsOffline()) {
@@ -513,6 +523,30 @@ function openReportFromDeepLink(
 
     // Navigate to the report after sign-in/sign-up.
     waitForUserSignIn().then(() => {
+        // A Submit-via-PDF secure access link must reach the report regardless of onboarding status: the report screen
+        // is where JoinReportViaSecureLink runs, and onboarding is suppressed for secure-link visitors. The generic
+        // handling below intentionally drops deep links for users who still need to onboard, so branch out first.
+        if (Url.hasSecureLinkKey(route)) {
+            Navigation.waitForProtectedRoutes().then(() => {
+                // Secure links grant workspace + report access to a real account via JoinReportViaSecureLink, so an
+                // anonymous session can never fulfill them even though report routes are otherwise anonymous-accessible
+                // (canAnonymousUserAccessRoute would allow it). Force a real sign-in first; the deep link is re-processed
+                // after sign-in. Without this the user lands on /r/:id?secureKey with no join, stuck loading/404.
+                if (isAnonymousUser()) {
+                    signOutAndRedirectToSignIn(true);
+                    return;
+                }
+                // On cold launch the report is already the initial route; navigating again would stack a duplicate
+                // that renders "not found" until the join grants access. Only navigate when we're not already there.
+                if (Navigation.getTopmostReportId() === reportID) {
+                    return;
+                }
+                const secureKey = new URLSearchParams(route.split('?').at(1) ?? '').get('secureKey') ?? undefined;
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, undefined, secureKey), {waitForTransition: true});
+            });
+            return;
+        }
+
         // `false` when the user still had to onboard as this deep link was captured (fresh sign-up, or a
         // stale react-native-web URL); honoring it after onboarding flashes the "Not here" page (#91437).
         let initialHasCompletedGuidedSetupFlow: boolean | undefined;

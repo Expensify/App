@@ -88,6 +88,7 @@ function ReportNavigateAwayHandler() {
 
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
+    const previousReportWasDeleted = usePrevious(reportWasDeleted);
 
     // Track whether the current route is an own workspace chat. A vacation delegate split sends
     // a temporary Onyx SET that wipes the report; by the time effects fire, report is undefined
@@ -101,7 +102,8 @@ function ReportNavigateAwayHandler() {
         const currentRoute = navigationRef.getCurrentRoute();
         const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
         const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
-        const isHoldScreenOpenInRHP = currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
+        const isHoldScreenOpenInRHP =
+            currentRoute?.name === SCREENS.MONEY_REQUEST.DYNAMIC_HOLD_REASON && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
         const isReportDetailOpenInRHP =
             isTopMostReportId &&
             reportDetailScreens.find((r) => r === currentRoute?.name) &&
@@ -170,15 +172,11 @@ function ReportNavigateAwayHandler() {
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
+        const userLeavingTriggered = !prevUserLeavingStatus && !!userLeavingStatus;
+        const deletedParentTriggered = prevDeletedParentAction && !deletedParentAction;
+        const shouldTrigger = userLeavingTriggered || didReportClose || isRemovalExpectedForReportType || isClosedTopLevelPolicyRoom || deletedParentTriggered;
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
-        if (
-            // non-optimistic case
-            (!prevUserLeavingStatus && !!userLeavingStatus) ||
-            didReportClose ||
-            isRemovalExpectedForReportType ||
-            isClosedTopLevelPolicyRoom ||
-            (prevDeletedParentAction && !deletedParentAction)
-        ) {
+        if (shouldTrigger) {
             navigateAwayFromReport(prevOnyxReportID, prevReport?.parentReportID);
         }
     }, [
@@ -199,12 +197,10 @@ function ReportNavigateAwayHandler() {
 
     // Navigate on deletion
     useEffect(() => {
-        if (!reportWasDeleted) {
-            return;
-        }
-
-        // Only redirect if focused
-        if (!isFocused) {
+        // Only navigate on the transition into "deleted" (the moment the report is removed), and only if this
+        // screen is focused at that moment. A screen deleted while it was underneath (unfocused) must NOT navigate
+        // when the user later presses back and refocuses it — that re-focus is what traps the user in a navigation loop.
+        if (!reportWasDeleted || previousReportWasDeleted || !isFocused) {
             return;
         }
 
@@ -236,7 +232,7 @@ function ReportNavigateAwayHandler() {
             // Fallback to Concierge
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
+    }, [reportWasDeleted, previousReportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 
     return null;
 }

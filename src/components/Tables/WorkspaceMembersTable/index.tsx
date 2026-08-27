@@ -1,10 +1,10 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -49,7 +49,11 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
+
+/** Width the member cell's avatar and the space after it take before the name and email start. */
+const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
@@ -71,16 +75,26 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField2Column,
     members,
     onRowSelectionChange,
+    headerComponent,
 }: WorkspaceMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey>> = [
+    const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
         {
             key: 'member',
             label: translate('common.member'),
             sortable: true,
+            dynamicSizing: {
+                // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
+                // column's width.
+                getContentToMeasure: (item) => [
+                    {text: item.name, fontSize: variables.fontSizeNormal},
+                    {text: item.email, fontSize: variables.fontSizeLabel},
+                ],
+                extraWidth: MEMBER_CELL_AVATAR_WIDTH,
+            },
         },
 
         ...(shouldShowCustomField1Column
@@ -89,6 +103,9 @@ export default function WorkspaceMembersTable({
                       sortable: true,
                       key: 'customField1' as const,
                       label: translate('workspace.common.customField1'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeeUserID ? [{text: item.employeeUserID, fontSize: variables.fontSizeNormal}] : []),
+                      },
                   },
               ]
             : []),
@@ -98,6 +115,9 @@ export default function WorkspaceMembersTable({
                       sortable: true,
                       key: 'customField2' as const,
                       label: translate('workspace.common.customField2'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeePayrollID ? [{text: item.employeePayrollID, fontSize: variables.fontSizeNormal}] : []),
+                      },
                   },
               ]
             : []),
@@ -105,7 +125,11 @@ export default function WorkspaceMembersTable({
             key: 'role',
             label: translate('common.role'),
             sortable: true,
-            width: variables.workspaceMembersRoleColumnWidth,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: variables.fontSizeNormal}],
+                // A role is one of a short, known set of labels, so the column always shows them in full.
+                shouldFitContent: true,
+            },
         },
         {
             label: '',
@@ -203,6 +227,8 @@ export default function WorkspaceMembersTable({
         return results.length > 0;
     };
 
+    const approverLogins = getPolicyApproverLogins(policy);
+
     const isItemInFilter: IsItemInFilterCallback<WorkspaceMemberRowData> = (item, filterValues) => {
         if (!filterValues || filterValues.length === 0) {
             return true;
@@ -213,8 +239,7 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
-        const isApprover = isPolicyApprover(policy, item.login);
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && isApprover) {
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && approverLogins.has(item.login)) {
             return true;
         }
 
@@ -313,14 +338,17 @@ export default function WorkspaceMembersTable({
             />
         );
     };
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.people.findMember')} />);
 
     return (
         <Table
+            shouldUseDynamicColumns
             ref={ref}
             data={members}
             filters={filterConfig}
             selectedKeys={selectedKeys}
             selectionEnabled={canSelectMembers}
+            shouldPreserveSelectionOnSearch
             columns={workspaceMembersColumns}
             initialSortColumn="member"
             title={translate('common.members')}
@@ -331,7 +359,7 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.people.findMember')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

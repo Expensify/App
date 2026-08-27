@@ -11,11 +11,11 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {splitCardFeedWithDomainID} from '@libs/CardUtils';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -141,14 +141,18 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
 
                         if (feed) {
                             if (plaidConnectedFeed && addNewCard?.data?.selectedCountry && plaidConnectedFeedName) {
+                                // Repairing an existing feed: send the existing `feed` (which keeps its `plaid.` prefix and
+                                // originating `#domainID`) rather than the freshly-derived bare institution ID, so the server
+                                // takes its repair branch and refreshes the existing feed instead of minting a duplicate.
                                 importPlaidAccounts(
                                     publicToken,
-                                    plaidConnectedFeed,
+                                    feed,
                                     plaidConnectedFeedName,
                                     addNewCard.data.selectedCountry,
                                     getDomainNameForPolicy(policyID),
                                     JSON.stringify(metadata?.accounts),
                                     '',
+                                    splitCardFeedWithDomainID(feed)?.domainID,
                                 );
                             }
                             setAssignCardStepAndData({
@@ -196,16 +200,9 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
         }
 
         if (plaidData?.isLoading) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'PlaidConnectionStep.renderPlaidLink',
-                isPlaidDataLoading: plaidData?.isLoading,
-            };
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             );
         }

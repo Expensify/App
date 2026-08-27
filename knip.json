@@ -6,10 +6,11 @@
                 "wdyr.ts",
                 "src/App.tsx",
                 "src/HybridAppHandler.tsx",
-                "scripts/**/*.{js,ts}",
+                "scripts/**/*.{js,mjs,ts}",
                 "web/proxy.ts",
-                "config/rsbuild/**/*.{js,mjs,ts}",
+                "config/rsbuild/**/*.{js,mjs,cjs,ts}",
                 ".github/scripts/**/*.ts",
+                "tests/tooling/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "metro.config.js",
@@ -28,7 +29,13 @@
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
             ],
-            "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js", "src/libs/actions/connections/FinancialForce.ts"],
+            "ignore": [
+                ".github/actions/**/index.js",
+                "tests/perf-test/**",
+                "web/snippets/gib.js",
+                "src/libs/actions/connections/FinancialForce.ts",
+                "src/setup/telemetry/noopExpoUpdates.ts"
+            ],
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
             },
@@ -52,25 +59,31 @@
     },
     "ignoreDependencies": [
         "@expensify/react-native-hybrid-app",
+        "focus-trap",
         "group-ib-fp",
         "react-native-image-size",
         "react-native-picker-select",
+        "react-native-quick-crypto",
+        "react-native-quick-base64",
         "lodash",
         "@babel/plugin-proposal-private-methods",
         "@babel/plugin-proposal-private-property-in-object",
+        "@babel/plugin-transform-export-namespace-from",
         "babel-plugin-module-resolver",
+        "babel-plugin-react-compiler",
         "babel-plugin-transform-remove-console",
+        "html-entities",
         "@fullstory/babel-plugin-react-native",
+        "@fullstory/babel-plugin-annotate-react",
         "eslint-config-airbnb-typescript",
         "eslint-config-prettier",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
-        "tsconfig-paths",
-        "@vercel/ncc",
         "bun",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy"
+        "diff-so-fancy",
+        "@babel/plugin-proposal-class-properties"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"]
 }

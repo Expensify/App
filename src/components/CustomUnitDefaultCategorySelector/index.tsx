@@ -1,6 +1,6 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
-import useThemeStyles from '@hooks/useThemeStyles';
+import useLocalize from '@hooks/useLocalize';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -34,10 +34,10 @@ type CustomUnitDefaultCategorySelectorProps = {
 };
 
 function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, label, focused, customUnitID, interactive = true}: CustomUnitDefaultCategorySelectorProps) {
-    const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const decodedCategoryName = getDecodedCategoryName(defaultValue);
-    const descStyle = decodedCategoryName.length === 0 ? styles.textNormal : null;
+    const title = decodedCategoryName || translate('common.none');
 
     const onPress = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DEFAULT_CATEGORY_SELECTOR.getRoute(customUnitID)));
@@ -46,9 +46,8 @@ function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, lab
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={interactive}
-            title={decodedCategoryName}
+            title={title}
             description={label}
-            descriptionTextStyle={descStyle}
             onPress={onPress}
             interactive={interactive}
             wrapperStyle={wrapperStyle}

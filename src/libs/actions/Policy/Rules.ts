@@ -1,8 +1,15 @@
+import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
-import type {AddPolicyAgentRuleParams, DeletePolicyAgentRuleParams, UpdatePolicyAgentRuleParams} from '@libs/API/parameters';
+import type {
+    AddPolicyAgentRuleParams,
+    DeletePolicyAgentRuleParams,
+    GetAgentRuleSuggestionsParams,
+    ImportMerchantRulesSpreadsheetParams,
+    UpdatePolicyAgentRuleParams,
+} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -11,6 +18,7 @@ import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
 import type {AgentRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -18,6 +26,9 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+
+/** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
+type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
 
 /**
  * Builds the tax object from a tax key and policy
@@ -63,6 +74,7 @@ function mapFormFieldsToRuleForOnyx(form: MerchantRuleForm, policy: Policy | und
         category: form.category || null,
         tag: form.tag || null,
         tax: buildTaxObject(form.tax, policy) ?? null,
+        vendorID: form.vendorID || null,
         comment: convertCommentToHTML(form.comment),
         reimbursable: form.reimbursable ?? null,
         billable: form.billable ?? null,
@@ -88,6 +100,9 @@ function mapFormFieldsToRuleForAPI(form: MerchantRuleForm, policy: Policy | unde
     const tax = buildTaxObject(form.tax, policy);
     if (tax) {
         rule.tax = tax;
+    }
+    if (form.vendorID) {
+        rule.vendorID = form.vendorID;
     }
     const commentHTML = convertCommentToHTML(form.comment);
     if (commentHTML) {
@@ -115,6 +130,41 @@ function openPolicyRulesPage(policyID: string | undefined) {
     const params: OpenPolicyRulesPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_RULES_PAGE, params);
+}
+
+/**
+ * Fetches ready-made agent rule suggestions for the add-agent-rule Suggestions tab.
+ */
+function getAgentRuleSuggestions(policyID: string | undefined) {
+    if (!policyID) {
+        Log.warn('Invalid params for getAgentRuleSuggestions', {policyID});
+        return;
+    }
+
+    const params: GetAgentRuleSuggestionsParams = {policyID};
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
+            value: false,
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -229,6 +279,44 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
+}
+
+/**
+ * Imports coding rules parsed from a spreadsheet into the given policy in bulk
+ * @param policyID - The ID of the policy to import the rules into
+ * @param rules - Coding rule values keyed by client-generated ruleID
+ * @param invalidCategoryCount - Number of imported categories that don't exist on the policy, reported in the confirmation modal
+ */
+async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>, invalidCategoryCount = 0): Promise<ImportFinalModal> {
+    // The API rejects an empty rules object, so fail fast when the spreadsheet produced no importable rules
+    if (Object.keys(rules).length === 0) {
+        return getImportFailedFinalModal();
+    }
+
+    const importFinalModal: ImportFinalModal = {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
+        promptKeyParams: {count: Object.keys(rules).length},
+        ...(invalidCategoryCount > 0 && {
+            pendingMessageKey: 'spreadsheet.importMerchantRulesSkippedCategories',
+            pendingMessageKeyParams: {count: invalidCategoryCount},
+        }),
+    };
+
+    const parameters: ImportMerchantRulesSpreadsheetParams = {
+        policyID,
+        rules: JSON.stringify(rules),
+    };
+
+    try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MERCHANT_RULES_SPREADSHEET, parameters);
+        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
+    } catch {
+        return getImportFailedFinalModal();
+    }
 }
 
 function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRuleFilter) {
@@ -399,7 +487,7 @@ function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: strin
     API.write(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, parameters, onyxData);
 }
 
-function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string) {
+function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string, previousTitle?: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for updatePolicyAgentRule', {policyID, agentRuleID, prompt});
         return;
@@ -417,6 +505,9 @@ function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: st
                         agentRules: {
                             [agentRuleID]: {
                                 prompt,
+                                // Clear the stale title so the list falls back to the new prompt until the server
+                                // returns the regenerated title.
+                                title: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                         },
@@ -449,6 +540,7 @@ function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: st
                         agentRules: {
                             [agentRuleID]: {
                                 prompt: previousPrompt,
+                                title: previousTitle ?? null,
                                 pendingAction: null,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
@@ -593,7 +685,11 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 
 export {
     openPolicyRulesPage,
+    getAgentRuleSuggestions,
+    mapFormFieldsToRuleForOnyx,
+    mapFormFieldsToRuleForAPI,
     setPolicyCodingRule,
+    importMerchantRulesSpreadsheet,
     deletePolicyCodingRule,
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
@@ -602,3 +698,4 @@ export {
     clearPolicyCodingRuleErrors,
     clearPolicyAgentRuleErrors,
 };
+export type {ImportedMerchantRule};

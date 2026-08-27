@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -20,7 +19,7 @@ import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type VerifyAccountPageBaseProps = {
@@ -66,11 +65,17 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
         Navigation.goBack(navigateBackTo);
     }, [handleClose, navigateBackTo]);
 
-    // Handle navigation once the user is validated
+    // Handle navigation once the user is validated.
+    // This transition must happen exactly once: after it runs, this page stays mounted (see the loading state below),
+    // and callers commonly derive navigateForwardTo/navigateBackTo from the live navigation state (useDynamicBackPath).
+    // Those props therefore change as soon as we navigate, so without this guard the effect would re-run and navigate
+    // again - to the path we just landed on, nesting it into the backTo param.
+    const hasNavigatedAfterValidation = useRef(false);
     useEffect(() => {
-        if (!isUserValidated) {
+        if (!isUserValidated || hasNavigatedAfterValidation.current) {
             return;
         }
+        hasNavigatedAfterValidation.current = true;
 
         onValidationSuccess?.();
 
@@ -93,10 +98,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
                     onBackButtonPress={handleCloseWithFallback}
                 />
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'VerifyAccountPageBase', isUserValidated} satisfies SkeletonSpanReasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             </ScreenWrapper>
         );
@@ -106,7 +108,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
         <ValidateCodeActionContent
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
-            descriptionSecondary={translate('contacts.enterMagicCode', contactMethod)}
+            descriptionSecondary={translate('contacts.enterSecurityCode', contactMethod)}
             sendValidateCode={sendValidateCode}
             validateCodeActionErrorField="validateLogin"
             validatePendingAction={loginData?.pendingFields?.validateCodeSent}

@@ -61,7 +61,11 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function WithdrawalIDListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function WithdrawalIDListItemHeaderImpl({
     withdrawalID: withdrawalIDItem,
     onCheckboxPress,
     isDisabled,
@@ -71,12 +75,12 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
     columns,
-}: WithdrawalIDListItemHeaderProps<TItem>) {
+}: WithdrawalIDListItemHeaderProps<ListItem>) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -88,7 +92,10 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+        dateFnsLocale,
     );
+    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = withdrawalIDItem;
+
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
     const statusBadge = !!badgeProps && (
@@ -173,6 +180,33 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 <TextCell text={String(withdrawalIDItem.count)} />
             </View>
         ),
+        // A settlement that did not convert currencies reports neither amount, and an amount says nothing without the currency it moved in.
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED)}
+            >
+                {!!debitedAmount && !!debitedCurrency && (
+                    <TotalCell
+                        total={debitedAmount}
+                        currency={debitedCurrency}
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED)}
+            >
+                {!!creditedAmount && !!creditedCurrency && (
+                    <TotalCell
+                        total={creditedAmount}
+                        currency={creditedCurrency}
+                    />
+                )}
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.TOTAL}
@@ -192,7 +226,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(withdrawalIDItem as ListItem)}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
@@ -255,6 +289,10 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
             )}
         </View>
     );
+}
+
+function WithdrawalIDListItemHeader<TItem extends ListItem>(props: WithdrawalIDListItemHeaderProps<TItem>) {
+    return <WithdrawalIDListItemHeaderImpl {...(props as WithdrawalIDListItemHeaderProps<ListItem>)} />;
 }
 
 export default WithdrawalIDListItemHeader;

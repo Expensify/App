@@ -1,13 +1,15 @@
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import GPSMapView from '@components/MapView/GPSMapView';
-import type {Coordinate} from '@components/MapView/MapViewTypes';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -22,9 +24,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates, getTrimmedGpsTrip, gpsPointsToMapboxCoordinates} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 
@@ -59,7 +62,9 @@ function IOURequestStepDistanceGPS({
     const styles = useThemeStyles();
     const delegateAccountID = useDelegateAccountID();
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isInLandscapeMode = useIsInLandscapeMode();
 
@@ -79,6 +84,7 @@ function IOURequestStepDistanceGPS({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -96,6 +102,7 @@ function IOURequestStepDistanceGPS({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         iouType,
@@ -109,6 +116,7 @@ function IOURequestStepDistanceGPS({
     const unit = DistanceRequestUtils.getRate({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
+        useTransactionDistanceUnit: isEditing,
         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     }).unit;
 
@@ -116,17 +124,34 @@ function IOURequestStepDistanceGPS({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
+
+    const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
+        dateFnsLocale,
+        currentUserAccountID: currentUserAccountIDParam,
+        report,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        isArchived,
+        reportAttributesDerived,
+        reportDraft,
+        translate,
+    });
+
     const navigateToNextStep = () => {
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
-        const distance = getGPSConvertedDistance(gpsDraftDetails, unit);
+        const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
+        const modifiedDistance = gpsDraftDetails?.modifiedDistance !== undefined ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.modifiedDistance, unit) : undefined;
+        const distanceForDisplay = modifiedDistance ?? originalDistance;
 
-        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distance);
+        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distanceForDisplay, unit);
 
         const waypoints = getGPSWaypoints(gpsDraftDetails);
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            getCurrencyDecimals,
             iouType,
             action,
             report,
@@ -134,7 +159,6 @@ function IOURequestStepDistanceGPS({
             transaction,
             reportID,
             transactionID,
-            reportAttributesDerived,
             personalDetails,
             waypoints,
             currentUserLogin: currentUserEmailParam,
@@ -152,8 +176,10 @@ function IOURequestStepDistanceGPS({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
+            isOffline,
             gpsCoordinates,
-            gpsDistance: distance,
+            gpsDistance: originalDistance,
+            gpsModifiedDistance: modifiedDistance,
             selfDMReport,
             policyForMovingExpenses,
             betas,
@@ -165,12 +191,16 @@ function IOURequestStepDistanceGPS({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            conciergeReportID,
+            conciergeChat,
             optimisticTransactionID,
             optimisticChatReportID,
-            reportDraft,
+            isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            formatPhoneNumber,
+            getCurrencySymbol,
+            participants,
+            participantsPolicyTags,
         });
     };
 
@@ -191,9 +221,9 @@ function IOURequestStepDistanceGPS({
         return stopMapboxToken;
     }, []);
 
-    const waypointMarkers = useGPSWaypointMarkers();
+    const gpsWaypointMarkers = useGPSWaypointMarkers({gpsDraftDetails});
 
-    const directionCoordinates: Coordinate[][] = getGpsPoints(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
+    const directionCoordinates = gpsPointsToMapboxCoordinates(getTrimmedGpsTrip(gpsDraftDetails));
 
     return (
         <StepScreenWrapper
@@ -211,7 +241,7 @@ function IOURequestStepDistanceGPS({
                         pitchEnabled={false}
                         style={[styles.mapView, styles.mapEditView]}
                         styleURL={CONST.MAPBOX.STYLE_URL}
-                        waypoints={waypointMarkers}
+                        waypoints={gpsWaypointMarkers}
                         directionCoordinates={directionCoordinates}
                         isTrackingGPS={!!gpsDraftDetails?.isTracking}
                     />
@@ -221,6 +251,11 @@ function IOURequestStepDistanceGPS({
                     <Waypoints
                         unit={unit}
                         isInLandscapeMode={isInLandscapeMode}
+                        action={action}
+                        iouType={iouType}
+                        transactionID={transactionID}
+                        reportID={reportID}
+                        backToReport={backToReport}
                     />
 
                     <View style={[styles.gap3, styles.ph5, isInLandscapeMode ? styles.pv3 : styles.pb5]}>

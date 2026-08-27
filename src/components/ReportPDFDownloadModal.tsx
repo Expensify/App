@@ -1,58 +1,52 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useStallLogger from '@hooks/useStallLogger';
 
 import {downloadReportPDF} from '@libs/actions/Report';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 
-import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
-import Header from './Header';
-import Icon from './Icon';
-import Modal from './Modal';
-import {PressableWithFeedback} from './Pressable';
-import Text from './Text';
+import PDFDownloadModal from './PDFDownloadModal';
 
 type ReportPDFDownloadModalProps = {
     reportID: string | undefined;
     isVisible: boolean;
     onClose: () => void;
     onModalHide?: () => void;
+
+    /** Called when the modal is dismissed while the PDF is still generating (e.g. Submit via PDF retracts the submit). */
+    onCancel?: () => void;
 };
 
-function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide}: ReportPDFDownloadModalProps) {
-    const shouldAutoDownloadPDF = useRef(false);
-
+function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCancel}: ReportPDFDownloadModalProps) {
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const {translate} = useLocalize();
-    // We need to use isSmallScreenWidth here because the Modal breaks in RHP with shouldUseNarrowLayout.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
-
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails?.login ?? '';
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const reportName = report?.reportName ?? '';
+    const {isOffline} = useNetwork();
 
-    const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
+    const hasFinishedPDFDownload = !!reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
 
-    const messagePDF = (() => {
+    // reportPDFFilename only ever resolves via a backend-pushed Onyx update (no client timeout), so a filename
+    // that never arrives and never errors leaves the spinner stuck with nothing else to log it. See Expensify#667674.
+    // Excluded while offline: the request is legitimately queued and waiting for connectivity, not stuck.
+    // Keyed by reportID (not just a boolean) so if this modal is ever reused for a different report without
+    // unmounting, the timer restarts against the new report instead of firing late and blaming the wrong one.
+    useStallLogger(isVisible && !isOffline && !reportPDFFilename ? reportID : false, '[PDFStall] reportPDFFilename never resolved to a filename or error while the download modal was open', {
+        reportID,
+    });
+
+    const message = (() => {
         if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
             return translate('reportDetailsPage.errorPDF');
         }
@@ -62,78 +56,33 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide}: Rep
         return translate('reportDetailsPage.successPDF');
     })();
 
-    useEffect(() => {
-        shouldAutoDownloadPDF.current = isVisible;
-    }, [isVisible]);
-
-    useEffect(() => {
-        if (!hasFinishedPDFDownload || !shouldAutoDownloadPDF.current) {
-            return;
+    // reportPDFFilename is null while the backend is still generating, so a dismissal at that point is a cancel
+    // (e.g. Submit via PDF retracts the submit); once it holds a filename or 'error' the submit has already resolved.
+    const handleClose = () => {
+        if (!reportPDFFilename) {
+            onCancel?.();
         }
-        downloadReportPDF(reportPDFFilename, reportName, translate, currentUserLogin ?? '', encryptedAuthToken);
-        shouldAutoDownloadPDF.current = false;
-    }, [hasFinishedPDFDownload, reportPDFFilename, reportName, translate, currentUserLogin, encryptedAuthToken]);
-
-    const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyReportHeader.PDFModal',
+        onClose();
     };
 
     return (
-        <Modal
-            onClose={onClose}
-            onModalHide={onModalHide}
+        <PDFDownloadModal
             isVisible={isVisible}
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            innerContainerStyle={styles.pv0}
-        >
-            <View style={[styles.flexRow, styles.m5]}>
-                <View style={[styles.flex1]}>
-                    <View style={[styles.flexRow, styles.mb4]}>
-                        <View style={[styles.flex1]}>
-                            <View style={[styles.flexRow]}>
-                                <Header title={translate('reportDetailsPage.generatingPDF')} />
-                            </View>
-                            <Text style={[styles.mt5, styles.textAlignLeft]}>{messagePDF}</Text>
-                        </View>
-
-                        {!hasFinishedPDFDownload && (
-                            <View style={[styles.dFlex, styles.justifyContentEnd]}>
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                                    color={theme.textSupporting}
-                                    style={styles.ml3}
-                                    reasonAttributes={pdfLoadingReasonAttributes}
-                                />
-                            </View>
-                        )}
-                    </View>
-                    <Button
-                        style={[styles.mt3, styles.noSelect]}
-                        onPress={() => {
-                            if (!hasFinishedPDFDownload) {
-                                onClose();
-                            } else {
-                                downloadReportPDF(reportPDFFilename, reportName, translate, currentUserLogin ?? '', encryptedAuthToken);
-                            }
-                        }}
-                        text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
-                    />
-                </View>
-                <PressableWithFeedback
-                    onPress={onClose}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.close')}
-                    wrapperStyle={[styles.pAbsolute, styles.r0]}
-                    sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
-                >
-                    <Icon
-                        src={expensifyIcons.Close}
-                        fill={theme.icon}
-                    />
-                </PressableWithFeedback>
-            </View>
-        </Modal>
+            shouldTreatModalAsCovering
+            onClose={handleClose}
+            onModalHide={onModalHide}
+            hasFinishedPDFDownload={hasFinishedPDFDownload}
+            message={message}
+            onDownloadPDF={() => {
+                if (!reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
+                    return;
+                }
+                downloadReportPDF(reportPDFFilename, reportName, translate, currentUserLogin, encryptedAuthToken);
+            }}
+        />
     );
 }
+
+ReportPDFDownloadModal.displayName = 'ReportPDFDownloadModal';
 
 export default ReportPDFDownloadModal;

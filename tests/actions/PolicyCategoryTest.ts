@@ -42,8 +42,8 @@ describe('actions/PolicyCategory', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -61,7 +61,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         // Check if policy requiresCategory was updated with correct values
@@ -77,7 +76,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         // Check if the policy pendingFields was cleared
@@ -110,7 +108,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
                         const newCategory = policyCategories?.[newCategoryName];
@@ -127,7 +124,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
 
@@ -160,7 +156,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
 
@@ -178,7 +173,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
 
@@ -221,7 +215,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
 
@@ -238,7 +231,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
 
@@ -268,7 +260,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
 
@@ -282,7 +273,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
                         expect(policyCategories?.[categoryNameToDelete]).toBeFalsy();
@@ -322,7 +312,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -333,7 +322,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
                         expect(Object.values(policyCategories ?? {}).every((category) => category.enabled === false)).toBeTruthy();
@@ -347,7 +335,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.areCategoriesEnabled).toBe(false);
@@ -386,7 +373,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -397,7 +383,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
                         expect(Object.values(policyCategories ?? {}).every((category) => category.enabled === true)).toBeTruthy();
@@ -411,7 +396,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.areCategoriesEnabled).toBe(true);
@@ -640,8 +624,8 @@ describe('actions/PolicyCategory', () => {
 
             expect(importFinalModal).toStrictEqual({
                 titleKey: 'spreadsheet.importSuccessfulTitle',
-                promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
-                promptKeyParams: {added: 2, updated: 0},
+                promptKey: 'spreadsheet.importCategoriesAdded',
+                promptKeyParams: {count: 2},
             });
         });
 
@@ -680,7 +664,7 @@ describe('actions/PolicyCategory', () => {
 
             const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
 
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 2});
         });
 
         it('Categories with empty names are skipped when counting unique categories', async () => {
@@ -697,7 +681,7 @@ describe('actions/PolicyCategory', () => {
 
             const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport);
 
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 1});
         });
 
         it('Empty categories array results in zero unique count', async () => {
@@ -708,7 +692,7 @@ describe('actions/PolicyCategory', () => {
 
             const importFinalModal = await importPolicyCategories(fakePolicy.id, []);
 
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
+            expect(importFinalModal.promptKey).toStrictEqual('spreadsheet.importCategoriesNoneAddedOrUpdated');
         });
     });
 
@@ -750,7 +734,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
                         const category = policyCategories?.[categoryName];
@@ -772,7 +755,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
                         const category = policyCategories?.[categoryName];
@@ -825,7 +807,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
                         const category = policyCategories?.[categoryName];
@@ -847,7 +828,6 @@ describe('actions/PolicyCategory', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
                         const category = policyCategories?.[categoryName];

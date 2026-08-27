@@ -32,7 +32,7 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
 
         // When anchored to `requestedAt`, align the next tick to the wall-clock second boundary so every tab/reload flips the
         // displayed second at the same instant instead of drifting by each tab's own mount offset. Without an anchor (the
-        // `hasMagicCodeBeenSent` flows) there is nothing to align to, so fall back to a fixed 1s cadence.
+        // `hasValidateCodeBeenSent` flows) there is nothing to align to, so fall back to a fixed 1s cadence.
         const msUntilNextTick = requestedAt ? CONST.MILLISECONDS_PER_SECOND - ((Date.now() - requestedAt) % CONST.MILLISECONDS_PER_SECOND) : CONST.MILLISECONDS_PER_SECOND;
 
         timerRef.current = setTimeout(() => {
@@ -50,7 +50,7 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
     // We check timeRemaining === 1 (not 0) because the component unmounts immediately at 0s, so the expired announcement wouldn't be spoken.
     // We use timeRemaining % 10 === 1 to announce every 10 seconds (at 21s, 11s, 1s) to avoid overwhelming screen reader users.
     useAccessibilityAnnouncement(
-        timeRemaining === 1 ? translate('validateCodeForm.timeExpiredAnnouncement') : translate('validateCodeForm.timeRemainingAnnouncement', {timeRemaining: timeRemaining - 1}),
+        timeRemaining === 1 ? translate('validateCodeForm.timeExpiredAnnouncement') : translate('validateCodeForm.timeRemainingAnnouncement', {count: timeRemaining - 1}),
         timeRemaining % 10 === 1,
         {
             shouldAnnounceOnNative: true,

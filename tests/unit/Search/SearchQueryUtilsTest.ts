@@ -1,4 +1,4 @@
-import type {ASTNode, QueryFilter, SearchQueryJSON} from '@components/Search/types';
+import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -22,21 +22,28 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
+    getFilterFormValues,
     getFilterFromQuery,
+    getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
+    isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
+    isSearchBeforeViolationsSnapshotStarted,
     isSearchRootParams,
     serializeQueryJSONForBackend,
+    resolvePolicyIDFromName,
+    sanitizeSearchValue,
     shouldHighlight,
     shouldResetSort,
     shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
+    withExactMatchFilterKeys,
 } from '@src/libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,7 +59,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import createMock from 'tests/utils/createMock';
 
 import createRandomPolicy from '../../utils/collections/policies';
-import {localeCompare, translateLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
 
@@ -260,25 +267,25 @@ describe('SearchQueryUtils', () => {
 
     describe('getDateRangeDisplayValueFromFormValue', () => {
         test('returns full range display when both boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, '2025-03-01,2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', undefined, true));
         });
 
         test('returns single boundary display when only one boundary exists', () => {
-            const result = getDateRangeDisplayValueFromFormValue('2025-03-01');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, '2025-03-01');
 
-            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01'));
+            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01', undefined));
         });
 
         test('falls back to inclusive boundaries when range value is invalid', () => {
-            const result = getDateRangeDisplayValueFromFormValue('invalid', '2025-03-01', '2025-03-10');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, 'invalid', '2025-03-01', '2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', undefined, true));
         });
 
         test('returns empty string when no valid range boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue('invalid');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, 'invalid');
 
             expect(result).toBe('');
         });
@@ -308,6 +315,15 @@ describe('SearchQueryUtils', () => {
             const result = getQueryWithUpdatedValues(userQuery);
 
             expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
+        });
+
+        test('rebuilds a single value containing a comma as one value', () => {
+            expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
+            expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
+        });
+
+        test('rebuilds a comma separated list as separate values', () => {
+            expect(getQueryWithUpdatedValues('category:Travel,Meals')).toEqual(`${defaultQuery} category:Travel,Meals`);
         });
 
         test('returns query with user emails substituted', () => {
@@ -457,35 +473,12 @@ describe('SearchQueryUtils', () => {
         test('has empty category values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                category: ['equipment', 'consulting', 'none,Uncategorized'],
+                category: ['equipment', 'consulting', CONST.SEARCH.CATEGORY_EMPTY_VALUE],
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
-        });
-
-        test('serializes No Tag filter as missing tag query', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-
-            expect(result).toEqual('type:expense -has:tag');
-            expect(result).not.toContain('tag:none');
-        });
-
-        test('serializes real tag values as tag filters', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                tag: ['Engineering'],
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-
-            expect(result).toEqual('type:expense tag:Engineering');
+            expect(result).toEqual(`type:expense category:equipment,consulting,${CONST.SEARCH.CATEGORY_EMPTY_VALUE}`);
         });
 
         test('empty filter values', () => {
@@ -612,6 +605,29 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense total>1 total<1000');
         });
 
+        test('conversion amount filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                amountDebitedGreaterThan: '1',
+                amountDebitedLessThan: '1000',
+                amountReimbursedEqualTo: '500',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense-report amountDebited>1 amountDebited<1000 amountReimbursed:500');
+        });
+
+        test('conversion amount filters are dropped on an expense search, since a payment pays a whole report', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                amountDebitedEqualTo: '1694',
+                amountReimbursedGreaterThan: '1000',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense');
+        });
+
         test('equal to filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -699,6 +715,37 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense withdrawn:last-month');
+        });
+
+        test('with Expensify Card current balance view transactions filters', () => {
+            const feedKey = '21557189_Expensify Card';
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                feed: [feedKey],
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.NEVER, CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense feed:"21557189_Expensify Card" withdrawalStatus:never,pending');
+
+            const queryJSON = buildSearchQueryJSON(result);
+            expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(queryJSON?.flatFilters).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: feedKey}],
+                    }),
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+                        filters: [
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.SETTLEMENT_STATUS.NEVER},
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.SETTLEMENT_STATUS.PENDING},
+                        ],
+                    }),
+                ]),
+            );
         });
 
         describe('limit option', () => {
@@ -927,6 +974,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -958,6 +1006,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -974,9 +1023,9 @@ describe('SearchQueryUtils', () => {
 
             const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}123`]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: createMock<OnyxTypes.Policy>({
                     name: 'Team Space',
-                } as OnyxTypes.Policy,
+                }),
             };
 
             if (!queryJSON) {
@@ -994,6 +1043,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1033,6 +1083,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1057,6 +1108,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1081,6 +1133,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1166,6 +1219,22 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 action: undefined,
+            });
+        });
+
+        test('conversion amount filters parse from either spelling of the key', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense-report amount-debited>1000 amountReimbursed<2000');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toMatchObject({
+                type: 'expense-report',
+                amountDebitedGreaterThan: '1000',
+                amountReimbursedLessThan: '2000',
             });
         });
 
@@ -1481,37 +1550,6 @@ describe('SearchQueryUtils', () => {
             expect(result['reportFieldRange-start-date']).toBeUndefined();
         });
 
-        test('hydrates missing tag query as No Tag filter', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense -has:tag');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
-
-            expect(result).toEqual({
-                type: 'expense',
-                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
-            });
-        });
-
-        test('hydrates missing tag query while preserving other has filters', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense has:receipt -has:tag');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
-
-            expect(result).toEqual({
-                type: 'expense',
-                has: [CONST.SEARCH.HAS_VALUES.RECEIPT],
-                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
-            });
-        });
-
         describe('view parameter', () => {
             const emptyParams = {
                 policyCategories: {},
@@ -1577,7 +1615,7 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {
+            const policyTags = createMock<OnyxCollection<OnyxTypes.PolicyTagLists>>({
                 [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]: {
                     Department: {
                         name: 'Department',
@@ -1588,7 +1626,7 @@ describe('SearchQueryUtils', () => {
                         },
                     },
                 },
-            } as unknown as OnyxCollection<OnyxTypes.PolicyTagLists>;
+            });
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1611,7 +1649,7 @@ describe('SearchQueryUtils', () => {
 
             const policyCategories = {};
             const policyTags = {};
-            const currencyList = {USD: {}, EUR: {}, GBP: {}} as unknown as OnyxTypes.CurrencyList;
+            const currencyList = createMock<OnyxTypes.CurrencyList>({USD: {}, EUR: {}, GBP: {}});
             const personalDetails = {};
             const cardList = {};
             const reports = {};
@@ -2112,9 +2150,10 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
-            expect(result).toBe('+15551234567');
+            expect(result).toBe(formatPhoneNumber('+15551234567@expensify.sms'));
             expect(result).not.toContain('@expensify.sms');
         });
 
@@ -2137,6 +2176,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('Jane Doe');
@@ -2161,6 +2201,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -2179,6 +2220,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -2197,6 +2239,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('88888');
@@ -2221,6 +2264,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('Custom Name');
@@ -2246,9 +2290,10 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
-            expect(result).toBe('+15551112222');
+            expect(result).toBe(formatPhoneNumber('+15551112222@expensify.sms'));
             expect(result).not.toContain('@expensify.sms');
         });
 
@@ -2279,9 +2324,10 @@ describe('SearchQueryUtils', () => {
                     policies: mockPolicies,
                     currentUserAccountID,
                     translate: translateLocal,
+                    formatPhoneNumber,
                 });
 
-                expect(result).toBe('+15553334444');
+                expect(result).toBe(formatPhoneNumber('+15553334444@expensify.sms'));
                 expect(result).not.toContain('@expensify.sms');
             }
         });
@@ -2372,6 +2418,17 @@ describe('SearchQueryUtils', () => {
             const keywordFilter = newQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
             expect(keywordFilter?.filters.at(0)?.value).toBe('status:done');
             expect(getFilterFromQuery(newQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toBe(undefined);
+        });
+
+        test.each([
+            ['a straight quote', 'A"B'],
+            ['a curly quote', 'A“B'],
+            ['a backslash', 'A\\B'],
+        ])('round-trips a bare keyword containing %s', (_label, keyword) => {
+            const result = buildSearchQueryString(buildSearchQueryJSON(`type:expense ${keyword}`));
+
+            const keywordFilter = buildSearchQueryJSON(result)?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(keywordFilter?.filters.at(0)?.value).toBe(keyword);
         });
 
         test('does not add quotes to non-keyword filter values', () => {
@@ -2749,6 +2806,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             // The result depends on getReportName internal logic, but
@@ -2768,6 +2826,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('nonexistent-report-id');
@@ -2784,6 +2843,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('1500');
@@ -2800,16 +2860,52 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
         });
 
+        it('should display the label the backend records for the Canadian multiple tax export template', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
+        });
+
+        it('should return a custom export template name as-is', () => {
+            const customTemplateName = 'Custom Export Layout';
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: customTemplateName,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(customTemplateName);
+        });
+
         it('should handle policyID filter by looking up policy name', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}abc123`]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}abc123`]: createMock<OnyxTypes.Policy>({
                     name: 'My Workspace',
-                } as OnyxTypes.Policy,
+                }),
             };
 
             const result = getFilterDisplayValue({
@@ -2822,6 +2918,7 @@ describe('SearchQueryUtils', () => {
                 policies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('My Workspace');
@@ -2838,6 +2935,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('GL:travel');
@@ -2845,13 +2943,13 @@ describe('SearchQueryUtils', () => {
 
         it('should format bankAccount filter as "<bank> xx<last4>" using bankAccountList', () => {
             const bankAccountList: OnyxTypes.BankAccountList = {
-                42: {
+                42: createMock<OnyxTypes.BankAccountList[string]>({
                     accountData: {
                         bankAccountID: 42,
                         accountNumber: '123456789012',
                         additionalData: {bankName: CONST.BANK_NAMES.CHASE},
                     },
-                } as OnyxTypes.BankAccountList[string],
+                }),
             };
 
             const result = getFilterDisplayValue({
@@ -2864,6 +2962,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
                 bankAccountList,
             });
 
@@ -2881,6 +2980,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
                 bankAccountList: {},
             });
 
@@ -2919,6 +3019,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(2);
@@ -2947,6 +3048,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -2975,6 +3077,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3003,6 +3106,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3023,6 +3127,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3051,6 +3156,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3059,11 +3165,11 @@ describe('SearchQueryUtils', () => {
 
         it('should resolve a regular Expensify Card feed filter to its label', () => {
             const cardList: OnyxTypes.CardList = {
-                '111': {
+                '111': createMock<OnyxTypes.Card>({
                     cardID: 111,
                     bank: CONST.EXPENSIFY_CARD.BANK,
                     fundID: '12345',
-                } as OnyxTypes.Card,
+                }),
             };
 
             const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}`}];
@@ -3079,6 +3185,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3087,12 +3194,12 @@ describe('SearchQueryUtils', () => {
 
         it('should resolve a Travel Invoicing feed filter (3-segment key) to the translated label', () => {
             const cardList: OnyxTypes.CardList = {
-                '222': {
+                '222': createMock<OnyxTypes.Card>({
                     cardID: 222,
                     bank: CONST.EXPENSIFY_CARD.BANK,
                     fundID: '12345',
                     nameValuePairs: {feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US},
-                } as OnyxTypes.Card,
+                }),
             };
 
             const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`}];
@@ -3108,6 +3215,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3129,6 +3237,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3149,6 +3258,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(0);
@@ -3189,6 +3299,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3222,6 +3333,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3254,6 +3366,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3278,6 +3391,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: true,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3385,8 +3499,9 @@ describe('SearchQueryUtils', () => {
             if (!queryJSON) {
                 throw new Error('Expected queryJSON to be defined');
             }
-            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON)) as {filters: ASTNode};
-            const merchantNode = findNode(serialized.filters, 'merchant');
+            const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters);
+            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            const merchantNode = findNode(normalizedFilters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
             }
@@ -3395,14 +3510,67 @@ describe('SearchQueryUtils', () => {
 
         it('should apply contains to merchant in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
-            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
-            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+            const normalizedRawFilterList = rawFilterList.map((filter) => ({...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList, status: ''}));
+        });
+
+        it('should preserve exact merchant matches in AST filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON) {
+                throw new Error('Expected queryJSON to be defined');
+            }
+            const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, status: ''}));
+            const merchantNode = findNode(queryJSON.filters, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+
+        it('should preserve exact merchant matches in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
+            const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+        });
+
+        it('should preserve multiple exact merchant matches while keeping description as contains', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:Amazon,"Amazon Marketplace" description:order');
+            if (!queryJSON) {
+                throw new Error('Expected queryJSON to be defined');
+            }
+            const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+            const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters, exactMatchFilterKeys);
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            const merchantNode = findNode(normalizedFilters, 'merchant');
+            const descriptionNode = findNode(normalizedFilters, 'description');
+            if (!merchantNode || !descriptionNode) {
+                throw new Error('Expected merchant and description nodes to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(merchantNode.right).toEqual(['Amazon', 'Amazon Marketplace']);
+            expect(descriptionNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
         });
 
         it('should not affect non-text fields in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
-            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
-            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+        });
+    });
+
+    describe('withExactMatchFilterKeys', () => {
+        it('should give exact queries distinct snapshot hashes', () => {
+            const partialQuery = buildSearchQueryJSON('type:expense merchant:Amazon');
+            if (!partialQuery) {
+                throw new Error('Expected partial query to be defined');
+            }
+
+            const exactQuery = withExactMatchFilterKeys(partialQuery, [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+
+            expect(exactQuery.hash).not.toBe(partialQuery.hash);
+            expect(exactQuery.recentSearchHash).not.toBe(partialQuery.recentSearchHash);
+            expect(exactQuery.similarSearchHash).not.toBe(partialQuery.similarSearchHash);
+            expect(exactQuery.exactMatchFilterKeys).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
         });
     });
 
@@ -3567,6 +3735,43 @@ describe('SearchQueryUtils', () => {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 merchant: undefined,
                 columns: undefined,
+            });
+        });
+    });
+
+    describe('isNegated', () => {
+        it('returns true for negated filter keys (ending with the NOT modifier)', () => {
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+        });
+
+        it('returns false for base (non-negated) filter keys', () => {
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY)).toBe(false);
+        });
+    });
+
+    describe('getFilterFormValues', () => {
+        it('sets the base key and clears the negated key when not negated', () => {
+            const result = getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, 'coffee', false);
+
+            expect(result).toEqual({
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: 'coffee',
+                [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: undefined,
+            });
+        });
+
+        it('sets the negated key and clears the base key when negated', () => {
+            const result = getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, 'coffee', true);
+
+            expect(result).toEqual({
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: undefined,
+                [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: 'coffee',
             });
         });
     });
@@ -3867,6 +4072,152 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);
+        });
+    });
+
+    describe('getDateFilterRange', () => {
+        test('returns start and end for an on-date filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:2025-03-15');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getDateFilterRange(queryJSON)).toEqual({
+                start: '2025-03-15',
+                end: '2025-03-15',
+            });
+        });
+
+        test('returns start and end for an inclusive date range', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2025-03-01 date<=2025-03-10');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getDateFilterRange(queryJSON)).toEqual({
+                start: '2025-03-01',
+                end: '2025-03-10',
+            });
+        });
+
+        test('excludes exact boundary days for exclusive greater than and less than filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>2025-03-01 date<2025-03-10');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getDateFilterRange(queryJSON)).toEqual({
+                start: '2025-03-02',
+                end: '2025-03-09',
+            });
+        });
+    });
+
+    describe('isSearchBeforeViolationsSnapshotStarted', () => {
+        const violationSnapshotStartedAt = '2026-06-20';
+
+        test('returns false when violationSnapshotStartedAt is undefined', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:2025-03-15');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, undefined)).toBe(false);
+        });
+
+        test('returns true when the start date is before the violation snapshot start date', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2025-03-01 date<=2025-03-10');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(true);
+        });
+
+        test('returns true when the end date is before the violation snapshot start date', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-01-01 date<=2026-06-01');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(true);
+        });
+
+        test('returns false when both start and end are on or after the violation snapshot start date', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-06-20 date<=2026-07-01');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(false);
+        });
+    });
+
+    describe('sanitizeSearchValue', () => {
+        it('leaves a value without a delimiter untouched', () => {
+            expect(sanitizeSearchValue('Acme')).toBe('Acme');
+        });
+
+        it('quotes on a space or a non-breaking space', () => {
+            expect(sanitizeSearchValue('Acme Inc')).toBe('"Acme Inc"');
+            expect(sanitizeSearchValue('Acme\xA0Inc')).toBe('"Acme\xA0Inc"');
+        });
+
+        it('quotes on a comma, so a value containing one is not read back as two', () => {
+            expect(sanitizeSearchValue('Globex,Ltd')).toBe('"Globex,Ltd"');
+        });
+
+        it('escapes quotes and backslashes so the parser reads them as part of the value', () => {
+            expect(sanitizeSearchValue('A"B')).toBe('A\\"B');
+            expect(sanitizeSearchValue('A\\B')).toBe('A\\\\B');
+            expect(sanitizeSearchValue('Acme "US",Inc')).toBe('"Acme \\"US\\",Inc"');
+            expect(sanitizeSearchValue('Acme “US” Inc')).toBe('"Acme \\“US\\” Inc"');
+        });
+
+        it('serializes a value with no character needing escaping exactly as before', () => {
+            expect(sanitizeSearchValue('Acme, Inc.')).toBe('"Acme, Inc."');
+            expect(sanitizeSearchValue('Travel')).toBe('Travel');
+        });
+    });
+
+    describe('resolvePolicyIDFromName', () => {
+        const ACME_ID = '26BE5C4005E188DB';
+        const OTHER_ID = '312ECD05D0CD4B27';
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${ACME_ID}`]: {...createRandomPolicy(1, undefined, 'Acme, Inc.'), id: ACME_ID},
+            [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_ID}`]: {...createRandomPolicy(2, undefined, 'Beta Corp'), id: OTHER_ID},
+        };
+
+        it('resolves a name that matches exactly one workspace', () => {
+            expect(resolvePolicyIDFromName('Acme, Inc.', policies)).toBe(ACME_ID);
+        });
+
+        it('matches the name regardless of case', () => {
+            expect(resolvePolicyIDFromName('acme, inc.', policies)).toBe(ACME_ID);
+        });
+
+        it('leaves a value that is already a policy ID alone', () => {
+            expect(resolvePolicyIDFromName(ACME_ID, policies)).toBe(ACME_ID);
+        });
+
+        it('leaves an unknown name alone', () => {
+            expect(resolvePolicyIDFromName('Nonexistent', policies)).toBe('Nonexistent');
+        });
+
+        it('leaves an ambiguous name alone rather than guessing', () => {
+            const duplicates = {
+                ...policies,
+                [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_ID}`]: {...createRandomPolicy(2, undefined, 'Acme, Inc.'), id: OTHER_ID},
+            };
+
+            expect(resolvePolicyIDFromName('Acme, Inc.', duplicates)).toBe('Acme, Inc.');
         });
     });
 });

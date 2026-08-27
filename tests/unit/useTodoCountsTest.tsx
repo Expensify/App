@@ -4,11 +4,12 @@ import useTodoCounts from '@hooks/useTodoCounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -51,12 +52,12 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
 });
 
 // Builds an admin policy with a QBO connection whose auto-sync is disabled, so a report on it is manually exportable.
-// The `Connections` type requires an entry for every supported integration, so a single-integration literal can only
-// be supplied through an assertion - isolated here so it is the one such cast in this file.
+// The `Connections` type requires an entry for every supported integration, while this scenario only needs QBO.
 const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connectionExporter}: {policyExporter: string; connectionExporter: string}): Policy =>
-    ({
-        ...createMockPolicy(policyID, {role: CONST.POLICY.ROLE.ADMIN, exporter: policyExporter}),
-        connections: {
+    createMockPolicy(policyID, {
+        role: CONST.POLICY.ROLE.ADMIN,
+        exporter: policyExporter,
+        connections: createMock<NonNullable<Policy['connections']>>({
             [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                 lastSync: {
                     isConnected: true,
@@ -74,8 +75,8 @@ const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connec
                     },
                 },
             },
-        },
-    }) as unknown as Policy;
+        }),
+    });
 
 const createMockTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction =>
     ({
@@ -95,6 +96,31 @@ const setReports = (reports: Report[]) => Promise.all(reports.map((report) => On
 const setTransactions = (transactions: Transaction[]) =>
     Promise.all(transactions.map((transaction) => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction)));
 const setPolicies = (policies: Policy[]) => Promise.all(policies.map((policy) => Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy)));
+
+const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
+
+// A money-request (IOU) action whose child report is the transaction thread that carries the HOLD action.
+const createMoneyRequestAction = (reportActionID: string, transactionID: string, transactionThreadReportID: string): ReportAction => ({
+    reportActionID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-01-01 00:00:00.000',
+    actorAccountID: OTHER_USER_ACCOUNT_ID,
+    childReportID: transactionThreadReportID,
+    originalMessage: {
+        IOUTransactionID: transactionID,
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        amount: 100,
+        currency: 'USD',
+    },
+});
+
+// The HOLD action lives on the transaction thread; its actor is whoever placed the hold.
+const createHoldAction = (holderAccountID: number): ReportAction => ({
+    reportActionID: HOLD_ACTION_ID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+    created: '2024-01-01 00:00:00.000',
+    actorAccountID: holderAccountID,
+});
 
 const renderTodoCounts = async (enabled = true) => {
     const hook = renderHook(({isEnabled}: {isEnabled: boolean}) => useTodoCounts(isEnabled), {initialProps: {isEnabled: enabled}});
@@ -181,6 +207,84 @@ describe('useTodoCounts', () => {
 
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBe(0);
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBe(0);
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(0);
+        });
+    });
+
+    describe('keeps an all-held approve/pay report only for the user who placed the hold', () => {
+        const HELD_APPROVE_REPORT_ID = 'held_hold_approve';
+        const HELD_PAY_REPORT_ID = 'held_hold_pay';
+
+        // Seeds a single all-held report plus the money-request action and the thread's HOLD action (whose actor is the
+        // holder), so the derivation can resolve whether the current user placed the hold.
+        const seedScenario = async (report: Report, holderAccountID: number) => {
+            const transactionID = `trans_${report.reportID}`;
+            const transactionThreadReportID = `thread_${report.reportID}`;
+            const moneyRequestActionID = `mr_${report.reportID}`;
+            const policy = createMockPolicy(POLICY_ID, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            });
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
+            await setPolicies([policy]);
+            await setReports([report]);
+            await setTransactions([createMockTransaction(transactionID, report.reportID, {comment: {hold: HOLD_ACTION_ID}})]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [moneyRequestActionID]: createMoneyRequestAction(moneyRequestActionID, transactionID, transactionThreadReportID),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {[HOLD_ACTION_ID]: createHoldAction(holderAccountID)});
+            await waitForBatchedUpdates();
+        };
+
+        const approveReport = () =>
+            createMockReport(HELD_APPROVE_REPORT_ID, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+            });
+
+        const payReport = () =>
+            createMockReport(HELD_PAY_REPORT_ID, {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                total: -100,
+            });
+
+        it('counts an all-held approve report when the current user placed the hold', async () => {
+            await seedScenario(approveReport(), CURRENT_USER_ACCOUNT_ID);
+
+            const {result} = await renderTodoCounts();
+
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBe(1);
+        });
+
+        it('does not count an all-held approve report when another user placed the hold', async () => {
+            await seedScenario(approveReport(), OTHER_USER_ACCOUNT_ID);
+
+            const {result} = await renderTodoCounts();
+
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBe(0);
+        });
+
+        it('counts an all-held pay report when the current user placed the hold', async () => {
+            await seedScenario(payReport(), CURRENT_USER_ACCOUNT_ID);
+
+            const {result} = await renderTodoCounts();
+
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(1);
+        });
+
+        it('does not count an all-held pay report when another user placed the hold', async () => {
+            await seedScenario(payReport(), OTHER_USER_ACCOUNT_ID);
+
+            const {result} = await renderTodoCounts();
+
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(0);
         });
     });
@@ -284,6 +388,31 @@ describe('useTodoCounts', () => {
             expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBeUndefined();
             expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBeUndefined();
             expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY]).toBeUndefined();
+        });
+
+        it('keeps a stable result reference when an Onyx write does not change the counts', async () => {
+            const {result} = await renderTodoCounts();
+            const firstResult = result.current;
+
+            // Rename an excluded chat report - the REPORT collection subscription fires, but no bucket changes.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXCLUDED_REPORT_IDS.at(0)}`, {reportName: 'Renamed chat'});
+                await waitForBatchedUpdates();
+            });
+
+            expect(result.current).toBe(firstResult);
+
+            // A write that changes a count must produce a new reference.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUBMIT_REPORT_IDS.at(0)}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            expect(result.current).not.toBe(firstResult);
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBe(3);
         });
 
         it('updates the submit count when a report state changes', async () => {

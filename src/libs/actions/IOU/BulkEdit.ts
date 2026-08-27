@@ -1,8 +1,11 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -98,6 +101,9 @@ type UpdateMultipleMoneyRequestsParams = {
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
     personalPolicyOutputCurrency?: string;
+    personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 function updateMultipleMoneyRequests({
@@ -116,6 +122,9 @@ function updateMultipleMoneyRequests({
     currentUserAccountID,
     delegateAccountID,
     personalPolicyOutputCurrency,
+    personalDetailsList,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: UpdateMultipleMoneyRequestsParams) {
     // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -360,7 +369,10 @@ function updateMultipleMoneyRequests({
             transactionChanges,
             isFromExpenseReport,
             policy: transactionPolicy,
+            policies: allPolicies,
             personalPolicyOutputCurrency,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
         const isTransactionOnHold = isOnHold(transaction);
 
@@ -394,6 +406,7 @@ function updateMultipleMoneyRequests({
                 isInvoiceTransaction: isInvoiceReportReportUtils(iouReport),
                 isSelfDM: isSelfDM(iouReport),
                 iouReport,
+                ownerLogin: getLoginByAccountID(iouReport?.ownerAccountID, personalDetailsList),
                 isFromExpenseReport,
                 distanceOriginalPolicy,
             });
@@ -489,6 +502,7 @@ function updateMultipleMoneyRequests({
             transaction,
             isTransactionOnHold,
             transactionPolicy,
+            getCurrencyDecimals,
             optimisticReportAction?.actorAccountID,
             transactionChanges,
             additionalTransactionsForFormula,

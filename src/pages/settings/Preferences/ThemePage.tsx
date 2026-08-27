@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useRef} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type ThemeEntry = ListItem & {
@@ -34,11 +34,14 @@ function ThemePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
-    const isOptionSelected = useRef(false);
 
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
-    const isHighContrast = isHighContrastTheme(currentTheme);
-    const currentBaseTheme = getBaseTheme(currentTheme);
+
+    const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>();
+    const [isHighContrast, setIsHighContrast] = useState<boolean>();
+    const currentBaseTheme = selectedBaseTheme ?? getBaseTheme(currentTheme);
+    const currentIsHighContrast = isHighContrast ?? isHighContrastTheme(currentTheme);
+    const themeToStore = currentIsHighContrast ? getContrastTheme(currentBaseTheme) : currentBaseTheme;
 
     const localesToThemes = BASE_THEMES.map((theme) => ({
         value: theme,
@@ -48,22 +51,27 @@ function ThemePage() {
     }));
 
     const updateTheme = (selectedTheme: ThemeEntry) => {
-        if (isOptionSelected.current) {
-            return;
-        }
-        isOptionSelected.current = true;
-        const themeToStore = isHighContrast ? getContrastTheme(selectedTheme.value) : selectedTheme.value;
-        updateThemeUserAction(themeToStore);
+        setSelectedBaseTheme(selectedTheme.value);
     };
 
     const onToggleHighContrast = (enabled: boolean) => {
-        const newTheme = enabled ? getContrastTheme(currentBaseTheme) : currentBaseTheme;
-        updateThemeUserAction(newTheme, false);
+        setIsHighContrast(enabled);
+    };
+
+    const saveTheme = () => {
+        updateThemeUserAction(themeToStore);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveTheme,
+        isDisabled: themeToStore === currentTheme,
     };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="ThemePage"
         >
             <HeaderWithBackButton
@@ -77,7 +85,9 @@ function ThemePage() {
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateTheme}
                     shouldSingleExecuteRowSelect
+                    confirmButtonOptions={confirmButtonOptions}
                     initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
+                    addBottomSafeAreaPadding
                     listFooterContent={
                         <>
                             <View style={[styles.mh5, styles.borderTop]} />
@@ -88,7 +98,7 @@ function ThemePage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('themePage.highContrastMode')}
-                                        isOn={isHighContrast}
+                                        isOn={currentIsHighContrast}
                                         onToggle={onToggleHighContrast}
                                     />
                                 </View>

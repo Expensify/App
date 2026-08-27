@@ -4,47 +4,27 @@ import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobile} from '@libs/Browser';
 import {getSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 
 import InboxTabSelector from './InboxTabSelector';
 import SidebarLinksData from './SidebarLinksData';
-
-// Once the app finishes loading for the first time, we never show the skeleton again
-// (even if isLoadingApp briefly flips back to true during a reconnect).
-// This uses a module-level variable + connectWithoutView instead of a ref because
-// a ref resets on unmount, so the skeleton would flash again when the component
-// remounts (e.g. navigating between tabs).
-let hasEverFinishedLoading = false;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        if (value !== false) {
-            return;
-        }
-        hasEverFinishedLoading = true;
-    },
-});
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
+    const {shouldShowSkeleton} = useAppLoadSkeletonState();
 
     // Tag an in-flight inbox-tab navigation span when the app-loading skeleton is shown instead of the
     // report list, so durations that include the openApp wait can be queried separately in Sentry.
@@ -71,16 +51,7 @@ function BaseSidebarScreen() {
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
                     {!shouldShowSkeleton && <InboxTabSelector />}
-                    <View style={[styles.flex1]}>
-                        {shouldShowSkeleton ? (
-                            <OptionsListSkeletonView
-                                shouldAnimate
-                                reasonAttributes={{context: 'BaseSidebarScreen', isLoadingApp, hasEverFinishedLoading} satisfies SkeletonSpanReasonAttributes}
-                            />
-                        ) : (
-                            <SidebarLinksData insets={insets} />
-                        )}
-                    </View>
+                    <View style={[styles.flex1]}>{shouldShowSkeleton ? <OptionsListSkeletonView shouldAnimate /> : <SidebarLinksData insets={insets} />}</View>
                 </>
             )}
         </ScreenWrapper>

@@ -2,17 +2,18 @@ import useAvatarCrop from '@hooks/useAvatarCrop';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 
+import {isLetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import {isGeneratedLetterAvatarURL} from '@libs/UserAvatarUtils';
 
-import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import {deleteAvatar, updateAvatar, updateAvatarStyle} from '@userActions/PersonalDetails';
 
 import type {TranslationPaths} from '@src/languages/types';
 
-import {useRef, useState} from 'react';
+import {useState} from 'react';
 
-import type {AvatarCaptureHandle} from './AvatarCapture/types';
 import type {ErrorData, ImageData} from './types';
 
 const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
@@ -27,8 +28,6 @@ function useProfileAvatarForm() {
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
     const [isRemoved, setIsRemoved] = useState(false);
 
-    const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
-
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isDirty = imageData.uri !== '' || !!selected || isRemoved;
@@ -37,7 +36,7 @@ function useProfileAvatarForm() {
         getHasUnsavedChanges: () => isDirty,
     });
 
-    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
+    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown> = {}) => {
         setErrorData({validationError: error, phraseParam});
     };
 
@@ -106,29 +105,24 @@ function useProfileAvatarForm() {
             return;
         }
 
-        if (!selected || !avatarCaptureRef.current) {
-            suppressDiscardPrompt(false);
+        if (selected && isLetterAvatarSchemeKey(selected)) {
+            const isColorChanged = currentUserPersonalDetails?.avatarStyle?.color !== selected;
+            const hasAvatarImageToClear = !!currentUserPersonalDetails?.avatar && !isGeneratedLetterAvatarURL(currentUserPersonalDetails.avatar);
+            if (isColorChanged || hasAvatarImageToClear) {
+                updateAvatarStyle(selected, currentUserPersonalDetails);
+            }
+            setSelected(undefined);
+            Navigation.dismissModal();
             return;
         }
 
-        avatarCaptureRef.current
-            .capture()
-            ?.then((file) => {
-                updateAvatar(file, previousAvatar);
-                setSelected(undefined);
-                setImageData({...EMPTY_FILE});
-                Navigation.dismissModal();
-            })
-            .catch(() => {
-                suppressDiscardPrompt(false);
-            });
+        suppressDiscardPrompt(false);
     };
 
     return {
         errorData,
         selected,
         imageData,
-        avatarCaptureRef,
         isDirty,
         isRemoved,
         setError,

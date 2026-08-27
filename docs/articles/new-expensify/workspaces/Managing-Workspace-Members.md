@@ -41,21 +41,22 @@ To invite someone to your workspace:
 You can filter the member list by role to quickly find specific groups of members.
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
-2. Click the role filter dropdown at the top of the member list.
-3. Select one of the available roles:
-   - **All members** – Shows all workspace members (default).
-   - **Approvers** – Shows only members who are designated approvers.
-   - **Workspace admins** – Shows only members with the Workspace admin role (not available on Submit workspaces).
-   - **Card admins** – Shows only members with the Card admin role (Control workspaces only).
+2. Click **Filters**.
+3. Select one or more of the available roles:
+   - **Workspace Admins** – Members with the Admin role.
+   - **Approvers** – Members who are designated approvers.
+   - **Card Admins** – Members with the Card Admin role (Control workspaces only).
+   - **People Admins** – Members with the People Admin role (Control workspaces only).
    - **Payments admins** – Shows only members with the Payments admin role (Control workspaces only).
-   - **Auditors** – Shows only members with the Auditor role (Control workspaces only).
-   - **Editors** – Shows only members with the Editor role (Submit workspaces only).
+   - **Auditors** – Members with the Auditor role (Control workspaces only).
+   - **Editors** – Members with the Editor role (Submit workspaces only).
+   - **Members** – Members with the Member role.
 
-The member list updates immediately to show only members matching the selected role. You can also combine the role filter with the search bar to narrow results further.
+Each selected role appears in the filter bar, and the member list updates immediately to show only members matching the selected roles. To remove a filter, click the **X**. You can also combine role filters with the search bar to narrow results further.
 
-The roles available in the filter depend on your workspace type, so the options change if you switch your workspace plan. If you’ve filtered by a role that is no longer available after a plan change, the filter automatically resets to **All members**.
+The roles available depend on your workspace type, so the options change if you switch your workspace plan.
 
-If no members match the selected filter, an empty state is displayed with the message: "No members match this filter."
+If no members match the selected filters, an empty state is displayed with the message: "No members match this filter."
 
 ---
 
@@ -64,6 +65,8 @@ If no members match the selected filter, an empty state is displayed with the me
 If someone no longer needs access to your workspace, you can remove them individually or in bulk to keep your member list up to date.
 
 **Note:** Workspace admins and People admins can remove members. People admins can only remove **Members** and **Auditors** — they cannot remove admins or other scoped admin roles.
+
+**Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
 
 ## Remove a Single Member
 
@@ -90,6 +93,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 4. Select the new role and confirm.
 
 **Note:** People admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
+
+**Note:** You can’t change the role of the member set as the workspace’s authorized payer. Their **Role** can’t be edited and role-change options are hidden until you assign a different payer. To change their role, first go to **Workspaces > Workflows**, open **Payments**, and set a different admin as the **Payer**.
 
 ---
 

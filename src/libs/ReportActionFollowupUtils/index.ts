@@ -1,34 +1,11 @@
-import {getReportActionMessage, isActionOfType} from '@libs/ReportActionsUtils';
-
-import CONST from '@src/CONST';
-import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-
 import render from 'dom-serializer';
 import {DomUtils, parseDocument} from 'htmlparser2';
 
 type Followup = {
     text: string;
     response?: string;
+    source?: string;
 };
-
-/**
- * Checks if a report action contains actionable (unresolved) followup suggestions.
- * @param reportAction - The report action to check
- * @returns true if the action is an ADD_COMMENT with unresolved followups, false otherwise
- */
-function containsActionableFollowUps(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    const isActionAComment = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-    if (!isActionAComment) {
-        return false;
-    }
-    const messageHtml = getReportActionMessage(reportAction)?.html;
-    if (!messageHtml) {
-        return false;
-    }
-    const followups = parseFollowupsFromHtml(messageHtml);
-
-    return !!followups && followups.length > 0;
-}
 
 /**
  * Parses followup data from a <followup-list> HTML element.
@@ -51,15 +28,16 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
         return [];
     }
 
+    const source = DomUtils.getAttributeValue(followupList, 'source');
     const followupElements = DomUtils.getElementsByTagName('followup', followupList, true);
     return followupElements.map((followupEl) => {
         const followupTextElement = DomUtils.getElementsByTagName('followup-text', followupEl, true).at(0);
         const followupResponseElement = DomUtils.getElementsByTagName('followup-response', followupEl, true).at(0);
         const text = followupTextElement ? DomUtils.textContent(followupTextElement) : '';
         const response = followupResponseElement ? render(followupResponseElement.children) : undefined;
-        return {text, response};
+        return {text, response, source};
     });
 }
 
-export {containsActionableFollowUps, parseFollowupsFromHtml};
+export {parseFollowupsFromHtml};
 export type {Followup};

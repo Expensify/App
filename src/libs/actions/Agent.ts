@@ -1,25 +1,36 @@
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {buildAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {generateReportID} from '@libs/ReportUtils';
+import {rand64} from '@libs/NumberUtils';
+import {buildOptimisticChatReport, buildOptimisticCreatedReportAction, generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 function openAgentsPage() {
-    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ARE_AGENTS_LOADED,
+            value: true,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {finallyData});
 }
 
 function openProfilePage() {
@@ -29,6 +40,8 @@ function openProfilePage() {
 function createAgent(
     firstName: string | undefined,
     prompt: string,
+    ownerAccountID: number,
+    ownerLogin: string | undefined,
     customExpensifyAvatarID?: string,
     file?: File | CustomRNImageManipulatorResult,
     optimisticAvatarURI?: string,
@@ -51,6 +64,22 @@ function createAgent(
         ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
     };
 
+    // Generate the DM report ID client-side so it can be written to Onyx and opened immediately.
+    const optimisticReportID = generateReportID();
+    const optimisticChatReport = buildOptimisticChatReport({
+        participantList: [ownerAccountID, optimisticAccountID],
+        ownerAccountID,
+        optimisticReportID,
+        currentUserAccountID: ownerAccountID,
+    });
+    // Reuse the client-generated CREATED action ID when CreateAgent creates the DM.
+    const createdReportActionID = rand64();
+    const optimisticCreatedAction = buildOptimisticCreatedReportAction({
+        emailCreatingAction: ownerLogin ?? CONST.REPORT.OWNER_EMAIL_FAKE,
+        currentUserAccountID: ownerAccountID,
+        optimisticReportActionID: createdReportActionID,
+    });
+
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -61,6 +90,21 @@ function createAgent(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
             value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            value: {...optimisticChatReport, pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
+            value: {isOptimisticReport: true},
         },
     ];
 
@@ -74,6 +118,16 @@ function createAgent(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
             value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            value: {pendingFields: {createChat: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
+            value: {isOptimisticReport: false},
         },
     ];
 
@@ -92,16 +146,43 @@ function createAgent(
                 errors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd'),
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
+            value: null,
+        },
     ];
 
     write(
         // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
+        // optimisticReportID is the owner<->agent DM's optimistic reportID; CreateAgent creates the DM under this exact ID.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true},
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 
-    return {optimisticAccountID, avatarURI};
+    return {optimisticAccountID, avatarURI, optimisticReportID};
+}
+
+/**
+ * Stash the template chosen in the "New agent" picker so the custom-agent builder can open pre-filled.
+ */
+function setNewAgentTemplate(template: NewAgentTemplate) {
+    return Onyx.set(ONYXKEYS.NEW_AGENT_TEMPLATE, template);
+}
+
+function clearNewAgentTemplate() {
+    return Onyx.set(ONYXKEYS.NEW_AGENT_TEMPLATE, null);
 }
 
 function clearAgentError(optimisticAccountID: number) {
@@ -293,7 +374,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
             value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
@@ -325,6 +406,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     }
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
+
     // Callers that end the copilot session right after deleting (e.g. deleting the agent you're copiloting into)
     // don't want the extra navigation, since the delegate transition resets navigation on its own.
     if (shouldNavigateBack) {
@@ -332,10 +414,56 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     }
 }
 
+/** Persists an uploaded agent avatar photo in a serialized form that survives a page refresh */
+function setNewAgentUploadedAvatar(image: File | CustomRNImageManipulatorResult) {
+    return buildAvatarCropResult(image).then((uploadedAvatar) => Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, {uploadedAvatar}));
+}
+
+/** Persists a preset agent avatar choice */
+function setNewAgentAvatarPreset(customExpensifyAvatarID: string) {
+    return Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, {customExpensifyAvatarID});
+}
+
+/** Clears the agent avatar draft */
+function clearNewAgentAvatarDraft() {
+    return Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, null);
+}
+
+/**
+ * Fetches ready-made agent templates.
+ */
+function getAgentTemplates() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_TEMPLATES,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_TEMPLATES,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_TEMPLATES,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.GET_AGENT_TEMPLATES, null, {optimisticData, successData, failureData});
+}
+
 export {
     openAgentsPage,
     openProfilePage,
     createAgent,
+    setNewAgentTemplate,
+    clearNewAgentTemplate,
     clearAgentError,
     clearAgentUpdateError,
     clearAgentNameUpdateError,
@@ -346,4 +474,8 @@ export {
     updateAgentPrompt,
     updateAgentAvatar,
     deleteAgent,
+    setNewAgentUploadedAvatar,
+    setNewAgentAvatarPreset,
+    clearNewAgentAvatarDraft,
+    getAgentTemplates,
 };

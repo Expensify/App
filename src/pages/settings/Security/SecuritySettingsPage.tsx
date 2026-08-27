@@ -11,20 +11,22 @@ import Section from '@components/Section';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {deleteAgent} from '@libs/actions/Agent';
 import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
 
 import colors from '@styles/theme/colors';
@@ -55,7 +57,6 @@ type BaseMenuItemType = WithSentryLabel & {
 
 function SecuritySettingsPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ClosedSign', 'Fingerprint', 'Monitor', 'Shield', 'UserLock']);
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -73,6 +74,7 @@ function SecuritySettingsPage() {
     const privateSubscription = usePrivateSubscription();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -83,7 +85,7 @@ function SecuritySettingsPage() {
     // "Copiloting into an agent" means we're acting as a delegate for an agent account. In this mode the
     // account being managed is the agent itself, so device management and merge accounts don't apply, and
     // "close account" should delete the agent and end the copilot session instead of closing a real account.
-    const isCopilotingIntoAgent = isAgentAccount && isActingAsDelegate;
+    const isCopilotingIntoAgent = isAgentAccount === true && isActingAsDelegate;
 
     const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== CONST.MULTIFACTOR_AUTHENTICATION.PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED;
 
@@ -95,7 +97,7 @@ function SecuritySettingsPage() {
         const baseMenuItems: BaseMenuItemType[] = [];
 
         // Agent accounts can't have two-factor/multifactor authentication, so hide those options for them.
-        if (!isAgentAccount) {
+        if (isAgentAccount === false) {
             baseMenuItems.push({
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: icons.Shield,
@@ -114,7 +116,7 @@ function SecuritySettingsPage() {
             });
         }
 
-        if (!isAgentAccount && hasEverRegisteredForMultifactorAuthentication) {
+        if (isAgentAccount === false && hasEverRegisteredForMultifactorAuthentication) {
             baseMenuItems.push({
                 translationKey: 'multifactorAuthentication.revoke.title',
                 icon: icons.Fingerprint,
@@ -181,6 +183,12 @@ function SecuritySettingsPage() {
             icon: icons.ClosedSign,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
             action: async () => {
+                // Copiloting into an agent is also a delegate session and must fall through to the
+                // agent-delete flow below, so only plain delegates are blocked here.
+                if (isActingAsDelegate && !isCopilotingIntoAgent) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
                 if (isAccountLocked) {
                     showLockedAccountModal();
                     return;
@@ -198,6 +206,11 @@ function SecuritySettingsPage() {
                             confirmText: translate('common.buttonConfirm'),
                             shouldShowCancelButton: false,
                         });
+                        return;
+                    }
+                    const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, allPolicies);
+                    if (ruleBotEnforcedPolicy) {
+                        showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
                         return;
                     }
                     const result = await showConfirmModal({
@@ -252,6 +265,7 @@ function SecuritySettingsPage() {
         showDelegateNoAccessModal,
         showLockedAccountModal,
         showConfirmModal,
+        showRuleBotGuardModal,
         session?.accountID,
         stashedCredentials,
         stashedSession,
@@ -266,6 +280,10 @@ function SecuritySettingsPage() {
         hasDeviceManagementErrorValue,
     ]);
 
+    if (isAgentAccount === undefined) {
+        return null;
+    }
+
     return (
         <ScreenWrapper
             testID="SecuritySettingsPage"
@@ -277,7 +295,6 @@ function SecuritySettingsPage() {
                 title={translate('initialSettingsPage.security')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={Navigation.goBack}
-                icon={illustrations.LockClosed}
                 shouldUseHeadlineHeader
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton

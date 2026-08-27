@@ -2,11 +2,9 @@ import type {RsbuildConfig} from '@rsbuild/core';
 import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
 
 import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
-import {pluginBabel} from '@rsbuild/plugin-babel';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
-import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
 import {execSync} from 'child_process';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -16,6 +14,9 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
+// Relative on purpose: module aliases are not resolved when this config is evaluated.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -40,37 +41,67 @@ function getCurrentBranchName(): string {
 const localBranchName = getCurrentBranchName();
 
 /**
- * These RN packages ship non-transpiled JSX and rely on the "react-native" import (aliased to
- * react-native-web below), so they need to go through the same babel-loader pipeline as our own
- * source rather than being treated as opaque, already-built node_modules.
+ * React Compiler + react-native-worklets loaders.
  */
-const includeModules = new RegExp(
-    `node_modules/(?!(${[
-        'react-native-reanimated',
-        'react-native-worklets',
-        'react-native-picker-select',
-        'react-native-web',
-        'react-native-webview',
-        '@react-native-picker',
-        '@react-navigation/material-top-tabs',
-        '@react-navigation/native',
-        '@react-navigation/native-stack',
-        '@react-navigation/stack',
-        'react-native-gesture-handler',
-        'react-native-google-places-autocomplete',
-        'react-native-qrcode-svg',
-        'react-native-view-shot',
-        '@react-native/assets',
-        'expo',
-        'expo-audio',
-        'expo-video',
-        'expo-image',
-        'expo-image-manipulator',
-        'expo-modules-core',
-        'victory-native',
-        '@shopify/react-native-skia',
-    ].join('|')})/).*|\\.native\\.(js|jsx|ts|tsx)$`,
-);
+function getOxcAndWorkletsLoaders(isDevServer: boolean) {
+    return [
+        {loader: path.resolve(dirname, './loaders/worklets-loader.mjs')},
+        {
+            loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
+            options: {
+                reactCompiler: {
+                    target: '19',
+                    panicThreshold: 'none',
+                    // `sources` is a filename allowlist: the compiler only runs on files whose path
+                    // contains one of these strings. Every path contains the empty string, so this
+                    // replaces the default filter (which skips `node_modules`) and keeps the compiler
+                    // running over INCLUDED_NODE_MODULES the same way it does over app source.
+                    sources: [''],
+                    // The compiler treats `react-hooks/exhaustive-deps` and `react-hooks/rules-of-hooks`
+                    // suppressions as an opt-out by default. babel-plugin-react-compiler disables that
+                    // default whenever exhaustive-memo and hooks-usage validation are both on, which is
+                    // its own default, so an empty list keeps web and Metro/Jest compiling the same files.
+                    eslintSuppressionRules: [],
+                },
+                jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
+            },
+        },
+    ];
+}
+
+/**
+ * These RN packages ship non-transpiled JSX and rely on the "react-native" import (aliased to
+ * react-native-web below), so they need to go through the same OXC transform pipeline as our own
+ * source rather than being treated as opaque.
+ */
+const INCLUDED_NODE_MODULES = [
+    'react-native-reanimated',
+    'react-native-worklets',
+    'react-native-picker-select',
+    'react-native-web',
+    'react-native-webview',
+    '@react-native-picker',
+    '@react-navigation/material-top-tabs',
+    '@react-navigation/native',
+    '@react-navigation/native-stack',
+    '@react-navigation/stack',
+    'react-native-gesture-handler',
+    'react-native-google-places-autocomplete',
+    'react-native-qrcode-svg',
+    'react-native-view-shot',
+    '@react-native/assets',
+    'expo',
+    'expo-audio',
+    'expo-video',
+    'expo-image',
+    'expo-image-manipulator',
+    'expo-modules-core',
+    'victory-native',
+    '@shopify/react-native-skia',
+];
+
+// Matches node_modules paths that are in the allowlist above
+const includedNodeModulesRegex = new RegExp(`node_modules/(${INCLUDED_NODE_MODULES.join('|')})`);
 
 const environmentToLogoSuffixMap: Record<string, string> = {
     production: '-dark',
@@ -97,6 +128,10 @@ function getDefineValues(file: string): DefinePluginOptions {
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         process: {env: {}},
+        // react-native-worklets (and other RN libs) reference the Node.js `global` identifier,
+        // which is undefined in the browser. Map it to `globalThis` so the web bundle doesn't throw
+        // "global is not defined". Rspack (unlike webpack 4) does not auto-provide `global`.
+        global: 'globalThis',
         // Define EXPO_OS for web platform to fix expo-modules-core warning
         'process.env.EXPO_OS': JSON.stringify('web'),
         __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
@@ -114,12 +149,12 @@ function getDefineValues(file: string): DefinePluginOptions {
 
 /**
  * Config shared between the main app build (below) and Storybook (via
- * `.storybook/rsbuild.config.ts`): source defines, module resolution, and the SVG/babel loader
+ * `.storybook/rsbuild.config.ts`): source defines, module resolution, and the SVG/OXC transform
  * pipeline. Deliberately excludes anything that assumes a single-page `web/index.html` app shell
  * (HTML template, service worker, Sentry release upload, static asset copying), since Storybook
  * manages its own HTML/output and isn't a deployable release of the app.
  */
-const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => {
+const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environment): RsbuildConfig => {
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         source: {
@@ -137,6 +172,9 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                 'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
                 // Required for @shopify/react-native-skia web support
                 'react-native/Libraries/Image/AssetRegistry': false,
+                // @sentry/react-native references the optional expo-updates module. We do not install it,
+                // so web/Storybook bundles should treat it as unavailable instead of failing resolution.
+                'expo-updates': false,
                 // Use legacy build of pdfjs-dist to support older browsers
                 'pdfjs-dist$': path.resolve(dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.mjs'),
                 '@assets': path.resolve(dirname, '../../assets'),
@@ -162,18 +200,17 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                 svgrOptions: {exportType: 'default'},
                 exclude: /node_modules/,
             }),
-            pluginBabel({
-                include: /\.(js|ts)x?$/,
-                exclude: [includeModules],
-                babelLoaderOptions: {
-                    configFile: path.resolve(dirname, '../../babel.config.js'),
-                    babelrc: false,
-                    presets: [],
-                    plugins: [],
-                },
-            }),
         ],
         tools: {
+            // Skip default .js loader that strips JSX/TypeScript and breaks Fullstory/React Compiler transforms we add later via rules
+            bundlerChain: (chain) => {
+                chain.module
+                    .rule('js')
+                    .oneOf('js')
+                    .exclude.add((resourcePath: string) => !resourcePath.includes('node_modules'))
+                    .add(includedNodeModulesRegex)
+                    .end();
+            },
             rspack: (config, {addRules}) => {
                 // canvaskit-wasm and expo's getBundleUrl.web.ts reference __filename/__dirname, which don't
                 // exist in a browser bundle. Rspack's default ('warn-mock') mocks them to a fixed value but
@@ -187,8 +224,21 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                 };
                 // We can ignore the "module not installed" warning from lottie-react-native because we
                 // are not using the library for JSON format of Lottie animations.
+                // We also ignore React Compiler errors - they're deliberately warnings, not errors.
                 // eslint-disable-next-line no-param-reassign
-                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/];
+                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/, /oxc-react-compiler-loader:/];
+
+                // Cache rules:
+                // - Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules are not reflected live
+                // - Applies to `dev`, `build`, and Storybook alike
+                // eslint-disable-next-line no-param-reassign
+                config.cache ??= {type: 'persistent'};
+                if (typeof config.cache === 'object' && config.cache.type === 'persistent') {
+                    // eslint-disable-next-line no-param-reassign
+                    config.cache.snapshot = {
+                        managedPaths: [/([\\/]node_modules[\\/](?!react-native-onyx|@expensify\/react-native-live-markdown))/],
+                    };
+                }
 
                 // eslint-disable-next-line no-param-reassign
                 config.resolve ??= {};
@@ -234,6 +284,38 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
                         resolve: {fullySpecified: false},
                         include: [path.resolve(dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
                     },
+                    // App source files (React Compiler enabled).
+                    {
+                        test: /\.(js|ts)x?$/,
+                        // Exclude ALL node_modules (including the included-node_modules allowlist, handled below).
+                        exclude: [/node_modules/, /\.native\.(js|jsx|ts|tsx)$/],
+                        use: [
+                            ...getOxcAndWorkletsLoaders(isDevServer),
+                            // Fullstory annotation.
+                            {
+                                loader: path.resolve(dirname, './loaders/fullstory-annotation-loader.mjs'),
+                            },
+                        ],
+                    },
+                    // Included node_modules: Same OXC + React Compiler pass as app source above,
+                    // minus the Fullstory pass, which only makes sense for our own components.
+                    //
+                    // `type: 'javascript/auto'` is required: some of these packages (e.g.
+                    // react-native-reanimated's `webUtils.web.js`) mix ESM `export` with guarded
+                    // CommonJS `require()` calls in the same file. Without this, rspack classifies
+                    // the file as `javascript/esm` (because of the `export`s) and leaves `require()`
+                    // as an unresolved free variable, so `require('react-native-web/...')` throws at
+                    // runtime, gets swallowed by the surrounding try/catch, and leaves
+                    // `createReactDOMStyle` undefined. That in turn makes reanimated's `_updatePropsJS`
+                    // crash with "Cannot convert undefined or null to object", breaking every
+                    // animated component on web (text input labels, tooltips, popovers, modals).
+                    {
+                        test: /\.(js|ts)x?$/,
+                        include: [includedNodeModulesRegex],
+                        exclude: [/\.native\.(js|jsx|ts|tsx)$/],
+                        type: 'javascript/auto',
+                        use: getOxcAndWorkletsLoaders(isDevServer),
+                    },
                 ]);
 
                 return config;
@@ -246,10 +328,11 @@ const getSharedConfiguration = ({file = '.env'}: Environment): RsbuildConfig => 
 /**
  * Get a production grade Rsbuild config for web
  */
-const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): RsbuildConfig => {
+const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevServer = false}: Environment): Promise<RsbuildConfig> => {
     const isDevelopment = file === '.env' || file === '.env.development';
-    const shared = getSharedConfiguration({file, platform});
+    const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
+    const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
 
     if (!isDevelopment) {
         const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
@@ -262,6 +345,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         ...shared,
         source: {
             ...shared.source,
+            define: {
+                ...shared.source?.define,
+                // Did `@sentry/webpack-plugin` stamp `applicationKey` into the chunks? Gates
+                // `thirdPartyErrorFilterIntegration` in `src/libs/telemetry/integrations/index.web.ts`,
+                // which can only classify frames when it did.
+                __SENTRY_APPLICATION_KEY_STAMPED__: !!sentryWebpackPlugin,
+            },
             entry: {main: './index.js'},
         },
         output: {
@@ -368,6 +458,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             },
         },
         tools: {
+            bundlerChain: shared.tools?.bundlerChain,
             rspack: (config, utils) => {
                 // `sharedRspackTool`'s declared return type includes `Promise<void | RspackOptions>` because
                 // that's a valid shape for `tools.rspack` in general, but `getSharedConfiguration`'s own
@@ -467,12 +558,12 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                           ]
                         : []),
                     ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
-                    // Upload source maps to Sentry
-                    ...(isDevelopment
-                        ? []
-                        : ([
+                    // Upload source maps to Sentry. @sentry/webpack-plugin is dynamically imported so dev
+                    // config evaluation does not load webpack's deprecated compat exports under Bun.
+                    ...(sentryWebpackPlugin
+                        ? ([
                               sentryWebpackPlugin({
-                                  authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
+                                  authToken: process.env.SENTRY_AUTH_TOKEN,
                                   org: 'expensify',
                                   project: 'app',
                                   release: {
@@ -484,10 +575,14 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                                       assets: './dist/**/*.{js,map}',
                                       filesToDeleteAfterUpload: './dist/**/*.map',
                                   },
+                                  // Stamps every chunk so the SDK can tell our frames from injected ones at runtime.
+                                  // Reported to the app as `__SENTRY_APPLICATION_KEY_STAMPED__` (see `source.define`).
+                                  applicationKey: SENTRY_APPLICATION_KEY,
                                   debug: false,
                                   telemetry: false,
                               }),
-                          ] as RspackPluginInstance[])),
+                          ] as RspackPluginInstance[])
+                        : []),
                     // This allows us to interactively inspect JS bundle contents, loader/plugin timings, and duplicate packages
                     ...(process.env.ANALYZE_BUNDLE === 'true' ? [new RsdoctorRspackPlugin()] : []),
                 );
@@ -500,4 +595,4 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
 };
 
 export default getCommonConfiguration;
-export {getDefineValues, getSharedConfiguration, includeModules};
+export {getDefineValues, getSharedConfiguration};

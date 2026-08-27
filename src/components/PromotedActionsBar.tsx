@@ -24,7 +24,7 @@ import {View} from 'react-native';
 
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 
 type PromotedAction = {
     key: string;
@@ -43,7 +43,9 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         introSelected: OnyxEntry<IntroSelected>;
         personalDetails: OnyxEntry<PersonalDetailsList>;
         isSelfTourViewed: boolean | undefined;
+        hasCompletedGuidedSetupFlow: boolean | undefined;
         betas: OnyxEntry<Beta[]>;
+        hasReportActions: boolean | undefined;
     }) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
@@ -79,7 +81,7 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas}) => ({
+    message: ({reportID, accountID, login, personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -90,11 +92,32 @@ const PromotedActions = {
             }
 
             if (login) {
-                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false, true);
+                navigateToAndOpenReport({
+                    userLogins: [login],
+                    personalDetails,
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
+                    betas,
+                    shouldDismissModal: false,
+                    shouldRevalidateExistingChat: true,
+                    hasReportActions,
+                });
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails, true);
+                navigateToAndOpenReportWithAccountIDs(
+                    [accountID],
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
+                    betas,
+                    personalDetails,
+                    true,
+                    hasReportActions,
+                );
                 return;
             }
 
@@ -121,12 +144,13 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                     style={[styles.flex1, styles.mw50]}
                     key={key}
                 >
-                    <Button
-                        onPress={onSelected}
-                        iconFill={theme.icon}
-                        text={translate(translationKey)}
-                        icon={typeof icon === 'string' ? icons[icon] : icon}
-                    />
+                    <Button onPress={onSelected}>
+                        <Button.Icon
+                            src={typeof icon === 'string' ? icons[icon] : icon}
+                            fill={theme.icon}
+                        />
+                        <Button.Text>{translate(translationKey)}</Button.Text>
+                    </Button>
                 </View>
             ))}
         </View>

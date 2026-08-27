@@ -6,6 +6,7 @@ import saveReceiptsToGallery from '@libs/savePendingReceiptsToGallery/saveReceip
 
 import * as PersistedRequests from '@userActions/PersistedRequests';
 
+import CONST from '@src/CONST';
 import type {AnyRequest} from '@src/types/onyx/Request';
 
 jest.mock('@userActions/PersistedRequests', () => ({
@@ -148,7 +149,7 @@ describe('saveReceiptsToGallery', () => {
 
         expect(mockedWrite).toHaveBeenCalledTimes(3);
         expect(mockedWrite.mock.calls.at(0)?.at(0)).toBe('file:///a.jpg');
-        expect(result).toEqual({savedCount: 3, failedCount: 0});
+        expect(result).toEqual({savedCount: 3, failedCount: 0, permissionDenied: false});
     });
 
     it('lets the batch survive a single rejection and counts it as failed', async () => {
@@ -157,7 +158,7 @@ describe('saveReceiptsToGallery', () => {
         const result = await saveReceiptsToGallery(receipts);
 
         expect(mockedWrite).toHaveBeenCalledTimes(3);
-        expect(result).toEqual({savedCount: 2, failedCount: 1});
+        expect(result).toEqual({savedCount: 2, failedCount: 1, permissionDenied: false});
     });
 
     it('skips the save and never writes when gallery permission is denied', async () => {
@@ -166,13 +167,22 @@ describe('saveReceiptsToGallery', () => {
         const result = await saveReceiptsToGallery(receipts);
 
         expect(mockedWrite).not.toHaveBeenCalled();
-        expect(result).toEqual({savedCount: 0, failedCount: 3});
+        expect(result).toEqual({savedCount: 0, failedCount: 3, permissionDenied: true});
     });
 
     it('swallows a thrown permission error rather than propagating it', async () => {
         mockedHasPermission.mockRejectedValue(new Error('permission blew up'));
 
-        await expect(saveReceiptsToGallery(receipts)).resolves.toEqual({savedCount: 0, failedCount: 3});
+        await expect(saveReceiptsToGallery(receipts)).resolves.toEqual({savedCount: 0, failedCount: 3, permissionDenied: false});
+    });
+
+    it('flags permissionDenied when an iOS write rejects with the photo-library access error', async () => {
+        mockedWrite.mockResolvedValueOnce().mockRejectedValueOnce(new Error(CONST.IOS_CAMERA_ROLL_ACCESS_ERROR)).mockResolvedValueOnce();
+
+        const result = await saveReceiptsToGallery(receipts);
+
+        expect(mockedWrite).toHaveBeenCalledTimes(3);
+        expect(result).toEqual({savedCount: 2, failedCount: 1, permissionDenied: true});
     });
 
     it('does no work for an empty list', async () => {
@@ -180,6 +190,6 @@ describe('saveReceiptsToGallery', () => {
 
         expect(mockedHasPermission).not.toHaveBeenCalled();
         expect(mockedWrite).not.toHaveBeenCalled();
-        expect(result).toEqual({savedCount: 0, failedCount: 0});
+        expect(result).toEqual({savedCount: 0, failedCount: 0, permissionDenied: false});
     });
 });
