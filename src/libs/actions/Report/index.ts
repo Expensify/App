@@ -3227,11 +3227,6 @@ function saveReportDraftComment(reportID: string, comment: string | null, callba
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment || null).then(callback);
 }
 
-/** Saves the message the user is typing into the Concierge prompt box on the home page. Pass null to delete the draft. */
-function saveConciergePromptDraft(draft: string | null) {
-    Onyx.set(ONYXKEYS.CONCIERGE_PROMPT_DRAFT, draft);
-}
-
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
 function broadcastUserIsTyping(reportID: string, currentUserAccountID: number) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -8638,6 +8633,11 @@ function mergeReports({
     });
 }
 
+/** Saves the message the user is typing into the Concierge prompt box on the home page. */
+function saveConciergePromptDraft(draft: string | null) {
+    Onyx.set(ONYXKEYS.CONCIERGE_PROMPT_DRAFT, draft);
+}
+
 export type {Video, GuidedSetupData, GuidedSetupTask, TaskForParameters, IntroSelected, OpenReportActionParams};
 
 export {
@@ -8722,7 +8722,6 @@ export {
     subscribeToReportLeavingEvents,
     clearAgentZeroProcessingIndicator,
     clearConciergeThinkingKickoff,
-    saveConciergePromptDraft,
     subscribeToReportReasoningEvents,
     unsubscribeFromReportReasoningChannel,
     subscribeToReportTypingEvents,
@@ -8765,4 +8764,5 @@ export {
     getGuidedSetupDataForOpenReport,
     getReportChannelName,
     setViewingPublicRoomReportID,
+    saveConciergePromptDraft,
 };
