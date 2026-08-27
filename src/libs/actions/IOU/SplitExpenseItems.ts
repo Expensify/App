@@ -67,6 +67,24 @@ function getDistanceMerchantFromDistance(
 }
 
 /**
+ * Resolve the `reimbursable` value to seed a split with.
+ *
+ * When the policy locks the reimbursable field (`disabledFields.reimbursable === true`, i.e. one of the two
+ * "Always …" cash-expense modes), the split must follow the policy's `defaultReimbursable` regardless of the
+ * parent expense's stored value — a pre-rule expense can still carry `reimbursable: true` under an
+ * "Always non-reimbursable" workspace. Seeding the locked default also equals the value the
+ * `shouldShowReimbursable` gate compares against, so the toggle hides automatically.
+ *
+ * When the field is not locked (the two "default" modes), the split keeps inheriting the parent's value.
+ */
+function getSplitReimbursable(policy: OnyxEntry<OnyxTypes.Policy>, parentReimbursable: boolean | undefined): boolean | undefined {
+    if (policy?.disabledFields?.reimbursable === true) {
+        return policy.defaultReimbursable;
+    }
+    return parentReimbursable;
+}
+
+/**
  * Update split expense distance and merchant based on amount and rate
  * Calculates distance from amount (distance = amount / rate) and updates customUnit quantity and merchant
  */
@@ -311,7 +329,7 @@ function initSplitExpenseItemData(
         merchant: merchant ?? transactionDetails?.merchant,
         statusNum: transactionReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
-        reimbursable: transactionDetails?.reimbursable,
+        reimbursable: getSplitReimbursable(policy, transactionDetails?.reimbursable),
         billable: transactionDetails?.billable,
         taxCode: resolvedTaxCode,
         taxAmount: resolvedTaxAmount,
@@ -803,7 +821,7 @@ function updateSplitExpenseField(
                 odometerStart: splitExpenseDraftTransaction?.comment?.odometerStart ?? undefined,
                 odometerEnd: splitExpenseDraftTransaction?.comment?.odometerEnd ?? undefined,
                 amount: splitExpenseDraftTransaction?.amount ?? 0,
-                reimbursable: transactionDetails?.reimbursable,
+                reimbursable: getSplitReimbursable(policy, transactionDetails?.reimbursable),
                 billable: transactionDetails?.billable,
                 taxCode: transactionDetails?.taxCode,
                 taxAmount: Math.abs(transactionDetails?.taxAmount ?? 0),
@@ -941,6 +959,7 @@ function updateSplitExpenseDraftField(fields: Partial<OnyxTypes.Transaction>) {
 export {
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
+    getSplitReimbursable,
     resolveSplitItemReportID,
     resolveSplitMileageRate,
     initDraftSplitExpenseDataForEdit,
