@@ -94,4 +94,3 @@ function createWidestTextMeasurer(): WidestTextMeasurer {
 }
 
 export default createWidestTextMeasurer;
-export type {WidestTextMeasurer};

@@ -93,4 +93,3 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: Transac
 
 export default getSearchColumnContentToMeasure;
 export {DYNAMICALLY_SIZED_SEARCH_COLUMNS, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS, getSearchColumnExtraWidth};
-export type {SearchColumnContent};

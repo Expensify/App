@@ -6732,7 +6732,7 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-/** The gap the table renders between two neighbouring columns, matching the row's `gap3` styling. */
+/** The gap the table renders between two adjacent columns, matching the row's `gap3` styling. */
 const SEARCH_TABLE_COLUMN_GAP = 12;
 
 function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean, measuredColumnMinWidths?: Partial<Record<SearchColumnType, number>>) {

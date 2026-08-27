@@ -54,11 +54,10 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         // The measured width is the column's share of the free space rather than a width of its own: growing from a
         // zero basis in proportion to what its content needs is what keeps the columns adding up to the row exactly,
         // without this having to know what the fixed columns, gaps, and padding around it spend. The `flex` shorthand is
-        // cleared because the base style sets it on exactly these columns, and leaving both it and the longhands here
+        // cleared because the base style sets it on exactly these columns, and leaving both it and the individual properties here
         // would make which one wins depend on the order they are emitted in.
         return {...columnStyles, flex: undefined, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, width: undefined};
     };
 }
 
 export {SearchColumnWidthsProvider, useSearchColumnStyles};
-export type {SearchColumnWidths};
