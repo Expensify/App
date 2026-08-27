@@ -1,0 +1,1 @@
+Solution proposal for [$500] iOS/Android – Image shows as broken in chat right after upload (local attachment cache copy fails with ENOENT)
