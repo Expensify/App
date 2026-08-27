@@ -95,7 +95,7 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
         animation: Animations.NONE,
     },
-    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
+    [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: {
         animationTypeForReplace: 'push',
     },
     [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: {
@@ -193,9 +193,9 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/WorkspaceCategoriesPage').default,
     [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsPage').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_EDIT_REPORT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestEditReport').default,
-    [SCREENS.MONEY_REQUEST.STEP_SCAN]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepTag').default,
-    [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepWaypoint').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_WAYPOINT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepWaypoint').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepSendFrom').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepReport').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepCompanyInfo').default,
@@ -217,7 +217,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicSplitExpensePage').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicSplitExpensePage').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicSplitExpenseCreateDateRangePage').default,
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpenseEditPage').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicSplitExpenseEditPage').default,
     [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/DistanceRequestStartPage').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceMap').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDistanceManual').default,
@@ -239,8 +239,8 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
     [SCREENS.TRAVEL.DYNAMIC_TRIP_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTripDetailsPage').default,
     [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicDomainPermissionInfoPage').default,
     [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicPublicDomainErrorPage').default,
-    [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceConfirmationForTravelPage').default,
-    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
+    [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicWorkspaceConfirmationForTravelPage').default,
+    [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicVerifyAccountPage').default,
     [SCREENS.TRAVEL.ENABLE]: () => require<ReactComponentModule>('../../../../pages/Travel/EnableTravel').default,
 });
 

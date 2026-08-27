@@ -9,7 +9,6 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,7 +27,15 @@ import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
-import {canCreateTaskInReport, getPayeeName, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {
+    canCreateTaskInReport,
+    getPayeeName,
+    hasViolations as hasViolationsReportUtils,
+    isPolicyExpenseChat,
+    isReportOwner,
+    isTeachersUniteReport,
+    temporary_getMoneyRequestOptions,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
@@ -170,7 +177,6 @@ function AttachmentPickerWithMenuItems({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const {isProduction} = useEnvironment();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -231,8 +237,7 @@ function AttachmentPickerWithMenuItems({
         }
     };
 
-    const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-    const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
+    const isReportTeachersUnite = isTeachersUniteReport(report);
 
     /**
      * Returns the list of IOU Options
@@ -412,21 +417,11 @@ function AttachmentPickerWithMenuItems({
     }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
 
     // 1. Limit the container width to a single column.
-    const outerContainerStyles = [{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0];
+    const outerContainerStyles = styles.composerButtonColumn;
 
     // 2. If there isn't enough height for two buttons, the Expand/Collapse button wraps to the next column so that it's intentionally hidden.
     //    The Create button stays anchored to the bottom (flex-start in a reversed column) to match the Emoji and Send buttons.
-    const innerContainerStyles = [
-        styles.dFlex,
-        styles.flexColumnReverse,
-        styles.flexWrap,
-        styles.justifyContentStart,
-        styles.pAbsolute,
-        styles.h100,
-        styles.w100,
-        styles.overflowHidden,
-        {paddingVertical: styles.composerSizeButton.marginHorizontal},
-    ];
+    const innerContainerStyles = styles.composerButtonStack;
 
     // 3. If there is enough height for two buttons, the Expand/Collapse button is at the top.
     const expandCollapseButtonContainerStyles = [styles.flexGrow1, styles.flexShrink0];
@@ -455,7 +450,7 @@ function AttachmentPickerWithMenuItems({
                 };
                 const menuItems = [
                     ...moneyRequestOptions,
-                    ...(!isTeachersUniteReport ? createReportOption : []),
+                    ...(!isReportTeachersUnite ? createReportOption : []),
                     ...taskOption,
                     {
                         icon: icons.Paperclip,
