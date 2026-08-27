@@ -161,7 +161,7 @@ function AuthScreens() {
     };
 
     return (
-        <>
+        <PersonalDetailsByLoginProvider>
             <AuthScreensInitHandler />
             <SearchRouterWarmup />
             <ThreeDSAuthHandler />
@@ -170,7 +170,6 @@ function AuthScreens() {
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
-                        PersonalDetailsByLoginProvider,
                         AttachmentModalContextProvider,
                         PlaybackContextProvider,
                         VolumeContextProvider,
@@ -397,7 +396,7 @@ function AuthScreens() {
                     <PriorityModeController />
                 </ComposeProviders>
             </DelegatorConnectGuard>
-        </>
+        </PersonalDetailsByLoginProvider>
     );
 }
 
