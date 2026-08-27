@@ -61,7 +61,7 @@ function MerchantRuleSuggestionTooltip({reportID, policyID, transactionID, child
     };
 
     // The shared product training content renders its copy as a single block of HTML, but this callout needs the
-    // "Create a rule" phrase in link colour, so the content is composed here instead.
+    // "Create a rule" phrase highlighted, so the content is composed here instead.
     const renderTooltipContent = useCallback(
         () => (
             <View
@@ -74,9 +74,11 @@ function MerchantRuleSuggestionTooltip({reportID, policyID, transactionID, child
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
                 />
+                {/* The tooltip background is dark in both themes, so the highlighted phrase uses the palette's tooltip
+                    highlight rather than `styles.link`, whose light-theme blue reads poorly against it. */}
                 <View style={styles.flexShrink1}>
                     <Text style={styles.productTrainingTooltipText}>
-                        <Text style={[styles.productTrainingTooltipText, styles.link]}>{translate('workspace.rules.merchantRules.createRuleFromExpenseAction')}</Text>
+                        <Text style={[styles.productTrainingTooltipText, {color: theme.tooltipHighlightText}]}>{translate('workspace.rules.merchantRules.createRuleFromExpenseAction')}</Text>
                         {` ${translate('workspace.rules.merchantRules.createRuleFromExpensePrompt')}`}
                     </Text>
                 </View>
@@ -104,7 +106,6 @@ function MerchantRuleSuggestionTooltip({reportID, policyID, transactionID, child
             styles.flexRow,
             styles.flexShrink1,
             styles.gap3,
-            styles.link,
             styles.ph2,
             styles.productTrainingTooltipText,
             styles.pv2,
@@ -119,11 +120,13 @@ function MerchantRuleSuggestionTooltip({reportID, policyID, transactionID, child
             shouldRender={shouldShowProductTrainingTooltip}
             renderTooltipContent={renderTooltipContent}
             wrapperStyle={styles.productTrainingTooltipWrapper}
-            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+            anchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+            }}
             shiftVertical={variables.mileageRateTooltipShiftVertical}
             onTooltipPress={createRule}
             shouldHidePointer
-            shouldHideOnScroll
         >
             {/* The tooltip measures its anchor by cloning this child with an `onLayout` prop, so it has to be a plain
                 View: the composer and the receipt view don't forward that prop, which would leave it unmeasured. */}
