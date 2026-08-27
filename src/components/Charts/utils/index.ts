@@ -257,6 +257,11 @@ function processDataIntoSlices(
         ).slices;
 }
 
+/** Label to render on the x-axis for a data point: the compact one when provided, otherwise the full label. */
+function getXAxisLabel(point: ChartDataPoint): string {
+    return point.shortLabel ?? point.label;
+}
+
 /** Truncate `label` so its pixel width fits within `maxWidth`, adding ellipsis. */
 function truncateLabel(label: string, labelWidth: number, maxWidth: number, ellipsisWidth: number): string {
     if (labelWidth <= maxWidth) {
@@ -460,6 +465,7 @@ export {
     isAngleInSlice,
     findSliceAtPosition,
     processDataIntoSlices,
+    getXAxisLabel,
     truncateLabel,
     effectiveWidth,
     effectiveHeight,
