@@ -242,11 +242,14 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion<TTransaction exten
 
     const customUnit = transaction.comment?.customUnit;
     const fullDistance = customUnit?.quantity;
-    const distanceUnit = customUnit?.distanceUnit;
+    if (!hasAppliedCommuterExclusion(transaction) || typeof fullDistance !== 'number') {
+        return transaction;
+    }
+
     const mileageRate = getDistanceRateForDisplay({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
     const rate = mileageRate?.rate;
-    const unit = distanceUnit ?? mileageRate?.unit;
-    if (!hasAppliedCommuterExclusion(transaction) || typeof fullDistance !== 'number' || !unit || !rate) {
+    const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
+    if (!unit || !rate) {
         return transaction;
     }
 
