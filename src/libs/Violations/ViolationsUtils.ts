@@ -467,6 +467,7 @@ const ViolationsUtils = {
         hasDependentTags,
         isInvoiceTransaction,
         isSelfDM,
+        isTransactionOnPolicyExpenseChat,
         iouReport,
         isFromExpenseReport,
         shouldRemoveRejectedExpenseViolation,
@@ -481,6 +482,7 @@ const ViolationsUtils = {
         hasDependentTags: boolean;
         isInvoiceTransaction: boolean;
         isSelfDM?: boolean;
+        isTransactionOnPolicyExpenseChat?: boolean;
         iouReport?: OnyxEntry<Report>;
         isFromExpenseReport?: boolean;
         shouldRemoveRejectedExpenseViolation?: boolean;
@@ -652,8 +654,8 @@ const ViolationsUtils = {
             // arrives). We must NOT clear it when the transaction is still bound to a policy expense chat, because a
             // track expense moved onto a workspace intentionally keeps FAKE_P2P_ID until the user picks a workspace
             // rate, and the violation is what prompts them to do so — so that case falls through to the rate check below.
-            const isTransactionOnPolicyExpenseChat = updatedTransaction.participants?.some((participant) => participant?.isPolicyExpenseChat);
-            if (TransactionUtils.isCustomUnitRateIDForP2P(updatedTransaction) && !isTransactionOnPolicyExpenseChat) {
+            const isOnPolicyExpenseChat = isTransactionOnPolicyExpenseChat ?? updatedTransaction.participants?.some((participant) => participant?.isPolicyExpenseChat);
+            if (TransactionUtils.isCustomUnitRateIDForP2P(updatedTransaction) && !isOnPolicyExpenseChat) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
                 const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);

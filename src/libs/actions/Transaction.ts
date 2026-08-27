@@ -39,6 +39,7 @@ import {
     getTransactionDetails,
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
+    isExpenseReport,
     isOpenReport,
     isReportTotalPending,
     shouldEnableNegative,
@@ -1256,6 +1257,7 @@ function getChangeTransactionsReportOnyxData({
                 policyCategories: policyCategories ?? {},
                 hasDependentTags: policyHasDependentTags,
                 isInvoiceTransaction: false,
+                isTransactionOnPolicyExpenseChat: !isUnreported && isExpenseReport(newReport),
                 shouldRemoveRejectedExpenseViolation: true,
                 ownerLogin: undefined,
             });
