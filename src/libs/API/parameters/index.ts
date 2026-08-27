@@ -129,6 +129,7 @@ export type {default as SetContactMethodAsDefaultParams} from './SetContactMetho
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';
 export type {default as SignInWithShortLivedAuthTokenParams} from './SignInWithShortLivedAuthTokenParams';
 export type {default as SignInWithSupportAuthTokenParams} from './SignInWithSupportAuthTokenParams';
+export type {default as GetSupportalReasonParams} from './GetSupportalReasonParams';
 export type {default as UnlinkLoginParams} from './UnlinkLoginParams';
 export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTimezoneParams';
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
@@ -572,6 +573,7 @@ export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
 export type {default as SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams} from './SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams';
 export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
+export type {default as SetApprovalWorkflowParams} from './SetApprovalWorkflowParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';

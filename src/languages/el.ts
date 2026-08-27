@@ -10,12 +10,11 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
 import type {ValueOf} from 'type-fest';
 
@@ -319,7 +318,7 @@ const translations: TranslationDeepObject<typeof en> = {
         recent: 'Πρόσφατα',
         all: 'Όλα',
         am: 'π.μ.',
-        pm: 'μμ.',
+        pm: 'μ.μ.',
         tbd: 'Θα καθοριστεί',
         selectCurrency: 'Επιλέξτε νόμισμα',
         selectSymbolOrCurrency: 'Επιλέξτε ένα σύμβολο ή νόμισμα',
@@ -331,6 +330,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automatic: 'Αυτόματο',
         showing: 'Εμφανίζονται',
         of: 'του',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
         default: 'Προεπιλογή',
         update: 'Ενημέρωση',
         member: 'Μέλος',
@@ -949,6 +949,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Μόνο διαχειριστές',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal σε άλλο λογαριασμό',
+        emailLabel: 'Διεύθυνση email',
+        reasonLabel: 'Αιτία σύνδεσης για υποστήριξη',
+        reasonHint: 'Δεν βρέθηκαν πρόσφατα αιτήματα υποστήριξης για αυτόν τον λογαριασμό.',
+        login: 'Σύνδεση',
+    },
     sidebarScreen: {
         buttonFind: 'Βρείτε κάτι...',
         buttonMySettings: 'Οι ρυθμίσεις μου',
@@ -1170,6 +1177,13 @@ const translations: TranslationDeepObject<typeof en> = {
             chartUnavailable: 'Το γράφημα δεν είναι διαθέσιμο',
             notEnoughData: 'Δεν έχουμε ακόμη αρκετά δεδομένα για να συμπληρώσουμε αυτό το γράφημα',
         },
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Καλημέρα, ${name}.` : 'Καλημέρα.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Καλησπέρα σας, ${name}.` : 'Καλό απόγευμα.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Καλησπέρα, ${name}.` : 'Καλησπέρα.'),
+            inputPlaceholder: 'Ζητήστε από το Concierge να αναλύσει τα έξοδά σας ή να λάβετε υποστήριξη',
+            inputPlaceholderMobile: 'Ρωτήστε το Concierge οτιδήποτε',
+        },
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -1258,7 +1272,6 @@ const translations: TranslationDeepObject<typeof en> = {
             if (count === 0) {
                 return duplicates > 0 ? 'Δεν προστέθηκαν κανόνες εμπόρων, καθώς υπάρχουν ήδη όλοι.' : 'Δεν έχουν προστεθεί κανόνες εμπόρου.';
             }
-
             return {
                 one: 'Προστέθηκε 1 κανόνας εμπόρου.',
                 other: `Έχουν προστεθεί ${count} κανόνες εμπόρων.`,
@@ -1572,8 +1585,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'κάρτα' : 'τραπεζικός λογαριασμός';
             return isCurrentUser
-                ? `. Τα χρήματα κατευθύνονται προς τον/την ${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} σας (πληρωμή μέσω ${paymentMethod}). Συνήθως αυτό χρειάζεται 4-5 εργάσιμες ημέρες.`
-                : `. Τα χρήματα κατευθύνονται προς τον/την ${submitterLogin}${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} (πληρωμή μέσω ${paymentMethod}). Συνήθως χρειάζονται 4-5 εργάσιμες ημέρες.`;
+                ? `. Τα χρήματα κατευθύνονται προς τον/την ${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} σας (πληρωμή μέσω ${paymentMethod}). Αυτό συνήθως διαρκεί 4–5 εργάσιμες ημέρες.`
+                : `. Τα χρήματα είναι καθ' οδόν προς τον/την ${submitterLogin}${creditBankAccount ? `τραπεζικός λογαριασμός που λήγει σε ${creditBankAccount}` : 'λογαριασμός'} (πληρωμή μέσω ${paymentMethod}). Αυτό συνήθως διαρκεί 4–5 εργάσιμες ημέρες.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `με άμεση κατάθεση (ACH)${creditBankAccount ? `στον τραπεζικό λογαριασμό που λήγει σε ${creditBankAccount}.` : '. '}${expectedDate ? `Η αποζημίωση εκτιμάται ότι θα ολοκληρωθεί έως ${expectedDate}.` : 'Αυτό συνήθως διαρκεί 4–5 εργάσιμες ημέρες.'}`,
@@ -1590,7 +1603,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'βάσει προηγούμενης δραστηριότητας',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `βάσει των <a href="${rulesLink}">κανόνων του χώρου εργασίας</a>` : 'βάσει κανόνα χώρου εργασίας'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `για ${comment}` : 'δαπάνη'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Αναφορά τιμολογίου #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Αναφορά τιμολογίου #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `στάλθηκαν ${formattedAmount}${comment ? `για ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName, workspaceName) => `μετακινήθηκε η δαπάνη από τον προσωπικό χώρο στο ${workspaceName ?? `συνομιλήστε με τον/την ${reportName}`}`,
         movedToPersonalSpace: 'μετακινήθηκε η δαπάνη στον προσωπικό χώρο',
@@ -1909,7 +1922,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Επιλέξτε τις λεπτομέρειες που θέλετε να διατηρήσετε:',
             noDifferences: 'Δεν βρέθηκαν διαφορές μεταξύ των συναλλαγών',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'ένα' : 'α';
+                const article = startsWithVowel(field) ? 'ένα' : 'α';
                 return `Παρακαλούμε επιλέξτε ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Παρακαλώ επιλέξτε συμμετέχοντες',
@@ -4642,6 +4655,9 @@ ${amount} για ${merchant} - ${date}`,
             workflows: 'Ροές εργασιών',
             workspace: 'Χώρος εργασίας',
             findWorkspace: 'Εύρεση χώρου εργασίας',
+            active: 'Ενεργός',
+            archived: 'Αρχειοθετημένος',
+            workspaceStatus: 'Κατάσταση χώρου εργασίας',
             findDomain: 'Εύρεση τομέα',
             findRoom: 'Βρείτε δωμάτιο',
             edit: 'Επεξεργασία χώρου εργασίας',
@@ -6457,6 +6473,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         spend: 'Έλεγχοι δαπανών και προσαρμοσμένα όρια',
                     },
                     ctaTitle: 'Έκδοση νέας κάρτας',
+                    existingFeedTitle: 'Διαχειριστείτε τις Κάρτες Expensify',
+                    viewCards: 'Προβολή καρτών',
                 },
             },
             companyCards: {
@@ -7596,6 +7614,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             notAllowedToAddBankAccount:
                 'Ο χώρος εργασίας σας είναι ρυθμισμένος σε μη υποστηριζόμενο νόμισμα. Επικοινωνήστε με έναν διαχειριστή χώρου εργασίας που έχει δικαίωμα να το αλλάξει.',
             changeBankAccount: 'Αλλαγή τραπεζικού λογαριασμού',
+            updateCurrencyForExpensifyCard: 'Η Κάρτα Expensify είναι διαθέσιμη για έκδοση σε USD. Ενημερώστε αυτόν τον χώρο εργασίας σε USD ή χρησιμοποιήστε έναν διαφορετικό χώρο εργασίας.',
+            updateCurrencyForExpensifyCardTitle: 'Αποκτήστε την Κάρτα Expensify',
+            euUkUpdateCurrencyForExpensifyCard:
+                'Η Κάρτα Expensify είναι διαθέσιμη για έκδοση σε USD, GBP και EUR. Ενημερώστε αυτόν τον χώρο εργασίας σε ένα υποστηριζόμενο νόμισμα ή χρησιμοποιήστε έναν διαφορετικό χώρο εργασίας.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Μεταφορά ιδιοκτήτη',
@@ -10211,6 +10233,19 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης, επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση.';
+                    }
+                    return isMarkAsCash
+                        ? `Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης, επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Σημειώστε την ως μετρητά για να την αγνοήσετε ή <a href="${connectionLink}">επανασυνδεθείτε</a> για να αντιστοιχίσετε την απόδειξη.`
+                        : `Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης, επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. <a href="${connectionLink}">Επανασυνδεθείτε</a> για να αντιστοιχίσετε την απόδειξη.`;
+                }
+                return isAdmin
+                    ? `Η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. <a href="${companyCardPageURL}">Επανασυνδέστε για να αντιστοιχίσετε την απόδειξη</a>`
+                    : 'Η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Ζητήστε από ένα διαχειριστή να την επανασυνδέσει για να γίνει αντιστοίχιση της απόδειξης.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';
@@ -10233,6 +10268,10 @@ ${reportName}`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Η απόδειξη εκκρεμεί λόγω κατεστραμμένης σύνδεσης τράπεζας. Παρακαλώ επιλύστε το στις <a href="${workspaceCompanyCardRoute}">εταιρικές κάρτες</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Η απόδειξη εκκρεμεί λόγω προβλήματος στη σύνδεση με την τράπεζα. Παρακαλείστε να ζητήσετε από έναν διαχειριστή χώρου εργασίας να το επιλύσει.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Η απόδειξη εκκρεμεί επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Παρακαλώ επιλύστε το στις <a href="${workspaceCompanyCardRoute}">εταιρικές κάρτες</a>.</muted-text-label>`,
+        memberReauthConnectionError:
+            'Η απόδειξη εκκρεμεί επειδή η σύνδεση με την τράπεζα χρειάζεται εκ νέου ταυτοποίηση. Παρακαλείστε να ζητήσετε από έναν διαχειριστή χώρου εργασίας να το επιλύσει.',
         markAsCashToIgnore: 'Σημειώστε ως μετρητά για να την αγνοήσετε και να ζητήσετε πληρωμή.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
