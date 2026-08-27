@@ -35,6 +35,13 @@ function buildIOUAction(reportActionID: string, childReportID?: string): ReportA
     return {...actionR14932, reportActionID, childReportID};
 }
 
+function buildSentMoneyAction(reportActionID: string, childReportID?: string): ReportAction {
+    return {
+        ...buildIOUAction(reportActionID, childReportID),
+        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: 'TRANSACTION_ID_R14932', IOUDetails: {amount: 100, currency: 'USD', comment: ''}},
+    };
+}
+
 describe('getReportIDToOpenForExpense', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -65,6 +72,19 @@ describe('getReportIDToOpenForExpense', () => {
         };
 
         expect(getReportIDToOpenForExpense(expense, CONTEXT)).toBe('snapshot_thread');
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+    });
+
+    it('returns the parent report (not the pay message thread) for a sent-money (pay) action', () => {
+        const expense: TransactionThreadNavigationDescriptor = {
+            reportID: 'parentPay',
+            transaction: buildTransaction('t1', 'parentPay'),
+            // The pay action's childReportID is the "marked as paid" system message thread; opening the paid
+            // expense must land on the report itself, not that thread.
+            reportAction: buildSentMoneyAction('a1', 'pay_message_thread'),
+        };
+
+        expect(getReportIDToOpenForExpense(expense, CONTEXT)).toBe('parentPay');
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
     });
 
