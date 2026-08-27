@@ -89,7 +89,7 @@ function DistanceRequestController({
     clearFormErrors,
 }: DistanceRequestControllerProps) {
     const {translate, toLocaleDigit} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const personalPolicy = usePersonalPolicy();
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const lastSelectedRate = policy?.id ? (lastSelectedDistanceRates?.[policy.id] ?? defaultMileageRateCustomUnitRateID) : defaultMileageRateCustomUnitRateID;
@@ -169,7 +169,7 @@ function DistanceRequestController({
         // If it's a split request among individuals, set the split shares
         const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
-            setSplitShares(transaction, amount, currency, participantAccountIDs, currentUserAccountID);
+            setSplitShares(transaction, amount, currency, participantAccountIDs, currentUserAccountID, getCurrencyDecimals);
         }
     }, [
         shouldCalculateDistanceAmount,
@@ -182,6 +182,7 @@ function DistanceRequestController({
         selectedParticipantsProp,
         transaction,
         currentUserAccountID,
+        getCurrencyDecimals,
     ]);
 
     useEffect(() => {
@@ -251,6 +252,7 @@ function DistanceRequestController({
             transactionID,
             transaction,
             policy,
+            isPolicyExpenseChat,
             customUnitRateID,
             routeDistanceMeters: distance,
             distanceUnit: unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
@@ -275,6 +277,7 @@ function DistanceRequestController({
         getCurrencySymbol,
         isManualDistanceRequest,
         policy,
+        isPolicyExpenseChat,
         customUnitRateID,
         personalPolicy?.outputCurrency,
     ]);

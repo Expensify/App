@@ -1,5 +1,8 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -12,6 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
+import type {Routes} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -513,6 +517,54 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('leaves the existing routes intact when only the distance changes', () => {
+            // A manual distance edit used to null out `routes.route0.distance`. That also wipes the alternate routes
+            // the Map tab and the footer read from, so the routes are left untouched now and the manually typed value
+            // lives only in `customUnit.quantity`.
+            const routes: Routes = {
+                route0: {
+                    distance: 16093.44,
+                    geometry: {
+                        coordinates: [
+                            [0, 0],
+                            [1, 1],
+                        ],
+                    },
+                },
+                route1: {
+                    distance: 19312.13,
+                    geometry: {
+                        coordinates: [
+                            [0, 0],
+                            [2, 2],
+                        ],
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                routes,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: undefined,
+                transactionChanges: {distance: 20},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            expect(updatedTransaction.routes).toEqual(routes);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+        });
+
         it('recalculates amount/merchant on a rate change when waypoints are pending but the distance is known locally', () => {
             // Given: a policy with two mileage rates
             const fakePolicy: Policy = {
@@ -672,7 +724,88 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.modifiedAmount).toBe(CONST.IOU.DEFAULT_AMOUNT);
         });
 
-        it('recalculates commuter exclusion data when distance is changed', () => {
+        it.each`
+            distanceChanged | commuterSettingChanged | rateUnitChanged
+            ${false}        | ${false}               | ${false}
+            ${true}         | ${false}               | ${false}
+            ${false}        | ${true}                | ${false}
+            ${true}         | ${true}                | ${false}
+            ${false}        | ${false}               | ${true}
+            ${true}         | ${false}               | ${true}
+            ${false}        | ${true}                | ${true}
+            ${true}         | ${true}                | ${true}
+        `(
+            'preserves the saved commuter exclusion when distanceChanged=$distanceChanged, commuterSettingChanged=$commuterSettingChanged, and rateUnitChanged=$rateUnitChanged',
+            ({distanceChanged, commuterSettingChanged, rateUnitChanged}) => {
+                const targetUnit = rateUnitChanged ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+                const fakePolicy: Policy = {
+                    ...createRandomPolicy(0),
+                    commuterExclusions: {
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        fixedDistance: commuterSettingChanged ? 5 : 3,
+                        fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    customUnits: {
+                        distance: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID: 'distance',
+                            rates: {
+                                ID1: {customUnitRateID: '1', currency: CONST.CURRENCY.EUR, rate: 10},
+                                ID2: {customUnitRateID: '2', currency: CONST.CURRENCY.EUR, rate: 30},
+                            },
+                            attributes: {unit: targetUnit},
+                        },
+                    },
+                };
+                const transaction = generateTransaction({
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: 'ID1',
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                            commuterExclusion: 3,
+                            reimbursableDistance: 7,
+                            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        },
+                    },
+                    currency: CONST.CURRENCY.USD,
+                });
+
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: fakePolicy,
+                    transactionChanges: {
+                        ...(distanceChanged ? {distance: 20} : {}),
+                        ...(rateUnitChanged ? {customUnitRateID: 'ID2'} : {}),
+                    },
+                    personalPolicyOutputCurrency: undefined,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                });
+
+                const expectedExclusion = rateUnitChanged ? 4.83 : 3;
+                // A manual distance edit overrides any unit-conversion result: quantity becomes the entered value (20).
+                let expectedDistance = rateUnitChanged ? 16.09 : 10;
+                if (distanceChanged) {
+                    expectedDistance = 20;
+                }
+                const expectedReimbursableDistance = expectedDistance - expectedExclusion;
+                expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe(rateUnitChanged ? 'ID2' : 'ID1');
+                expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(targetUnit);
+                expect(updatedTransaction.comment?.customUnit?.quantity).toBeCloseTo(expectedDistance);
+                expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(expectedExclusion);
+                expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(expectedReimbursableDistance);
+
+                if (distanceChanged || rateUnitChanged) {
+                    const expectedRate = rateUnitChanged ? 30 : 10;
+                    expect(updatedTransaction.modifiedAmount).toBe(Math.round(expectedReimbursableDistance * expectedRate));
+                }
+            },
+        );
+
+        it('recalculates commuter exclusion data when an alternate route is selected', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 commuterExclusions: {
@@ -697,15 +830,38 @@ describe('TransactionUtils', () => {
                     },
                 },
             };
+            // A 10 mile primary route and a 20 mile alternate one.
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 comment: {
+                    selectedRouteKey: CONST.TRANSACTION.DEFAULT_ROUTE_KEY,
                     customUnit: {
                         distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
                         quantity: 10,
+                        routeDistanceMeters: 16093.44,
                         commuterExclusion: 3,
                         reimbursableDistance: 7,
                         commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                routes: {
+                    route0: {
+                        distance: 16093.44,
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [1, 1],
+                            ],
+                        },
+                    },
+                    route1: {
+                        distance: 32186.88,
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [2, 2],
+                            ],
+                        },
                     },
                 },
                 currency: CONST.CURRENCY.USD,
@@ -715,89 +871,20 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
-                transactionChanges: {distance: 20},
+                transactionChanges: {selectedRouteKey: 'route1'},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencyDecimals,
                 getCurrencySymbol,
             });
 
+            // The commute is excluded from the new route's distance, so only the 17 reimbursable miles are charged.
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.routeDistanceMeters).toBe(32186.88);
             expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBe(3);
             expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBe(17);
             expect(updatedTransaction.modifiedAmount).toBe(17);
             expect(updatedTransaction.modifiedMerchant).toContain('17');
             expect(updatedTransaction.modifiedMerchant).not.toContain('20');
-        });
-
-        it('converts commuter exclusion data when the distance rate unit is changed', () => {
-            // Given a policy with a 3 mile fixed distance commuter exclusion and a kilometer rate
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                commuterExclusions: {
-                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
-                    fixedDistance: 3,
-                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                },
-                customUnits: {
-                    distance: {
-                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                        customUnitID: 'distance',
-                        rates: {
-                            // getMileageRates keys its result by the rates map key, so it must match customUnitRateID
-                            ID1: {
-                                customUnitRateID: '1',
-                                currency: CONST.CURRENCY.EUR,
-                                rate: 10,
-                            },
-                            ID2: {
-                                customUnitRateID: '2',
-                                currency: CONST.CURRENCY.EUR,
-                                rate: 30,
-                            },
-                        },
-                        attributes: {
-                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-                        },
-                    },
-                },
-            };
-
-            // And a 10 mile expense whose reimbursable distance is 7 miles after the exclusion
-            const transaction = generateTransaction({
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
-                comment: {
-                    customUnit: {
-                        customUnitRateID: 'ID1',
-                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                        quantity: 10,
-                        commuterExclusion: 3,
-                        reimbursableDistance: 7,
-                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
-                    },
-                },
-                currency: CONST.CURRENCY.USD,
-            });
-
-            // When the rate is changed
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: false,
-                policy: fakePolicy,
-                transactionChanges: {customUnitRateID: 'ID2'},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
-            });
-
-            // Then the original distance and commuter exclusion are converted to kilometers
-            expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
-            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(16.09);
-            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4.83);
-            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(11.26);
-
-            // And the amount and merchant use the converted reimbursable distance at the kilometer rate
-            expect(updatedTransaction.modifiedAmount).toBe(338);
-            expect(updatedTransaction.modifiedMerchant).toBe('11.26 km @ EUR 0.30 / km');
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
@@ -896,6 +983,60 @@ describe('TransactionUtils', () => {
                 await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
                 await waitForBatchedUpdates();
             }
+        });
+
+        it('preserves the saved commuter exclusion when recalculating edited waypoints', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 5,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {default: {customUnitRateID: 'rate', currency: CONST.CURRENCY.USD, rate: 10}},
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 7,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                    waypoints: {waypoint0: {address: 'Old A'}, waypoint1: {address: 'Old B'}},
+                },
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {
+                    waypoints: {waypoint0: {address: 'New A'}, waypoint1: {address: 'New B'}},
+                    routes: {
+                        route0: {
+                            distance: 32186.88,
+                            geometry: {coordinates: [[0, 0]], type: 'LineString'},
+                        },
+                    },
+                },
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            expect(updatedTransaction.comment?.customUnit).toMatchObject({quantity: 20, commuterExclusion: 3, reimbursableDistance: 17});
+            expect(updatedTransaction.modifiedAmount).toBe(170);
         });
 
         it('should negate modifiedAmount when isFromExpenseReport is true', () => {
@@ -1162,6 +1303,14 @@ describe('TransactionUtils', () => {
             expect(showBrokenConnectionViolation).toBe(true);
         });
 
+        it('should return true when a re-auth broken connection violation exists and the user is the policy member', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
         it('should return true when a broken connection violation exists for any of the provided transactions and the user is the policy member', () => {
             const policy = createMock<Policy>({
                 role: CONST.POLICY.ROLE.USER,
@@ -1226,6 +1375,24 @@ describe('TransactionUtils', () => {
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
+        });
+    });
+
+    describe('hasPendingRTERViolation', () => {
+        it('should not treat a re-auth broken connection violation as pending', () => {
+            const transactionViolations = [
+                {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}},
+            ];
+
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(false);
+        });
+
+        it('should treat a seven-day-hold RTER violation as pending', () => {
+            const transactionViolations = [
+                {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD}},
+            ];
+
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(true);
         });
     });
 
@@ -1751,7 +1918,61 @@ describe('TransactionUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             };
 
-            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, 'test@example.com')).toBe(false);
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(false);
+        });
+
+        it('should return true for auto approval limit violation when the submitter is also the approver of the processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: CURRENT_USER_ID,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
+        });
+
+        it('should return false for auto approval limit violation when the submitter is not the approver of the processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: 2,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(false);
+        });
+
+        it('should return true for auto approval limit violation when the approver is not the submitter of the processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: 2,
+                managerID: CURRENT_USER_ID,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
         });
     });
 
@@ -2362,7 +2583,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}child-1`]: childTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-1');
@@ -2383,7 +2604,7 @@ describe('TransactionUtils', () => {
             };
 
             // Report doesn't exist in reportCollectionDataSet
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('child-2');
@@ -2404,7 +2625,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}deleting-1`]: deletingTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(0);
         });
@@ -2433,7 +2654,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}non-matching-1`]: nonMatchingChild,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('matching-1');
@@ -2453,7 +2674,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, false);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('orphaned-1');
@@ -4024,6 +4245,113 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.getExchangeRate(transaction, 'EUR')).toBe('');
         });
+
+        describe('shouldFormatRate (display formatting to 4 decimals, matching Expensify Classic)', () => {
+            it('rounds a rate with more than 4 decimals rather than truncating', () => {
+                const transaction = generateTransaction({
+                    currency: 'USD',
+                    groupExchangeRate: 13768.5157822803,
+                    groupCurrency: 'EUR',
+                    amount: -100,
+                    convertedAmount: -1376851,
+                });
+
+                // toFixed(4) rounds .51578… up to .5158 (truncation would give .5157).
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('13768.5158 USD/EUR');
+            });
+
+            it('rounds, not truncates, on the values where the two rules differ', () => {
+                const aed = generateTransaction({
+                    currency: 'AED',
+                    currencyConversionRate: '0.272294077603812',
+                    amount: -100,
+                    convertedAmount: -27,
+                });
+                const ron = generateTransaction({
+                    currency: 'RON',
+                    currencyConversionRate: '0.220361392684002',
+                    amount: -100,
+                    convertedAmount: -22,
+                });
+
+                // Classic renders 0.2723 and 0.2204; truncation would give 0.2722 and 0.2203.
+                expect(TransactionUtils.getExchangeRate(aed, 'USD', true)).toBe('0.2723 AED/USD');
+                expect(TransactionUtils.getExchangeRate(ron, 'USD', true)).toBe('0.2204 RON/USD');
+            });
+
+            it('formats an exponential rate to 0.0000 instead of mangling it', () => {
+                const transaction = generateTransaction({
+                    currency: 'IRR',
+                    groupExchangeRate: 7.27431439586819e-7,
+                    groupCurrency: 'USD',
+                    amount: -100,
+                    convertedAmount: -1,
+                });
+
+                // Classic renders 0.0000; the string-split truncation approach returned 7.2743 here.
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('0.0000 IRR/USD');
+            });
+
+            it('formats an exponential rate string to 0.0000', () => {
+                // The reported bug arrived through currencyConversionRate (typed string), so the real input is the
+                // zero-padded exponent string rather than the number the groupExchangeRate case above covers.
+                const transaction = generateTransaction({
+                    currency: 'IRR',
+                    currencyConversionRate: '7.27431439586819e-07',
+                    amount: -100,
+                    convertedAmount: -1,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, 'USD', true)).toBe('0.0000 IRR/USD');
+            });
+
+            it('pads a rate with fewer than 4 decimals to exactly 4', () => {
+                const transaction = generateTransaction({
+                    currency: 'USD',
+                    groupExchangeRate: 1.5,
+                    groupCurrency: 'EUR',
+                    amount: -100,
+                    convertedAmount: -150,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('1.5000 USD/EUR');
+            });
+
+            it('formats the "0.0" string the backend can return to 0.0000', () => {
+                const transaction = generateTransaction({
+                    currency: 'UZS',
+                    currencyConversionRate: '0.0',
+                    amount: -5000,
+                    convertedAmount: -1,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, 'USD', true)).toBe('0.0000 UZS/USD');
+            });
+
+            it('renders a non-numeric rate verbatim instead of NaN', () => {
+                const transaction = generateTransaction({
+                    currency: 'USD',
+                    currencyConversionRate: 'invalid',
+                    groupCurrency: 'EUR',
+                    amount: -100,
+                    convertedAmount: -85,
+                });
+
+                // Number('invalid') is NaN, so the finite guard falls back to the raw string.
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('invalid USD/EUR');
+            });
+
+            it('leaves the rate untouched without the flag, so the sorts and the emptiness predicate are unaffected', () => {
+                const transaction = generateTransaction({
+                    currency: 'AED',
+                    currencyConversionRate: '0.272294077603812',
+                    amount: -100,
+                    convertedAmount: -27,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('0.272294077603812 AED/USD');
+            });
+        });
     });
 
     describe('mergeProhibitedViolations', () => {
@@ -4460,5 +4788,190 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     it('returns true when the user entered a waypoint', () => {
         const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
+    });
+});
+
+describe('isTransactionSubmittable', () => {
+    it('returns true for a transaction that is on hold', () => {
+        const transaction = generateTransaction({comment: {hold: 'holdID'}});
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+
+    it('returns true for a transaction that is not on hold', () => {
+        const transaction = generateTransaction();
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+});
+
+describe('showHeldExpensesBlockModal', () => {
+    it('shows a confirm modal explaining that a report with only held expenses cannot be submitted', () => {
+        const showConfirmModal = jest.fn();
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters);
+
+        TransactionUtils.showHeldExpensesBlockModal(showConfirmModal, mockTranslate);
+
+        expect(showConfirmModal).toHaveBeenCalledWith({
+            title: mockTranslate('iou.error.unableToSubmitReport'),
+            prompt: mockTranslate('iou.error.allExpensesOnHoldDescription'),
+            confirmText: mockTranslate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    });
+});
+
+describe('getSelectedRouteDistance', () => {
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+    };
+
+    it('returns the selected route distance in meters when an alternate route is selected', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+    });
+
+    it('returns the default route distance when the default route is selected or no route is selected', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route0'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1000);
+        expect(TransactionUtils.getSelectedRouteDistance(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, routes}))).toBe(1000);
+    });
+
+    it('falls back to the default route when the selected route is no longer available', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route1'}, routes: {route0: routes.route0}});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1000);
+    });
+
+    it('returns undefined when the selected route has no distance', () => {
+        const nullDistance = generateTransaction({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {selectedRouteKey: 'route1'},
+            routes: {route1: {...routes.route1, distance: null}},
+        });
+        expect(TransactionUtils.getSelectedRouteDistance(nullDistance)).toBeUndefined();
+    });
+
+    it('returns undefined when the transaction has no routes', () => {
+        expect(TransactionUtils.getSelectedRouteDistance(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}))).toBeUndefined();
+    });
+
+    it('returns the selected route distance for the legacy distance request type', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+        expect(TransactionUtils.getSelectedRouteDistance(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, routes}))).toBe(1000);
+    });
+
+    it('returns undefined for distance requests that are not map based', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
+        expect(TransactionUtils.getSelectedRouteDistance(undefined)).toBeUndefined();
+    });
+});
+
+describe('getSelectedRouteKey', () => {
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+    };
+
+    it('returns the explicitly selected route', () => {
+        const transaction = generateTransaction({comment: {selectedRouteKey: 'route1', customUnit: {routeDistanceMeters: 1000}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('derives the selection from the saved route distance when there is no explicit selection', () => {
+        const transaction = generateTransaction({comment: {customUnit: {routeDistanceMeters: 1500}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('picks the closest route when the saved distance does not match exactly', () => {
+        const transaction = generateTransaction({comment: {customUnit: {routeDistanceMeters: 1493.27}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('derives the selection from the route distance even when a manual distance override is set', () => {
+        const transaction = generateTransaction({comment: {customUnit: {quantity: 42, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 1500}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('keeps the default route for an exact tie', () => {
+        const transaction = generateTransaction({comment: {customUnit: {routeDistanceMeters: 1000}}, routes: {...routes, route1: {...routes.route1, distance: 1000}}});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route0');
+    });
+
+    it('falls back to the default route when there is nothing to derive the selection from', () => {
+        expect(TransactionUtils.getSelectedRouteKey(generateTransaction({routes}))).toBe('route0');
+        expect(TransactionUtils.getSelectedRouteKey(generateTransaction({comment: {customUnit: {routeDistanceMeters: 1500}}}))).toBe('route0');
+        expect(TransactionUtils.getSelectedRouteKey(generateTransaction({comment: {customUnit: {routeDistanceMeters: 1500}}, routes: {route0: {...routes.route0, distance: null}}}))).toBe(
+            'route0',
+        );
+        expect(TransactionUtils.getSelectedRouteKey(undefined)).toBe('route0');
+    });
+});
+
+describe('hasManualDistanceOverride', () => {
+    // 1 mi = 1609.344 m, so these are exactly 1 mi and 2 mi.
+    const routes: Routes = {
+        route0: {distance: 1609.344, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 3218.688, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+    };
+    const withQuantity = (quantity: number | null, comment: Transaction['comment'] = {}) =>
+        generateTransaction({
+            comment: {...comment, customUnit: {...comment?.customUnit, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity}},
+            routes,
+        });
+
+    it('detects a quantity that does not match the selected route', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(50))).toBe(true);
+    });
+
+    it('does not flag a quantity that matches the primary route', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(1))).toBe(false);
+    });
+
+    it('does not flag a route-derived quantity when the re-fetched route distance drifted', () => {
+        // The expense was created from a 1 mi route (`routeDistanceMeters`), but the re-fetch returned 1.01 mi for
+        // the same route. The quantity still matches the creation-time distance, so it is not a manual override.
+        const transaction = generateTransaction({
+            comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 1, routeDistanceMeters: 1609.344}},
+            routes: {route0: {distance: 1625.4, geometry: {type: 'LineString', coordinates: [[0, 0]]}}},
+        });
+        expect(TransactionUtils.hasManualDistanceOverride(transaction)).toBe(false);
+    });
+
+    it('compares against the selected alternate route, not the primary one', () => {
+        // 2 mi is route1's own distance — an alternate route selection, not an override.
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(2, {selectedRouteKey: 'route1'}))).toBe(false);
+        // 1 mi matches route0, but route1 is the selected route, so it is an override of it.
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(1, {selectedRouteKey: 'route1'}))).toBe(true);
+    });
+
+    it('recovers the selection from routeDistanceMeters when the expense has no local pick', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(2, {customUnit: {routeDistanceMeters: 3218.688}}))).toBe(false);
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(50, {customUnit: {routeDistanceMeters: 3218.688}}))).toBe(true);
+    });
+
+    it('returns false when there is nothing to compare', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(null))).toBe(false);
+        expect(TransactionUtils.hasManualDistanceOverride(generateTransaction({comment: {customUnit: {quantity: 50}}}))).toBe(false);
+        expect(TransactionUtils.hasManualDistanceOverride(undefined)).toBe(false);
+    });
+});
+
+describe('getDistanceInMeters', () => {
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+    };
+
+    it('returns the selected route distance', () => {
+        const transaction = generateTransaction({comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1500);
+    });
+
+    it('falls back to route0 when the selected route is no longer available', () => {
+        const transaction = generateTransaction({comment: {selectedRouteKey: 'route1'}, routes: {route0: routes.route0}});
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1000);
     });
 });

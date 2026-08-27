@@ -1,7 +1,7 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 
-import {getSearchValueForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
-import {getParsableSearchValue, getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getExportLabelForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
+import {getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 
 import CONST from '@src/CONST';
 
@@ -535,13 +535,13 @@ describe('SearchAutocompleteUtils', () => {
     });
 
     describe('AccountingUtils exported-to search filter helpers', () => {
-        describe('getSearchValueForConnection', () => {
+        describe('getExportLabelForConnection', () => {
             it('returns user-friendly name for QBO', () => {
-                expect(getSearchValueForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('QuickBooks Online');
+                expect(getExportLabelForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('QuickBooks Online');
             });
 
             it('returns user-friendly name for Sage Intacct', () => {
-                expect(getSearchValueForConnection(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('Sage Intacct');
+                expect(getExportLabelForConnection(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('Sage Intacct');
             });
         });
 
@@ -554,39 +554,37 @@ describe('SearchAutocompleteUtils', () => {
                 expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
             });
 
+            it('returns display name for the Canadian multiple tax export template', () => {
+                expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
+            });
+
             it('returns template name as-is when no standard mapping', () => {
                 const customName = 'Custom Export Layout';
                 expect(getStandardExportTemplateDisplayName(customName)).toBe(customName);
             });
         });
-    });
 
-    describe('getParsableSearchValue', () => {
-        describe('name filters, which the parser reads back with quotes intact', () => {
-            it.each(['from', 'to', 'payer', 'assignee'])('keeps a quoted display name for %s', (filterKey) => {
-                expect(getParsableSearchValue(filterKey, 'Bob "The Builder" Smith')).toBe('Bob "The Builder" Smith');
+        describe('isStandardExportTemplate', () => {
+            it('returns true for every standard export template ID', () => {
+                expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT)).toBe(true);
+                expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT)).toBe(true);
+                expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(true);
             });
 
-            it('keeps a plain display name', () => {
-                expect(getParsableSearchValue('from', 'Alice Smith')).toBe('Alice Smith');
-            });
-
-            it('strips quotes only when the name cannot be read back as one value', () => {
-                expect(getParsableSearchValue('from', 'Acme "US",Inc')).toBe('Acme US,Inc');
+            it('returns false for a custom template ID', () => {
+                expect(isStandardExportTemplate('Custom Export Layout')).toBe(false);
             });
         });
 
-        describe('workspace and room filters, which cannot carry quotes', () => {
-            it('strips quotes from a workspace name', () => {
-                expect(getParsableSearchValue('workspace', 'Bob "The Builder" Smith')).toBe('Bob The Builder Smith');
+        describe('isStandardExportTemplateLabel', () => {
+            it('returns true for every standard export template label', () => {
+                expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT)).toBe(true);
+                expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT)).toBe(true);
+                expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT)).toBe(true);
             });
 
-            it('keeps a workspace name containing only a comma', () => {
-                expect(getParsableSearchValue('workspace', 'Acme,Inc')).toBe('Acme,Inc');
-            });
-
-            it('keeps a room name whose quote survives the round trip', () => {
-                expect(getParsableSearchValue('in', 'Acme,"Inc')).toBe('Acme,"Inc');
+            it('returns false for a custom template label', () => {
+                expect(isStandardExportTemplateLabel('Custom Export Layout')).toBe(false);
             });
         });
     });

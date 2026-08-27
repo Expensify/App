@@ -14,7 +14,6 @@ import {
     buildOptimisticExpenseReport,
     buildOptimisticMarkedAsResolvedReportAction,
     buildOptimisticMoneyRequestEntities,
-    buildOptimisticMovedTransactionAction,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
     buildOptimisticReportLevelRejectAction,
@@ -170,7 +169,6 @@ function prepareRejectMoneyRequestData({
     let urlToNavigateBack;
     let reportPreviewAction: OnyxTypes.ReportAction | undefined;
     let createdIOUReportActionID;
-    let expenseMovedReportActionID;
     let expenseCreatedReportActionID;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
@@ -209,7 +207,6 @@ function prepareRejectMoneyRequestData({
     const optimisticRejectReportAction = buildOptimisticRejectReportAction(delegateAccountID, baseTimestamp);
     const parsedComment = getParsedComment(comment);
     const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, delegateAccountID, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
-    let movedTransactionAction;
 
     // Build successData and failureData to prevent duplication
     const successData: Array<
@@ -517,9 +514,9 @@ function prepareRejectMoneyRequestData({
             });
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, undefined, transaction, undefined, undefined, delegateAccountID);
-            movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
+            // The reject action posted below already tells the user this expense left the report,
+            // so a MOVED_TRANSACTION action in the same thread would repeat it
             createdIOUReportActionID = iouAction.reportActionID;
-            expenseMovedReportActionID = movedTransactionAction.reportActionID;
             expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
             options?.setExistingRejectedReport?.(newExpenseReport);
@@ -769,7 +766,6 @@ function prepareRejectMoneyRequestData({
         value: {
             [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
             [optimisticRejectReportActionComment.reportActionID]: optimisticRejectReportActionComment,
-            ...(movedTransactionAction ? {[movedTransactionAction.reportActionID]: movedTransactionAction} : {}),
         },
     });
 
@@ -924,7 +920,6 @@ function prepareRejectMoneyRequestData({
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
         rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
         createdIOUReportActionID,
-        expenseMovedReportActionID,
         expenseCreatedReportActionID,
     };
 

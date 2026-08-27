@@ -20,7 +20,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
+import {isManualDistanceRequest as isManualDistanceRequestUtil, isOdometerDistanceRequest as isOdometerDistanceRequestUtil, isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
 
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 
@@ -207,13 +207,15 @@ function SearchTransactionsChangeReport() {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.EDIT,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: firstTransactionID,
-                        reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.EDIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: firstTransactionID,
+                            reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    ),
                 );
             }
             return;
@@ -225,13 +227,15 @@ function SearchTransactionsChangeReport() {
         }
         if (shouldNavigateToUpgradePath) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: CONST.IOU.ACTION.CREATE,
-                    iouType: CONST.IOU.TYPE.CREATE,
-                    transactionID: generateReportID(),
-                    reportID: generateReportID(),
-                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        transactionID: generateReportID(),
+                        reportID: generateReportID(),
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
+                ),
             );
             return;
         }
@@ -309,6 +313,8 @@ function SearchTransactionsChangeReport() {
         <IOURequestEditReportCommon
             backTo={undefined}
             transactionIDs={selectedTransactionsKeys}
+            isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
+            isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
             selectedReportID={selectedReportID}
             selectReport={selectReport}
             removeFromReport={removeFromReport}

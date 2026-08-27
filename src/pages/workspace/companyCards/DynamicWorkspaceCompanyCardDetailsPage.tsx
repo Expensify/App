@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -88,6 +89,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
         'Trashcan',
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
@@ -217,20 +219,22 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         <CardDetailsActionButtons>
                             {canWriteCompanyCards && (
                                 <CardDetailsActionButton
-                                    text={translate('workspace.moreFeatures.companyCards.updateCard')}
-                                    icon={expensifyIcons.Sync}
                                     onPress={updateCard}
                                     isDisabled={isOffline || card?.isLoadingLastUpdated}
                                     isLoading={card?.isLoadingLastUpdated}
                                     style={styles.flexShrink0}
-                                />
+                                >
+                                    <CardDetailsActionButton.Icon src={expensifyIcons.Sync} />
+                                    <CardDetailsActionButton.Text>{translate('workspace.moreFeatures.companyCards.updateCard')}</CardDetailsActionButton.Text>
+                                </CardDetailsActionButton>
                             )}
                             <CardDetailsActionButton
-                                text={translate('workspace.common.viewTransactions')}
-                                icon={expensifyIcons.MoneySearch}
                                 onPress={navigateToTransactions}
                                 style={styles.flexShrink0}
-                            />
+                            >
+                                <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                                <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                            </CardDetailsActionButton>
                         </CardDetailsActionButtons>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -273,9 +277,9 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         />
                     </OfflineWithFeedback>
                     {canWriteCompanyCards && shouldShowBreakConnection && (
-                        <MenuItem
+                        <MenuItemAction
                             icon={expensifyIcons.Trashcan}
-                            disabled={isOffline || card?.isLoadingLastUpdated}
+                            isDisabled={isOffline || card?.isLoadingLastUpdated}
                             title="Break connection (Testing)"
                             onPress={breakConnection}
                         />
@@ -324,7 +328,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                                     description={exportMenuItem.shouldHideMenuItemDescription ? undefined : exportMenuItem.description}
                                     title={exportMenuItem.title}
                                     numberOfLinesTitle={2}
-                                    icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons) : undefined}
+                                    icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons, policy) : undefined}
                                     iconType={CONST.ICON_TYPE_AVATAR}
                                     avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                                     shouldShowRightIcon={canWriteCompanyCards}
