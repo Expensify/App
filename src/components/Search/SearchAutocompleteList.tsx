@@ -63,6 +63,7 @@ type GetAdditionalSectionsCallback = (options: Options, sectionIndex: number) =>
 type SearchAutocompleteListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
+
     /** Immediate (non-debounced) query from the input for UI-only behavior */
     inputQueryValue?: string;
 
@@ -319,10 +320,6 @@ function SearchAutocompleteList({
             ref.current = instance;
         }
     };
-
-    // The "reset focus when query changes" effect lives further down (after firstRecentReportFlatIndex/Key and
-    // normalizedReferenceText are computed) because it now needs those values to decide, synchronously, whether
-    // the debounced query has already settled for the freshly typed text. See the comment there for why.
 
     // Track external text input focus to prevent list items from stealing focus while typing
     useEffect(() => {
