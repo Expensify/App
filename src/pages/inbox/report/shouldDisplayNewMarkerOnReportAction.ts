@@ -31,6 +31,9 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     /** The reportActionID of the current unread marker, if one exists */
     prevUnreadMarkerReportActionID?: string | null;
 
+    /** Whether the action `prevUnreadMarkerReportActionID` points to is still present (not deleted/hidden) */
+    isPrevUnreadMarkerReportActionPresent?: boolean;
+
     /** The reportActionID the user explicitly marked as unread, if any */
     manuallyMarkedUnreadReportActionID?: string | null;
     /** Whether the app window is focused */
@@ -51,6 +54,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     isScrolledOverThreshold,
     isOffline,
     prevUnreadMarkerReportActionID,
+    isPrevUnreadMarkerReportActionPresent = false,
     manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
@@ -109,7 +113,9 @@ const shouldDisplayNewMarkerOnReportAction = ({
     // So essentially, the previously unread cannot move from one new self-user-action to another. Once a
     // self-authored action holds the marker, keep it there rather than letting it hop to a different
     // self-authored action (e.g. a persisted reimbursable toggle) — the regression from Expensify/App#91940.
-    const isDifferentUnread = isPreviouslyUnreadFromCurrentUser && prevMarkedReportAction?.reportActionID !== message.reportActionID;
+    // This only applies while that previous anchor is still present: if it was deleted, the marker must be
+    // allowed to relocate to the next unread message.
+    const isDifferentUnread = isPrevUnreadMarkerReportActionPresent && isPreviouslyUnreadFromCurrentUser && prevMarkedReportAction?.reportActionID !== message.reportActionID;
     const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic || isDifferentUnread;
 
     if (isFromCurrentUser) {
@@ -198,6 +204,13 @@ const getUnreadMarkerReportAction = ({
     const activeManuallyMarkedUnreadReportActionID =
         manuallyMarkedUnreadReportAction && !shouldHideNewMarker(manuallyMarkedUnreadReportAction, isOffline) ? manuallyMarkedUnreadReportActionID : null;
 
+    // Whether the action the marker was previously anchored on is still present (not deleted/hidden). This
+    // distinguishes "the anchor was deleted, so let the marker relocate to the next unread message" from
+    // "the anchor is still around, so a different self-authored action must not steal the marker".
+    const isPrevUnreadMarkerReportActionPresent = prevUnreadMarkerReportActionID
+        ? visibleReportActions.some((action) => action.reportActionID === prevUnreadMarkerReportActionID && !shouldHideNewMarker(action, isOffline))
+        : false;
+
     const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestReceivedOfflineMessageIndex ?? 0);
     const endIndex = isReversed ? (earliestReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
     const step = isReversed ? -1 : 1;
@@ -233,6 +246,7 @@ const getUnreadMarkerReportAction = ({
                 isScrolledOverThreshold,
                 isOffline,
                 prevUnreadMarkerReportActionID,
+                isPrevUnreadMarkerReportActionPresent,
                 manuallyMarkedUnreadReportActionID: activeManuallyMarkedUnreadReportActionID,
                 hasWindowFocus,
             });

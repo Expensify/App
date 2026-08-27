@@ -6132,10 +6132,10 @@ describe('ReportActionsUtils', () => {
             ).toBe(true);
         });
 
-        it('does not move the marker from one self-authored action to a different self-authored action', () => {
-            // The previously marked action was a persisted self-authored message. A different self-authored
-            // action must not steal the "New" marker off it (the Expensify/App#91940 hop), so `isDifferentUnread`
-            // suppresses the marker here even though this action reads as unread.
+        it('does not move the marker from one self-authored action to a different self-authored action while the previous anchor is still present', () => {
+            // The previously marked action was a persisted self-authored message that is still present. A different
+            // self-authored action must not steal the "New" marker off it (the Expensify/App#91940 hop), so
+            // `isDifferentUnread` suppresses the marker here even though this action reads as unread.
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'});
             const prevMarkedAction = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
             const prevSortedVisibleReportActionsObjects = {
@@ -6148,9 +6148,31 @@ describe('ReportActionsUtils', () => {
                     message,
                     prevSortedVisibleReportActionsObjects,
                     prevUnreadMarkerReportActionID: 'self-action-a',
+                    isPrevUnreadMarkerReportActionPresent: true,
                     isOffline: false,
                 }),
             ).toBe(false);
+        });
+
+        it('moves the marker to another self-authored action once the previous anchor has been deleted', () => {
+            // When the previous self-authored anchor is no longer present (deleted), the marker must be allowed to
+            // relocate to the next unread self-authored message, so `isDifferentUnread` does not suppress it.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'});
+            const prevMarkedAction = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
+            const prevSortedVisibleReportActionsObjects = {
+                [prevMarkedAction.reportActionID]: prevMarkedAction,
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'self-action-a',
+                    isPrevUnreadMarkerReportActionPresent: false,
+                    isOffline: false,
+                }),
+            ).toBe(true);
         });
 
         it('keeps the marker on the same self-authored action it was previously anchored on', () => {
@@ -6166,6 +6188,7 @@ describe('ReportActionsUtils', () => {
                     message,
                     prevSortedVisibleReportActionsObjects,
                     prevUnreadMarkerReportActionID: 'self-action-a',
+                    isPrevUnreadMarkerReportActionPresent: true,
                     isOffline: false,
                 }),
             ).toBe(true);
