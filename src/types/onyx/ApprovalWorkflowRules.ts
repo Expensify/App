@@ -82,6 +82,14 @@ type ApprovalWorkflowRule = {
 
     /** What happens when the rule matches. */
     actions: ApprovalWorkflowActions;
+
+    /**
+     * Whether this rule belongs to the policy's default workflow — the one shown as approving for "Everyone".
+     *
+     * A custom workflow may start at the same approver as the default one and diverge later, so the first
+     * approver alone can't tell the two apart. This marks which chain is the default.
+     */
+    isDefaultApprovalWorkflow?: boolean;
 };
 
 export type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule, ApprovalWorkflowTriggers};

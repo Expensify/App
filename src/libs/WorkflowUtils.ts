@@ -879,7 +879,7 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
 
     // Different approvers may share an `overLimitForwardsTo`, which would emit identical terminal rules.
     const seen = new Set<string>();
-    return rules.filter((rule) => {
+    const dedupedRules = rules.filter((rule) => {
         const fingerprint = JSON.stringify(sortObjectKeysDeep(rule));
         if (seen.has(fingerprint)) {
             return false;
@@ -887,6 +887,11 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
         seen.add(fingerprint);
         return true;
     });
+
+    if (!approvalWorkflow.isDefault) {
+        return dedupedRules;
+    }
+    return dedupedRules.map((rule) => ({...rule, isDefaultApprovalWorkflow: true}));
 }
 
 /**
@@ -985,6 +990,9 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
             triggers: rule.triggers,
             filters: stripFromValues(rule.filters),
             actions: rule.actions,
+            // Part of the identity so a custom workflow is never folded into the default one's rules, which
+            // would silently move its members into the default workflow.
+            isDefaultApprovalWorkflow: !!rule.isDefaultApprovalWorkflow,
         }),
     );
 }
@@ -1019,6 +1027,49 @@ type ReconcileContext = {
     /** The policy's existing approval-workflow rules (`ruleID -> rule body`), defaulting to `{}`. */
     existingRules: Record<string, ApprovalWorkflowRule>;
 };
+
+type BuildApprovalWorkflowRulesForSaveContext = {
+    /** The policy's existing approval-workflow rules (`ruleID -> rule body`). */
+    existingRules: Record<string, ApprovalWorkflowRule>;
+
+    /** The policy's employees, used to read the default chain when it isn't rule-backed yet. */
+    employees: PolicyEmployeeList;
+
+    /** The policy's default approver. */
+    defaultApprover: string;
+};
+
+/** The structural fingerprints of the rules that describe the policy's default workflow. */
+function getDefaultWorkflowRuleFingerprints({existingRules, employees, defaultApprover}: BuildApprovalWorkflowRulesForSaveContext, members: Member[]): Set<string> {
+    const markedRules = Object.values(existingRules).filter((rule) => !!rule.isDefaultApprovalWorkflow);
+    if (markedRules.length > 0) {
+        return new Set(markedRules.map(structuralFingerprint));
+    }
+
+    // Not rule-backed yet, so the default chain still lives in `employeeList`. Fingerprints ignore the `from`
+    // list, so building against these members produces the same shapes the real default rules would have.
+    const chain = calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail: {}});
+    return new Set(buildApprovalWorkflowRules({members, approvers: chain, isDefault: true}).map(structuralFingerprint));
+}
+
+/**
+ * Build the rules for a workflow that is being saved.
+ *
+ * A workflow routing exactly the way the default workflow does *is* the default workflow, so rather than
+ * standing up a duplicate of it we hand back the default-workflow shape and let the reconcilers fold the
+ * members into the existing default rules. When the default workflow has no rules at all, that means writing
+ * nothing: the members already reach the default approver through `employeeList`.
+ */
+function buildApprovalWorkflowRulesForSave(approvalWorkflow: ApprovalWorkflow, context: BuildApprovalWorkflowRulesForSaveContext): ApprovalWorkflowRule[] {
+    const rulesAsDefault = buildApprovalWorkflowRules({...approvalWorkflow, isDefault: true});
+    const defaultFingerprints = getDefaultWorkflowRuleFingerprints(context, approvalWorkflow.members);
+    const matchesDefaultWorkflow = rulesAsDefault.length > 0 && rulesAsDefault.every((rule) => defaultFingerprints.has(structuralFingerprint(rule)));
+
+    if (!matchesDefaultWorkflow) {
+        return buildApprovalWorkflowRules(approvalWorkflow);
+    }
+    return hasMarkedDefaultWorkflow(context.existingRules) ? rulesAsDefault : [];
+}
 
 /**
  * Reconcile a freshly created workflow against the existing rules. New rules that match an
@@ -1379,6 +1430,22 @@ function getSubmitterRuleIDs(submitter: string, rules: Record<string, ApprovalWo
 }
 
 /**
+ * True when any rule carries the default-workflow marker.
+ *
+ * The marker is only written when the default workflow is saved through the rules backend, so policies that
+ * predate it — or have never had their default workflow edited — have none. Callers use this to decide
+ * whether the marker can be trusted as the answer, or whether to fall back to matching the default approver.
+ */
+function hasMarkedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>): boolean {
+    return Object.values(rules).some((rule) => !!rule.isDefaultApprovalWorkflow);
+}
+
+/** True when this submitter is routed by rules belonging to the default workflow. */
+function isDefaultWorkflowSubmitter(submitter: string, rules: Record<string, ApprovalWorkflowRule>): boolean {
+    return Object.values(rules).some((rule) => !!rule.isDefaultApprovalWorkflow && extractSubmitterEmails(rule).includes(submitter));
+}
+
+/**
  * Keep only the rules belonging to `policyID`, preserving the collection shape so the result can still be
  * handed to anything that takes the whole rules collection.
  */
@@ -1414,6 +1481,7 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
             triggers: toIndexMap(Object.values(rule.triggers ?? {})),
             filters: rule.filters,
             actions: toIndexMap(Object.values(rule.actions ?? {})),
+            ...(rule.isDefaultApprovalWorkflow ? {isDefaultApprovalWorkflow: true} : {}),
         };
     }
 
@@ -1448,7 +1516,13 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
  */
 function getRulesSubmitterToNonDefaultFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList, defaultApprover: string): Record<string, string> {
     const submitterToFirstApprover = getRulesSubmitterToFirstApprover(rules, employees);
-    return Object.fromEntries(Object.entries(submitterToFirstApprover).filter(([, firstApprover]) => firstApprover !== defaultApprover));
+    const shouldUseMarker = hasMarkedDefaultWorkflow(rules);
+
+    return Object.fromEntries(
+        Object.entries(submitterToFirstApprover).filter(([submitter, firstApprover]) =>
+            shouldUseMarker ? !isDefaultWorkflowSubmitter(submitter, rules) : firstApprover !== defaultApprover,
+        ),
+    );
 }
 
 /**
@@ -1509,7 +1583,8 @@ function convertApprovalWorkflowRulesToWorkflows({
     }
 
     // Keyed by a source-tagged fingerprint so a legacy chain and a rule-based chain with the same shape stay
-    // in separate workflows. Tag values: 'r' (any rule mentions the submitter) or 'l'.
+    // in separate workflows. Tag values: 'r' (any rule mentions the submitter) or 'l', suffixed with 'd' for
+    // the default workflow so it never merges with a custom chain of the same shape.
     const groupedByFingerprint = new Map<string, WorkflowGroup>();
     const usedApproverEmails = new Set<string>();
     const availableMembers: Member[] = [];
@@ -1567,12 +1642,18 @@ function convertApprovalWorkflowRulesToWorkflows({
             }
         }
 
+        // A rule-based chain is the default one only when its rules say so. Matching the default approver is
+        // not enough: a custom workflow is allowed to start there and diverge later. Chains that come from
+        // `employeeList` carry no marker, so for those the default approver is still the answer.
+        const hasRuleBasedChain = getSubmitterRuleIDs(email, rules).length > 0;
+        const isDefaultWorkflowChain = hasRuleBasedChain ? isDefaultWorkflowSubmitter(email, rules) : firstApproverEmail === defaultApprover;
+
         // Group by resolved approver chain (not by ruleID set) so submitters routing through the same chain
         // render as one card even when their rules are stored as separate pairs. The `r`/`l` tag keeps
-        // rule-based chains separate from legacy employeeList chains.
-        const hasRuleBasedChain = getSubmitterRuleIDs(email, rules).length > 0;
+        // rule-based chains separate from legacy employeeList chains, and `d` keeps the default workflow
+        // separate from a custom chain that happens to have the same shape.
         const chainKey = approverChainFingerprint(chain);
-        const fingerprint = hasRuleBasedChain ? `r|${chainKey}` : `l|${chainKey}`;
+        const fingerprint = `${hasRuleBasedChain ? 'r' : 'l'}${isDefaultWorkflowChain ? 'd' : ''}|${chainKey}`;
         const existingGroup = groupedByFingerprint.get(fingerprint);
 
         if (existingGroup) {
@@ -1589,12 +1670,24 @@ function convertApprovalWorkflowRulesToWorkflows({
         groupedByFingerprint.set(fingerprint, {
             chain,
             members: pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? [member] : [],
-            isDefault: firstApproverEmail === defaultApprover,
+            isDefault: isDefaultWorkflowChain,
             pendingAction: workflowPendingAction,
         });
     }
 
-    const sortedApprovalWorkflows: ApprovalWorkflow[] = Array.from(groupedByFingerprint.values())
+    const workflowGroups = Array.from(groupedByFingerprint.values());
+
+    // Rules saved before the default-workflow marker existed carry none, which would leave the policy with no
+    // default workflow at all. Fall back to the chain starting at the default approver; the next save of that
+    // workflow writes the marker and settles it for good.
+    if (!workflowGroups.some((group) => group.isDefault)) {
+        const groupStartingAtDefaultApprover = workflowGroups.find((group) => group.chain.at(0)?.email === defaultApprover);
+        if (groupStartingAtDefaultApprover) {
+            groupStartingAtDefaultApprover.isDefault = true;
+        }
+    }
+
+    const sortedApprovalWorkflows: ApprovalWorkflow[] = workflowGroups
         .map(({chain, members, isDefault, pendingAction}) => ({
             members,
             approvers: chain,
@@ -1629,6 +1722,7 @@ export {
     applyApprovalWorkflowRulesDiff,
     approverChainFingerprint,
     buildApprovalWorkflowRules,
+    buildApprovalWorkflowRulesForSave,
     calculateApprovers,
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
@@ -1641,6 +1735,7 @@ export {
     getRulesSubmitterToNonDefaultFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
+    hasMarkedDefaultWorkflow,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
