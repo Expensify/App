@@ -27,7 +27,7 @@ jest.mock('@hooks/useLocalize', () => () => ({
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyIllustrations: () => ({HouseWithMap: 'HouseWithMap'}),
+    useMemoizedLazyIllustrations: () => ({House: 'House', HouseWithMap: 'HouseWithMap'}),
 }));
 
 describe('useCommuterExclusionGuard', () => {
@@ -37,6 +37,7 @@ describe('useCommuterExclusionGuard', () => {
 
     beforeEach(async () => {
         mockShowConfirmModal.mockClear();
+        mockShowConfirmModal.mockResolvedValue({action: 'cancel'});
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -152,6 +153,51 @@ describe('useCommuterExclusionGuard', () => {
         const {result} = renderHook(() => useCommuterExclusionGuard({}));
 
         expect(result.current('policy_forced')).toBe(false);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
+    it('blocks a distance request when home and office exclusions require a missing home address', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_home_and_office`, {
+            id: 'policy_home_and_office',
+            name: 'Home and office workspace',
+            commuterExclusions: {
+                method: 'homeAndOffice',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() =>
+            useCommuterExclusionGuard({
+                policyID: 'policy_home_and_office',
+                isDistanceRequest: true,
+            }),
+        );
+
+        expect(result.current()).toBe(true);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.homeAddressRequired.title'}));
+    });
+
+    it('allows a distance request when the current home address is present', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_home_and_office`, {
+            id: 'policy_home_and_office',
+            name: 'Home and office workspace',
+            commuterExclusions: {
+                method: 'homeAndOffice',
+            },
+        });
+        await Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+            addresses: [{street: '123 Main Street', current: true}],
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() =>
+            useCommuterExclusionGuard({
+                policyID: 'policy_home_and_office',
+                isDistanceRequest: true,
+            }),
+        );
+
+        expect(result.current()).toBe(false);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 });
