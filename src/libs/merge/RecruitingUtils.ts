@@ -115,4 +115,4 @@ export {
     shouldShowRecruitingConnectionError,
 };
 
-export type {RecruitingConnectionName, RecruitingProviderInfo};
+export type {RecruitingConnectionName};
